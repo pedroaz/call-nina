@@ -4,6 +4,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, realpathSync, rmSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { taskBranch } from "./lib/task-metadata.mjs";
 import { developmentConfig } from "../lib/config.mjs";
 import {
   root,
@@ -39,7 +40,7 @@ const help = `Call Nina Orca coordination (Git owns integration):
   start --role product-owner|coordinator  Interactive main agent, using its role settings
   bind --run RUN --coordinator HANDLE
   task                     Assignment JSON on stdin: run, role, title, brief,
-                           owned:[], acceptance:[], exclusions:[], skills:[], deps:[], issue?, commit (reviewer/verifier)
+                           owned:[], acceptance:[], exclusions:[], skills:[], deps:[], issue + branch (writers), commit (reviewer/verifier)
   launch --run RUN --task TASK --worktree PATH --baseline COMMIT
   verify-enter --run RUN --worktree PATH
   verify-leave --run RUN
@@ -198,6 +199,11 @@ function main() {
           throw new Error(`ASSIGNMENT_ARRAY_REQUIRED: ${key}`);
       if (!input.acceptance.length || (writers.has(input.role) && !input.owned.length))
         throw new Error("ASSIGNMENT_SCOPE_REQUIRED");
+      if (writers.has(input.role)) {
+        if (!Number.isSafeInteger(input.issue) || input.issue < 1)
+          throw new Error("WRITER_TASK_ISSUE_REQUIRED");
+        taskBranch(input.branch, input.issue);
+      }
       if (["reviewer", "verifier"].includes(input.role)) {
         if (!input.commit) throw new Error("REVIEW_OR_VERIFICATION_COMMIT_REQUIRED");
         input.commit = git(["rev-parse", "--verify", `${input.commit}^{commit}`]).trim();
@@ -235,6 +241,14 @@ function main() {
         throw new Error("WORKER_LIMIT");
       const target = realpathSync(values.worktree);
       cleanWorktree(target);
+      if (writers.has(spec.role)) {
+        if (!Number.isSafeInteger(spec.issue) || spec.issue < 1)
+          throw new Error("WRITER_TASK_ISSUE_REQUIRED");
+        taskBranch(spec.branch, spec.issue);
+        const branch = git(["branch", "--show-current"], target).trim();
+        taskBranch(branch, spec.issue);
+        if (branch !== spec.branch) throw new Error("ASSIGNMENT_BRANCH_MISMATCH");
+      }
       const baseline = git(["rev-parse", "--verify", `${values.baseline}^{commit}`]).trim();
       if (spec.commit && spec.commit !== baseline) throw new Error("ASSIGNMENT_COMMIT_MISMATCH");
       if (git(["rev-parse", "HEAD"], target).trim() !== baseline)
