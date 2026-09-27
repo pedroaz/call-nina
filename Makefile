@@ -155,3 +155,7 @@ uninstall-local: ## Choose scoped installation removal.
 .PHONY: github
 github: ## GitHub project, queue and PR operations via gh (ARGS="help").
 	@node scripts/agents/github.mjs $(ARGS)
+
+.PHONY: pipeline-policy
+pipeline-policy: ## Show the GitHub pipeline policy diff; ARGS=apply reconciles and verifies it.
+	@node scripts/agents/pipeline-policy.mjs $(ARGS)

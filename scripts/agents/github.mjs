@@ -8,9 +8,16 @@ import { locked, stateRoot, load, tasks } from "./lib/orchestration.mjs";
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: Object.fromEntries(
-    ["issue", "pr", "status", "run", "review-task", "verification", "verification-commit"].map(
-      (key) => [key, { type: "string" }],
-    ),
+    [
+      "issue",
+      "pr",
+      "status",
+      "run",
+      "review-task",
+      "verification",
+      "verification-commit",
+      "static-check-commit",
+    ].map((key) => [key, { type: "string" }]),
   ),
 });
 const command = positionals[0] ?? "help";
@@ -155,7 +162,10 @@ function cloudRequest(comment) {
 }
 function evidence(number, head) {
   return comments(number).some(
-    (comment) => trusted(comment) && comment.body.startsWith(`<!-- nina-evidence:${head} -->`),
+    (comment) =>
+      trusted(comment) &&
+      comment.body.startsWith(`<!-- nina-evidence:${head} -->`) &&
+      comment.body.includes(`<!-- nina-local-static:${head} -->`),
   );
 }
 function main() {
@@ -165,9 +175,9 @@ function main() {
   config | project-setup | queue
   status --issue N --status 'Ready'   Product Owner only for new scope
   claim --issue N --run RUN          Bound coordinator only
-  evidence --pr N --run RUN --review-task TASK --verification-commit SHA --verification 'observed details or deferred reason'
+  evidence --pr N --run RUN --review-task TASK --verification-commit SHA --static-check-commit SHA --verification 'observed details or deferred reason'
   review --pr N                     Request cloud review once per PR
-  merge --pr N                      Exact-head local evidence + cloud completion + static checks
+  merge --pr N                      Exact-head local evidence + cloud completion + local static evidence
 Use gh issue/pr directly for authoring; gh api for missing operations.
 Settings: development.json. Recurring intake remains disabled until activation.`,
     };
@@ -311,13 +321,14 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       !existsSync(launchPath) ||
       load(launchPath).baseline !== reviewed ||
       load(launchPath).run !== values.run ||
-      values["verification-commit"] !== reviewed
+      values["verification-commit"] !== reviewed ||
+      values["static-check-commit"] !== reviewed
     )
-      throw new Error("REVIEW_AND_VERIFICATION_COMMIT_MISMATCH");
+      throw new Error("REVIEW_VERIFICATION_AND_STATIC_COMMIT_MISMATCH");
     if (!evidence(number, pull.headRefOid))
       post(
         number,
-        `<!-- nina-evidence:${pull.headRefOid} -->\nLocal review: \`${values["review-task"]}\` in \`${values.run}\`.\n\nVerification at \`${reviewed}\`: ${values.verification}\n\nCoordinator confirms all actionable local findings are resolved for this commit.`,
+        `<!-- nina-evidence:${pull.headRefOid} -->\nLocal review: \`${values["review-task"]}\` in \`${values.run}\`.\n\nVerification at \`${reviewed}\`: ${values.verification}\n\n<!-- nina-local-static:${reviewed} -->\nCoordinator confirms local make check passed and all actionable local findings are resolved for this commit.`,
       );
     return { head: pull.headRefOid, evidence: true };
   }
@@ -384,24 +395,6 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       )
     )
       throw new Error("UNRESOLVED_REVIEW_DISCUSSIONS");
-    const checks = gh([
-      "api",
-      `repos/${repo}/commits/${pull.headRefOid}/check-runs`,
-      "--paginate",
-      "--jq",
-      "tojson",
-    ]).flatMap((page) => page.check_runs);
-    if (
-      !checks.some(
-        (check) =>
-          check.name === "static" &&
-          check.app?.slug === "github-actions" &&
-          check.status === "completed" &&
-          check.conclusion === "success",
-      )
-    )
-      throw new Error("STATIC_CHECK_NOT_SUCCESSFUL");
-    gh(["pr", "checks", number, "--repo", repo, "--required"], false);
     return {
       merged: gh(
         ["pr", "merge", number, "--repo", repo, "--squash", "--match-head-commit", pull.headRefOid],

@@ -118,9 +118,11 @@ Use exactly two levels: epic issues with native sub-issues for deliverable tasks
 
 Agents capture deferred bugs as deduplicated Backlog issues using the bug template. The coordinator may parallelize fixes within already-approved scope; unrelated discoveries wait for Product Owner triage. Service configuration should be versioned using native configuration, maintained providers or idempotent reconciliation scripts, with secret values kept outside Git. Actual Clerk/Vercel integration is not provisioned by this workflow setup.
 
-### Current pipeline
+### Local verification and paused pipelines
 
-`.github/workflows/static.yml` runs on pull requests and pushes to `main`: frozen dependency installation, manifest-version consistency, Prettier, ESLint and TypeScript. It does not launch the application, run application tests, package installers or deploy services. Required static checks and resolved discussions gate PR merges. Independent local review and one cloud Codex review are coordinated by the development workflow, not additional GitHub Actions jobs. GitHub's remote branch-protection settings are currently configured through `gh`; they are not yet reconciled from a checked-in desired-state file.
+GitHub Actions and automatic Vercel Git deployments are disabled for now. Agents review the exact PR commit locally, run `make check` locally when preparing or updating a PR (manifest versions, Prettier, ESLint and TypeScript), fix findings and record evidence in the PR. Interactive application verification still follows the repository policy. Independent local review, the separately requested cloud Codex review and resolved discussions remain part of the merge workflow; no hosted `static` check is required.
+
+`.github/pipeline-policy.json` records the desired GitHub settings. Run `make pipeline-policy` to inspect the remote diff and `make pipeline-policy ARGS=apply` to reconcile and verify it using the existing authenticated `gh` login. The script disables Actions and removes only required status checks, preserving the other branch protections. `vercel.json` disables automatic Git deployments using [Vercel's supported configuration](https://vercel.com/docs/project-configuration/git-configuration). Re-enabling pipelines requires explicit user authorization and an updated policy.
 
 ## Existing learner data
 
