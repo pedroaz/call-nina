@@ -32,6 +32,7 @@ if (
         parameters: {
           required_status_checks: [{ context: "nina/task-metadata" }],
           strict_required_status_checks_policy: false,
+          do_not_enforce_on_create: false,
         },
       },
     ])
@@ -120,8 +121,14 @@ function ownedRule(rulesets) {
     !parameters ||
     Object.keys(payload.rules[0]).some((key) => !["type", "parameters"].includes(key)) ||
     Object.keys(parameters).some(
-      (key) => !["required_status_checks", "strict_required_status_checks_policy"].includes(key),
+      (key) =>
+        ![
+          "required_status_checks",
+          "strict_required_status_checks_policy",
+          "do_not_enforce_on_create",
+        ].includes(key),
     ) ||
+    parameters.do_not_enforce_on_create !== false ||
     !same(parameters.required_status_checks, desiredRule.rules[0].parameters.required_status_checks)
   )
     throw new Error("UNKNOWN_OWNED_RULE_ADDITIONS: refusing to overwrite checks or app bindings");
