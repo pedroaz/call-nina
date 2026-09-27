@@ -140,15 +140,20 @@ export function validateMetadata(snapshot, { candidate = false } = {}) {
   const active = activeMarkdown(pull.body);
   if (!new RegExp(`^Closes #${number}\\s*$`, "m").test(active))
     throw new Error(`TASK_CLOSURE_REQUIRED: Closes #${number}`);
+  // The outgoing squash commit is raw text, including its title, examples and
+  // comments. Markdown visibility only determines required PR metadata above;
+  // it must never exempt text from the commit's closing-keyword safety check.
+  const squashMessage = `${pull.title}\n\n${pull.body.trim()}`;
   const closures = [
-    ...active.matchAll(
-      /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+(?:https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/issues\/|([\w.-]+\/[\w.-]+)?#)([1-9]\d*)\b/gi,
+    ...squashMessage.matchAll(
+      /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?\s+(?:https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/(?:issues|pull)\/|([\w.-]+\/[\w.-]+)?#)([1-9]\d*)\b/gi,
     ),
   ];
   if (
     closures.some(
       (match) =>
-        Number(match[3]) !== number || ((match[1] || match[2]) && (match[1] || match[2]) !== repo),
+        Number(match[3]) !== number ||
+        ((match[1] || match[2]) && (match[1] || match[2]).toLowerCase() !== repo.toLowerCase()),
     )
   )
     throw new Error("ONLY_TASK_MAY_BE_CLOSED");

@@ -12,7 +12,7 @@ import {
   validateMetadata,
   metadataDigest,
 } from "./lib/task-metadata.mjs";
-import { locked, stateRoot, load, tasks } from "./lib/orchestration.mjs";
+import { assertCoordinator, locked, stateRoot, load, tasks } from "./lib/orchestration.mjs";
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: Object.fromEntries(
@@ -196,10 +196,6 @@ function evidence(number, head) {
       comment.body.startsWith(`<!-- nina-evidence:${head} -->`) &&
       comment.body.includes(`<!-- nina-local-static:${head} -->`),
   );
-}
-function coordinator() {
-  const binding = load(path.join(stateRoot, "run.json"));
-  if (!values.run || binding.run !== values.run) throw new Error("BOUND_COORDINATOR_REQUIRED");
 }
 function api(endpoint, method, body) {
   return JSON.parse(
@@ -543,7 +539,7 @@ function main() {
   status --issue N --status 'Ready'   Product Owner only for new scope
   claim --issue N --run RUN          Bound coordinator only
   evidence --pr N --run RUN --review-task TASK --verification-commit SHA --static-check-commit SHA --verification 'observed details or deferred reason'
-  review --pr N                     Request cloud review once per PR
+  review --pr N --run RUN           Request cloud review once per PR
   publish --run RUN --issue N --branch task/N-description --baseline SHA
                                     Create/verify native issue-linked branch, then fast-forward push local HEAD
   validate --pr N                   Read-only current metadata validation
@@ -651,10 +647,13 @@ Settings: development.json. Recurring intake remains disabled until activation.`
     };
   }
   if (command === "status") return setStatus(numeric(values.issue), values.status);
+  if (
+    ["claim", "publish", "create", "edit", "merge", "evidence", "review"].includes(command) ||
+    (command === "validate" && values.run)
+  )
+    assertCoordinator(values.run);
   if (command === "claim") {
     const number = numeric(values.issue);
-    const binding = load(path.join(stateRoot, "run.json"));
-    if (binding.run !== values.run) throw new Error("BOUND_COORDINATOR_REQUIRED");
     const item = issueItem(number);
     const marker = `<!-- nina-run:${values.run} -->`;
     const claims = comments(number).filter(
@@ -670,11 +669,6 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       post(number, `${marker}\nDevelopment claimed by Orca Run \`${values.run}\`.`);
     return setStatus(number, "In progress");
   }
-  if (
-    ["publish", "create", "edit", "merge"].includes(command) ||
-    (command === "validate" && values.run)
-  )
-    coordinator();
   if (command === "publish") return publish();
   if (command === "create") return createPull();
   const number = numeric(values.pr);
