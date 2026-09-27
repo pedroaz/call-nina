@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 .PHONY: orchestrate
-orchestrate: ## Orca roles, isolated workers and verification reservation (ARGS='help').
+orchestrate: ## Start the developer coordinator; ARGS="help" shows advanced operations.
 	@node scripts/agents/orchestrate.mjs $(ARGS)
 
 # Pass advanced options explicitly, for example: make logs ARGS="--level debug".
@@ -155,3 +155,7 @@ uninstall-local: ## Choose scoped installation removal.
 .PHONY: github
 github: ## GitHub project, queue and PR operations via gh (ARGS="help").
 	@node scripts/agents/github.mjs $(ARGS)
+
+.PHONY: pipeline-policy
+pipeline-policy: ## Show the GitHub pipeline policy diff; ARGS=apply reconciles and verifies it.
+	@node scripts/agents/pipeline-policy.mjs $(ARGS)

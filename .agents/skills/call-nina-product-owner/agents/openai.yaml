@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Product Owner"
+  short_description: "Interview, shape epics and publish approved tasks"
+  default_prompt: "Use $call-nina-product-owner to interview me about an epic, propose its tasks, and ask for my approval before creating anything in GitHub."

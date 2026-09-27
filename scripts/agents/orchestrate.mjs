@@ -31,9 +31,10 @@ const { positionals, values } = parseArgs({
     ]),
   ),
 });
-const command = positionals[0] ?? "help";
+const command = positionals[0] ?? "start";
 const bindingFile = path.join(stateRoot, "run.json");
 const help = `Call Nina Orca coordination (Git owns integration):
+  No arguments: start the interactive coordinator using its role settings.
   roles | doctor
   start --role product-owner|coordinator  Interactive main agent, using its role settings
   bind --run RUN --coordinator HANDLE
@@ -125,9 +126,9 @@ function main() {
     return { cli: resolveOrca(), runtime, roles, configuration: developmentConfig() };
   }
   if (command === "start") {
-    if (!["product-owner", "coordinator"].includes(values.role))
-      throw new Error("MAIN_ROLE_REQUIRED");
-    const config = role(values.role);
+    const mainRole = values.role ?? "coordinator";
+    if (!["product-owner", "coordinator"].includes(mainRole)) throw new Error("MAIN_ROLE_REQUIRED");
+    const config = role(mainRole);
     available(config, modelCatalog());
     console.log(
       JSON.stringify({
@@ -145,6 +146,17 @@ function main() {
         `model_reasoning_effort=${JSON.stringify(config.model_reasoning_effort)}`,
         "-c",
         `developer_instructions=${JSON.stringify(config.developer_instructions)}`,
+        ...(mainRole === "coordinator"
+          ? [
+              "Start coordinating approved Call Nina work now. Read the orchestration skill, " +
+                "reconcile existing Run/Task/Dispatch and GitHub state, and resume existing work " +
+                "before claiming approved Ready tasks. Establish proven coordinator ownership " +
+                "before dispatching workers; do not duplicate an active coordinator. Preserve " +
+                "uncommitted changes and use an explicit committed baseline for workers. " +
+                "If no approved work is actionable or startup is blocked, report the reason. " +
+                "Do not enable recurring intake or publish releases.",
+            ]
+          : []),
       ],
       { cwd: root, stdio: "inherit" },
     );
