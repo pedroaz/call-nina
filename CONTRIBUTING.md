@@ -8,6 +8,6 @@ If you prepare a code change, read `AGENTS.md` and the scoped instructions besid
 
 ## Agent development
 
-Plan product scope with the Product Owner before marking an issue Ready in the Call Nina GitHub Project. The developer orchestrator owns code, local review, PR creation, one cloud Codex review and automatic merge into main. The maintainer accepts the completed epic. Public proposals do not authorize autonomous implementation.
+Plan product scope through a Product Owner interview and approve the final epic/task proposal before it is published to GitHub, including Backlog planning issues. Mark tasks Ready only when their implementation is explicitly approved. The developer orchestrator owns code, local review, PR creation, one cloud Codex review and automatic merge into main. The maintainer accepts the completed epic. Public proposals do not authorize autonomous implementation.
 
 Use `gh` for GitHub operations and Orca for workers. Roles live in `.codex/agents`; workflows live in `.agents/skills`. Run `make check` when preparing a PR. Setup-only changes may defer interactive application verification, but must say so explicitly. Do not bypass required checks or publish releases without authorization.

@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 .PHONY: orchestrate
-orchestrate: ## Orca roles, isolated workers and verification reservation (ARGS='help').
+orchestrate: ## Start the developer coordinator; ARGS="help" shows advanced operations.
 	@node scripts/agents/orchestrate.mjs $(ARGS)
 
 # Pass advanced options explicitly, for example: make logs ARGS="--level debug".

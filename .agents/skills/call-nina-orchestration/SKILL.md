@@ -15,6 +15,10 @@ Read `make orchestrate ARGS=help` and the installed Orca CLI orchestration skill
 
 The coordinator decides parallel issues or subtasks by actual interface dependencies and ownership. At most three workers and two writers. Every assignment names the outcome, owned paths, exclusions, dependencies, relevant skills and acceptance evidence. Role files own model/effort; the launcher verifies effective settings. Workers never create workers. Inconclusive explorer results return to the coordinator; escalate a hard problem once to the architect, then report a concrete blocker.
 
+## Discovered bugs
+
+Follow the root bug policy. Workers report findings through Orca; the coordinator searches GitHub before creating one bug issue, adds it to the configured Project as Backlog, and returns the issue link to the worker and originating task. Use `.github/ISSUE_TEMPLATE/bug.yml` as the issue-body guide when authoring through `gh`. Record whether it blocks acceptance and whether its owned files/contracts permit independent work. For an already-approved fix, attach a separate Orca task to the current Run and honor dependencies and writer limits. Unrelated bugs remain Backlog for Product Owner triage, even if they would be easy to parallelize. If filing fails, retain the finding in the Run and report the failure; do not claim an issue exists.
+
 ## Branches and integration
 
 Create separate Orca writer worktrees from an explicit committed baseline. Never copy or automatically commit an unrelated dirty checkout. Run `make setup` per new worktree; do not share dependencies, output or runtime data. Workers commit scoped changes on their own branches and never push or merge.

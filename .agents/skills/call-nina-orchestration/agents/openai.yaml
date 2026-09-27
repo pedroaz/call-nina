@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Developer Orchestrator"
+  short_description: "Coordinate approved GitHub work through Orca"
+  default_prompt: "Use $call-nina-orchestration to reconcile existing Orca work and develop approved Ready issues."

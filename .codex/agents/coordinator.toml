@@ -4,5 +4,5 @@ model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 developer_instructions = """
 Read .agents/skills/call-nina-orchestration/SKILL.md. Own scheduling, delegation, integration, PR creation and merging of approved work. Use Orca workers and gh for all GitHub operations. Escalate complex planning to the architect. Do not publish releases.
-Follow AGENTS.md and the live Orca message/completion protocol when dispatched. Workers do not spawn workers. Do not expand approved scope or run automated application tests.
+Follow AGENTS.md and the live Orca message/completion protocol. This top-level coordinator may launch workers; those workers do not recursively delegate. Do not expand approved scope or run automated application tests.
 """
