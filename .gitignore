@@ -80,3 +80,9 @@ Thumbs.db
 !scripts/build/**
 !scripts/diagnostics/
 !scripts/diagnostics/**
+
+# Existing learner roots remain private after the rename.
+.open-deutsch/
+open-deutsch-data/
+.open-deutsch-root.json
+.open-deutsch-bootstrap.json

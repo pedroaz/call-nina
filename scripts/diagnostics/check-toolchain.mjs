@@ -35,7 +35,10 @@ function run(command, args) {
 }
 
 const pnpm = run("pnpm", ["--version"]);
-const executable = await resolveCodexExecutable(developmentConfig().executables.codex, process.env);
+const executable = await resolveCodexExecutable(
+  developmentConfig().executables.codex ?? undefined,
+  process.env,
+);
 const codex = executable ? run(executable, ["--version"]) : { status: null };
 const appServer =
   codex.status === 0 ? run(executable, policy.codex.appServerCommand) : { status: null };
