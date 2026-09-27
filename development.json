@@ -1,0 +1,20 @@
+{
+  "executables": {
+    "orca": null,
+    "codex": null,
+    "pnpmCli": null
+  },
+  "github": {
+    "repository": "pedroaz/call-nina",
+    "projectOwner": "pedroaz",
+    "projectNumber": 10
+  },
+  "intake": {
+    "enabled": false,
+    "intervalMinutes": 15
+  },
+  "workers": {
+    "maximum": 3,
+    "writers": 2
+  }
+}

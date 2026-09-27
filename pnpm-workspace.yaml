@@ -1,0 +1,24 @@
+packages:
+  - apps/*
+  - packages/*
+  - plugins/*
+
+catalog:
+  "@types/node": 24.13.3
+  electron: 42.7.1
+  typescript: 6.0.3
+  vite: 8.2.1
+  yaml: 2.9.0
+  zod: 4.4.3
+
+allowBuilds:
+  electron: true
+  electron-winstaller: false
+  unrs-resolver: true
+
+# Dependency changes are explicit through make setup, never a side effect of running a script.
+verifyDepsBeforeRun: error
+
+# Keep the recorded packageManager version as a bootstrap recommendation.
+managePackageManagerVersions: false
+packageManagerStrictVersion: false

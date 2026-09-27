@@ -1,0 +1,13 @@
+{
+  "name": "@call-nina/plugin",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Versioned Call Nina Codex plugin payload workspace.",
+  "type": "module",
+  "scripts": {
+    "plugin:install": "pnpm --filter @call-nina/mcp-server... run build && pnpm --filter @call-nina/codex-client... run build && node scripts/plugin-lifecycle.mjs install",
+    "plugin:refresh": "pnpm --filter @call-nina/mcp-server... run build && pnpm --filter @call-nina/codex-client... run build && node scripts/plugin-lifecycle.mjs refresh",
+    "plugin:status": "node scripts/plugin-lifecycle.mjs status",
+    "plugin:uninstall": "node scripts/plugin-lifecycle.mjs uninstall"
+  }
+}

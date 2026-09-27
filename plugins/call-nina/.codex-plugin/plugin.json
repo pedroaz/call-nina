@@ -1,0 +1,19 @@
+{
+  "name": "call-nina",
+  "version": "0.2.0",
+  "description": "Local German-learning workflows and bounded learner-state tools for Codex.",
+  "author": {
+    "name": "Call Nina"
+  },
+  "interface": {
+    "displayName": "Call Nina",
+    "shortDescription": "Practice German with local learner context.",
+    "longDescription": "Call Nina connects Codex to bounded local German-learning workflows and learner-state tools.",
+    "developerName": "Call Nina",
+    "category": "Education",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["Help me plan my next German practice activity."]
+  },
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills/"
+}

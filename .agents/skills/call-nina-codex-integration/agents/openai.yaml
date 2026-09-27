@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Codex Integration"
+  short_description: "Maintain App Server, MCP, and plugin boundaries"
+  default_prompt: "Use $call-nina-codex-integration to diagnose this integration and update its supported behavior."

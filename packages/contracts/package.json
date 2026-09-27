@@ -1,0 +1,20 @@
+{
+  "name": "@call-nina/contracts",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Runtime-validated IPC, MCP, AI-output, and persisted-data contracts.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  }
+}

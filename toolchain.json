@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "node": {
+    "pinnedVersion": "26.5.0",
+    "minimumVersion": "26.5.0",
+    "maximumExclusiveVersion": "27.0.0"
+  },
+  "pnpm": {
+    "pinnedVersion": "11.0.9",
+    "minimumVersion": "11.0.9",
+    "maximumExclusiveVersion": "12.0.0"
+  },
+  "codex": {
+    "appServerCommand": ["app-server", "--help"]
+  }
+}

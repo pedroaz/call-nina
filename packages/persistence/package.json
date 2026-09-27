@@ -1,0 +1,23 @@
+{
+  "name": "@call-nina/persistence",
+  "version": "0.2.0",
+  "private": true,
+  "description": "SQLite migrations, repositories, and data-root persistence adapters.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@call-nina/contracts": "workspace:*",
+    "@call-nina/domain": "workspace:*",
+    "zod": "catalog:",
+    "@call-nina/platform": "workspace:*"
+  }
+}

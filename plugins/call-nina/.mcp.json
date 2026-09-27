@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "call-nina": {
+      "type": "stdio",
+      "command": "call-nina-mcp"
+    }
+  }
+}

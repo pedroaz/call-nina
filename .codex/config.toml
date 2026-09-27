@@ -1,0 +1,6 @@
+# Project defaults; personal account and permissions remain user-owned.
+model = "gpt-6-astra"
+model_reasoning_effort = "medium"
+
+[agents]
+max_concurrent_threads_per_session = 3

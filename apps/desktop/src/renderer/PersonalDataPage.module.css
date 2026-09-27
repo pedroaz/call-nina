@@ -1,0 +1,78 @@
+.folder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--od-space-2) var(--od-space-3);
+  min-width: 0;
+  font-size: var(--od-font-size-sm);
+}
+.folder svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+  color: var(--od-color-text-muted);
+}
+.path {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-size: var(--od-font-size-sm);
+  user-select: text;
+}
+.folder .path {
+  flex-basis: 100%;
+  color: var(--od-color-text-muted);
+}
+.tableWrap {
+  min-width: 0;
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+  background: var(--od-color-surface);
+}
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: var(--od-font-size-sm);
+}
+.table caption {
+  text-align: start;
+  padding: var(--od-space-4);
+  font-weight: var(--od-weight-strong);
+  font-size: var(--od-font-size-md);
+}
+.table th,
+.table td {
+  padding: var(--od-space-4);
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  text-align: start;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.table thead th {
+  font-size: var(--od-font-size-xs);
+  color: var(--od-color-text-muted);
+}
+.table th:first-child {
+  width: 32%;
+}
+.table th:last-child {
+  width: 22%;
+}
+.description {
+  display: block;
+  margin-top: var(--od-space-2);
+  color: var(--od-color-text-muted);
+  font-weight: normal;
+}
+.count {
+  font-variant-numeric: tabular-nums;
+}
+.reset {
+  border-color: var(--od-color-error);
+}
+@container workspace (max-width: 42rem) {
+  .table th,
+  .table td {
+    padding: var(--od-space-3) var(--od-space-2);
+  }
+}

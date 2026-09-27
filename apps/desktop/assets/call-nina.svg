@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Call Nina logo</title>
+  <desc id="description">The letter N inside a rounded conversation bubble.</desc>
+  <rect width="512" height="512" rx="112" fill="#fffdf8"/>
+  <path d="M104 72h304c40 0 72 32 72 72v208c0 40-32 72-72 72H228l-104 64 18-64h-38c-40 0-72-32-72-72V144c0-40 32-72 72-72Z" fill="#295f9e"/>
+  <path d="M152 340V162h44l120 118V162h44v178h-44L196 222v118Z" fill="#fffdf8"/>
+  <circle cx="385" cy="132" r="18" fill="#d2684b"/>
+</svg>

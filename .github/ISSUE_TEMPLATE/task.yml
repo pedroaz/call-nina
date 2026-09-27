@@ -1,0 +1,28 @@
+name: Task
+description: Propose work; only maintainer-approved tasks become Ready.
+title: ""
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: The observable result and its parent epic.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and exclusions
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence
+      description: Concrete observations; no automated application tests or saved journeys.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies

@@ -1,0 +1,217 @@
+.optionGroup {
+  display: grid;
+  gap: var(--od-space-3);
+}
+
+.exerciseBlanks {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-2);
+  margin: var(--od-space-5) 0;
+}
+
+.exerciseBlanks input {
+  background: var(--od-color-surface-raised);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-sm);
+  color: var(--od-color-text);
+  font: inherit;
+  max-width: var(--od-field-max);
+  padding: var(--od-space-2);
+}
+
+.exercisePrompt {
+  border-inline-start: var(--od-border-strong) solid var(--od-color-primary);
+  margin: var(--od-space-4) 0;
+  padding-inline-start: var(--od-space-4);
+}
+
+.eyebrow {
+  color: var(--od-color-primary);
+  font-size: var(--od-font-size-xs);
+  font-weight: var(--od-weight-strong);
+  letter-spacing: var(--od-letter-wide);
+  margin: 0 0 var(--od-space-2);
+  text-transform: uppercase;
+}
+
+.exerciseCardHeader {
+  align-items: center;
+  display: flex;
+  gap: var(--od-space-3);
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.exerciseCardHeader .eyebrow {
+  margin: 0;
+}
+
+.exerciseNavigation {
+  display: flex;
+  flex: none;
+  gap: var(--od-space-1);
+}
+
+.exerciseNavButton {
+  align-items: center;
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  color: var(--od-color-primary);
+  cursor: pointer;
+  display: inline-flex;
+  height: var(--od-control-min);
+  justify-content: center;
+  padding: 0;
+  width: var(--od-control-min);
+}
+
+.exerciseNavButton:hover:not([data-disabled]),
+.exerciseNavButton[data-pressed]:not([data-disabled]) {
+  background: var(--od-color-primary-soft);
+  border-color: var(--od-color-primary);
+}
+
+.exerciseNavButton:focus-visible {
+  outline: var(--od-border-strong) solid var(--od-color-focus);
+  outline-offset: var(--od-space-1);
+}
+
+.exerciseNavButton[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.exerciseNavButton svg {
+  height: var(--od-icon-md);
+  width: var(--od-icon-md);
+}
+
+:global([data-exercise-mode="true"]) .exerciseCardHeader {
+  margin-bottom: var(--od-space-2);
+}
+
+.exerciseAiFeedback {
+  background: var(--od-color-surface-raised);
+  border-left: var(--od-border-strong) solid var(--od-color-primary);
+  border-radius: 0 var(--od-radius-md) var(--od-radius-md) 0;
+  display: grid;
+  gap: var(--od-space-5);
+  line-height: var(--od-line-normal);
+  margin: var(--od-space-5) 0 var(--od-space-4);
+  padding: var(--od-space-4) var(--od-space-5);
+}
+
+.exerciseAiFeedback h3,
+.exerciseAiFeedback p,
+.exerciseAiFeedback ul {
+  margin: 0;
+}
+
+.exerciseAiFeedback section {
+  display: grid;
+  gap: var(--od-space-2);
+}
+
+.exerciseAiFeedback section + section {
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  padding-top: var(--od-space-4);
+}
+
+.exerciseAiFeedback section + p {
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  padding-top: var(--od-space-4);
+}
+
+.exerciseAiFeedback li + li {
+  margin-top: var(--od-space-2);
+}
+
+.acceptedAnswers {
+  display: block;
+  margin-top: var(--od-space-1);
+  line-height: var(--od-line-normal);
+  overflow-wrap: anywhere;
+}
+.activeExercise {
+  overflow-anchor: none;
+  display: flex;
+  flex-direction: column;
+  min-height: min(var(--od-exercise-min), calc(100dvh - var(--od-exercise-chrome)));
+}
+.exerciseActions {
+  margin-top: auto;
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  padding-block: var(--od-space-3);
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--od-color-surface);
+}
+.exerciseBlanks input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.questionHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--od-space-3);
+}
+.questionHeader h2 {
+  margin: 0;
+}
+.questionHeader > button {
+  flex-shrink: 0;
+}
+.feedbackArea {
+  display: grid;
+  align-content: start;
+  gap: var(--od-space-3);
+  min-height: 10rem;
+}
+.feedbackArea > p {
+  margin: 0;
+}
+.primaryAction {
+  width: 16rem;
+}
+.optionGroup[data-evaluated] > label:has(input:disabled) {
+  opacity: 1;
+  cursor: default;
+}
+.hintPopover {
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  box-shadow: var(--od-shadow-raised);
+  width: var(--od-info-width);
+  max-width: calc(100vw - var(--od-space-8));
+  max-height: calc(100dvh - var(--od-space-8));
+  overflow-y: auto;
+  z-index: 20;
+}
+.hintDialog,
+.hintContent {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.hintDialog {
+  padding: var(--od-space-4);
+}
+.hintDialog h2,
+.hintDialog p {
+  margin: 0;
+}
+@container workspace (max-width: 28rem) {
+  .questionHeader {
+    flex-wrap: wrap;
+  }
+}
+
+.activeExercise > fieldset {
+  margin-block: 0;
+}

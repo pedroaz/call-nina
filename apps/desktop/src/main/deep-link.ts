@@ -1,0 +1,50 @@
+import { activityIdSchema, dataRootGenerationSchema } from "@call-nina/contracts";
+import { callNinaMarketplaceName, callNinaPluginName } from "@call-nina/codex-client";
+
+export function createCodexVoiceActivityUrl(activityIdValue: string, generationValue: number) {
+  const activityId = activityIdSchema.parse(activityIdValue);
+  const generation = dataRootGenerationSchema.parse(generationValue);
+  const pluginId = `${callNinaPluginName}@${callNinaMarketplaceName}`;
+  const prompt = [
+    `[@Call Nina](plugin://${pluginId}) Prepare my saved activity for Voice.`,
+    `Activity: ${activityId}; dataRootGeneration: ${String(generation)}.`,
+    "Load this exact activity and its teaching defaults, briefly acknowledge the scenario,",
+    "and wait for me to begin without revealing listening scripts or answers.",
+    "If this reference is missing or stale, ask me to reopen it in Call Nina instead of selecting another activity.",
+  ].join(" ");
+  return `codex://new?prompt=${encodeURIComponent(prompt)}`;
+}
+
+export function parseCallNinaActivityUrl(value: string) {
+  if (typeof value !== "string" || value.includes("\0")) {
+    throw new Error("OD_HANDOFF_URL_INVALID");
+  }
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("OD_HANDOFF_URL_INVALID");
+  }
+  if (
+    url.protocol !== "call-nina:" ||
+    url.hostname !== "activity" ||
+    url.port !== "" ||
+    url.username !== "" ||
+    url.password !== "" ||
+    url.search !== "" ||
+    url.hash !== ""
+  ) {
+    throw new Error("OD_HANDOFF_URL_INVALID");
+  }
+  let activityId: string;
+  try {
+    activityId = decodeURIComponent(url.pathname.replace(/^\//u, ""));
+  } catch {
+    throw new Error("OD_HANDOFF_URL_INVALID");
+  }
+  try {
+    return { route: "activity" as const, activityId: activityIdSchema.parse(activityId) };
+  } catch {
+    throw new Error("OD_HANDOFF_URL_INVALID");
+  }
+}

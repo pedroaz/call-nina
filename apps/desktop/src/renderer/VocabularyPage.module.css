@@ -1,0 +1,108 @@
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 15rem);
+  gap: var(--od-space-4);
+  align-items: end;
+}
+.sort,
+.editForm {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.sort select {
+  width: 100%;
+  min-width: 0;
+}
+.tableRegion {
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+  background: var(--od-color-surface);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.caption {
+  text-align: start;
+  padding: var(--od-space-3) var(--od-space-4);
+  color: var(--od-color-text-muted);
+}
+.table th,
+.table td {
+  padding: var(--od-space-3);
+  text-align: start;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+  border-bottom: var(--od-border-thin) solid var(--od-color-border);
+}
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.table .selection {
+  width: 3rem;
+  text-align: center;
+}
+.selection input {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  accent-color: var(--od-color-primary);
+}
+.word {
+  justify-content: flex-start;
+  text-align: start;
+  white-space: normal;
+  padding: var(--od-space-1) 0;
+  min-width: 0;
+  max-width: 100%;
+}
+.summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.compactMeaning,
+.compactDue {
+  display: none;
+}
+.muted {
+  color: var(--od-color-text-muted);
+}
+.empty {
+  padding: var(--od-space-4);
+}
+.reviewCard {
+  max-width: 42rem;
+  width: 100%;
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+@container (max-width: 52rem) {
+  .meaningColumn,
+  .dueColumn {
+    display: none;
+  }
+  .compactMeaning,
+  .compactDue {
+    display: block;
+    color: var(--od-color-text-muted);
+    margin-top: var(--od-space-1);
+  }
+  .compactMeaning {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .table th:last-of-type,
+  .table td:last-of-type {
+    width: auto;
+  }
+}
+@container (max-width: 48rem) {
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

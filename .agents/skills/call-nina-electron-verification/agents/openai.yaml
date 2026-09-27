@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Electron Verification"
+  short_description: "Interactively inspect and operate the real app"
+  default_prompt: "Use $call-nina-electron-verification to verify the changed behavior in Electron with real services, without adding tests."

@@ -1,0 +1,70 @@
+schemaVersion: 1
+sources:
+  - sourceId: curriculum-source_0000000000000001
+    title: Call Nina curriculum inventory
+    repositoryPath: content/curriculum/manifest.yaml
+    publisher: Call Nina
+    sourceClass: repository-original
+    supportedClaims:
+      - The local inventory defines the selected A1-B2 bands, everyday-life topic cells; it is not external pedagogical evidence.
+    retrievedOn: 2026-09-26
+    reviewedOn: 2026-09-26
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000000002
+    title: Call Nina foundation content checks
+    repositoryPath: content/curriculum/rubrics/content-checks.yaml
+    publisher: Call Nina
+    sourceClass: repository-original
+    supportedClaims:
+      - The local rubric defines agent checks for language, level, sources and schema consistency during authoring.
+    retrievedOn: 2026-09-26
+    reviewedOn: 2026-09-26
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000000003
+    title: Call Nina curriculum storage boundaries
+    repositoryPath: content/curriculum/README.md
+    publisher: Call Nina
+    sourceClass: repository-original
+    supportedClaims:
+      - The curriculum README identifies reusable curriculum files and separates the read-only packaged snapshot from private learner and scratch data.
+    retrievedOn: 2026-09-26
+    reviewedOn: 2026-09-26
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000000004
+    title: "Common European Framework of Reference for Languages: CEFR Companion Volume"
+    url: https://www.coe.int/en/web/common-european-framework-reference-languages/cefr-companion-volume-and-its-language-versions
+    publisher: Council of Europe
+    sourceClass: official-framework
+    supportedClaims:
+      - The CEFR Companion Volume provides the reviewed framework and descriptor resources used to map reception, production, interaction, and mediation outcomes.
+    retrievedOn: 2026-08-21
+    reviewedOn: 2026-08-21
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000000005
+    title: Anmeldung der alleinigen Wohnung oder der Hauptwohnung
+    url: https://verwaltung.bund.de/leistungsverzeichnis/DE/leistung/99115005104001/herausgeber/HH-S1000020010000000079/region/020000000000
+    publisher: Bundesportal / Freie und Hansestadt Hamburg
+    sourceClass: german-public-service
+    supportedClaims:
+      - The public-service page describes the address-registration process, the two-week registration period after moving, and region-dependent online-service requirements.
+    retrievedOn: 2026-08-21
+    reviewedOn: 2026-08-21
+    freshness:
+      status: time-sensitive
+      reviewDueOn: 2027-08-21
+  - sourceId: curriculum-source_0000000000000006
+    title: Bundesmeldegesetz § 17 Anmeldung, Abmeldung
+    url: https://www.gesetze-im-internet.de/bmg/__17.html
+    publisher: Bundesministerium der Justiz / Bundesamt für Justiz
+    sourceClass: german-public-service
+    supportedClaims:
+      - The federal statute is the primary legal source for the registration duty after moving into a dwelling.
+    retrievedOn: 2026-08-21
+    reviewedOn: 2026-08-21
+    freshness:
+      status: time-sensitive
+      reviewDueOn: 2027-08-21

@@ -1,0 +1,113 @@
+# Call Nina
+
+Call Nina is a local-first desktop application for learning German with Codex. It includes a self-paced learning path, writing correction, reading and grammar practice, vocabulary review, and optional Codex Voice handoffs. Learner records stay in a selected local SQLite data folder. AI actions send only the context needed for the requested activity.
+
+## Install from a clone
+
+Targets: **Linux x64, macOS x64/ARM64, Windows x64**. Builds are native to the current machine; there are no signed downloads or automatic background updates. macOS and Windows require native-host verification before being considered verified releases.
+
+Install Git and clone this repository, then run from the clone:
+
+| System  | Command                                                                           | Prerequisites                                                                                |
+| ------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Linux   | `sh install/install.sh install`                                                   | Git, curl, tar, SHA-256 tool, xdg-utils, a graphical session and Electron's system libraries |
+| macOS   | `sh install/install.sh install`                                                   | Git (Command Line Tools), curl, tar, shasum                                                  |
+| Windows | `powershell -NoProfile -ExecutionPolicy Bypass -File install/install.ps1 install` | Git, Windows PowerShell, tar, Windows x64                                                    |
+
+The PowerShell execution-policy option applies only to this process. No system policy changes or administrator privileges are required. Review scripts before running downloaded source.
+
+The installer accepts **Node >=26.5.0 <27** and **pnpm >=11.0.9 <12**. It reuses compatible tools or downloads the recommended versions recorded in `.node-version` and `toolchain.json` into user-local storage, verifies archive checksums, installs dependencies using the frozen lockfile, and builds the app and MCP helper. Network access is needed for tool and dependency downloads. The initial build can take several minutes.
+
+App locations:
+
+- Linux: `${XDG_DATA_HOME:-~/.local/share}/call-nina/app`
+- macOS: `~/Applications/Call Nina.app`
+- Windows: `%LOCALAPPDATA%\Programs\Call Nina`
+
+Linux and Windows receive a launcher; macOS uses the app bundle. Each installation registers `call-nina://` activity links. Linux AppImage packaging remains available with `make package-appimage`; `make package-local` builds an unpacked app without installing it. Both paths build a self-contained MCP helper and inspect package-size budgets before succeeding.
+
+These are unsigned local builds. macOS or Windows may display an unsigned/unrecognized application prompt. Review the build source and use the OS's per-app opening controls; do not disable system security globally.
+
+## First use and Codex
+
+Select a data folder, then follow **Codex connection → level and goal → teaching and languages → review**. A compatible ChatGPT/Codex desktop runtime and a signed-in account are required to finish first-time setup. Installation itself does not require Codex, and the other setup steps remain editable while connecting.
+
+Call Nina discovers the desktop-bundled runtime. If your desktop installation has a different layout, pass `--codex-executable=/absolute/executable` when launching. It must support App Server; a standalone CLI is not silently substituted. See the [official desktop app documentation](https://learn.chatgpt.com/docs/app) and [App Server documentation](https://learn.chatgpt.com/docs/app-server).
+
+The optional Call Nina plugin can be installed or refreshed after sign-in during setup, or later in Settings. Start a new Codex task after installing it. The installer never installs the plugin automatically. **Run setup again** in Settings opens the same flow, prefilled with saved choices. Saved steps survive interruption. Repeated setup can be left at any time; later sign-out shows reconnect guidance without resetting completed onboarding.
+
+Development and installed builds keep separate app configuration. To reuse existing learning records in an installed build, select the existing learner data folder; it is opened in place, without copying or resetting it.
+
+Interface language and explanation language are independent. Model selection and detailed correction preferences stay in Settings. The existing disclosure appears before the first AI action.
+
+Call Nina does not record or play audio. It prepares listening/speaking activities; **Open in Codex** puts the activity reference into a new task's composer. The learner sends the message and starts Voice where available. No message or audio session starts automatically.
+
+## Update, inspect, and remove
+
+Use the same entry point with another command:
+
+```sh
+sh install/install.sh status
+sh install/install.sh update
+sh install/install.sh uninstall
+```
+
+On Windows, replace the final `install` argument in the PowerShell command with `status`, `update`, or `uninstall`.
+
+`status` reports the source checkout, revision, tool versions, running state, and whether installed files still match their inventory. `update` requires a clean checkout with a configured upstream and uses a fast-forward-only pull. It builds before replacing the app and refuses replacement while the app is running. A failed build leaves the previous installation available, although the source checkout may already have advanced. Changed or extra files inside the app directory must be preserved elsewhere before replacement.
+
+Uninstall offers:
+
+1. App and owned launchers only (default), retaining learner data and plugin.
+2. Also remove the scoped Call Nina Codex plugin and marketplace.
+3. Also remove verified Call Nina learner files from the selected data folder, after displaying the path and requiring `DELETE` confirmation.
+
+Close Call Nina and its active helpers before removal. Plugin removal needs the compatible Codex runtime. Unknown, modified, or unrelated files are retained and reported. Credentials, the source checkout, and user-local installer tools are retained. An invalid/newer data format is never guessed at or recursively deleted.
+
+## Development and verification
+
+```sh
+make setup
+make doctor
+make dev
+```
+
+`make setup` installs the full development and interactive-verification toolchain. `make setup-build` installs the filtered dependency closure needed to build an unsigned local application from source; this is the profile used by the installer. Use `make help` for available commands, `make debug` to follow the current run, `make logs-once` for bounded redacted logs, and `make kill` to stop only the repository-owned app. `make prd` builds and starts a production-like app. Windows installers use the shared Node commands directly and do not require GNU Make.
+
+There are **no automated application tests or saved test journeys**. Reserve the dedicated verification worktree through the coordinator first. There, use `make verify-start`, `make verify-inspect`, `make verify-do`, and `make verify-stop` to verify real behavior interactively. AI verification uses GPT-6 Luna at runtime-default effort and restores prior settings. Run `make check` only when static verification is requested or preparing a PR; it contains formatting, lint, and TypeScript checks.
+
+[Architecture](docs/architecture.md) explains process ownership, package dependency direction, trust boundaries, and the packaged resource layout. [AGENTS.md](AGENTS.md) and the concise skills under [.agents/skills](.agents/skills) describe development conventions. Learner-facing skills ship under `plugins/call-nina/skills`; curriculum is product data under `content/curriculum`.
+
+Bug reports are welcome; outside feature contributions are not currently a project priority. Remove private learner data and credentials before sharing diagnostics. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Troubleshooting
+
+- **Runtime unavailable:** install/open the supported desktop app, sign in, and retry connection. Use the executable override for a nonstandard installation. Plugin installation is optional and will not fix an incompatible runtime.
+- **Dirty checkout or no upstream:** preserve your changes and configure the branch's intended upstream before updating. The installer does not discard changes or choose another branch.
+- **App/helper running:** close the identified app and active Call Nina MCP sessions, then retry. No process is killed by the installer.
+- **Installation changed:** `status` checks the file inventory. Move extra files out of the app directory; do not remove learner data to repair an installation.
+- **Interrupted installer:** an operation lock or `.previous` app may remain. Establish that the original operation has ended, preserve the recorded installation and previous app, and recover before retrying. The installer does not break locks based solely on a PID.
+- **Missing Linux libraries:** install the distribution's Electron/Chromium runtime libraries and xdg-utils. The unpacked installer does not require FUSE.
+- **Partial cleanup:** inspect reported leftovers. Files without established ownership remain untouched.
+
+Installers use platform-default locations. For manual app verification, use an explicit `--config-dir=/absolute/directory`; standard OS configuration roots remain supported.
+
+## License
+
+Repository-original code and content are [MIT licensed](LICENSE). Third-party dependencies and cited external material retain their own terms; see [licensing and attribution](docs/licensing.md) and [third-party notices](docs/third-party-notices.md).
+
+## Autonomous development
+
+The Product Owner plans epics and task acceptance with the maintainer. Only agreed Ready issues enter the developer queue. GitHub Issues and Projects own product work; Orca owns worker execution; Git owns source integration. All GitHub operations use the existing authenticated `gh` CLI. Project access is granted through `gh auth refresh --hostname github.com --scopes project`, without personal token configuration.
+
+The coordinator selects independent work and supervises at most three workers, including two isolated writers. It integrates commits, arranges independent local review, requests one cloud Codex review, fixes findings and merges task PRs into main. The maintainer accepts completed epics. Release publishing is separate. Start the main roles with `make orchestrate ARGS="start --role product-owner"` or `make orchestrate ARGS="start --role coordinator"`. Models and reasoning live in `.codex/agents/`; reusable workflows live in `.agents/skills/`; shared review rules live in `AGENTS.md`.
+
+`development.json` visibly configures executable overrides, repository/Project, concurrency and the disabled intake switch. `make github ARGS=help` and `make orchestrate ARGS=help` expose the agent tools. Configure only absolute executable overrides; null means normal discovery. The installer may pass its provisioned pnpm path internally to child processes; users do not configure that environment variable. Standard OS variables and process-ownership metadata remain internal plumbing.
+
+Make exposes common operations; Node scripts implement their details under `scripts/build`, `scripts/dev`, `scripts/agents` and `scripts/diagnostics`. Use explicit options, for example `make logs ARGS="--level debug --scope history --lines 100"`. Application overrides use `--config-dir=/absolute/directory` and `--codex-executable=/absolute/executable`. Interactive verification accepts equivalent explicit flags through `make verify-start ARGS="..."`.
+
+Recurring pickup stays disabled until supervised Orca startup works, the initial baseline is published and Project access is configured. One wake-up checks every 15 minutes, resumes existing work first, and stays quiet without meaningful changes. The worker scheduler is Orca; no second task database is maintained.
+
+## Existing learner data
+
+Call Nina can use an existing Open Deutsch learner directory through the normal data-directory selection screen. Select the existing directory explicitly. The on-disk `.open-deutsch-root.json` manifest, `open-deutsch.sqlite3` database and root kind remain stable. The rename does not move, copy or reset learner data. Existing installations and plugins are not silently removed.

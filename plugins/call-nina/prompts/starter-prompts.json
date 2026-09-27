@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "prompts": [
+    {
+      "id": "todays-practice",
+      "skill": "german-teacher",
+      "prompt": "What should I practice in German today?",
+      "purpose": "Read bounded learner and practice context, then recommend one next activity and alternatives.",
+      "expectedTools": ["open_deutsch_read_learner_context", "open_deutsch_read_practice_context"]
+    },
+    {
+      "id": "conversation-scenario",
+      "skill": "german-teacher",
+      "prompt": "Role-play ordering at a bakery in German. Be my Conversation Partner and summarize corrections at the end.",
+      "purpose": "Start an everyday German-first role-play with the stored teaching profile and explicit end summary.",
+      "expectedTools": ["open_deutsch_read_learner_context"]
+    },
+    {
+      "id": "writing-exercise",
+      "skill": "german-teacher",
+      "prompt": "Give me a short German writing exercise about contacting my landlord.",
+      "purpose": "Offer a level-calibrated exercise and create it only after confirmation when persistence is requested.",
+      "expectedTools": ["open_deutsch_read_learner_context", "open_deutsch_create_activity"]
+    },
+    {
+      "id": "voice-summary",
+      "skill": "german-teacher",
+      "prompt": "I finished my Voice practice. Save this summary: I practiced a doctor's appointment; I struggled with appointment times; next step is vocabulary review.",
+      "purpose": "Confirm and save a structured summary without audio or a full transcript.",
+      "expectedTools": ["open_deutsch_save_voice_summary"]
+    },
+    {
+      "id": "mistake-practice",
+      "skill": "german-teacher",
+      "prompt": "Practice my recurring mistakes with a focused exercise.",
+      "purpose": "Read bounded mistake evidence and create a targeted activity without rewriting history.",
+      "expectedTools": ["open_deutsch_read_practice_context", "open_deutsch_create_activity"]
+    },
+    {
+      "id": "curriculum-research",
+      "skill": "curriculum-research",
+      "prompt": "Find the next A2 public-services curriculum gap, research it, and publish validated, cited content in the repository.",
+      "purpose": "Read coverage, research authoritative sources, check content quality, and publish to the repository without a separate approval step.",
+      "expectedTools": ["open_deutsch_read_curriculum_coverage"]
+    }
+  ]
+}

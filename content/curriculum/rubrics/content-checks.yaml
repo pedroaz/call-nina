@@ -1,0 +1,10 @@
+schemaVersion: 1
+name: content-checks
+checks:
+  - German accuracy and appropriate learning level
+  - Concrete reception, production, interaction and mediation outcomes
+  - Grammar, vocabulary, examples and exercise consistency
+  - Prerequisites and progression without unexplained required language
+  - Source attribution, supported claims and freshness
+  - Runtime schema validity, identifiers and references
+  - Original reusable content without learner data or answer leakage

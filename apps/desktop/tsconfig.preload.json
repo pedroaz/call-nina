@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.node.json",
+  "compilerOptions": {
+    "rootDir": "src/preload",
+    "outDir": "build/types/preload",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "skipLibCheck": true,
+    "tsBuildInfoFile": "build/tsconfig.preload.tsbuildinfo"
+  },
+  "include": ["src/preload/**/*.ts", "src/preload/**/*.d.ts"],
+  "references": [
+    {
+      "path": "../../packages/contracts"
+    }
+  ]
+}

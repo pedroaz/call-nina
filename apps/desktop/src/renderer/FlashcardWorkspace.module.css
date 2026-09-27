@@ -1,0 +1,15 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--od-space-4);
+  max-width: 48rem;
+  overflow-wrap: anywhere;
+}
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--od-space-3);
+  padding: var(--od-space-3);
+  background: var(--od-color-surface-raised);
+  border-radius: var(--od-radius-sm);
+}

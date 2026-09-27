@@ -1,0 +1,20 @@
+{
+  "name": "call-nina-local",
+  "interface": {
+    "displayName": "Call Nina Local"
+  },
+  "plugins": [
+    {
+      "name": "call-nina",
+      "source": {
+        "source": "local",
+        "path": "./plugins/call-nina"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Education"
+    }
+  ]
+}

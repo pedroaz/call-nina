@@ -1,0 +1,131 @@
+.eyebrow {
+  color: var(--od-color-primary);
+  font-size: var(--od-font-size-xs);
+  font-weight: var(--od-weight-strong);
+  letter-spacing: var(--od-letter-wide);
+  margin: 0 0 var(--od-space-2);
+  text-transform: uppercase;
+}
+
+.helperConversation {
+  display: grid;
+  gap: var(--od-space-3);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.helperTurns {
+  align-content: start;
+  display: grid;
+  gap: var(--od-space-3);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.helperSelection,
+.helperTurns article {
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  margin: 0;
+  padding: var(--od-space-3);
+}
+
+.helperSelection {
+  background: var(--od-color-surface-muted);
+  border-inline-start: var(--od-border-strong) solid var(--od-color-primary);
+}
+
+.helperSelection blockquote,
+.helperTurns p {
+  margin: 0 0 var(--od-space-3);
+  overflow-wrap: anywhere;
+}
+
+.helperSelection figcaption {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+  font-weight: var(--od-weight-medium);
+  margin-bottom: var(--od-space-2);
+}
+
+.helperSelection blockquote,
+.helperTurns p:last-child {
+  margin-bottom: 0;
+}
+
+.helperTurns article {
+  background: var(--od-color-surface-raised);
+}
+
+.helperTurns article > .eyebrow:not(:first-child) {
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  margin-top: var(--od-space-3);
+  padding-top: var(--od-space-3);
+}
+
+.helperAnswer {
+  line-height: var(--od-line-normal);
+}
+
+.helperComposer {
+  background: var(--od-color-surface);
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  display: grid;
+  gap: var(--od-space-2);
+  padding-top: var(--od-space-3);
+}
+
+.helperComposer textarea {
+  background: var(--od-color-surface-raised);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  color: var(--od-color-text);
+  font: inherit;
+  line-height: var(--od-line-normal);
+  min-height: var(--od-control-wide);
+  padding: var(--od-space-3);
+  resize: vertical;
+  width: 100%;
+}
+
+.helperComposer textarea:focus-visible {
+  border-color: var(--od-color-focus);
+  box-shadow: var(--od-focus-ring);
+  outline: none;
+}
+
+.helperComposer textarea:disabled {
+  background: var(--od-color-surface-muted);
+  color: var(--od-color-text-muted);
+  cursor: not-allowed;
+}
+
+.helperComposerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-2);
+}
+
+.helperComposerActions > button {
+  flex: 1 1 auto;
+  padding-inline: var(--od-space-3);
+}
+
+.helperComposerHint {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-xs);
+  margin: 0;
+}
+
+.helperSelection {
+  max-height: 25dvh;
+  overflow-y: auto;
+}
+.helperComposer textarea {
+  max-height: 30dvh;
+  font-size: var(--od-font-size-sm);
+}
+.helperConversation {
+  font-size: var(--od-font-size-sm);
+}

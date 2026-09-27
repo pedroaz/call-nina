@@ -1,0 +1,97 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--od-font-size-sm);
+  font-weight: var(--od-weight-medium);
+  gap: var(--od-space-2);
+  min-width: 0;
+}
+
+.control,
+.field input,
+.field select,
+.field textarea {
+  background: var(--od-color-surface-raised);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  color: var(--od-color-text);
+  font-weight: normal;
+  min-height: var(--od-control-min);
+  min-width: 0;
+  padding: var(--od-space-2) var(--od-space-3);
+  width: 100%;
+}
+
+textarea.control,
+.field textarea {
+  resize: vertical;
+}
+
+.invalid {
+  border-color: var(--od-color-error);
+}
+
+.description {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+  font-weight: normal;
+}
+
+.error {
+  color: var(--od-color-error);
+  font-size: var(--od-font-size-sm);
+  font-weight: normal;
+}
+
+.checkbox {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--od-space-3);
+}
+
+.checkbox input {
+  accent-color: var(--od-color-primary);
+  height: var(--od-icon-md);
+  margin-top: var(--od-space-1);
+  width: var(--od-icon-md);
+}
+
+.optionGrid {
+  display: grid;
+  gap: var(--od-space-3);
+}
+
+.toggleGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-2);
+}
+
+.optionCard {
+  align-items: flex-start;
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  cursor: pointer;
+  display: flex;
+  gap: var(--od-space-3);
+  padding: var(--od-space-3);
+}
+
+.optionCard:has(input:checked) {
+  background: var(--od-color-primary-soft);
+  border-color: var(--od-color-primary);
+}
+
+.optionCard:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.field input,
+.field select,
+.field textarea {
+  font-size: var(--od-font-size-md);
+}
+.toggleGroup button {
+  flex: 0 1 auto;
+}

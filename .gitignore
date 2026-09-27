@@ -1,0 +1,82 @@
+# Dependencies and package-manager state
+node_modules/
+.pnpm-store/
+
+# Generated build and packaging output
+dist/
+build/
+out/
+release/
+.vite/
+*.AppImage
+*.AppImage.zsync
+*.deb
+*.tsbuildinfo
+
+# Coverage and deterministic test artifacts
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+traces/
+screenshots/
+artifacts/
+diagnostics/
+diagnostic-bundles/
+.test-data/
+.tmp/
+tmp/
+
+# Repository-owned runtime state, PIDs, and logs
+.runtime/
+runtime/
+run/
+logs/
+*.pid
+*.log
+
+# Local environment and machine-specific configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+.call-nina/
+
+# Mutable databases and SQLite sidecars
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Data-root bootstrap pointers and private learner datasets
+bootstrap.json
+bootstrap-pointer.json
+.call-nina-bootstrap.json
+learner-data/
+data-root/
+call-nina-data/
+
+.research/
+
+
+# Local editor and operating-system noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Source tooling directories share names with generated output.
+!scripts/build/
+!scripts/build/**
+!scripts/diagnostics/
+!scripts/diagnostics/**

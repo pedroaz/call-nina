@@ -1,0 +1,1398 @@
+{
+  "app": {
+    "name": "Call Nina",
+    "tagline": "Ein ruhiger Ort für sicheres Deutsch."
+  },
+  "actions": {
+    "choose": "Ordner auswählen",
+    "confirm": "Ordner bestätigen",
+    "cancel": "Abbrechen",
+    "retry": "Erneut versuchen",
+    "chooseAnother": "Anderen Ordner auswählen",
+    "continue": "Weiter",
+    "close": "Schließen",
+    "delete": "Eintrag löschen",
+    "showHelper": "Hilfe öffnen",
+    "hideHelper": "Hilfe schließen",
+    "collapseNavigation": "Navigation einklappen",
+    "expandNavigation": "Navigation ausklappen",
+    "startAi": "KI-Schreibprüfung testen",
+    "switchLanguage": "English",
+    "acknowledge": "Verstanden, weiter"
+  },
+  "nav": {
+    "label": "Hauptnavigation",
+    "dashboard": "Übersicht",
+    "practice": "Üben",
+    "writing": "Schreiben",
+    "vocabulary": "Wortschatz",
+    "history": "Verlauf",
+    "progress": "Fortschritt",
+    "settings": "Einstellungen",
+    "personalData": "Persönliche Daten",
+    "learningPath": "Lernpfad"
+  },
+  "practice": {
+    "eyebrow": "Wähle deinen Schwerpunkt",
+    "title": "Üben",
+    "intro": "Wähle eine Übungsart und arbeite dann in einem fokussierten Bereich. Deine erstellten Übungen bleiben hier, bis du weitermachen möchtest.",
+    "back": "Zurück zu Üben",
+    "grammar": "Grammatik",
+    "reading": "Lesen",
+    "listening": "Codex-Hörübung übergeben",
+    "speaking": "Codex-Sprechübung übergeben",
+    "diagnostic": "Optionale Einstufung",
+    "promptLabel": "Was möchtest du üben?",
+    "targetLevel": "Zielniveau",
+    "useExample": "Beispiel verwenden",
+    "generateDetails": "Details mit KI erstellen",
+    "regenerateDetails": "Details neu erstellen",
+    "drafting": "Details werden erstellt…",
+    "editDetails": "Details prüfen oder bearbeiten",
+    "speakingPace": "Sprechtempo",
+    "paceOptions": {
+      "slow": "Langsam",
+      "normal": "Normal",
+      "fast": "Schnell"
+    },
+    "customPromptPlaceholder": "Zum Beispiel: Essen bestellen oder nach dem Weg fragen",
+    "grammarPromptPlaceholder": "Zum Beispiel: Dativartikel nach mit und zu üben",
+    "readingPromptPlaceholder": "Zum Beispiel: über einen Arztbesuch oder den Einkauf lesen",
+    "chooser": {
+      "title": "Übungsart wählen",
+      "body": "Wähle ein Format, um die Vorbereitung zu sehen und zu beginnen."
+    },
+    "types": {
+      "custom": {
+        "title": "Quiz erstellen",
+        "body": "Beschreibe, was du üben möchtest. Das Quiz kann Multiple Choice, Lückentexte, Satzkorrekturen und kurze Schreibantworten mischen."
+      },
+      "grammar": {
+        "title": "Grammatik",
+        "body": "Lies eine kurze Erklärung und beantworte dann Lückentext-, Satzkorrektur- und Kurzantwortfragen."
+      },
+      "reading": {
+        "title": "Lesen",
+        "body": "Lies einen kurzen Alltagstext, wähle Verständnisantworten und schreibe eine kurze Zusammenfassung."
+      },
+      "listening": {
+        "title": "Hören",
+        "body": "Bereite Hörfragen für Codex Voice vor. Audio wird nicht in Call Nina abgespielt."
+      },
+      "speaking": {
+        "title": "Sprechen",
+        "body": "Bereite ein praktisches Rollenspiel mit Impulsen und Korrekturzielen vor und sprich dann in Codex Voice."
+      },
+      "diagnostic": {
+        "title": "Übungsdiagnose",
+        "body": "Probiere drei Aufgaben zu Grammatik, Wortschatz und Lesen, ohne dein gewähltes Niveau zu ändern."
+      },
+      "flashcards": {
+        "title": "Lernkarten"
+      }
+    },
+    "library": {
+      "title": "Gespeicherte Übungen",
+      "body": "Öffne gespeicherte Aktivitäten und erstellte Übungen.",
+      "count_one": "{{count}} bereit",
+      "count_other": "{{count}} bereit",
+      "loading": "Deine Übungen werden geladen…",
+      "empty": "Noch keine gespeicherten Übungen. Öffne „Neue Übung“, um zu beginnen.",
+      "filterLabel": "Aktivitäten nach Art filtern",
+      "filters": {
+        "all": "Alle",
+        "custom-lesson": "Quiz",
+        "grammar": "Grammatik",
+        "reading": "Lesen",
+        "codex-listening": "Hören",
+        "voice-speaking": "Sprechen",
+        "flashcards": "Lernkarten"
+      },
+      "noFilterResults": "Keine Übungen entsprechen diesem Filter.",
+      "open": "{{title}} öffnen",
+      "deleteAction": "{{title}} löschen",
+      "deleteTitle": "„{{title}}“ löschen?",
+      "deleteBody": "Die Aktivität und ihre unbestätigten Wortschatzvorschläge werden dauerhaft gelöscht.",
+      "deleteCascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Verlaufseinträge und unbestätigten Wortschatzkandidaten dauerhaft gelöscht.",
+      "deleteConfirm": "Übung löschen",
+      "deleteBlocked": {
+        "retained-data": "{{title}} enthält abgeschlossene Ergebnisse, aufbewahrtes Feedback oder bestätigten Wortschatz und kann hier nicht gelöscht werden."
+      },
+      "deleteStates": {
+        "cascade": "Begonnen",
+        "retained-data": "Aufbewahrte Lerndaten"
+      },
+      "types": {
+        "grammar": "Grammatikübung",
+        "custom-lesson": "Quiz",
+        "reading": "Leseübung",
+        "writing": "Schreibübung",
+        "vocabulary-review": "Wortschatzübung",
+        "placement": "Diagnose",
+        "codex-listening": "Hörübung",
+        "voice-speaking": "Sprechübung",
+        "flashcards": "Lernkarten"
+      },
+      "loadMore": "Mehr laden"
+    },
+    "session": {
+      "eyebrow": "Erstellte Übung",
+      "exerciseCount_one": "{{count}} Übung",
+      "exerciseCount_other": "{{count}} Übungen",
+      "lessonIncluded": "Lektionshinweise enthalten",
+      "lessonHint": "Öffne die Erklärung, wenn du sie brauchst",
+      "delete": "Löschen"
+    },
+    "grammarLesson": {
+      "title": "Gezielte Grammatiklektion",
+      "body": "Erstelle eine Lektion auf deinem gewählten Lernniveau mit dem geprüften Curriculum und vorhandenen Fehlerbelegen.",
+      "topic": "Einstiegsthema: Dativartikel nach häufigen Präpositionen.",
+      "request": "Erstelle eine Grammatiklektion auf meinem aktuellen Lernniveau zu Dativartikeln nach mit und zu, mit klarer Erklärung, Beispielen, Hinweisen, geführten Übungen und einer freien Produktionsaufgabe.",
+      "start": "Grammatiklektion erstellen"
+    },
+    "readingFlow": {
+      "title": "Deutsch lesen und üben",
+      "body": "Erstelle einen deutschen Text für dein Lernniveau oder Aufgaben zu einem eingefügten Text. Codex erstellt passende Aufgaben und gibt Feedback zu deinen schriftlichen Antworten.",
+      "bundledPassage": "Die Arztpraxis bittet Patientinnen und Patienten, zehn Minuten vor einem Termin zu kommen. Die Sprechstunde beginnt um 10:00 Uhr in Raum 2.",
+      "topic": "Thema oder Lernziel (optional)",
+      "defaultRequest": "Übe das Verstehen eines kurzen deutschen Alltagstextes mit Wortschatz, Schlussfolgerungen und einer schriftlichen Zusammenfassung.",
+      "generate": "Leseübung erstellen",
+      "material": "Lesetext",
+      "importLabel": "Deutschen Text einfügen (optional)",
+      "useStarter": "Beispieltext verwenden",
+      "useImport": "Aufgaben zu diesem Text erstellen"
+    },
+    "listeningFlow": {
+      "title": "Hören in Codex Voice",
+      "promptPlaceholder": "Zum Beispiel: ein Telefonat zur Terminverschiebung verstehen",
+      "body": "Bereite eine begrenzte Höraktivität mit Skript, Zielen, Fragen und Antwort-Hinweisen vor. Call Nina erstellt, importiert, speichert oder spielt kein Audio.",
+      "scenario": "Einen kurzen Terminanruf verstehen",
+      "scenarioLabel": "Szenario",
+      "levelLabel": "Zielniveau",
+      "difficultyLabel": "Schwierigkeitsgrad",
+      "correctionTimingLabel": "Korrekturzeitpunkt",
+      "difficultyOptions": {
+        "beginner": "Einfach",
+        "intermediate": "Mittel",
+        "advanced": "Fortgeschritten"
+      },
+      "correctionOptions": {
+        "during": "Während der Antwort",
+        "after-each": "Nach jeder Antwort",
+        "end": "Am Ende"
+      },
+      "onePerLine": "Ein Eintrag pro Zeile.",
+      "level": "Ziel: A2",
+      "difficulty": "Mittlerer Schwierigkeitsgrad",
+      "correctionTiming": "Korrektur nach jeder Antwort",
+      "scriptLabel": "Vorbereiteter Skriptkontext",
+      "script": "Eine anrufende Person möchte einen Termin von Dienstagvormittag auf Donnerstag um 14:00 Uhr verschieben, weil sie arbeiten muss.",
+      "objectives": "Ziele",
+      "objectiveOne": "Erkenne die ursprüngliche und die neue Terminzeit.",
+      "objectiveTwo": "Verstehe den Grund für die Änderung und die gewünschte Bestätigung.",
+      "questions": "Fragen für die Voice-Sitzung",
+      "questionOne": "Wann war der ursprüngliche Termin?",
+      "questionTwo": "Warum braucht die anrufende Person eine Änderung?",
+      "guidance": "Antwort-Hinweise",
+      "guidanceOne": "Nenne zuerst die Hauptaussage und belege dann Zeit und Grund.",
+      "guidanceTwo": "Markiere eine Aufgabe als in Entwicklung, wenn die Audiointeraktion nicht abgeschlossen wurde.",
+      "prepare": "Höraktivität vorbereiten",
+      "preparing": "Höraktivität wird vorbereitet…",
+      "prepared": "Höraktivität vorbereitet",
+      "saved": "Höraktivität gespeichert.",
+      "voiceStart": "Setze die gespeicherte Aktivität in Codex Voice fort:",
+      "voiceStepOne": "Wähle für diese Aktivität „In Codex öffnen“.",
+      "voiceStepTwo": "Sende die vorbereitete Nachricht, um genau diese Aktivität zu laden.",
+      "voiceStepThree": "Wähle in derselben Aufgabe „Voice-Chat starten“, sofern verfügbar.",
+      "savedTitle": "Gespeicherte Höraktivitäten",
+      "savedBody": "Öffne oder lösche eine vorbereitete Aktivität. Codex kann den exakten strukturierten Kontext über das Call-Nina-Plugin abrufen.",
+      "savedEmpty": "Keine gespeicherten Hörübungen.",
+      "deleteAction": "Löschen",
+      "deleteTitle": "Diese Höraktivität löschen?",
+      "deleteBody": "Die vorbereitete Aktivität wird dauerhaft gelöscht.",
+      "deleteConfirm": "Aktivität löschen"
+    },
+    "speakingFlow": {
+      "title": "Szenario zum Sprechen in Codex Voice",
+      "promptPlaceholder": "Zum Beispiel: einen Arzttermin verschieben oder Lebensmittel einkaufen",
+      "body": "Bereite ein praktisches Deutschland-Rollenspiel mit Conversation-Partner-Verhalten, Zielniveau und Korrekturzeitpunkt vor. Gesprochen wird weiterhin in Codex Voice.",
+      "scenario": "Einen Arzttermin verschieben",
+      "scenarioLabel": "Szenario",
+      "levelLabel": "Zielniveau",
+      "difficultyLabel": "Schwierigkeitsgrad",
+      "correctionTimingLabel": "Korrekturzeitpunkt",
+      "difficultyOptions": {
+        "beginner": "Einfach",
+        "intermediate": "Mittel",
+        "advanced": "Fortgeschritten"
+      },
+      "correctionOptions": {
+        "during": "Während der Antwort",
+        "after-each": "Nach jeder Antwort",
+        "end": "Am Ende"
+      },
+      "onePerLine": "Ein Ziel oder Impuls pro Zeile.",
+      "level": "Ziel: A2",
+      "difficulty": "Mittlerer Schwierigkeitsgrad",
+      "correctionTiming": "Korrektur nach jeder Antwort",
+      "objectives": "Sprechziele",
+      "objectiveOne": "Erkläre, warum du den Termin ändern musst.",
+      "objectiveTwo": "Schlage höflich eine neue Zeit vor und bitte um Bestätigung.",
+      "questions": "Rollenspiel-Impulse",
+      "questionOne": "Kannst du die Änderung in einem klaren Satz erklären?",
+      "questionTwo": "Wie schlägst du Donnerstag um 14:00 Uhr vor?",
+      "guidance": "Gesprächshinweise",
+      "guidanceOne": "Der Conversation Partner spricht zuerst Deutsch und passt den Schwierigkeitsgrad an A2 an.",
+      "guidanceTwo": "Korrigiere nach jeder Antwort und beende mit Problemen, Wortschatz, Feedback und nächsten Schritten.",
+      "prepare": "Szenario zum Sprechen vorbereiten",
+      "preparing": "Szenario wird vorbereitet…",
+      "prepared": "Szenario zum Sprechen vorbereitet",
+      "saved": "Sprechszenario gespeichert.",
+      "voiceStart": "Setze dieses Szenario in Codex Voice fort:",
+      "voiceStepOne": "Wähle für diese Aktivität „In Codex öffnen“.",
+      "voiceStepTwo": "Sende die vorbereitete Nachricht, um genau diese Aktivität zu laden.",
+      "voiceStepThree": "Wähle in derselben Aufgabe „Voice-Chat starten“, sofern verfügbar.",
+      "savedTitle": "Gespeicherte Sprechszenarien",
+      "savedBody": "Öffne oder lösche ein vorbereitetes Szenario. Codex kann Ziele und Impulse exakt über das Call-Nina-Plugin abrufen.",
+      "savedEmpty": "Keine gespeicherten Szenarien.",
+      "deleteAction": "Löschen",
+      "deleteTitle": "Dieses Sprechszenario löschen?",
+      "deleteBody": "Das vorbereitete Szenario wird dauerhaft gelöscht.",
+      "deleteConfirm": "Szenario löschen"
+    },
+    "diagnosticFlow": {
+      "title": "Optionale Übungsdiagnose",
+      "body": "Drei kurze Aufgaben: Grammatik, Wortschatz und Lesen. Dein Lernniveau bleibt unverändert.",
+      "start": "Einstufung starten",
+      "skip": "Jetzt überspringen",
+      "skipped": "Jetzt übersprungen. Du kannst die Einstufung unter Üben wieder öffnen.",
+      "grammar": "Grammatik: Wähle den natürlichen Artikel in „Ich gehe ___ Arzt.“",
+      "vocabulary": "Wortschatz: Was bedeutet „Termin“ hier?",
+      "reading": "Leseaufgabe",
+      "readingText": "Die Terminnotiz sagt: „Sprechstunde am Dienstag um 10 Uhr.“",
+      "readingQuestion": "Um wie viel Uhr ist die Sprechstunde?",
+      "choose": "Antwort auswählen",
+      "finish": "Einstufungsbelege speichern",
+      "saving": "Belege werden gespeichert…",
+      "completedTitle": "Einstufungsbelege gespeichert",
+      "completedBody": "Im Verlauf gespeichert. Dein Lernniveau bleibt unverändert.",
+      "noAdditionalUncertainty": "Keine zusätzliche Unsicherheit gemeldet.",
+      "outcomes": {
+        "demonstrated": "gezeigt",
+        "developing": "in Entwicklung",
+        "not-demonstrated": "nicht gezeigt",
+        "not-assessed": "nicht bewertet"
+      },
+      "limitedEvidence": "Drei lokale Auswahlaufgaben reichen nicht aus, um ein GER-Niveau einzuschätzen.",
+      "writingNotAssessed": "Schreiben wird hier nicht bewertet. Unter Schreiben erhältst du Feedback zu einem echten Text.",
+      "voiceUnavailable": "Hören und Sprechen werden hier nicht bewertet. Starte dafür eine vorbereitete Aktivität in Codex Voice.",
+      "sampleUncertainty": "Eine einzelne lokale Aufgabe belegt kein Sprachniveau.",
+      "grammarTopic": "Dativ nach zu",
+      "grammarEvidence": "Eine kurze Aufgabe zur Artikelwahl wurde abgeschlossen.",
+      "vocabularyTopic": "Termine",
+      "vocabularyEvidence": "Eine Aufgabe zur Bedeutung eines Alltagswortes wurde abgeschlossen.",
+      "readingTopic": "Eine Uhrzeit in einem Hinweis finden",
+      "writingTopic": "Schreiben"
+    },
+    "voiceContentNotice": "Prüfe die Details vor dem Vorbereiten. Du kannst alle Textfelder bearbeiten.",
+    "voiceHandoff": {
+      "open": "In Codex öffnen",
+      "opening": "Codex wird geöffnet…",
+      "openRequested": "Öffnen angefordert. Sende die vorbereitete Nachricht in Codex und starte dann Voice in derselben Aufgabe.",
+      "setupRequired": "Öffne Einstellungen / Konto in Call Nina, um das Call-Nina-Plugin zu installieren oder zu aktualisieren und die Codex-Einrichtung zu prüfen. Versuche es danach erneut.",
+      "failed": "Codex konnte nicht geöffnet werden. Prüfe, ob die ChatGPT-Desktop-App installiert ist, und versuche erneut, die Aktivität in Codex zu öffnen.",
+      "availability": "Voice in bestehenden Aufgaben hängt von App, Konto und Arbeitsbereich ab. Falls „Voice-Chat starten“ fehlt, aktualisiere Codex oder übe per Text weiter.",
+      "resume": "Kehre zum Fortsetzen eines Gesprächs zu seiner Aufgabe in Codex zurück. Diese Schaltfläche bereitet einen neuen Chat vor."
+    },
+    "customCount": "Eigene Anzahl (3–30)",
+    "invalidCount": "Gib eine ganze Zahl von 3 bis 30 ein."
+  },
+  "modelControl": {
+    "title": "KI-Modell",
+    "loading": "Modellauswahl wird geladen…",
+    "saving": "Wird gespeichert…",
+    "activity": "KI-Aktivität",
+    "model": "Modell",
+    "reasoning": "Denkaufwand",
+    "reasoningHint": "Weniger Aufwand ist schneller. Mehr Aufwand benötigt mehr Zeit für gründlicheres Nachdenken.",
+    "automatic": "Automatisch — {{model}}",
+    "workloads": {
+      "correction": "Schreiben",
+      "generation": "Üben",
+      "helper": "Hilfe",
+      "research": "Recherche"
+    }
+  },
+  "exercises": {
+    "ready": "Übungsset bereit",
+    "loading": "Übung wird geladen…",
+    "readyBody_one": "Dieses Set enthält {{count}} kurze Übung.",
+    "readyBody_other": "Dieses Set enthält {{count}} kurze Übungen.",
+    "navigationLabel": "Navigation zwischen besuchten Übungen",
+    "start": "Übung starten",
+    "startAgain": "Neu starten",
+    "starting": "Übung wird gestartet…",
+    "startFailed": "Die Übung konnte nicht gestartet werden. Es wurde keine Antwort gespeichert.",
+    "progress": "Übung {{current}} von {{total}}",
+    "answer": "Deine Antwort",
+    "blank": "Lücke {{number}}",
+    "correctedSentence": "Dein korrigierter Satz",
+    "direction": {
+      "recognition": "Erkenne die deutsche Bedeutung.",
+      "production": "Bilde das deutsche Wort oder den Ausdruck."
+    },
+    "hint": "Tipp",
+    "nextHint": "Weiterer Tipp",
+    "showHint": "Hinweis anzeigen",
+    "answerFrameHint": "Satzgerüst: {{frame}}",
+    "submit": "Antwort absenden",
+    "answerRequired": "Gib vor dem Absenden eine gültige Antwort ein.",
+    "previous": "Vorherige Übung",
+    "forward": "Nächste besuchte Übung",
+    "next": "Nächste Übung",
+    "finish": "Set abschließen",
+    "completing": "Übung wird gespeichert…",
+    "completionFailed": "Die Antworten konnten nicht gespeichert werden. Sie bleiben für einen neuen Versuch sichtbar.",
+    "abandon": "Set abbrechen",
+    "abandoning": "Set wird abgebrochen…",
+    "abandonFailed": "Das Set konnte nicht abgebrochen werden. Deine aktuelle Antwort bleibt sichtbar.",
+    "abandoned": "Übungsset abgebrochen",
+    "abandonedBody": "Abgeschlossene Antworten wurden nicht im Verlauf gespeichert. Du kannst dieses erzeugte Set später erneut starten.",
+    "delete": {
+      "trigger": "Quiz löschen",
+      "deleting": "Quiz wird gelöscht…",
+      "title": "Dieses Quiz löschen?",
+      "body": "Dadurch werden das Quiz und seine unbestätigten Wortschatzkandidaten dauerhaft gelöscht. Bestätigter Wortschatz verhindert das Löschen.",
+      "cascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Verlaufseinträge und unbestätigten Wortschatzkandidaten dauerhaft gelöscht.",
+      "confirm": "Quiz löschen"
+    },
+    "aiFeedback": {
+      "evaluating": "Deine Antwort wird geprüft…",
+      "failed": "Deine Antwort wurde gespeichert, aber die Rückmeldung ist nicht verfügbar. Sende sie erneut, ohne deine Antwort zu verlieren.",
+      "strengths": "Was gut funktioniert",
+      "improvements": "Was du verbessern kannst",
+      "suggestedAnswer": "Vorschlag:"
+    },
+    "custom": {
+      "title": "Quiz erstellen",
+      "body": "Bitte um ein Thema, eine Alltagssituation, einen Grammatikschwerpunkt, ein Wortschatzthema oder ein Fragenformat. Das Quiz ist ohne Zeitdruck und enthält optionale Hinweise.",
+      "request": "Was möchtest du üben?",
+      "countLabel": "Quizlänge",
+      "countOption_one": "{{count}} Übung",
+      "countOption_other": "{{count}} Übungen",
+      "generate": "Quiz erstellen",
+      "generating": "Quiz wird erstellt…",
+      "failed": "Das Quiz konnte nicht erstellt werden. Deine Anfrage bleibt für einen neuen Versuch erhalten.",
+      "vocabulary": "Wortschatzgrundlagen"
+    },
+    "complete": "Übung abgeschlossen",
+    "acceptedAnswers": "Akzeptierte Antwort",
+    "results": {
+      "correct": "Richtig",
+      "almost-correct": "Fast richtig — prüfe die kleinen Unterschiede",
+      "incorrect": "Überprüfe diese Antwort",
+      "requires-ai": "Für diese offene Antwort ist KI-Rückmeldung erforderlich"
+    },
+    "supportFailed": "Der Hinweis konnte nicht gespeichert werden. Versuche es erneut, um ihn zu sehen."
+  },
+  "vocabulary": {
+    "eyebrow": "Nützlichen Wortschatz aufbauen",
+    "title": "Wortschatz",
+    "body": "Bestätige nur Wörter, die du wiederholen möchtest. Die Planung bleibt deterministisch und nachvollziehbar.",
+    "refresh": "Wortschatz aktualisieren",
+    "createTitle": "Wortschatz-Set erstellen",
+    "createBody": "Fasse vorhandene Wortvorschläge in einer Sammlung zusammen. Neue Vorschläge entstehen bei einer Schreibkorrektur.",
+    "request": "Wobei soll dieses Set helfen?",
+    "topic": "Optionales Thema",
+    "setTitle": "Titel des Sets",
+    "createSet": "Lektionsset erstellen",
+    "filtersLabel": "Wortschatzansichten",
+    "filters": {
+      "all": "Alle",
+      "candidate": "Vorgeschlagen",
+      "due": "Heute fällig",
+      "active": "Aktiv",
+      "suspended": "Pausiert"
+    },
+    "empty": "Keine Wörter in dieser Ansicht.",
+    "candidateState": "Kandidat — vor der Wiederholung bestätigen",
+    "due": "Fällig {{date}} · Stufe {{stage}}",
+    "suspendedState": "Pausiert: {{reason}}",
+    "confirm": "Aktive Wiederholung beginnen",
+    "suspend": "Wiederholung pausieren",
+    "resume": "Wiederholung fortsetzen",
+    "edit": "Bearbeiten",
+    "save": "Wortschatz speichern",
+    "delete": "Löschen",
+    "deleteConfirm": "Diese Wortschatzkarte und ihre Wiederholungen löschen?",
+    "openSource": "Quelle öffnen",
+    "lemma": "Wort",
+    "meaning": "Bedeutung",
+    "example": "Deutsches Beispiel",
+    "exampleMeaning": "Bedeutung des Beispiels",
+    "lessonSets": "Gespeicherte Lektionssets",
+    "lessonSetItems": "{{count}} Kandidaten",
+    "grades": {
+      "again": "Nochmal",
+      "hard": "Schwierig",
+      "good": "Gut",
+      "easy": "Leicht"
+    },
+    "library": {
+      "search": "Wörter und Bedeutungen suchen",
+      "sort": "Sortieren nach",
+      "sortWord": "Wort (A–Z)",
+      "sortDue": "Nächste Wiederholung (früheste zuerst)",
+      "status": "Status",
+      "nextReview": "Nächste Wiederholung",
+      "notScheduled": "Nicht eingeplant",
+      "details": "Wortdetails",
+      "source": "Quellkontext",
+      "plural": "Plural",
+      "plurals": {
+        "unchanged": "unverändert",
+        "unknown": "nicht erfasst",
+        "not-applicable": "nicht zutreffend"
+      },
+      "reasons": {
+        "learner-paused": "von dir pausiert",
+        "duplicate": "Duplikat",
+        "not-useful": "nicht hilfreich",
+        "other": "Sonstiges"
+      },
+      "lastReview": "Zuletzt wiederholt: {{date}} · {{grade}}",
+      "reviewDue": "Fällige Wörter wiederholen ({{count}})",
+      "selectPage": "Alle Wörter auf dieser Seite auswählen",
+      "selectWord": "{{word}} auswählen",
+      "selected": "{{count}} ausgewählt",
+      "clearSelection": "Auswahl aufheben",
+      "resultCount": "{{count}} passende Wörter",
+      "noMatches": "Keine Wörter passen zu dieser Suche und diesem Filter.",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "page": "Seite {{page}} von {{total}}",
+      "close": "Schließen",
+      "reloadDetails": "Aktuelle Details neu laden",
+      "setCreated": "Vokabellektion erstellt.",
+      "noSuggestions": "Für eine Vokabellektion werden vorgeschlagene Wörter benötigt."
+    },
+    "review": {
+      "title": "Vokabeln wiederholen",
+      "back": "Zurück zum Wortschatz",
+      "progress": "Wort {{current}} von {{total}}",
+      "reveal": "Antwort zeigen",
+      "saved": "Gespeichert · Nächste Wiederholung: {{date}}",
+      "next": "Nächstes Wort",
+      "skip": "Geändertes Wort überspringen",
+      "complete": "Wiederholung abgeschlossen",
+      "reviewed": "{{count}} Wörter wiederholt.",
+      "noneDue": "Aktuell sind keine Wörter fällig.",
+      "another": "Weitere Wörter wiederholen",
+      "failed": "Das Ergebnis konnte nicht bestätigt werden. Überspringe dieses Wort oder aktualisiere den Wortschatz.",
+      "answer": "Antwort",
+      "retrieval": "Abrufart",
+      "modes": {
+        "recognition": "Bedeutung erkennen",
+        "recall": "Deutsch abrufen",
+        "use": "In einem Satz verwenden"
+      },
+      "prompts": {
+        "recognition": "Sieh das deutsche Wort an und rufe die Bedeutung ab, bevor du aufdeckst.",
+        "recall": "Lies die Bedeutung und rufe das Deutsche ab, bevor du aufdeckst.",
+        "use": "Sage oder schreibe vor dem Aufdecken einen neuen Satz mit diesem Wort oder Baustein. Bewerte deinen Versuch selbst; dies ist eine Selbsteinschätzung."
+      }
+    },
+    "register": {
+      "formal": "formell",
+      "informal": "informell",
+      "neutral": "neutral"
+    }
+  },
+  "dashboard": {
+    "eyebrow": "Heute",
+    "title": "Übersicht",
+    "body": "Setze eine fokussierte Aktivität fort oder wiederhole, was du zuletzt gelernt hast.",
+    "primary": "Übung starten",
+    "helperTitle": "Kontexthilfe",
+    "helperBody": "Öffne Erklärungen nur, wenn du sie brauchst. Die Hauptaufgabe bleibt im Fokus.",
+    "refresh": "Übersicht aktualisieren",
+    "refreshing": "Wird aktualisiert…",
+    "refreshed": "Aktualisiert um {{time}}",
+    "cards": {
+      "quickPractice": "Schnell üben",
+      "corrections": "Letzte Korrekturen",
+      "mistakes": "Wiederkehrende Fehler",
+      "vocabulary": "Fälliger Wortschatz"
+    },
+    "quickPracticeBody": "Wähle eine fokussierte lokale Aktivität, ohne auf KI zu warten.",
+    "openPractice": "Üben öffnen",
+    "openWriting": "Schreiben öffnen",
+    "correctionItem": "{{count}} geänderte Abschnitte · {{date}}",
+    "emptyCorrections": "Noch keine Korrekturen.",
+    "openHistory": "Verlauf öffnen",
+    "mistakeItem": "{{category}} · {{count}} Vorkommen",
+    "emptyMistakes": "Noch keine wiederkehrenden Muster.",
+    "emptyVocabulary": "Heute sind keine Wörter fällig.",
+    "openVocabulary": "Wortschatz öffnen"
+  },
+  "helper": {
+    "selectionTruncated": "Nur die ersten 4.000 Zeichen werden verwendet. Markiere einen kürzeren Abschnitt, um nach dem Rest zu fragen.",
+    "selectText": "Wähle Text in der App aus, um ihn zu übersetzen oder Fragen dazu zu stellen.",
+    "selectedContext": "Aktueller Kontext",
+    "messageLabel": "Nachricht an die Kontexthilfe",
+    "messagePlaceholder": "Frage zu diesem Text…",
+    "send": "Senden",
+    "sendHint": "Enter zum Senden · Umschalt+Enter für eine neue Zeile",
+    "translate": "Übersetzen",
+    "translateRequest": "Das übersetzen",
+    "youAsked": "Du",
+    "answer": "Tutor",
+    "alternatives": "Alternativen",
+    "translations": "Übersetzungen",
+    "miniExercises": "Mini-Übungen",
+    "followUps": "Ideen zum Weiterfragen",
+    "stages": {
+      "queued": "Eingereiht…",
+      "running": "Antwort wird erstellt…",
+      "validating": "Antwort wird geprüft…"
+    },
+    "courseSupport": "Wenn du diese Hilfe während noch nicht abgeschlossener Kursversuche nutzt, gelten diese als unterstützt – auch Versuche, die du auf einer anderen Seite offen gelassen hast."
+  },
+  "writing": {
+    "eyebrow": "Schreibübung",
+    "title": "Auf Deutsch schreiben",
+    "intro": "Situation und eigener Text bleiben zusammen. Erst eine ausdrücklich gestartete KI-Aktion sendet Inhalte.",
+    "promptTitle": "Wähle deinen Einstieg",
+    "promptBody": "Erstelle eine Aufgabe für dein Niveau und deine Interessen oder schreibe frei.",
+    "generatePrompt": "Aufgabe erstellen",
+    "freeWriting": "Aufgabe leeren",
+    "generatedPrompt": "Erstellte Schreibaufgabe",
+    "suggestedWords": "Empfohlene Länge: {{count}} Wörter",
+    "promptStages": {
+      "queued": "Aufgabe wartet…",
+      "running": "Aufgabe wird erstellt…",
+      "validating": "Aufgabe wird geprüft…"
+    },
+    "promptFormats": {
+      "short-message": "Kurze Nachricht",
+      "email": "E-Mail",
+      "note": "Notiz",
+      "short-response": "Kurze Antwort",
+      "practical-description": "Praktische Beschreibung",
+      "essay": "Aufsatz"
+    },
+    "contextLabel": "Situation oder Aufgabe (optional)",
+    "contextPlaceholder": "Zum Beispiel: die Hausverwaltung nach einem Reparaturtermin fragen",
+    "contextHint": "Optionaler Kontext für diesen Text. Halte ihn relevant und kurz.",
+    "editorLabel": "Dein deutscher Text",
+    "editorPlaceholder": "Hier losschreiben…",
+    "selection": "{{count}} Zeichen ausgewählt",
+    "noSelection": "Kein Text ausgewählt",
+    "correctNow": "Jetzt korrigieren",
+    "cancelCorrection": "Korrektur abbrechen",
+    "retryCorrection": "Dieselbe Anfrage erneut versuchen",
+    "correctionReady": "Korrektur bereit",
+    "inlineCorrection": "Kommentierte Korrektur",
+    "mistakes_one": "1 Änderung zum Prüfen",
+    "mistakes_other": "{{count}} Änderungen zum Prüfen",
+    "changeSelectionHelp": "Wähle eine markierte Änderung für die Erklärung.",
+    "selectChange": "Änderung {{number}} anzeigen",
+    "changeHeading": "Änderung {{number}}",
+    "changedText": "Text geändert",
+    "sideBySide": "Original und Korrektur",
+    "originalText": "Originaltext",
+    "correctedText": "Korrigierter Text",
+    "inserted": "Hier eingefügt",
+    "removed": "Hier entfernt",
+    "noChanges": "Es waren keine Textänderungen nötig.",
+    "naturalAlternative": "Eine natürliche Alternative",
+    "vocabularyCandidates_one": "1 Wortschatzkandidat",
+    "vocabularyCandidates_other": "{{count}} Wortschatzkandidaten",
+    "vocabularyCandidates": "Wortschatzkandidaten",
+    "nextPractice": "Vorgeschlagene Folgeübung",
+    "uncertaintyAndCaveats": "Unsicherheit und Hinweise",
+    "changeCategories": {
+      "grammar": "Grammatik",
+      "spelling": "Rechtschreibung",
+      "punctuation": "Zeichensetzung",
+      "word-choice": "Wortwahl",
+      "word-order": "Wortstellung",
+      "register": "Sprachregister",
+      "idiom": "Redewendung",
+      "clarity": "Klarheit"
+    },
+    "changeSeverities": {
+      "minor": "Kleinere Änderung",
+      "meaning-affecting": "Bedeutungsrelevant"
+    },
+    "correctionStages": {
+      "queued": "Korrektur wartet. Dein Text bleibt erhalten.",
+      "running": "Dein deutscher Text wird geprüft…",
+      "validating": "Die strukturierte Korrektur wird geprüft…",
+      "cancelling": "Korrektur wird abgebrochen…"
+    },
+    "correctionOutcomes": {
+      "cancelled": "Korrektur abgebrochen. Dein Text ist noch da.",
+      "rate-limited": "Codex ist vorübergehend begrenzt. Dein Text ist noch da."
+    },
+    "optionsTitle": "Korrekturoptionen",
+    "profileLabel": "Lehrprofil",
+    "profileDefault": "Mein Standardprofil verwenden",
+    "profileConversation": "Gesprächspartner",
+    "profileStrict": "Strenger Korrektor",
+    "feedbackLabel": "Feedback",
+    "feedbackAll": "Alle relevanten Fehler",
+    "feedbackPriority": "Wichtigste Fehler",
+    "localDraftNotice": "Ungespeicherter Entwurf · Jetzt korrigieren speichert die Korrektur.",
+    "unsavedTitle": "Diesen Schreibentwurf verlassen?",
+    "unsavedBody": "Deine ungespeicherte Aufgabe und dein deutscher Text werden beim Verlassen verworfen.",
+    "leave": "Verwerfen und verlassen",
+    "keepEditing": "Weiter bearbeiten"
+  },
+  "history": {
+    "eyebrow": "Lernnachweis",
+    "title": "Verlauf",
+    "intro": "Sieh dir gespeicherte Versuche und Rückmeldungen an und wähle, was du erneut üben möchtest.",
+    "refresh": "Verlauf aktualisieren",
+    "refreshing": "Wird aktualisiert…",
+    "empty": "Keine gespeicherte Aktivität passt zu diesen Filtern.",
+    "filters": {
+      "skill": "Fertigkeit",
+      "activityType": "Aktivitätstyp",
+      "from": "Von Datum",
+      "to": "Bis Datum",
+      "topic": "Lehrplanthema-ID",
+      "mistake": "Fehlerkategorie",
+      "all": "Alle",
+      "apply": "Filter anwenden"
+    },
+    "skills": {
+      "writing": "Schreiben",
+      "reading": "Lesen",
+      "listening": "Hören",
+      "speaking": "Sprechen"
+    },
+    "activityTypes": {
+      "writing": "Schreiben",
+      "grammar": "Grammatik",
+      "vocabulary-review": "Wortschatzwiederholung",
+      "reading": "Lesen",
+      "codex-listening": "Codex-Hören",
+      "voice-speaking": "Voice-Sprechen",
+      "placement": "Einstufung",
+      "custom-lesson": "Quiz",
+      "flashcards": "Lernkarten"
+    },
+    "topics": "Lehrplanthemen",
+    "mistakes": "Fehlerkategorien",
+    "learnerOriginal": "Original der lernenden Person",
+    "modelCorrection": "Modellkorrektur",
+    "feedback": "Gespeicherte Rückmeldung",
+    "exercisePrompt": "Übung",
+    "exerciseAnswer": "Antwort der lernenden Person",
+    "acceptedEvidence": "Akzeptierte Antwort oder Vorschlag",
+    "objectiveOutcomes": {
+      "demonstrated": "Gezeigt:",
+      "developing": "In Entwicklung:",
+      "not-demonstrated": "Nicht gezeigt:",
+      "not-evaluated": "Nicht bewertet:"
+    },
+    "strengths": "Stärken",
+    "improvements": "Verbesserungen",
+    "vocabularyCandidates": "Wortschatzkandidaten",
+    "placementSummary": "Optionale Einstufung",
+    "placementEvidence": "Belege für vier Fertigkeiten",
+    "placementUncertaintyNone": "Keine zusätzliche Unsicherheit gemeldet.",
+    "readingMaterial": "Lesematerial",
+    "listeningSummary": "Strukturierte Hörbelege",
+    "listeningWords": "Schwieriger Wortschatz: {{words}}",
+    "listeningNextSteps": "Nächste Schritte",
+    "listeningNoAudio": "Es werden nur ausdrücklich strukturierte Ergebnisse gespeichert; Call Nina speichert kein Audio und kein vollständiges Transkript.",
+    "placementOutcomes": {
+      "demonstrated": "gezeigt",
+      "developing": "in Entwicklung",
+      "not-demonstrated": "nicht gezeigt"
+    },
+    "modelProvenance": "Erstellt von {{model}} mit Denkaufwand {{effort}}.",
+    "modelNotReported": "Die Laufzeit hat Modell und Denkaufwand nicht gemeldet.",
+    "voiceSummary": {
+      "scenario": "Voice-Sitzung",
+      "level": "Zielniveau: {{level}}",
+      "duration": "{{minutes}} Min.",
+      "durationUnknown": "Dauer nicht gemeldet",
+      "issues": "Beobachtete Schwierigkeiten",
+      "vocabulary": "Nützlicher Wortschatz",
+      "nextSteps": "Nächste Schritte",
+      "practice": "Gezielte Übung erstellen",
+      "practiceCreated": "Die gezielte Übung ist in den vorbereiteten Aktivitäten verfügbar.",
+      "practiceQueued": "Die gezielte Übung wird vorbereitet.",
+      "practiceRunning": "Die gezielte Übung wird geprüft.",
+      "noAudio": "Nur diese strukturierte Zusammenfassung wird gespeichert; Call Nina speichert kein Audio und kein vollständiges Transkript."
+    },
+    "practiceAgain": "Erneut üben",
+    "delete": "Diesen Eintrag löschen",
+    "deleteTitle": "Diesen Verlaufseintrag löschen?",
+    "deleteBody": "Dadurch werden Versuch, Antwort, Korrektur und Rückmeldung dauerhaft gelöscht. Die Aktion kann nicht rückgängig gemacht werden.",
+    "referenceOnly": "Dieser Eintrag enthält einen portablen Verweis; die Detailansicht gehört zu einem späteren Aktivitätsbereich.",
+    "patterns": {
+      "title": "Fehlerbelege",
+      "intro": "Muster werden nach wirksamer Grammatik- oder Wortschatzkategorie und Datum gruppiert. Wiederholung ist ein beschreibender Beleg, keine Beherrschungswertung.",
+      "category": {
+        "grammar": "Grammatikkategorie",
+        "vocabulary": "Wortschatzkategorie"
+      },
+      "recurring_one": "Wiederholter Beleg aus {{count}} Beobachtung",
+      "recurring_other": "Wiederholter Beleg aus {{count}} Beobachtungen",
+      "single": "Nur eine Beobachtung – kein wiederkehrendes Muster und keine Beherrschungswertung.",
+      "source": {
+        "inferred": "Kategorie aus Korrekturbelegen abgeleitet.",
+        "learner-amended": "Kategorie von der lernenden Person geändert.",
+        "mixed": "Diese Gruppe enthält abgeleitete und von der lernenden Person geänderte Einordnungen."
+      },
+      "amendedEvidence": "Von der lernenden Person geänderte Einordnung",
+      "practice": {
+        "create": "Das üben",
+        "queued": "Gezielte Übung wird vorbereitet…",
+        "running": "Gezielte Übung wird erstellt…",
+        "cancel": "Abbrechen",
+        "created": "Die gezielte Übung ist in deinen vorbereiteten Aktivitäten verfügbar.",
+        "cancelled": "Die gezielte Übung wurde abgebrochen. Deine Belege wurden nicht verändert.",
+        "failed": "Die gezielte Übung konnte nicht erstellt werden. Deine Belege wurden nicht verändert."
+      }
+    }
+  },
+  "pages": {
+    "writing": "Schreiben",
+    "vocabulary": "Wortschatz",
+    "history": "Verlauf",
+    "settings": "Einstellungen und Konto",
+    "placeholder": "Dieser Bereich ist für den nächsten Implementierungsblock bereit."
+  },
+  "startup": {
+    "loading": "Lernbereich wird vorbereitet…",
+    "firstTitle": "Wähle den Speicherort deiner Lerndaten",
+    "firstBody": "Wähle einen Speicherort für deine Lerndaten.",
+    "unavailableTitle": "Dein Lernordner braucht Aufmerksamkeit",
+    "unavailableBody": "Call Nina konnte den ausgewählten Ordner nicht sicher öffnen.",
+    "schemaTitle": "Dieser Lernordner braucht eine neuere Call-Nina-Version",
+    "schemaBody": "Aktualisiere die App oder wähle einen kompatiblen Lernordner. Die Datenbank wird nicht herabgestuft.",
+    "lockedTitle": "Die Lerndatenbank ist belegt",
+    "lockedBody": "Schließe ein anderes Call-Nina-Fenster und versuche es erneut.",
+    "staleTitle": "Der ausgewählte Ordner wurde geändert",
+    "staleBody": "Lade neu oder wähle den Ordner erneut aus.",
+    "missingTitle": "Der ausgewählte Ordner ist nicht verfügbar",
+    "missingBody": "Verbinde den Ordner erneut oder wähle einen anderen.",
+    "diagnostic": "Diagnosereferenz",
+    "noBlank": "Die App bleibt während der Wiederherstellung verfügbar."
+  },
+  "codex": {
+    "missing": "Codex ist nicht installiert. Lokale Lernwerkzeuge bleiben verfügbar.",
+    "unsupported": "Diese Codex-Version wird nicht unterstützt. Aktualisiere Codex für KI-Funktionen.",
+    "unavailable": "Codex App Server ist nicht verfügbar. Lokale Lernwerkzeuge bleiben verfügbar.",
+    "signedOut": "Verbinde dein Codex-Konto für KI-Funktionen.",
+    "available": "Die Codex-Integration ist verfügbar."
+  },
+  "folder": {
+    "selected": "Ausgewählter Ordner",
+    "privacyTitle": "Lokale Lerndaten",
+    "privacyBody": "Dieser Ordner enthält lesbare lokale Lerndaten. Call Nina beschränkt eigene Dateien, soweit unterstützt, verschlüsselt den Ordner aber nicht und ersetzt keine Betriebssystem-Verschlüsselung.",
+    "cloudTitle": "Verarbeitung durch OpenAI",
+    "cloudBody": "Nur ausgewählter Text und minimierter Lernkontext werden an OpenAI gesendet, wenn du eine KI-Aktion startest. Für Codex und Voice gelten die Datenkontrollen deines Kontos.",
+    "confirmCheck": "Ich verstehe, wo Daten gespeichert werden und wann ausgewählter Text gesendet wird.",
+    "cancelled": "Kein Ordner ausgewählt. Es wurde nichts geändert.",
+    "warningGit": "Dieser Ordner liegt in einem Git-Arbeitsverzeichnis.",
+    "warningBroad": "Andere lokale Benutzer können diesen Ordner möglicherweise lesen.",
+    "warningInstall": "Dieser Ordner liegt in der App-Installation.",
+    "warningRestart": "Codex-Integrationen müssen für den neuen Ordner neu gestartet werden."
+  },
+  "aiReminder": {
+    "title": "Vor der ersten KI-Aktion",
+    "body": "Der ausgewählte Text und nur der für diese Aktion nötige Kontext werden über dein installiertes Codex an OpenAI gesendet. Beim Abbrechen wird nichts gesendet."
+  },
+  "onboarding": {
+    "step": "Lernprofil einrichten",
+    "title": "Deine Lernpräferenzen",
+    "intro": "Wähle jetzt einige Vorgaben. Du kannst sie später ändern; die App-Sprache bleibt davon unabhängig.",
+    "accountTitle": "Codex-Verbindung",
+    "accountConnected": "Konto verbunden · Tarif: {{plan}}",
+    "accountSignedOut": "Melde dich mit einer der Optionen unten bei deinem Codex-Konto an.",
+    "accountExpired": "Deine Anmeldung ist abgelaufen. Melde dich unten erneut an.",
+    "accountUnsupported": "Deine aktuelle Anmeldemethode wird nicht unterstützt. Nutze unten den Browser oder einen Gerätecode.",
+    "accountUnavailable": "Dein Kontostatus konnte nicht abgerufen werden. Prüfe die Verbindung erneut.",
+    "planUnknown": "Tarif nicht gemeldet",
+    "connectBrowser": "Im Browser verbinden",
+    "connectDevice": "Gerätecode verwenden",
+    "cancelLogin": "Verbindung abbrechen",
+    "login": {
+      "opening-browser": "Sichere Codex-Anmeldung wird geöffnet…",
+      "waiting": "Auf die Codex-Anmeldung wird gewartet…",
+      "complete": "Codex-Konto verbunden.",
+      "cancelled": "Kontoverbindung abgebrochen.",
+      "failed": "Kontoverbindung fehlgeschlagen. Versuche es später erneut."
+    },
+    "startTitle": "Dein Ausgangspunkt",
+    "level": "Ungefähres Deutschniveau",
+    "goal": "Dein Ziel für Deutsch im Alltag",
+    "goalHint": "Zum Beispiel: Termine vereinbaren oder sicherer mit Nachbarn sprechen.",
+    "time": "Verfügbare Lernzeit pro Woche",
+    "minutes": "{{count}} Minuten",
+    "skipPlacement": "Optionale Einstufung vorerst überspringen",
+    "placementLater": "Eine freiwillige Standortbestimmung findest du unter Übungen.",
+    "teachingTitle": "Unterrichtsstil",
+    "profiles": {
+      "conversation-partner": {
+        "title": "Gesprächspartner",
+        "body": "Deutsch zuerst, mit ausgewählten Korrekturen nach deinem Gedanken."
+      },
+      "strict-corrector": {
+        "title": "Strenger Korrektor",
+        "body": "Präzise, sofortige Korrektur jedes bedeutsamen Fehlers."
+      }
+    },
+    "explanationLanguage": "Sprache für Erklärungen",
+    "languages": {
+      "en": "Englisch",
+      "de": "Deutsch"
+    },
+    "localeIndependent": "Erklärungen verwenden die gewählte Erklärungssprache. Menüs und Schaltflächen verwenden die Sprache der Oberfläche.",
+    "finish": "Einrichtung abschließen und lernen",
+    "progress": "Schritt {{current}} von {{total}}",
+    "steps": {
+      "connection": "Codex verbinden",
+      "goal": "Dein Niveau und Ziel",
+      "defaults": "Lernstil und Sprachen",
+      "review": "Einrichtung prüfen"
+    },
+    "selectedFolder": "Deine Lerndaten werden lokal gespeichert in: {{folder}}",
+    "folderSettings": "Du kannst den Datenordner in den Einstellungen ändern.",
+    "connectionRequired": "Verbinde Codex, bevor du die Einrichtung abschließt. Deine Lernvorlieben kannst du schon auswählen.",
+    "pluginOptional": "Mit diesem Plugin kannst du in der Codex-App auf deine Lernaktivitäten zugreifen. Du kannst die Einrichtung auch ohne Plugin abschließen.",
+    "pluginReady": "Plugin aktualisiert. Starte eine neue Aufgabe in Codex, um Call Nina dort zu nutzen.",
+    "interfaceLanguage": "Sprache der Oberfläche",
+    "back": "Zurück",
+    "next": "Weiter",
+    "returnSettings": "Zurück zu Einstellungen",
+    "runAgain": "Einrichtung erneut starten",
+    "reloadSaved": "Gespeicherte Auswahl laden",
+    "unsavedGoal": "Gib ein Ziel ein, um diesen Schritt zu speichern. Beim Zurückgehen oder Verlassen bleibt das zuletzt gespeicherte Ziel erhalten.",
+    "saveSettingsFirst": "Speichere oder verwirf deine Änderungen, bevor du die Einrichtung öffnest.",
+    "leaveUnsaved": "Ohne diese Änderungen verlassen",
+    "connected": "Codex ist verbunden",
+    "connectionNeeded": "Verbindung prüfen",
+    "readyToContinue": "Die Verbindung ist bereit. Wähle Weiter, um deine Lernvorlieben festzulegen.",
+    "readyToFinish": "Die Verbindung ist bereit. Du kannst die Einrichtung abschließen.",
+    "checkConnection": "Verbindung prüfen",
+    "checking": "Verbindung wird geprüft…",
+    "checkComplete": "Verbindungsprüfung abgeschlossen.",
+    "checkFailed": "Die Verbindungsprüfung ist fehlgeschlagen. Prüfe erneut oder lies die Fehlerdetails unten.",
+    "returnConnection": "Zur Codex-Verbindung",
+    "pluginTitle": "Call Nina in Codex nutzen (optional)",
+    "plugin": {
+      "installed": "Plugin installiert. Du musst nichts weiter tun.",
+      "not-installed": "Plugin nicht installiert. Du kannst es jetzt oder später in den Einstellungen hinzufügen.",
+      "refresh-required": "Ein Plugin-Update ist verfügbar. Aktualisiere es, um die neuesten Call-Nina-Funktionen in Codex zu nutzen."
+    },
+    "pluginActions": {
+      "install": "Optionales Plugin installieren",
+      "refresh": "Plugin aktualisieren"
+    },
+    "guidance": {
+      "connection": "Prüfe deine Codex-Verbindung und lege danach fest, wie du lernen möchtest.",
+      "goal": "Sag uns, wo du stehst und was du auf Deutsch machen möchtest.",
+      "defaults": "Wähle deinen Korrekturstil und deine Sprachen. Du kannst sie später in den Einstellungen ändern.",
+      "review": "Prüfe deine Auswahl. Mit Zurück kannst du sie ändern. Schließe die Einrichtung ab, um mit dem Lernen zu beginnen."
+    },
+    "levelHint": "Schätze dein Niveau: A1 bedeutet Anfänger, A2 grundlegende Kenntnisse, B1 Mittelstufe und B2 fortgeschrittene Mittelstufe. Du kannst es später ändern.",
+    "goalRequired": "Gib ein Ziel ein, um fortzufahren.",
+    "runtime": {
+      "missing": "Codex wurde nicht gefunden. Installiere die Codex-Desktop-App und prüfe die Verbindung erneut.",
+      "unsupported-version": "Deine installierte Codex-Version wird nicht unterstützt. Aktualisiere Codex und prüfe die Verbindung erneut.",
+      "app-server-unavailable": "Call Nina konnte keine Verbindung zu Codex herstellen. Starte Codex neu und prüfe die Verbindung erneut."
+    }
+  },
+  "settings": {
+    "eyebrow": "Vorgaben",
+    "title": "Einstellungen",
+    "intro": "Verwalte lokale Lernvorgaben und die von deinem installierten Codex gemeldeten Funktionen.",
+    "loading": "Einstellungen werden geladen…",
+    "saved": "Einstellungen lokal gespeichert.",
+    "loginStarted": "Sichere Codex-Anmeldung gestartet.",
+    "loggedOut": "Codex-Konto getrennt.",
+    "dataTitle": "Lerndaten",
+    "dataFolder": "Ordner",
+    "generation": "Datensatzgeneration",
+    "dataSwitch": "Anderen Datenordner wählen",
+    "dataSwitchCancelled": "Der Ordnerwechsel wurde abgebrochen.",
+    "dataSwitchConfirmTitle": "Datenordnerwechsel bestätigen",
+    "dataSwitchConfirm": "Zu {{name}} wechseln? Deine bisherigen Daten bleiben im ursprünglichen Ordner.",
+    "dataSwitchConfirmAction": "Datenordner wechseln",
+    "accountTitle": "Codex-Konto und Kompatibilität",
+    "account": {
+      "signed-out": "Kein verwaltetes Konto verbunden.",
+      "signed-in": "Verwaltetes Codex-Konto verbunden.",
+      "expired": "Die Codex-Sitzung muss erneut verbunden werden.",
+      "unavailable": "Der Kontostatus ist nicht verfügbar.",
+      "unsupported": "Die aktuelle Anmeldemethode wird nicht unterstützt."
+    },
+    "plan": "Von Codex gemeldeter Tarif: {{plan}}",
+    "login": "Konto verbinden",
+    "logout": "Abmelden",
+    "codexVersion": "Kompatibles Codex {{version}}",
+    "codexUnavailable": "Kompatibles Codex ist nicht verfügbar; lokale Einstellungen bleiben nutzbar.",
+    "plugin": {
+      "not-installed": "Codex-Integration ist nicht installiert.",
+      "installed": "Codex-Integration ist installiert.",
+      "refresh-required": "Aktualisiere das Call-Nina-Plugin mit der Schaltfläche unten.",
+      "actionFailed": "Die Aktion für die Codex-Integration ist fehlgeschlagen. Bitte versuche es erneut.",
+      "actions": {
+        "install": "Codex-Integration installieren",
+        "refresh": "Codex-Integration aktualisieren",
+        "uninstall": "Codex-Integration entfernen"
+      }
+    },
+    "limitsTitle": "Nutzungslimits",
+    "notReported": "Von der aktuellen Laufzeit nicht gemeldet.",
+    "privacyTitle": "Lokale Verarbeitung und OpenAI",
+    "profileTitle": "Lernvorgaben",
+    "persistenceUnavailable": "Die Einstellungen können in dieser App-Version nicht bearbeitet werden.",
+    "teachingProfile": "Standard-Unterrichtsprofil",
+    "uiLocale": "Oberflächensprache",
+    "localeSeparate": "Die Erklärungssprache ist unabhängig von der App-Sprache.",
+    "modelsTitle": "Modelle nach Aufgabe",
+    "model": "Modell",
+    "effort": "Denkaufwand",
+    "automatic": "Automatisch",
+    "exactEffort": "Exakt: {{effort}}",
+    "semanticEfforts": {
+      "fast": "Schnell (bevorzugt niedrig)",
+      "balanced": "Modellstandard",
+      "deep": "Gründlich (bevorzugt hoch)"
+    },
+    "exactEfforts": {
+      "none": "Minimal",
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "xhigh": "Extra hoch",
+      "max": "Maximum",
+      "ultra": "Ultra"
+    },
+    "unavailableSavedModel": "Nicht verfügbares gespeichertes Modell: {{model}}",
+    "unavailableSavedEffort": "Nicht verfügbarer gespeicherter Denkaufwand: {{effort}}",
+    "savedModelFallback": "Das gespeicherte Modell oder die Denkstufe ist nicht verfügbar. Die oben angezeigte Auswahl wird vorübergehend verwendet; deine Einstellung bleibt erhalten.",
+    "workloads": {
+      "correction": "Schreibkorrektur",
+      "generation": "Übungs- und Lektionserstellung",
+      "helper": "Kontexthilfe",
+      "research": "Curriculum-Recherche"
+    },
+    "diagnosticsTitle": "Diagnose und Protokolle",
+    "diagnosticsPrivacy": "Diese lokale Zustandsübersicht enthält nur Versionen und Anzahlen. Lerntexte, Modellausgaben, Zugangsdaten, Pfade und Rohprotokolldaten sind ausgeschlossen.",
+    "diagnosticsGeneration": "Datenstamm-Generation",
+    "diagnosticsSchema": "Datenbankschema",
+    "diagnosticsDatabase": "Datenbankjournal",
+    "diagnosticsLogs": "Lokale Protokolldateien",
+    "runDiagnostics": "Lokale Diagnose ausführen",
+    "exportDiagnostics": "Redigierte Diagnose exportieren",
+    "diagnosticsExported": "Redigierte Diagnose nach {{displayName}} exportiert.",
+    "clearLogs": "Lokale Protokolle löschen",
+    "logsCleared": "{{count}} lokale Protokolldateien gelöscht.",
+    "restoreModels": "Automatische Modellvorgaben wiederherstellen",
+    "discard": "Änderungen verwerfen",
+    "save": "Einstellungen speichern",
+    "automaticFallback": "{{model}} ist nicht verfügbar. Derzeit wird {{effective}} verwendet.",
+    "tabs": {
+      "profile": "Lernen",
+      "models": "Modelle",
+      "account": "Konto",
+      "data": "Daten & Datenschutz",
+      "diagnostics": "Diagnose"
+    }
+  },
+  "errors": {
+    "boundaryTitle": "Diese Ansicht konnte nicht angezeigt werden",
+    "boundaryBody": "In dieser Ansicht ist ein unerwarteter Fehler aufgetreten. Öffne sie erneut. Nicht gespeicherte Eingaben musst du eventuell erneut eingeben.",
+    "validation": "Einige Angaben sind ungültig oder unvollständig. Prüfe die Pflichtfelder und versuche es erneut.",
+    "notFound": "Dieses Element ist nicht mehr verfügbar. Öffne die Liste erneut und wähle ein anderes Element.",
+    "conflict": "Dieses Element wurde vor Abschluss geändert. Öffne es erneut, um die aktuelle Version zu laden, und versuche es noch einmal.",
+    "staleDataRoot": "Der ausgewählte Lernordner wurde geändert. Öffne diese Ansicht erneut, bevor du es noch einmal versuchst.",
+    "database": "Call Nina konnte lokale Lerndaten nicht lesen oder speichern. Prüfe unter Einstellungen/Konto, ob der gewählte Ordner verfügbar und beschreibbar ist, und versuche es erneut.",
+    "aiPolicy": "Call Nina hat diese KI-Aktion gestoppt, weil ein Vorgang außerhalb des erlaubten Lernablaufs auftrat. Versuche es einmal erneut. Melde bei erneutem Auftreten die Diagnosereferenz.",
+    "aiTimeout": "Codex wurde innerhalb des Zeitlimits nicht fertig. Versuche es mit einer kürzeren Anfrage oder einer kleineren Übung erneut.",
+    "modelUnavailable": "Das gewählte Modell oder die Denkeinstellung ist nicht verfügbar. Wähle in der Modellauswahl Automatisch oder eine andere verfügbare Option und versuche es erneut.",
+    "appServer": "Die KI-Aktion konnte nicht abgeschlossen werden. Versuche es einmal erneut. Prüfe bei erneutem Fehler Codex unter Einstellungen/Konto und melde die Diagnosereferenz.",
+    "authentication": "Du musst dich bei Codex anmelden. Verbinde dein Codex-Konto unter Einstellungen/Konto und versuche es erneut.",
+    "unsupportedCodexVersion": "Call Nina konnte diese Codex-Installation nicht verwenden. Prüfe den Status unter Einstellungen/Konto und aktualisiere oder installiere Codex bei Bedarf neu.",
+    "rateLimit": "Dein Codex-Nutzungslimit wurde erreicht. Prüfe unter Einstellungen/Konto den Zeitpunkt der Zurücksetzung und versuche es danach erneut.",
+    "cancellation": "Die Aktion wurde abgebrochen.",
+    "modelOutput": "Codex hat ein unvollständiges oder unbrauchbares Ergebnis geliefert. Versuche es erneut. Wähle bei wiederholtem Fehler ein anderes Modell oder melde die Diagnosereferenz.",
+    "mcp": "Die Codex-Integration konnte diese Aktion nicht abschließen. Prüfe den Status unter Einstellungen/Konto und installiere oder aktualisiere die Integration bei Bedarf.",
+    "handoff": "Call Nina konnte die zugehörige Aktivität nicht öffnen. Prüfe die Codex-Integration unter Einstellungen/Konto und versuche es erneut.",
+    "unsupportedOperation": "Diese Aktion ist in der aktuellen Einrichtung nicht verfügbar. Prüfe die verfügbaren Optionen unter Einstellungen/Konto.",
+    "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst."
+  },
+  "ui": {
+    "newPractice": "Neue Übung",
+    "moreFilters": "Weitere Filter",
+    "details": "Details ansehen",
+    "activityOptions": "Übungseinstellungen",
+    "manageWord": "Wort verwalten",
+    "deleteWord": "„{{word}}“ löschen?",
+    "actionFailed": "Die Aktion ist fehlgeschlagen. Bitte erneut versuchen.",
+    "loading": "Wird geladen…",
+    "completeOptions": "Vervollständige vor dem Speichern die erforderlichen Übungseinstellungen."
+  },
+  "suggestions": {
+    "title": "Als Nächstes üben",
+    "recommended": "Empfohlen",
+    "more": "Weitere Ideen",
+    "minutes": "Etwa {{count}} Min.",
+    "starting": "Deine Übung wird vorbereitet…",
+    "learningSummary": "Zuletzt gelernt",
+    "recentSummary": "{{corrections}} letzte Korrekturen · {{patterns}} wiederkehrende Muster",
+    "choosePractice": "Andere Übung wählen",
+    "freeWriting": "Freies Schreiben",
+    "flexibleWeek": "Wähle, was dir heute hilft. Du musst keinen Zeitplan aufholen.",
+    "allGoals": "Alle Ziele und Übungen",
+    "voiceGuidance": "Passe das Gespräch an das Sprachniveau an. Erkläre knapp und lass Zeit zum Antworten.",
+    "voiceQuestion": "Was würdest du in dieser Situation sagen?",
+    "sources": {
+      "due-vocabulary": "Wörter wiederholen",
+      "mistake": "Aus deinen Fehlern",
+      "starter": "Etwas Neues probieren"
+    },
+    "actions": {
+      "start": "Übung starten",
+      "write": "Schreiben beginnen",
+      "review": "Wörter wiederholen",
+      "prepare": "Gespräch vorbereiten",
+      "diagnostic": "Einstufung öffnen"
+    },
+    "fullPrompt": "Vollständige Aufgabe"
+  },
+  "personalData": {
+    "title": "Persönliche Daten",
+    "intro": "Verstehe, was gespeichert wird, wozu es dient und was du löschen kannst.",
+    "folder": "Auf diesem Gerät gespeichert",
+    "refresh": "Aktualisieren",
+    "loading": "Daten werden geladen…",
+    "updated": "Aktualisiert um {{time}}",
+    "tabs": {
+      "overview": "Übersicht",
+      "storage": "Speicherorte",
+      "cleanup": "Aufräumen"
+    },
+    "overviewHelp": "Eine Übersicht deiner gespeicherten Daten. Gezählt werden Hauptdatensätze; zugehörige Details und Verknüpfungen werden nicht doppelt gezählt.",
+    "overviewCaption": "Was sich die App merkt",
+    "columns": {
+      "data": "Gespeicherte Daten",
+      "purpose": "Wozu sie dienen",
+      "saved": "Gespeichert",
+      "location": "Speicherbereich",
+      "path": "Speicherort auf diesem Gerät",
+      "status": "Status",
+      "cleanup": "Zu löschende Daten",
+      "removes": "Was sich ändert",
+      "action": "Aktion"
+    },
+    "supporting": "Die App speichert außerdem Verknüpfungen zwischen Datensätzen, deine Datenschutzbestätigung und kleine Speicher- und Löschvermerke zur Duplikatvermeidung. Sie unterstützen die oben genannten Funktionen.",
+    "privacy": "Deine Lerndaten werden lokal gespeichert. Bei KI-Aktionen werden ausgewählte Texte und Lernkontext über Codex gesendet. Codex verwaltet Konto und Gespräche separat; Call Nina speichert kein Audio.",
+    "storageHelp": "Deine Lerndatensätze liegen in einer gemeinsamen lokalen Datenbank. Größere Dateien und Recherchematerial haben eigene Ordner.",
+    "storageCaption": "Wo deine Daten liegen",
+    "status": {
+      "file": "Datei",
+      "directory": "Ordner",
+      "missing": "Nicht vorhanden",
+      "unavailable": "Nicht verfügbar"
+    },
+    "cleanup": {
+      "intro": "Lösche einen bestimmten Bereich oder beginne mit leerem Lernverlauf neu. Jede Aktion verlangt eine Bestätigung.",
+      "caption": "Gezielt aufräumen",
+      "permanent": "Die aufgeführten Datensätze werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
+      "clearing": "Wird gelöscht…",
+      "confirmLabel": "Tippe LÖSCHEN zur Bestätigung",
+      "confirmWord": "LÖSCHEN",
+      "retained": "Das Aufräumen behält deine Kontoverbindung, Datenschutzbestätigung sowie Duplikat- und Löschvermerke. Anhänge, Recherchedaten, App-Konfiguration und Diagnoseprotokolle werden nicht gelöscht. Diagnosefunktionen bleiben unter Einstellungen/Konto verfügbar.",
+      "blocked": {
+        "busy": "Eine KI-Aktion läuft noch. Beende sie oder brich sie ab, bevor du Daten löschst.",
+        "linked-vocabulary": "Einige Wörter verweisen auf diese Übungen. Lösche zuerst diesen Wortschatz oder wähle „Alle Lerndaten löschen“. Es wurden keine Daten geändert.",
+        "attachments": "Gespeicherte Anhangsverweise verhindern das Aufräumen, damit Dateien ihre zugehörigen Datensätze behalten. Es wurden keine Daten geändert."
+      },
+      "practice": {
+        "title": "Übungen und Aktivitäten",
+        "action": "Übungen löschen",
+        "removes": "Entfernt alle gespeicherten Aktivitäten, Lektionen, Übungen, Versuche, Antworten, Korrekturen, Fehler, Lernerkenntnisse, Voice-Zusammenfassungen und deren Verlauf.",
+        "keeps": "Behält Profilangaben, Einstellungen und Wortschatz. Verknüpfter Wortschatz muss zuerst gelöscht werden.",
+        "success": "Übungen, Feedback und zugehöriger Verlauf gelöscht."
+      },
+      "vocabulary": {
+        "title": "Wortschatzsammlung",
+        "action": "Wortschatz löschen",
+        "removes": "Entfernt vorgeschlagene, aktive und pausierte Wörter, Wortschatzsammlungen, Wiederholungspläne und Wiederholungsverlauf.",
+        "keeps": "Behält Profil, Übungen und Feedback. Wörter können weiterhin in gespeicherten Übungstexten vorkommen.",
+        "success": "Wortschatz, Sammlungen und Wiederholungsverlauf gelöscht."
+      },
+      "learning": {
+        "title": "Für Tests neu anfangen",
+        "action": "Alle Lerndaten löschen",
+        "removes": "Entfernt alle Übungen, Lektionen, Antworten, Feedback, Fehler, Lernerkenntnisse, Wortschatz, Voice-Zusammenfassungen und den Lernverlauf in diesem Datenordner.",
+        "keeps": "Behält deine Profildaten, Einstellungen und den ausgewählten Datenordner, damit du ohne erneute Einrichtung weiterüben kannst.",
+        "success": "Alle Lerndatensätze gelöscht. Dein Profil und deine Einstellungen bleiben für den Neustart erhalten."
+      }
+    },
+    "categories": {
+      "profile": {
+        "title": "Dein Profil",
+        "contains": "Niveau, Ziele, Interessen und bevorzugte Themen.",
+        "purpose": "Passt Übungen und Empfehlungen an dich an."
+      },
+      "preferences": {
+        "title": "Deine Einstellungen",
+        "contains": "Unterrichtsstil, Korrektureinstellungen, Sprache und Modellauswahl.",
+        "purpose": "Merkt sich, wie du lernen möchtest."
+      },
+      "practice": {
+        "title": "Übungsaktivitäten",
+        "contains": "Gespeicherte Übungen, Lektionsinhalte und vorbereitete Gesprächsszenarien.",
+        "purpose": "Damit du vorbereitete Übungen öffnen und fortsetzen kannst."
+      },
+      "attempts": {
+        "title": "Versuche und Feedback",
+        "contains": "Eingereichte Antworten, Schreibkorrekturen und Übungsergebnisse.",
+        "purpose": "Zeigt dein Feedback und hält fest, was du geübt hast."
+      },
+      "vocabulary": {
+        "title": "Wortschatz",
+        "contains": "Vorgeschlagene und gespeicherte Wörter, Bedeutungen, Beispiele und Wiederholungstermine.",
+        "purpose": "Baut deine Wortschatzsammlung auf und plant Wiederholungen."
+      },
+      "voice": {
+        "title": "Voice-Zusammenfassungen",
+        "contains": "Gespeicherte Zusammenfassungen und Feedback aus Hör- und Sprechübungen. Kein Audio.",
+        "purpose": "Übernimmt das Lernergebnis aus Codex."
+      },
+      "history": {
+        "title": "Lernverlauf",
+        "contains": "Aktivitätsdaten, Titel und gespeicherte Ergebnisse.",
+        "purpose": "Damit du frühere Übungen und deinen Fortschritt ansehen kannst."
+      },
+      "insights": {
+        "title": "Lernerkenntnisse",
+        "contains": "Wiederkehrende Fehler, Stärken, Schwächen und bearbeitete Einordnungen.",
+        "purpose": "Hilft bei der Auswahl sinnvoller nächster Übungsthemen."
+      },
+      "files": {
+        "title": "Anhänge",
+        "contains": "Verweise auf lokale Dokumente, Bilder und importierte Texte.",
+        "purpose": "Verknüpft Ausgangsmaterial mit Lernaktivitäten."
+      }
+    },
+    "locations": {
+      "database": {
+        "title": "Lerndatenbank",
+        "description": "Profile, Einstellungen und Lerndatensätze."
+      },
+      "attachments": {
+        "title": "Anhänge",
+        "description": "Lokale Anhangsdateien; ihre Verweise stehen in der Datenbank."
+      },
+      "bootstrap": {
+        "title": "Verweis auf den Datenordner",
+        "description": "Pfad und Generation zum erneuten Öffnen deines ausgewählten Datenordners."
+      },
+      "appConfig": {
+        "title": "App-Konfiguration",
+        "description": "Electron-Konfiguration und Browser-Laufzeitdaten außerhalb des portablen Lerndatenordners."
+      }
+    }
+  },
+  "learningPath": {
+    "title": "Lernpfad",
+    "intro": "Lerne Deutsch in deinem Tempo. Folge der empfohlenen Reihenfolge oder wähle eine verfügbare Einheit.",
+    "return": "Zurück zum Lernpfad",
+    "continue": "Weiterlernen",
+    "finishExplanation": "Erklärung durchgearbeitet",
+    "openSaved": "Gespeicherte Aktivität öffnen",
+    "practiseAgain": "Neue Übung",
+    "start": "Aktivität starten",
+    "reopen": "Erneut bearbeiten",
+    "skip": "Vorerst überspringen",
+    "evidence": "Gespeichertes Feedback",
+    "openHistory": "Verlauf öffnen",
+    "preparing": "Deine Aktivität wird vorbereitet …",
+    "loading": "Dein Lernpfad wird geladen …",
+    "courseUnavailable": "Der Kurs A1.1 und A1.2 ist noch nicht verfügbar. Du kannst unter „Üben“ weitermachen.",
+    "stageFinished": "Du bist am Ende dieser Stufe angekommen. Bearbeite übersprungene Aktivitäten oder wähle eine andere Stufe.",
+    "syllabus": "Kursübersicht",
+    "counts": "{{completed}} von {{total}} abgeschlossen · {{skipped}} übersprungen",
+    "prerequisites": "Hilfreiche frühere Inhalte:",
+    "grammar": "Sprachliche Grundlagen",
+    "vocabulary": "Nützlicher Wortschatz",
+    "progressMeaning": "Abschluss zeigt Teilnahme, kein GER-Niveau. Übersprungene Inhalte bleiben getrennt. Feedback beschreibt nur die bewertete Aktivität.",
+    "openUnit": "Einheit öffnen",
+    "challengeIntro": "Überprüfe dein Deutsch, wann du möchtest. Diese freiwilligen Challenges haben kein Zeitlimit und schalten keine Lektionen frei oder sperren sie.",
+    "challengeScope": "Challenge wählen",
+    "challengeCoverage": "Stufen-Challenges enthalten verschiedene Themen und alle vier Fertigkeiten. Unbearbeitete Teile bleiben unbewertet. Wiederhole sie jederzeit mit neuen Beispielen.",
+    "moreLevels": "Weitere Niveaus",
+    "construction": "Im Aufbau",
+    "tabs": {
+      "course": "Kurs",
+      "progress": "Fortschritt",
+      "challenges": "Deutsch überprüfen"
+    },
+    "steps": {
+      "learn": "Mit Beispielen lernen",
+      "practice": "Angeleitet üben",
+      "reading": "Lesen und verstehen",
+      "writing": "Eine kurze Nachricht schreiben",
+      "listening": "In Voice hören",
+      "speaking": "In Voice sprechen"
+    },
+    "status": {
+      "not-started": "Noch nicht begonnen",
+      "started": "Begonnen",
+      "completed": "Abgeschlossen",
+      "skipped": "Übersprungen"
+    },
+    "outcomes": {
+      "demonstrated": "In dieser Aktivität gezeigt",
+      "developing": "In Entwicklung",
+      "not-demonstrated": "Noch nicht gezeigt",
+      "not-evaluated": "Nicht bewertet"
+    },
+    "uncertainty": {
+      "none": "",
+      "some": "Teilweise unsicher",
+      "substantial": "Begrenzte Belege"
+    },
+    "skillParticipation": "{{count}} verknüpfte Aktivitäten abgeschlossen",
+    "noEvidence": "Noch nicht bewertet. Abgeschlossene Lektionen belegen diese Fertigkeit nicht.",
+    "historyAndPatterns": "Verlauf und wiederkehrende Fehler ansehen",
+    "allHistory": "Gesamten Verlauf anzeigen"
+  },
+  "aiProgress": {
+    "attempt": "Versuch {{count}}",
+    "elapsed": "Vergangen: {{time}}",
+    "stages": {
+      "preparing": "Anfrage wird vorbereitet",
+      "writing-prompt": "Schreibaufgabe wird erstellt",
+      "voice-activity-draft": "Aktivitätsdetails werden erstellt",
+      "writing-correction": "Text wird korrigiert",
+      "contextual-help": "Antwort wird erstellt",
+      "exercise-generation": "Übungen werden erstellt",
+      "exercise-feedback": "Feedback wird erstellt",
+      "checking": "Ergebnis wird geprüft",
+      "refining": "Ergebnis wird überarbeitet",
+      "saving": "Ergebnis wird gespeichert",
+      "cancelling": "Wird abgebrochen",
+      "refiningExercises": "Übungen werden überarbeitet",
+      "flashcard-generation": "Lernkarten werden erstellt"
+    },
+    "messages": {
+      "0": "Längere Anfragen können etwas Zeit brauchen.",
+      "1": "Das Ergebnis erscheint hier, sobald es bereit ist.",
+      "2": "Du kannst warten oder die Anfrage abbrechen."
+    }
+  },
+  "developmentReset": {
+    "body": "Entwicklungsupdate: Nicht kompatible Lerndaten wurden für das aktuelle Format zurückgesetzt. Profil, Einstellungen und unabhängige Dateien bleiben erhalten.",
+    "dismiss": "Verstanden"
+  },
+  "layout": {
+    "breadcrumbs": "Brotkrümelnavigation",
+    "refresh": "Aktualisieren",
+    "refreshing": "Wird aktualisiert…"
+  },
+  "missions": {
+    "intro": "Lerne mit Alltagsmissionen. Wähle deinen nächsten Schritt, übe mit Hilfe und prüfe später, was du selbstständig kannst.",
+    "resume": "Aktivität fortsetzen",
+    "retry": "Mit Feedback erneut versuchen",
+    "continueCourse": "Kurs fortsetzen",
+    "map": "Kursübersicht",
+    "optional": "Optional",
+    "language": "Wörter, Bausteine und Muster",
+    "reuses": "Sprache zum Wiederverwenden",
+    "sharedFacts": "Unsere Situation und Vereinbarungen",
+    "newContext": "Eine neue Situation versuchen",
+    "reviewTab": "Wiederholen ({{count}})",
+    "reviewMeaning": "Prüfe ein Lernziel in einer veränderten Situation. Diese Checks helfen bei Empfehlungen und sperren keine Inhalte. Wortschatz wiederholst du unter Üben.",
+    "nothingDue": "Noch sind keine Missionschecks fällig. Lerne weiter oder versuche eine neue Situation.",
+    "focusedRetry": "Gezieltes Üben empfohlen",
+    "delayedCheck": "Versuche dies in einer neuen Situation",
+    "startReview": "Wiederholung starten",
+    "progressMeaning": "Bearbeitete Aktivitäten und nachgewiesene Fähigkeiten sind getrennt. Gefestigte Lernziele brauchen selbstständige Leistungen in zwei Situationen, davon eine mindestens einen Tag später. Das sind Lernbelege, kein GER-Zertifikat.",
+    "established": "Gefestigt",
+    "buildingEvidence": "Belege sammeln",
+    "due": "Wiederholung fällig",
+    "savedWork": "Gespeicherte Arbeiten und Ergebnisse",
+    "checkpoints": "Zwischenziele",
+    "checkpointMeaning": "Verbinde mehrere Fertigkeiten in einer Alltagssituation. Du kannst diese Checks jederzeit versuchen.",
+    "purpose": {
+      "input": "Verstehen",
+      "discovery": "Sprache entdecken",
+      "practice": "Üben",
+      "interaction": "Informationen austauschen",
+      "capstone": "Mission schaffen",
+      "review": "Wiederholen"
+    },
+    "outcome": {
+      "not-yet": "Noch nicht",
+      "supported": "Mit Unterstützung",
+      "independent": "Selbstständig",
+      "transfer": "Übertragung",
+      "not-evaluated": "Nicht bewertet"
+    },
+    "support": {
+      "hint": "Hinweis genutzt",
+      "model-answer": "Musterantwort",
+      "translation": "Übersetzung",
+      "transcript": "Transkript",
+      "repetition": "Wiederholung",
+      "slow-delivery": "Langsames Sprechen",
+      "repeat-attempt": "Gespeicherte Aktivität wiederholt"
+    },
+    "recommendation": {
+      "resume": "Mission fortsetzen",
+      "review": "Eine sinnvolle Wiederholung",
+      "course": "Dein nächster Missionsschritt"
+    },
+    "addVocabulary": "Wörter und Bausteine zum Wortschatz hinzufügen",
+    "vocabularyAdded": "{{count}} neue Vorschläge hinzugefügt. Bestätige sie im Wortschatz, um sie regelmäßig zu wiederholen.",
+    "explanation": "Erklärung und Beispiele",
+    "constructions": "Satzmuster",
+    "retrievalCounts": "{{recognition}} Erkennen · {{recall}} Abrufen · {{use}} Anwenden",
+    "nextReview": "Nächster Check: {{date}}",
+    "practiseMode": "{{mode}} üben"
+  },
+  "flashcards": {
+    "title": "Lernkarten",
+    "count": "Anzahl der Karten",
+    "description": "Entdecke Wortschatz in deinem Tempo. Drehe jede Karte um, um Bedeutung und Beispiel zu sehen.",
+    "placeholder": "Zum Beispiel: Einkaufen im deutschen Supermarkt",
+    "generate": "Lernkarten erstellen",
+    "complete": "Kartensatz abgeschlossen",
+    "completeBody": "Du hast das Ende dieses Kartensatzes mit {{count}} Karten erreicht.",
+    "restart": "Neu beginnen",
+    "back": "Zurück zu Übungen",
+    "position": "Karte {{current}} von {{total}}",
+    "meaning": "Bedeutung und Beispiele",
+    "plural": "Plural",
+    "pluralUnchanged": "Plural: unverändert",
+    "previous": "Zurück",
+    "front": "Vorderseite zeigen",
+    "flip": "Karte umdrehen",
+    "finish": "Abschließen",
+    "next": "Weiter",
+    "saved": "Im Wortschatz",
+    "saveWord": "Wort speichern",
+    "saveAll": "Alle im Wortschatz speichern",
+    "openVocabulary": "Wortschatz öffnen",
+    "suspended": "Dieses Wort ist pausiert. Du kannst die Wiederholungen im Wortschatz fortsetzen.",
+    "saveNotice": "Wörter gespeichert. Bestehende Wiederholungstermine und pausierte Wörter bleiben erhalten.",
+    "delete": "Kartensatz löschen",
+    "deleteBody": "Diesen Kartensatz und seinen Fortschritt löschen? Im Wortschatz gespeicherte Wörter bleiben erhalten.",
+    "vocabularyDeck": "Meine Wortschatzkarten",
+    "study": "Mit Lernkarten lernen",
+    "selectRange": "Wähle 3–30 Wörter für einen Kartensatz."
+  }
+}

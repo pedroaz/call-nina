@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curriculum Research"
+  short_description: "Research and author A1-B2 curriculum"
+  default_prompt: "Use $curriculum-research to fill the next German curriculum gap with cited, validated content and publish it in the repository."

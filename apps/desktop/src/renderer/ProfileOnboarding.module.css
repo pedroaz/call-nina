@@ -1,0 +1,140 @@
+.app {
+  min-height: 100vh;
+}
+
+.languageButton {
+  align-items: center;
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  color: var(--od-color-text);
+  cursor: pointer;
+  display: inline-flex;
+  gap: var(--od-space-2);
+  min-height: var(--od-control-min);
+  padding: var(--od-space-2) var(--od-space-4);
+}
+
+.languageButton:hover,
+.languageButton[data-pressed] {
+  background: var(--od-color-primary-soft);
+  border-color: var(--od-color-primary);
+}
+
+.topActions {
+  display: flex;
+  gap: var(--od-space-3);
+  justify-content: flex-end;
+  padding: var(--od-space-4) var(--od-space-5);
+}
+
+.startup {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 80dvh;
+  padding: var(--od-space-5);
+}
+
+.startupCard {
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+
+  max-width: var(--od-dialog-max);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: var(--od-space-6);
+  width: 100%;
+}
+
+.onboardingCard {
+  max-width: var(--od-onboarding-max);
+}
+
+.onboardingGrid {
+  display: grid;
+  gap: var(--od-space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--od-space-5);
+}
+
+.onboardingSection {
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+  margin-top: var(--od-space-5);
+  min-width: 0;
+  padding: var(--od-space-5);
+}
+
+.onboardingSection legend {
+  font-size: var(--od-font-size-lg);
+  font-weight: var(--od-weight-strong);
+  padding: 0 var(--od-space-2);
+}
+
+.controlLegend {
+  font-weight: var(--od-weight-medium);
+  margin: var(--od-space-5) 0 var(--od-space-2);
+}
+
+.optionGroup {
+  display: grid;
+  gap: var(--od-space-3);
+}
+
+.startupCard h1 {
+  font-size: var(--od-font-size-xl);
+  line-height: var(--od-line-tight);
+  margin: 0 0 var(--od-space-3);
+}
+
+.languageButton svg {
+  height: var(--od-icon-md);
+  width: var(--od-icon-md);
+}
+
+.eyebrow {
+  color: var(--od-color-primary);
+  font-size: var(--od-font-size-xs);
+  font-weight: var(--od-weight-strong);
+  letter-spacing: var(--od-letter-wide);
+  margin: 0 0 var(--od-space-2);
+  text-transform: uppercase;
+}
+
+@media (max-width: 52rem) {
+  .onboardingGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.startupCard > :where(h1, h2, p) {
+  margin-block: 0;
+}
+.startupCard {
+  display: grid;
+  gap: var(--od-space-4);
+}
+
+.onboardingSection {
+  display: grid;
+  gap: var(--od-space-3);
+  margin-top: 0;
+}
+.onboardingGrid {
+  margin-top: 0;
+  align-items: start;
+}
+.onboardingSection p {
+  margin-block: 0;
+}
+.onboardingSection small {
+  display: block;
+  font-weight: normal;
+  color: var(--od-color-text-muted);
+}
+
+.connectionStatus > div {
+  display: grid;
+  gap: var(--od-space-2);
+}

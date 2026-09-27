@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Desktop UI"
+  short_description: "Build and review the Electron interface"
+  default_prompt: "Use $call-nina-desktop-ui to improve this screen and inspect its behavior in the real app."

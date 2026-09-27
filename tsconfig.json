@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/platform"
+    },
+    {
+      "path": "./packages/contracts"
+    },
+    {
+      "path": "./packages/domain"
+    },
+    {
+      "path": "./packages/persistence"
+    },
+    {
+      "path": "./packages/codex-client"
+    },
+    {
+      "path": "./apps/mcp-server"
+    },
+    {
+      "path": "./apps/desktop"
+    }
+  ]
+}

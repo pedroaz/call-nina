@@ -1,0 +1,508 @@
+.voicePreparation {
+  display: grid;
+  gap: var(--od-space-4);
+}
+
+.voicePreparation h2 {
+  margin: 0;
+}
+
+.voiceHeader {
+  align-items: center;
+  display: flex;
+  gap: var(--od-space-2);
+}
+
+.voiceSettingsGrid {
+  display: grid;
+  gap: var(--od-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.voiceFooter {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-3);
+  justify-content: space-between;
+}
+
+.voiceFooter > span {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+  max-width: 56ch;
+}
+
+.voiceSetupGrid {
+  display: grid;
+  gap: var(--od-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--od-space-5);
+}
+
+.voiceScenarioField {
+  grid-column: 1 / -1;
+}
+
+.voicePreparedPreview {
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+  margin: var(--od-space-5) 0;
+  padding: var(--od-space-4);
+}
+
+.voicePreparedPreview h3,
+.voicePreparedPreview h4 {
+  margin-top: 0;
+}
+
+.voicePreparedPreview h4:not(:first-child) {
+  margin-top: var(--od-space-4);
+}
+
+.historyDetail {
+  display: grid;
+  gap: var(--od-space-4);
+}
+
+.eyebrow {
+  color: var(--od-color-primary);
+  font-size: var(--od-font-size-xs);
+  font-weight: var(--od-weight-strong);
+  letter-spacing: var(--od-letter-wide);
+  margin: 0 0 var(--od-space-2);
+  text-transform: uppercase;
+}
+
+.page {
+  display: grid;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.practiceSection {
+  margin-bottom: var(--od-space-5);
+}
+.generatedLibrary {
+  margin-bottom: var(--od-space-8);
+}
+
+.generatedLibrary {
+  display: grid;
+  gap: var(--od-space-3);
+}
+
+.practiceSectionHeader {
+  align-items: start;
+  display: flex;
+  gap: var(--od-space-4);
+  justify-content: space-between;
+  margin-bottom: var(--od-space-4);
+}
+
+.practiceSectionHeader h2,
+.practiceSectionHeader p {
+  margin: 0;
+}
+
+.practiceSectionHeader p {
+  color: var(--od-color-text-muted);
+  margin-top: var(--od-space-1);
+}
+
+.countBadge {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-xs);
+  font-weight: var(--od-weight-strong);
+  padding-top: var(--od-space-1);
+  white-space: nowrap;
+}
+
+.generatedActivityList {
+  display: grid;
+  gap: var(--od-space-2);
+}
+
+.generatedActivity {
+  align-items: center;
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  display: flex;
+  gap: var(--od-space-2);
+  min-width: 0;
+  padding: var(--od-space-2);
+}
+
+.generatedActivity:focus-within {
+  border-color: var(--od-color-primary);
+}
+
+.generatedActivityOpen {
+  align-items: center;
+  background: var(--od-color-transparent);
+  border: 0;
+  color: var(--od-color-text);
+  cursor: pointer;
+  display: flex;
+  flex: 1;
+  gap: var(--od-space-4);
+  justify-content: space-between;
+  min-height: var(--od-control-min);
+  min-width: 0;
+  padding: var(--od-space-2) var(--od-space-3);
+  text-align: left;
+}
+
+.generatedActivityOpen:hover,
+.generatedActivityOpen[data-pressed] {
+  background: var(--od-color-surface-raised);
+}
+
+.generatedActivityOpen:focus-visible,
+.generatedActivityDelete:focus-visible,
+.libraryFilterButton:focus-visible,
+.practiceTypeCard:focus-visible {
+  outline: var(--od-border-strong) solid var(--od-color-primary);
+  outline-offset: calc(var(--od-space-1) * -1);
+}
+
+.generatedActivityCopy {
+  display: grid;
+  gap: var(--od-space-1);
+  min-width: 0;
+}
+
+.generatedActivityCopy span {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+}
+
+.generatedActivityOpen svg {
+  color: var(--od-color-primary);
+  flex: 0 0 auto;
+}
+
+.generatedActivityDelete {
+  align-items: center;
+  align-self: center;
+  background: var(--od-color-transparent);
+  border: 0;
+  color: var(--od-color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-width: var(--od-control-min);
+  padding: var(--od-space-3);
+}
+
+.generatedActivity > button:last-child {
+  flex: none;
+}
+
+.generatedActivityDelete:hover:not([data-disabled]),
+.generatedActivityDelete[data-pressed]:not([data-disabled]) {
+  background: var(--od-color-error-soft);
+  color: var(--od-color-error);
+}
+
+.generatedActivityDelete[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.generatedActivityDelete svg {
+  height: var(--od-icon-md);
+  width: var(--od-icon-md);
+}
+
+.libraryFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-2);
+  margin-bottom: var(--od-space-4);
+}
+
+.libraryFilterButton {
+  align-items: center;
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-sm);
+  color: var(--od-color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: var(--od-font-size-sm);
+  gap: var(--od-space-2);
+  min-height: var(--od-control-compact);
+  padding: var(--od-space-1) var(--od-space-3);
+}
+
+.libraryFilterButton > span {
+  color: inherit;
+  font-size: var(--od-font-size-xs);
+}
+
+.libraryFilterButton:hover,
+.libraryFilterButton[data-pressed],
+.libraryFilterButton[data-selected] {
+  border-color: var(--od-color-primary);
+  color: var(--od-color-primary);
+}
+
+.libraryFilterButton[data-selected] {
+  background: var(--od-color-primary-soft);
+  font-weight: var(--od-weight-strong);
+}
+
+.practiceTypeGrid {
+  display: grid;
+  gap: var(--od-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.practiceTypeCard {
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+  color: var(--od-color-text);
+  cursor: pointer;
+  display: grid;
+  gap: var(--od-space-3);
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: var(--od-space-3);
+  align-items: center;
+  text-align: left;
+}
+
+.practiceTypeCard:hover,
+.practiceTypeCard[data-pressed] {
+  border-color: var(--od-color-primary);
+}
+
+.practiceTypeCard[data-selected] {
+  background: var(--od-color-primary-soft);
+  border-color: var(--od-color-primary);
+  box-shadow: inset 0 0 0 var(--od-border-thin) var(--od-color-primary);
+}
+
+.practiceTypeIcon {
+  align-items: center;
+  background: var(--od-color-surface-muted);
+  border-radius: var(--od-radius-md);
+  color: var(--od-color-primary);
+  display: inline-flex;
+  justify-content: center;
+  padding: var(--od-space-2);
+}
+
+.practiceTypeCard[data-selected] .practiceTypeIcon {
+  background: var(--od-color-surface);
+}
+
+.practiceTypeCopy {
+  display: grid;
+  gap: var(--od-space-2);
+  min-width: 0;
+}
+
+.practiceTypeCopy > span {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+}
+
+.practiceContent {
+  min-width: 0;
+}
+
+.practiceContent > [hidden] {
+  display: none;
+}
+
+.practiceControls {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-4);
+  margin-bottom: var(--od-space-4);
+}
+
+.practiceControls > * {
+  min-width: 10rem;
+}
+
+.practiceSession {
+  display: grid;
+  gap: var(--od-space-5);
+}
+
+.practiceLessonDisclosure {
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+  margin: 0;
+  overflow: hidden;
+  padding-top: 0;
+}
+
+.practiceLessonDisclosure > summary {
+  cursor: pointer;
+  list-style-position: inside;
+  padding: var(--od-space-4) var(--od-space-5);
+}
+
+.practiceLessonDisclosure > summary > span {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--od-space-3);
+  margin-left: var(--od-space-2);
+  vertical-align: middle;
+}
+
+.practiceLessonDisclosure > summary svg {
+  color: var(--od-color-primary);
+  flex: none;
+}
+
+.practiceLessonDisclosure > summary span span {
+  display: grid;
+  gap: var(--od-space-1);
+}
+
+.practiceLessonDisclosure > summary small {
+  color: var(--od-color-text-muted);
+  font-weight: normal;
+}
+
+.practiceLessonBody {
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  padding: var(--od-space-2) var(--od-space-5) var(--od-space-5);
+}
+
+.practiceLessonBody section {
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  margin-top: var(--od-space-4);
+  padding-top: var(--od-space-3);
+}
+
+.practiceRunner > article {
+  border-color: var(--od-color-primary);
+
+  padding: var(--od-space-5);
+}
+
+.practiceRunner > article > .eyebrow {
+  margin-bottom: var(--od-space-3);
+}
+
+.practiceRunner > article > h2 {
+  margin: 0 0 var(--od-space-3);
+}
+
+.practiceRunner > article > p:not(.eyebrow) {
+  margin: 0 0 var(--od-space-4);
+}
+
+.practiceRunner fieldset {
+  border: 0;
+  margin: var(--od-space-4) 0 0;
+  padding: 0;
+}
+
+.practiceRunner fieldset legend {
+  font-weight: var(--od-weight-medium);
+  margin-bottom: var(--od-space-3);
+  padding: 0;
+}
+
+.quizLength {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.quizLength legend {
+  font-weight: var(--od-weight-medium);
+  margin-bottom: var(--od-space-2);
+  padding: 0;
+}
+
+.quizLengthOptions {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-2);
+}
+
+.quizLengthButton {
+  background: var(--od-color-surface-raised);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-sm);
+  color: var(--od-color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  min-height: var(--od-control-small);
+  min-width: var(--od-control-wide);
+  padding: var(--od-space-1) var(--od-space-3);
+}
+
+.quizLengthButton:hover,
+.quizLengthButton[data-pressed],
+.quizLengthButton[data-selected] {
+  border-color: var(--od-color-primary);
+  color: var(--od-color-primary);
+}
+
+.quizLengthButton:focus-visible {
+  outline: var(--od-border-strong) solid var(--od-color-primary);
+  outline-offset: var(--od-space-1);
+}
+
+.quizLengthButton[data-selected] {
+  background: var(--od-color-primary-soft);
+  font-weight: var(--od-weight-strong);
+}
+
+.inlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-3);
+}
+
+@media (max-width: 52rem) {
+  .practiceTypeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .voiceSetupGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .voiceSettingsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.readingPassage {
+  white-space: pre-wrap;
+  font-family: var(--od-font-reading);
+  font-size: var(--od-font-size-lg);
+  line-height: var(--od-line-normal);
+  max-width: var(--od-reading-measure);
+}
+@container workspace (max-width: 42rem) {
+  .practiceTypeGrid,
+  .voiceSetupGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container workspace (max-width: 28rem) {
+  .practiceTypeGrid,
+  .voiceSetupGrid,
+  .voiceSettingsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quizLengthOptions input {
+  width: 8rem;
+}

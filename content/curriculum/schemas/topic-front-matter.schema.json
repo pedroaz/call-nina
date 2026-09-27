@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Call Nina curriculum topic front matter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "topicId",
+    "slug",
+    "band",
+    "domain",
+    "title",
+    "communicativeGoals",
+    "prerequisiteTopicIds",
+    "grammarFoundations",
+    "vocabularyFoundations",
+    "exerciseConcepts",
+    "sourceIds",
+    "coverage"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "topicId": {
+      "type": "string",
+      "pattern": "^curriculum-topic_[0-9a-z]{16,64}$"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "band": {
+      "enum": ["a1", "a2", "b1", "b2"]
+    },
+    "domain": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "communicativeGoals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prerequisiteTopicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "grammarFoundations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "vocabularyFoundations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "lessonFoundation": {
+      "type": "object"
+    },
+    "exerciseConcepts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "sourceIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "coverage": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+.writingLayout,
+.writingEditor {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.promptActions {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
+}
+.promptActionButtons {
+  flex-wrap: wrap;
+}
+.generatedPrompt {
+  border-inline-start: var(--od-border-strong) solid var(--od-color-primary);
+  display: grid;
+  gap: var(--od-space-2);
+  padding: var(--od-space-3) var(--od-space-4);
+}
+.generatedPrompt > * {
+  margin: 0;
+}
+.generatedPrompt ul {
+  padding-inline-start: var(--od-space-5);
+}
+.writingOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--od-space-4);
+}
+.writingTextarea {
+  min-height: var(--od-writing-editor-min);
+  resize: vertical;
+}
+.selectionStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-xs);
+  margin: 0;
+}
+.selectionStatus svg {
+  width: var(--od-icon-sm);
+  height: var(--od-icon-sm);
+  flex: none;
+}
+.draftNotice {
+  font-size: var(--od-font-size-xs);
+  margin: 0;
+}
+.eyebrow {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-xs);
+}
+@container workspace (max-width: 42rem) {
+  .writingOptions {
+    grid-template-columns: 1fr;
+  }
+}

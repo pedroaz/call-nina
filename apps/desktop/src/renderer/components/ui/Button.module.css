@@ -1,0 +1,129 @@
+.button {
+  align-items: center;
+  border: var(--od-border-thin) solid var(--od-color-transparent);
+  border-radius: var(--od-radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: var(--od-weight-medium);
+  gap: var(--od-space-2);
+  justify-content: center;
+  min-height: var(--od-control-small);
+  min-width: 0;
+  max-width: 100%;
+  font-size: var(--od-font-size-sm);
+  padding: var(--od-space-2) var(--od-space-4);
+}
+
+.primary {
+  background: var(--od-color-primary);
+  color: var(--od-color-surface-raised);
+}
+
+.primary:hover,
+.primary[data-pressed] {
+  background: var(--od-color-primary-hover);
+}
+
+.secondary {
+  background: var(--od-color-surface);
+  border-color: var(--od-color-border);
+  color: var(--od-color-text);
+}
+
+.secondary:hover,
+.secondary[data-pressed] {
+  background: var(--od-color-primary-soft);
+  border-color: var(--od-color-primary);
+}
+
+.danger {
+  background: var(--od-color-error);
+  color: var(--od-color-surface-raised);
+}
+
+.danger:hover,
+.danger[data-pressed] {
+  background: var(--od-color-error-hover);
+}
+
+.button[data-disabled],
+.button[data-pending] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button[data-pending] {
+  position: relative;
+}
+
+.spinner {
+  animation: spin var(--od-motion-normal) linear infinite;
+  height: var(--od-icon-sm);
+  width: var(--od-icon-sm);
+}
+
+.iconButton {
+  padding: 0;
+  width: var(--od-control-min);
+}
+
+.iconButton svg,
+.buttonIcon {
+  flex: none;
+  height: var(--od-icon-md);
+  width: var(--od-icon-md);
+}
+
+.tooltip {
+  background: var(--od-color-text);
+  border-radius: var(--od-radius-sm);
+  color: var(--od-color-surface-raised);
+  font-size: var(--od-font-size-xs);
+  max-width: var(--od-field-max);
+  padding: var(--od-space-1) var(--od-space-2);
+}
+
+.visuallyHidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.content {
+  display: contents;
+}
+.button svg {
+  flex: none;
+  height: var(--od-icon-md);
+  width: var(--od-icon-md);
+}
+.quiet {
+  background: transparent;
+  color: var(--od-color-primary);
+}
+.quiet:hover,
+.quiet[data-pressed],
+.quiet[aria-pressed="true"] {
+  background: var(--od-color-primary-soft);
+}
+.button[aria-pressed="true"] {
+  background: var(--od-color-primary-soft);
+  border-color: var(--od-color-primary);
+  color: var(--od-color-primary);
+}

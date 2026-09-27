@@ -1,0 +1,20 @@
+name: Epic
+description: Plan a product outcome with the maintainer.
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Product outcome
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Epic acceptance criteria
+      description: The maintainer accepts the epic after child work is merged.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope, exclusions and linked tasks

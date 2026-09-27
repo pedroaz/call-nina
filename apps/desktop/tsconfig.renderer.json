@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.renderer.json",
+  "compilerOptions": {
+    "rootDir": "src/renderer",
+    "outDir": "build/types/renderer",
+    "skipLibCheck": true,
+    "tsBuildInfoFile": "build/tsconfig.renderer.tsbuildinfo"
+  },
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "src/renderer/**/*.json"],
+  "references": [
+    {
+      "path": "../../packages/contracts"
+    },
+    {
+      "path": "../../packages/domain"
+    }
+  ]
+}

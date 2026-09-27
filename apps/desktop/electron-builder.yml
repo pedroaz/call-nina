@@ -1,0 +1,76 @@
+appId: dev.callnina.app
+productName: Call Nina
+artifactName: Call-Nina-${version}-${arch}.${ext}
+icon: assets/call-nina.svg
+npmRebuild: false
+electronLanguages:
+  - de
+  - en-US
+electronFuses:
+  runAsNode: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: true
+toolsets:
+  appimage: 1.0.3
+directories:
+  output: ../../release/appimage
+files:
+  - package.json
+  - dist/main/index.js
+  - dist/preload/index.cjs
+  - dist/renderer/**
+extraResources:
+  - from: assets/call-nina.png
+    to: call-nina.png
+  - from: ../../LICENSE
+    to: notices/LICENSE
+  - from: ../../content/curriculum
+    to: curriculum
+    filter:
+      - "**/*"
+  - from: ../../plugins/call-nina
+    to: plugin
+    filter:
+      - .codex-plugin/**
+      - .mcp.json
+      - bin/**
+      - skills/**
+      - prompts/**
+  - from: ../../release/mcp-helper
+    to: mcp-helper
+    filter:
+      - "**/*"
+  - from: ../../docs/third-party-notices.md
+    to: notices/THIRD-PARTY-NOTICES.md
+  - from: ../../docs/licensing.md
+    to: notices/CALL-NINA-LICENSING.md
+linux:
+  description: A local-first German-learning companion for Codex.
+  synopsis: Practice German with Call Nina and Codex.
+  desktop:
+    entry:
+      Name: Call Nina
+      Comment: Practice German locally with Codex.
+      Categories: Education;
+      MimeType: x-scheme-handler/call-nina;
+  target:
+    - AppImage
+  category: Education
+  executableName: call-nina
+  syncDesktopName: true
+mac:
+  icon: assets/call-nina.icns
+  category: public.app-category.education
+  identity: null
+  target: dir
+win:
+  icon: assets/call-nina.ico
+  executableName: call-nina
+  target: dir
+protocols:
+  - name: Call Nina activity
+    schemes:
+      - call-nina

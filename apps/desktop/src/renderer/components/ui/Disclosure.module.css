@@ -1,0 +1,21 @@
+.disclosure {
+  border-top: var(--od-border-thin) solid var(--od-color-border);
+  min-width: 0;
+}
+.disclosure summary {
+  cursor: pointer;
+  font-weight: var(--od-weight-medium);
+  padding-block: var(--od-space-3);
+}
+.disclosure summary:hover {
+  color: var(--od-color-primary);
+}
+.content {
+  display: grid;
+  gap: var(--od-space-4);
+  padding-bottom: var(--od-space-3);
+  min-width: 0;
+}
+.content > :where(p, h2, h3, ul) {
+  margin-block: 0;
+}

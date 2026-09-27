@@ -1,0 +1,198 @@
+schemaVersion: 1
+snapshotVersion: 0.1.1
+bands:
+  a1:
+    - topicId: curriculum-topic_0000000000000001
+      domain: personal-social-life
+      path: topics/a1/personal-social-life.md
+
+    - topicId: curriculum-topic_0000000000000002
+      domain: housing-neighborhood
+      path: topics/a1/housing-neighborhood.md
+
+    - topicId: curriculum-topic_0000000000000003
+      domain: shopping-services
+      path: topics/a1/shopping-services.md
+
+    - topicId: curriculum-topic_0000000000000004
+      domain: food
+      path: topics/a1/food.md
+
+    - topicId: curriculum-topic_0000000000000005
+      domain: transport-travel
+      path: topics/a1/transport-travel.md
+
+    - topicId: curriculum-topic_0000000000000006
+      domain: health-appointments
+      path: topics/a1/health-appointments.md
+
+    - topicId: curriculum-topic_0000000000000007
+      domain: work
+      path: topics/a1/work.md
+
+    - topicId: curriculum-topic_0000000000000008
+      domain: education-language-learning
+      path: topics/a1/education-language-learning.md
+
+    - topicId: curriculum-topic_0000000000000009
+      domain: public-administration-residency
+      path: topics/a1/public-administration-residency.md
+
+    - topicId: curriculum-topic_0000000000000010
+      domain: digital-communication-media
+      path: topics/a1/digital-communication-media.md
+
+    - topicId: curriculum-topic_0000000000000011
+      domain: leisure-culture
+      path: topics/a1/leisure-culture.md
+
+    - topicId: curriculum-topic_0000000000000012
+      domain: safety-emergencies
+      path: topics/a1/safety-emergencies.md
+
+  a2:
+    - topicId: curriculum-topic_0000000000000013
+      domain: personal-social-life
+      path: topics/a2/personal-social-life.md
+
+    - topicId: curriculum-topic_0000000000000014
+      domain: housing-neighborhood
+      path: topics/a2/housing-neighborhood.md
+
+    - topicId: curriculum-topic_0000000000000015
+      domain: shopping-services
+      path: topics/a2/shopping-services.md
+
+    - topicId: curriculum-topic_0000000000000016
+      domain: food
+      path: topics/a2/food.md
+
+    - topicId: curriculum-topic_0000000000000017
+      domain: transport-travel
+      path: topics/a2/transport-travel.md
+
+    - topicId: curriculum-topic_0000000000000018
+      domain: health-appointments
+      path: topics/a2/health-appointments.md
+
+    - topicId: curriculum-topic_0000000000000019
+      domain: work
+      path: topics/a2/work.md
+
+    - topicId: curriculum-topic_0000000000000020
+      domain: education-language-learning
+      path: topics/a2/education-language-learning.md
+
+    - topicId: curriculum-topic_0000000000000021
+      domain: public-administration-residency
+      path: topics/a2/public-administration-residency.md
+
+    - topicId: curriculum-topic_0000000000000022
+      domain: digital-communication-media
+      path: topics/a2/digital-communication-media.md
+
+    - topicId: curriculum-topic_0000000000000023
+      domain: leisure-culture
+      path: topics/a2/leisure-culture.md
+
+    - topicId: curriculum-topic_0000000000000024
+      domain: safety-emergencies
+      path: topics/a2/safety-emergencies.md
+
+  b1:
+    - topicId: curriculum-topic_0000000000000025
+      domain: personal-social-life
+      path: topics/b1/personal-social-life.md
+
+    - topicId: curriculum-topic_0000000000000026
+      domain: housing-neighborhood
+      path: topics/b1/housing-neighborhood.md
+
+    - topicId: curriculum-topic_0000000000000027
+      domain: shopping-services
+      path: topics/b1/shopping-services.md
+
+    - topicId: curriculum-topic_0000000000000028
+      domain: food
+      path: topics/b1/food.md
+
+    - topicId: curriculum-topic_0000000000000029
+      domain: transport-travel
+      path: topics/b1/transport-travel.md
+
+    - topicId: curriculum-topic_0000000000000030
+      domain: health-appointments
+      path: topics/b1/health-appointments.md
+
+    - topicId: curriculum-topic_0000000000000031
+      domain: work
+      path: topics/b1/work.md
+
+    - topicId: curriculum-topic_0000000000000032
+      domain: education-language-learning
+      path: topics/b1/education-language-learning.md
+
+    - topicId: curriculum-topic_0000000000000033
+      domain: public-administration-residency
+      path: topics/b1/public-administration-residency.md
+
+    - topicId: curriculum-topic_0000000000000034
+      domain: digital-communication-media
+      path: topics/b1/digital-communication-media.md
+
+    - topicId: curriculum-topic_0000000000000035
+      domain: leisure-culture
+      path: topics/b1/leisure-culture.md
+
+    - topicId: curriculum-topic_0000000000000036
+      domain: safety-emergencies
+      path: topics/b1/safety-emergencies.md
+
+  b2:
+    - topicId: curriculum-topic_0000000000000037
+      domain: personal-social-life
+      path: topics/b2/personal-social-life.md
+
+    - topicId: curriculum-topic_0000000000000038
+      domain: housing-neighborhood
+      path: topics/b2/housing-neighborhood.md
+
+    - topicId: curriculum-topic_0000000000000039
+      domain: shopping-services
+      path: topics/b2/shopping-services.md
+
+    - topicId: curriculum-topic_0000000000000040
+      domain: food
+      path: topics/b2/food.md
+
+    - topicId: curriculum-topic_0000000000000041
+      domain: transport-travel
+      path: topics/b2/transport-travel.md
+
+    - topicId: curriculum-topic_0000000000000042
+      domain: health-appointments
+      path: topics/b2/health-appointments.md
+
+    - topicId: curriculum-topic_0000000000000043
+      domain: work
+      path: topics/b2/work.md
+
+    - topicId: curriculum-topic_0000000000000044
+      domain: education-language-learning
+      path: topics/b2/education-language-learning.md
+
+    - topicId: curriculum-topic_0000000000000045
+      domain: public-administration-residency
+      path: topics/b2/public-administration-residency.md
+
+    - topicId: curriculum-topic_0000000000000046
+      domain: digital-communication-media
+      path: topics/b2/digital-communication-media.md
+
+    - topicId: curriculum-topic_0000000000000047
+      domain: leisure-culture
+      path: topics/b2/leisure-culture.md
+
+    - topicId: curriculum-topic_0000000000000048
+      domain: safety-emergencies
+      path: topics/b2/safety-emergencies.md

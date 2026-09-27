@@ -1,0 +1,9 @@
+# Call Nina plugin workspace
+
+This directory contains the versioned Codex plugin payload, two bounded teaching/research skills, and the local MCP declaration. The runtime-validated local MCP contract validates reads and additive writes against the selected data-root generation. Learner data, account credentials, audio and full transcripts are not part of the plugin payload.
+
+Desktop and Make lifecycle actions use the shared `@call-nina/codex-client` staging and scoped CLI service. Install/refresh produces a content-versioned marketplace and absolute helper paths. Development uses the built checkout; an AppImage installation copies the helper and Electron runtime to a stable application-owned directory. Inspect `packages/codex-client/src/plugin.ts`, `plugin-source.ts` and the repository `Makefile` for the current lifecycle behavior. Development verification uses the interactive Electron skill in this repository; the plugin does not contain development controls or automated tests.
+
+Activities created through MCP open in the desktop Practice library, including instruction-based non-Voice records. New listening and speaking activities require a matching structured `voiceContext`. **Open in Codex** opens a chat with a plugin mention, exact activity ID, and data-root generation in the composer. After the learner sends the message, the plugin reads the activity and teaching defaults directly. Voice can continue in that task where supported. The link does not send messages or start Voice; resume existing conversations in Codex.
+
+Version 0.2.0 replaces weekly-plan context and replacement with self-paced learning-path context. Prepared Voice reads include reviewed course objectives when linked; confirmed Voice summary saves can attach matching objective evidence to the exact activity. Refresh the installed scoped plugin for these schema changes. Unlinked summaries remain a supported current feature.

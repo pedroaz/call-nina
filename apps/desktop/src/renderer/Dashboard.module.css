@@ -1,0 +1,23 @@
+.summary {
+  gap: var(--od-space-3);
+}
+.suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--od-suggestion-min)), 1fr));
+  gap: var(--od-space-4);
+  margin-top: var(--od-space-3);
+}
+.suggestion {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  gap: var(--od-space-3);
+}
+.suggestion > * {
+  margin-block: 0;
+}
+.suggestion > button:last-child {
+  margin-top: auto;
+  align-self: start;
+}

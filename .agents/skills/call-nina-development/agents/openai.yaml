@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Development"
+  short_description: "Develop, diagnose, and maintain Call Nina"
+  default_prompt: "Use $call-nina-development to implement this repository change using the current code and structural decisions."

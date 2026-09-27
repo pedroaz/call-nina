@@ -1,0 +1,35 @@
+.trigger {
+  padding: var(--od-space-1);
+  min-height: var(--od-control-compact);
+  width: var(--od-control-compact);
+  vertical-align: middle;
+}
+.popover {
+  background: var(--od-color-surface);
+  border: var(--od-border-thin) solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  box-shadow: var(--od-shadow-raised);
+  max-width: min(var(--od-dialog-max), calc(100vw - var(--od-space-8)));
+  width: var(--od-info-width);
+  max-height: calc(100dvh - var(--od-space-8));
+  overflow-y: auto;
+  z-index: 20;
+}
+.dialog {
+  padding: var(--od-space-4);
+  font-size: var(--od-font-size-sm);
+}
+.dialog h2 {
+  font-size: var(--od-font-size-sm);
+  margin: 0 0 var(--od-space-2);
+}
+.dialog p {
+  margin: 0;
+}
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

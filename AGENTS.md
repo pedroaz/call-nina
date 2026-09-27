@@ -1,0 +1,39 @@
+# Call Nina
+
+Local-first Electron app for Linux, macOS, and Windows for German learning: React/Vite renderer, validated preload/IPC, SQLite, and Codex App Server over STDIO. Use the supported Node/pnpm ranges in `package.json` and `toolchain.json`; `.node-version` and the recorded package-manager version are recommended bootstrap versions.
+
+## Working agreement
+
+- Keep work focused on the requested change, including small fixes needed to build or verify it; inspect current files and `git status --short`, and preserve concurrent work and learner data. Approved Ready issues authorize scoped commits, pushes, PR creation and merging through the coordinator. Release publication requires separate authorization.
+- While the app is under development, do not add or retain compatibility paths solely for superseded app behavior, IPC/MCP inputs, or saved record formats. Use one current contract and update its callers and relevant skill instructions together. During development, explicitly versioned learning-format changes may reset incompatible learning data before current readers run. Retain valid profile/preferences, preserve unrelated files and credentials, and show a durable dismissible notice; never reset on corruption or an unknown newer schema. Keep the SQLite migration ledger.
+- **No automated application tests.** Do not add or run unit/component/integration/E2E suites, saved test journeys, fixtures, mocks, coverage gates, or scheduled regression runs. Use the interactive Electron platform when verifying application behavior.
+- **Exploration and major refactors may defer behavior verification.** Intermediate changes may leave the app incomplete, broken, or unable to build/run across tasks; do not restore functionality or launch the app after every edit solely to satisfy verification guidance. No repeated permission is needed to defer these checks. Report known breakage and unverified behavior, then perform a consolidated interactive verification round once the refactor is integrated, before declaring it working or release-ready. Explicit requests to verify still apply. Preserve learner data and security boundaries throughout; the existing `make check` policy remains unchanged.
+- Interactive verification uses the real Codex connection and current learner data. Use GPT-6 Luna at its runtime default effort for AI verification, restore prior settings, and clean up only records created by the session through the UI. Do not substitute another model.
+- Use documented Make commands. Run `make check` only when static verification is requested or preparing a PR; it contains formatting, lint, and TypeScript checks, not tests. Do not run broad gates after every edit.
+- Inspect relevant redacted logs before fixing bugs. Never log learner text, prompts, model output, credentials, raw protocols, or private paths. Signal processes only through exact lifecycle ownership.
+- Keep skills focused on durable structural decisions, working preferences and implementation entry points. Current code, schemas and runtime observations establish what is implemented. Do not maintain reference documents inside skills, parallel implementation documentation, standalone runbooks or unsolicited progress/checklist files.
+
+## Skills and sources of truth
+
+For approved GitHub work, one developer coordinator supervises Orca tasks with at most three workers and two isolated writers. It decides parallel issues or subtasks from dependencies and file ownership. Workers do not delegate recursively. GitHub owns product scope; Orca owns execution; Git owns integration. Use authenticated `gh` for every GitHub operation (`gh api` when needed), never a separate token, SDK or connector. Only the Product Owner working with the user may make new scope Ready. Agents may implement, review, create PRs and merge Ready work into main; the user accepts the epic. Keep recurring intake disabled until its activation prerequisites are proven.
+
+A dedicated worktree holds one fixed verification commit and the sole agent-owned desktop session. Other writers may continue elsewhere. No agent edits the verification checkout until cleanup and barrier release. Application behavior verification is not part of setup-only work.
+
+## Code Review Rules
+
+- Preserve learner data and existing on-disk formats unless an explicitly approved format change applies. Branding changes must not reset or silently relocate data. Report concrete loss or ownership risks.
+- Keep renderer privileges narrow and runtime-validate IPC, AI, MCP and persistence boundaries. Report reachable trust-boundary violations and consequential contract mismatches.
+- Preserve exact process and task ownership. Never infer completion from timeouts or kill unrelated processes. Review changed behavior and correctness; leave formatting and lint to static checks.
+
+Read the skill relevant to the task, then inspect the owning code and its callers.
+
+- [call-nina-product-owner](.agents/skills/call-nina-product-owner/SKILL.md): user-led epic and task planning through GitHub CLI.
+- [call-nina-development](.agents/skills/call-nina-development/SKILL.md): repository workflow, structural boundaries, persistence, diagnosis, and code entry points.
+- [call-nina-orchestration](.agents/skills/call-nina-orchestration/SKILL.md): bounded autonomous development with Orca tasks and specialized Codex workers.
+- [call-nina-desktop-ui](.agents/skills/call-nina-desktop-ui/SKILL.md): renderer controls, layout, localization, accessibility, and visual review.
+- [call-nina-codex-integration](.agents/skills/call-nina-codex-integration/SKILL.md): App Server, models, plugin/MCP boundaries, and learner-facing skill maintenance.
+- [call-nina-electron-verification](.agents/skills/call-nina-electron-verification/SKILL.md): operate the real app interactively during development; no test suite.
+
+User instructions and the concise decisions in `AGENTS.md` and skills guide intended changes; inspect source code to determine current behavior. Legal notices stay in `docs/`; curriculum is product data under `content/curriculum/`. Learner-facing skills ship under `plugins/call-nina/skills/`. Curriculum authoring includes agent quality checks and publication without a separate human approval step; honor an explicit draft-only request.
+
+Quick start: `make help`, `make setup`, `make dev`; inspect with `make logs-once`, stop with `make kill`. Use `make verify-start` for an exclusive interactive verification session. Closer `AGENTS.md` files add component boundaries.
