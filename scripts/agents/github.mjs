@@ -8,10 +8,9 @@ import { locked, stateRoot, load, tasks } from "./lib/orchestration.mjs";
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: Object.fromEntries(
-    ["issue", "pr", "status", "run", "review-task", "verification"].map((key) => [
-      key,
-      { type: "string" },
-    ]),
+    ["issue", "pr", "status", "run", "review-task", "verification", "verification-commit"].map(
+      (key) => [key, { type: "string" }],
+    ),
   ),
 });
 const command = positionals[0] ?? "help";
@@ -144,11 +143,19 @@ function pr(number) {
     "number,state,isDraft,headRefOid,headRepositoryOwner,baseRefName,url",
   ]);
 }
+function trusted(comment) {
+  return comment.user?.login === repo.split("/")[0];
+}
+function cloudRequest(comment) {
+  return (
+    trusted(comment) &&
+    /^@codex\s+review\b/m.test(comment.body) &&
+    comment.body.includes("<!-- nina-cloud-review-once -->")
+  );
+}
 function evidence(number, head) {
   return comments(number).some(
-    (comment) =>
-      comment.user?.login === repo.split("/")[0] &&
-      comment.body.startsWith(`<!-- nina-evidence:${head} -->`),
+    (comment) => trusted(comment) && comment.body.startsWith(`<!-- nina-evidence:${head} -->`),
   );
 }
 function main() {
@@ -158,7 +165,7 @@ function main() {
   config | project-setup | queue
   status --issue N --status 'Ready'   Product Owner only for new scope
   claim --issue N --run RUN          Bound coordinator only
-  evidence --pr N --run RUN --review-task TASK --verification 'observed details or deferred reason'
+  evidence --pr N --run RUN --review-task TASK --verification-commit SHA --verification 'observed details or deferred reason'
   review --pr N                     Request cloud review once per PR
   merge --pr N                      Exact-head local evidence + cloud completion + static checks
 Use gh issue/pr directly for authoring; gh api for missing operations.
@@ -265,7 +272,9 @@ Settings: development.json. Recurring intake remains disabled until activation.`
     if (binding.run !== values.run) throw new Error("BOUND_COORDINATOR_REQUIRED");
     const item = issueItem(number);
     const marker = `<!-- nina-run:${values.run} -->`;
-    const claims = comments(number).filter((comment) => comment.body.startsWith("<!-- nina-run:"));
+    const claims = comments(number).filter(
+      (comment) => trusted(comment) && /^<!-- nina-run:run_[a-zA-Z0-9_-]+ -->\n/.test(comment.body),
+    );
     if (claims.some((comment) => !comment.body.startsWith(marker)))
       throw new Error("ISSUE_ALREADY_CLAIMED: reconcile its existing Run");
     if (item.content.state !== "OPEN") throw new Error("ISSUE_CLOSED");
@@ -295,17 +304,26 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       !values.verification?.trim()
     )
       throw new Error("COMPLETED_REVIEW_AND_VERIFICATION_EVIDENCE_REQUIRED");
+    const reviewed = JSON.parse(spec[1]).commit;
+    const launchPath = path.join(stateRoot, "launches", `${review.id}.json`);
+    if (
+      reviewed !== pull.headRefOid ||
+      !existsSync(launchPath) ||
+      load(launchPath).baseline !== reviewed ||
+      load(launchPath).run !== values.run ||
+      values["verification-commit"] !== reviewed
+    )
+      throw new Error("REVIEW_AND_VERIFICATION_COMMIT_MISMATCH");
     if (!evidence(number, pull.headRefOid))
       post(
         number,
-        `<!-- nina-evidence:${pull.headRefOid} -->\nLocal review: \`${values["review-task"]}\` in \`${values.run}\`.\n\nVerification: ${values.verification}\n\nCoordinator confirms all actionable local findings are resolved for this commit.`,
+        `<!-- nina-evidence:${pull.headRefOid} -->\nLocal review: \`${values["review-task"]}\` in \`${values.run}\`.\n\nVerification at \`${reviewed}\`: ${values.verification}\n\nCoordinator confirms all actionable local findings are resolved for this commit.`,
       );
     return { head: pull.headRefOid, evidence: true };
   }
   if (command === "review") {
     if (!evidence(number, pull.headRefOid)) throw new Error("CURRENT_HEAD_LOCAL_EVIDENCE_REQUIRED");
-    if (comments(number).some((comment) => /^@codex\s+review\b/m.test(comment.body)))
-      return { review: "already-requested" };
+    if (comments(number).some(cloudRequest)) return { review: "already-requested" };
     if (
       gh(["api", `repos/${repo}/pulls/${number}/reviews`, "--paginate", "--jq", "tojson"])
         .flat()
@@ -327,7 +345,7 @@ Settings: development.json. Recurring intake remains disabled until activation.`
     const completed = reviews.some(
       (review) => review.user?.login === "chatgpt-codex-connector[bot]" && review.submitted_at,
     );
-    const requests = comments(number).filter((comment) => /^@codex\s+review\b/m.test(comment.body));
+    const requests = comments(number).filter(cloudRequest);
     const approvedReaction = requests.some((comment) =>
       gh([
         "api",

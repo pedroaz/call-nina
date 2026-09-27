@@ -38,7 +38,7 @@ const help = `Call Nina Orca coordination (Git owns integration):
   start --role product-owner|coordinator  Interactive main agent, using its role settings
   bind --run RUN --coordinator HANDLE
   task                     Assignment JSON on stdin: run, role, title, brief,
-                           owned:[], acceptance:[], exclusions:[], skills:[], deps:[], issue?
+                           owned:[], acceptance:[], exclusions:[], skills:[], deps:[], issue?, commit (reviewer/verifier)
   launch --run RUN --task TASK --worktree PATH --baseline COMMIT
   verify-enter --run RUN --worktree PATH
   verify-leave --run RUN
@@ -186,6 +186,10 @@ function main() {
           throw new Error(`ASSIGNMENT_ARRAY_REQUIRED: ${key}`);
       if (!input.acceptance.length || (writers.has(input.role) && !input.owned.length))
         throw new Error("ASSIGNMENT_SCOPE_REQUIRED");
+      if (["reviewer", "verifier"].includes(input.role)) {
+        if (!input.commit) throw new Error("REVIEW_OR_VERIFICATION_COMMIT_REQUIRED");
+        input.commit = git(["rev-parse", "--verify", `${input.commit}^{commit}`]).trim();
+      }
       const spec = `NINA_ASSIGNMENT=${JSON.stringify(input)}\n\n${config.developer_instructions}\n\n${input.brief}`;
       return orca([
         "orchestration",
@@ -220,6 +224,7 @@ function main() {
       const target = realpathSync(values.worktree);
       cleanWorktree(target);
       const baseline = git(["rev-parse", "--verify", `${values.baseline}^{commit}`]).trim();
+      if (spec.commit && spec.commit !== baseline) throw new Error("ASSIGNMENT_COMMIT_MISMATCH");
       if (git(["rev-parse", "HEAD"], target).trim() !== baseline)
         throw new Error("WORKTREE_BASELINE_MISMATCH");
       if (writers.has(spec.role) && target === root) throw new Error("ISOLATED_WRITER_REQUIRED");
@@ -234,10 +239,10 @@ function main() {
       if (
         active.some(
           (item) =>
-            existsSync(receiptFile(item.id)) && load(receiptFile(item.id)).target === target,
+            !existsSync(receiptFile(item.id)) || load(receiptFile(item.id)).target === target,
         )
       )
-        throw new Error("WORKTREE_BUSY");
+        throw new Error("WORKTREE_BUSY_OR_UNKNOWN");
       available(config, modelCatalog());
       save(receiptFile(task.id), {
         run: values.run,
