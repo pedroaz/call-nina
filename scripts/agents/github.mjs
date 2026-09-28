@@ -11,6 +11,7 @@ import {
   validateCommit,
   validateMetadata,
   metadataDigest,
+  squashMessageMatches,
 } from "./lib/task-metadata.mjs";
 import { assertCoordinator, locked, stateRoot, load, tasks } from "./lib/orchestration.mjs";
 const { positionals, values } = parseArgs({
@@ -230,6 +231,14 @@ function readIssue(number) {
             id
             number
             state
+            labels(first: 100) {
+              nodes {
+                name
+              }
+              pageInfo {
+                hasNextPage
+              }
+            }
             repository {
               nameWithOwner
             }
@@ -247,6 +256,8 @@ function readIssue(number) {
     { number },
   );
   if (!data.data.repository?.issue) throw new Error("TASK_ISSUE_NOT_FOUND");
+  if (data.data.repository.issue.labels.pageInfo.hasNextPage)
+    throw new Error("INCOMPLETE_ISSUE_LABEL_READ");
   return data.data.repository.issue;
 }
 function connection(number, field, selection) {
@@ -818,13 +829,13 @@ Settings: development.json. Recurring intake remains disabled until activation.`
     const commit = gh(["api", `repos/${repo}/commits/${merged.mergeCommit.oid}`]);
     const issue = readIssue(metadata.task);
     if (
-      commit.commit.message.trim() !== `${metadata.subject}\n\n${metadata.body}` ||
+      !squashMessageMatches(commit.commit.message, metadata, number) ||
       issue.state !== "CLOSED" ||
-      issue.parent?.number !== metadata.epic ||
-      issue.parent?.state !== "OPEN"
+      (issue.parent?.number ?? null) !== metadata.epic ||
+      (metadata.epic !== null && issue.parent?.state !== "OPEN")
     )
       throw new Error(
-        "POST_MERGE_METADATA_MISMATCH: inspect squash message, task closure and open epic",
+        "POST_MERGE_METADATA_MISMATCH: inspect squash message, task closure and parent epic when present",
       );
     return {
       merged: merged.mergeCommit.oid,
