@@ -1,4 +1,5 @@
 # Project defaults; personal account and permissions remain user-owned.
+# The Orca-managed coordinator inherits these; keep them aligned with its role.
 model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 
