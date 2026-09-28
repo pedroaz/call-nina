@@ -8,7 +8,7 @@ orchestrate: ## Start the developer coordinator; ARGS="help" shows advanced oper
 ARGS ?=
 
 .PHONY: help setup setup-build clean build build-desktop dev debug prd start status kill logs logs-errors logs-clear \
-	typecheck lint lint-fix format format-check check \
+	typecheck lint lint-fix format format-check check design-tokens \
 	doctor package-appimage package-inspect install-plugin \
 	refresh-plugin plugin-status uninstall-plugin
 
@@ -86,7 +86,10 @@ format-check: ## Verify Prettier formatting without changing files.
 	@echo "+ pnpm run format:check"
 	@pnpm run format:check
 
-check: ## Run formatting, lint, and strict TypeScript checks without live actions.
+design-tokens: ## Regenerate browser CSS from the portable design tokens.
+	@node scripts/build/generate-design-tokens.mjs
+
+check: ## Run build consistency, formatting, lint, and strict TypeScript checks without live actions.
 	@echo "+ pnpm run check"
 	@pnpm run check
 

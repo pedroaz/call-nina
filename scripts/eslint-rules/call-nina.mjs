@@ -12,7 +12,7 @@ const boundaries = [
   {
     id: "desktop-renderer",
     prefix: "apps/desktop/src/renderer/",
-    packages: ["contracts", "domain"],
+    packages: ["contracts", "design-system", "domain"],
     node: false,
     electron: false,
   },
@@ -35,6 +35,13 @@ const boundaries = [
     prefix: "apps/mcp-server/",
     packages: ["contracts", "domain", "persistence"],
     node: true,
+    electron: false,
+  },
+  {
+    id: "design-system",
+    prefix: "packages/design-system/",
+    packages: [],
+    node: false,
     electron: false,
   },
   {
@@ -75,6 +82,7 @@ const boundaries = [
 ];
 
 const packagePrefixes = new Map([
+  ["@call-nina/design-system", "design-system"],
   ["@call-nina/contracts", "contracts"],
   ["@call-nina/domain", "domain"],
   ["@call-nina/persistence", "persistence"],

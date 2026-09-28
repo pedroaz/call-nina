@@ -14,6 +14,7 @@ Paths below are relative to the repository root. Follow imports and callers rath
 - Commands and supported toolchain ranges: `Makefile`, `package.json`, `.node-version`, `toolchain.json`; lifecycle and logs: `scripts/dev/lifecycle.mjs`, `scripts/dev/lib/lifecycle.mjs`, `scripts/dev/lib/log-view.mjs`.
 - Incremental builds: application TypeScript output and build metadata live under each app’s `build/`; Vite owns runtime bundles under `dist/`. Shared packages emit to their own `dist/`. Keep these owners separate and reserve cache removal for `make clean`, rather than forcing recompilation on ordinary starts.
 - Desktop wiring: `apps/desktop/src/main/backend.ts`, `apps/desktop/src/preload/`, `apps/desktop/src/renderer/App.tsx` and the affected renderer component.
+- Shared design primitives: `packages/design-system/src/index.ts`; regenerate its explicit browser CSS resource with `make design-tokens`. Keep the root dependency-free and platform-neutral; browser CSS is a separate export, and desktop-specific styles stay in the renderer.
 - Wire contracts: `packages/contracts/src/`; deterministic learner rules and runtime validation: `packages/domain/src/`.
 - Storage: `packages/persistence/src/repository.ts`, `migrations.ts`, `sqlite.ts`, `data-root-layout.ts`, `data-root-selection.ts`, and the feature's persistence module.
 - Course format and loading: `packages/contracts/src/learning-path.ts`, `packages/persistence/src/learning-path.ts`; curriculum inventory and validation: `content/curriculum/` and `packages/domain/src/curriculum.ts`.

@@ -16,6 +16,7 @@
   "devDependencies": {
     "@call-nina/codex-client": "workspace:*",
     "@call-nina/contracts": "workspace:*",
+    "@call-nina/design-system": "workspace:*",
     "@call-nina/domain": "workspace:*",
     "@call-nina/persistence": "workspace:*",
     "@types/node": "catalog:",
