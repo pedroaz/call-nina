@@ -27,6 +27,10 @@ Paths below are relative to the repository root. Follow imports and callers rath
 - Runtime-validate AI, IPC, MCP and persisted inputs. Preserve data-root generations, leases, idempotency and transactional migrations. Use one current contract; follow the root development-reset policy for incompatible learning formats.
 - Keep learning activities self-paced and distinguish participation from skill evidence. Voice stays in Codex; Call Nina stores bounded structured results, not audio or transcripts. Model capabilities come from the connected runtime.
 
+## Task history
+
+Use `task/<issue>-<short-kebab-description>` and an ownership suffix for separate worker branches. Commit with a Conventional Commit header and a real `Refs: #<task>` footer; do not lint or rewrite old history. The pure contract owner is `scripts/agents/lib/task-metadata.mjs`; GitHub publication and merge boundaries are in `scripts/agents/github.mjs`. Preserve both `!` and complete multiline `BREAKING CHANGE:` / `BREAKING-CHANGE:` signals. Copy every distinct source breaking footer into the PR body; a source `!` needs either a PR-title `!` or an explicitly authored breaking footer. Do not invent migration explanations.
+
 ## Work and verify
 
 Use `make help` and inspect its target implementation for command details. Inspect relevant redacted logs before bug fixes (`make logs-once`); resolve lifecycle ownership before stopping a process. Add only bounded diagnostics when evidence is missing.

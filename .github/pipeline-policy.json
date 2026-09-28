@@ -1,5 +1,23 @@
 {
   "actionsEnabled": false,
   "branch": "main",
-  "requiredStatusChecks": null
+  "squashMergeCommitTitle": "PR_TITLE",
+  "squashMergeCommitMessage": "PR_BODY",
+  "metadataRuleset": {
+    "name": "nina-task-metadata",
+    "target": "branch",
+    "enforcement": "active",
+    "bypass_actors": [],
+    "conditions": { "ref_name": { "include": ["refs/heads/main"], "exclude": [] } },
+    "rules": [
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "required_status_checks": [{ "context": "nina/task-metadata" }],
+          "strict_required_status_checks_policy": false,
+          "do_not_enforce_on_create": false
+        }
+      }
+    ]
+  }
 }

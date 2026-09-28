@@ -1,6 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, mkdirSync, rmSync, writeFileSync, renameSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  mkdirSync,
+  rmSync,
+  writeFileSync,
+  renameSync,
+  realpathSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parse } from "smol-toml";
@@ -90,6 +98,44 @@ export function orca(args) {
   const reply = JSON.parse(output);
   if (!reply.ok) throw new Error(`ORCA_REJECTED: ${JSON.stringify(reply.error)}`);
   return reply.result;
+}
+export function assertCoordinator(run) {
+  const file = path.join(stateRoot, "run.json");
+  if (!run || !existsSync(file)) throw new Error("BOUND_COORDINATOR_REQUIRED");
+  const binding = load(file);
+  if (binding.run !== run) throw new Error("BOUND_COORDINATOR_REQUIRED");
+
+  // Ask Orca to authenticate this invoking session. Never supply --from from a
+  // shared receipt or substitute another terminal's launch identity/credentials.
+  const caller = orca(["orchestration", "run-current"]).run;
+  if (
+    !caller ||
+    caller.id !== run ||
+    !process.env.ORCA_TERMINAL_HANDLE ||
+    caller.coordinator_handle !== process.env.ORCA_TERMINAL_HANDLE ||
+    caller.coordinator_handle !== binding.coordinator ||
+    !Number.isSafeInteger(caller.consumer_generation) ||
+    caller.consumer_generation !== binding.generation
+  )
+    throw new Error("LIVE_COORDINATOR_REQUIRED: invoking session does not own the bound Run");
+  const live = orca(["orchestration", "run-show", "--id", run]).run;
+  if (
+    live?.id !== run ||
+    live.coordinator_handle !== caller.coordinator_handle ||
+    live.consumer_generation !== caller.consumer_generation
+  )
+    throw new Error("COORDINATOR_BINDING_CHANGED: reconcile and explicitly rebind");
+
+  // A clean linked integration checkout is allowed even when the original
+  // integrationRoot is dirty. Shared Git identity proves repository membership,
+  // not coordinator authority; the live caller checks above remain mandatory.
+  if (typeof binding.integrationRoot !== "string" || !path.isAbsolute(binding.integrationRoot))
+    throw new Error("COORDINATOR_REPOSITORY_MISMATCH");
+  const common = (cwd) =>
+    realpathSync(git(["rev-parse", "--path-format=absolute", "--git-common-dir"], cwd).trim());
+  if (common(root) !== common(binding.integrationRoot))
+    throw new Error("COORDINATOR_REPOSITORY_MISMATCH");
+  return binding;
 }
 export function role(name) {
   if (!/^[a-z][a-z-]+$/.test(name)) throw new Error("ROLE_INVALID");
