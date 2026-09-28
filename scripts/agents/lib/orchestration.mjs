@@ -12,6 +12,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { parse } from "smol-toml";
+import { taskBranch } from "./task-metadata.mjs";
 
 export { root } from "../../lib/config.mjs";
 import { root, developmentConfig } from "../../lib/config.mjs";
@@ -153,6 +154,18 @@ export function role(name) {
   return value;
 }
 export const writers = new Set(["ui-engineer", "runtime-engineer"]);
+// Launch-time enforcement only; direct editor writes still require pre-edit inspection.
+export function assertWriterCheckout(target, assignment) {
+  const checkout = realpathSync(target);
+  if (checkout === realpathSync(primary) || checkout === realpathSync(root))
+    throw new Error("ISOLATED_WRITER_REQUIRED");
+  if (!Number.isSafeInteger(assignment.issue) || assignment.issue < 1)
+    throw new Error("WRITER_TASK_ISSUE_REQUIRED");
+  taskBranch(assignment.branch, assignment.issue);
+  const branch = git(["branch", "--show-current"], checkout).trim();
+  taskBranch(branch, assignment.issue);
+  if (branch !== assignment.branch) throw new Error("ASSIGNMENT_BRANCH_MISMATCH");
+}
 export function tasks(run) {
   if (!/^run_[a-zA-Z0-9_-]+$/.test(run)) throw new Error("RUN_ID_INVALID");
   const result = orca(["orchestration", "task-list", "--run", run]);
