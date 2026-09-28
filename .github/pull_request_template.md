@@ -13,9 +13,7 @@ Describe the concrete problem and resulting behavior.
 - Interactive observations or explicit reason for deferral:
 - Data/settings cleanup and remaining limitations:
 
-Keep CI and automatic deployment pipelines disabled until explicitly authorized. Review changes locally and fix actionable findings before merging.
-
-Request one cloud Codex review after local review. Correct findings and locally re-review affected changes before merging. No automated application tests or saved journeys.
+Keep CI and automatic deployment pipelines disabled until explicitly authorized. All code reviews are local only. Require independent review and passing local `make check` at the final PR commit; fix actionable findings and locally re-review corrections before merging. No automated application tests or saved journeys.
 
 <!-- Use a Conventional Commit PR title. Replace task/epic placeholders. Preserve every
 complete source BREAKING CHANGE: or BREAKING-CHANGE: block here, including continuation

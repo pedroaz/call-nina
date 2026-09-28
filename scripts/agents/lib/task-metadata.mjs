@@ -109,6 +109,9 @@ export function taskIssue(issue, repo, number) {
     issue.state !== "OPEN"
   )
     throw new Error("OPEN_REPOSITORY_TASK_REQUIRED");
+  // The bug label classifies an existing defect; Ready/claim and coordinator
+  // ownership still govern authorization. Product tasks must have a parent.
+  if (!issue.parent && issue.labels?.nodes?.some((label) => label.name === "bug")) return;
   if (
     !issue.parent ||
     issue.parent.number === number ||
@@ -157,9 +160,13 @@ export function validateMetadata(snapshot, { candidate = false } = {}) {
     )
   )
     throw new Error("ONLY_TASK_MAY_BE_CLOSED");
-  const epic = `https://github.com/${repo}/issues/${issue.parent.number}`;
-  if (!new RegExp(`${epic.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=$|[\\s)\\]<>?#])`).test(active))
-    throw new Error(`PARENT_EPIC_LINK_REQUIRED: ${epic}`);
+  if (issue.parent) {
+    const epic = `https://github.com/${repo}/issues/${issue.parent.number}`;
+    if (
+      !new RegExp(`${epic.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=$|[\\s)\\]<>?#])`).test(active)
+    )
+      throw new Error(`PARENT_EPIC_LINK_REQUIRED: ${epic}`);
+  }
   if (
     !candidate &&
     (snapshot.closingIssues.length !== 1 ||
@@ -180,11 +187,19 @@ export function validateMetadata(snapshot, { candidate = false } = {}) {
     throw new Error("PR_BREAKING_SIGNAL_REQUIRED: ! title or explicit breaking footer");
   return {
     task: number,
-    epic: issue.parent.number,
+    epic: issue.parent?.number ?? null,
     subject: pull.title,
     body: pull.body.trim(),
     digest: metadataDigest(snapshot),
   };
+}
+
+export function squashMessageMatches(message, metadata, prNumber) {
+  // GitHub may append the PR number even when --subject was explicit. Accept
+  // only that exact suffix; the body and all metadata footers remain exact.
+  return [metadata.subject, `${metadata.subject} (#${prNumber})`].some(
+    (subject) => message.trim() === `${subject}\n\n${metadata.body}`,
+  );
 }
 
 export function metadataDigest(snapshot) {

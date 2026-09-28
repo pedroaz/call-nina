@@ -5,7 +5,7 @@ description: Develop and maintain Call Nina, including repository workflow, pack
 
 # Call Nina development
 
-Read root and scoped `AGENTS.md`, inspect `git status --short`, and preserve concurrent work and learner data. Work from the repository root. Current code, schemas, and runtime observations establish what is implemented; inspect them before changing behavior. Skills hold durable decisions and workflow, not feature inventories or parallel implementation documentation.
+Read root and scoped `AGENTS.md`, inspect `git status --short`, and preserve concurrent work and learner data. Before the first repository edit, including ad-hoc fixes and instruction changes from Codex Desktop, inspect read-only, map to an existing approved task or propose missing scope, and create/select the isolated task worktree. Work from that worktree’s repository root; main may host coordination but is not an implementation scratch checkout. Dirty-main transfer is recovery only. Current code, schemas, and runtime observations establish what is implemented; inspect them before changing behavior. Skills hold durable decisions and workflow, not feature inventories or parallel implementation documentation.
 
 ## Find the owner
 
@@ -33,10 +33,12 @@ Use `task/<issue>-<short-kebab-description>` and an ownership suffix for separat
 
 ## Work and verify
 
+Do not create, enable or expand CI/CD workflows, hosted checks, deployment pipelines or release automation without explicit user authorization. All code reviews are local only; preserve independent exact-head local review and passing local `make check` under the repository policy.
+
 Use `make help` and inspect its target implementation for command details. Inspect relevant redacted logs before bug fixes (`make logs-once`); resolve lifecycle ownership before stopping a process. Add only bounded diagnostics when evidence is missing.
 
 For ordinary changes, verify affected behavior through [interactive Electron verification](../call-nina-electron-verification/SKILL.md). During exploration and major refactors, follow the root deferral policy: the app need not build or work at each intermediate step, and behavior checks may be batched across tasks without asking again. Use only the focused prototype checks that help answer the current exploration question; label unproven assumptions accordingly. Do not spend time restoring an intentionally incomplete app merely to run verification. Report known breakage and deferred checks in the task response and, for roadmap work, the existing roadmap; do not create a separate checklist. Complete a consolidated interactive round after integration before claiming the affected work is functional or release-ready.
 
-Use [the UI skill](../call-nina-desktop-ui/SKILL.md) for renderer work. Deferral does not waive data preservation or security boundaries. No automated application tests or saved journeys. Run `make check` only on request or when preparing a PR. Review the exact change and report actual observations and limitations. Approved Ready work authorizes scoped worker commits and coordinator pushes/PRs/merges; releases require explicit authorization.
+Use [the UI skill](../call-nina-desktop-ui/SKILL.md) for renderer work. Deferral does not waive data preservation or security boundaries. No automated application tests or saved journeys. Run `make check` only on request or when preparing a PR. Review the exact change and report actual observations and limitations. Approved Ready work authorizes scoped worker commits and coordinator pushes/PRs/merges. Default delivery includes verifying the resulting main commit and task closure; report blocked gates honestly and follow the orchestration skill for review, reconciliation and cleanup. Releases require explicit authorization.
 
 Keep skills concise: change a skill when a durable decision or workflow changes. Do not add reference manuals, implementation summaries, runbooks or progress files. Put runtime details in their owning code. Legal notices and authored curriculum remain product files in `docs/` and `content/curriculum/`.

@@ -3,6 +3,6 @@ description = "Independently review integrated changes."
 model = "gpt-6-astra"
 model_reasoning_effort = "high"
 developer_instructions = """
-Read Code Review Rules in applicable AGENTS.md files. Review the exact commit/diff for consequential correctness, security and data-preservation defects. Return findings with locations and consequences. Do not edit code or treat formatting as review findings.
+Read Code Review Rules in applicable AGENTS.md files. All code reviews are local only. Review the exact commit/diff for consequential correctness, security and data-preservation defects. Return findings with locations and consequences. Do not edit code or treat formatting as review findings.
 Follow AGENTS.md and the live Orca message/completion protocol when dispatched. Workers do not spawn workers. Do not expand approved scope or run automated application tests.
 """
