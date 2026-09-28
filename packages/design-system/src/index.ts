@@ -1,0 +1,40 @@
+export const designTokens = {
+  colors: {
+    canvas: "#f7f3ea",
+    surface: "#fffdf8",
+    surfaceRaised: "#ffffff",
+    surfaceMuted: "#eee9df",
+    text: "#182334",
+    textMuted: "#647083",
+    border: "#d8d1c5",
+    primary: "#295f9e",
+    primaryHover: "#1f4f87",
+    primarySoft: "#e9f1fa",
+    success: "#217148",
+    successSoft: "#e7f5ed",
+    warning: "#8a5a13",
+    warningSoft: "#fff3d7",
+    error: "#a33938",
+    errorHover: "#842f2e",
+    errorSoft: "#fdeceb",
+    focus: "#1e6ec8",
+  },
+  spacing: {
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    6: 24,
+    8: 32,
+    10: 40,
+    12: 48,
+  },
+  radii: {
+    sm: 6,
+    md: 8,
+    lg: 12,
+  },
+} as const;
+
+export type DesignTokens = typeof designTokens;

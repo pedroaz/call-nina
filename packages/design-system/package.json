@@ -1,0 +1,17 @@
+{
+  "name": "@call-nina/design-system",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Portable design tokens with an explicit browser CSS resource.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tokens.css": "./styles/tokens.css"
+  },
+  "scripts": {
+    "build": "node ../../scripts/build/generate-design-tokens.mjs --check && tsc -b"
+  }
+}

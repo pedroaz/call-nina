@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import App from "./App.js";
 import "./i18n.js";
+import "@call-nina/design-system/tokens.css";
 import "./styles/tokens.css";
 import "./styles/global.css";
 

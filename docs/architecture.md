@@ -17,6 +17,7 @@ The repository ESLint rules enforce these package and process boundaries. New im
 
 ## Owners
 
+- `packages/design-system` owns dependency-free semantic colors and numeric spacing/radii. Its root exports `designTokens` and the readonly `DesignTokens` type without CSS, DOM, or runtime services; browsers explicitly import `@call-nina/design-system/tokens.css`. Desktop keeps fonts, motion, shadows, controls, and layout metrics local.
 - `packages/contracts` owns runtime-validated IPC, MCP, persisted-data, and AI-output schemas. It performs no I/O.
 - `packages/domain` owns deterministic learning rules. It depends only on contracts and browser-compatible libraries.
 - `packages/platform` owns low-level filesystem ownership, permissions, and process-independent OS primitives. It contains no learning rules.
@@ -36,6 +37,8 @@ Learner state is mutable private data in the selected SQLite root. Curriculum an
 ## Build and package layout
 
 The renderer, preload, Electron main process, and MCP server are bundled separately. The packaged desktop application has no runtime npm dependency tree: `app.asar` contains only the three desktop bundles and its manifest. The MCP helper contains a launcher and one self-contained server bundle. Curriculum is packaged once in application resources and copied into an owned plugin runtime only when the scoped plugin is staged.
+
+Design token CSS is committed and generated from `packages/design-system/src/index.ts` with `make design-tokens`. The generator converts base dimensions to rem for browsers; `make check` and the package build reject stale CSS. TypeScript references build the portable JavaScript/declarations, while the committed CSS remains available for renderer development after `make clean`.
 
 Use `make setup` for full development, `make setup-build` for the filtered source-build dependency profile, and `make package-inspect` to inspect the enforced local footprint budgets. Generated output is removed with `make clean`; learner data, logs, dependencies, and installer state are outside that target.
 
