@@ -22,6 +22,7 @@ import {
   replace,
   locked,
   assertNoVerification,
+  assertWriterCheckout,
 } from "./lib/orchestration.mjs";
 
 const { positionals, values } = parseArgs({
@@ -594,19 +595,11 @@ function main() {
         throw new Error("WORKER_LIMIT");
       const target = realpathSync(values.worktree);
       cleanWorktree(target);
-      if (writers.has(spec.role)) {
-        if (!Number.isSafeInteger(spec.issue) || spec.issue < 1)
-          throw new Error("WRITER_TASK_ISSUE_REQUIRED");
-        taskBranch(spec.branch, spec.issue);
-        const branch = git(["branch", "--show-current"], target).trim();
-        taskBranch(branch, spec.issue);
-        if (branch !== spec.branch) throw new Error("ASSIGNMENT_BRANCH_MISMATCH");
-      }
+      if (writers.has(spec.role)) assertWriterCheckout(target, spec);
       const baseline = git(["rev-parse", "--verify", `${values.baseline}^{commit}`]).trim();
       if (spec.commit && spec.commit !== baseline) throw new Error("ASSIGNMENT_COMMIT_MISMATCH");
       if (git(["rev-parse", "HEAD"], target).trim() !== baseline)
         throw new Error("WORKTREE_BASELINE_MISMATCH");
-      if (writers.has(spec.role) && target === root) throw new Error("ISOLATED_WRITER_REQUIRED");
       if (spec.role === "verifier") {
         if (
           !existsSync(verificationGate) ||
