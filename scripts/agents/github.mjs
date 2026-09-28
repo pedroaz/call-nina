@@ -183,13 +183,6 @@ function pr(number) {
 function trusted(comment) {
   return comment.user?.login === repo.split("/")[0];
 }
-function cloudRequest(comment) {
-  return (
-    trusted(comment) &&
-    /^@codex\s+review\b/m.test(comment.body) &&
-    comment.body.includes("<!-- nina-cloud-review-once -->")
-  );
-}
 function evidence(number, head) {
   return comments(number).some(
     (comment) =>
@@ -550,14 +543,13 @@ function main() {
   status --issue N --status 'Ready'   Product Owner only for new scope
   claim --issue N --run RUN          Bound coordinator only
   evidence --pr N --run RUN --review-task TASK --verification-commit SHA --static-check-commit SHA --verification 'observed details or deferred reason'
-  review --pr N --run RUN           Request cloud review once per PR
   publish --run RUN --issue N --branch task/N-description --baseline SHA
                                     Create/verify native issue-linked branch, then fast-forward push local HEAD
   validate --pr N                   Read-only current metadata validation
   validate --pr N --run RUN         Also refresh the required metadata status
   create --run RUN --branch task/N-description --title-file PATH --body-file PATH
   edit --run RUN --pr N --title-file PATH --body-file PATH
-  merge --run RUN --pr N            Fresh metadata + exact-head local evidence + cloud completion
+  merge --run RUN --pr N            Fresh metadata + exact-head local review/static evidence + resolved discussions
 Use these coordinator paths for task PR publication and edits. No automatic revalidation
 of arbitrary GitHub UI/raw-gh edits is available while hosted automation is disabled.
 Merge always rereads metadata; GitHub offers a head CAS, not atomic title/body CAS.
@@ -659,7 +651,7 @@ Settings: development.json. Recurring intake remains disabled until activation.`
   }
   if (command === "status") return setStatus(numeric(values.issue), values.status);
   if (
-    ["claim", "publish", "create", "edit", "merge", "evidence", "review"].includes(command) ||
+    ["claim", "publish", "create", "edit", "merge", "evidence"].includes(command) ||
     (command === "validate" && values.run)
   )
     assertCoordinator(values.run);
@@ -722,18 +714,6 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       );
     return { head: pull.headRefOid, evidence: true };
   }
-  if (command === "review") {
-    if (!evidence(number, pull.headRefOid)) throw new Error("CURRENT_HEAD_LOCAL_EVIDENCE_REQUIRED");
-    if (comments(number).some(cloudRequest)) return { review: "already-requested" };
-    if (
-      gh(["api", `repos/${repo}/pulls/${number}/reviews`, "--paginate", "--jq", "tojson"])
-        .flat()
-        .some((review) => review.user?.login === "chatgpt-codex-connector[bot]")
-    )
-      return { review: "already-completed" };
-    post(number, "@codex review\n\n<!-- nina-cloud-review-once -->");
-    return { review: "requested" };
-  }
   if (command === "merge") {
     const branchRules = gh([
       "api",
@@ -747,32 +727,6 @@ Settings: development.json. Recurring intake remains disabled until activation.`
         "MERGE_QUEUE_UNSUPPORTED: immediate validated squash required; never enqueue or enable auto-merge",
       );
     if (!evidence(number, pull.headRefOid)) throw new Error("CURRENT_HEAD_LOCAL_EVIDENCE_REQUIRED");
-    const reviews = gh([
-      "api",
-      `repos/${repo}/pulls/${number}/reviews`,
-      "--paginate",
-      "--jq",
-      "tojson",
-    ]).flat();
-    const completed = reviews.some(
-      (review) => review.user?.login === "chatgpt-codex-connector[bot]" && review.submitted_at,
-    );
-    const requests = comments(number).filter(cloudRequest);
-    const approvedReaction = requests.some((comment) =>
-      gh([
-        "api",
-        `repos/${repo}/issues/comments/${comment.id}/reactions`,
-        "--paginate",
-        "--jq",
-        "tojson",
-      ])
-        .flat()
-        .some(
-          (reaction) =>
-            reaction.user?.login === "chatgpt-codex-connector[bot]" && reaction.content === "+1",
-        ),
-    );
-    if (!completed && !approvedReaction) throw new Error("CLOUD_REVIEW_NOT_COMPLETE");
     const [owner, name] = repo.split("/");
     const query = `query($owner:String!,$name:String!,$number:Int!,$endCursor:String){repository(owner:$owner,name:$name){pullRequest(number:$number){reviewThreads(first:100,after:$endCursor){nodes{isResolved} pageInfo{hasNextPage endCursor}}}}}`;
     const pages = gh([
@@ -847,6 +801,23 @@ Settings: development.json. Recurring intake remains disabled until activation.`
   throw new Error("UNKNOWN_COMMAND");
 }
 try {
+  if (
+    ![
+      "help",
+      "config",
+      "project-setup",
+      "queue",
+      "status",
+      "claim",
+      "evidence",
+      "publish",
+      "validate",
+      "create",
+      "edit",
+      "merge",
+    ].includes(command)
+  )
+    throw new Error("UNKNOWN_COMMAND");
   console.log(
     JSON.stringify(["help", "config", "queue"].includes(command) ? main() : locked(main), null, 2),
   );

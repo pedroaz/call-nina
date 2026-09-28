@@ -33,7 +33,7 @@ Use `task/<issue>-<short-kebab-description>` and an ownership suffix for separat
 
 ## Work and verify
 
-Do not create, enable or expand CI/CD workflows, hosted checks, deployment pipelines or release automation without explicit user authorization. Verify locally under the repository policy; required cloud code review is a separate gate.
+Do not create, enable or expand CI/CD workflows, hosted checks, deployment pipelines or release automation without explicit user authorization. All code reviews are local only; preserve independent exact-head local review and passing local `make check` under the repository policy.
 
 Use `make help` and inspect its target implementation for command details. Inspect relevant redacted logs before bug fixes (`make logs-once`); resolve lifecycle ownership before stopping a process. Add only bounded diagnostics when evidence is missing.
 

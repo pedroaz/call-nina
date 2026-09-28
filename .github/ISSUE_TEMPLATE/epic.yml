@@ -11,7 +11,7 @@ body:
     id: acceptance
     attributes:
       label: Epic acceptance criteria
-      description: The maintainer accepts the epic after child work is merged.
+      description: The coordinator closes the epic after all native child outcomes, required merges and these criteria are verified; account explicitly for cancelled, duplicate or not-planned children.
     validations:
       required: true
   - type: textarea
