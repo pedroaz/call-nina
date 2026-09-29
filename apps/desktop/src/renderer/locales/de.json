@@ -112,8 +112,8 @@
       "open": "{{title}} öffnen",
       "deleteAction": "{{title}} löschen",
       "deleteTitle": "„{{title}}“ löschen?",
-      "deleteBody": "Die Aktivität und ihre unbestätigten Wortschatzvorschläge werden dauerhaft gelöscht.",
-      "deleteCascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Verlaufseinträge und unbestätigten Wortschatzkandidaten dauerhaft gelöscht.",
+      "deleteBody": "Die Aktivität und ihre unbestätigten Wortschatzvorschläge werden dauerhaft gelöscht. Ungenutztes, unverändertes Ausgangsmaterial, das mit dieser Aktivität erstellt wurde, kann ebenfalls gelöscht werden.",
+      "deleteCascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Verlaufseinträge und unbestätigten Wortschatzkandidaten dauerhaft gelöscht. Ungenutztes, unverändertes Ausgangsmaterial, das mit dieser Aktivität erstellt wurde, kann ebenfalls gelöscht werden.",
       "deleteConfirm": "Übung löschen",
       "deleteBlocked": {
         "retained-data": "{{title}} enthält abgeschlossene Ergebnisse, aufbewahrtes Feedback oder bestätigten Wortschatz und kann hier nicht gelöscht werden."
@@ -1398,7 +1398,7 @@
     "suspended": "Dieses Wort ist pausiert. Du kannst die Wiederholungen im Wortschatz fortsetzen.",
     "saveNotice": "Wörter gespeichert. Bestehende Wiederholungstermine und pausierte Wörter bleiben erhalten.",
     "delete": "Kartensatz löschen",
-    "deleteBody": "Diesen Kartensatz und seinen Fortschritt löschen? Im Wortschatz gespeicherte Wörter bleiben erhalten.",
+    "deleteBody": "Diesen Kartensatz und seinen Fortschritt löschen? Ungenutztes, unverändertes Ausgangsmaterial, das mit diesem Kartensatz erstellt wurde, kann ebenfalls gelöscht werden. Im Wortschatz gespeicherte Wörter bleiben erhalten.",
     "vocabularyDeck": "Meine Wortschatzkarten",
     "study": "Mit Lernkarten lernen",
     "selectRange": "Wähle 3–30 Wörter für einen Kartensatz."

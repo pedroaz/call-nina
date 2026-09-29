@@ -119,7 +119,7 @@ export function migrateVersionedContent(connection: DatabaseSync) {
     connection
       .prepare("UPDATE generated_activity_payloads SET output_json = ? WHERE activity_id = ?")
       .run(JSON.stringify(content), activity.activityId);
-    linkPortableContent(connection, activity.activityId, content);
+    linkPortableContent(connection, activity.activityId, content, "reused-or-historic");
   }
   migrateFlashcardContent(connection);
   connection.exec(`INSERT INTO attempt_content_revisions(attempt_id, content_revision_id)

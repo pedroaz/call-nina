@@ -5,7 +5,7 @@ import {
   historyAttemptEvidence,
   readAttemptEvidence,
 } from "./attempt-evidence.js";
-import { linkPortableContent } from "./materials.js";
+import { linkPortableContent, deletePreparedActivityAndOwnedMaterial } from "./materials.js";
 import {
   contentMaterialInputSchema,
   preparePortableContent,
@@ -2361,10 +2361,7 @@ export class CallNinaRepository {
              AND json_extract(source_json, '$.activityId') = ?`,
         )
         .run(activityId);
-      const result = connection
-        .prepare(`DELETE FROM prepared_activities WHERE activity_id = ?`)
-        .run(activityId);
-      if (result.changes !== 1) throw new Error("OD_PREPARED_ACTIVITY_NOT_FOUND");
+      deletePreparedActivityAndOwnedMaterial(connection, activityId);
       if (courseMissionId)
         connection
           .prepare(
@@ -2565,7 +2562,12 @@ export class CallNinaRepository {
           record.aiProvenance.generatedAt,
           stringifyBounded(content, maximumExerciseContentBytes),
         );
-      linkPortableContent(connection, record.activity.activityId, content);
+      linkPortableContent(
+        connection,
+        record.activity.activityId,
+        content,
+        "revisionId" in record.material ? "reused-or-historic" : "inline-created",
+      );
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
          VALUES (?, ?, ?)`,
@@ -2646,7 +2648,12 @@ export class CallNinaRepository {
           record.aiProvenance.generatedAt,
           stringifyBounded(content, maximumExerciseContentBytes),
         );
-      linkPortableContent(connection, record.activity.activityId, content);
+      linkPortableContent(
+        connection,
+        record.activity.activityId,
+        content,
+        "revisionId" in record.material ? "reused-or-historic" : "inline-created",
+      );
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
          VALUES (?, ?, ?)`,

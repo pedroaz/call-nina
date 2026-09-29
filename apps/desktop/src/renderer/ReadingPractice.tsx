@@ -43,7 +43,7 @@ export function ReadingPractice({
           exerciseCount,
           targetLevel,
           naturalRequest: topic.trim() || t("practice.readingFlow.defaultRequest"),
-          ...(usePassage ? { passage: passage.trim() } : {}),
+          ...(usePassage ? { passage } : {}),
         },
         generation.run,
       );

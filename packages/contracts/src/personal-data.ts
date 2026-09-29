@@ -25,6 +25,7 @@ export const personalDataGroups = {
     "generated_activity_payloads",
     "material_revisions",
     "activity_content_revisions",
+    "activity_owned_materials",
     "attempt_content_revisions",
     "activity_context_references",
     "targeted_practice_links",

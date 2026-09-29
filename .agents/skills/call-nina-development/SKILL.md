@@ -28,6 +28,7 @@ Paths below are relative to the repository root. Follow imports and callers rath
 - Runtime-validate AI, IPC, MCP and persisted inputs. Preserve data-root generations, leases, idempotency and transactional migrations. Use one current contract; follow the root development-reset policy for incompatible learning formats.
 - Local onboarding and supported prepared practice depend on the learner data root, not provider authentication. Keep local learner identity, provider accounts/credentials and device capabilities separate; a provider plan confers no Nina entitlement.
 - Keep learning activities self-paced and distinguish participation from skill evidence. Voice stays in Codex; Call Nina stores bounded structured results, not audio or transcripts. Model capabilities come from the connected runtime.
+- Preserve imported material text through renderer, generation and storage boundaries; whitespace validation must not rewrite the source. Attempts retain their exact content/material revisions, while later feedback appends evidence without replacing the original answer or evaluation. Reusable material lifetime is separate from activity lifetime: deletion may remove explicitly owned inline material only when no edited revision or surviving reference needs it. Never infer ownership for existing material or collect unrelated orphans.
 
 ## Task history
 

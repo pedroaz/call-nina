@@ -129,6 +129,7 @@ export function linkPortableContent(
   connection: DatabaseSync,
   activityId: string,
   content: { revisionId: string; materials: readonly MaterialRevision[] },
+  materialOwnership: "inline-created" | "reused-or-historic",
 ) {
   const material = content.materials[0];
   if (!material) throw new Error("OD_CONTENT_INVALID");
@@ -137,6 +138,61 @@ export function linkPortableContent(
       "INSERT INTO activity_content_revisions(activity_id, revision_id, material_revision_id) VALUES (?, ?, ?)",
     )
     .run(activityId, content.revisionId, material.revisionId);
+  if (materialOwnership === "inline-created") {
+    if (material.revision !== 1) throw new Error("OD_MATERIAL_OWNERSHIP_INVALID");
+    connection
+      .prepare(
+        "INSERT INTO activity_owned_materials(activity_id, material_revision_id) VALUES (?, ?)",
+      )
+      .run(activityId, material.revisionId);
+  }
+}
+
+/** Called only after the repository's deletion policy and dependent-record cleanup, in one transaction. */
+export function deletePreparedActivityAndOwnedMaterial(
+  connection: DatabaseSync,
+  activityId: string,
+) {
+  const owned = connection
+    .prepare(
+      `SELECT m.material_id, m.revision_id, c.material_revision_id AS linked_revision
+      FROM activity_owned_materials o JOIN material_revisions m ON m.revision_id = o.material_revision_id
+      LEFT JOIN activity_content_revisions c USING(activity_id) WHERE o.activity_id = ?`,
+    )
+    .get(activityId);
+  const material = owned
+    ? readMaterialRevisionInTransaction(connection, {
+        materialId: String(owned["material_id"]),
+        revisionId: String(owned["revision_id"]),
+      })
+    : undefined;
+  if (material && (material.revision !== 1 || material.revisionId !== owned?.["linked_revision"]))
+    throw new Error("OD_MATERIAL_OWNERSHIP_INVALID");
+  const result = connection
+    .prepare("DELETE FROM prepared_activities WHERE activity_id = ?")
+    .run(activityId);
+  if (result.changes !== 1) throw new Error("OD_PREPARED_ACTIVITY_NOT_FOUND");
+  if (!material) return;
+  // Ownership is deliberately relinquished when a source was edited or reused.
+  // Never collect unrelated or historical orphans, or remove surviving attempt evidence.
+  connection
+    .prepare(
+      `DELETE FROM material_revisions WHERE revision_id = ? AND material_id = ? AND revision = 1
+      AND NOT EXISTS (SELECT 1 FROM material_revisions WHERE material_id = ? AND revision_id <> ?)
+      AND NOT EXISTS (SELECT 1 FROM activity_content_revisions WHERE material_revision_id = ?)
+      AND NOT EXISTS (
+        SELECT 1 FROM learning_attempts a, json_each(a.ownership_json, '$.source.materials') m
+        WHERE json_extract(m.value, '$.materialId') = ?
+      )`,
+    )
+    .run(
+      material.revisionId,
+      material.materialId,
+      material.materialId,
+      material.revisionId,
+      material.revisionId,
+      material.materialId,
+    );
 }
 
 /** Validate the immutable relational links as well as the embedded portable snapshot. */

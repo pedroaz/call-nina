@@ -119,7 +119,7 @@ function insert(
     connection
       .prepare(`INSERT INTO flashcard_decks(activity_id, source, content_json) VALUES (?, ?, ?)`)
       .run(activity.activityId, source, JSON.stringify(content));
-    linkPortableContent(connection, activity.activityId, content);
+    linkPortableContent(connection, activity.activityId, content, "inline-created");
   }
   return activity.activityId;
 }
@@ -431,7 +431,7 @@ export function migrateFlashcardContent(connection: DatabaseSync) {
     connection
       .prepare("UPDATE flashcard_decks SET content_json = ? WHERE activity_id = ?")
       .run(JSON.stringify(content), activity.activityId);
-    linkPortableContent(connection, activity.activityId, content);
+    linkPortableContent(connection, activity.activityId, content, "reused-or-historic");
   }
   connection.exec(`ALTER TABLE flashcard_decks DROP COLUMN provenance_json;
     CREATE TRIGGER flashcard_content_immutable BEFORE UPDATE OF activity_id, source, content_json ON flashcard_decks
