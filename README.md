@@ -88,6 +88,18 @@ After `make setup`, run `make dev-website` and open the local URL printed by Vit
 
 The website participates in `make build` and `make check`; `make clean` removes its generated output. This is a Coming soon foundation for later website work. Hosting, deployment and backend services are not configured by these commands.
 
+## Mobile development
+
+`apps/mobile` is a minimal native screen based on Expo's [blank TypeScript starting approach](https://docs.expo.dev/more/create-expo-app/#--template), using [SDK 57](https://expo.dev/changelog/sdk-57) and React Native 0.86. It consumes the portable `@call-nina/design-system` token export, without browser CSS or desktop services. Expo's [automatic monorepo support](https://docs.expo.dev/guides/monorepos/) handles pnpm's isolated dependencies; no custom Metro resolver or repository-wide hoisting is needed.
+
+After `make setup`, use `make dev-mobile` to start Metro in the foreground and scan the QR code with a compatible SDK 57 Expo Go client. The device and computer must share a reachable local network; stop Metro with Ctrl-C. `make dev-mobile-android` opens an available Android emulator/connected device, and `make dev-mobile-ios` opens the iOS Simulator on macOS. Pass Expo options with `ARGS`, for example `make dev-mobile ARGS="--localhost --port 8082"` for a local simulator. SDK 57 Expo Go availability differs by platform; consult the [current Expo Go instructions](https://expo.dev/go).
+
+`make config-mobile` resolves the Android/iOS app configuration. `make build-mobile` typechecks and exports both native JavaScript/Hermes bundles to `apps/mobile/dist`; it does **not** compile, install or launch a native app. Mobile participates in `make build` and `make check`; `make clean` removes its bundle/type output. Mobile build and development commands compile shared tokens before resolving them. A matching React DOM version is pinned only for Expo tooling's optional peer dependency, so it does not pick up the website's different React version; the native entry imports no browser renderer.
+
+For a local native debug build, use `make run-mobile-android` with Java and the Android SDK/platform tools plus an emulator or USB-debugging device, or `make run-mobile-ios` with macOS, Xcode, CocoaPods and a simulator. See Expo's [local native build prerequisites](https://docs.expo.dev/guides/local-app-development/). Expo generates ignored `android/` and `ios/` projects from `app.json`; keep configuration there instead of editing generated projects. The iOS configuration opts into Expo's [scene support for Xcode 27/iOS 27](https://github.com/expo/fyi/blob/main/ios-scene-lifecycle.md#staying-on-sdk-57-with-xcode-27). Native identifiers are local development defaults, not registered store applications. No signing, cloud build or distribution service is configured.
+
+Native launch still requires interactive verification on an available target. The implementation host is Linux without Android SDK/adb/emulator or an attached target; iOS compilation and simulator verification require a Mac. Successful configuration and bundle export do not establish native rendering or launch behavior.
+
 ## Troubleshooting
 
 - **Runtime unavailable:** install/open the supported desktop app, sign in, and retry connection. Use the executable override for a nonstandard installation. Plugin installation is optional and will not fix an incompatible runtime.

@@ -7,6 +7,9 @@ coverage/
 playwright-report/
 test-results/
 pnpm-lock.yaml
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
 *.tsbuildinfo
 docs/
 Makefile

@@ -28,6 +28,9 @@
     },
     {
       "path": "./apps/website"
+    },
+    {
+      "path": "./apps/mobile"
     }
   ]
 }
