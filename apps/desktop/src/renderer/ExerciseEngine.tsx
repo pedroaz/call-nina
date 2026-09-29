@@ -333,6 +333,7 @@ export function ExerciseEngine({
   onCancelAiEvaluation,
   onSupportUsed,
   evaluationProgress,
+  completionActions,
 }: {
   targetLanguage: Language;
   translation?: SavedTranslationContext;
@@ -345,6 +346,7 @@ export function ExerciseEngine({
     position: number,
   ) => Promise<ExerciseAiFeedback | null>;
   evaluationProgress?: ReactNode;
+  completionActions?: ReactNode;
   onStarted?: () => void | Promise<void>;
   onCompleted?: (evaluations: readonly ExerciseEvaluation[]) => void | Promise<void>;
   onAbandoned?: () => void | Promise<void>;
@@ -438,6 +440,7 @@ export function ExerciseEngine({
     return evaluations.length > 0 ? (
       <section aria-labelledby="exercise-complete-heading">
         <h2 id="exercise-complete-heading">{t("exercises.complete")}</h2>
+        {completionActions}
         <ItemList>
           {evaluations.map((evaluation, index) => (
             <li key={`${evaluation.exerciseKind}:${String(index)}`}>

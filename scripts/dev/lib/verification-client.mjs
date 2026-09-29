@@ -647,6 +647,8 @@ export async function reconcileVerificationEffect(barrier, request, command) {
     !journal.preferences ||
     Object.keys(journal.preferences).length ||
     journal.baseline ||
+    journal.initialTarget ||
+    Object.keys(journal.learningPreferences ?? {}).length ||
     journal.pendingAction ||
     !Array.isArray(journal.notes) ||
     journal.notes.some(

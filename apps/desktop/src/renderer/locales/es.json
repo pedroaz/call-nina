@@ -1461,7 +1461,10 @@
     "noRelated": "Todavía no hay prácticas preparadas para esta revisión.",
     "open": "Practicar: {{title}}",
     "refresh": "Actualizar prácticas preparadas",
-    "more": "Mostrar más"
+    "more": "Mostrar más",
+    "remove": "Eliminar material",
+    "removeBody": "¿Eliminar este material y todas sus revisiones? Se conserva el material vinculado a cualquier actividad o intento. No se eliminarán actividades ni intentos.",
+    "removeConfirm": "Eliminar este material"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1529,5 +1532,12 @@
     "loadFailed": "No se pudieron abrir las traducciones guardadas. El original sigue disponible.",
     "saved": "Traducción guardada. Puedes volver a abrirla sin IA.",
     "retryRead": "Volver a cargar las traducciones guardadas"
+  },
+  "completion": {
+    "next": "Qué hacer después",
+    "evidence": "Tus respuestas y comentarios están guardados en el historial. Las pistas, las respuestas repetidas y las autoevaluaciones se distinguen de los resultados independientes.",
+    "nextHint": "Vuelve a Nina para elegir un repaso o una práctica nueva. Las actividades preparadas siguen disponibles sin IA.",
+    "nina": "Ver las recomendaciones de Nina",
+    "return": "Volver a {{origin}}"
   }
 }

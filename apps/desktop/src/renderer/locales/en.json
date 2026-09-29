@@ -1461,7 +1461,10 @@
     "noRelated": "No prepared practice for this revision yet.",
     "open": "Practise: {{title}}",
     "refresh": "Refresh prepared practice",
-    "more": "Show more"
+    "more": "Show more",
+    "remove": "Remove material",
+    "removeBody": "Remove this material and all its revisions? Material referenced by any activity or attempt is kept. No activities or attempts will be deleted.",
+    "removeConfirm": "Remove this material"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1529,5 +1532,12 @@
     "loadFailed": "Saved translations could not be opened. The original remains available.",
     "saved": "Translation saved. It can be reopened without AI.",
     "retryRead": "Reload saved translations"
+  },
+  "completion": {
+    "next": "What comes next",
+    "evidence": "Your answers and feedback are saved in History. Hints, repeated answers and self-ratings remain distinct from independent evidence.",
+    "nextHint": "Return to Nina to choose relevant review or fresh practice. Prepared activities stay available without AI.",
+    "nina": "See Nina’s recommendations",
+    "return": "Back to {{origin}}"
   }
 }

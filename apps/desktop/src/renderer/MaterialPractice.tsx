@@ -10,7 +10,14 @@ import {
   type MaterialRevision,
   type ProviderOperation,
 } from "@call-nina/contracts";
-import { Button, Disclosure, FieldGroup, ItemList, Muted } from "./components/ui/index.js";
+import {
+  Button,
+  ConfirmDialog,
+  Disclosure,
+  FieldGroup,
+  ItemList,
+  Muted,
+} from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError, createDesktopSubmissionId } from "./ipc.js";
 import { generatePracticeActivity, reusePracticeActivity } from "./generatePracticeActivity.js";
@@ -28,6 +35,7 @@ export type MaterialPracticeState = {
   selected?: MaterialRevision;
   view: "list" | "detail" | "edit";
   drafts: Record<string, Draft>;
+  lastSaved?: { revisionId: string; previousRevisionId?: string };
 };
 export const emptyMaterialPracticeState = (): MaterialPracticeState => ({
   view: "list",
@@ -143,6 +151,13 @@ export function MaterialPractice({
       setDrafts((current) => {
         return Object.fromEntries(Object.entries(current).filter(([draftKey]) => draftKey !== key));
       });
+      setState((current) => ({
+        ...current,
+        lastSaved: {
+          revisionId: material.revisionId,
+          ...(selected ? { previousRevisionId: selected.revisionId } : {}),
+        },
+      }));
       setSelected(material);
       navigate("detail");
       try {
@@ -212,7 +227,13 @@ export function MaterialPractice({
           : "materialPractice.optionalVocabulary",
       )}
     >
-      <div className={styles.workspace}>
+      <div
+        className={styles.workspace}
+        data-material-workspace
+        data-root-generation={snapshot?.rootGeneration}
+        data-learning-language={snapshot?.language}
+        data-material-ready={Boolean(snapshot) && !busy && !error}
+      >
         <h3 tabIndex={-1} ref={heading}>
           {t(`materialPractice.${view}`)}
         </h3>
@@ -246,6 +267,8 @@ export function MaterialPractice({
                   {snapshot.materials.map((material) => (
                     <li key={material.materialId}>
                       <Button
+                        id={`material-open-${material.materialId}`}
+                        data-material-revision={material.revisionId}
                         variant="secondary"
                         isDisabled={locked}
                         onPress={() => {
@@ -337,7 +360,17 @@ export function MaterialPractice({
         )}
         {view === "detail" && selected && snapshot && (
           <>
-            <h4>{selected.title}</h4>
+            <h4
+              data-material-id={selected.materialId}
+              data-material-revision={selected.revisionId}
+              data-material-saved-from={
+                state.lastSaved?.revisionId === selected.revisionId
+                  ? state.lastSaved.previousRevisionId
+                  : undefined
+              }
+            >
+              {selected.title}
+            </h4>
             <Muted>
               {t("materialPractice.revision", {
                 revision: selected.revision,
@@ -385,6 +418,32 @@ export function MaterialPractice({
                 </Button>
               )}
             </ActionGroup>
+            <ConfirmDialog
+              trigger={t("materialPractice.remove")}
+              title={t("materialPractice.remove")}
+              body={t("materialPractice.removeBody")}
+              confirm={t("materialPractice.removeConfirm")}
+              cancel={t("actions.cancel")}
+              onConfirm={async () => {
+                if (locked) return;
+                setLocalBusy(true);
+                setError(undefined);
+                try {
+                  await invokeDesktop("material/delete", {
+                    rootGeneration: snapshot.rootGeneration,
+                    learningScope: snapshot.learningScope,
+                    reference: reference(selected),
+                  });
+                  setSelected(undefined);
+                  navigate("list");
+                  await refresh();
+                } catch (cause) {
+                  setError(normalizeDesktopError(cause).detail);
+                } finally {
+                  setLocalBusy(false);
+                }
+              }}
+            />
             <OperationProgress progress={generation.progress} />
             <RelatedPractice
               key={selected.revisionId}

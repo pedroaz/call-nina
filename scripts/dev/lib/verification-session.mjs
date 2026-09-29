@@ -5,6 +5,13 @@ import { recordVerificationApp, writePrivateJson } from "./verification-client.m
 
 export const root = path.resolve(import.meta.dirname, "../../..");
 export const runtimeRoot = path.join(root, ".runtime");
+export const locales = { "en-US": "en", "pt-BR": "pt-BR", es: "es", de: "de" };
+export const languageNames = {
+  "en-US": "English",
+  "pt-BR": "Português brasileiro",
+  es: "Español",
+  de: "Deutsch",
+};
 export const workloads = ["correction", "generation", "helper", "research"];
 export function failure(code) {
   return new Error(code);
@@ -89,12 +96,28 @@ export class VerificationSession {
     this.initialLocale =
       this.journal.locale ?? (await this.page.locator("html").getAttribute("lang"));
     this.journal.locale = this.initialLocale;
+    const selectedLanguage = this.page
+      .getByRole("navigation", { includeHidden: true })
+      .getByRole("combobox", {
+        name: await this.t("onboarding.targetLanguage"),
+        exact: true,
+        includeHidden: true,
+      });
+    if (!this.journal.initialTarget && (await selectedLanguage.count()) === 1) {
+      this.journal.initialTarget = await selectedLanguage.inputValue();
+      this.journal.initialRoot = await this.page
+        .locator("[data-learning-root]")
+        .getAttribute("data-learning-root");
+      if (!this.journal.notes.includes("LEARNING_SETTINGS_RESTORE_REQUIRED"))
+        this.journal.notes.push("LEARNING_SETTINGS_RESTORE_REQUIRED");
+    }
     delete this.journal.suspended;
     await this.persist();
     this.phase = "ready";
   }
   async t(key) {
-    const locale = (await this.page.locator("html").getAttribute("lang")) === "de" ? "de" : "en";
+    const locale = locales[await this.page.locator("html").getAttribute("lang")];
+    if (!locale) throw failure("VERIFY_LOCALE_UNSUPPORTED");
     this.catalogs ??= {};
     this.catalogs[locale] ??= JSON.parse(
       await readFile(path.join(root, `apps/desktop/src/renderer/locales/${locale}.json`), "utf8"),
@@ -112,6 +135,93 @@ export class VerificationSession {
       .filter({ has: this.page.getByRole("list") })
       .first();
     await nav.getByRole("list").getByRole("button", { name, exact: true }).click();
+  }
+  async profileSettings() {
+    await this.navigate(await this.t("nav.nina"));
+    await this.navigate(await this.t("nav.settings"));
+    await this.page
+      .getByRole("tab", { name: await this.t("settings.tabs.profile"), exact: true })
+      .click();
+    await this.page.locator('[data-settings-ready="true"]').waitFor();
+  }
+  async profileValues() {
+    const panel = this.page.getByRole("tabpanel");
+    const value = async (key, role = "combobox") =>
+      panel.getByRole(role, { name: await this.t(key), exact: true }).inputValue();
+    const language = await value("onboarding.targetLanguage");
+    return {
+      language,
+      rootGeneration: await this.page
+        .locator("[data-settings-root]")
+        .getAttribute("data-settings-root"),
+      level: await value("onboarding.level"),
+      goal: await value("onboarding.goal", "textbox"),
+      teaching: await value("settings.teachingProfile"),
+      explanation: await value("onboarding.explanationLanguage"),
+      ...(language === "de"
+        ? {
+            enrolled: await panel
+              .getByRole("checkbox", { name: await this.t("onboarding.enrollCourse"), exact: true })
+              .isChecked(),
+          }
+        : {}),
+    };
+  }
+  async rememberSettings() {
+    // Only capture an unedited persisted profile. Never replace an earlier baseline.
+    const profile = this.page.locator("#settings-profile-title");
+    if (!(await profile.isVisible())) return;
+    const language = await this.page
+      .locator("[data-settings-language]")
+      .getAttribute("data-settings-language");
+    if (this.journal.learningPreferences?.[language]) return;
+    if (!(await this.page.locator('[data-settings-ready="true"]').count()))
+      throw failure("VERIFY_SETTINGS_BASELINE_REQUIRED");
+    const values = await this.profileValues();
+    if (!locales[values.language] || !values.rootGeneration)
+      throw failure("VERIFY_SETTINGS_BASELINE_REQUIRED");
+    this.journal.learningPreferences ??= {};
+    this.journal.learningPreferences[values.language] = values;
+    this.journal.initialTarget ??= values.language;
+    this.journal.initialRoot ??= values.rootGeneration;
+    if (!this.journal.notes.includes("LEARNING_SETTINGS_RESTORE_REQUIRED"))
+      this.journal.notes.push("LEARNING_SETTINGS_RESTORE_REQUIRED");
+    await this.persist();
+  }
+  async selectLanguage(language) {
+    if (!locales[language]) throw failure("VERIFY_RECORD_SCOPE_UNKNOWN");
+    await this.profileSettings();
+    if (
+      this.journal.initialRoot &&
+      (await this.page.locator("[data-settings-root]").getAttribute("data-settings-root")) !==
+        this.journal.initialRoot
+    )
+      throw failure("VERIFY_SETTINGS_ROOT_CHANGED");
+    const select = this.page
+      .getByRole("tabpanel")
+      .getByRole("combobox", { name: await this.t("onboarding.targetLanguage"), exact: true });
+    if ((await select.inputValue()) !== language) {
+      await this.rememberSettings();
+      await select.selectOption(language);
+      await until(
+        async () =>
+          (await this.page
+            .locator('[data-settings-ready="true"]')
+            .getAttribute("data-settings-language")) === language,
+        "VERIFY_LANGUAGE_SWITCH_FAILED",
+      );
+    }
+  }
+  async scopeOf(element) {
+    const language = await element.getAttribute("data-learning-language");
+    const rootGeneration = await element.getAttribute("data-root-generation");
+    if (!locales[language] || !rootGeneration) throw failure("VERIFY_RECORD_SCOPE_UNKNOWN");
+    return { language, rootGeneration };
+  }
+  async assertScope(element, expected) {
+    const actual = await this.scopeOf(element);
+    if (actual.language !== expected.language || actual.rootGeneration !== expected.rootGeneration)
+      throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
   }
   async settings() {
     await this.navigate(await this.t("nav.settings"));
@@ -175,7 +285,7 @@ export class VerificationSession {
     }
     await this.saveSettings();
     // Reopen from persisted settings, not just the unsaved draft.
-    await this.navigate(await this.t("dashboard.title"));
+    await this.navigate(await this.t("nav.nina"));
     await this.settings();
     const observed = await this.preferences();
     if (
@@ -223,21 +333,79 @@ export class VerificationSession {
     }
     return section;
   }
+  async materialLibrary() {
+    await this.navigate(await this.t("nav.practice"));
+    await this.page.getByRole("tab", { name: await this.t("ui.newPractice"), exact: true }).click();
+    await (await this.button("practice.types.reading.title")).click();
+    const disclosure = this.page.locator("details").filter({
+      has: this.page
+        .locator("summary")
+        .getByText(await this.t("materialPractice.optional"), { exact: true }),
+    });
+    if ((await disclosure.getAttribute("open")) === null)
+      await disclosure.locator("summary").click();
+    const workspace = disclosure.locator("[data-material-workspace]");
+    const back = await this.button("materialPractice.back", workspace);
+    if (await back.isVisible()) await back.click();
+    await (await this.button("materialPractice.load", workspace)).click();
+    await until(
+      async () => (await workspace.getAttribute("data-material-ready")) === "true",
+      "VERIFY_MATERIAL_LIBRARY_UNAVAILABLE",
+    );
+    const more = await this.button("materialPractice.more", workspace);
+    for (let page = 0; await more.isVisible(); page++) {
+      if (page >= 100) throw failure("VERIFY_LIBRARY_LIMIT");
+      const count = await workspace.locator('[id^="material-open-"]').count();
+      await more.click();
+      await until(
+        async () =>
+          !(await more.isVisible()) ||
+          (await workspace.locator('[id^="material-open-"]').count()) > count,
+        "VERIFY_LIBRARY_LOAD_FAILED",
+      );
+    }
+    return workspace;
+  }
   async activityIds(kind = "practice") {
-    const section = await this.library(kind);
-    const buttons = await section.locator('[id^="activity-open-"]').all();
+    const section = kind === "material" ? await this.materialLibrary() : await this.library(kind);
+    const prefix = kind === "material" ? "material-open-" : "activity-open-";
+    const buttons = await section.locator(`[id^="${prefix}"]`).all();
     return Promise.all(
-      buttons.map(async (button) =>
-        (await button.getAttribute("id")).slice("activity-open-".length),
-      ),
+      buttons.map(async (button) => (await button.getAttribute("id")).slice(prefix.length)),
     );
   }
   async beginRecords(kind = "practice") {
     if (this.journal.notes.includes("UNCONFIRMED_CREATION"))
       throw failure("VERIFY_RECORD_BASELINE_UNRESOLVED");
-    if (!["practice", "speaking", "listening"].includes(kind))
+    if (!["practice", "speaking", "listening", "material"].includes(kind))
       throw failure("VERIFY_RECORD_KIND_INVALID");
-    this.baseline = { kind, ids: await this.activityIds(kind) };
+    const materialIds = kind === "material" ? undefined : await this.activityIds("material");
+    const materialScope =
+      kind === "material"
+        ? undefined
+        : await this.scopeOf(this.page.locator("[data-material-workspace]"));
+    const ids = await this.activityIds(kind);
+    const scope = await this.scopeOf(
+      kind === "material" ? await this.materialLibrary() : await this.library(kind),
+    );
+    if (
+      materialScope &&
+      (materialScope.language !== scope.language ||
+        materialScope.rootGeneration !== scope.rootGeneration)
+    )
+      throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
+    const revisions = {};
+    if (kind === "material")
+      for (const id of ids)
+        revisions[id] = await this.page
+          .locator(`[id="material-open-${id}"]`)
+          .getAttribute("data-material-revision");
+    this.baseline = {
+      kind,
+      ids,
+      ...scope,
+      ...(kind === "material" ? { revisions } : { materialIds }),
+    };
     this.journal.baseline = this.baseline;
     if (!this.journal.notes.includes("UNCONFIRMED_CREATION"))
       this.journal.notes.push("UNCONFIRMED_CREATION");
@@ -255,12 +423,36 @@ export class VerificationSession {
     )
       throw failure("VERIFY_NO_CREATION_UNPROVEN");
     const baseline = this.journal.baseline;
+    await this.assertScope(
+      baseline.kind === "material"
+        ? await this.materialLibrary()
+        : await this.library(baseline.kind),
+      baseline,
+    );
     const observed = await this.activityIds(baseline.kind);
     if (
       observed.length !== baseline.ids.length ||
       observed.some((id) => !baseline.ids.includes(id))
     )
       throw failure("VERIFY_NO_CREATION_UNPROVEN");
+    if (baseline.kind === "material") {
+      for (const id of observed)
+        if (
+          (await this.page
+            .locator(`[id="material-open-${id}"]`)
+            .getAttribute("data-material-revision")) !== baseline.revisions?.[id]
+        )
+          throw failure("VERIFY_NO_CREATION_UNPROVEN");
+    }
+    if (baseline.materialIds) {
+      const materials = await this.activityIds("material");
+      await this.assertScope(this.page.locator("[data-material-workspace]"), baseline);
+      if (
+        materials.length !== baseline.materialIds.length ||
+        materials.some((id) => !baseline.materialIds.includes(id))
+      )
+        throw failure("VERIFY_NO_CREATION_UNPROVEN");
+    }
     this.journal.receipts ??= [];
     this.journal.receipts.push({
       code: "NO_CREATION_SUBMITTED",
@@ -275,12 +467,76 @@ export class VerificationSession {
     return { status: "reconciled", deletedRecords: 0 };
   }
   async trackActivity(id) {
-    if (!/^activity_[0-9a-z]{16,64}$/.test(id ?? "")) throw failure("VERIFY_INVALID_ACTIVITY_ID");
-    if (!this.baseline || this.baseline.ids.includes(id)) throw failure("VERIFY_RECORD_NOT_NEW");
-    if ((await this.page.locator("[data-activity-id]").getAttribute("data-activity-id")) !== id)
+    const material = this.baseline?.kind === "material";
+    if (!(material ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/).test(id ?? ""))
+      throw failure("VERIFY_INVALID_ACTIVITY_ID");
+    const owned = this.journal.records.find((record) => record.id === id);
+    if (
+      !this.baseline ||
+      (this.baseline.ids.includes(id) &&
+        !(material && owned && this.baseline.revisions?.[id] === owned.revision))
+    )
+      throw failure("VERIFY_RECORD_NOT_NEW");
+    const visible = this.page.locator(material ? "[data-material-id]" : "[data-activity-id]");
+    if ((await visible.getAttribute(material ? "data-material-id" : "data-activity-id")) !== id)
       throw failure("VERIFY_RECORD_NOT_VISIBLE");
-    if (!this.journal.records.some((record) => record.id === id))
-      this.journal.records.push({ id, kind: this.baseline.kind });
+    await this.assertScope(
+      material ? this.page.locator("[data-material-workspace]") : visible,
+      this.baseline,
+    );
+    const revision = material ? await visible.getAttribute("data-material-revision") : undefined;
+    if (material && !/^material-revision_[0-9a-z]{16,64}$/.test(revision ?? ""))
+      throw failure("VERIFY_RECORD_NOT_VISIBLE");
+    if (owned) {
+      if (
+        owned.language !== this.baseline.language ||
+        owned.rootGeneration !== this.baseline.rootGeneration
+      )
+        throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
+      if (!material || (await visible.getAttribute("data-material-saved-from")) !== owned.revision)
+        throw failure("VERIFY_MATERIAL_EDIT_UNPROVEN");
+      this.journal.receipts ??= [];
+      this.journal.receipts.push({
+        code: "OWNED_MATERIAL_REVISION",
+        at: new Date().toISOString(),
+        id,
+        previousRevision: owned.revision,
+        revision,
+        language: owned.language,
+        rootGeneration: owned.rootGeneration,
+      });
+      owned.revision = revision;
+    } else
+      this.journal.records.push({
+        id,
+        kind: this.baseline.kind,
+        language: this.baseline.language,
+        rootGeneration: this.baseline.rootGeneration,
+        ...(material ? { revision } : {}),
+      });
+    if (!material) {
+      const materialId = await visible.getAttribute("data-activity-material-id");
+      const materialRevision = await visible.getAttribute("data-activity-material-revision");
+      if (materialId) {
+        if (
+          !Array.isArray(this.baseline.materialIds) ||
+          !/^material_[0-9a-z]{16,64}$/.test(materialId) ||
+          !/^material-revision_[0-9a-z]{16,64}$/.test(materialRevision ?? "")
+        )
+          throw failure("VERIFY_MATERIAL_BASELINE_REQUIRED");
+        if (
+          !this.baseline.materialIds.includes(materialId) &&
+          !this.journal.records.some((record) => record.id === materialId)
+        )
+          this.journal.records.push({
+            id: materialId,
+            kind: "material",
+            revision: materialRevision,
+            language: this.baseline.language,
+            rootGeneration: this.baseline.rootGeneration,
+          });
+      }
+    }
     this.journal.notes = this.journal.notes.filter((note) => note !== "UNCONFIRMED_CREATION");
     delete this.journal.baseline;
     this.baseline = undefined;
@@ -289,7 +545,31 @@ export class VerificationSession {
   async cleanupActivity(id) {
     const record = this.journal.records.find((record) => record.id === id);
     if (!record) throw failure("VERIFY_RECORD_NOT_OWNED");
-    await this.library(record.kind);
+    await this.selectLanguage(record.language);
+    if (record.kind === "material") {
+      const workspace = await this.materialLibrary();
+      await this.assertScope(workspace, record);
+      const open = workspace.locator(`[id="material-open-${id}"]`);
+      if (await open.count()) {
+        if ((await open.getAttribute("data-material-revision")) !== record.revision)
+          throw failure("VERIFY_MATERIAL_REVISION_CHANGED");
+        await open.click();
+        if ((await workspace.locator("[data-material-id]").getAttribute("data-material-id")) !== id)
+          throw failure("VERIFY_RECORD_NOT_VISIBLE");
+        await (await this.button("materialPractice.remove", workspace)).click();
+        await (
+          await this.button("materialPractice.removeConfirm", this.page.getByRole("dialog"))
+        ).click();
+        await workspace.locator("[data-material-id]").waitFor({ state: "detached" });
+      }
+      await this.assertScope(await this.materialLibrary(), record);
+      if ((await this.activityIds("material")).includes(id))
+        throw failure("VERIFY_RECORD_RETAINED");
+      this.journal.records = this.journal.records.filter((entry) => entry.id !== id);
+      await this.persist();
+      return;
+    }
+    await this.assertScope(await this.library(record.kind), record);
     const open = this.page.locator(`[id="activity-open-${id}"]`);
     if (await open.count()) {
       const card = open.locator("..");
@@ -305,6 +585,7 @@ export class VerificationSession {
       await confirm.click();
       await open.waitFor({ state: "detached" });
     }
+    await this.assertScope(await this.library(record.kind), record);
     if ((await this.activityIds(record.kind)).includes(id)) throw failure("VERIFY_RECORD_RETAINED");
     this.journal.records = this.journal.records.filter((record) => record.id !== id);
     await this.persist();
@@ -312,7 +593,9 @@ export class VerificationSession {
   async restore() {
     this.page = this.mainPage;
     const failures = [];
-    for (const record of [...this.journal.records]) {
+    for (const record of [...this.journal.records].sort(
+      (a, b) => Number(a.kind === "material") - Number(b.kind === "material"),
+    )) {
       try {
         await this.cleanupActivity(record.id);
       } catch {
@@ -320,6 +603,40 @@ export class VerificationSession {
       }
     }
     try {
+      for (const preference of Object.values({ ...this.journal.learningPreferences })) {
+        await this.selectLanguage(preference.language);
+        const observed = await this.profileValues();
+        if (observed.rootGeneration !== preference.rootGeneration)
+          throw failure("VERIFY_SETTINGS_ROOT_CHANGED");
+        const panel = this.page.getByRole("tabpanel");
+        for (const [field, key] of [
+          ["level", "onboarding.level"],
+          ["teaching", "settings.teachingProfile"],
+          ["explanation", "onboarding.explanationLanguage"],
+        ])
+          await panel
+            .getByRole("combobox", { name: await this.t(key), exact: true })
+            .selectOption(preference[field]);
+        await panel
+          .getByRole("textbox", { name: await this.t("onboarding.goal"), exact: true })
+          .fill(preference.goal);
+        if (preference.language === "de")
+          await panel
+            .getByRole("checkbox", { name: await this.t("onboarding.enrollCourse"), exact: true })
+            .setChecked(preference.enrolled);
+        await this.saveSettings();
+        await this.navigate(await this.t("nav.nina"));
+        await this.profileSettings();
+        if (JSON.stringify(await this.profileValues()) !== JSON.stringify(preference))
+          throw failure("VERIFY_SETTINGS_RESTORE_FAILED");
+      }
+      if (this.journal.initialTarget) await this.selectLanguage(this.journal.initialTarget);
+      delete this.journal.learningPreferences;
+      delete this.journal.initialTarget;
+      delete this.journal.initialRoot;
+      this.journal.notes = this.journal.notes.filter(
+        (note) => note !== "LEARNING_SETTINGS_RESTORE_REQUIRED",
+      );
       if (Object.keys(this.journal.preferences).length) {
         await this.settings();
         for (const [workload, preference] of Object.entries(this.journal.preferences)) {
@@ -328,7 +645,7 @@ export class VerificationSession {
           await row.locator("select").nth(1).selectOption(preference.effort);
         }
         await this.saveSettings();
-        await this.navigate(await this.t("dashboard.title"));
+        await this.navigate(await this.t("nav.nina"));
         await this.settings();
         if (JSON.stringify(await this.preferences()) !== JSON.stringify(this.journal.preferences))
           throw failure("VERIFY_SETTINGS_RESTORE_FAILED");
@@ -352,7 +669,7 @@ export class VerificationSession {
       if ((await this.page.locator("html").getAttribute("lang")) !== this.initialLocale) {
         await this.page
           .getByRole("button", {
-            name: this.initialLocale === "de" ? "Deutsch" : "English",
+            name: languageNames[this.initialLocale],
             exact: true,
           })
           .click();

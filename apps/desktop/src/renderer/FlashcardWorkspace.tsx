@@ -17,11 +17,13 @@ import styles from "./FlashcardWorkspace.module.css";
 
 export function FlashcardWorkspace({
   activityId,
+  parentLabel,
   onClose,
   onVocabulary,
   requestAiAccess,
 }: {
   activityId: ActivityId;
+  parentLabel: string;
   onClose: () => void;
   onVocabulary: () => void;
   requestAiAccess: TranslationAccess;
@@ -175,8 +177,12 @@ export function FlashcardWorkspace({
   return (
     <Page
       data-activity-id={activityId}
+      data-activity-material-id={deck?.content.materials[0]?.materialId}
+      data-activity-material-revision={deck?.content.materials[0]?.revisionId}
+      data-root-generation={deck?.rootGeneration}
+      data-learning-language={deck?.content.language}
       title={deck?.title ?? t("flashcards.title")}
-      breadcrumbs={[{ label: t("practice.title"), onPress: onClose }]}
+      breadcrumbs={[{ label: parentLabel, onPress: onClose }]}
     >
       {error && (
         <>

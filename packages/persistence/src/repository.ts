@@ -2408,6 +2408,7 @@ export class CallNinaRepository {
       const last = entries.at(-1);
       return {
         rootGeneration: this.#database.rootGeneration,
+        learningScope: requireLocalLearningScope(connection),
         entries,
         nextCursor:
           rows.length > filter.maximum && last

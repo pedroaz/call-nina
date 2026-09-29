@@ -1,6 +1,6 @@
 # Call Nina
 
-Call Nina is a local-first desktop application for learning German with Codex. It includes a self-paced learning path, writing correction, reading and grammar practice, vocabulary review, and optional Codex Voice handoffs. Learner records stay in a selected local SQLite data folder. AI actions send only the context needed for the requested activity.
+Call Nina is a local-first desktop application for learning US English, Brazilian Portuguese, Spanish or German with Codex. Nina turns a typed request or explained recommendation into practice; Practice, Vocabulary and History remain directly available. It includes writing correction, reading and grammar practice, vocabulary review, and optional Codex Voice handoffs. The structured Learning Path is available only for German. Learner records stay in a selected local SQLite data folder. AI actions send only the context needed for the requested activity.
 
 ## Install from a clone
 
@@ -30,7 +30,7 @@ These are unsigned local builds. macOS or Windows may display an unsigned/unreco
 
 ## First use and Codex
 
-Select a data folder, then follow **Codex connection → level and goal → teaching and languages → review**. A compatible ChatGPT/Codex desktop runtime and a signed-in account are required to finish first-time setup. Installation itself does not require Codex, and the other setup steps remain editable while connecting.
+Select a data folder, then choose your learning language, level, goal and teaching preferences. Local setup and supported prepared practice do not require provider sign-in. Connect a compatible ChatGPT/Codex desktop runtime and account when you want AI generation or feedback.
 
 Call Nina discovers the desktop-bundled runtime. If your desktop installation has a different layout, pass `--codex-executable=/absolute/executable` when launching. It must support App Server; a standalone CLI is not silently substituted. See the [official desktop app documentation](https://learn.chatgpt.com/docs/app) and [App Server documentation](https://learn.chatgpt.com/docs/app-server).
 
@@ -38,7 +38,9 @@ The optional Call Nina plugin can be installed or refreshed after sign-in during
 
 Development and installed builds keep separate app configuration. To reuse existing learning records in an installed build, select the existing learner data folder; it is opened in place, without copying or resetting it.
 
-Interface language and explanation language are independent. Model selection and detailed correction preferences stay in Settings. The existing disclosure appears before the first AI action.
+Learning language, interface language and explanation/translation language are independently selectable in all four supported languages. Each learning language retains its own level, goal, vocabulary, history and recommendations. Model selection and detailed correction preferences stay in Settings. The existing disclosure appears before the first AI action.
+
+Saved topics and pasted passages are optional sources inside practice setup. Editing a source creates a revision and preserves earlier attempts. Explicit Translate actions save labeled supporting translations without replacing original content or answers; changing language preferences does not translate saved work. Shared exercise results link to History, Nina’s explained recommendations and the originating page.
 
 Call Nina does not record or play audio. It prepares listening/speaking activities; **Open in Codex** puts the activity reference into a new task's composer. The learner sends the message and starts Voice where available. No message or audio session starts automatically.
 

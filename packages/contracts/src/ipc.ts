@@ -150,6 +150,7 @@ export const desktopIpcChannels = [
   "material/list",
   "material/read",
   "material/save",
+  "material/delete",
   "prepared-activity/read",
   "voice-activity/read",
   "voice-activity/open-in-codex",
@@ -428,6 +429,14 @@ const materialReadRequest = request(
   "material/read",
   z.strictObject({
     rootGeneration: dataRootGenerationSchema,
+    reference: materialReferenceSchema,
+  }),
+);
+const materialDeleteRequest = request(
+  "material/delete",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    learningScope: learningScopeSchema,
     reference: materialReferenceSchema,
   }),
 );
@@ -792,6 +801,7 @@ export const desktopIpcRequestSchema = boundaryUnion([
   materialListRequest,
   materialReadRequest,
   materialSaveRequest,
+  materialDeleteRequest,
   preparedActivityReadRequest,
   voiceActivityReadRequest,
   voiceActivityOpenInCodexRequest,
@@ -1016,6 +1026,7 @@ const logsClearResponse = response(
 const activityListResponse = response(
   "activity/list",
   z.strictObject({
+    learningScope: learningScopeSchema,
     rootGeneration: dataRootGenerationSchema,
     entries: z.array(activityLibraryItemSchema).max(50),
     nextCursor: activityLibraryCursorSchema.nullable(),
@@ -1287,6 +1298,7 @@ const materialListResponse = response(
   z.strictObject({
     rootGeneration: dataRootGenerationSchema,
     language: targetLanguageSchema,
+    learningScope: learningScopeSchema,
     materials: z.array(materialRevisionSchema).max(100),
     nextCursor: z.int().positive().optional(),
   }),
@@ -1294,6 +1306,10 @@ const materialListResponse = response(
 const materialReadResponse = response(
   "material/read",
   z.strictObject({ material: materialRevisionSchema }),
+);
+const materialDeleteResponse = response(
+  "material/delete",
+  z.strictObject({ deleted: z.literal(true) }),
 );
 const materialSaveResponse = response(
   "material/save",
@@ -1766,6 +1782,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
   materialListResponse,
   materialReadResponse,
   materialSaveResponse,
+  materialDeleteResponse,
   preparedActivityReadResponse,
   voiceActivityReadResponse,
   voiceActivityOpenInCodexResponse,

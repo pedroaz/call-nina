@@ -1461,7 +1461,10 @@
     "noRelated": "Noch keine vorbereiteten Übungen für diese Version.",
     "open": "Üben: {{title}}",
     "refresh": "Vorbereitete Übungen aktualisieren",
-    "more": "Mehr anzeigen"
+    "more": "Mehr anzeigen",
+    "remove": "Material entfernen",
+    "removeBody": "Dieses Material und alle Versionen entfernen? Material, auf das Aktivitäten oder Versuche verweisen, bleibt erhalten. Aktivitäten und Versuche werden nicht gelöscht.",
+    "removeConfirm": "Dieses Material entfernen"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1529,5 +1532,12 @@
     "loadFailed": "Gespeicherte Übersetzungen konnten nicht geöffnet werden. Das Original bleibt verfügbar.",
     "saved": "Übersetzung gespeichert. Sie kann ohne KI wieder geöffnet werden.",
     "retryRead": "Gespeicherte Übersetzungen neu laden"
+  },
+  "completion": {
+    "next": "Wie geht es weiter?",
+    "evidence": "Deine Antworten und Rückmeldungen sind im Verlauf gespeichert. Hinweise, wiederholte Antworten und Selbsteinschätzungen bleiben von selbstständigen Leistungen getrennt.",
+    "nextHint": "Wähle bei Nina eine passende Wiederholung oder neue Übung. Vorbereitete Aktivitäten bleiben ohne KI verfügbar.",
+    "nina": "Ninas Empfehlungen ansehen",
+    "return": "Zurück zu {{origin}}"
   }
 }

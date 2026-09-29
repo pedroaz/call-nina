@@ -8,6 +8,7 @@ import {
   readFlashcards,
   readMaterialRevision,
   listMaterials,
+  deleteMaterial,
   saveMaterial,
   createVocabularyFlashcards,
   updateFlashcardProgress,
@@ -2682,7 +2683,8 @@ export class DesktopBackend {
       if (
         request.channel === "material/list" ||
         request.channel === "material/read" ||
-        request.channel === "material/save"
+        request.channel === "material/save" ||
+        request.channel === "material/delete"
       ) {
         const root = await this.#dataRootState(request.requestId);
         const database = this.#database;
@@ -2699,12 +2701,18 @@ export class DesktopBackend {
           return this.#success(request, {
             rootGeneration: database.rootGeneration,
             language: scope.targetLanguage,
+            learningScope: scope,
             ...(await listMaterials(database, request.payload.cursor)),
           });
         if (request.channel === "material/read")
           return this.#success(request, {
             material: await readMaterialRevision(database, request.payload.reference),
           });
+        if (request.channel === "material/delete") {
+          await deleteMaterial(database, request.payload.reference, request.payload.learningScope);
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, { deleted: true });
+        }
         if (request.payload.draft.language !== scope.targetLanguage)
           return this.#failure(request, "conflict");
         const material = await saveMaterial(

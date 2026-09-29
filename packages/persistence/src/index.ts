@@ -105,7 +105,7 @@ export {
   saveFlashcardVocabulary,
 } from "./flashcards.js";
 
-export { saveMaterial, readMaterialRevision, listMaterials } from "./materials.js";
+export { saveMaterial, readMaterialRevision, listMaterials, deleteMaterial } from "./materials.js";
 
 export {
   readSavedTranslations,

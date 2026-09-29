@@ -28,6 +28,7 @@ export function useActivityLibrary(
         let nextCursor = cursor;
         let next: Snapshot;
         const entries: Snapshot["entries"][number][] = [];
+        let scopeKey: string | undefined;
         do {
           next = await invokeDesktop("activity/list", {
             activityTypes: filterKey.split(",").filter(Boolean) as Filter["activityTypes"],
@@ -36,6 +37,10 @@ export function useActivityLibrary(
             ...(nextCursor ? { cursor: nextCursor } : {}),
           });
           if (current !== version.current) return;
+          const observedScope = JSON.stringify([next.rootGeneration, next.learningScope]);
+          if (scopeKey && scopeKey !== observedScope)
+            throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+          scopeKey = observedScope;
           entries.push(...next.entries);
           nextCursor = next.nextCursor ?? undefined;
         } while (entries.length < targetCount && nextCursor);
@@ -45,7 +50,9 @@ export function useActivityLibrary(
         setSnapshot((previous) => ({
           ...next,
           entries:
-            cursor && previous?.rootGeneration === next.rootGeneration
+            cursor &&
+            previous?.rootGeneration === next.rootGeneration &&
+            JSON.stringify(previous.learningScope) === JSON.stringify(next.learningScope)
               ? [
                   ...previous.entries,
                   ...next.entries.filter(
@@ -83,6 +90,8 @@ export function useActivityLibrary(
     };
   }, [enabled, refresh]);
   return {
+    rootGeneration: snapshot?.rootGeneration,
+    learningScope: snapshot?.learningScope,
     entries: snapshot?.entries ?? [],
     loaded: snapshot !== undefined,
     busy,

@@ -43,8 +43,10 @@ import styles from "./LearningPathPage.module.css";
 export function LearningPathPage({
   requestAiAccess,
   onOpenHistory,
+  onNina,
 }: {
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
+  onNina: () => void;
   onOpenHistory: (
     ids?: NonNullable<
       Extract<DesktopIpcRequest, { channel: "history/read" }>["payload"]["historyEntryIds"]
@@ -158,6 +160,10 @@ export function LearningPathPage({
     return (
       <div className={styles.page}>
         <PracticePage
+          onHistory={() => {
+            onOpenHistory();
+          }}
+          onNina={onNina}
           parentLabel={t("learningPath.title")}
           activityId={activityId}
           requestAiAccess={requestAiAccess}
