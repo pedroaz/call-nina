@@ -1,10 +1,15 @@
 import { generationProvenanceSchema } from "./generation-provenance.js";
 import { portableContentShape } from "./content-reference.js";
 import { contentJsonByteLength, maximumFlashcardContentBytes } from "./content-limits.js";
-import { germanVocabularyLemma, normalizeGermanVocabularyIdentity } from "./german-language.js";
+import { normalizeVocabularyIdentity } from "./language-policy.js";
+import { type Language } from "./learning-context.js";
 import { z, strictBoundaryObject } from "./schema-system.js";
 import { activityIdSchema, dataRootGenerationSchema, vocabularyIdSchema } from "./common.js";
-import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
+import {
+  vocabularyLexemeMatchesLanguage,
+  vocabularyLexemeSchema,
+  vocabularyExampleSchema,
+} from "./vocabulary-content.js";
 import { vocabularyVersionSchema } from "./vocabulary-library.js";
 
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
@@ -61,6 +66,9 @@ export const portableFlashcardContentSchema = z
   .superRefine((content, ctx) => {
     if (
       contentJsonByteLength(content) > maximumFlashcardContentBytes ||
+      content.cards.some(
+        (card) => !vocabularyLexemeMatchesLanguage(card.lexeme, content.language),
+      ) ||
       content.cards.length !== content.cardRevisions.length ||
       new Set(content.cardRevisions.map((card) => card.cardId)).size !== content.cards.length ||
       new Set(content.cardRevisions.map((card) => card.revisionId)).size !== content.cards.length
@@ -113,17 +121,27 @@ export const flashcardSaveRequestSchema = flashcardReadRequestSchema.extend({
 });
 export type Flashcard = z.infer<typeof flashcardSchema>;
 export type FlashcardDeck = z.infer<typeof flashcardDeckSchema>;
-export function vocabularyLemma(card: Pick<Flashcard, "lemma" | "lexeme">): string {
-  return germanVocabularyLemma(
-    card.lemma,
-    card.lexeme.partOfSpeech === "noun" ? card.lexeme.nounForm.article : undefined,
-  );
+export function vocabularyLemma(
+  card: Pick<Flashcard, "lemma" | "lexeme">,
+  language: Language,
+): string {
+  if (!vocabularyLexemeMatchesLanguage(card.lexeme, language))
+    throw new Error("OD_VOCABULARY_LANGUAGE_INVALID");
+  const lemma = card.lemma.trim();
+  const article = card.lexeme.partOfSpeech === "noun" ? card.lexeme.nounForm.article : null;
+  const prefix = article ? `${article} ` : "";
+  return prefix && normalizeVocabularyIdentity(lemma, language).startsWith(prefix)
+    ? lemma.slice(prefix.length).trim() || lemma
+    : lemma;
 }
-export function vocabularyIdentity(card: Pick<Flashcard, "lemma" | "meaning" | "lexeme">): string {
-  const normalize = normalizeGermanVocabularyIdentity;
+export function vocabularyIdentity(
+  card: Pick<Flashcard, "lemma" | "meaning" | "lexeme">,
+  language: Language,
+): string {
   return JSON.stringify([
-    normalize(vocabularyLemma(card)),
+    language,
+    normalizeVocabularyIdentity(vocabularyLemma(card, language), language),
     card.lexeme.partOfSpeech,
-    normalize(card.meaning),
+    normalizeVocabularyIdentity(card.meaning, language),
   ]);
 }

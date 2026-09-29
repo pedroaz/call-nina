@@ -1,3 +1,4 @@
+import { migrateMultilingualTeaching } from "./teaching-migration.js";
 import { migrateLanguageProfiles } from "./language-migration.js";
 import { migrateAttemptEvidence } from "./attempt-evidence.js";
 import { migrateVersionedContent } from "./content.js";
@@ -1733,6 +1734,14 @@ export const callNinaMigrations = [
       END;
 `);
     },
+  },
+  {
+    version: 31,
+    name: "multilingual-teaching-fields",
+    sql: `DROP TRIGGER generated_activity_payload_immutable;
+      DROP TRIGGER flashcard_content_immutable;
+      DROP TRIGGER learning_attempt_immutable;`,
+    migrate: migrateMultilingualTeaching,
   },
 ] as const satisfies readonly DatabaseMigration[];
 

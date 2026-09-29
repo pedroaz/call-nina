@@ -1,6 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
   preparedActivitySchema,
+  normalizeVocabularyIdentity,
   learningScopeSchema,
   type LearningScope,
   type Language,
@@ -72,10 +73,13 @@ export function activityLearningScope(connection: DatabaseSync, activityId: stri
 
 export function vocabularySearchPolicy(connection: DatabaseSync) {
   const scope = requireLocalLearningScope(connection);
+  const normalize = (value: string) => normalizeVocabularyIdentity(value, scope.targetLanguage);
+  connection.function("nina_vocabulary_normalize", { deterministic: true }, (value) =>
+    normalize(String(value)),
+  );
   return {
-    normalize: (value: string) => value.trim().toLocaleLowerCase(scope.targetLanguage),
-    fold: (column: "lemma" | "meaning") =>
-      `lower(replace(replace(replace(replace(${column}, 'Ä', 'ä'), 'Ö', 'ö'), 'Ü', 'ü'), 'ẞ', 'ß'))`,
+    normalize,
+    fold: (column: "lemma" | "meaning") => `nina_vocabulary_normalize(${column})`,
   };
 }
 

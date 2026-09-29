@@ -1,9 +1,12 @@
 import {
-  normalizeGermanAnswer,
+  normalizeLanguageAnswer,
+  vocabularyLexemeMatchesLanguage,
+  type Language,
   vocabularyIdentity,
   vocabularyLemma,
   generationCandidateOutputSchemas,
   maximumStructuredOutputBytes,
+  isGeneratedExerciseInstruction,
   generatedExerciseInstructions,
   type GenerationCandidateOutputMap,
   type GenerationInput,
@@ -11,6 +14,7 @@ import {
 } from "@call-nina/contracts";
 
 const maximumIssues = 12;
+type ReportIssue = (code: string, location?: ExerciseValidationLocation) => void;
 
 export type SafeOutputValidationIssue = Readonly<{
   code: string;
@@ -76,7 +80,7 @@ function safeIssues(error: {
 export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
   kind: Kind,
   finalOutput: unknown,
-  input?: Extract<GenerationInput, { kind: Kind }>,
+  input: Extract<GenerationInput, { kind: Kind }>,
 ): GenerationCandidateOutputMap[Kind] {
   if (typeof finalOutput !== "string") {
     throw new GenerationOutputValidationError("OD_GENERATION_OUTPUT_NOT_TEXT");
@@ -100,8 +104,8 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
       safeIssues(parsed.error),
     );
   }
-  const workloadInput: GenerationInput | undefined = input;
-  if (kind === "voice-activity-draft" && workloadInput?.kind === "voice-activity-draft") {
+  const workloadInput: GenerationInput = input;
+  if (kind === "voice-activity-draft" && workloadInput.kind === "voice-activity-draft") {
     const output = parsed.data as GenerationCandidateOutputMap["voice-activity-draft"];
     if (
       (workloadInput.voiceKind === "listening" && output.script === null) ||
@@ -112,13 +116,19 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
   }
   if (kind === "flashcard-generation") {
     const output = parsed.data as GenerationCandidateOutputMap["flashcard-generation"];
-    output.cards = output.cards.map((card) => ({ ...card, lemma: vocabularyLemma(card) }));
-    const request = input as Extract<GenerationInput, { kind: "flashcard-generation" }> | undefined;
+    const language = input.learningContext.targetLanguage;
+    if (output.cards.some((card) => !vocabularyLexemeMatchesLanguage(card.lexeme, language)))
+      throw new GenerationOutputValidationError("OD_VOCABULARY_LANGUAGE_INVALID");
+    output.cards = output.cards.map((card) => ({
+      ...card,
+      lemma: vocabularyLemma(card, language),
+    }));
+    const request = input as Extract<GenerationInput, { kind: "flashcard-generation" }>;
     if (
-      request &&
-      (output.cards.length !== request.cardCount ||
-        output.targetLevel !== request.targetLevel ||
-        new Set(output.cards.map(vocabularyIdentity)).size !== output.cards.length)
+      output.cards.length !== request.cardCount ||
+      output.targetLevel !== request.targetLevel ||
+      new Set(output.cards.map((card) => vocabularyIdentity(card, language))).size !==
+        output.cards.length
     ) {
       throw new GenerationOutputValidationError("OD_GENERATION_FLASHCARD_CONSTRAINT_INVALID");
     }
@@ -133,7 +143,7 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
       }
     };
     if (
-      workloadInput?.kind === "exercise-generation" &&
+      workloadInput.kind === "exercise-generation" &&
       workloadInput.practiceType === "vocabulary-review" &&
       output.exercises.some(
         (exercise) => !["vocabulary-recall", "multiple-choice"].includes(exercise.kind),
@@ -141,7 +151,7 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
     ) {
       report("OD_GENERATION_EXERCISE_CONSTRAINT_INVALID");
     }
-    if (workloadInput?.kind === "exercise-generation" && workloadInput.reading) {
+    if (workloadInput.kind === "exercise-generation" && workloadInput.reading) {
       if (
         !output.readingMaterial ||
         (workloadInput.reading.passage !== null &&
@@ -155,7 +165,7 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
       report("OD_READING_MATERIAL_UNEXPECTED");
     }
     if (
-      workloadInput?.kind === "exercise-generation" &&
+      workloadInput.kind === "exercise-generation" &&
       workloadInput.courseTeaching?.objectives.length
     ) {
       const descriptions = workloadInput.courseTeaching.objectives.map((o) => o.description);
@@ -183,13 +193,16 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
         report("OD_COURSE_OBJECTIVE_MISMATCH");
       }
     }
-    collectExerciseGenerationIssues(
+    qualityPolicy(
+      input.learningContext.targetLanguage,
+      input.learningContext.explanationLanguage,
+    ).collectExerciseGenerationIssues(
       output,
       report,
-      workloadInput?.kind === "exercise-generation"
+      workloadInput.kind === "exercise-generation"
         ? workloadInput.calibration.approximateLevel
         : undefined,
-      workloadInput?.kind === "exercise-generation"
+      workloadInput.kind === "exercise-generation"
         ? workloadInput.requestedExerciseCount
         : undefined,
     );
@@ -199,196 +212,210 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
   return parsed.data as GenerationCandidateOutputMap[Kind];
 }
 
-function normalized(value: string): string {
-  return normalizeGermanAnswer(value);
-}
+function qualityPolicy(language: Language, explanationLanguage: Language) {
+  const normalized = (value: string) => normalizeLanguageAnswer(value, language);
 
-function containsCompleteAnswer(text: string, answer: string): boolean {
-  const haystack = normalized(text);
-  const needle = normalized(answer);
-  if (needle.length < 3) return false;
-  let position = haystack.indexOf(needle);
-  while (position >= 0) {
-    const before = haystack.slice(Math.max(0, position - 1), position);
-    const after = haystack.slice(position + needle.length, position + needle.length + 1);
-    if (!/[\p{L}\p{N}]/u.test(before) && !/[\p{L}\p{N}]/u.test(after)) {
-      return true;
+  function containsCompleteAnswer(text: string, answer: string, caseSensitive = false): boolean {
+    const normalize = caseSensitive
+      ? (value: string) => value.normalize("NFKC").trim().replaceAll(/\s+/gu, " ")
+      : normalized;
+    const haystack = normalize(text);
+    const needle = normalize(answer);
+    if (needle.length === 0) return false;
+    let position = haystack.indexOf(needle);
+    while (position >= 0) {
+      const before = haystack.slice(Math.max(0, position - 1), position);
+      const after = haystack.slice(position + needle.length, position + needle.length + 1);
+      if (!/[\p{L}\p{N}]/u.test(before) && !/[\p{L}\p{N}]/u.test(after)) {
+        return true;
+      }
+      position = haystack.indexOf(needle, position + 1);
     }
-    position = haystack.indexOf(needle, position + 1);
+    return false;
   }
-  return false;
-}
 
-type ReportIssue = (code: string, location?: ExerciseValidationLocation) => void;
-
-function collectDuplicates(
-  values: readonly string[],
-  code: string,
-  report: ReportIssue,
-  location?: (duplicateIndex: number) => ExerciseValidationLocation,
-): void {
-  const seen = new Set<string>();
-  for (const [index, value] of values.entries()) {
-    const key = normalized(value);
-    if (seen.has(key)) {
-      report(code, location?.(index));
+  function collectDuplicates(
+    values: readonly string[],
+    code: string,
+    report: ReportIssue,
+    location?: (duplicateIndex: number) => ExerciseValidationLocation,
+  ): void {
+    const seen = new Set<string>();
+    for (const [index, value] of values.entries()) {
+      const key = normalized(value);
+      if (seen.has(key)) {
+        report(code, location?.(index));
+      }
+      seen.add(key);
     }
-    seen.add(key);
   }
-}
 
-function exerciseSignature(
-  exercise: GenerationCandidateOutputMap["exercise-generation"]["exercises"][number],
-): string {
-  if (exercise.kind === "free-writing") return `${exercise.kind}:${normalized(exercise.prompt)}`;
-  if (exercise.kind === "short-answer") return `${exercise.kind}:${normalized(exercise.question)}`;
-  if (exercise.kind === "fill-in-the-blank") {
-    return `${exercise.kind}:${normalized(
-      exercise.leadingText + exercise.blanks.map(({ followingText }) => followingText).join(""),
-    )}`;
+  function exerciseSignature(
+    exercise: GenerationCandidateOutputMap["exercise-generation"]["exercises"][number],
+  ): string {
+    if (exercise.kind === "free-writing") return `${exercise.kind}:${normalized(exercise.prompt)}`;
+    if (exercise.kind === "short-answer")
+      return `${exercise.kind}:${normalized(exercise.question)}`;
+    if (exercise.kind === "fill-in-the-blank") {
+      return `${exercise.kind}:${normalized(
+        exercise.leadingText + exercise.blanks.map(({ followingText }) => followingText).join(""),
+      )}`;
+    }
+    if (exercise.kind === "sentence-correction") {
+      return `${exercise.kind}:${normalized(exercise.sentence)}`;
+    }
+    if (exercise.kind === "multiple-choice") {
+      return `${exercise.kind}:${normalized(exercise.question)}`;
+    }
+    return `${exercise.kind}:${exercise.direction}:${normalized(exercise.cue)}`;
   }
-  if (exercise.kind === "sentence-correction") {
-    return `${exercise.kind}:${normalized(exercise.sentence)}`;
-  }
-  if (exercise.kind === "multiple-choice") {
-    return `${exercise.kind}:${normalized(exercise.question)}`;
-  }
-  return `${exercise.kind}:${exercise.direction}:${normalized(exercise.cue)}`;
-}
 
-function visibleExerciseFields(
-  exercise: GenerationCandidateOutputMap["exercise-generation"]["exercises"][number],
-): { field: ExerciseValidationLocation["field"]; text: string; fieldIndex?: number }[] {
-  // Fixed instructions cannot disclose a choice; explanations are post-submission feedback.
-  const fields: {
-    field: ExerciseValidationLocation["field"];
-    text: string;
-    fieldIndex?: number;
-  }[] = [{ field: "title", text: exercise.title }];
-  if (
-    exercise.kind === "free-writing" ||
-    exercise.instructions !== generatedExerciseInstructions[exercise.kind]
-  ) {
-    fields.push({ field: "instructions", text: exercise.instructions });
-  }
-  if (exercise.kind === "short-answer" || exercise.kind === "multiple-choice") {
-    fields.push({ field: "question", text: exercise.question });
-  } else if (exercise.kind === "fill-in-the-blank") {
-    fields.push({ field: "leadingText", text: exercise.leadingText });
+  function visibleExerciseFields(
+    exercise: GenerationCandidateOutputMap["exercise-generation"]["exercises"][number],
+  ): { field: ExerciseValidationLocation["field"]; text: string; fieldIndex?: number }[] {
+    // Fixed instructions cannot disclose a choice; explanations are post-submission feedback.
+    const fields: {
+      field: ExerciseValidationLocation["field"];
+      text: string;
+      fieldIndex?: number;
+    }[] = [{ field: "title", text: exercise.title }];
+    if (
+      exercise.kind === "free-writing" ||
+      !isGeneratedExerciseInstruction(exercise.kind, exercise.instructions)
+    ) {
+      fields.push({ field: "instructions", text: exercise.instructions });
+    }
+    if (exercise.kind === "short-answer" || exercise.kind === "multiple-choice") {
+      fields.push({ field: "question", text: exercise.question });
+    } else if (exercise.kind === "fill-in-the-blank") {
+      fields.push({ field: "leadingText", text: exercise.leadingText });
+      fields.push(
+        ...exercise.blanks.map(({ followingText }, fieldIndex) => ({
+          field: "followingText" as const,
+          text: followingText,
+          fieldIndex,
+        })),
+      );
+    } else if (exercise.kind === "sentence-correction") {
+      fields.push({ field: "sentence", text: exercise.sentence });
+    } else if (exercise.kind === "vocabulary-recall") {
+      fields.push({ field: "cue", text: exercise.cue });
+    }
     fields.push(
-      ...exercise.blanks.map(({ followingText }, fieldIndex) => ({
-        field: "followingText" as const,
-        text: followingText,
+      ...exercise.hints.map((text, fieldIndex) => ({
+        field: "hint" as const,
+        text,
         fieldIndex,
       })),
     );
-  } else if (exercise.kind === "sentence-correction") {
-    fields.push({ field: "sentence", text: exercise.sentence });
-  } else if (exercise.kind === "vocabulary-recall") {
-    fields.push({ field: "cue", text: exercise.cue });
+    return fields;
   }
-  fields.push(
-    ...exercise.hints.map((text, fieldIndex) => ({
-      field: "hint" as const,
-      text,
-      fieldIndex,
-    })),
-  );
-  return fields;
-}
 
-function collectExerciseGenerationIssues(
-  output: GenerationCandidateOutputMap["exercise-generation"],
-  report: ReportIssue,
-  expectedLevel?: "A1" | "A2" | "B1" | "B2",
-  expectedExerciseCount?: number,
-): void {
-  if (expectedExerciseCount !== undefined && output.exercises.length !== expectedExerciseCount) {
-    report("OD_EXERCISE_COUNT_MISMATCH");
-  }
-  collectDuplicates(
-    output.exercises.map(({ title }) => title),
-    "OD_EXERCISE_DUPLICATE_TITLE",
-    report,
-    (exerciseIndex) => ({ exerciseIndex, field: "title" }),
-  );
-  collectDuplicates(
-    output.exercises.map(exerciseSignature),
-    "OD_EXERCISE_DUPLICATE_CONTENT",
-    report,
-    (exerciseIndex) => ({ exerciseIndex, field: "combined" }),
-  );
-  for (const [exerciseIndex, exercise] of output.exercises.entries()) {
-    if (expectedLevel && exercise.cefrBand !== expectedLevel) {
-      report("OD_EXERCISE_LEVEL_MISMATCH", {
-        exerciseIndex,
-        field: "cefrBand",
-      });
+  function collectExerciseGenerationIssues(
+    output: GenerationCandidateOutputMap["exercise-generation"],
+    report: ReportIssue,
+    expectedLevel?: "A1" | "A2" | "B1" | "B2",
+    expectedExerciseCount?: number,
+  ): void {
+    if (expectedExerciseCount !== undefined && output.exercises.length !== expectedExerciseCount) {
+      report("OD_EXERCISE_COUNT_MISMATCH");
     }
-    const answerGroups =
-      exercise.kind === "fill-in-the-blank"
-        ? exercise.blanks.map(({ acceptedAnswers }) => acceptedAnswers)
-        : exercise.kind === "short-answer" ||
-            exercise.kind === "sentence-correction" ||
-            exercise.kind === "vocabulary-recall"
-          ? [exercise.acceptedAnswers]
-          : exercise.kind === "multiple-choice"
-            ? [[exercise.options[exercise.correctOptionPosition] ?? ""]]
-            : [];
-    if (exercise.kind === "multiple-choice") {
-      collectDuplicates(exercise.options, "OD_EXERCISE_DUPLICATE_OPTION", report, () => ({
-        exerciseIndex,
-        field: "options",
-      }));
-    }
-    const fields = visibleExerciseFields(exercise);
-    for (const [groupIndex, answers] of answerGroups.entries()) {
-      const answerLocation: ExerciseValidationLocation = {
-        exerciseIndex,
-        field: "acceptedAnswers",
-        ...(exercise.kind === "fill-in-the-blank" ? { fieldIndex: groupIndex } : {}),
-      };
-      collectDuplicates(answers, "OD_EXERCISE_DUPLICATE_ANSWER", report, () => answerLocation);
-      for (const { field, text, fieldIndex } of fields) {
-        const leaked = answers.find((answer) => containsCompleteAnswer(text, answer));
-        if (leaked !== undefined) {
+    collectDuplicates(
+      output.exercises.map(({ title }) => title),
+      "OD_EXERCISE_DUPLICATE_TITLE",
+      report,
+      (exerciseIndex) => ({ exerciseIndex, field: "title" }),
+    );
+    collectDuplicates(
+      output.exercises.map(exerciseSignature),
+      "OD_EXERCISE_DUPLICATE_CONTENT",
+      report,
+      (exerciseIndex) => ({ exerciseIndex, field: "combined" }),
+    );
+    for (const [exerciseIndex, exercise] of output.exercises.entries()) {
+      if (
+        exercise.kind !== "free-writing" &&
+        exercise.instructions !== generatedExerciseInstructions[explanationLanguage][exercise.kind]
+      ) {
+        report("OD_EXERCISE_INSTRUCTIONS_MISMATCH", { exerciseIndex, field: "instructions" });
+      }
+      if (expectedLevel && exercise.cefrBand !== expectedLevel) {
+        report("OD_EXERCISE_LEVEL_MISMATCH", {
+          exerciseIndex,
+          field: "cefrBand",
+        });
+      }
+      const answerGroups =
+        exercise.kind === "fill-in-the-blank"
+          ? exercise.blanks.map(({ acceptedAnswers }) => acceptedAnswers)
+          : exercise.kind === "short-answer" ||
+              exercise.kind === "sentence-correction" ||
+              exercise.kind === "vocabulary-recall"
+            ? [exercise.acceptedAnswers]
+            : exercise.kind === "multiple-choice"
+              ? [[exercise.options[exercise.correctOptionPosition] ?? ""]]
+              : [];
+      if (exercise.kind === "multiple-choice") {
+        collectDuplicates(exercise.options, "OD_EXERCISE_DUPLICATE_OPTION", report, () => ({
+          exerciseIndex,
+          field: "options",
+        }));
+      }
+      const fields = visibleExerciseFields(exercise);
+      for (const [groupIndex, answers] of answerGroups.entries()) {
+        const answerLocation: ExerciseValidationLocation = {
+          exerciseIndex,
+          field: "acceptedAnswers",
+          ...(exercise.kind === "fill-in-the-blank" ? { fieldIndex: groupIndex } : {}),
+        };
+        collectDuplicates(answers, "OD_EXERCISE_DUPLICATE_ANSWER", report, () => answerLocation);
+        for (const { field, text, fieldIndex } of fields) {
+          const leaked = answers.find((answer) =>
+            containsCompleteAnswer(text, answer, exercise.kind === "sentence-correction"),
+          );
+          if (leaked !== undefined) {
+            report("OD_EXERCISE_ANSWER_LEAK", {
+              exerciseIndex,
+              field,
+              ...(fieldIndex === undefined ? {} : { fieldIndex }),
+              answerLength: normalized(leaked).length,
+            });
+          }
+        }
+        // Also catch complete answers assembled across adjacent visible fields.
+        const combined = fields.map(({ text }) => text).join(" ");
+        const splitAnswer = answers.find(
+          (answer) =>
+            containsCompleteAnswer(combined, answer, exercise.kind === "sentence-correction") &&
+            !fields.some(({ text }) =>
+              containsCompleteAnswer(text, answer, exercise.kind === "sentence-correction"),
+            ),
+        );
+        if (splitAnswer !== undefined) {
           report("OD_EXERCISE_ANSWER_LEAK", {
             exerciseIndex,
-            field,
-            ...(fieldIndex === undefined ? {} : { fieldIndex }),
-            answerLength: normalized(leaked).length,
+            field: "combined",
+            answerLength: normalized(splitAnswer).length,
           });
         }
       }
-      // Also catch complete answers assembled across adjacent visible fields.
-      const combined = fields.map(({ text }) => text).join(" ");
-      const splitAnswer = answers.find(
-        (answer) =>
-          containsCompleteAnswer(combined, answer) &&
-          !fields.some(({ text }) => containsCompleteAnswer(text, answer)),
+    }
+
+    if (output.lesson) {
+      collectDuplicates(
+        output.lesson.sections.map(({ heading }) => heading),
+        "OD_LESSON_DUPLICATE_SECTION",
+        report,
       );
-      if (splitAnswer !== undefined) {
-        report("OD_EXERCISE_ANSWER_LEAK", {
-          exerciseIndex,
-          field: "combined",
-          answerLength: normalized(splitAnswer).length,
-        });
-      }
+      collectDuplicates(
+        output.lesson.vocabularyFoundations.map(({ term }) => term),
+        "OD_LESSON_DUPLICATE_VOCABULARY",
+        report,
+      );
     }
   }
 
-  if (output.lesson) {
-    collectDuplicates(
-      output.lesson.sections.map(({ heading }) => heading),
-      "OD_LESSON_DUPLICATE_SECTION",
-      report,
-    );
-    collectDuplicates(
-      output.lesson.vocabularyFoundations.map(({ german }) => german),
-      "OD_LESSON_DUPLICATE_VOCABULARY",
-      report,
-    );
-  }
+  return { collectExerciseGenerationIssues };
 }
 
 export function repairIssueCodes(error: GenerationOutputValidationError): readonly string[] {

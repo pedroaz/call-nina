@@ -1,7 +1,7 @@
 import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
 import { materialDraftSchema, materialReferenceSchema } from "./material.js";
-import { languageSchema, learningContextSchema } from "./learning-context.js";
+import { languageSchema, learningContextSchema, type Language } from "./learning-context.js";
 import {
   flashcardGenerationCandidateSchema,
   generatedFlashcardSchema,
@@ -73,7 +73,7 @@ export const writingPromptCandidateSchema = strictBoundaryObject({
   helpfulVocabulary: z
     .array(
       z.strictObject({
-        german: text(160),
+        term: text(160),
         explanation: text(500),
       }),
     )
@@ -196,13 +196,42 @@ export const contextualHelpCandidateSchema = strictBoundaryObject({
 });
 
 // Request-time wording is app-owned; persisted exercise payloads retain their task text.
-export const generatedExerciseInstructions = Object.freeze({
-  "short-answer": "Frage beantworten.",
-  "fill-in-the-blank": "Lücken ergänzen.",
-  "sentence-correction": "Satz korrigieren.",
-  "multiple-choice": "Passende Antwort auswählen.",
-  "vocabulary-recall": "Bedeutung oder deutsches Wort angeben.",
-});
+export const generatedExerciseInstructions = {
+  "en-US": {
+    "short-answer": "Answer the question.",
+    "fill-in-the-blank": "Fill in the blanks.",
+    "sentence-correction": "Correct the sentence.",
+    "multiple-choice": "Choose the answer.",
+    "vocabulary-recall": "Give the meaning or target word.",
+  },
+  "pt-BR": {
+    "short-answer": "Responda à pergunta.",
+    "fill-in-the-blank": "Complete as lacunas.",
+    "sentence-correction": "Corrija a frase.",
+    "multiple-choice": "Escolha a resposta.",
+    "vocabulary-recall": "Indique o significado ou a palavra no idioma de estudo.",
+  },
+  es: {
+    "short-answer": "Responde a la pregunta.",
+    "fill-in-the-blank": "Completa los espacios.",
+    "sentence-correction": "Corrige la oración.",
+    "multiple-choice": "Elige la respuesta.",
+    "vocabulary-recall": "Indica el significado o la palabra en el idioma de estudio.",
+  },
+  de: {
+    "short-answer": "Frage beantworten.",
+    "fill-in-the-blank": "Lücken ergänzen.",
+    "sentence-correction": "Satz korrigieren.",
+    "multiple-choice": "Passende Antwort auswählen.",
+    "vocabulary-recall": "Bedeutung oder Zielwort angeben.",
+  },
+} as const satisfies Record<Language, Record<string, string>>;
+
+export function isGeneratedExerciseInstruction(kind: string, instructions: string): boolean {
+  return Object.values(generatedExerciseInstructions).some((set) =>
+    Object.entries(set).some(([key, text]) => key === kind && text === instructions),
+  );
+}
 
 const candidateExerciseShape = {
   title: text(160),
@@ -288,7 +317,7 @@ export const exerciseGenerationCandidateSchema = strictBoundaryObject({
       vocabularyFoundations: z
         .array(
           z.strictObject({
-            german: text(160),
+            term: text(160),
             explanation: text(500),
             example: text(1_000),
           }),
@@ -371,7 +400,11 @@ export function generationOutputJsonSchemaForInput(input: GenerationInput): unkn
       ...(schema.shape.kind.value === "free-writing"
         ? {}
         : {
-            instructions: z.literal(generatedExerciseInstructions[schema.shape.kind.value]),
+            instructions: z.literal(
+              generatedExerciseInstructions[input.learningContext.explanationLanguage][
+                schema.shape.kind.value
+              ],
+            ),
           }),
       ...(input.courseTeaching?.objectives.length
         ? {

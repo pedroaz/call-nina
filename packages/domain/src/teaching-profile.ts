@@ -16,14 +16,11 @@ export const teachingActivityKindSchema = z.enum(teachingActivityKinds);
 
 export const teachingProfileDefinitionSchema = z.strictObject({
   id: teachingProfileIdSchema,
-  conversationLanguagePolicy: z.enum(["german-first", "activity-language"]),
+  conversationLanguagePolicy: z.enum(["target-language-first", "activity-language"]),
   interruptionPolicy: z.enum(["minimal", "every-meaningful-error"]),
   correctionTiming: z.enum(["immediate", "end-of-activity"]),
   correctionCoverage: z.enum(["priority-only", "all-meaningful"]),
-  explanationLanguagePolicy: z.enum([
-    "configured-teaching-language",
-    "configured-with-english-support",
-  ]),
+  explanationLanguagePolicy: z.literal("configured-teaching-language"),
   tone: z.enum(["encouraging", "precise"]),
   createsTargetedFollowUp: z.boolean(),
 });
@@ -31,7 +28,7 @@ export const teachingProfileDefinitionSchema = z.strictObject({
 export const teachingProfiles = {
   "conversation-partner": {
     id: "conversation-partner",
-    conversationLanguagePolicy: "german-first",
+    conversationLanguagePolicy: "target-language-first",
     interruptionPolicy: "minimal",
     correctionTiming: "end-of-activity",
     correctionCoverage: "priority-only",
@@ -45,7 +42,7 @@ export const teachingProfiles = {
     interruptionPolicy: "every-meaningful-error",
     correctionTiming: "immediate",
     correctionCoverage: "all-meaningful",
-    explanationLanguagePolicy: "configured-with-english-support",
+    explanationLanguagePolicy: "configured-teaching-language",
     tone: "precise",
     createsTargetedFollowUp: true,
   },
@@ -79,7 +76,6 @@ export type TeachingProfileDefinition = z.infer<typeof teachingProfileDefinition
 export type SessionTeachingProfileSelection = z.infer<typeof sessionTeachingProfileSelectionSchema>;
 export type EffectiveTeachingProfile = TeachingProfileDefinition & {
   readonly explanationLanguage: LearnerProfile["explanationLanguage"];
-  readonly englishSupport: "none" | "when-useful";
 };
 
 export function resolveTeachingProfile(
@@ -95,10 +91,5 @@ export function resolveTeachingProfile(
   return {
     ...profile,
     explanationLanguage: validatedLanguage,
-    englishSupport:
-      profile.explanationLanguagePolicy === "configured-with-english-support" &&
-      validatedLanguage !== "en-US"
-        ? "when-useful"
-        : "none",
   };
 }

@@ -1,8 +1,7 @@
 import {
   targetLanguageSchema,
   learningScopeSchema,
-  germanArticleSchema,
-  germanNounGender,
+  vocabularyLexemeMatchesLanguage,
   vocabularyLexemeSchema,
   vocabularyExampleSchema,
   activityIdSchema,
@@ -57,8 +56,7 @@ export const vocabularyCandidateOriginSchema = z.enum([
 export const vocabularyCandidateSchema = strictBoundaryObject({
   lemma: text(160),
   meaning: text(500),
-  article: germanArticleSchema.optional(),
-  plural: text(160).optional(),
+  lexeme: vocabularyLexemeSchema,
   example: text(500),
   sourceContext: text(500),
   origin: vocabularyCandidateOriginSchema,
@@ -92,18 +90,7 @@ export function vocabularyEntryFromCandidate(input: {
   exampleMeaning?: string;
 }): VocabularyEntry {
   const candidate = vocabularyCandidateSchema.parse(input.candidate);
-  const lexeme = candidate.article
-    ? {
-        partOfSpeech: "noun" as const,
-        nounForm: {
-          gender: germanNounGender(candidate.article),
-          article: candidate.article,
-        },
-        plural: candidate.plural
-          ? { status: "form" as const, form: candidate.plural }
-          : { status: "unknown" as const },
-      }
-    : { partOfSpeech: "other" as const };
+  const lexeme = candidate.lexeme;
   return vocabularyEntrySchema.parse({
     schemaVersion: 1,
     targetLanguage: input.targetLanguage,
@@ -111,7 +98,7 @@ export function vocabularyEntryFromCandidate(input: {
     lemma: candidate.lemma,
     meaning: candidate.meaning,
     lexeme,
-    examples: [{ german: candidate.example, meaning: input.exampleMeaning ?? candidate.meaning }],
+    examples: [{ text: candidate.example, meaning: input.exampleMeaning ?? candidate.meaning }],
     source: input.source,
     state: { status: "candidate", confirmation: "required" },
   });
@@ -205,6 +192,8 @@ export const vocabularyEntrySchema = strictBoundaryObject({
   examples: z.array(vocabularyExampleSchema).min(1).max(12),
   source: vocabularySourceSchema,
   state: vocabularyStateSchema,
+}).refine((entry) => vocabularyLexemeMatchesLanguage(entry.lexeme, entry.targetLanguage), {
+  message: "OD_VOCABULARY_LANGUAGE_INVALID",
 });
 
 export const vocabularyReviewSchema = strictBoundaryObject({

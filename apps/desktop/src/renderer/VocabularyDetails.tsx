@@ -42,7 +42,7 @@ export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
       )}
       {entry.examples.map((example, index) => (
         <div key={index}>
-          <p lang="de">{example.german}</p>
+          <p lang={entry.targetLanguage}>{example.text}</p>
           <p className={styles.muted}>{example.meaning}</p>
         </div>
       ))}
@@ -126,7 +126,7 @@ export function VocabularyDetails(props: {
     setDraft({
       lemma: entry.lemma,
       meaning: entry.meaning,
-      example: entry.examples[0]?.german ?? "",
+      example: entry.examples[0]?.text ?? "",
       exampleMeaning: entry.examples[0]?.meaning ?? "",
     });
     setEditing(true);

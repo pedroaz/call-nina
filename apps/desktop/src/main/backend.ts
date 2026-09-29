@@ -648,7 +648,7 @@ export class DesktopBackend {
         vocabularyId: entry.vocabularyId,
         lemma: entry.lemma,
         meaning: entry.meaning,
-        ...(entry.examples[0] ? { example: entry.examples[0].german } : {}),
+        ...(entry.examples[0] ? { example: entry.examples[0].text } : {}),
       })),
     };
   }
@@ -2123,7 +2123,7 @@ export class DesktopBackend {
         );
         if (records.length === 0) return this.#failure(request, "not-found");
         const settings = await this.#readActiveLearnerSettings();
-        const mistakeCategories = (await this.#repository.readCorrectionMistakeSample(12)).map(
+        const mistakeCategories = (await this.#repository.readCorrectionMistakeSample(6)).map(
           ({ categoryKey }) => categoryKey,
         );
         const candidates = records.slice(0, 50).map(vocabularyCandidateFromRecord);
@@ -2199,7 +2199,7 @@ export class DesktopBackend {
           expectedUpdatedAt: request.payload.expectedUpdatedAt,
           lemma: request.payload.lemma,
           meaning: request.payload.meaning,
-          example: { german: request.payload.example, meaning: request.payload.exampleMeaning },
+          example: { text: request.payload.example, meaning: request.payload.exampleMeaning },
           updatedAt: new Date().toISOString(),
         });
         this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });

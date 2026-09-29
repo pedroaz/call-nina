@@ -149,9 +149,9 @@ export function FlashcardWorkspace({
                   total: deck.content.cards.length,
                 })}
               </p>
-              <h2 ref={heading} tabIndex={-1} lang="de">
+              <h2 ref={heading} tabIndex={-1} lang={deck.content.language}>
                 {card.lexeme.partOfSpeech === "noun"
-                  ? `${card.lexeme.nounForm.article} ${vocabularyLemma(card)}`
+                  ? `${card.lexeme.nounForm.article ? `${card.lexeme.nounForm.article} ` : ""}${vocabularyLemma(card, deck.content.language)}`
                   : card.lemma}
               </h2>
               {flipped && (
@@ -163,7 +163,7 @@ export function FlashcardWorkspace({
                 >
                   <p lang={deck.source === "generated" ? "en" : undefined}>{card.meaning}</p>
                   {card.lexeme.partOfSpeech === "noun" && card.lexeme.plural.status === "form" && (
-                    <p lang="de">
+                    <p lang={deck.content.language}>
                       {t("flashcards.plural")}: {card.lexeme.plural.form}
                     </p>
                   )}
@@ -172,14 +172,14 @@ export function FlashcardWorkspace({
                       <p>{t("flashcards.pluralUnchanged")}</p>
                     )}
                   {card.lexeme.partOfSpeech === "verb" && card.lexeme.pattern && (
-                    <p lang="de">{card.lexeme.pattern}</p>
+                    <p lang={deck.content.language}>{card.lexeme.pattern}</p>
                   )}
                   {card.lexeme.partOfSpeech === "phrase" && card.lexeme.function && (
                     <p>{card.lexeme.function}</p>
                   )}
                   {card.examples.map((example, index) => (
                     <div key={index}>
-                      <p lang="de">{example.german}</p>
+                      <p lang={deck.content.language}>{example.text}</p>
                       <p lang={deck.source === "generated" ? "en" : undefined}>{example.meaning}</p>
                     </div>
                   ))}

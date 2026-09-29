@@ -36,6 +36,7 @@ import {
   validateCourseEvidence,
   selectNextCurriculumGap,
   voiceSummarySchema,
+  buildPracticeSuggestions,
 } from "@call-nina/domain";
 import {
   readLearningCourse,
@@ -382,6 +383,16 @@ export function createProductionServer(runtime: Runtime) {
             section: "recommendation" | "mistakes" | "vocabulary" | "learning-path",
           ) => input.focus === "all" || input.focus === section;
           const learningContext = await runtime.repository.requireLearningContext();
+          const settings = await runtime.repository.readLearnerSettingsForScope(scope);
+          const suggestions = buildPracticeSuggestions({
+            rootGeneration: input.dataRootGeneration,
+            today: now().slice(0, 10),
+            locale: learningContext.explanationLanguage,
+            level: settings.profile.levelEstimate.currentLevel,
+            learningContext,
+            dueVocabulary: snapshot.dueVocabulary,
+            recurringMistakes: snapshot.recurringMistakes,
+          });
           const data = {
             recentAttempts: await runtime.repository.readRecentAttemptEvidence(maximum),
             learningContext: learningContextProjection(learningContext, include("recommendation")),
@@ -413,14 +424,10 @@ export function createProductionServer(runtime: Runtime) {
                   .map(({ vocabularyId, lemma, dueOn }) => ({ vocabularyId, lemma, dueOn }))
               : [],
             recommendation:
-              include("recommendation") && nextUnit
+              include("recommendation") && suggestions[0]
                 ? {
-                    primary:
-                      `Continue: ${nextUnit.title[learningContext.explanationLanguage === "de" ? "de" : "en"]}`.slice(
-                        0,
-                        500,
-                      ),
-                    alternatives: snapshot.dueVocabulary.length ? ["Review due vocabulary"] : [],
+                    primary: `${suggestions[0].title}: ${suggestions[0].rationale}`.slice(0, 500),
+                    alternatives: suggestions.slice(1, 4).map((item) => item.title),
                   }
                 : null,
           };

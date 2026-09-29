@@ -42,23 +42,23 @@ export type LearningContext = z.infer<typeof learningContextSchema>;
 /** Implemented policies/resources, independently of selectable storage languages. Owners #73/#74 extend these with their implementations. */
 export const languageCapabilities = {
   "en-US": {
-    generation: false,
-    evaluation: false,
-    vocabulary: false,
+    generation: true,
+    evaluation: true,
+    vocabulary: true,
     interface: true,
     structuredPath: false,
   },
   "pt-BR": {
-    generation: false,
-    evaluation: false,
-    vocabulary: false,
+    generation: true,
+    evaluation: true,
+    vocabulary: true,
     interface: false,
     structuredPath: false,
   },
   es: {
-    generation: false,
-    evaluation: false,
-    vocabulary: false,
+    generation: true,
+    evaluation: true,
+    vocabulary: true,
     interface: false,
     structuredPath: false,
   },

@@ -426,7 +426,7 @@ export async function addCourseVocabulary(
           lemma: target.german,
           meaning: target.meaning[locale],
           lexeme,
-          examples: [{ german: target.example, meaning: target.exampleMeaning[locale] }],
+          examples: [{ text: target.example, meaning: target.exampleMeaning[locale] }],
           source: {
             kind: "curriculum",
             curriculumTopicId: unit.curriculumTopicIds[0],
@@ -443,7 +443,7 @@ export async function addCourseVocabulary(
             target.german,
             target.meaning[locale],
             JSON.stringify(lexeme),
-            JSON.stringify([{ german: target.example, meaning: target.exampleMeaning[locale] }]),
+            JSON.stringify([{ text: target.example, meaning: target.exampleMeaning[locale] }]),
             JSON.stringify({
               kind: "curriculum",
               curriculumTopicId: unit.curriculumTopicIds[0],
