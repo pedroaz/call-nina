@@ -1,7 +1,7 @@
 import { recommendCourseActivity } from "@call-nina/domain";
 import { useLearningPath } from "./useLearningPath.js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
+import { languageSchema, type DesktopIpcResponse, type CallNinaError } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { Button, Card, LoadingState } from "./components/ui/index.js";
 import { ActionGroup, Page, ContentGrid, SectionHeader } from "./components/layout/index.js";
@@ -26,7 +26,7 @@ export function Dashboard({
     ? (recommendCourseActivity(learning.snapshot.course, learning.snapshot.state)?.reference ??
       null)
     : null;
-  const locale = i18n.resolvedLanguage === "de" ? "de" : "en-US";
+  const locale = languageSchema.safeParse(i18n.resolvedLanguage).data ?? "en-US";
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [offset, setOffset] = useState(0);
   const [busy, setBusy] = useState(false);

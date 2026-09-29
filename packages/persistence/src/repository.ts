@@ -722,6 +722,41 @@ export class CallNinaRepository {
     );
   }
 
+  /** Only exact-owner generated exercises can be offered for prepared reuse. */
+  async readRecommendationPreparedActivities(contextValue: unknown) {
+    const context = learningContextSchema.parse(contextValue);
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = requireLocalLearningScope(connection);
+      if (
+        scope.learnerId !== context.learnerId ||
+        scope.targetLanguage !== context.targetLanguage ||
+        scope.courseId !== context.courseId
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      return connection
+        .prepare(
+          `SELECT p.activity_id, p.activity_type, p.title,
+            ${preparedActivityDeletionStatusSql} AS deletion_status
+           FROM prepared_activities p
+           JOIN generated_activity_payloads g ON g.activity_id = p.activity_id
+           WHERE p.target_language = ? AND p.status IN ('prepared', 'completed')
+             AND json_extract(p.context_json, '$.learningScope.learnerId') = ?
+             AND json_extract(p.context_json, '$.learningScope.courseId') IS ?
+             AND p.activity_type IN ('grammar', 'reading', 'writing', 'custom-lesson')
+           ORDER BY p.prepared_at DESC, p.activity_id DESC LIMIT 40`,
+        )
+        .all(context.targetLanguage, context.learnerId, context.courseId)
+        .map((row) => ({
+          activityId: activityIdSchema.parse(row["activity_id"]),
+          activityType: preparedActivitySchema.shape.activityType.parse(row["activity_type"]),
+          title: preparedActivitySchema.shape.title.parse(row["title"]),
+          deletionStatus: z
+            .enum(["available", "cascade", "retained-data"])
+            .parse(row["deletion_status"]),
+        }));
+    });
+  }
+
   async requireLearningScope(language?: Language) {
     return withLeasedConnection(this.#database, (connection) => {
       const scope = language

@@ -50,7 +50,8 @@ export function buildPracticeSuggestions(input: {
   const policy = supportedLanguagePolicy(context.targetLanguage);
   const say = (en: string, pt: string, es: string, de: string) =>
     ({ "en-US": en, "pt-BR": pt, es, de })[input.locale];
-  const de = context.explanationLanguage === "de";
+  const explain = (en: string, pt: string, es: string, de: string) =>
+    ({ "en-US": en, "pt-BR": pt, es, de })[context.explanationLanguage];
   const make = (
     id: string,
     source: PracticeSuggestion["source"],
@@ -59,19 +60,20 @@ export function buildPracticeSuggestions(input: {
     naturalRequest: string,
     rationale: string,
     estimatedMinutes = 10,
-    context = emptyContext(),
+    suggestionContext = emptyContext(),
     preparedActivityId?: string,
   ): PracticeSuggestion =>
     practiceSuggestionSchema.parse({
       id,
       rootGeneration: input.rootGeneration,
+      targetLanguage: context.targetLanguage,
       source,
       kind,
       title: title.slice(0, 160),
       naturalRequest: naturalRequest.slice(0, 1_000),
       rationale,
       estimatedMinutes,
-      context,
+      context: suggestionContext,
       ...(preparedActivityId ? { preparedActivityId } : {}),
     });
   const review: PracticeSuggestion[] = [];
@@ -79,6 +81,8 @@ export function buildPracticeSuggestions(input: {
   for (const evidence of [...(input.courseEvidence ?? [])].sort((a, b) =>
     b.occurredAt.localeCompare(a.occurredAt),
   )) {
+    // Supported or uncertain work cannot replace an earlier demonstrated result.
+    if (evidence.outcome === "supported") continue;
     const key = `${evidence.unitId}:${evidence.objectiveId}:${evidence.skill}`;
     if (!latest.has(key)) latest.set(key, evidence);
   }
@@ -98,13 +102,39 @@ export function buildPracticeSuggestions(input: {
         `course-review:${evidence.unitId}:${evidence.objectiveId}:${evidence.skill}`,
         "starter",
         kind,
-        de
-          ? `${evidence.skill === "writing" ? "Schreiben" : evidence.skill === "reading" ? "Lesen" : evidence.skill === "listening" ? "Hören" : "Sprechen"} wiederholen`
-          : `Review ${evidence.skill}`,
+        {
+          reading: say(
+            "Review reading",
+            "Revise a leitura",
+            "Repasa la lectura",
+            "Lesen wiederholen",
+          ),
+          writing: say(
+            "Review writing",
+            "Revise a escrita",
+            "Repasa la escritura",
+            "Schreiben wiederholen",
+          ),
+          listening: say(
+            "Review listening",
+            "Revise a escuta",
+            "Repasa la escucha",
+            "Hören wiederholen",
+          ),
+          speaking: say(
+            "Review speaking",
+            "Revise a fala",
+            "Repasa el habla",
+            "Sprechen wiederholen",
+          ),
+        }[evidence.skill],
         policy.practiceRequest(evidence.skill, context.explanationLanguage, topic, input.level),
-        de
-          ? "Bei diesem Lernziel gab es zuletzt Schwierigkeiten. Eine kurze Wiederholung kann helfen."
-          : "Your latest result showed difficulty with this course objective. A short review may help.",
+        explain(
+          "Your latest result showed difficulty with this course objective. A short review may help.",
+          "Seu resultado mais recente mostrou dificuldade com este objetivo do curso. Uma breve revisão pode ajudar.",
+          "Tu resultado más reciente mostró dificultad con este objetivo del curso. Un repaso breve puede ayudar.",
+          "Bei diesem Lernziel gab es zuletzt Schwierigkeiten. Eine kurze Wiederholung kann helfen.",
+        ),
         10,
         {
           ...emptyContext(),
@@ -132,7 +162,7 @@ export function buildPracticeSuggestions(input: {
           words.map((word) => word.lemma).join(", "),
           input.level,
         ),
-        say(
+        explain(
           "These words are due for review.",
           "Está na hora de revisar estas palavras.",
           "Es momento de repasar estas palabras.",
@@ -152,7 +182,7 @@ export function buildPracticeSuggestions(input: {
         mistake.category.kind === "grammar" ? "grammar" : "custom-lesson",
         say(`Practise: ${topic}`, `Pratique: ${topic}`, `Practica: ${topic}`, `Übe: ${topic}`),
         policy.practiceRequest("mistake", context.explanationLanguage, topic, input.level),
-        say(
+        explain(
           `This pattern appeared ${String(mistake.occurrenceCount)} times.`,
           `Este padrão apareceu ${String(mistake.occurrenceCount)} vezes.`,
           `Este patrón apareció ${String(mistake.occurrenceCount)} veces.`,
@@ -166,7 +196,7 @@ export function buildPracticeSuggestions(input: {
   const topic =
     context.goal.preferredTopics[0] ?? context.goal.interests[0] ?? context.goal.description;
   const level = input.level.toUpperCase();
-  const reason = say(
+  const reason = explain(
     `Matched to your goal of ${topic} at ${level} level.`,
     `Adaptado ao seu objetivo de ${topic} no nível ${level}.`,
     `Adaptado a tu objetivo de ${topic} en el nivel ${level}.`,
@@ -261,9 +291,12 @@ export function buildPracticeSuggestions(input: {
         prepared.activityType,
         prepared.title,
         policy.practiceRequest("lesson", context.explanationLanguage, topic, input.level),
-        de
-          ? "Diese vorbereitete Übung passt zu deinem Lernziel und kann erneut bearbeitet werden."
-          : "This prepared activity matches your learning goal and can be attempted again.",
+        explain(
+          "This prepared activity matches your learning goal and can be attempted again.",
+          "Esta atividade preparada combina com seu objetivo de aprendizagem e pode ser feita novamente.",
+          "Esta actividad preparada se ajusta a tu objetivo de aprendizaje y puedes volver a hacerla.",
+          "Diese vorbereitete Übung passt zu deinem Lernziel und kann erneut bearbeitet werden.",
+        ),
         10,
         emptyContext(),
         prepared.activityId,

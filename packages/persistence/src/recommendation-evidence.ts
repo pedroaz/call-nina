@@ -18,15 +18,23 @@ export function readRecommendationEvidence(
   learningContext: LearningContext,
 ): readonly RecommendationCourseEvidence[] {
   const scope = requireLocalLearningScope(connection);
-  if (scope.learnerId !== learningContext.learnerId || scope.courseId !== learningContext.courseId)
+  if (
+    scope.learnerId !== learningContext.learnerId ||
+    scope.courseId !== learningContext.courseId ||
+    scope.targetLanguage !== learningContext.targetLanguage
+  )
     throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+  if (learningContext.courseId === null) return Object.freeze([]);
   const rows = connection
     .prepare(
       `SELECT r.history_entry_id, r.occurred_at, r.evidence_json, p.context_json
      FROM course_results r JOIN prepared_activities p ON p.activity_id = r.activity_id
+     WHERE p.target_language = ?
+       AND json_extract(p.context_json, '$.learningScope.learnerId') = ?
+       AND json_extract(p.context_json, '$.learningScope.courseId') = ?
      ORDER BY r.occurred_at DESC, r.history_entry_id DESC LIMIT 400`,
     )
-    .all();
+    .all(learningContext.targetLanguage, learningContext.learnerId, learningContext.courseId);
   const seen = new Set<string>();
   const result: RecommendationCourseEvidence[] = [];
   for (const row of rows) {
@@ -47,14 +55,15 @@ export function readRecommendationEvidence(
         evidence.support.length === 0 &&
         (evidence.outcome === "independent" || evidence.outcome === "transfer");
       const difficulty =
-        evidence.outcome === "not-yet" ||
-        (evidence.outcome === "supported" && evidence.uncertainty !== "substantial");
+        basis === "independent" &&
+        evidence.outcome === "not-yet" &&
+        evidence.uncertainty !== "substantial";
       if (!independent && !difficulty) continue;
       result.push(
         Object.freeze({
           objectiveId: evidence.objectiveId,
           skill: evidence.skill,
-          outcome: independent ? "independent" : basis === "unknown" ? "supported" : "difficulty",
+          outcome: independent ? "independent" : difficulty ? "difficulty" : "supported",
           occurredAt,
           curriculumTopicIds: Object.freeze([...context.curriculumTopicIds]),
           unitId: context.learningPath.unitId,

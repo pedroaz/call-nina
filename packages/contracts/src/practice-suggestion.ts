@@ -5,6 +5,7 @@ import {
   mistakeIdSchema,
   vocabularyIdSchema,
 } from "./common.js";
+import { languageSchema } from "./learning-context.js";
 import { z } from "./schema-system.js";
 
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
@@ -18,6 +19,7 @@ export const practiceSuggestionContextSchema = z.strictObject({
 export const practiceSuggestionSchema = z.strictObject({
   id: text(240),
   rootGeneration: dataRootGenerationSchema,
+  targetLanguage: languageSchema,
   source: z.enum(["due-vocabulary", "mistake", "starter"]),
   kind: z.enum([
     "writing",

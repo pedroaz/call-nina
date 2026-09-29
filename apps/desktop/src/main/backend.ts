@@ -1989,9 +1989,14 @@ export class DesktopBackend {
           settings && this.#repository
             ? await this.#repository.readRecommendationEvidence(settings.learningContext)
             : [];
+        const preparedCandidates =
+          settings && this.#repository
+            ? await this.#repository.readRecommendationPreparedActivities(settings.learningContext)
+            : [];
         const suggestions = settings
           ? buildPracticeSuggestions({
               ...snapshot,
+              preparedActivities: preparedCandidates,
               today: refreshedAt.slice(0, 10),
               locale: request.payload.locale ?? settings.profile.uiLocale,
               level: settings.profile.levelEstimate.currentLevel,
