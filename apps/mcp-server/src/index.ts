@@ -379,6 +379,7 @@ export function createProductionServer(runtime: Runtime) {
           ) => input.focus === "all" || input.focus === section;
           const learningContext = await runtime.repository.requireLearningContext();
           const data = {
+            recentAttempts: await runtime.repository.readRecentAttemptEvidence(maximum),
             learningContext: learningContextProjection(learningContext, include("recommendation")),
             learningPath:
               (include("learning-path") || include("recommendation")) && next && nextUnit
@@ -785,6 +786,7 @@ export function createProductionServer(runtime: Runtime) {
               activityId: input.activityId,
               expectedActivityRevision: input.expectedActivityRevision,
               feedback: input.feedback,
+              targetAttemptId: input.targetAttemptId,
               savedAt: utcInstantSchema.parse(now()),
               idempotencyKey: input.idempotencyKey,
             });
@@ -792,7 +794,14 @@ export function createProductionServer(runtime: Runtime) {
               result.replayed
                 ? "Attempt feedback already existed."
                 : "Attempt feedback saved to History.",
-              { attemptId, activityId: input.activityId, replayed: result.replayed },
+              {
+                attemptId: input.targetAttemptId ?? attemptId,
+                eventId: `attempt-event_${createHash("sha256")
+                  .update(`${input.targetAttemptId ?? attemptId}:feedback:${attemptId}`)
+                  .digest("hex")}`,
+                activityId: input.activityId,
+                replayed: result.replayed,
+              },
             );
           });
         } catch (error) {

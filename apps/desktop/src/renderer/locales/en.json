@@ -650,6 +650,13 @@
     "keepEditing": "Keep editing"
   },
   "history": {
+    "evidenceBasis": {
+      "independent": "Answered independently · evaluation recorded",
+      "supported": "Supported practice · not independent proficiency evidence",
+      "self-assessment": "Self-assessment · used to schedule review",
+      "participation": "Participation · no independent answer evidence",
+      "unknown": "Independence not recorded"
+    },
     "eyebrow": "Learning record",
     "title": "History",
     "intro": "Review saved attempts and feedback, then choose what to practise again.",
@@ -759,7 +766,8 @@
         "cancelled": "Targeted practice was cancelled. Your evidence was not changed.",
         "failed": "Targeted practice could not be created. Your evidence was not changed."
       }
-    }
+    },
+    "laterFeedback": "Later feedback"
   },
   "pages": {
     "writing": "Writing",

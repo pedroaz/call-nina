@@ -1,3 +1,10 @@
+import {
+  captureExerciseAttempt,
+  captureVocabularyReview,
+  captureActivityAttempt,
+  historyAttemptEvidence,
+  readAttemptEvidence,
+} from "./attempt-evidence.js";
 import { linkPortableContent } from "./materials.js";
 import {
   contentMaterialInputSchema,
@@ -34,9 +41,10 @@ import {
   vocabularySummarySchema,
   vocabularyCountsSchema,
   practiceSuggestionContextSchema,
+  type AttemptEvidence,
   activityIdSchema,
   attemptIdSchema,
-  type attemptFeedbackSaveInputSchema,
+  attemptFeedbackSaveInputSchema,
   calendarDateSchema,
   correctionIdSchema,
   curriculumTopicIdSchema,
@@ -79,14 +87,12 @@ import {
   vocabularyExampleSchema,
   vocabularyLessonSetRequestSchema,
   type VocabularyLessonSetRequest,
-  vocabularyReviewSchema,
   voiceSummarySchema,
   startedExerciseSnapshotSchema,
   type MistakeCategory,
   type LearnerProfile,
   type ModelPreferences,
   type VocabularyEntry,
-  type VocabularyReview,
   type VoiceSummary,
 } from "@call-nina/domain";
 
@@ -129,6 +135,7 @@ export type PreparedActivityRecord = z.infer<typeof preparedActivitySchema>;
 export type HistoryFilter = z.input<typeof historyFilterSchema>;
 export type HistoryEntryRecord = Readonly<{
   historyEntryId: string;
+  evidence: AttemptEvidence | null;
   entityKind: "attempt" | "correction" | "vocabulary-review" | "voice-summary" | "placement";
   entityId: string;
   skill: "writing" | "reading" | "listening" | "speaking";
@@ -175,6 +182,11 @@ export type HistoryEntryRecord = Readonly<{
       }>
     | Readonly<PlacementResult & { kind: "placement" }>
     | Readonly<ListeningResult & { kind: "listening" }>
+    | Readonly<{
+        kind: "attempt-feedback";
+        feedback: z.infer<typeof attemptFeedbackSaveInputSchema>["feedback"];
+        later: boolean;
+      }>
     | Readonly<{ kind: "reference" }>;
   rootGeneration: number;
 }>;
@@ -652,6 +664,20 @@ export class CallNinaRepository {
     this.#database = database;
   }
 
+  async readRecentAttemptEvidence(maximum = 5) {
+    const limit = z.int().min(1).max(20).parse(maximum);
+    return withLeasedConnection(this.#database, (connection) =>
+      connection
+        .prepare("SELECT attempt_id FROM learning_attempts ORDER BY rowid DESC LIMIT ?")
+        .all(limit)
+        .map((row) => {
+          const evidence = readAttemptEvidence(connection, String(row["attempt_id"]));
+          if (!evidence) throw new Error("OD_ATTEMPT_NOT_FOUND");
+          return evidence;
+        }),
+    );
+  }
+
   async requireLearningScope() {
     return withLeasedConnection(this.#database, requireLocalLearningScope);
   }
@@ -1029,56 +1055,148 @@ export class CallNinaRepository {
   }
 
   async reviewVocabularyCard(
-    input: Readonly<{
+    inputValue: Readonly<{
       vocabularyId: string;
-      grade: VocabularyReview["transition"]["result"]["grade"];
+      grade: "again" | "hard" | "good" | "easy";
       retrieval: "recognition" | "recall" | "use";
       reviewedAt: string;
-      reviewId: string;
-      historyEntryId?: string;
       expectedRevision?: number;
       expectedUpdatedAt?: string;
       idempotencyKey: string;
     }>,
   ): Promise<IdempotentWriteResult & { dueOn: string }> {
-    const vocabularyId = vocabularyIdSchema.parse(input.vocabularyId);
-    const reviewedAt = utcInstantSchema.parse(input.reviewedAt);
-    const reviewId = reviewIdSchema.parse(input.reviewId);
-    const entry = await withLeasedConnection(this.#database, (connection) => {
-      const row = connection
-        .prepare(`SELECT * FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'`)
-        .get(vocabularyId) as Record<string, unknown> | undefined;
-      if (!row) throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
+    const input = z
+      .strictObject({
+        vocabularyId: vocabularyIdSchema,
+        grade: z.enum(["again", "hard", "good", "easy"]),
+        retrieval: z.enum(["recognition", "recall", "use"]),
+        reviewedAt: utcInstantSchema,
+        expectedRevision: z.int().nonnegative().optional(),
+        expectedUpdatedAt: utcInstantSchema.optional(),
+        idempotencyKey: z.string().min(8).max(128),
+      })
+      .parse(inputValue);
+    const reviewId = reviewIdSchema.parse(
+      `review_${createHash("sha256").update(input.idempotencyKey).digest("hex")}`,
+    );
+    const historyEntryId = historyEntryIdSchema.parse(
+      `history-entry_${reviewId.slice("review_".length)}`,
+    );
+    const { reviewedAt, idempotencyKey, ...command } = input;
+    const retrieval = input.retrieval;
+    return withLeasedTransaction(this.#database, (connection) => {
+      const claim = claimIdempotentWrite(connection, {
+        operation: "vocabulary-review",
+        idempotencyKey,
+        request: command,
+        entityId: reviewId,
+        recordedAt: reviewedAt,
+      });
+      if (claim.replayed) {
+        const saved = connection
+          .prepare("SELECT next_due_on FROM vocabulary_reviews WHERE review_id = ?")
+          .get(reviewId);
+        if (!saved) throw new Error("OD_VOCABULARY_REVIEW_NOT_FOUND");
+        return { ...claim, dueOn: calendarDateSchema.parse(saved["next_due_on"]) };
+      }
+      const entryRow = connection
+        .prepare("SELECT * FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'")
+        .get(input.vocabularyId);
       if (
-        input.expectedRevision !== undefined &&
-        (row["revision"] !== z.int().nonnegative().parse(input.expectedRevision) ||
-          row["updated_at"] !== utcInstantSchema.parse(input.expectedUpdatedAt) ||
-          String(row["due_on"]) > reviewedAt.slice(0, 10))
+        !entryRow ||
+        (input.expectedRevision !== undefined &&
+          (entryRow["revision"] !== input.expectedRevision ||
+            entryRow["updated_at"] !== input.expectedUpdatedAt))
       )
         throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
-      return vocabularyEntryFromRow(row);
+      const entry = vocabularyEntryFromRow(entryRow);
+      if (entry.state.status !== "active") throw new Error("OD_VOCABULARY_NOT_ACTIVE");
+      const schedule = connection
+        .prepare(
+          "SELECT next_due_on, next_stage FROM vocabulary_reviews WHERE vocabulary_id = ? AND retrieval = ? ORDER BY expected_revision DESC LIMIT 1",
+        )
+        .get(input.vocabularyId, retrieval);
+      if (
+        String(schedule?.["next_due_on"] ?? entry.state.confirmedAt.slice(0, 10)) >
+        reviewedAt.slice(0, 10)
+      )
+        throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
+      const review = scheduleVocabularyReview({
+        vocabularyId: input.vocabularyId,
+        expectedActiveState: entry.state,
+        reviewId,
+        reviewedAt,
+        grade: input.grade,
+        retrievalStage: z
+          .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
+          .parse(schedule?.["next_stage"] ?? 1),
+      });
+      const expected = review.transition.expectedActiveState;
+      const row = connection
+        .prepare(
+          `SELECT revision, confirmed_at, due_on, stage, last_review_id
+           FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'`,
+        )
+        .get(review.vocabularyId) as Record<string, unknown> | undefined;
+      const expectedLastReviewId =
+        expected.schedule.status === "reviewed" ? expected.schedule.lastReview.reviewId : null;
+      if (
+        row === undefined ||
+        (input.expectedRevision !== undefined && row["revision"] !== input.expectedRevision) ||
+        row["confirmed_at"] !== expected.confirmedAt ||
+        row["due_on"] !== expected.schedule.dueOn ||
+        row["stage"] !== expected.schedule.stage ||
+        row["last_review_id"] !== expectedLastReviewId ||
+        !Number.isSafeInteger(row["revision"])
+      ) {
+        throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
+      }
+      const revision = row["revision"] as number;
+      const result = review.transition.result;
+      connection
+        .prepare(
+          `INSERT INTO vocabulary_reviews (
+            review_id, vocabulary_id, expected_revision, reviewed_at, grade, next_due_on, next_stage, retrieval
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          result.reviewId,
+          review.vocabularyId,
+          revision,
+          result.reviewedAt,
+          result.grade,
+          result.nextSchedule.dueOn,
+          result.nextSchedule.stage,
+          retrieval,
+        );
+      captureVocabularyReview(connection, result.reviewId);
+      const titleRow = connection
+        .prepare(`SELECT lemma FROM vocabulary_entries WHERE vocabulary_id = ?`)
+        .get(review.vocabularyId) as { lemma: string } | undefined;
+      if (!titleRow) throw new Error("OD_VOCABULARY_NOT_FOUND");
+      connection
+        .prepare(
+          `INSERT INTO history_entries (
+              history_entry_id, entity_kind, entity_id, skill, activity_type, title,
+              occurred_at, reconstruction_json, root_generation
+            ) VALUES (?, 'vocabulary-review', ?, 'reading', 'vocabulary-review', ?, ?, ?, ?)`,
+        )
+        .run(
+          historyEntryId,
+          result.reviewId,
+          titleRow.lemma,
+          result.reviewedAt,
+          stringifyBounded({
+            vocabularyId: review.vocabularyId,
+            grade: result.grade,
+            nextDueOn: result.nextSchedule.dueOn,
+            nextStage: result.nextSchedule.stage,
+          }),
+          this.#database.rootGeneration,
+        );
+
+      return { ...claim, dueOn: review.transition.result.nextSchedule.dueOn };
     });
-    if (entry.state.status !== "active") throw new Error("OD_VOCABULARY_NOT_ACTIVE");
-    const schedules = await this.readVocabularyRetrievalSchedules(vocabularyId);
-    const schedule = schedules.find((s) => s.retrieval === input.retrieval);
-    if (!schedule || schedule.dueOn > reviewedAt.slice(0, 10))
-      throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
-    const review = scheduleVocabularyReview({
-      vocabularyId,
-      expectedActiveState: entry.state,
-      reviewId,
-      reviewedAt,
-      grade: input.grade,
-      retrievalStage: schedule.stage,
-    });
-    const saved = await this.applyVocabularyReview(
-      review,
-      input.idempotencyKey,
-      input.retrieval,
-      input.historyEntryId,
-      input.expectedRevision,
-    );
-    return { ...saved, dueOn: review.transition.result.nextSchedule.dueOn };
   }
 
   async confirmVocabulary(
@@ -1487,92 +1605,6 @@ export class CallNinaRepository {
         )
         .run(learnerId, insightGroup, position);
       if (result.changes !== 1) throw new Error("OD_PROFILE_INSIGHT_NOT_FOUND");
-    });
-  }
-
-  async applyVocabularyReview(
-    reviewValue: VocabularyReview,
-    idempotencyKey: string,
-    retrieval: "recognition" | "recall" | "use",
-    historyEntryIdValue?: string,
-    expectedRevision?: number,
-  ): Promise<IdempotentWriteResult> {
-    const review = vocabularyReviewSchema.parse(reviewValue);
-    return withLeasedTransaction(this.#database, (connection) => {
-      const claim = claimIdempotentWrite(connection, {
-        operation: "vocabulary-review",
-        idempotencyKey,
-        request: { review, retrieval },
-        entityId: review.transition.result.reviewId,
-        recordedAt: review.transition.result.reviewedAt,
-      });
-      if (claim.replayed) return claim;
-      const expected = review.transition.expectedActiveState;
-      const row = connection
-        .prepare(
-          `SELECT revision, confirmed_at, due_on, stage, last_review_id
-           FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'`,
-        )
-        .get(review.vocabularyId) as Record<string, unknown> | undefined;
-      const expectedLastReviewId =
-        expected.schedule.status === "reviewed" ? expected.schedule.lastReview.reviewId : null;
-      if (
-        row === undefined ||
-        (expectedRevision !== undefined && row["revision"] !== expectedRevision) ||
-        row["confirmed_at"] !== expected.confirmedAt ||
-        row["due_on"] !== expected.schedule.dueOn ||
-        row["stage"] !== expected.schedule.stage ||
-        row["last_review_id"] !== expectedLastReviewId ||
-        !Number.isSafeInteger(row["revision"])
-      ) {
-        throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
-      }
-      const revision = row["revision"] as number;
-      const result = review.transition.result;
-      connection
-        .prepare(
-          `INSERT INTO vocabulary_reviews (
-            review_id, vocabulary_id, expected_revision, reviewed_at, grade, next_due_on, next_stage, retrieval
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .run(
-          result.reviewId,
-          review.vocabularyId,
-          revision,
-          result.reviewedAt,
-          result.grade,
-          result.nextSchedule.dueOn,
-          result.nextSchedule.stage,
-          retrieval,
-        );
-      if (historyEntryIdValue !== undefined) {
-        const historyEntryId = historyEntryIdSchema.parse(historyEntryIdValue);
-        const entryRow = connection
-          .prepare(`SELECT lemma FROM vocabulary_entries WHERE vocabulary_id = ?`)
-          .get(review.vocabularyId) as { lemma: string } | undefined;
-        if (!entryRow) throw new Error("OD_VOCABULARY_NOT_FOUND");
-        connection
-          .prepare(
-            `INSERT INTO history_entries (
-              history_entry_id, entity_kind, entity_id, skill, activity_type, title,
-              occurred_at, reconstruction_json, root_generation
-            ) VALUES (?, 'vocabulary-review', ?, 'reading', 'vocabulary-review', ?, ?, ?, ?)`,
-          )
-          .run(
-            historyEntryId,
-            result.reviewId,
-            entryRow.lemma,
-            result.reviewedAt,
-            stringifyBounded({
-              vocabularyId: review.vocabularyId,
-              grade: result.grade,
-              nextDueOn: result.nextSchedule.dueOn,
-              nextStage: result.nextSchedule.stage,
-            }),
-            this.#database.rootGeneration,
-          );
-      }
-      return claim;
     });
   }
 
@@ -2350,26 +2382,29 @@ export class CallNinaRepository {
     const record = strictBoundaryObject({
       attemptId: attemptIdSchema,
       activityId: activityIdSchema,
+      targetAttemptId: attemptIdSchema.nullable(),
       expectedActivityRevision: z.int().positive(),
-      feedback: z.strictObject({
-        outcome: z.enum(["completed", "partially-completed", "abandoned"]),
-        summary: z.string().min(1).max(1_000).regex(/\S/u),
-        objectiveResults: z
-          .array(z.enum(["met", "partially-met", "not-met", "not-evaluated"]))
-          .max(20),
-        evidence: z.array(z.string().min(1).max(500).regex(/\S/u)).max(20),
-      }),
+      feedback: attemptFeedbackSaveInputSchema.shape.feedback,
       savedAt: utcInstantSchema,
       idempotencyKey: z.string().min(16).max(128),
     }).parse(value);
     return withLeasedTransaction(this.#database, (connection) => {
-      const activity = connection
+      let activity = connection
         .prepare(
           `SELECT title, activity_type, status FROM prepared_activities
            WHERE activity_id = ?`,
         )
         .get(record.activityId) as
         { title: string; activity_type: string; status: "prepared" | "completed" } | undefined;
+      if (!activity && record.targetAttemptId) {
+        activity = connection
+          .prepare(
+            `SELECT h.title, h.activity_type, 'completed' AS status FROM attempts a
+          JOIN exercises e USING(exercise_id) JOIN history_entries h ON h.entity_id = a.attempt_id AND h.entity_kind = 'attempt'
+          WHERE a.attempt_id = ? AND e.activity_id = ? AND a.status = 'completed'`,
+          )
+          .get(record.targetAttemptId, record.activityId) as typeof activity;
+      }
       if (!activity) throw new Error("OD_MCP_ACTIVITY_NOT_FOUND");
       const claim = claimIdempotentWrite(connection, {
         operation: "attempt-completion",
@@ -2379,20 +2414,31 @@ export class CallNinaRepository {
           activityId: record.activityId,
           expectedActivityRevision: record.expectedActivityRevision,
           feedback: record.feedback,
+          targetAttemptId: record.targetAttemptId,
         },
         entityId: record.attemptId,
         recordedAt: record.savedAt,
       });
       if (claim.replayed) return claim;
-      if (record.expectedActivityRevision !== 1 || activity.status === "completed") {
+      if (
+        record.expectedActivityRevision !== 1 ||
+        (!record.targetAttemptId && activity.status === "completed")
+      ) {
         throw new Error("OD_MCP_ACTIVITY_REVISION_CONFLICT");
       }
+      captureActivityAttempt(connection, {
+        attemptId: record.attemptId,
+        activityId: record.activityId,
+        occurredAt: record.savedAt,
+        sourceKind: "external",
+        targetAttemptId: record.targetAttemptId,
+      });
       connection
         .prepare(
           `INSERT INTO mcp_attempt_feedback (
             attempt_id, activity_id, expected_activity_revision, feedback_json,
-            saved_at, root_generation
-          ) VALUES (?, ?, ?, ?, ?, ?)`,
+            saved_at, root_generation, target_attempt_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           record.attemptId,
@@ -2401,6 +2447,7 @@ export class CallNinaRepository {
           stringifyBounded(record.feedback),
           record.savedAt,
           this.#database.rootGeneration,
+          record.targetAttemptId,
         );
       const historyEntryId = historyEntryIdSchema.parse(
         `history-entry_${randomUUID().replaceAll("-", "")}`,
@@ -2431,7 +2478,7 @@ export class CallNinaRepository {
           stringifyBounded({ kind: "reference" }),
           this.#database.rootGeneration,
         );
-      if (record.feedback.outcome === "completed") {
+      if (!record.targetAttemptId && record.feedback.outcome === "completed") {
         connection
           .prepare(
             `UPDATE prepared_activities SET status = 'completed', completed_at = ?
@@ -2802,6 +2849,7 @@ export class CallNinaRepository {
             "INSERT INTO attempt_content_revisions(attempt_id, content_revision_id) VALUES (?, ?)",
           )
           .run(started.attemptId, content.revisionId);
+        captureExerciseAttempt(connection, started.attemptId);
       }
     });
   }
@@ -2853,6 +2901,7 @@ export class CallNinaRepository {
           )
           .run(record.attemptId, elapsed, stringifyBounded(record.answer));
       }
+      captureExerciseAttempt(connection, record.attemptId);
       return snapshot;
     });
   }
@@ -2864,7 +2913,7 @@ export class CallNinaRepository {
           `INSERT INTO exercise_support (attempt_id, hints_used, helper_used, translation_used)
         SELECT a.attempt_id, 0, 1, ? FROM attempts a JOIN exercises e ON e.exercise_id = a.exercise_id
         JOIN prepared_activities p ON p.activity_id = e.activity_id
-        WHERE a.status = 'in-progress' AND json_type(p.context_json, '$.learningPath') = 'object'
+        WHERE a.status = 'in-progress'
         ON CONFLICT(attempt_id) DO UPDATE SET helper_used = 1, translation_used = max(translation_used, excluded.translation_used)`,
         )
         .run(intent === "translate" ? 1 : 0);
@@ -2877,6 +2926,10 @@ export class CallNinaRepository {
         ON CONFLICT(activity_id) DO UPDATE SET helper_used = 1, translation_used = max(translation_used, excluded.translation_used)`,
         )
         .run(intent === "translate" ? 1 : 0);
+      for (const row of connection
+        .prepare("SELECT attempt_id FROM attempts WHERE status = 'in-progress'")
+        .all())
+        captureExerciseAttempt(connection, String(row["attempt_id"]));
     });
   }
 
@@ -2900,6 +2953,7 @@ export class CallNinaRepository {
         ON CONFLICT(activity_id) DO UPDATE SET hints_used = 1`,
         )
         .run(activityId);
+      captureExerciseAttempt(connection, attemptId);
     });
   }
 
@@ -2909,6 +2963,20 @@ export class CallNinaRepository {
       throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
     }
     await withLeasedTransaction(this.#database, (connection) => {
+      const completionKey = [...record.answers.map((answer) => answer.attemptId)].sort().join(":");
+      const claim = claimIdempotentWrite(connection, {
+        operation: "attempt-completion",
+        idempotencyKey: createHash("sha256").update(completionKey).digest("hex"),
+        request: {
+          activityId: record.activityId,
+          answers: record.answers
+            .map(({ attemptId, answer }) => ({ attemptId, answer }))
+            .sort((left, right) => left.attemptId.localeCompare(right.attemptId)),
+        },
+        entityId: record.activityId,
+        recordedAt: record.completedAt,
+      });
+      if (claim.replayed) return;
       const activity = connection
         .prepare(
           `SELECT title, activity_type, context_json FROM prepared_activities
@@ -3097,6 +3165,7 @@ export class CallNinaRepository {
             stringifyBounded(reconstruction, maximumExerciseHistoryBytes),
             this.#database.rootGeneration,
           );
+        captureExerciseAttempt(connection, item.attemptId);
         if (activityContext.learningPath) {
           const teaching = activityContext.courseTeaching;
           const repeatedAttempt = !!connection
@@ -3121,6 +3190,7 @@ export class CallNinaRepository {
                   hints > 0 ||
                   repeatedAttempt ||
                   assistance?.helper_used === 1 ||
+                  assistance?.translation_used === 1 ||
                   teaching.priorFeedback ||
                   teaching.purpose === "practice";
                 return [
@@ -3217,7 +3287,9 @@ export class CallNinaRepository {
     return withLeasedConnection(this.#database, (connection) => {
       const totals = { writing: 0, reading: 0, listening: 0, speaking: 0 };
       for (const row of connection
-        .prepare("SELECT skill, COUNT(*) AS count FROM history_entries GROUP BY skill")
+        .prepare(
+          "SELECT skill, COUNT(*) AS count FROM history_entries h WHERE NOT EXISTS (SELECT 1 FROM mcp_attempt_feedback f WHERE f.attempt_id = h.entity_id AND f.target_attempt_id IS NOT NULL) GROUP BY skill",
+        )
         .all()) {
         const skill = z.enum(["writing", "reading", "listening", "speaking"]).parse(row["skill"]);
         totals[skill] = z.int().nonnegative().parse(row["count"]);
@@ -3292,7 +3364,20 @@ export class CallNinaRepository {
             .all(historyEntryId)
             .map((entry) => z.string().min(1).max(120).parse(entry["category"]));
           let detail: HistoryEntryRecord["detail"] = { kind: "reference" };
-          if (record["entity_kind"] === "attempt" && record["activity_type"] === "writing") {
+          const external = connection
+            .prepare(
+              "SELECT feedback_json, target_attempt_id FROM mcp_attempt_feedback WHERE attempt_id = ?",
+            )
+            .get(String(record["entity_id"]));
+          if (external)
+            detail = {
+              kind: "attempt-feedback",
+              feedback: attemptFeedbackSaveInputSchema.shape.feedback.parse(
+                parseJson(external["feedback_json"]),
+              ),
+              later: external["target_attempt_id"] !== null,
+            };
+          else if (record["entity_kind"] === "attempt" && record["activity_type"] === "writing") {
             const entityId = attemptIdSchema.parse(record["entity_id"]);
             const writing = connection
               .prepare(
@@ -3357,7 +3442,8 @@ export class CallNinaRepository {
               kind: "listening" as const,
               ...listeningResultSchema.parse(parseJson(record["reconstruction_json"])),
             });
-          } else if (record["entity_kind"] === "attempt") {
+          }
+          if (detail.kind === "reference" && record["entity_kind"] === "attempt") {
             const attemptId = attemptIdSchema.parse(record["entity_id"]);
             const reconstructed = generatedExerciseHistorySchema.safeParse(
               parseJson(record["reconstruction_json"], maximumExerciseHistoryBytes),
@@ -3378,6 +3464,7 @@ export class CallNinaRepository {
           }
           return Object.freeze({
             historyEntryId,
+            evidence: historyAttemptEvidence(connection, historyEntryId),
             entityKind: z
               .enum(["attempt", "correction", "vocabulary-review", "voice-summary", "placement"])
               .parse(record["entity_kind"]),
@@ -3428,6 +3515,17 @@ export class CallNinaRepository {
           .prepare(`DELETE FROM history_entries WHERE history_entry_id = ?`)
           .run(historyEntryId);
         if (result.changes !== 1) throw new Error("OD_HISTORY_NOT_FOUND");
+        return;
+      }
+      if (
+        entry.entity_kind === "attempt" &&
+        connection
+          .prepare("SELECT 1 FROM mcp_attempt_feedback WHERE attempt_id = ?")
+          .get(entry.entity_id)
+      ) {
+        connection
+          .prepare("DELETE FROM mcp_attempt_feedback WHERE attempt_id = ?")
+          .run(entry.entity_id);
         return;
       }
       if (entry.entity_kind === "attempt" && entry.activity_type === "codex-listening") {
@@ -3515,6 +3613,12 @@ export class CallNinaRepository {
            WHERE activity_id = ? AND status = 'prepared'`,
         )
         .run(record.occurredAt, record.activityId);
+      captureActivityAttempt(connection, {
+        attemptId: record.attemptId,
+        activityId: record.activityId,
+        occurredAt: record.occurredAt,
+        sourceKind: "listening",
+      });
       return { historyEntryId, replayed: false };
     });
   }

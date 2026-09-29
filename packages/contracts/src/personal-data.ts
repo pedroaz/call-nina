@@ -31,6 +31,8 @@ export const personalDataGroups = {
   ],
   feedback: [
     "attempts",
+    "learning_attempts",
+    "learning_attempt_events",
     "answers",
     "corrections",
     "correction_changes",

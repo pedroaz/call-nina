@@ -1,3 +1,4 @@
+import { historyAttemptEvidence } from "./attempt-evidence.js";
 import {
   parseScopedActivityContext,
   assertLocalLearningScope,
@@ -57,13 +58,16 @@ export function saveCourseEvidence(
   if (!reference || !context.courseTeaching) return;
   const priorResults = connection
     .prepare(
-      `SELECT a.context_json, r.evidence_json FROM course_results r JOIN prepared_activities a ON a.activity_id = r.activity_id WHERE json_extract(a.context_json, '$.learningPath.version') = ? AND json_extract(a.context_json, '$.learningPath.unitId') = ? AND r.occurred_at < ? ORDER BY r.occurred_at DESC LIMIT 2000`,
+      `SELECT a.context_json, r.evidence_json, r.history_entry_id FROM course_results r JOIN prepared_activities a ON a.activity_id = r.activity_id WHERE json_extract(a.context_json, '$.learningPath.version') = ? AND json_extract(a.context_json, '$.learningPath.unitId') = ? AND r.occurred_at < ? ORDER BY r.occurred_at DESC LIMIT 2000`,
     )
     .all(reference.version, reference.unitId, input.occurredAt) as {
     context_json: string;
+    history_entry_id: string;
     evidence_json: string;
   }[];
   const priorIndependent = priorResults.flatMap((row) => {
+    if (historyAttemptEvidence(connection, row.history_entry_id)?.basis !== "independent")
+      return [];
     const previous = parseScopedActivityContext(connection, JSON.parse(row.context_json));
     if (previous.courseTeaching?.mission.variantId === context.courseTeaching?.mission.variantId)
       return [];
@@ -293,13 +297,21 @@ export async function readLearningPathState(database: CallNinaDatabase) {
           preparedAt: a.prepared_at,
           completed: a.status === "completed" && a.result_count === (a.expected_count ?? 1),
           historyEntryIds: results.map((r) => r.history_entry_id),
-          evidence: results.flatMap((r) =>
-            (JSON.parse(r.evidence_json) as CourseEvidence[]).map((e) => ({
+          evidence: results.flatMap((r) => {
+            const attemptEvidence = historyAttemptEvidence(connection, r.history_entry_id);
+            return (JSON.parse(r.evidence_json) as CourseEvidence[]).map((e) => ({
               ...e,
+              // Participation and self-ratings never establish independent proficiency.
+              outcome:
+                ["independent", "transfer"].includes(e.outcome) &&
+                attemptEvidence?.basis !== "independent"
+                  ? "supported"
+                  : e.outcome,
               occurredAt: r.occurred_at,
               historyEntryId: r.history_entry_id,
-            })),
-          ),
+              attemptEvidence,
+            }));
+          }),
         };
       }),
     });

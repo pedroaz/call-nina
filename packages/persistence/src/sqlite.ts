@@ -1,9 +1,13 @@
+import { bindOriginatingDevice } from "./originating-device.js";
 import { DatabaseSync } from "node:sqlite";
 import { lstat, open } from "node:fs/promises";
 
 import type { DataRootGeneration } from "@call-nina/contracts";
 
-import { assertCurrentDataRootLease } from "./bootstrap-pointer.js";
+import {
+  assertCurrentDataRootLease,
+  readOrCreateOriginatingDeviceId,
+} from "./bootstrap-pointer.js";
 import { resolveDataRootLayout } from "./data-root-layout.js";
 
 export const sqliteBusyTimeoutMilliseconds = 2_000;
@@ -264,6 +268,7 @@ async function openDataRootDatabaseInternal(
     ) {
       throw new Error("OD_DATABASE_CONFIGURATION_FAILED");
     }
+    bindOriginatingDevice(connection, await readOrCreateOriginatingDeviceId(options.bootstrapFile));
     const schemaVersion = migrate(connection, options.migrations);
     if (requireCurrentLease) await assertCurrentDataRootLease(options);
     connection.enableDefensive(true);

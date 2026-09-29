@@ -1,3 +1,5 @@
+import { captureExerciseAttempt } from "./attempt-evidence.js";
+import { claimIdempotentWrite } from "./idempotency.js";
 import {
   activityIdSchema,
   historyEntryIdSchema,
@@ -113,6 +115,14 @@ export async function saveWritingAttempt(
   }
 
   await withLeasedTransaction(database, (connection) => {
+    const claim = claimIdempotentWrite(connection, {
+      operation: "attempt-completion",
+      idempotencyKey: record.attemptId,
+      request: record,
+      entityId: record.attemptId,
+      recordedAt: record.completedAt,
+    });
+    if (claim.replayed) return;
     connection
       .prepare(
         `INSERT INTO exercises (
@@ -337,5 +347,6 @@ export async function saveWritingAttempt(
         record.completedAt,
       );
     }
+    captureExerciseAttempt(connection, record.attemptId);
   });
 }

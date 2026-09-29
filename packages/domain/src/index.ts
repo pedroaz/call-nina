@@ -237,3 +237,4 @@ export * from "./learning-path.js";
 export * from "./learning-context.js";
 
 export * from "./language-policy.js";
+export { attemptEvidenceBasis } from "./attempt-evidence.js";
