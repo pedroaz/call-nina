@@ -483,11 +483,11 @@ export function SettingsPage({
                           onChange={(event) => {
                             setProfile(
                               "explanationLanguage",
-                              event.currentTarget.value as "en" | "de",
+                              event.currentTarget.value as "en-US" | "de",
                             );
                           }}
                         >
-                          <option value="en">{t("onboarding.languages.en")}</option>
+                          <option value="en-US">{t("onboarding.languages.en")}</option>
                           <option value="de">{t("onboarding.languages.de")}</option>
                         </select>
                       </FieldGroup>
@@ -497,10 +497,10 @@ export function SettingsPage({
                           aria-label={t("settings.uiLocale")}
                           value={draft.uiLocale}
                           onChange={(event) => {
-                            setProfile("uiLocale", event.currentTarget.value as "en" | "de");
+                            setProfile("uiLocale", event.currentTarget.value as "en-US" | "de");
                           }}
                         >
-                          <option value="en">English</option>
+                          <option value="en-US">English</option>
                           <option value="de">Deutsch</option>
                         </select>
                         <small>{t("settings.localeSeparate")}</small>

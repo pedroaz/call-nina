@@ -1,4 +1,8 @@
-import type { DesktopIpcResponse, GenerationCandidateOutputMap } from "@call-nina/contracts";
+import type {
+  Language,
+  DesktopIpcResponse,
+  GenerationCandidateOutputMap,
+} from "@call-nina/contracts";
 import {
   evaluateExerciseAnswer,
   type ExerciseAnswer,
@@ -39,7 +43,7 @@ function answerFor(definition: ExerciseDefinition, values: readonly string[]): E
   return { kind: definition.kind, text: values[0] ?? "" };
 }
 
-function incompleteSentenceFrame(answer: string, targetLanguage: "de"): string {
+function incompleteSentenceFrame(answer: string, targetLanguage: Language): string {
   const answerWords = answer.match(/[\p{L}\p{N}]+/gu) ?? [];
   const fallbackMaskPosition = Math.max(0, answerWords.length - 1);
   let wordPosition = 0;
@@ -262,7 +266,7 @@ type ExerciseProgress = NonNullable<
 function resumeExerciseProgress(
   exercises: readonly ExerciseDefinition[],
   progress: ExerciseProgress | undefined,
-  targetLanguage: "de",
+  targetLanguage: Language,
 ) {
   const values: Record<number, readonly string[]> = {};
   const feedback: Record<number, ExerciseAiFeedback> = {};
@@ -310,7 +314,7 @@ export function ExerciseEngine({
   onSupportUsed,
   evaluationProgress,
 }: {
-  targetLanguage: "de";
+  targetLanguage: Language;
   exercises: readonly ExerciseDefinition[];
   progress?: ExerciseProgress;
   onNewAttempt?: () => Promise<void>;

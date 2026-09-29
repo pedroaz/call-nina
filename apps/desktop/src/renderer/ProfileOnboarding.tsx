@@ -54,8 +54,8 @@ export function ProfileOnboarding({
     approximateLevel: "a2",
     everydayLifeGoal: "",
     defaultTeachingProfileId: "conversation-partner",
-    explanationLanguage: "en",
-    uiLocale: i18n.resolvedLanguage === "de" ? "de" : "en",
+    explanationLanguage: "en-US",
+    uiLocale: i18n.resolvedLanguage === "de" ? "de" : "en-US",
   });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -160,6 +160,7 @@ export function ProfileOnboarding({
     let current = persisted;
     if (!current) {
       await invokeDesktop("learner-profile/start-onboarding", {
+        targetLanguage: "de",
         ...choices,
         everydayLifeGoal: choices.everydayLifeGoal.trim(),
         expectedGeneration: generation,
@@ -270,12 +271,12 @@ export function ProfileOnboarding({
         <Button
           isDisabled={busy || loading}
           onPress={() => {
-            const locale = choices.uiLocale === "en" ? "de" : "en";
+            const locale = choices.uiLocale === "en-US" ? "de" : "en-US";
             change("uiLocale", locale);
             void i18n.changeLanguage(locale);
           }}
         >
-          {choices.uiLocale === "en" ? "Deutsch" : "English"}
+          {choices.uiLocale === "en-US" ? "Deutsch" : "English"}
         </Button>
       </div>
       <main className={styles.startup}>
@@ -463,12 +464,12 @@ export function ProfileOnboarding({
                       aria-label={t("onboarding.explanationLanguage")}
                       value={choices.explanationLanguage}
                       onChange={(event) => {
-                        change("explanationLanguage", event.currentTarget.value as "en" | "de");
+                        change("explanationLanguage", event.currentTarget.value as "en-US" | "de");
                       }}
                     >
-                      {["en", "de"].map((language) => (
+                      {["en-US", "de"].map((language) => (
                         <option key={language} value={language}>
-                          {t(`onboarding.languages.${language}`)}
+                          {t(`onboarding.languages.${language === "en-US" ? "en" : language}`)}
                         </option>
                       ))}
                     </select>
@@ -479,14 +480,14 @@ export function ProfileOnboarding({
                       aria-label={t("onboarding.interfaceLanguage")}
                       value={choices.uiLocale}
                       onChange={(event) => {
-                        const locale = event.currentTarget.value as "en" | "de";
+                        const locale = event.currentTarget.value as "en-US" | "de";
                         change("uiLocale", locale);
                         void i18n.changeLanguage(locale);
                       }}
                     >
-                      {["en", "de"].map((language) => (
+                      {["en-US", "de"].map((language) => (
                         <option key={language} value={language}>
-                          {t(`onboarding.languages.${language}`)}
+                          {t(`onboarding.languages.${language === "en-US" ? "en" : language}`)}
                         </option>
                       ))}
                     </select>
@@ -509,11 +510,15 @@ export function ProfileOnboarding({
                   <p>{t(`onboarding.profiles.${choices.defaultTeachingProfileId}.title`)}</p>
                   <p>
                     {t("onboarding.explanationLanguage")}:{" "}
-                    {t(`onboarding.languages.${choices.explanationLanguage}`)}
+                    {t(
+                      `onboarding.languages.${choices.explanationLanguage === "en-US" ? "en" : choices.explanationLanguage}`,
+                    )}
                   </p>
                   <p>
                     {t("onboarding.interfaceLanguage")}:{" "}
-                    {t(`onboarding.languages.${choices.uiLocale}`)}
+                    {t(
+                      `onboarding.languages.${choices.uiLocale === "en-US" ? "en" : choices.uiLocale}`,
+                    )}
                   </p>
                   {!connected && (
                     <Button

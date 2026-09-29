@@ -1,5 +1,5 @@
 import { supportedLanguagePolicy } from "./language-policy.js";
-import { strictBoundaryObject, z } from "@call-nina/contracts";
+import { type Language, strictBoundaryObject, z } from "@call-nina/contracts";
 
 import { exerciseAnswerSchema, type ExerciseAnswer } from "./attempt.js";
 import {
@@ -20,7 +20,7 @@ export type ExerciseEvaluation = z.infer<typeof exerciseEvaluationSchema>;
 export function evaluateExerciseAnswer(
   definitionValue: ExerciseDefinition,
   answerValue: ExerciseAnswer,
-  targetLanguage: "de",
+  targetLanguage: Language,
 ): ExerciseEvaluation {
   const policy = supportedLanguagePolicy(targetLanguage);
   const definition = exerciseDefinitionSchema.parse(definitionValue);

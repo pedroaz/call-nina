@@ -3,13 +3,10 @@ import {
   preparedActivitySchema,
   learningScopeSchema,
   type LearningScope,
+  type Language,
 } from "@call-nina/contracts";
-import { supportedCourse } from "@call-nina/domain";
 
-/** One immutable learner/course scope owns all learning tables in a local root.
- * Descendants inherit that scope through their existing parent references.
- * Supporting a second enrollment requires scoped storage, not changing this binding.
- */
+/** The active selection is a preference, never the owner of a referenced record. */
 export function readLocalLearningScope(connection: DatabaseSync): LearningScope | undefined {
   const row = connection
     .prepare(
@@ -22,10 +19,7 @@ export function readLocalLearningScope(connection: DatabaseSync): LearningScope 
       throw new Error("OD_LEARNING_CONTEXT_INVALID");
     return undefined;
   }
-  const scope = learningScopeSchema.parse(row);
-  if (scope.courseId !== supportedCourse.courseId)
-    throw new Error("OD_LEARNING_CONTEXT_UNSUPPORTED");
-  return scope;
+  return learningScopeSchema.parse(row);
 }
 
 export function requireLocalLearningScope(connection: DatabaseSync): LearningScope {
@@ -34,22 +28,52 @@ export function requireLocalLearningScope(connection: DatabaseSync): LearningSco
   return scope;
 }
 
+export function scopeForLanguage(connection: DatabaseSync, language: Language): LearningScope {
+  const row = connection
+    .prepare(
+      `SELECT learner_id AS learnerId, course_id AS courseId,
+    target_language AS targetLanguage FROM language_profiles WHERE target_language = ?`,
+    )
+    .get(language);
+  if (!row) throw new Error("OD_LEARNING_CONTEXT_REQUIRED");
+  return learningScopeSchema.parse(row);
+}
+
 export function assertLocalLearningScope(connection: DatabaseSync, value: LearningScope) {
-  const expected = requireLocalLearningScope(connection);
   const actual = learningScopeSchema.parse({
     learnerId: value.learnerId,
     courseId: value.courseId,
     targetLanguage: value.targetLanguage,
   });
-  if (actual.learnerId !== expected.learnerId || actual.courseId !== expected.courseId)
+  const root = requireLocalLearningScope(connection);
+  if (
+    actual.learnerId !== root.learnerId ||
+    (actual.courseId !== null &&
+      (actual.targetLanguage !== "de" || actual.courseId !== "german-foundations"))
+  )
     throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
 }
 
+export function activityLearningScope(connection: DatabaseSync, activityId: string): LearningScope {
+  const row = connection
+    .prepare("SELECT context_json FROM prepared_activities WHERE activity_id = ?")
+    .get(activityId);
+  if (row)
+    return parseScopedActivityContext(connection, JSON.parse(String(row["context_json"])))
+      .learningScope;
+  const exercise = connection
+    .prepare("SELECT learning_scope_json FROM exercises WHERE activity_id = ? LIMIT 1")
+    .get(activityId);
+  if (!exercise) throw new Error("OD_ACTIVITY_NOT_FOUND");
+  const scope = learningScopeSchema.parse(JSON.parse(String(exercise["learning_scope_json"])));
+  assertLocalLearningScope(connection, scope);
+  return scope;
+}
+
 export function vocabularySearchPolicy(connection: DatabaseSync) {
-  requireLocalLearningScope(connection);
+  const scope = requireLocalLearningScope(connection);
   return {
-    normalize: (value: string) => value.trim().toLocaleLowerCase("de"),
-    // SQLite lower() is ASCII-only. Column names are a closed app-owned union.
+    normalize: (value: string) => value.trim().toLocaleLowerCase(scope.targetLanguage),
     fold: (column: "lemma" | "meaning") =>
       `lower(replace(replace(replace(replace(${column}, 'Ä', 'ä'), 'Ö', 'ö'), 'Ü', 'ü'), 'ẞ', 'ß'))`,
   };
@@ -58,5 +82,38 @@ export function vocabularySearchPolicy(connection: DatabaseSync) {
 export function parseScopedActivityContext(connection: DatabaseSync, value: unknown) {
   const context = preparedActivitySchema.shape.context.parse(value);
   assertLocalLearningScope(connection, context.learningScope);
+  if (
+    context.learningPath &&
+    (context.learningScope.targetLanguage !== "de" ||
+      context.learningScope.courseId !== "german-foundations")
+  )
+    throw new Error("OD_COURSE_UNSUPPORTED");
   return context;
+}
+
+/** Current writes require an initialized owner; the root-only assertion also serves ledger migrations. */
+export function assertRegisteredLearningScope(connection: DatabaseSync, scope: LearningScope) {
+  assertLocalLearningScope(connection, scope);
+  const owner = scopeForLanguage(connection, scope.targetLanguage);
+  if (owner.learnerId !== scope.learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+}
+
+export function assertActivityReferences(
+  connection: DatabaseSync,
+  context: ReturnType<typeof preparedActivitySchema.parse>["context"],
+) {
+  parseScopedActivityContext(connection, context);
+  assertRegisteredLearningScope(connection, context.learningScope);
+  for (const [table, column, ids] of [
+    ["mistakes", "mistake_id", context.mistakeIds],
+    ["vocabulary_entries", "vocabulary_id", context.vocabularyIds],
+  ] as const) {
+    const statement = connection.prepare(
+      `SELECT target_language FROM ${table} WHERE ${column} = ?`,
+    );
+    for (const id of ids) {
+      if (statement.get(id)?.["target_language"] !== context.learningScope.targetLanguage)
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+    }
+  }
 }

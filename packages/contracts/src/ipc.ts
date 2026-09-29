@@ -9,7 +9,7 @@ import { attemptEvidenceSchema, externalAttemptFeedbackSchema } from "./attempt-
 import { materialReferenceSchema, materialSourceSchema } from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
 import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
-import { learningContextSchema, learningScopeSchema } from "./learning-context.js";
+import { languageSchema, learningContextSchema, learningScopeSchema } from "./learning-context.js";
 import { openActivityActionSchema, activityDestinationSchema } from "./activity-action.js";
 import {
   flashcardCreateRequestSchema,
@@ -83,6 +83,7 @@ export const desktopIpcChannels = [
   "learner-profile/finish-onboarding",
   "learner-settings/read",
   "learner-settings/update",
+  "learner-settings/select-language",
   "development-notice/read",
   "development-notice/dismiss",
   "personal-data/read",
@@ -180,11 +181,12 @@ const privacyDisclosureAcknowledgeRequest = request(
 const learnerProfileReadRequest = request("learner-profile/read", emptyPayload);
 const onboardingProfileInputSchema = z.strictObject({
   expectedGeneration: dataRootGenerationSchema,
-  uiLocale: z.enum(["en", "de"]),
+  targetLanguage: languageSchema,
+  uiLocale: languageSchema,
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
   everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
-  explanationLanguage: z.enum(["en", "de"]),
+  explanationLanguage: languageSchema,
   placement: z.strictObject({ status: z.literal("skipped") }),
 });
 const learnerProfileStartOnboardingRequest = request(
@@ -218,11 +220,12 @@ const persistedModelPreferencesSchema = z.strictObject({
   research: modelPreferenceSchema,
 });
 const editableLearnerSettingsSchema = z.strictObject({
+  learningScope: learningScopeSchema,
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
   everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
-  explanationLanguage: z.enum(["en", "de"]),
-  uiLocale: z.enum(["en", "de"]),
+  explanationLanguage: languageSchema,
+  uiLocale: languageSchema,
   correctionPreferences: z.strictObject({
     timing: z.enum(["immediate", "end-of-activity", "adaptive"]),
     coverage: z.enum(["priority-only", "all-meaningful"]),
@@ -231,6 +234,10 @@ const editableLearnerSettingsSchema = z.strictObject({
   }),
   modelPreferences: persistedModelPreferencesSchema,
 });
+const learnerLanguageSelectRequest = request(
+  "learner-settings/select-language",
+  z.strictObject({ expectedGeneration: dataRootGenerationSchema, targetLanguage: languageSchema }),
+);
 const learnerSettingsReadRequest = request("learner-settings/read", emptyPayload);
 const learnerSettingsUpdateRequest = request(
   "learner-settings/update",
@@ -244,6 +251,7 @@ const placementUncertaintySchema = z.discriminatedUnion("level", [
   z.strictObject({ level: z.enum(["some", "substantial"]), explanation: text(800) }),
 ]);
 const placementResultShape = {
+  learningScope: learningScopeSchema,
   schemaVersion: z.literal(1),
   completedOn: calendarDateSchema,
   estimatedLevel: z.null(),
@@ -274,6 +282,7 @@ const placementCompleteRequest = request(
 const codexActivityPrepareRequest = request(
   "codex-activity/prepare",
   z.strictObject({
+    learningScope: learningScopeSchema,
     title: text(160),
     context: voiceActivityContextSchema,
   }),
@@ -288,7 +297,7 @@ const activityReuseRequest = request("activity/reuse", reuseExerciseActionSchema
 const activityResolveRequest = request("activity/resolve", openActivityActionSchema);
 const dashboardReadRequest = request(
   "dashboard/read",
-  z.strictObject({ locale: z.enum(["en", "de"]).optional() }),
+  z.strictObject({ locale: languageSchema.optional() }),
 );
 const learningPathReadRequest = request("learning-path/read", emptyPayload);
 const learningPathUpdateRequest = request("learning-path/update", learningPathUpdateSchema);
@@ -682,6 +691,7 @@ export const desktopIpcRequestSchema = boundaryUnion([
   learnerProfileReadRequest,
   learnerProfileStartOnboardingRequest,
   learnerProfileFinishOnboardingRequest,
+  learnerLanguageSelectRequest,
   learnerSettingsReadRequest,
   learnerSettingsUpdateRequest,
   request("development-notice/read", emptyPayload),
@@ -845,8 +855,8 @@ const learnerProfileSummarySchema = z.strictObject({
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
   everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
-  explanationLanguage: z.enum(["en", "de"]),
-  uiLocale: z.enum(["en", "de"]),
+  explanationLanguage: languageSchema,
+  uiLocale: languageSchema,
   placement: z.strictObject({ status: z.enum(["skipped", "completed"]) }),
   updatedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
 });
@@ -888,6 +898,10 @@ const learnerSettingsProjectionSchema = z.strictObject({
   settings: editableLearnerSettingsSchema,
   updatedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
 });
+const learnerLanguageSelectResponse = response(
+  "learner-settings/select-language",
+  learnerSettingsProjectionSchema,
+);
 const learnerSettingsReadResponse = response(
   "learner-settings/read",
   learnerSettingsProjectionSchema,
@@ -1623,6 +1637,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
   learnerProfileFinishOnboardingResponse,
   placementCompleteResponse,
   codexActivityPrepareResponse,
+  learnerLanguageSelectResponse,
   learnerSettingsReadResponse,
   learnerSettingsUpdateResponse,
   developmentNoticeReadResponse,
@@ -1713,6 +1728,7 @@ export const desktopIpcEventSchema = boundaryUnion([
           modelRequestId: modelRequestIdSchema,
           provenance: generationProvenanceSchema,
           output: generationCandidateOutputSchemas[kind],
+          learningScope: learningScopeSchema.optional(),
           activityId: activityIdSchema.optional(),
         }),
         z.strictObject({ status: z.literal("cancelled") }),

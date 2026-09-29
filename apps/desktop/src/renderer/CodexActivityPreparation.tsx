@@ -1,5 +1,6 @@
 import {
   type ProviderOperation,
+  type LearningScope,
   voiceActivityContextSchema,
   voiceActivityDraftCandidateSchema,
   type ActivityId,
@@ -49,6 +50,7 @@ export function CodexActivityPreparation({
   const [questions, setQuestions] = useState("");
   const [script, setScript] = useState("");
   const [guidance, setGuidance] = useState("");
+  const [learningScope, setLearningScope] = useState<LearningScope>();
   const [hasDraft, setHasDraft] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<CallNinaError>();
@@ -96,7 +98,10 @@ export function CodexActivityPreparation({
         correctionTiming,
         ...(kind === "speaking" ? { speakingPace } : {}),
       });
+      if (result.status !== "validated" || !result.learningScope)
+        throw new Error("OD_LEARNING_CONTEXT_REQUIRED");
       const output = voiceActivityDraftCandidateSchema.parse(result.output);
+      setLearningScope(result.learningScope);
       setScenario(output.scenario);
       setObjectives(output.objectives.join("\n"));
       setQuestions(output.questions.join("\n"));
@@ -110,12 +115,13 @@ export function CodexActivityPreparation({
     }
   };
   const prepare = async () => {
-    if (!valid) return;
+    if (!valid || !learningScope) return;
     onBusyChange(true);
     setPreparing(true);
     setError(undefined);
     try {
       const result = await invokeDesktop("codex-activity/prepare", {
+        learningScope,
         title: scenario.trim().slice(0, 160),
         context: voiceActivityContextSchema.parse(context),
       });

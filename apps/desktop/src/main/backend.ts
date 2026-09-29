@@ -27,6 +27,7 @@ import path from "node:path";
 
 import {
   type GenerationService,
+  type LearningScope,
   type ProviderAccess,
   type ProviderOperation,
   learnerIdSchema,
@@ -470,6 +471,11 @@ export class DesktopBackend {
             modelRequestId: state.modelRequestId,
             provenance: state.provenance,
             output: state.output,
+            learningScope: {
+              learnerId: acceptedOperation.operation.input.learningContext.learnerId,
+              courseId: acceptedOperation.operation.input.learningContext.courseId,
+              targetLanguage: acceptedOperation.operation.input.learningContext.targetLanguage,
+            },
             ...(savedActivityId ? { activityId: savedActivityId } : {}),
           },
         });
@@ -613,6 +619,11 @@ export class DesktopBackend {
     return {
       dataRoot: { generation: dataRoot.generation, displayName: dataRoot.displayName },
       settings: {
+        learningScope: {
+          learnerId: settings.learningContext.learnerId,
+          courseId: settings.learningContext.courseId,
+          targetLanguage: settings.learningContext.targetLanguage,
+        },
         approximateLevel: profile.levelEstimate.currentLevel,
         everydayLifeGoal: profile.everydayLifeGoal,
         defaultTeachingProfileId: profile.defaultTeachingProfileId,
@@ -625,10 +636,10 @@ export class DesktopBackend {
     } as const;
   }
 
-  async #reviewContext() {
+  async #reviewContext(scope: LearningScope) {
     const [relevantMistakes, vocabulary] = await Promise.all([
-      this.#repository?.readCorrectionMistakeSample(6) ?? Promise.resolve([]),
-      this.#repository?.listDueVocabulary(new Date().toISOString().slice(0, 10)) ??
+      this.#repository?.readCorrectionMistakeSample(6, scope) ?? Promise.resolve([]),
+      this.#repository?.listDueVocabulary(new Date().toISOString().slice(0, 10), scope) ??
         Promise.resolve([]),
     ]);
     return {
@@ -651,8 +662,14 @@ export class DesktopBackend {
       submittedAt: utcInstantSchema.parse(new Date().toISOString()),
       answer: input.answer,
     });
+    const activity = await this.#repository.readPreparedActivity(input.activityId);
+    if (!activity) throw new Error("OD_ACTIVITY_NOT_FOUND");
     if (
-      evaluateExerciseAnswer(saved.snapshot.exercise, input.answer, "de").status !== "requires-ai"
+      evaluateExerciseAnswer(
+        saved.snapshot.exercise,
+        input.answer,
+        activity.context.learningScope.targetLanguage,
+      ).status !== "requires-ai"
     )
       throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
     return saved;
@@ -666,6 +683,56 @@ export class DesktopBackend {
         accepted.exerciseFeedback?.activityId === input.activityId &&
         accepted.exerciseFeedback.attemptId === input.attemptId,
     );
+  }
+
+  async #operationLearnerSettings(
+    input: Extract<DesktopIpcRequest, { channel: "learning-operation/start" }>["payload"]["input"],
+    settings: LearnerSettingsRecord,
+  ) {
+    const repository = this.#repository;
+    if (!repository || !this.#database) throw new Error("OD_DATA_ROOT_STALE");
+    if (input.kind === "exercise-feedback") {
+      const activity = await repository.readPreparedActivity(input.activityId);
+      if (!activity) throw new Error("OD_ACTIVITY_NOT_FOUND");
+      return repository.readLearnerSettingsForScope(activity.context.learningScope);
+    }
+    if (input.kind !== "exercise-generation") return settings;
+    assertExerciseGenerationContext(input);
+    const request = input.request;
+    if (request.source === "prepared-activity") {
+      const activity = await (
+        await this.#activities(selectionId())
+      ).readGenerationSource(request.activityId);
+      return repository.readLearnerSettingsForScope(activity.context.learningScope);
+    }
+    if (request.source === "saved-material") {
+      if (request.expectedGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const material = await readMaterialRevision(this.#database, request.material);
+      return repository.readLearnerSettingsForScope({
+        learnerId: settings.learningContext.learnerId,
+        targetLanguage: material.language,
+        // A material revision has no course owner.
+        courseId: null,
+      });
+    }
+    if (request.source === "suggestion") {
+      if (request.suggestion.rootGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const scope = await repository.readSuggestionLearningScope(request.suggestion.context);
+      return scope ? repository.readLearnerSettingsForScope(scope) : settings;
+    }
+    if (request.source === "learning-path") {
+      if (request.expectedGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const course = await readLearningCourse(this.#curriculumRoot);
+      resolveCourseReference(course, request.reference);
+      if (!course) throw new Error("OD_COURSE_UNAVAILABLE");
+      const scope = await repository.requireLearningScope(course.targetLanguage);
+      if (scope.courseId !== course.courseId) throw new Error("OD_COURSE_UNAVAILABLE");
+      return repository.readLearnerSettingsForScope(scope);
+    }
+    return settings;
   }
 
   async #enrichedOperationInput(
@@ -710,21 +777,22 @@ export class DesktopBackend {
           showNaturalAlternative: profile.correctionPreferences.showNaturalAlternative,
         },
         relevantMistakes: this.#repository
-          ? await this.#repository.readCorrectionMistakeSample(6)
+          ? await this.#repository.readCorrectionMistakeSample(6, settings.learningContext)
           : [],
       };
     }
     if (input.kind === "contextual-help") {
       if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
-      await this.#repository.recordCourseHelperSupport(input.intent);
-      let session = this.#helperSessions.get(input.sessionId);
+      await this.#repository.recordCourseHelperSupport(input.intent, settings.learningContext);
+      const helperKey = `${input.sessionId}:${settings.learningContext.targetLanguage}`;
+      let session = this.#helperSessions.get(helperKey);
       if (!session) {
         if (this.#helperSessions.size >= 64) {
           const oldest = this.#helperSessions.keys().next().value;
           if (oldest) this.#helperSessions.delete(oldest);
         }
         session = { activityId: activityIdSchema.parse(opaqueId("activity")), turns: [] };
-        this.#helperSessions.set(input.sessionId, session);
+        this.#helperSessions.set(helperKey, session);
       }
       return {
         kind: input.kind,
@@ -735,7 +803,10 @@ export class DesktopBackend {
         question: input.question,
         ...(input.activeResultSummary ? { activeResultSummary: input.activeResultSummary } : {}),
         calibration,
-        relevantMistakes: await this.#repository.readCorrectionMistakeSample(4),
+        relevantMistakes: await this.#repository.readCorrectionMistakeSample(
+          4,
+          settings.learningContext,
+        ),
         priorTurns: session.turns,
       };
     }
@@ -761,6 +832,7 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...readingContext,
+          learningContext: settings.learningContext,
           exercise: {
             kind: exercise.kind,
             instructions: exercise.instructions,
@@ -775,6 +847,7 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...readingContext,
+          learningContext: settings.learningContext,
           exercise: {
             kind: exercise.kind,
             instructions: exercise.instructions,
@@ -790,6 +863,7 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...readingContext,
+          learningContext: settings.learningContext,
           exercise: {
             kind: exercise.kind,
             instructions: exercise.instructions,
@@ -805,7 +879,10 @@ export class DesktopBackend {
     }
     {
       assertExerciseGenerationContext(input);
-      const reviewContext = { ...(await this.#reviewContext()), entry: input.context };
+      const reviewContext = {
+        ...(await this.#reviewContext(settings.learningContext)),
+        entry: input.context,
+      };
       if (input.request.source === "learning-path") {
         if (
           !this.#repository ||
@@ -820,9 +897,15 @@ export class DesktopBackend {
         );
         if (!["practice", "reading", "writing"].includes(activity.delivery))
           throw new Error("OD_COURSE_ACTIVITY_INVALID");
-        const locale = profile.explanationLanguage;
+        const locale = profile.explanationLanguage === "de" ? "de" : "en";
         if (!course) throw new Error("OD_COURSE_REFERENCE_STALE");
-        const teaching = await prepareCourseTeaching(this.#database, course, reference, locale);
+        const teaching = await prepareCourseTeaching(
+          this.#database,
+          course,
+          reference,
+          locale,
+          settings.learningContext,
+        );
         return {
           kind: input.kind,
           ...reviewContext,
@@ -856,7 +939,10 @@ export class DesktopBackend {
         if (!this.#repository || suggestion.rootGeneration !== this.#database?.rootGeneration) {
           throw new Error("OD_DATA_ROOT_STALE");
         }
-        const selected = await this.#repository.readSuggestionLearningContext(suggestion.context);
+        const selected = await this.#repository.readSuggestionLearningContext(
+          suggestion.context,
+          settings.learningContext,
+        );
         if (suggestion.source === "mistake" && selected.relevantMistakeIds.length === 0) {
           throw new Error("OD_PRACTICE_SUGGESTION_NOT_FOUND");
         }
@@ -874,10 +960,10 @@ export class DesktopBackend {
       if (input.request.source === "mistake-pattern") {
         if (!this.#repository) throw new Error("OD_TARGETED_PRACTICE_UNAVAILABLE");
         const category = input.request.category;
-        const patterns = await this.#repository.listMistakePatterns({
-          mistakeCategory: category.categoryKey,
-          maximum: 50,
-        });
+        const patterns = await this.#repository.listMistakePatterns(
+          { mistakeCategory: category.categoryKey, maximum: 50 },
+          settings.learningContext,
+        );
         const pattern = patterns.find(
           (candidate) => JSON.stringify(candidate.category) === JSON.stringify(category),
         );
@@ -945,6 +1031,8 @@ export class DesktopBackend {
         const prepared = await (
           await this.#activities(selectionId())
         ).readGenerationSource(input.request.activityId);
+        const generated = await this.#repository?.readGeneratedActivity(prepared.activityId);
+        const material = generated?.content.materials[0];
         return {
           kind: input.kind,
           ...reviewContext,
@@ -957,7 +1045,27 @@ export class DesktopBackend {
           curriculumTopicIds: prepared.context.curriculumTopicIds,
           relevantMistakeIds: prepared.context.mistakeIds,
           relevantVocabularyIds: prepared.context.vocabularyIds,
-          ...(prepared.activityType === "reading" ? { reading: { passage: null } } : {}),
+          ...(prepared.context.courseTeaching
+            ? { courseTeaching: prepared.context.courseTeaching }
+            : {}),
+          ...(material
+            ? {
+                materialReference: {
+                  materialId: material.materialId,
+                  revisionId: material.revisionId,
+                },
+                material: {
+                  kind: material.kind,
+                  title: material.title,
+                  language: material.language,
+                  text: material.text,
+                  ...(material.source ? { source: material.source } : {}),
+                },
+              }
+            : {}),
+          ...(prepared.activityType === "reading" || material?.kind === "pasted-text"
+            ? { reading: { passage: material?.kind === "pasted-text" ? material.text : null } }
+            : {}),
         };
       }
       return {
@@ -1504,6 +1612,7 @@ export class DesktopBackend {
         }
         const timestamp = utcInstantSchema.parse(new Date().toISOString());
         const profile = createInitialLearnerProfile({
+          targetLanguage: request.payload.targetLanguage,
           schemaVersion: 1,
           learnerId,
           levelEstimate: {
@@ -1620,6 +1729,22 @@ export class DesktopBackend {
         await this.#repository.dismissDevelopmentNotice();
         return this.#success(request, { dismissed: true });
       }
+      if (request.channel === "learner-settings/select-language") {
+        const dataRoot = await this.#dataRootState(request.requestId);
+        if (
+          dataRoot.status !== "ready" ||
+          dataRoot.generation !== request.payload.expectedGeneration ||
+          !this.#repository
+        )
+          return this.#failure(request, "stale-data-root");
+        const settings = await this.#repository.selectLearningLanguage(
+          request.payload.targetLanguage,
+        );
+        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+        return this.#success(request, this.#settingsProjection(settings, dataRoot));
+      }
       if (request.channel === "learner-settings/read") {
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
@@ -1634,10 +1759,16 @@ export class DesktopBackend {
         if (!current) return this.#failure(request, "not-found");
         const timestamp = freshTimestampAfter(current.profile.updatedAt);
         const editable = request.payload.settings;
+        if (
+          editable.learningScope.learnerId !== current.profile.learnerId ||
+          editable.learningScope.targetLanguage !== current.profile.targetLanguage
+        )
+          return this.#failure(request, "conflict");
         const levelChanged =
           editable.approximateLevel !== current.profile.levelEstimate.currentLevel;
         const next: LearnerSettingsRecord = {
           ...current,
+          learningContext: { ...current.learningContext, ...editable.learningScope },
           profile: {
             ...current.profile,
             levelEstimate: levelChanged
@@ -1790,9 +1921,13 @@ export class DesktopBackend {
         const root = await this.#dataRootState(request.requestId);
         if (root.status !== "ready" || !this.#repository || !this.#database)
           return this.#failure(request, "stale-data-root");
-        const course = await readLearningCourse(this.#curriculumRoot);
         const learningContext = await this.#repository.requireLearningContext();
-        const explanationLanguage = learningContext.explanationLanguage;
+        const course =
+          learningContext.targetLanguage === "de" &&
+          learningContext.courseId === "german-foundations"
+            ? await readLearningCourse(this.#curriculumRoot)
+            : null;
+        const explanationLanguage = learningContext.explanationLanguage === "de" ? "de" : "en";
         if (request.channel === "learning-path/read")
           return this.#success(request, {
             rootGeneration: root.generation,
@@ -1993,6 +2128,7 @@ export class DesktopBackend {
         );
         const candidates = records.slice(0, 50).map(vocabularyCandidateFromRecord);
         const requestValue = {
+          learningScope: await this.#repository.requireLearningScope(),
           requestedFrom: "desktop" as const,
           title: request.payload.title,
           naturalRequest: request.payload.naturalRequest,
@@ -2226,7 +2362,6 @@ export class DesktopBackend {
           }),
           this.#repository.readHistorySkillTotals(),
         ]);
-        const learningContext = await this.#repository.requireLearningContext();
         return this.#success(request, {
           rootGeneration: dataRoot.generation,
           mistakePatterns,
@@ -2258,7 +2393,7 @@ export class DesktopBackend {
                       acceptedAnswerReveal: evaluateExerciseAnswer(
                         entry.detail.snapshot.exercise,
                         entry.detail.answer,
-                        learningContext.targetLanguage,
+                        entry.targetLanguage,
                       ).acceptedAnswerReveal,
                       suggestedAnswer: entry.detail.suggestedAnswer,
                     }
@@ -2482,8 +2617,8 @@ export class DesktopBackend {
         if (!this.#makeOperationRoom()) {
           return this.#failure(request, "conflict");
         }
-        const learnerSettings = await this.#readActiveLearnerSettings();
-        if (!learnerSettings) {
+        const activeSettings = await this.#readActiveLearnerSettings();
+        if (!activeSettings) {
           return this.#operationRequestFailure(
             request,
             "not-found",
@@ -2491,6 +2626,10 @@ export class DesktopBackend {
             "learner-settings-missing",
           );
         }
+        const learnerSettings = await this.#operationLearnerSettings(
+          request.payload.input,
+          activeSettings,
+        );
         const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (!access.modelSelection || !this.#generation)
@@ -2506,12 +2645,12 @@ export class DesktopBackend {
             effort: { selection: "exact", effortId: access.modelSelection.effortId },
           },
           input: {
+            learningContext: learnerSettings.learningContext,
             ...(await this.#enrichedOperationInput(
               request.payload.input,
               learnerSettings,
               savedFeedback?.snapshot,
             )),
-            learningContext: learnerSettings.learningContext,
           },
         });
         this.#operationsBySubmission.set(request.payload.submissionId, {
@@ -2521,7 +2660,9 @@ export class DesktopBackend {
           operation,
           startedAt: utcInstantSchema.parse(new Date().toISOString()),
           ...(request.payload.input.kind === "contextual-help"
-            ? { helperSessionId: request.payload.input.sessionId }
+            ? {
+                helperSessionId: `${request.payload.input.sessionId}:${learnerSettings.learningContext.targetLanguage}`,
+              }
             : {}),
           ...(request.payload.input.kind === "exercise-feedback"
             ? {

@@ -1,5 +1,6 @@
 import {
   activityIdSchema,
+  learningScopeSchema,
   courseEvidenceSchema,
   strictBoundaryObject,
   utcInstantSchema,
@@ -59,6 +60,7 @@ export const voiceNextStepSchema = z.strictObject({
 
 export const voiceSummarySchema = strictBoundaryObject({
   schemaVersion: z.literal(1),
+  learningScope: learningScopeSchema,
   activity: z
     .strictObject({
       activityId: activityIdSchema,

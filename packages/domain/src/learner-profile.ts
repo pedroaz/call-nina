@@ -1,5 +1,7 @@
 import {
   explanationLanguageSchema,
+  interfaceLanguageSchema,
+  targetLanguageSchema,
   calendarDateSchema,
   curriculumTopicIdSchema,
   learnerIdSchema,
@@ -11,14 +13,14 @@ import {
 export const cefrBands = ["a1", "a2", "b1", "b2"] as const;
 export const cefrBandSchema = z.enum(cefrBands);
 export const levelBasisSchema = z.enum(["self-reported", "diagnostic", "inferred"]);
-export const uiLocaleSchema = z.enum(["en", "de"]);
+export const uiLocaleSchema = interfaceLanguageSchema;
 export { explanationLanguageSchema } from "@call-nina/contracts";
 export const defaultTeachingProfileIdSchema = z.enum(["conversation-partner", "strict-corrector"]);
 export const onboardingStateSchema = z.enum(["not-started", "in-progress", "complete"]);
 export const correctionTimingSchema = z.enum(["immediate", "end-of-activity", "adaptive"]);
 export const correctionCoverageSchema = z.enum(["priority-only", "all-meaningful"]);
 
-export const defaultUiLocale = "en" as const;
+export const defaultUiLocale = "en-US" as const;
 
 const sharedLevelShape = {
   currentLevel: cefrBandSchema,
@@ -64,6 +66,7 @@ export const profileInsightSchema = z.strictObject({
 export const learnerProfileSchema = strictBoundaryObject({
   schemaVersion: z.literal(1),
   learnerId: learnerIdSchema,
+  targetLanguage: targetLanguageSchema,
   levelEstimate: levelEstimateSchema,
   everydayLifeGoal: z.string().trim().min(1).max(500),
   motivation: z.string().trim().min(1).max(500),

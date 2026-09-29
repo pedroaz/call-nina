@@ -11,7 +11,12 @@ export const supportedCourse = { courseId: "german-foundations", targetLanguage:
 export function resolveLearningContext(scopeValue: LearningScope, profileValue: LearnerProfile) {
   const scope = learningScopeSchema.parse(scopeValue);
   const profile = learnerProfileSchema.parse(profileValue);
-  if (scope.learnerId !== profile.learnerId || scope.courseId !== supportedCourse.courseId)
+  if (
+    scope.learnerId !== profile.learnerId ||
+    scope.targetLanguage !== profile.targetLanguage ||
+    (scope.courseId !== null &&
+      (scope.courseId !== supportedCourse.courseId || scope.targetLanguage !== "de"))
+  )
     throw new Error("OD_LEARNING_CONTEXT_UNSUPPORTED");
   return learningContextSchema.parse({
     ...scope,
@@ -30,7 +35,11 @@ export function resolveLearningContext(scopeValue: LearningScope, profileValue: 
 /** Product policy for the only packaged course, separate from generic wire validation. */
 export function parseSupportedLearningCourse(value: unknown) {
   const course = learningCourseSchema.parse(value);
-  if (course.courseId !== supportedCourse.courseId) throw new Error("OD_COURSE_UNSUPPORTED");
+  if (
+    course.courseId !== supportedCourse.courseId ||
+    course.targetLanguage !== supportedCourse.targetLanguage
+  )
+    throw new Error("OD_COURSE_UNSUPPORTED");
   if (
     course.units.length !== 15 ||
     course.units.filter((unit) => unit.kind === "launchpad").length !== 1 ||

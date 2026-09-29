@@ -13,16 +13,18 @@ import {
 } from "./content.js";
 import {
   vocabularySearchPolicy,
+  activityLearningScope,
+  scopeForLanguage,
   readLocalLearningScope,
   requireLocalLearningScope,
   parseScopedActivityContext,
-  assertLocalLearningScope,
+  assertRegisteredLearningScope as assertLocalLearningScope,
+  assertActivityReferences,
 } from "./learning-context.js";
 import {
   resolveLearningContext,
   assertSharedExerciseActivity,
   sameExerciseCourse,
-  supportedCourse,
   validateCourseEvidence,
   aiProvenanceSchema,
   attemptFeedbackSchema,
@@ -44,7 +46,6 @@ import {
   voiceSummarySchema,
   startedExerciseSnapshotSchema,
   type MistakeCategory,
-  type LearnerProfile,
   type ModelPreferences,
   type VocabularyEntry,
   type VoiceSummary,
@@ -58,6 +59,9 @@ import {
   generationProvenanceSchema,
   reuseExerciseActionSchema,
   type ActivityAction,
+  type Language,
+  type LearningScope,
+  languageSchema,
   learningContextSchema,
   learningGoalSchema,
   portableExerciseContentSchema,
@@ -84,7 +88,7 @@ import {
   exerciseFeedbackCandidateSchema,
   historyEntryIdSchema,
   listeningResultSchema,
-  learnerIdSchema,
+  learningScopeSchema,
   mistakeIdSchema,
   modelRequestIdSchema,
   placementResultSchema,
@@ -178,6 +182,7 @@ const mistakePatternFilterSchema = z.strictObject({
 export type PreparedActivityRecord = z.infer<typeof preparedActivitySchema>;
 export type HistoryFilter = z.input<typeof historyFilterSchema>;
 export type HistoryEntryRecord = Readonly<{
+  targetLanguage: Language;
   historyEntryId: string;
   evidence: AttemptEvidence | null;
   entityKind: "attempt" | "correction" | "vocabulary-review" | "voice-summary" | "placement";
@@ -402,7 +407,7 @@ function readGeneratedExerciseAttempt(
       evaluateExerciseAnswer(
         snapshot.exercise,
         answer,
-        requireLocalLearningScope(connection).targetLanguage,
+        activityLearningScope(connection, activityId).targetLanguage,
       ).status !== "requires-ai" ||
       feedback.output.objectiveEvaluations.length !== snapshot.exercise.objectives.length)
   )
@@ -537,21 +542,23 @@ function insertActivityVocabularyCandidates(
   createdAt: string,
 ): void {
   const insert = connection.prepare(
-    `INSERT INTO vocabulary_entries (
+    `INSERT INTO vocabulary_entries (target_language,
       vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json,
       created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const entryValue of entries) {
     const entry = vocabularyEntrySchema.parse(entryValue);
     if (
       entry.state.status !== "candidate" ||
       entry.source.kind !== "activity" ||
-      entry.source.activityId !== activityId
+      entry.source.activityId !== activityId ||
+      entry.targetLanguage !== activityLearningScope(connection, activityId).targetLanguage
     ) {
       throw new Error("OD_GENERATED_PRACTICE_VOCABULARY_INVALID");
     }
     insert.run(
+      entry.targetLanguage,
       entry.vocabularyId,
       entry.lemma,
       entry.meaning,
@@ -570,12 +577,6 @@ function parseJson(value: unknown, maximumBytes?: number): unknown {
     throw new Error("OD_REPOSITORY_JSON_TOO_LARGE");
   }
   return JSON.parse(serialized) as unknown;
-}
-
-function booleanFromSqlite(value: unknown): boolean {
-  if (value === 0) return false;
-  if (value === 1) return true;
-  throw new Error("OD_LEARNER_SETTINGS_INVALID");
 }
 
 function modelPreferenceColumns(preference: ModelPreferences[(typeof modelWorkloads)[number]]) {
@@ -624,12 +625,11 @@ function writeModelPreferences(
 function readLearnerSettingsFromConnection(
   connection: DatabaseSync,
   learnerId: string,
+  requestedScope?: LearningScope,
 ): LearnerSettingsRecord | undefined {
   const row = connection
     .prepare(
-      `SELECT p.*, s.ui_locale, s.explanation_language, s.teaching_profile_id,
-        s.correction_timing, s.correction_coverage, s.show_concise_explanation,
-        s.show_natural_alternative
+      `SELECT p.*, s.ui_locale
        FROM learner_profiles p
        JOIN learner_settings s ON s.learner_id = p.learner_id
        WHERE p.learner_id = ?`,
@@ -637,60 +637,17 @@ function readLearnerSettingsFromConnection(
     .get(learnerId) as Record<string, unknown> | undefined;
   if (!row) return undefined;
 
-  const strings = (table: "learner_interests" | "learner_preferred_topics") =>
-    connection
-      .prepare(`SELECT value FROM ${table} WHERE learner_id = ? ORDER BY position`)
-      .all(learnerId)
-      .map((entry) => String(entry["value"]));
-  const insights = (group: "strength" | "weakness") =>
-    connection
-      .prepare(
-        `SELECT curriculum_topic_id, label, note, confidence, source, learner_edited, updated_at
-         FROM learner_profile_insights
-         WHERE learner_id = ? AND insight_group = ? ORDER BY position`,
-      )
-      .all(learnerId, group)
-      .map((entry) => ({
-        ...(entry["curriculum_topic_id"] === null ? {} : { topicId: entry["curriculum_topic_id"] }),
-        label: entry["label"],
-        ...(entry["note"] === null ? {} : { note: entry["note"] }),
-        confidence: entry["confidence"],
-        source: entry["source"],
-        learnerEdited: booleanFromSqlite(entry["learner_edited"]),
-        updatedAt: entry["updated_at"],
-      }));
-
-  const levelEstimate = {
-    currentLevel: row["current_level"],
-    targetLevel: row["target_level"],
-    basis: row["level_basis"],
-    ...(row["optional_diagnostic_completed_on"] === null
-      ? {}
-      : { optionalDiagnosticCompletedOn: row["optional_diagnostic_completed_on"] }),
-    updatedAt: row["level_updated_at"],
-  };
+  const scope = requestedScope ?? requireLocalLearningScope(connection);
+  assertLocalLearningScope(connection, scope);
+  const languageRow = connection
+    .prepare(
+      "SELECT profile_json FROM language_profiles WHERE target_language = ? AND learner_id = ?",
+    )
+    .get(scope.targetLanguage, learnerId);
+  if (!languageRow) throw new Error("OD_LEARNING_CONTEXT_INVALID");
   const profile = learnerProfileSchema.parse({
-    schemaVersion: row["schema_version"],
-    learnerId: row["learner_id"],
-    levelEstimate,
-    everydayLifeGoal: row["everyday_life_goal"],
-    motivation: row["motivation"],
-    interests: strings("learner_interests"),
-    preferredTopics: strings("learner_preferred_topics"),
-    correctionPreferences: {
-      timing: row["correction_timing"],
-      coverage: row["correction_coverage"],
-      showConciseExplanation: booleanFromSqlite(row["show_concise_explanation"]),
-      showNaturalAlternative: booleanFromSqlite(row["show_natural_alternative"]),
-    },
-    onboardingState: row["onboarding_state"],
-    inferredStrengths: insights("strength"),
-    inferredWeaknesses: insights("weakness"),
+    ...learnerProfileSchema.parse(parseJson(languageRow["profile_json"])),
     uiLocale: row["ui_locale"],
-    explanationLanguage: row["explanation_language"],
-    defaultTeachingProfileId: row["teaching_profile_id"],
-    createdAt: row["created_at"],
-    updatedAt: row["updated_at"],
   });
 
   const preferenceRows = connection
@@ -726,53 +683,12 @@ function readLearnerSettingsFromConnection(
     routeId: preferenceRows[0]?.["route_id"],
     ...Object.fromEntries(preferenceEntries),
   });
-  const scope = requireLocalLearningScope(connection);
   if (scope.learnerId !== learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
   return learnerSettingsRecordSchema.parse({
     profile,
     modelPreferences,
     learningContext: resolveLearningContext(scope, profile),
   });
-}
-
-function insertOrderedStrings(
-  connection: DatabaseSync,
-  table: "learner_interests" | "learner_preferred_topics",
-  learnerId: string,
-  values: readonly string[],
-) {
-  const statement = connection.prepare(
-    `INSERT INTO ${table} (learner_id, position, value) VALUES (?, ?, ?)`,
-  );
-  for (const [position, value] of values.entries()) statement.run(learnerId, position, value);
-}
-
-function insertInsights(
-  connection: DatabaseSync,
-  learnerId: string,
-  group: "strength" | "weakness",
-  values: LearnerProfile["inferredStrengths"],
-) {
-  const statement = connection.prepare(
-    `INSERT INTO learner_profile_insights (
-      learner_id, insight_group, position, curriculum_topic_id, label, note,
-      confidence, source, learner_edited, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  );
-  for (const [position, insight] of values.entries()) {
-    statement.run(
-      learnerId,
-      group,
-      position,
-      insight.topicId ?? null,
-      insight.label,
-      insight.note ?? null,
-      insight.confidence,
-      insight.source,
-      insight.learnerEdited ? 1 : 0,
-      insight.updatedAt,
-    );
-  }
 }
 
 export class CallNinaRepository {
@@ -786,7 +702,9 @@ export class CallNinaRepository {
     const limit = z.int().min(1).max(20).parse(maximum);
     return withLeasedConnection(this.#database, (connection) =>
       connection
-        .prepare("SELECT attempt_id FROM learning_attempts ORDER BY rowid DESC LIMIT ?")
+        .prepare(
+          "SELECT attempt_id FROM learning_attempts WHERE json_extract(ownership_json, '$.learningScope.targetLanguage') = (SELECT target_language FROM local_learning_scope WHERE singleton = 1) ORDER BY rowid DESC LIMIT ?",
+        )
         .all(limit)
         .map((row) => {
           const evidence = readAttemptEvidence(connection, String(row["attempt_id"]));
@@ -796,8 +714,14 @@ export class CallNinaRepository {
     );
   }
 
-  async requireLearningScope() {
-    return withLeasedConnection(this.#database, requireLocalLearningScope);
+  async requireLearningScope(language?: Language) {
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = language
+        ? scopeForLanguage(connection, languageSchema.parse(language))
+        : requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
+      return scope;
+    });
   }
 
   async requireLearningContext() {
@@ -855,6 +779,15 @@ export class CallNinaRepository {
     });
   }
 
+  async readLearnerSettingsForScope(scope: LearningScope) {
+    return withLeasedConnection(this.#database, (connection) => {
+      assertLocalLearningScope(connection, scope);
+      const settings = readLearnerSettingsFromConnection(connection, scope.learnerId, scope);
+      if (!settings) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
+      return settings;
+    });
+  }
+
   async createLearnerSettings(
     settingsValue: z.infer<typeof learnerSettingsInputSchema>,
   ): Promise<LearnerSettingsRecord> {
@@ -862,55 +795,11 @@ export class CallNinaRepository {
     const profile = settings.profile;
     return withLeasedTransaction(this.#database, (connection) => {
       connection
-        .prepare(
-          `INSERT INTO learner_profiles (
-            learner_id, schema_version, current_level, target_level, level_basis,
-            optional_diagnostic_completed_on, level_updated_at, everyday_life_goal,
-            motivation, onboarding_state, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .run(
-          profile.learnerId,
-          profile.schemaVersion,
-          profile.levelEstimate.currentLevel,
-          profile.levelEstimate.targetLevel,
-          profile.levelEstimate.basis,
-          profile.levelEstimate.optionalDiagnosticCompletedOn ?? null,
-          profile.levelEstimate.updatedAt,
-          profile.everydayLifeGoal,
-          profile.motivation,
-          profile.onboardingState,
-          profile.createdAt,
-          profile.updatedAt,
-        );
+        .prepare("INSERT INTO learner_profiles(learner_id, created_at) VALUES (?, ?)")
+        .run(profile.learnerId, profile.createdAt);
       connection
-        .prepare(
-          `INSERT INTO learner_settings (
-            learner_id, ui_locale, explanation_language, teaching_profile_id,
-            correction_timing, correction_coverage, show_concise_explanation,
-            show_natural_alternative, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .run(
-          profile.learnerId,
-          profile.uiLocale,
-          profile.explanationLanguage,
-          profile.defaultTeachingProfileId,
-          profile.correctionPreferences.timing,
-          profile.correctionPreferences.coverage,
-          profile.correctionPreferences.showConciseExplanation ? 1 : 0,
-          profile.correctionPreferences.showNaturalAlternative ? 1 : 0,
-          profile.updatedAt,
-        );
-      insertOrderedStrings(connection, "learner_interests", profile.learnerId, profile.interests);
-      insertOrderedStrings(
-        connection,
-        "learner_preferred_topics",
-        profile.learnerId,
-        profile.preferredTopics,
-      );
-      insertInsights(connection, profile.learnerId, "strength", profile.inferredStrengths);
-      insertInsights(connection, profile.learnerId, "weakness", profile.inferredWeaknesses);
+        .prepare("INSERT INTO learner_settings(learner_id, ui_locale, updated_at) VALUES (?, ?, ?)")
+        .run(profile.learnerId, profile.uiLocale, profile.updatedAt);
       writeModelPreferences(
         connection,
         profile.learnerId,
@@ -922,10 +811,58 @@ export class CallNinaRepository {
           `INSERT INTO local_learning_scope
         (singleton, learner_id, course_id, target_language) VALUES (1, ?, ?, ?)`,
         )
-        .run(profile.learnerId, supportedCourse.courseId, supportedCourse.targetLanguage);
+        .run(profile.learnerId, null, profile.targetLanguage);
+      connection
+        .prepare(
+          "INSERT INTO language_profiles(target_language, learner_id, course_id, profile_json) VALUES (?, ?, ?, ?)",
+        )
+        .run(profile.targetLanguage, profile.learnerId, null, stringifyBounded(profile));
       const stored = readLearnerSettingsFromConnection(connection, profile.learnerId);
       if (!stored) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
       return stored;
+    });
+  }
+
+  async selectLearningLanguage(languageValue: Language): Promise<LearnerSettingsRecord> {
+    const language = languageSchema.parse(languageValue);
+    return withLeasedTransaction(this.#database, (connection) => {
+      const current = requireLocalLearningScope(connection);
+      const settings = readLearnerSettingsFromConnection(connection, current.learnerId);
+      if (!settings) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
+      const now = new Date().toISOString();
+      const profile = learnerProfileSchema.parse({
+        ...settings.profile,
+        targetLanguage: language,
+        levelEstimate: {
+          currentLevel: "a1",
+          targetLevel: "a1",
+          basis: "self-reported",
+          updatedAt: now,
+        },
+        everydayLifeGoal: "Everyday communication",
+        motivation: "Everyday communication",
+        interests: [],
+        preferredTopics: [],
+        inferredStrengths: [],
+        inferredWeaknesses: [],
+        createdAt: now,
+        updatedAt: now,
+      });
+      if (current.learnerId !== profile.learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      connection
+        .prepare(
+          "INSERT OR IGNORE INTO language_profiles(target_language, learner_id, course_id, profile_json) VALUES (?, ?, NULL, ?)",
+        )
+        .run(profile.targetLanguage, profile.learnerId, stringifyBounded(profile));
+      connection
+        .prepare(
+          `UPDATE local_learning_scope SET target_language = ?, course_id =
+        (SELECT course_id FROM language_profiles WHERE target_language = ?) WHERE singleton = 1`,
+        )
+        .run(profile.targetLanguage, profile.targetLanguage);
+      const selected = readLearnerSettingsFromConnection(connection, profile.learnerId);
+      if (!selected) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
+      return selected;
     });
   }
 
@@ -937,67 +874,31 @@ export class CallNinaRepository {
     }
     return withLeasedTransaction(this.#database, (connection) => {
       assertLocalLearningScope(connection, update.settings.learningContext);
-      if (profile.learnerId !== update.settings.learningContext.learnerId)
+      if (
+        profile.learnerId !== update.settings.learningContext.learnerId ||
+        profile.targetLanguage !== update.settings.learningContext.targetLanguage
+      )
         throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
       const result = connection
         .prepare(
-          `UPDATE learner_profiles SET
-            current_level = ?, target_level = ?, level_basis = ?,
-            optional_diagnostic_completed_on = ?, level_updated_at = ?,
-            everyday_life_goal = ?, motivation = ?,
-            onboarding_state = ?, updated_at = ?
-           WHERE learner_id = ? AND created_at = ? AND updated_at = ?`,
+          `UPDATE language_profiles SET profile_json = ?, course_id = ?
+        WHERE target_language = ? AND learner_id = ? AND json_extract(profile_json, '$.createdAt') = ? AND json_extract(profile_json, '$.updatedAt') = ?`,
         )
         .run(
-          profile.levelEstimate.currentLevel,
-          profile.levelEstimate.targetLevel,
-          profile.levelEstimate.basis,
-          profile.levelEstimate.optionalDiagnosticCompletedOn ?? null,
-          profile.levelEstimate.updatedAt,
-          profile.everydayLifeGoal,
-          profile.motivation,
-          profile.onboardingState,
-          profile.updatedAt,
+          stringifyBounded(profile),
+          update.settings.learningContext.courseId,
+          profile.targetLanguage,
           profile.learnerId,
           profile.createdAt,
           update.expectedUpdatedAt,
         );
       if (result.changes !== 1) throw new Error("OD_LEARNER_SETTINGS_CONFLICT");
-      const settingsResult = connection
-        .prepare(
-          `UPDATE learner_settings SET ui_locale = ?, explanation_language = ?,
-            teaching_profile_id = ?, correction_timing = ?, correction_coverage = ?,
-            show_concise_explanation = ?, show_natural_alternative = ?, updated_at = ?
-           WHERE learner_id = ?`,
-        )
-        .run(
-          profile.uiLocale,
-          profile.explanationLanguage,
-          profile.defaultTeachingProfileId,
-          profile.correctionPreferences.timing,
-          profile.correctionPreferences.coverage,
-          profile.correctionPreferences.showConciseExplanation ? 1 : 0,
-          profile.correctionPreferences.showNaturalAlternative ? 1 : 0,
-          profile.updatedAt,
-          profile.learnerId,
-        );
-      if (settingsResult.changes !== 1) throw new Error("OD_LEARNER_SETTINGS_CONFLICT");
-      for (const table of [
-        "learner_interests",
-        "learner_preferred_topics",
-        "learner_profile_insights",
-      ] as const) {
-        connection.prepare(`DELETE FROM ${table} WHERE learner_id = ?`).run(profile.learnerId);
-      }
-      insertOrderedStrings(connection, "learner_interests", profile.learnerId, profile.interests);
-      insertOrderedStrings(
-        connection,
-        "learner_preferred_topics",
-        profile.learnerId,
-        profile.preferredTopics,
-      );
-      insertInsights(connection, profile.learnerId, "strength", profile.inferredStrengths);
-      insertInsights(connection, profile.learnerId, "weakness", profile.inferredWeaknesses);
+      connection
+        .prepare("UPDATE learner_settings SET ui_locale = ?, updated_at = ? WHERE learner_id = ?")
+        .run(profile.uiLocale, profile.updatedAt, profile.learnerId);
+      connection
+        .prepare("UPDATE local_learning_scope SET course_id = ? WHERE target_language = ?")
+        .run(update.settings.learningContext.courseId, profile.targetLanguage);
       writeModelPreferences(
         connection,
         profile.learnerId,
@@ -1027,14 +928,16 @@ export class CallNinaRepository {
         recordedAt: createdAt,
       });
       if (claim.replayed) return claim;
+      scopeForLanguage(connection, entry.targetLanguage);
       connection
         .prepare(
-          `INSERT INTO vocabulary_entries (
+          `INSERT INTO vocabulary_entries (target_language,
             vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json,
             created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
+          entry.targetLanguage,
           entry.vocabularyId,
           entry.lemma,
           entry.meaning,
@@ -1062,11 +965,13 @@ export class CallNinaRepository {
     if (entries.length === 0) throw new Error("OD_VOCABULARY_LESSON_SET_EMPTY");
     if (
       new Set(entries.map(({ vocabularyId }) => vocabularyId)).size !== entries.length ||
-      entries.some(({ state }) => state.status !== "candidate")
+      entries.some(({ state }) => state.status !== "candidate") ||
+      entries.some((entry) => entry.targetLanguage !== request.learningScope.targetLanguage)
     ) {
       throw new Error("OD_VOCABULARY_LESSON_SET_ENTRIES_INVALID");
     }
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, request.learningScope);
       const claim = claimIdempotentWrite(connection, {
         operation: "vocabulary-candidate",
         idempotencyKey,
@@ -1077,11 +982,12 @@ export class CallNinaRepository {
       if (claim.replayed) return claim;
       connection
         .prepare(
-          `INSERT INTO vocabulary_lesson_sets (
+          `INSERT INTO vocabulary_lesson_sets (target_language,
             set_id, title, requested_from, natural_request, source_json, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
+          request.learningScope.targetLanguage,
           setId,
           request.title,
           request.requestedFrom,
@@ -1095,10 +1001,10 @@ export class CallNinaRepository {
           createdAt,
         );
       const insertEntry = connection.prepare(
-        `INSERT INTO vocabulary_entries (
+        `INSERT INTO vocabulary_entries (target_language,
           vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       );
       const insertItem = connection.prepare(
         `INSERT INTO vocabulary_lesson_set_items (set_id, position, vocabulary_id)
@@ -1110,6 +1016,7 @@ export class CallNinaRepository {
           .get(entry.vocabularyId) as Record<string, unknown> | undefined;
         if (existing === undefined) {
           insertEntry.run(
+            entry.targetLanguage,
             entry.vocabularyId,
             entry.lemma,
             entry.meaning,
@@ -1137,7 +1044,7 @@ export class CallNinaRepository {
       const sets = connection
         .prepare(
           `SELECT set_id, title, requested_from, natural_request, source_json, created_at
-           FROM vocabulary_lesson_sets ORDER BY created_at DESC, set_id LIMIT 50`,
+           FROM (SELECT * FROM vocabulary_lesson_sets WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) ORDER BY created_at DESC, set_id LIMIT 50`,
         )
         .all() as Record<string, unknown>[];
       return Object.freeze(
@@ -1374,7 +1281,9 @@ export class CallNinaRepository {
         .nonnegative()
         .parse(
           connection
-            .prepare(`SELECT COUNT(*) AS count FROM vocabulary_entries WHERE ${where}`)
+            .prepare(
+              `SELECT COUNT(*) AS count FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE ${where}`,
+            )
             .get(...parameters)?.["count"],
         );
       const page = Math.min(filter.page, Math.max(0, Math.ceil(total / 30) - 1));
@@ -1385,7 +1294,7 @@ export class CallNinaRepository {
       const entries = connection
         .prepare(
           `SELECT vocabulary_id, lemma, meaning, status, due_on, revision, updated_at
-         FROM vocabulary_entries WHERE ${where} ORDER BY ${order} LIMIT 30 OFFSET ?`,
+         FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE ${where} ORDER BY ${order} LIMIT 30 OFFSET ?`,
         )
         .all(...parameters, page * 30)
         .map((row) =>
@@ -1407,7 +1316,7 @@ export class CallNinaRepository {
         COUNT(CASE WHEN status = 'active' THEN 1 END) AS active,
         COUNT(CASE WHEN status = 'suspended' THEN 1 END) AS suspended,
         COUNT(CASE WHEN status = 'active' AND due_on <= ? THEN 1 END) AS due
-        FROM vocabulary_entries`,
+        FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1))`,
           )
           .get(today),
       );
@@ -1455,7 +1364,7 @@ export class CallNinaRepository {
     return withLeasedConnection(this.#database, (connection) =>
       connection
         .prepare(
-          "SELECT * FROM vocabulary_entries WHERE status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT 20",
+          "SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT 20",
         )
         .all(today)
         .map(vocabularyRecordFromRow),
@@ -1503,11 +1412,13 @@ export class CallNinaRepository {
       const rows = status
         ? connection
             .prepare(
-              `SELECT * FROM vocabulary_entries WHERE status = ? ORDER BY lemma, vocabulary_id`,
+              `SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE status = ? ORDER BY lemma, vocabulary_id`,
             )
             .all(status)
         : connection
-            .prepare(`SELECT * FROM vocabulary_entries ORDER BY lemma, vocabulary_id`)
+            .prepare(
+              `SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) ORDER BY lemma, vocabulary_id`,
+            )
             .all();
       return rows.map((row) => {
         const record = row as Record<string, unknown>;
@@ -1707,36 +1618,45 @@ export class CallNinaRepository {
   }
 
   async deleteProfileInsight(
-    learnerIdValue: string,
+    scopeValue: LearningScope,
     insightGroup: "strength" | "weakness",
     position: number,
   ): Promise<void> {
-    const learnerId = learnerIdSchema.parse(learnerIdValue);
+    const scope = learningScopeSchema.parse(scopeValue);
+    const learnerId = scope.learnerId;
     if (!Number.isInteger(position) || position < 0 || position > 49) {
       throw new Error("OD_PROFILE_INSIGHT_POSITION_INVALID");
     }
     await withLeasedTransaction(this.#database, (connection) => {
-      const result = connection
+      const settings = readLearnerSettingsFromConnection(connection, learnerId, scope);
+      if (!settings) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
+      const key = insightGroup === "strength" ? "inferredStrengths" : "inferredWeaknesses";
+      if (!settings.profile[key][position]) throw new Error("OD_PROFILE_INSIGHT_NOT_FOUND");
+      settings.profile[key].splice(position, 1);
+      connection
         .prepare(
-          `DELETE FROM learner_profile_insights
-           WHERE learner_id = ? AND insight_group = ? AND position = ?`,
+          "UPDATE language_profiles SET profile_json = ? WHERE target_language = ? AND learner_id = ?",
         )
-        .run(learnerId, insightGroup, position);
-      if (result.changes !== 1) throw new Error("OD_PROFILE_INSIGHT_NOT_FOUND");
+        .run(stringifyBounded(settings.profile), settings.profile.targetLanguage, learnerId);
     });
   }
 
-  async listDueVocabulary(onDateValue: string): Promise<readonly VocabularyEntry[]> {
+  async listDueVocabulary(
+    onDateValue: string,
+    requestedScope?: LearningScope,
+  ): Promise<readonly VocabularyEntry[]> {
     const onDate = calendarDateSchema.parse(onDateValue);
-    return withLeasedConnection(this.#database, (connection) =>
-      connection
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
+      return connection
         .prepare(
           `SELECT * FROM vocabulary_entries
-           WHERE status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT 500`,
+           WHERE target_language = ? AND status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT 500`,
         )
-        .all(onDate)
-        .map((row) => vocabularyEntryFromRow(row as Record<string, unknown>)),
-    );
+        .all(scope.targetLanguage, onDate)
+        .map((row) => vocabularyEntryFromRow(row as Record<string, unknown>));
+    });
   }
 
   async createVocabularyReviewSession(
@@ -1752,7 +1672,7 @@ export class CallNinaRepository {
     const entries = await withLeasedConnection(this.#database, (connection) =>
       connection
         .prepare(
-          `SELECT * FROM vocabulary_entries
+          `SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1))
            WHERE status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT ?`,
         )
         .all(onDate, maximumItems)
@@ -1797,7 +1717,7 @@ export class CallNinaRepository {
         .prepare(
           `SELECT p.activity_id, p.activity_type, p.title, p.origin_surface, p.prepared_at,
              ${preparedActivityDeletionStatusSql} AS deletion_status
-           FROM prepared_activities p
+           FROM (SELECT * FROM prepared_activities WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) p
            WHERE p.status = 'prepared'
            ORDER BY prepared_at DESC, activity_id
            LIMIT 20`,
@@ -1820,7 +1740,7 @@ export class CallNinaRepository {
       const dueVocabulary = connection
         .prepare(
           `SELECT vocabulary_id, lemma, meaning, due_on, stage
-           FROM vocabulary_entries
+           FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1))
            WHERE status = 'active' AND due_on <= ?
            ORDER BY due_on, vocabulary_id
            LIMIT 20`,
@@ -1841,7 +1761,7 @@ export class CallNinaRepository {
         .prepare(
           `SELECT c.correction_id, c.created_at,
             SUM(CASE WHEN cc.kind = 'unchanged' THEN 0 ELSE 1 END) AS changed_segment_count
-           FROM corrections c
+           FROM corrections c JOIN attempts owner_attempt ON owner_attempt.attempt_id = c.attempt_id JOIN exercises owner_exercise ON owner_exercise.exercise_id = owner_attempt.exercise_id AND owner_exercise.target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)
            JOIN correction_changes cc ON cc.correction_id = c.correction_id
            WHERE c.state = 'final'
            GROUP BY c.correction_id, c.created_at
@@ -1862,7 +1782,7 @@ export class CallNinaRepository {
         .prepare(
           `SELECT m.mistake_id, m.effective_category_json, COUNT(*) AS occurrence_count,
             MAX(o.observed_on) AS last_observed_on
-           FROM mistakes m
+           FROM (SELECT * FROM mistakes WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) m
            JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
            WHERE m.disposition = 'active'
            GROUP BY m.mistake_id, m.effective_category_json
@@ -1891,19 +1811,46 @@ export class CallNinaRepository {
     });
   }
 
-  async readSuggestionLearningContext(contextValue: unknown) {
+  async readSuggestionLearningScope(contextValue: unknown): Promise<LearningScope | undefined> {
     const context = practiceSuggestionContextSchema.parse(contextValue);
     return withLeasedConnection(this.#database, (connection) => {
+      let scope: LearningScope | undefined;
+      for (const [table, column, ids] of [
+        ["mistakes", "mistake_id", context.mistakeIds],
+        ["vocabulary_entries", "vocabulary_id", context.vocabularyIds],
+      ] as const) {
+        const statement = connection.prepare(
+          `SELECT target_language FROM ${table} WHERE ${column} = ?`,
+        );
+        for (const id of ids) {
+          const row = statement.get(id);
+          if (!row) throw new Error("OD_PRACTICE_SUGGESTION_NOT_FOUND");
+          const language = languageSchema.parse(row["target_language"]);
+          if (scope && scope.targetLanguage !== language)
+            throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+          scope = { ...scopeForLanguage(connection, language), courseId: null };
+          assertLocalLearningScope(connection, scope);
+        }
+      }
+      return scope;
+    });
+  }
+
+  async readSuggestionLearningContext(contextValue: unknown, requestedScope?: LearningScope) {
+    const context = practiceSuggestionContextSchema.parse(contextValue);
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
       const mistakes = connection
         .prepare(
           `SELECT m.mistake_id, m.effective_category_json, COUNT(*) AS occurrence_count,
           MAX(o.observed_on) AS last_observed_on
-         FROM mistakes m JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
+         FROM (SELECT * FROM mistakes WHERE target_language = ?) m JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
          WHERE m.disposition = 'active'
            AND m.mistake_id IN (SELECT value FROM json_each(?))
          GROUP BY m.mistake_id ORDER BY last_observed_on DESC, m.mistake_id LIMIT 12`,
         )
-        .all(JSON.stringify(context.mistakeIds))
+        .all(scope.targetLanguage, JSON.stringify(context.mistakeIds))
         .map((raw) => {
           const row = raw as Record<string, unknown>;
           const category = mistakeCategorySchema.parse(parseJson(row["effective_category_json"]));
@@ -1920,11 +1867,11 @@ export class CallNinaRepository {
         });
       const vocabulary = connection
         .prepare(
-          `SELECT * FROM vocabulary_entries WHERE status = 'active'
+          `SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = ?) WHERE status = 'active'
          AND vocabulary_id IN (SELECT value FROM json_each(?))
          ORDER BY due_on, vocabulary_id LIMIT 24`,
         )
-        .all(JSON.stringify(context.vocabularyIds))
+        .all(scope.targetLanguage, JSON.stringify(context.vocabularyIds))
         .map((row) => vocabularyEntryFromRow(row as Record<string, unknown>));
       return {
         relevantMistakes: mistakes
@@ -1943,16 +1890,21 @@ export class CallNinaRepository {
     });
   }
 
-  async readCorrectionMistakeSample(maximumValue = 6): Promise<readonly CorrectionMistakeSample[]> {
+  async readCorrectionMistakeSample(
+    maximumValue = 6,
+    requestedScope?: LearningScope,
+  ): Promise<readonly CorrectionMistakeSample[]> {
     const maximum = z.int().min(0).max(6).parse(maximumValue);
     if (maximum === 0) return Object.freeze([]);
-    return withLeasedConnection(this.#database, (connection) =>
-      Object.freeze(
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
+      return Object.freeze(
         connection
           .prepare(
             `SELECT m.effective_category_json, COUNT(*) AS occurrence_count,
               MAX(o.observed_on) AS last_observed_on
-             FROM mistakes m
+             FROM (SELECT * FROM mistakes WHERE target_language = ?) m
              JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
              WHERE m.disposition = 'active'
              GROUP BY m.mistake_id, m.effective_category_json
@@ -1960,7 +1912,7 @@ export class CallNinaRepository {
              ORDER BY last_observed_on DESC, m.mistake_id
              LIMIT ?`,
           )
-          .all(maximum)
+          .all(scope.targetLanguage, maximum)
           .map((rawRow) => {
             const row = rawRow as Record<string, unknown>;
             const category = mistakeCategorySchema.parse(parseJson(row["effective_category_json"]));
@@ -1976,18 +1928,21 @@ export class CallNinaRepository {
                 : { ...shared, kind: "grammar" as const },
             );
           }),
-      ),
-    );
+      );
+    });
   }
 
   async listMistakePatterns(
     filterValue: z.input<typeof mistakePatternFilterSchema> = {},
+    requestedScope?: LearningScope,
   ): Promise<readonly MistakePatternRecord[]> {
     const filter = mistakePatternFilterSchema.parse(filterValue);
     if (filter.fromDate && filter.toDate && filter.fromDate > filter.toDate) {
       throw new Error("OD_HISTORY_DATE_RANGE_INVALID");
     }
     return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
       const clauses = ["m.disposition = 'active'"];
       const parameters: string[] = [];
       if (filter.fromDate) {
@@ -2026,7 +1981,7 @@ export class CallNinaRepository {
                  ORDER BY o.observed_on DESC, m.mistake_id, o.correction_id,
                    o.alignment_segment_position
                ) AS occurrence_position
-             FROM mistakes m
+             FROM (SELECT * FROM mistakes WHERE target_language = ?) m
              JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
              WHERE ${clauses.join(" AND ")}
            ), selected_categories AS (
@@ -2042,7 +1997,7 @@ export class CallNinaRepository {
            ORDER BY r.last_observed_on DESC, r.effective_category_json,
              r.observed_on DESC, r.mistake_id, r.occurrence_position`,
         )
-        .all(...parameters, filter.maximum) as Record<string, unknown>[];
+        .all(scope.targetLanguage, ...parameters, filter.maximum) as Record<string, unknown>[];
       const groups = new Map<
         string,
         {
@@ -2126,6 +2081,12 @@ export class CallNinaRepository {
           throw new Error("OD_COURSE_EVIDENCE_INVALID");
         validateCourseEvidence(linkedContext.courseTeaching, summary.activity.objectiveResults);
       }
+      assertLocalLearningScope(connection, summary.learningScope);
+      if (
+        linkedContext &&
+        JSON.stringify(linkedContext.learningScope) !== JSON.stringify(summary.learningScope)
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
       const skill = linkedContext?.voiceContext?.kind ?? "speaking";
       const claim = claimIdempotentWrite(connection, {
         operation: "voice-summary",
@@ -2137,11 +2098,12 @@ export class CallNinaRepository {
       if (claim.replayed) return claim;
       connection
         .prepare(
-          `INSERT INTO voice_summaries (
+          `INSERT INTO voice_summaries (target_language,
             voice_session_id, summarized_at, scenario_title, target_level, summary_json
-          ) VALUES (?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
         )
         .run(
+          summary.learningScope.targetLanguage,
           summary.voiceSessionId,
           summary.summarizedAt,
           summary.scenario.title,
@@ -2197,6 +2159,7 @@ export class CallNinaRepository {
     const entityId = `placement_${digest}`;
     const historyEntryId = historyEntryIdSchema.parse(`history-entry_${digest}`);
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, result.learningScope);
       const existing = connection
         .prepare(
           `SELECT reconstruction_json FROM history_entries
@@ -2214,12 +2177,13 @@ export class CallNinaRepository {
       }
       connection
         .prepare(
-          `INSERT INTO history_entries (
+          `INSERT INTO history_entries (target_language,
             history_entry_id, entity_kind, entity_id, skill, activity_type, title,
             occurred_at, reconstruction_json, root_generation
-          ) VALUES (?, 'placement', ?, 'writing', 'placement', ?, ?, ?, ?)`,
+          ) VALUES (?, ?, 'placement', ?, 'writing', 'placement', ?, ?, ?, ?)`,
         )
         .run(
+          result.learningScope.targetLanguage,
           historyEntryId,
           entityId,
           "Optional diagnostic",
@@ -2237,7 +2201,7 @@ export class CallNinaRepository {
   ): Promise<IdempotentWriteResult> {
     const activity = preparedActivitySchema.parse(activityValue);
     return withLeasedTransaction(this.#database, (connection) => {
-      assertLocalLearningScope(connection, activity.context.learningScope);
+      assertActivityReferences(connection, activity.context);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2248,12 +2212,13 @@ export class CallNinaRepository {
       if (claim.replayed) return claim;
       connection
         .prepare(
-          `INSERT INTO prepared_activities (
+          `INSERT INTO prepared_activities (target_language,
             activity_id, activity_type, title, origin_surface, context_json,
             prepared_at, root_generation
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
+          activity.context.learningScope.targetLanguage,
           activity.activityId,
           activity.activityType,
           activity.title,
@@ -2311,7 +2276,7 @@ export class CallNinaRepository {
         SELECT p.*, EXISTS (SELECT 1 FROM generated_activity_payloads g
           WHERE g.activity_id = p.activity_id) AS generated,
           ${preparedActivityDeletionStatusSql} AS deletion_status
-        FROM prepared_activities p WHERE ${clauses.join(" AND ")}
+        FROM (SELECT * FROM prepared_activities WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) p WHERE ${clauses.join(" AND ")}
         ORDER BY p.prepared_at DESC, p.activity_id LIMIT ?
       `,
         )
@@ -2347,7 +2312,7 @@ export class CallNinaRepository {
       const row = connection
         .prepare(
           `SELECT activity_id, activity_type, title, origin_surface, context_json, prepared_at
-           FROM prepared_activities
+           FROM (SELECT * FROM prepared_activities WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1))
            WHERE activity_type = ? AND status = 'prepared'
            ORDER BY prepared_at DESC, activity_id DESC
            LIMIT 1`,
@@ -2598,16 +2563,19 @@ export class CallNinaRepository {
       const mistakes = connection
         .prepare(
           `SELECT mistake_id, effective_category_json FROM mistakes
-           WHERE disposition = 'active' AND mistake_id IN (${placeholders})`,
+           WHERE target_language = ? AND disposition = 'active' AND mistake_id IN (${placeholders})`,
         )
-        .all(...record.activity.context.mistakeIds) as Record<string, unknown>[];
+        .all(
+          record.activity.context.learningScope.targetLanguage,
+          ...record.activity.context.mistakeIds,
+        ) as Record<string, unknown>[];
       if (
         mistakes.length !== record.activity.context.mistakeIds.length ||
         mistakes.some(({ effective_category_json }) => effective_category_json !== categoryJson)
       ) {
         throw new Error("OD_TARGETED_PRACTICE_PATTERN_STALE");
       }
-      assertLocalLearningScope(connection, record.activity.context.learningScope);
+      assertActivityReferences(connection, record.activity.context);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2619,12 +2587,13 @@ export class CallNinaRepository {
       const content = preparePortableContent(connection, record);
       connection
         .prepare(
-          `INSERT INTO prepared_activities (
+          `INSERT INTO prepared_activities (target_language,
             activity_id, activity_type, title, origin_surface, context_json,
             prepared_at, root_generation
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
+          record.activity.context.learningScope.targetLanguage,
           record.activity.activityId,
           record.activity.activityType,
           record.activity.title,
@@ -2693,7 +2662,7 @@ export class CallNinaRepository {
     }
     const modelSelection = record.aiProvenance.modelSelection;
     return withLeasedTransaction(this.#database, (connection) => {
-      assertLocalLearningScope(connection, record.activity.context.learningScope);
+      assertActivityReferences(connection, record.activity.context);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2705,12 +2674,13 @@ export class CallNinaRepository {
       const content = preparePortableContent(connection, record);
       connection
         .prepare(
-          `INSERT INTO prepared_activities (
+          `INSERT INTO prepared_activities (target_language,
             activity_id, activity_type, title, origin_surface, context_json,
             prepared_at, root_generation
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
+          record.activity.context.learningScope.targetLanguage,
           record.activity.activityId,
           record.activity.activityType,
           record.activity.title,
@@ -2833,10 +2803,11 @@ export class CallNinaRepository {
       assertLocalLearningScope(connection, activity.context.learningScope);
       connection
         .prepare(
-          `INSERT INTO prepared_activities(activity_id, activity_type, title, origin_surface, context_json, prepared_at, root_generation)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO prepared_activities(target_language, activity_id, activity_type, title, origin_surface, context_json, prepared_at, root_generation)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
+          activity.context.learningScope.targetLanguage,
           activityId,
           activity.activityType,
           activity.title,
@@ -2880,7 +2851,7 @@ export class CallNinaRepository {
       const evaluation = evaluateExerciseAnswer(
         snapshot.exercise,
         answer,
-        requireLocalLearningScope(connection).targetLanguage,
+        activityLearningScope(connection, activityId).targetLanguage,
       );
       if (
         evaluation.status !== "requires-ai" ||
@@ -3089,13 +3060,15 @@ export class CallNinaRepository {
         }
         connection
           .prepare(
-            `INSERT INTO exercises (
+            `INSERT INTO exercises (learning_scope_json, target_language,
               exercise_id, activity_id, kind, cefr_band, started_at, objectives_json,
               instructions, explanation, content_json, answer_contract_json,
               ai_provenance_json, snapshot_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
+            JSON.stringify(activityLearningScope(connection, record.activityId)),
+            activityLearningScope(connection, record.activityId).targetLanguage,
             exercise.exerciseId,
             record.activityId,
             exercise.kind,
@@ -3146,7 +3119,7 @@ export class CallNinaRepository {
       evaluateExerciseAnswer(
         snapshot.exercise,
         record.answer,
-        requireLocalLearningScope(connection).targetLanguage,
+        activityLearningScope(connection, record.activityId).targetLanguage,
       );
       if (answer) {
         if (JSON.stringify(answer) !== JSON.stringify(record.answer))
@@ -3167,29 +3140,32 @@ export class CallNinaRepository {
     });
   }
 
-  async recordCourseHelperSupport(intent: "chat" | "translate") {
+  async recordCourseHelperSupport(intent: "chat" | "translate", scope: LearningScope) {
     await withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, scope);
       connection
         .prepare(
           `INSERT INTO exercise_support (attempt_id, hints_used, helper_used, translation_used)
         SELECT a.attempt_id, 0, 1, ? FROM attempts a JOIN exercises e ON e.exercise_id = a.exercise_id
         JOIN prepared_activities p ON p.activity_id = e.activity_id
-        WHERE a.status = 'in-progress'
+        WHERE a.status = 'in-progress' AND e.target_language = ?
         ON CONFLICT(attempt_id) DO UPDATE SET helper_used = 1, translation_used = max(translation_used, excluded.translation_used)`,
         )
-        .run(intent === "translate" ? 1 : 0);
+        .run(intent === "translate" ? 1 : 0, scope.targetLanguage);
       connection
         .prepare(
           `INSERT INTO course_activity_support (activity_id, helper_used, translation_used)
         SELECT DISTINCT e.activity_id, 1, ? FROM attempts a JOIN exercises e ON e.exercise_id = a.exercise_id
         JOIN prepared_activities p ON p.activity_id = e.activity_id
-        WHERE a.status = 'in-progress' AND json_type(p.context_json, '$.learningPath') = 'object'
+        WHERE a.status = 'in-progress' AND e.target_language = ? AND json_type(p.context_json, '$.learningPath') = 'object'
         ON CONFLICT(activity_id) DO UPDATE SET helper_used = 1, translation_used = max(translation_used, excluded.translation_used)`,
         )
-        .run(intent === "translate" ? 1 : 0);
+        .run(intent === "translate" ? 1 : 0, scope.targetLanguage);
       for (const row of connection
-        .prepare("SELECT attempt_id FROM attempts WHERE status = 'in-progress'")
-        .all())
+        .prepare(
+          "SELECT a.attempt_id FROM attempts a JOIN exercises e USING(exercise_id) WHERE a.status = 'in-progress' AND e.target_language = ?",
+        )
+        .all(scope.targetLanguage))
         captureExerciseAttempt(connection, String(row["attempt_id"]));
     });
   }
@@ -3287,7 +3263,7 @@ export class CallNinaRepository {
         const evaluation = evaluateExerciseAnswer(
           snapshot.exercise,
           item.answer,
-          requireLocalLearningScope(connection).targetLanguage,
+          activityLearningScope(connection, record.activityId).targetLanguage,
         );
         const feedbackRow = connection
           .prepare("SELECT feedback_json FROM exercise_attempt_feedback WHERE attempt_id = ?")
@@ -3557,7 +3533,7 @@ export class CallNinaRepository {
       const totals = { writing: 0, reading: 0, listening: 0, speaking: 0 };
       for (const row of connection
         .prepare(
-          "SELECT skill, COUNT(*) AS count FROM history_entries h WHERE NOT EXISTS (SELECT 1 FROM mcp_attempt_feedback f WHERE f.attempt_id = h.entity_id AND f.target_attempt_id IS NOT NULL) GROUP BY skill",
+          "SELECT skill, COUNT(*) AS count FROM (SELECT * FROM history_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) h WHERE NOT EXISTS (SELECT 1 FROM mcp_attempt_feedback f WHERE f.attempt_id = h.entity_id AND f.target_attempt_id IS NOT NULL) GROUP BY skill",
         )
         .all()) {
         const skill = z.enum(["writing", "reading", "listening", "speaking"]).parse(row["skill"]);
@@ -3610,9 +3586,9 @@ export class CallNinaRepository {
     return withLeasedConnection(this.#database, (connection) =>
       connection
         .prepare(
-          `SELECT history_entry_id, entity_kind, entity_id, skill, activity_type, title,
+          `SELECT target_language, history_entry_id, entity_kind, entity_id, skill, activity_type, title,
             occurred_at, reconstruction_json, root_generation
-           FROM history_entries ${where} ORDER BY occurred_at DESC LIMIT ?`,
+           FROM (SELECT * FROM history_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) history_entries ${where} ORDER BY occurred_at DESC LIMIT ?`,
         )
         .all(...parameters, filter.maximum)
         .map((row) => {
@@ -3732,6 +3708,7 @@ export class CallNinaRepository {
             }
           }
           return Object.freeze({
+            targetLanguage: languageSchema.parse(record["target_language"]),
             historyEntryId,
             evidence: historyAttemptEvidence(connection, historyEntryId),
             entityKind: z
@@ -3863,12 +3840,13 @@ export class CallNinaRepository {
       }
       connection
         .prepare(
-          `INSERT INTO history_entries (
+          `INSERT INTO history_entries (target_language,
             history_entry_id, entity_kind, entity_id, skill, activity_type, title,
             occurred_at, reconstruction_json, root_generation
-          ) VALUES (?, 'attempt', ?, 'listening', 'codex-listening', ?, ?, ?, ?)`,
+          ) VALUES (?, ?, 'attempt', ?, 'listening', 'codex-listening', ?, ?, ?, ?)`,
         )
         .run(
+          activityLearningScope(connection, record.activityId).targetLanguage,
           historyEntryId,
           record.attemptId,
           activity.title,
@@ -3909,6 +3887,7 @@ function vocabularyEntryFromRow(row: Record<string, unknown>): VocabularyEntry {
         };
   return vocabularyEntrySchema.parse({
     schemaVersion: 1,
+    targetLanguage: row["target_language"],
     vocabularyId: row["vocabulary_id"],
     lemma: row["lemma"],
     meaning: row["meaning"],

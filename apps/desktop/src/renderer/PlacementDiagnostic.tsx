@@ -1,13 +1,18 @@
 import styles from "./PracticePage.module.css";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { placementResultSchema, type CallNinaError } from "@call-nina/contracts";
+import {
+  placementResultSchema,
+  type LearningScope,
+  type CallNinaError,
+} from "@call-nina/contracts";
 import { Button, Card, Feedback, FieldGroup, ItemList } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 
 export function PlacementDiagnostic() {
   const { t } = useTranslation();
+  const [learningScope, setLearningScope] = useState<LearningScope>();
   const [started, setStarted] = useState(false);
   const [skipped, setSkipped] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -16,7 +21,9 @@ export function PlacementDiagnostic() {
   const [completed, setCompleted] = useState<ReturnType<typeof placementResultSchema.parse>>();
 
   const complete = async () => {
+    if (!learningScope) return;
     const result = placementResultSchema.parse({
+      learningScope,
       schemaVersion: 1,
       completedOn: new Date().toISOString().slice(0, 10),
       estimatedLevel: null,
@@ -119,7 +126,16 @@ export function PlacementDiagnostic() {
           <Button
             variant="primary"
             onPress={() => {
-              setStarted(true);
+              void invokeDesktop("learner-settings/read", {})
+                .then((settings) => {
+                  if (settings.settings.learningScope.targetLanguage !== "de")
+                    throw new Error("OD_LANGUAGE_POLICY_UNAVAILABLE");
+                  setLearningScope(settings.settings.learningScope);
+                  setStarted(true);
+                })
+                .catch((cause: unknown) => {
+                  setError(normalizeDesktopError(cause).detail);
+                });
             }}
           >
             {t("practice.diagnosticFlow.start")}

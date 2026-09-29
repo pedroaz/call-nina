@@ -158,6 +158,7 @@ export class LearningResultService {
     );
     const vocabularyEntries = state.output.vocabularyCandidates.map((candidate) => ({
       schemaVersion: 1 as const,
+      targetLanguage: operation.input.learningContext.targetLanguage,
       vocabularyId: vocabularyIdSchema.parse(opaqueId("vocabulary")),
       lemma: candidate.lemma,
       meaning: candidate.meaning,
@@ -172,6 +173,11 @@ export class LearningResultService {
       state: { status: "candidate" as const, confirmation: "required" as const },
     }));
     const record = writingAttemptPersistenceSchema.parse({
+      learningScope: {
+        learnerId: operation.input.learningContext.learnerId,
+        courseId: operation.input.learningContext.courseId,
+        targetLanguage: operation.input.learningContext.targetLanguage,
+      },
       activityId,
       historyEntryId,
       title: operation.input.activityGoal.slice(0, 160),
@@ -265,7 +271,11 @@ export class LearningResultService {
         originSurface: "desktop",
         preparedAt,
         context: {
-          learningScope: await this.#repository.requireLearningScope(),
+          learningScope: {
+            learnerId: input.learningContext.learnerId,
+            courseId: input.learningContext.courseId,
+            targetLanguage: input.learningContext.targetLanguage,
+          },
           naturalRequest: input.topic.slice(0, 1_000),
           curriculumTopicIds: [],
           mistakeIds: [],
@@ -319,7 +329,11 @@ export class LearningResultService {
         (operation.input.targetedMistakePattern ? "Targeted practice" : "Quiz"),
       originSurface: "desktop" as const,
       context: {
-        learningScope: await this.#repository.requireLearningScope(),
+        learningScope: {
+          learnerId: operation.input.learningContext.learnerId,
+          courseId: operation.input.learningContext.courseId,
+          targetLanguage: operation.input.learningContext.targetLanguage,
+        },
         entry: operation.input.entry,
         ...(operation.input.learningPath ? { learningPath: operation.input.learningPath } : {}),
         ...(operation.input.courseTeaching
@@ -345,6 +359,7 @@ export class LearningResultService {
     } as const;
     const vocabularyEntries = (state.output.lesson?.vocabularyFoundations ?? []).map((item) => ({
       schemaVersion: 1 as const,
+      targetLanguage: operation.input.learningContext.targetLanguage,
       vocabularyId: vocabularyIdSchema.parse(opaqueId("vocabulary")),
       lemma: item.german,
       meaning: item.explanation,

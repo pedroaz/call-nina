@@ -40,6 +40,8 @@ export function preparePortableContent(
     "revisionId" in input.material
       ? readMaterialRevisionInTransaction(connection, input.material)
       : saveMaterialInTransaction(connection, input.material, activity.preparedAt);
+  if (material.language !== activity.context.learningScope.targetLanguage)
+    throw new Error("OD_MATERIAL_LANGUAGE_MISMATCH");
   if (material.kind === "pasted-text" && output.readingMaterial?.passage !== material.text)
     throw new Error("OD_CONTENT_MATERIAL_MISMATCH");
   return parsePortableExerciseContent({
@@ -70,6 +72,10 @@ export function preparePortableContent(
 
 /** One-time preserving conversion, inside migration 25's transaction. No old-format read fallback. */
 export function migrateVersionedContent(connection: DatabaseSync) {
+  // Current material writers bind language explicitly, including this old-format conversion.
+  connection.exec(
+    "ALTER TABLE material_revisions ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'))",
+  );
   const rows = connection
     .prepare(
       `SELECT p.*, a.activity_type, a.title, a.origin_surface, a.context_json, a.prepared_at

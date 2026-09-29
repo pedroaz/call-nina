@@ -1,4 +1,4 @@
-import { normalizeGermanAnswer, targetLanguageSchema } from "@call-nina/contracts";
+import { type Language, normalizeGermanAnswer, targetLanguageSchema } from "@call-nina/contracts";
 
 function normalized(value: string): string {
   return normalizeGermanAnswer(value);
@@ -100,7 +100,7 @@ type PracticeRequestKind =
 
 function germanPracticeRequest(
   kind: PracticeRequestKind,
-  language: "en" | "de",
+  language: Language,
   topic: string,
   level: string,
 ): string {
@@ -142,6 +142,7 @@ const germanPolicy = Object.freeze({
 
 /** Only German is implemented; never fall back for an unsupported language. */
 export function supportedLanguagePolicy(language: unknown) {
-  targetLanguageSchema.parse(language);
+  if (targetLanguageSchema.parse(language) !== "de")
+    throw new Error("OD_LANGUAGE_POLICY_UNAVAILABLE");
   return germanPolicy;
 }
