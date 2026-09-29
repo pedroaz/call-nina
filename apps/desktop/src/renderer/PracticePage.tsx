@@ -3,7 +3,9 @@ import {
   exerciseFeedbackCandidateSchema,
   type DesktopIpcResponse,
   type CallNinaError,
+  type Language,
 } from "@call-nina/contracts";
+import { practiceStarterExamples } from "./practiceStarterExamples.js";
 import { PracticeCount, validPracticeCount } from "./PracticeCount.js";
 import { FlashcardWorkspace } from "./FlashcardWorkspace.js";
 import { OperationProgress } from "./OperationProgress.js";
@@ -64,6 +66,7 @@ type PracticeLibraryFilter =
 type PracticeLevel = "a1" | "a2" | "b1" | "b2";
 
 export function PracticePage({
+  targetLanguage,
   initialPreparation,
   parentLabel,
   activityId,
@@ -72,6 +75,7 @@ export function PracticePage({
   onCloseActivity,
   onVocabulary,
 }: {
+  targetLanguage?: Language | undefined;
   parentLabel?: string;
   initialPreparation?: Extract<PracticeLaunch, { destination: "preparation" }>;
   activityId?: PreparedActivityId;
@@ -696,9 +700,10 @@ export function PracticePage({
                         />
                       </FieldGroup>
                       <Button
-                        isDisabled={generating}
+                        isDisabled={generating || !targetLanguage}
                         onPress={() => {
-                          setGrammarRequest(t("practice.grammarLesson.request"));
+                          if (targetLanguage)
+                            setGrammarRequest(practiceStarterExamples[targetLanguage].grammar);
                         }}
                       >
                         {t("practice.useExample")}
@@ -724,6 +729,7 @@ export function PracticePage({
                   </div>
                   <div hidden={selectedKind !== "reading"}>
                     <ReadingPractice
+                      targetLanguage={targetLanguage}
                       exerciseCount={exerciseCount}
                       countValid={quizCountValid}
                       targetLevel={targetLevel}

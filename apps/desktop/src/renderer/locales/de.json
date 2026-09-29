@@ -146,14 +146,11 @@
     "grammarLesson": {
       "title": "Gezielte Grammatiklektion",
       "body": "Erstelle eine Lektion auf deinem gewählten Lernniveau mit dem geprüften Curriculum und vorhandenen Fehlerbelegen.",
-      "topic": "Einstiegsthema: Dativartikel nach häufigen Präpositionen.",
-      "request": "Erstelle eine Grammatiklektion auf meinem aktuellen Lernniveau zu Dativartikeln nach mit und zu, mit klarer Erklärung, Beispielen, Hinweisen, geführten Übungen und einer freien Produktionsaufgabe.",
       "start": "Grammatiklektion erstellen"
     },
     "readingFlow": {
       "title": "Lesen und üben",
       "body": "Erstelle einen Text in deiner Lernsprache für dein Niveau oder Aufgaben zu einem eingefügten Text. Codex erstellt passende Aufgaben und gibt Feedback zu deinen schriftlichen Antworten.",
-      "bundledPassage": "Die Arztpraxis bittet Patientinnen und Patienten, zehn Minuten vor einem Termin zu kommen. Die Sprechstunde beginnt um 10:00 Uhr in Raum 2.",
       "topic": "Thema oder Lernziel (optional)",
       "defaultRequest": "Übe das Verstehen eines kurzen Alltagstextes in meiner Lernsprache mit Wortschatz, Schlussfolgerungen und einer schriftlichen Zusammenfassung.",
       "generate": "Leseübung erstellen",
@@ -498,12 +495,12 @@
       "retrieval": "Abrufart",
       "modes": {
         "recognition": "Bedeutung erkennen",
-        "recall": "Deutsch abrufen",
+        "recall": "Lernsprache abrufen",
         "use": "In einem Satz verwenden"
       },
       "prompts": {
-        "recognition": "Sieh das deutsche Wort an und rufe die Bedeutung ab, bevor du aufdeckst.",
-        "recall": "Lies die Bedeutung und rufe das Deutsche ab, bevor du aufdeckst.",
+        "recognition": "Sieh das Wort in deiner Lernsprache an und rufe die Bedeutung ab, bevor du aufdeckst.",
+        "recall": "Lies die Bedeutung und rufe das Wort in deiner Lernsprache ab, bevor du aufdeckst.",
         "use": "Sage oder schreibe vor dem Aufdecken einen neuen Satz mit diesem Wort oder Baustein. Bewerte deinen Versuch selbst; dies ist eine Selbsteinschätzung."
       }
     },

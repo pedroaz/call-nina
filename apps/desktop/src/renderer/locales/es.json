@@ -146,14 +146,11 @@
     "grammarLesson": {
       "title": "Lección de gramática específica",
       "body": "Genera una lección para el nivel de aprendizaje seleccionado a partir del programa y de los errores guardados disponibles.",
-      "topic": "Tema inicial: artículos en dativo después de preposiciones frecuentes.",
-      "request": "Crea una lección de gramática para mi nivel actual sobre los artículos en dativo después de mit y zu, con una explicación clara, ejemplos, pistas, práctica guiada y un ejercicio de producción libre.",
       "start": "Generar lección de gramática"
     },
     "readingFlow": {
       "title": "Leer y practicar",
       "body": "Genera un pasaje para tu idioma y nivel de aprendizaje, o crea preguntas a partir del texto que pegues abajo. Codex prepara los ejercicios y revisa tus respuestas escritas.",
-      "bundledPassage": "Die Arztpraxis bittet Patientinnen und Patienten, zehn Minuten vor einem Termin zu kommen. Die Sprechstunde beginnt um 10:00 Uhr in Raum 2.",
       "topic": "Tema u objetivo de aprendizaje (opcional)",
       "defaultRequest": "Practicar la comprensión de un texto breve de la vida cotidiana en el idioma que aprendo, con vocabulario, inferencias y un resumen escrito.",
       "generate": "Generar práctica de lectura",

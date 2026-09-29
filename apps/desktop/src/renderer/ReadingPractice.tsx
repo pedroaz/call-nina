@@ -1,4 +1,5 @@
-import type { ProviderOperation, ActivityId, CallNinaError } from "@call-nina/contracts";
+import type { ProviderOperation, ActivityId, CallNinaError, Language } from "@call-nina/contracts";
+import { practiceStarterExamples } from "./practiceStarterExamples.js";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { normalizeDesktopError } from "./ipc.js";
 import { generatePracticeActivity } from "./generatePracticeActivity.js";
 
 export function ReadingPractice({
+  targetLanguage,
   exerciseCount,
   countValid,
   targetLevel,
@@ -17,6 +19,7 @@ export function ReadingPractice({
   requestAiAccess,
   onOpenActivity,
 }: {
+  targetLanguage?: Language | undefined;
   exerciseCount: number;
   countValid: boolean;
   targetLevel: "a1" | "a2" | "b1" | "b2";
@@ -110,9 +113,9 @@ export function ReadingPractice({
         </FieldGroup>
         <ActionGroup>
           <Button
-            isDisabled={busy}
+            isDisabled={busy || !targetLanguage}
             onPress={() => {
-              setPassage(t("practice.readingFlow.bundledPassage"));
+              if (targetLanguage) setPassage(practiceStarterExamples[targetLanguage].reading);
             }}
           >
             {t("practice.readingFlow.useStarter")}

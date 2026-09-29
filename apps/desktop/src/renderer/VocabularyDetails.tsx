@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CallNinaError, VocabularyId, DataRootGeneration } from "@call-nina/contracts";
+import type {
+  CallNinaError,
+  VocabularyId,
+  DataRootGeneration,
+  Language,
+} from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { ActionGroup } from "./components/layout/index.js";
 import {
@@ -18,32 +23,43 @@ import {
 } from "./useVocabularyLibrary.js";
 import styles from "./VocabularyPage.module.css";
 
-export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
+export function VocabularyInformation({
+  entry,
+  explanationLanguage,
+}: {
+  entry: VocabularyEntry;
+  explanationLanguage?: Language | undefined;
+}) {
   const { t } = useTranslation();
   return (
     <>
-      <p>{entry.meaning}</p>
+      <p lang={explanationLanguage}>{entry.meaning}</p>
       {entry.lexeme.partOfSpeech === "noun" && (
         <p>
-          {entry.lexeme.nounForm.article} · {t("vocabulary.library.plural")}:{" "}
-          {entry.lexeme.plural.status === "form"
-            ? entry.lexeme.plural.form
-            : t(`vocabulary.library.plurals.${entry.lexeme.plural.status}`)}
+          <span lang={entry.targetLanguage}>{entry.lexeme.nounForm.article}</span> ·{" "}
+          {t("vocabulary.library.plural")}:{" "}
+          {entry.lexeme.plural.status === "form" ? (
+            <span lang={entry.targetLanguage}>{entry.lexeme.plural.form}</span>
+          ) : (
+            t(`vocabulary.library.plurals.${entry.lexeme.plural.status}`)
+          )}
         </p>
       )}
       {entry.lexeme.partOfSpeech === "phrase" && (
         <p>
-          {entry.lexeme.function}
+          <span lang={entry.targetLanguage}>{entry.lexeme.function}</span>
           {entry.lexeme.register ? ` · ${t(`vocabulary.register.${entry.lexeme.register}`)}` : ""}
         </p>
       )}
       {entry.lexeme.partOfSpeech === "verb" && entry.lexeme.pattern && (
-        <p>{entry.lexeme.pattern}</p>
+        <p lang={entry.targetLanguage}>{entry.lexeme.pattern}</p>
       )}
       {entry.examples.map((example, index) => (
         <div key={index}>
           <p lang={entry.targetLanguage}>{example.text}</p>
-          <p className={styles.muted}>{example.meaning}</p>
+          <p className={styles.muted} lang={explanationLanguage}>
+            {example.meaning}
+          </p>
         </div>
       ))}
     </>
@@ -51,6 +67,7 @@ export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
 }
 
 export function VocabularyDetails(props: {
+  explanationLanguage?: Language | undefined;
   vocabularyId: VocabularyId;
   rootGeneration: DataRootGeneration;
   onClose: () => void;
@@ -148,7 +165,7 @@ export function VocabularyDetails(props: {
       {loading && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {entry && !editing && (
         <>
-          <VocabularyInformation entry={entry} />
+          <VocabularyInformation entry={entry} explanationLanguage={props.explanationLanguage} />
           <p>{t(`vocabulary.filters.${entry.state.status}`)}</p>
           {entry.state.status !== "candidate" && (
             <>

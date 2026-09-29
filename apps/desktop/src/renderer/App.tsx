@@ -151,13 +151,20 @@ function DesktopWorkspace({
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
   const [learningScope, setLearningScope] = useState<LearningScope>();
+  const [explanationLanguage, setExplanationLanguage] = useState<Language>();
   const [switchingLanguage, setSwitchingLanguage] = useState(false);
   const refreshScope = useCallback(async () => {
     const settings = await invokeDesktop("learner-settings/read", {});
     setLearningScope(settings.settings.learningScope);
+    setExplanationLanguage(settings.settings.explanationLanguage);
   }, []);
   const selectTarget = async (targetLanguage: Language) => {
-    if (switchingLanguage || !learningScope || targetLanguage === learningScope.targetLanguage)
+    if (
+      switchingLanguage ||
+      page === "vocabulary" ||
+      !learningScope ||
+      targetLanguage === learningScope.targetLanguage
+    )
       return;
     setSwitchingLanguage(true);
     setOperationError(undefined);
@@ -502,6 +509,7 @@ function DesktopWorkspace({
                   </div>
                 )}
                 <PracticePage
+                  targetLanguage={learningScope?.targetLanguage}
                   {...(activityOrigin ? { parentLabel: t(`nav.${activityOrigin}`) } : {})}
                   onVocabulary={() => {
                     navigate("vocabulary");
@@ -603,6 +611,8 @@ function DesktopWorkspace({
             ) : null}
             {page === "vocabulary" ? (
               <VocabularyPage
+                explanationLanguage={explanationLanguage}
+                targetLanguage={learningScope?.targetLanguage}
                 onOpenActivity={(activityId) => {
                   setActivityOrigin("vocabulary");
                   setPreparedActivityId(activityId);
@@ -677,11 +687,12 @@ function DesktopWorkspace({
                     switchingLanguage ||
                     page === "writing" ||
                     page === "practice" ||
+                    page === "vocabulary" ||
                     page === "settings"
                   }
                   onChange={(language) => void selectTarget(language)}
                 />
-                {(page === "writing" || page === "practice") && (
+                {(page === "writing" || page === "practice" || page === "vocabulary") && (
                   <small>{t("settings.finishBeforeSwitch")}</small>
                 )}
               </>

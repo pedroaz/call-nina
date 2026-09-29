@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { DataRootGeneration, CallNinaError, DesktopIpcResponse } from "@call-nina/contracts";
+import type {
+  DataRootGeneration,
+  CallNinaError,
+  DesktopIpcResponse,
+  Language,
+} from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { ActionGroup, Page } from "./components/layout/index.js";
 import { Button, Card, Feedback, LoadingState } from "./components/ui/index.js";
@@ -10,10 +15,12 @@ import styles from "./VocabularyPage.module.css";
 
 export function VocabularyReview({
   rootGeneration,
+  explanationLanguage,
   onExit,
   onChanged,
 }: {
   rootGeneration: DataRootGeneration;
+  explanationLanguage?: Language | undefined;
   onExit: () => void;
   onChanged: () => void;
 }) {
@@ -155,7 +162,11 @@ export function VocabularyReview({
           </label>
           <p>{t(`vocabulary.review.prompts.${retrieval}`)}</p>
           <p>{t("vocabulary.review.progress", { current: index + 1, total: queue.length })}</p>
-          <h2 ref={wordHeading} tabIndex={-1} lang="de">
+          <h2
+            ref={wordHeading}
+            tabIndex={-1}
+            lang={retrieval === "recall" && !revealed ? explanationLanguage : entry.targetLanguage}
+          >
             {retrieval === "recall" && !revealed ? entry.meaning : entry.lemma}
           </h2>
           {!revealed && (
@@ -174,7 +185,7 @@ export function VocabularyReview({
               role="region"
               aria-label={t("vocabulary.review.answer")}
             >
-              <VocabularyInformation entry={entry} />
+              <VocabularyInformation entry={entry} explanationLanguage={explanationLanguage} />
               {!dueOn && (
                 <ActionGroup>
                   {(["again", "hard", "good", "easy"] as const).map((value) => (

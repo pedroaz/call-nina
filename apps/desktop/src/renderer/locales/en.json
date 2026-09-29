@@ -146,14 +146,11 @@
     "grammarLesson": {
       "title": "Focused grammar lesson",
       "body": "Generate a lesson at your selected learning level using the curriculum and available saved mistake evidence.",
-      "topic": "Starter topic: dative articles after common prepositions.",
-      "request": "Create a grammar lesson at my current learning level on dative articles after mit and zu, with a clear explanation, examples, hints, guided practice, and one free-production exercise.",
       "start": "Generate grammar lesson"
     },
     "readingFlow": {
       "title": "Read and practise",
       "body": "Generate a passage for your learning language and level, or create questions from text you paste below. Codex prepares exercises and reviews your written answers.",
-      "bundledPassage": "Die Arztpraxis bittet Patientinnen und Patienten, zehn Minuten vor einem Termin zu kommen. Die Sprechstunde beginnt um 10:00 Uhr in Raum 2.",
       "topic": "Topic or learning goal (optional)",
       "defaultRequest": "Practise understanding a short everyday text in my learning language, including vocabulary, inference and a written summary.",
       "generate": "Generate reading practice",
@@ -498,12 +495,12 @@
       "retrieval": "Review mode",
       "modes": {
         "recognition": "Recognise meaning",
-        "recall": "Recall German",
+        "recall": "Recall the learning language",
         "use": "Use in a sentence"
       },
       "prompts": {
-        "recognition": "Look at the German and recall its meaning before revealing.",
-        "recall": "Read the meaning and recall the German before revealing.",
+        "recognition": "Look at the word in your learning language and recall its meaning before revealing.",
+        "recall": "Read the meaning and recall the word in your learning language before revealing.",
         "use": "Say or write a new sentence with this word or phrase before revealing. Grade your own attempt; this is self-reported practice."
       }
     },

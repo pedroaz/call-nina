@@ -146,14 +146,11 @@
     "grammarLesson": {
       "title": "Lição de gramática focada",
       "body": "Gere uma lição para o nível de aprendizagem selecionado usando o currículo e as evidências disponíveis de erros salvos.",
-      "topic": "Tema inicial: artigos no dativo após preposições comuns.",
-      "request": "Crie uma lição de gramática para meu nível atual sobre artigos no dativo após mit e zu, com explicação clara, exemplos, dicas, prática guiada e um exercício de produção livre.",
       "start": "Gerar lição de gramática"
     },
     "readingFlow": {
       "title": "Ler e praticar",
       "body": "Gere um texto para seu idioma e nível de aprendizagem ou crie perguntas a partir de um texto colado abaixo. O Codex prepara exercícios e avalia suas respostas escritas.",
-      "bundledPassage": "Die Arztpraxis bittet Patientinnen und Patienten, zehn Minuten vor einem Termin zu kommen. Die Sprechstunde beginnt um 10:00 Uhr in Raum 2.",
       "topic": "Tema ou objetivo de aprendizagem (opcional)",
       "defaultRequest": "Praticar a compreensão de um texto curto do dia a dia no idioma que estou aprendendo, incluindo vocabulário, inferências e um resumo escrito.",
       "generate": "Gerar prática de leitura",

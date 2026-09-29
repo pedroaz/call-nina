@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ActivityId, CallNinaError, VocabularyId } from "@call-nina/contracts";
+import type { ActivityId, CallNinaError, Language, VocabularyId } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -24,17 +24,27 @@ import { VocabularyReview } from "./VocabularyReview.js";
 import styles from "./VocabularyPage.module.css";
 
 type Props = Readonly<{
+  explanationLanguage?: Language | undefined;
+  targetLanguage?: Language | undefined;
   initialDueOnly?: boolean;
   onOpenActivity: (activityId: ActivityId) => void;
   onNavigate: (page: "history" | "practice") => void;
 }>;
 
-export function VocabularyPage({ initialDueOnly = false, onNavigate, onOpenActivity }: Props) {
+export function VocabularyPage({
+  explanationLanguage,
+  targetLanguage,
+  initialDueOnly = false,
+  onNavigate,
+  onOpenActivity,
+}: Props) {
   const library = useVocabularyLibrary(initialDueOnly);
   return (
     <VocabularyWorkspace
       key={library.rootGeneration ?? "unconfigured"}
       library={library}
+      explanationLanguage={explanationLanguage}
+      targetLanguage={targetLanguage}
       onNavigate={onNavigate}
       onOpenActivity={onOpenActivity}
     />
@@ -43,10 +53,14 @@ export function VocabularyPage({ initialDueOnly = false, onNavigate, onOpenActiv
 
 function VocabularyWorkspace({
   library,
+  explanationLanguage,
+  targetLanguage,
   onNavigate,
   onOpenActivity,
 }: {
   library: ReturnType<typeof useVocabularyLibrary>;
+  explanationLanguage?: Language | undefined;
+  targetLanguage?: Language | undefined;
   onNavigate: Props["onNavigate"];
   onOpenActivity: Props["onOpenActivity"];
 }) {
@@ -216,6 +230,7 @@ function VocabularyWorkspace({
     <>
       {reviewing && result && (
         <VocabularyReview
+          explanationLanguage={explanationLanguage}
           key={result.rootGeneration}
           rootGeneration={result.rootGeneration}
           onChanged={changed}
@@ -416,12 +431,16 @@ function VocabularyWorkspace({
                               setDetailId(entry.vocabularyId);
                             }}
                           >
-                            {entry.lemma}
+                            <span lang={targetLanguage}>{entry.lemma}</span>
                           </Button>
-                          <span className={styles.compactMeaning}>{entry.meaning}</span>
+                          <span className={styles.compactMeaning} lang={explanationLanguage}>
+                            {entry.meaning}
+                          </span>
                         </td>
                         <td className={styles.meaningColumn}>
-                          <span className={styles.summary}>{entry.meaning}</span>
+                          <span className={styles.summary} lang={explanationLanguage}>
+                            {entry.meaning}
+                          </span>
                         </td>
                         <td>
                           <span>{t(`vocabulary.filters.${entry.status}`)}</span>
@@ -470,6 +489,7 @@ function VocabularyWorkspace({
       </div>
       {detailId && result && (
         <VocabularyDetails
+          explanationLanguage={explanationLanguage}
           key={`${String(result.rootGeneration)}:${detailId}`}
           vocabularyId={detailId}
           rootGeneration={result.rootGeneration}
