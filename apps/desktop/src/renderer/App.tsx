@@ -7,6 +7,10 @@ import {
   type ProviderOperation,
   type DesktopIpcResponse,
   type CallNinaError,
+  languageDefinitions,
+  languageCapabilities,
+  type LearningScope,
+  type Language,
 } from "@call-nina/contracts";
 import type { ModelWorkload } from "@call-nina/domain";
 import {
@@ -21,8 +25,8 @@ import {
   UserRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, Feedback, ModalDialog } from "./components/ui/index.js";
-import { ActionGroup, AppShell as ApplicationShell } from "./components/layout/index.js";
+import { Button, Card, Feedback, LoadingState, ModalDialog } from "./components/ui/index.js";
+import { ActionGroup, AppShell as ApplicationShell, Page } from "./components/layout/index.js";
 
 import callNinaLogo from "../../assets/call-nina.svg";
 import styles from "./AppStyles.module.css";
@@ -36,13 +40,13 @@ import { LearningPathPage } from "./LearningPathPage.js";
 import { PracticePage } from "./PracticePage.js";
 import { PersonalDataPage } from "./PersonalDataPage.js";
 import { SettingsPage } from "./SettingsPage.js";
+import { LanguageSelect } from "./LanguageSelect.js";
 import { SidebarModelControl } from "./SidebarModelControl.js";
 import { VocabularyPage } from "./VocabularyPage.js";
 import { WritingWorkspace } from "./WritingWorkspace.js";
 import {
   CodexBanner,
   FolderOnboarding,
-  LanguageButton,
   OperationError,
   StartupError,
   StartupFrame,
@@ -146,6 +150,36 @@ function DesktopWorkspace({
   const [writingOrigin, setWritingOrigin] = useState<Page>("practice");
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
+  const [learningScope, setLearningScope] = useState<LearningScope>();
+  const [switchingLanguage, setSwitchingLanguage] = useState(false);
+  const refreshScope = useCallback(async () => {
+    const settings = await invokeDesktop("learner-settings/read", {});
+    setLearningScope(settings.settings.learningScope);
+  }, []);
+  const selectTarget = async (targetLanguage: Language) => {
+    if (
+      switchingLanguage ||
+      page === "vocabulary" ||
+      !learningScope ||
+      targetLanguage === learningScope.targetLanguage
+    )
+      return;
+    setSwitchingLanguage(true);
+    setOperationError(undefined);
+    try {
+      const current = await invokeDesktop("learner-settings/read", {});
+      const next = await invokeDesktop("learner-settings/select-language", {
+        expectedGeneration: current.dataRoot.generation,
+        targetLanguage,
+      });
+      setLearningScope(next.settings.learningScope);
+      setPage("nina");
+    } catch (cause) {
+      setOperationError(normalizeDesktopError(cause).detail);
+    } finally {
+      setSwitchingLanguage(false);
+    }
+  };
   const [navCollapsed, setNavCollapsed] = useState(false);
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -178,6 +212,16 @@ function DesktopWorkspace({
     useState<Extract<ProviderAccess, { status: "unavailable" }>>();
   const [operationError, setOperationError] = useState<CallNinaError>();
   const [resetNotice, setResetNotice] = useState(false);
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => {
+      void refreshScope().catch((cause: unknown) => {
+        setOperationError(normalizeDesktopError(cause).detail);
+      });
+    }, 0);
+    return () => {
+      window.clearTimeout(initialLoad);
+    };
+  }, [refreshScope]);
   useEffect(() => {
     void invokeDesktop("development-notice/read", {})
       .then((result) => {
@@ -286,13 +330,17 @@ function DesktopWorkspace({
         (event.scope === "account" || event.scope === "settings")
       )
         void reload();
+      if (event.event === "state-invalidated" && event.scope === "settings")
+        void refreshScope().catch((cause: unknown) => {
+          setOperationError(normalizeDesktopError(cause).detail);
+        });
     });
     window.callNina.workspaceReady(true);
     return () => {
       window.callNina.workspaceReady(false);
       unsubscribe();
     };
-  }, [reload, writingDirty]);
+  }, [reload, refreshScope, writingDirty]);
 
   const openAi = async (
     operation: ProviderOperation,
@@ -436,7 +484,12 @@ function DesktopWorkspace({
               </Feedback>
             )}
             {page === "nina" ? (
-              <Dashboard requestAiAccess={openAi} onLaunch={launchPractice} onNavigate={navigate} />
+              <Dashboard
+                key={learningScope?.targetLanguage}
+                requestAiAccess={openAi}
+                onLaunch={launchPractice}
+                onNavigate={navigate}
+              />
             ) : null}
             {page === "practice" || (page === "writing" && writingOrigin === "practice") ? (
               <div ref={practiceContainer} hidden={page !== "practice"}>
@@ -454,6 +507,7 @@ function DesktopWorkspace({
                   </div>
                 )}
                 <PracticePage
+                  targetLanguage={learningScope?.targetLanguage}
                   {...(activityOrigin ? { parentLabel: t(`nav.${activityOrigin}`) } : {})}
                   onVocabulary={() => {
                     navigate("vocabulary");
@@ -506,7 +560,11 @@ function DesktopWorkspace({
                 }}
               />
             ) : null}
-            {page === "learningPath" ? (
+            {page === "learningPath" &&
+            learningScope &&
+            languageCapabilities[learningScope.targetLanguage].structuredPath &&
+            learningScope.courseId ===
+              languageDefinitions[learningScope.targetLanguage].structuredCourseId ? (
               <LearningPathPage
                 requestAiAccess={openAi}
                 onOpenHistory={(ids) => {
@@ -514,9 +572,44 @@ function DesktopWorkspace({
                   setPage("history");
                 }}
               />
+            ) : page === "learningPath" ? (
+              <Page title={t("nav.learningPath")}>
+                {!learningScope ? (
+                  <LoadingState live>{t("startup.loading")}</LoadingState>
+                ) : (
+                  <Card as="section">
+                    <p>
+                      {t(
+                        learningScope.targetLanguage === "de"
+                          ? "learningPath.enrollRequired"
+                          : "learningPath.languageUnavailable",
+                      )}
+                    </p>
+                    <ActionGroup>
+                      <Button
+                        onPress={() => {
+                          setSettingsTab("profile");
+                          navigate("settings");
+                        }}
+                      >
+                        {t("nav.settings")}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onPress={() => {
+                          navigate("practice");
+                        }}
+                      >
+                        {t("nav.practice")}
+                      </Button>
+                    </ActionGroup>
+                  </Card>
+                )}
+              </Page>
             ) : null}
             {page === "vocabulary" ? (
               <VocabularyPage
+                targetLanguage={learningScope?.targetLanguage}
                 onOpenActivity={(activityId) => {
                   setActivityOrigin("vocabulary");
                   setPreparedActivityId(activityId);
@@ -552,6 +645,11 @@ function DesktopWorkspace({
                 }}
                 onDataRootChanged={reload}
                 onRunSetup={onRunSetup}
+                onLearningLanguageChange={() => {
+                  void refreshScope().catch((cause: unknown) => {
+                    setOperationError(normalizeDesktopError(cause).detail);
+                  });
+                }}
               />
             ) : null}
           </>
@@ -577,7 +675,25 @@ function DesktopWorkspace({
         navigationLabel={t("nav.label")}
         navFooter={
           <>
-            <LanguageButton />
+            {learningScope && (
+              <>
+                <LanguageSelect
+                  label={t("onboarding.targetLanguage")}
+                  value={learningScope.targetLanguage}
+                  disabled={
+                    switchingLanguage ||
+                    page === "writing" ||
+                    page === "practice" ||
+                    page === "vocabulary" ||
+                    page === "settings"
+                  }
+                  onChange={(language) => void selectTarget(language)}
+                />
+                {(page === "writing" || page === "practice" || page === "vocabulary") && (
+                  <small>{t("settings.finishBeforeSwitch")}</small>
+                )}
+              </>
+            )}
             <SidebarModelControl initialWorkload={modelWorkload} />
           </>
         }

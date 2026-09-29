@@ -155,7 +155,11 @@ export function VocabularyReview({
           </label>
           <p>{t(`vocabulary.review.prompts.${retrieval}`)}</p>
           <p>{t("vocabulary.review.progress", { current: index + 1, total: queue.length })}</p>
-          <h2 ref={wordHeading} tabIndex={-1} lang="de">
+          <h2
+            ref={wordHeading}
+            tabIndex={-1}
+            lang={retrieval === "recall" && !revealed ? "" : entry.targetLanguage}
+          >
             {retrieval === "recall" && !revealed ? entry.meaning : entry.lemma}
           </h2>
           {!revealed && (

@@ -22,28 +22,34 @@ export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
   const { t } = useTranslation();
   return (
     <>
-      <p>{entry.meaning}</p>
+      {/* Saved meanings have no recorded language; current preferences cannot identify it. */}
+      <p lang="">{entry.meaning}</p>
       {entry.lexeme.partOfSpeech === "noun" && (
         <p>
-          {entry.lexeme.nounForm.article} · {t("vocabulary.library.plural")}:{" "}
-          {entry.lexeme.plural.status === "form"
-            ? entry.lexeme.plural.form
-            : t(`vocabulary.library.plurals.${entry.lexeme.plural.status}`)}
+          <span lang={entry.targetLanguage}>{entry.lexeme.nounForm.article}</span> ·{" "}
+          {t("vocabulary.library.plural")}:{" "}
+          {entry.lexeme.plural.status === "form" ? (
+            <span lang={entry.targetLanguage}>{entry.lexeme.plural.form}</span>
+          ) : (
+            t(`vocabulary.library.plurals.${entry.lexeme.plural.status}`)
+          )}
         </p>
       )}
       {entry.lexeme.partOfSpeech === "phrase" && (
         <p>
-          {entry.lexeme.function}
+          <span lang={entry.targetLanguage}>{entry.lexeme.function}</span>
           {entry.lexeme.register ? ` · ${t(`vocabulary.register.${entry.lexeme.register}`)}` : ""}
         </p>
       )}
       {entry.lexeme.partOfSpeech === "verb" && entry.lexeme.pattern && (
-        <p>{entry.lexeme.pattern}</p>
+        <p lang={entry.targetLanguage}>{entry.lexeme.pattern}</p>
       )}
       {entry.examples.map((example, index) => (
         <div key={index}>
           <p lang={entry.targetLanguage}>{example.text}</p>
-          <p className={styles.muted}>{example.meaning}</p>
+          <p className={styles.muted} lang="">
+            {example.meaning}
+          </p>
         </div>
       ))}
     </>

@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Call Nina",
-    "tagline": "Ein ruhiger Ort für sicheres Deutsch."
+    "tagline": "Ein ruhiger Ort, um deine Sprachkenntnisse zu stärken."
   },
   "actions": {
     "choose": "Ordner auswählen",
@@ -146,19 +146,16 @@
     "grammarLesson": {
       "title": "Gezielte Grammatiklektion",
       "body": "Erstelle eine Lektion auf deinem gewählten Lernniveau mit dem geprüften Curriculum und vorhandenen Fehlerbelegen.",
-      "topic": "Einstiegsthema: Dativartikel nach häufigen Präpositionen.",
-      "request": "Erstelle eine Grammatiklektion auf meinem aktuellen Lernniveau zu Dativartikeln nach mit und zu, mit klarer Erklärung, Beispielen, Hinweisen, geführten Übungen und einer freien Produktionsaufgabe.",
       "start": "Grammatiklektion erstellen"
     },
     "readingFlow": {
-      "title": "Deutsch lesen und üben",
-      "body": "Erstelle einen deutschen Text für dein Lernniveau oder Aufgaben zu einem eingefügten Text. Codex erstellt passende Aufgaben und gibt Feedback zu deinen schriftlichen Antworten.",
-      "bundledPassage": "Die Arztpraxis bittet Patientinnen und Patienten, zehn Minuten vor einem Termin zu kommen. Die Sprechstunde beginnt um 10:00 Uhr in Raum 2.",
+      "title": "Lesen und üben",
+      "body": "Erstelle einen Text in deiner Lernsprache für dein Niveau oder Aufgaben zu einem eingefügten Text. Codex erstellt passende Aufgaben und gibt Feedback zu deinen schriftlichen Antworten.",
       "topic": "Thema oder Lernziel (optional)",
-      "defaultRequest": "Übe das Verstehen eines kurzen deutschen Alltagstextes mit Wortschatz, Schlussfolgerungen und einer schriftlichen Zusammenfassung.",
+      "defaultRequest": "Übe das Verstehen eines kurzen Alltagstextes in meiner Lernsprache mit Wortschatz, Schlussfolgerungen und einer schriftlichen Zusammenfassung.",
       "generate": "Leseübung erstellen",
       "material": "Lesetext",
-      "importLabel": "Deutschen Text einfügen (optional)",
+      "importLabel": "Text in deiner Lernsprache einfügen (optional)",
       "useStarter": "Beispieltext verwenden",
       "useImport": "Aufgaben zu diesem Text erstellen"
     },
@@ -215,7 +212,7 @@
     "speakingFlow": {
       "title": "Szenario zum Sprechen in Codex Voice",
       "promptPlaceholder": "Zum Beispiel: einen Arzttermin verschieben oder Lebensmittel einkaufen",
-      "body": "Bereite ein praktisches Deutschland-Rollenspiel mit Conversation-Partner-Verhalten, Zielniveau und Korrekturzeitpunkt vor. Gesprochen wird weiterhin in Codex Voice.",
+      "body": "Bereite ein praktisches Rollenspiel in deiner Lernsprache mit Conversation-Partner-Verhalten, Zielniveau und Korrekturzeitpunkt vor. Gesprochen wird weiterhin in Codex Voice.",
       "scenario": "Einen Arzttermin verschieben",
       "scenarioLabel": "Szenario",
       "levelLabel": "Zielniveau",
@@ -242,7 +239,7 @@
       "questionOne": "Kannst du die Änderung in einem klaren Satz erklären?",
       "questionTwo": "Wie schlägst du Donnerstag um 14:00 Uhr vor?",
       "guidance": "Gesprächshinweise",
-      "guidanceOne": "Der Conversation Partner spricht zuerst Deutsch und passt den Schwierigkeitsgrad an A2 an.",
+      "guidanceOne": "Der Conversation Partner spricht zuerst die Lernsprache und passt den Schwierigkeitsgrad an A2 an.",
       "guidanceTwo": "Korrigiere nach jeder Antwort und beende mit Problemen, Wortschatz, Feedback und nächsten Schritten.",
       "prepare": "Szenario zum Sprechen vorbereiten",
       "preparing": "Szenario wird vorbereitet…",
@@ -341,8 +338,8 @@
     "blank": "Lücke {{number}}",
     "correctedSentence": "Dein korrigierter Satz",
     "direction": {
-      "recognition": "Erkenne die deutsche Bedeutung.",
-      "production": "Bilde das deutsche Wort oder den Ausdruck."
+      "recognition": "Erkenne die Bedeutung.",
+      "production": "Bilde das Wort oder den Ausdruck in deiner Lernsprache."
     },
     "hint": "Tipp",
     "nextHint": "Weiterer Tipp",
@@ -433,7 +430,7 @@
     "openSource": "Quelle öffnen",
     "lemma": "Wort",
     "meaning": "Bedeutung",
-    "example": "Deutsches Beispiel",
+    "example": "Beispiel in deiner Lernsprache",
     "exampleMeaning": "Bedeutung des Beispiels",
     "lessonSets": "Gespeicherte Lektionssets",
     "lessonSetItems": "{{count}} Kandidaten",
@@ -498,12 +495,12 @@
       "retrieval": "Abrufart",
       "modes": {
         "recognition": "Bedeutung erkennen",
-        "recall": "Deutsch abrufen",
+        "recall": "Lernsprache abrufen",
         "use": "In einem Satz verwenden"
       },
       "prompts": {
-        "recognition": "Sieh das deutsche Wort an und rufe die Bedeutung ab, bevor du aufdeckst.",
-        "recall": "Lies die Bedeutung und rufe das Deutsche ab, bevor du aufdeckst.",
+        "recognition": "Sieh das Wort in deiner Lernsprache an und rufe die Bedeutung ab, bevor du aufdeckst.",
+        "recall": "Lies die Bedeutung und rufe das Wort in deiner Lernsprache ab, bevor du aufdeckst.",
         "use": "Sage oder schreibe vor dem Aufdecken einen neuen Satz mit diesem Wort oder Baustein. Bewerte deinen Versuch selbst; dies ist eine Selbsteinschätzung."
       }
     },
@@ -565,7 +562,7 @@
   },
   "writing": {
     "eyebrow": "Schreibübung",
-    "title": "Auf Deutsch schreiben",
+    "title": "In deiner Lernsprache schreiben",
     "intro": "Situation und eigener Text bleiben zusammen. Erst eine ausdrücklich gestartete KI-Aktion sendet Inhalte.",
     "promptTitle": "Wähle deinen Einstieg",
     "promptBody": "Erstelle eine Aufgabe für dein Niveau und deine Interessen oder schreibe frei.",
@@ -589,7 +586,7 @@
     "contextLabel": "Situation oder Aufgabe (optional)",
     "contextPlaceholder": "Zum Beispiel: die Hausverwaltung nach einem Reparaturtermin fragen",
     "contextHint": "Optionaler Kontext für diesen Text. Halte ihn relevant und kurz.",
-    "editorLabel": "Dein deutscher Text",
+    "editorLabel": "Dein Text in deiner Lernsprache",
     "editorPlaceholder": "Hier losschreiben…",
     "selection": "{{count}} Zeichen ausgewählt",
     "noSelection": "Kein Text ausgewählt",
@@ -632,7 +629,7 @@
     },
     "correctionStages": {
       "queued": "Korrektur wartet. Dein Text bleibt erhalten.",
-      "running": "Dein deutscher Text wird geprüft…",
+      "running": "Dein Text wird geprüft…",
       "validating": "Die strukturierte Korrektur wird geprüft…",
       "cancelling": "Korrektur wird abgebrochen…"
     },
@@ -650,7 +647,7 @@
     "feedbackPriority": "Wichtigste Fehler",
     "localDraftNotice": "Ungespeicherter Entwurf · Jetzt korrigieren speichert die Korrektur.",
     "unsavedTitle": "Diesen Schreibentwurf verlassen?",
-    "unsavedBody": "Deine ungespeicherte Aufgabe und dein deutscher Text werden beim Verlassen verworfen.",
+    "unsavedBody": "Deine ungespeicherte Aufgabe und dein Text werden beim Verlassen verworfen.",
     "leave": "Verwerfen und verlassen",
     "keepEditing": "Weiter bearbeiten"
   },
@@ -844,8 +841,8 @@
       "failed": "Kontoverbindung fehlgeschlagen. Versuche es später erneut."
     },
     "startTitle": "Dein Ausgangspunkt",
-    "level": "Ungefähres Deutschniveau",
-    "goal": "Dein Ziel für Deutsch im Alltag",
+    "level": "Ungefähres Sprachniveau",
+    "goal": "Dein Lernziel für den Alltag",
     "goalHint": "Zum Beispiel: Termine vereinbaren oder sicherer mit Nachbarn sprechen.",
     "time": "Verfügbare Lernzeit pro Woche",
     "minutes": "{{count}} Minuten",
@@ -855,7 +852,7 @@
     "profiles": {
       "conversation-partner": {
         "title": "Gesprächspartner",
-        "body": "Deutsch zuerst, mit ausgewählten Korrekturen nach deinem Gedanken."
+        "body": "Übe zuerst in deiner Lernsprache, mit ausgewählten Korrekturen nach deinem Gedanken."
       },
       "strict-corrector": {
         "title": "Strenger Korrektor",
@@ -910,7 +907,7 @@
     },
     "guidance": {
       "connection": "Richte jetzt dein lokales Lernen ein. Codex kannst du hier oder später in den Einstellungen verbinden.",
-      "goal": "Sag uns, wo du stehst und was du auf Deutsch machen möchtest.",
+      "goal": "Sag uns, wo du stehst und was du in deiner Lernsprache machen möchtest.",
       "defaults": "Wähle deinen Korrekturstil und deine Sprachen. Du kannst sie später in den Einstellungen ändern.",
       "review": "Prüfe deine Auswahl. Mit Zurück kannst du sie ändern. Schließe die Einrichtung ab, um mit dem Lernen zu beginnen."
     },
@@ -921,7 +918,10 @@
       "unsupported-version": "Deine installierte Codex-Version wird nicht unterstützt. Aktualisiere Codex und prüfe die Verbindung erneut.",
       "app-server-unavailable": "Call Nina konnte keine Verbindung zu Codex herstellen. Starte Codex neu und prüfe die Verbindung erneut."
     },
-    "connectionOptional": "Du kannst die Einrichtung abschließen und vorbereitete Aktivitäten ohne Codex üben. Verbinde Codex später für KI-Erstellung und Feedback."
+    "connectionOptional": "Du kannst die Einrichtung abschließen und vorbereitete Aktivitäten ohne Codex üben. Verbinde Codex später für KI-Erstellung und Feedback.",
+    "targetLanguage": "Lernsprache",
+    "enrollCourse": "Deutschen Lernpfad nutzen",
+    "pathUnavailable": "Der strukturierte Lernpfad ist nur für Deutsch verfügbar. Du kannst trotzdem generierte Übungen verwenden."
   },
   "settings": {
     "eyebrow": "Vorgaben",
@@ -1020,7 +1020,9 @@
       "account": "Konto",
       "data": "Daten & Datenschutz",
       "diagnostics": "Diagnose"
-    }
+    },
+    "languageSelected": "Lernsprache gewechselt. Das gespeicherte Niveau und Ziel werden angezeigt.",
+    "finishBeforeSwitch": "Schließe die Aktivität ab oder verlasse sie, bevor du die Lernsprache wechselst."
   },
   "errors": {
     "boundaryTitle": "Diese Ansicht konnte nicht angezeigt werden",
@@ -1281,7 +1283,9 @@
     "skillParticipation": "{{count}} verknüpfte Aktivitäten abgeschlossen",
     "noEvidence": "Noch nicht bewertet. Abgeschlossene Lektionen belegen diese Fertigkeit nicht.",
     "historyAndPatterns": "Verlauf und wiederkehrende Fehler ansehen",
-    "allHistory": "Gesamten Verlauf anzeigen"
+    "allHistory": "Gesamten Verlauf anzeigen",
+    "languageUnavailable": "Ein strukturierter Lernpfad ist derzeit nur für Deutsch verfügbar. Du kannst in deiner gewählten Sprache üben.",
+    "enrollRequired": "Der deutsche Lernpfad ist optional. Aktiviere ihn in den Einstellungen oder übe weiter."
   },
   "aiProgress": {
     "attempt": "Versuch {{count}}",
@@ -1381,7 +1385,7 @@
     "title": "Lernkarten",
     "count": "Anzahl der Karten",
     "description": "Entdecke Wortschatz in deinem Tempo. Drehe jede Karte um, um Bedeutung und Beispiel zu sehen.",
-    "placeholder": "Zum Beispiel: Einkaufen im deutschen Supermarkt",
+    "placeholder": "Zum Beispiel: Einkaufen im Supermarkt",
     "generate": "Lernkarten erstellen",
     "complete": "Kartensatz abgeschlossen",
     "completeBody": "Du hast das Ende dieses Kartensatzes mit {{count}} Karten erreicht.",
@@ -1422,5 +1426,11 @@
       "model-unavailable": "Für diese Aktion ist kein nutzbares Codex-Modell mit passender Denkleistung verfügbar. Prüfe die gespeicherte Modellauswahl und Verbindung in den Einstellungen und versuche es erneut.",
       "plugin-required": "Zum Öffnen dieser Voice-Aktivität in Codex wird das Call-Nina-Plugin benötigt. Installiere oder aktualisiere es in den Einstellungen und versuche es erneut."
     }
+  },
+  "languages": {
+    "en-US": "Englisch",
+    "pt-BR": "Brasilianisches Portugiesisch",
+    "es": "Spanisch",
+    "de": "Deutsch"
   }
 }

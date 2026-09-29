@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Call Nina",
-    "tagline": "A focused place to build confident German."
+    "tagline": "A focused place to build confidence in your language."
   },
   "actions": {
     "choose": "Choose folder",
@@ -146,19 +146,16 @@
     "grammarLesson": {
       "title": "Focused grammar lesson",
       "body": "Generate a lesson at your selected learning level using the curriculum and available saved mistake evidence.",
-      "topic": "Starter topic: dative articles after common prepositions.",
-      "request": "Create a grammar lesson at my current learning level on dative articles after mit and zu, with a clear explanation, examples, hints, guided practice, and one free-production exercise.",
       "start": "Generate grammar lesson"
     },
     "readingFlow": {
-      "title": "Read and practise German",
-      "body": "Generate a German passage for your learning level, or create questions from text you paste below. Codex prepares passage-specific exercises and reviews your written answers.",
-      "bundledPassage": "Die Arztpraxis bittet Patientinnen und Patienten, zehn Minuten vor einem Termin zu kommen. Die Sprechstunde beginnt um 10:00 Uhr in Raum 2.",
+      "title": "Read and practise",
+      "body": "Generate a passage for your learning language and level, or create questions from text you paste below. Codex prepares exercises and reviews your written answers.",
       "topic": "Topic or learning goal (optional)",
-      "defaultRequest": "Practise understanding a short everyday German text, including vocabulary, inference and a written summary.",
+      "defaultRequest": "Practise understanding a short everyday text in my learning language, including vocabulary, inference and a written summary.",
       "generate": "Generate reading practice",
       "material": "Reading material",
-      "importLabel": "Paste a German text (optional)",
+      "importLabel": "Paste a text in your learning language (optional)",
       "useStarter": "Use a starter text",
       "useImport": "Create exercises from this text"
     },
@@ -215,7 +212,7 @@
     "speakingFlow": {
       "title": "Speaking scenario in Codex Voice",
       "promptPlaceholder": "For example: reschedule a doctor's appointment or buy groceries",
-      "body": "Prepare a practical Germany role-play with Conversation Partner behavior, a level target, and correction timing. Live speech stays in Codex Voice.",
+      "body": "Prepare a practical role-play in your learning language with Conversation Partner behavior, a level target, and correction timing. Live speech stays in Codex Voice.",
       "scenario": "Reschedule a doctor's appointment",
       "scenarioLabel": "Scenario",
       "levelLabel": "Target level",
@@ -242,7 +239,7 @@
       "questionOne": "Can you explain the change in one clear sentence?",
       "questionTwo": "How will you suggest Thursday at 14:00?",
       "guidance": "Conversation guidance",
-      "guidanceOne": "The Conversation Partner speaks German first and adapts difficulty to A2.",
+      "guidanceOne": "The Conversation Partner speaks the learning language first and adapts difficulty to A2.",
       "guidanceTwo": "Correct after each answer and end with issues, vocabulary, feedback, and next steps.",
       "prepare": "Prepare speaking scenario",
       "preparing": "Preparing speaking scenario…",
@@ -341,8 +338,8 @@
     "blank": "Blank {{number}}",
     "correctedSentence": "Your corrected sentence",
     "direction": {
-      "recognition": "Recognize the German meaning.",
-      "production": "Produce the German word or phrase."
+      "recognition": "Recognize the meaning.",
+      "production": "Produce the word or phrase in your learning language."
     },
     "hint": "Hint",
     "nextHint": "Another hint",
@@ -433,7 +430,7 @@
     "openSource": "Open source",
     "lemma": "Word",
     "meaning": "Meaning",
-    "example": "German example",
+    "example": "Example in your learning language",
     "exampleMeaning": "Example meaning",
     "lessonSets": "Saved lesson sets",
     "lessonSetItems": "{{count}} candidates",
@@ -498,12 +495,12 @@
       "retrieval": "Review mode",
       "modes": {
         "recognition": "Recognise meaning",
-        "recall": "Recall German",
+        "recall": "Recall the learning language",
         "use": "Use in a sentence"
       },
       "prompts": {
-        "recognition": "Look at the German and recall its meaning before revealing.",
-        "recall": "Read the meaning and recall the German before revealing.",
+        "recognition": "Look at the word in your learning language and recall its meaning before revealing.",
+        "recall": "Read the meaning and recall the word in your learning language before revealing.",
         "use": "Say or write a new sentence with this word or phrase before revealing. Grade your own attempt; this is self-reported practice."
       }
     },
@@ -565,7 +562,7 @@
   },
   "writing": {
     "eyebrow": "Writing practice",
-    "title": "Write in German",
+    "title": "Write in your learning language",
     "intro": "Keep the situation and your own text together. Nothing is sent until you explicitly start an AI action.",
     "promptTitle": "Choose how to start",
     "promptBody": "Generate a task for your level and interests, or write freely.",
@@ -589,7 +586,7 @@
     "contextLabel": "Situation or prompt (optional)",
     "contextPlaceholder": "For example: ask a Hausverwaltung about a repair appointment",
     "contextHint": "Optional context for this piece of writing. Keep it relevant and concise.",
-    "editorLabel": "Your German text",
+    "editorLabel": "Your text in your learning language",
     "editorPlaceholder": "Start writing here…",
     "selection": "{{count}} characters selected",
     "noSelection": "No text selected",
@@ -632,7 +629,7 @@
     },
     "correctionStages": {
       "queued": "Correction queued. Your text is preserved.",
-      "running": "Reviewing your German…",
+      "running": "Reviewing your writing…",
       "validating": "Checking the structured correction…",
       "cancelling": "Cancelling correction…"
     },
@@ -650,7 +647,7 @@
     "feedbackPriority": "Priority issues",
     "localDraftNotice": "Unsaved draft · Correct now saves the review.",
     "unsavedTitle": "Leave this writing draft?",
-    "unsavedBody": "Your unsaved prompt and German text will be discarded if you leave this workspace.",
+    "unsavedBody": "Your unsaved prompt and text will be discarded if you leave this workspace.",
     "leave": "Discard and leave",
     "keepEditing": "Keep editing"
   },
@@ -844,8 +841,8 @@
       "failed": "Account connection failed. Try again when you are ready."
     },
     "startTitle": "Your starting point",
-    "level": "Approximate German level",
-    "goal": "Your everyday German goal",
+    "level": "Approximate level",
+    "goal": "Your everyday learning goal",
     "goalHint": "For example: make appointments or feel more confident speaking with neighbours.",
     "time": "Available study time each week",
     "minutes": "{{count}} minutes",
@@ -855,7 +852,7 @@
     "profiles": {
       "conversation-partner": {
         "title": "Conversation partner",
-        "body": "German-first practice with selective corrections after you finish a thought."
+        "body": "Practice in your learning language first, with selective corrections after you finish a thought."
       },
       "strict-corrector": {
         "title": "Strict corrector",
@@ -910,7 +907,7 @@
     },
     "guidance": {
       "connection": "Set up local learning now. You can connect Codex here or later in Settings.",
-      "goal": "Tell us where you are starting and what you want to do in German.",
+      "goal": "Tell us where you are starting and what you want to do in your learning language.",
       "defaults": "Choose how you want feedback and which languages to use. You can change these in Settings.",
       "review": "Review your choices below. Use Back to make changes, or finish setup to start learning."
     },
@@ -921,7 +918,10 @@
       "unsupported-version": "Your installed Codex version is not supported. Update Codex, then check the connection again.",
       "app-server-unavailable": "Call Nina could not connect to Codex. Restart Codex, then check the connection again."
     },
-    "connectionOptional": "You can finish setup and practise prepared activities without connecting Codex. Connect later for AI generation and feedback."
+    "connectionOptional": "You can finish setup and practise prepared activities without connecting Codex. Connect later for AI generation and feedback.",
+    "targetLanguage": "Language to learn",
+    "enrollCourse": "Use the German Learning Path",
+    "pathUnavailable": "The structured Learning Path is available for German only. You can still use generated Practice."
   },
   "settings": {
     "eyebrow": "Preferences",
@@ -1020,7 +1020,9 @@
       "account": "Account",
       "data": "Data & privacy",
       "diagnostics": "Diagnostics"
-    }
+    },
+    "languageSelected": "Learning language changed. Its saved level and goal are now shown.",
+    "finishBeforeSwitch": "Finish or leave this activity before switching learning languages."
   },
   "errors": {
     "boundaryTitle": "This view could not be displayed",
@@ -1281,7 +1283,9 @@
     "skillParticipation": "{{count}} linked activities completed",
     "noEvidence": "Not yet assessed. Completing lessons does not establish this skill.",
     "historyAndPatterns": "Review history and recurring mistakes",
-    "allHistory": "Show all history"
+    "allHistory": "Show all history",
+    "languageUnavailable": "A structured Learning Path is currently available for German only. You can practise in your chosen language.",
+    "enrollRequired": "The German Learning Path is optional. Enable it in Settings to use the course, or continue in Practice."
   },
   "aiProgress": {
     "attempt": "Attempt {{count}}",
@@ -1381,7 +1385,7 @@
     "title": "Flashcards",
     "count": "Number of cards",
     "description": "Explore vocabulary at your own pace. Flip each card to see its meaning and example.",
-    "placeholder": "For example: shopping at a German supermarket",
+    "placeholder": "For example: shopping at a supermarket",
     "generate": "Generate flashcards",
     "complete": "Deck complete",
     "completeBody": "You reached the end of this {{count}}-card deck.",
@@ -1422,5 +1426,11 @@
       "model-unavailable": "No usable Codex model and reasoning setting is available for this action. Check the saved model choice and connection in Settings, then retry.",
       "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry."
     }
+  },
+  "languages": {
+    "en-US": "English",
+    "pt-BR": "Brazilian Portuguese",
+    "es": "Spanish",
+    "de": "German"
   }
 }

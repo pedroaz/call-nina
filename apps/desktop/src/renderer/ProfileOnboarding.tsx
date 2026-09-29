@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  languageDefinitions,
+  type Language,
   utcInstantSchema,
   type DesktopIpcResponse,
   type CallNinaError,
@@ -17,6 +19,7 @@ import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js
 import type { DesktopSettingsResult, DesktopSettingsValue } from "./settings-adapter.js";
 import i18n from "./i18n.js";
 import styles from "./ProfileOnboarding.module.css";
+import { LanguageSelect } from "./LanguageSelect.js";
 
 type Readiness = Extract<DesktopIpcResponse, { status: "ok"; channel: "app/readiness" }>["result"];
 type Account = Extract<
@@ -55,8 +58,10 @@ export function ProfileOnboarding({
     everydayLifeGoal: "",
     defaultTeachingProfileId: "conversation-partner",
     explanationLanguage: "en-US",
-    uiLocale: i18n.resolvedLanguage === "de" ? "de" : "en-US",
+    uiLocale: (i18n.resolvedLanguage ?? "en-US") as Language,
   });
+  const [targetLanguage, setTargetLanguage] = useState<Language>("de");
+  const [enrollCourse, setEnrollCourse] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
@@ -108,6 +113,10 @@ export function ProfileOnboarding({
         const settings = await invokeDesktop("learner-settings/read", {});
         setPersisted(settings);
         setChoices(settings.settings);
+        setTargetLanguage(settings.settings.learningScope.targetLanguage);
+        setEnrollCourse(
+          settings.settings.learningScope.courseId === languageDefinitions.de.structuredCourseId,
+        );
         await i18n.changeLanguage(settings.settings.uiLocale);
       }
     } catch (cause) {
@@ -155,22 +164,46 @@ export function ProfileOnboarding({
   const change = <K extends keyof Choices>(key: K, value: Choices[K]) => {
     setChoices((current) => ({ ...current, [key]: value }));
   };
-  const save = async (): Promise<DesktopSettingsResult | undefined> => {
+  const selectTarget = (language: Language) => {
+    if (!persisted) {
+      setTargetLanguage(language);
+      setEnrollCourse(false);
+      return;
+    }
+    void attempt(async () => {
+      const saved = await save();
+      if (!saved) return;
+      const next = await invokeDesktop("learner-settings/select-language", {
+        expectedGeneration: saved.dataRoot.generation,
+        targetLanguage: language,
+      });
+      setPersisted(next);
+      setChoices(next.settings);
+      setTargetLanguage(next.settings.learningScope.targetLanguage);
+      setEnrollCourse(
+        next.settings.learningScope.courseId === languageDefinitions.de.structuredCourseId,
+      );
+    });
+  };
+  async function save(): Promise<DesktopSettingsResult | undefined> {
     if (!generation || !choices.everydayLifeGoal.trim()) return persisted;
     let current = persisted;
     if (!current) {
       await invokeDesktop("learner-profile/start-onboarding", {
-        targetLanguage: "de",
+        targetLanguage,
         ...choices,
         everydayLifeGoal: choices.everydayLifeGoal.trim(),
         expectedGeneration: generation,
         placement: { status: "skipped" },
       });
       current = await invokeDesktop("learner-settings/read", {});
-    } else if (
+    }
+    const saved = current;
+    if (
       Object.entries(choices).some(
-        ([key, value]) => current?.settings[key as keyof Choices] !== value,
-      )
+        ([key, value]) => saved.settings[key as keyof Choices] !== value,
+      ) ||
+      (targetLanguage === "de" && enrollCourse !== Boolean(saved.settings.learningScope.courseId))
     ) {
       // Preserve all settings outside this wizard and let the backend reject a stale timestamp.
       current = await invokeDesktop("learner-settings/update", {
@@ -179,13 +212,20 @@ export function ProfileOnboarding({
           ...current.settings,
           ...choices,
           everydayLifeGoal: choices.everydayLifeGoal.trim(),
+          learningScope: {
+            ...current.settings.learningScope,
+            courseId:
+              targetLanguage === "de" && enrollCourse
+                ? languageDefinitions.de.structuredCourseId
+                : null,
+          },
         },
       });
     }
     setPersisted(current);
     await i18n.changeLanguage(choices.uiLocale);
     return current;
-  };
+  }
   const move = (destination: number) =>
     void attempt(async () => {
       if (step === 1 && !choices.everydayLifeGoal.trim()) {
@@ -268,16 +308,16 @@ export function ProfileOnboarding({
   return (
     <div className={styles.app}>
       <div className={styles.topActions}>
-        <Button
-          isDisabled={busy || loading}
-          onPress={() => {
-            const locale = choices.uiLocale === "en-US" ? "de" : "en-US";
+        <LanguageSelect
+          label={t("onboarding.interfaceLanguage")}
+          value={choices.uiLocale}
+          interfaceOnly
+          disabled={busy || loading}
+          onChange={(locale) => {
             change("uiLocale", locale);
             void i18n.changeLanguage(locale);
           }}
-        >
-          {choices.uiLocale === "en-US" ? "Deutsch" : "English"}
-        </Button>
+        />
       </div>
       <main className={styles.startup}>
         <section
@@ -398,6 +438,25 @@ export function ProfileOnboarding({
               {step === 1 && (
                 <fieldset disabled={busy} className={styles.onboardingSection}>
                   <legend>{t("onboarding.startTitle")}</legend>
+                  <LanguageSelect
+                    label={t("onboarding.targetLanguage")}
+                    value={targetLanguage}
+                    disabled={busy}
+                    onChange={selectTarget}
+                  />
+                  {targetLanguage === "de" && (
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={enrollCourse}
+                        onChange={(event) => {
+                          setEnrollCourse(event.currentTarget.checked);
+                        }}
+                      />
+                      {t("onboarding.enrollCourse")}
+                    </label>
+                  )}
+                  {targetLanguage !== "de" && <p>{t("onboarding.pathUnavailable")}</p>}
                   <FieldGroup>
                     <span>{t("onboarding.level")}</span>
                     <select
@@ -458,40 +517,24 @@ export function ProfileOnboarding({
                     </select>
                   </FieldGroup>
                   <p>{t(`onboarding.profiles.${choices.defaultTeachingProfileId}.body`)}</p>
-                  <FieldGroup>
-                    <span>{t("onboarding.explanationLanguage")}</span>
-                    <select
-                      aria-label={t("onboarding.explanationLanguage")}
-                      value={choices.explanationLanguage}
-                      onChange={(event) => {
-                        change("explanationLanguage", event.currentTarget.value as "en-US" | "de");
-                      }}
-                    >
-                      {["en-US", "de"].map((language) => (
-                        <option key={language} value={language}>
-                          {t(`onboarding.languages.${language === "en-US" ? "en" : language}`)}
-                        </option>
-                      ))}
-                    </select>
-                  </FieldGroup>
-                  <FieldGroup>
-                    <span>{t("onboarding.interfaceLanguage")}</span>
-                    <select
-                      aria-label={t("onboarding.interfaceLanguage")}
-                      value={choices.uiLocale}
-                      onChange={(event) => {
-                        const locale = event.currentTarget.value as "en-US" | "de";
-                        change("uiLocale", locale);
-                        void i18n.changeLanguage(locale);
-                      }}
-                    >
-                      {["en-US", "de"].map((language) => (
-                        <option key={language} value={language}>
-                          {t(`onboarding.languages.${language === "en-US" ? "en" : language}`)}
-                        </option>
-                      ))}
-                    </select>
-                  </FieldGroup>
+                  <LanguageSelect
+                    label={t("onboarding.explanationLanguage")}
+                    value={choices.explanationLanguage}
+                    disabled={busy}
+                    onChange={(language) => {
+                      change("explanationLanguage", language);
+                    }}
+                  />
+                  <LanguageSelect
+                    label={t("onboarding.interfaceLanguage")}
+                    value={choices.uiLocale}
+                    interfaceOnly
+                    disabled={busy}
+                    onChange={(language) => {
+                      change("uiLocale", language);
+                      void i18n.changeLanguage(language);
+                    }}
+                  />
                   <p>{t("onboarding.localeIndependent")}</p>
                 </fieldset>
               )}
@@ -499,6 +542,10 @@ export function ProfileOnboarding({
                 <fieldset disabled={busy} className={styles.onboardingSection}>
                   <legend>{t("onboarding.steps.review")}</legend>
                   {connectionStatus}
+                  <p>
+                    <strong>{t("onboarding.targetLanguage")}: </strong>
+                    {t(`languages.${targetLanguage}`)}
+                  </p>
                   <p>
                     <strong>{t("onboarding.level")}: </strong>
                     {choices.approximateLevel.toUpperCase()}
@@ -510,15 +557,10 @@ export function ProfileOnboarding({
                   <p>{t(`onboarding.profiles.${choices.defaultTeachingProfileId}.title`)}</p>
                   <p>
                     {t("onboarding.explanationLanguage")}:{" "}
-                    {t(
-                      `onboarding.languages.${choices.explanationLanguage === "en-US" ? "en" : choices.explanationLanguage}`,
-                    )}
+                    {t(`languages.${choices.explanationLanguage}`)}
                   </p>
                   <p>
-                    {t("onboarding.interfaceLanguage")}:{" "}
-                    {t(
-                      `onboarding.languages.${choices.uiLocale === "en-US" ? "en" : choices.uiLocale}`,
-                    )}
+                    {t("onboarding.interfaceLanguage")}: {t(`languages.${choices.uiLocale}`)}
                   </p>
                   {!connected && (
                     <Button

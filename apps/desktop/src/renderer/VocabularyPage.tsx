@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ActivityId, CallNinaError, VocabularyId } from "@call-nina/contracts";
+import type { ActivityId, CallNinaError, Language, VocabularyId } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -24,17 +24,24 @@ import { VocabularyReview } from "./VocabularyReview.js";
 import styles from "./VocabularyPage.module.css";
 
 type Props = Readonly<{
+  targetLanguage?: Language | undefined;
   initialDueOnly?: boolean;
   onOpenActivity: (activityId: ActivityId) => void;
   onNavigate: (page: "history" | "practice") => void;
 }>;
 
-export function VocabularyPage({ initialDueOnly = false, onNavigate, onOpenActivity }: Props) {
+export function VocabularyPage({
+  targetLanguage,
+  initialDueOnly = false,
+  onNavigate,
+  onOpenActivity,
+}: Props) {
   const library = useVocabularyLibrary(initialDueOnly);
   return (
     <VocabularyWorkspace
       key={library.rootGeneration ?? "unconfigured"}
       library={library}
+      targetLanguage={targetLanguage}
       onNavigate={onNavigate}
       onOpenActivity={onOpenActivity}
     />
@@ -43,10 +50,12 @@ export function VocabularyPage({ initialDueOnly = false, onNavigate, onOpenActiv
 
 function VocabularyWorkspace({
   library,
+  targetLanguage,
   onNavigate,
   onOpenActivity,
 }: {
   library: ReturnType<typeof useVocabularyLibrary>;
+  targetLanguage?: Language | undefined;
   onNavigate: Props["onNavigate"];
   onOpenActivity: Props["onOpenActivity"];
 }) {
@@ -416,12 +425,16 @@ function VocabularyWorkspace({
                               setDetailId(entry.vocabularyId);
                             }}
                           >
-                            {entry.lemma}
+                            <span lang={targetLanguage}>{entry.lemma}</span>
                           </Button>
-                          <span className={styles.compactMeaning}>{entry.meaning}</span>
+                          <span className={styles.compactMeaning} lang="">
+                            {entry.meaning}
+                          </span>
                         </td>
                         <td className={styles.meaningColumn}>
-                          <span className={styles.summary}>{entry.meaning}</span>
+                          <span className={styles.summary} lang="">
+                            {entry.meaning}
+                          </span>
                         </td>
                         <td>
                           <span>{t(`vocabulary.filters.${entry.status}`)}</span>
