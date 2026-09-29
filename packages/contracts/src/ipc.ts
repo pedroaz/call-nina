@@ -1,5 +1,6 @@
 import { materialReferenceSchema, materialSourceSchema } from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
+import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
 import { learningContextSchema, learningScopeSchema } from "./learning-context.js";
 import { openActivityActionSchema, activityDestinationSchema } from "./activity-action.js";
 import {
@@ -1243,7 +1244,7 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
       "vocabulary-recall",
     ]),
     instructions: text(4_000),
-    prompt: text(12_000),
+    prompt: text(maximumExerciseHistoryPromptCharacters),
     answer: exerciseSessionAnswerSchema,
     objectiveEvaluations: z
       .array(

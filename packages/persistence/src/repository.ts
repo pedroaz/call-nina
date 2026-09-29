@@ -22,6 +22,10 @@ import {
   learningGoalSchema,
   portableExerciseContentSchema,
   maximumExerciseContentBytes,
+  maximumMaterializedExerciseBytes,
+  maximumExerciseSnapshotBytes,
+  maximumExerciseFeedbackBytes,
+  maximumExerciseHistoryBytes,
   type LearningCourse,
   type CourseEvidence,
   vocabularyLibraryFilterSchema,
@@ -432,8 +436,12 @@ function insertActivityVocabularyCandidates(
   }
 }
 
-function parseJson(value: unknown): unknown {
-  return JSON.parse(String(value)) as unknown;
+function parseJson(value: unknown, maximumBytes?: number): unknown {
+  const serialized = String(value);
+  if (maximumBytes !== undefined && Buffer.byteLength(serialized, "utf8") > maximumBytes) {
+    throw new Error("OD_REPOSITORY_JSON_TOO_LARGE");
+  }
+  return JSON.parse(serialized) as unknown;
 }
 
 function booleanFromSqlite(value: unknown): boolean {
@@ -2635,7 +2643,11 @@ export class CallNinaRepository {
             effortId: row["effort_id"],
           },
         },
-        content: readStoredExerciseContent(connection, activityId, parseJson(row["output_json"])),
+        content: readStoredExerciseContent(
+          connection,
+          activityId,
+          parseJson(row["output_json"], maximumExerciseContentBytes),
+        ),
       });
     });
   }
@@ -2731,7 +2743,7 @@ export class CallNinaRepository {
       const content = readStoredExerciseContent(
         connection,
         record.activityId,
-        parseJson(row["output_json"]),
+        parseJson(row["output_json"], maximumExerciseContentBytes),
       );
       const materializeOptions = {
         exerciseIds: record.exercises.map(({ snapshot }) => snapshot.exercise.exerciseId),
@@ -2765,10 +2777,10 @@ export class CallNinaRepository {
             stringifyBounded(exercise.objectives),
             exercise.instructions,
             exercise.explanation ?? null,
-            stringifyBounded(exercise.content),
-            stringifyBounded(exercise.answerContract),
+            stringifyBounded(exercise.content, maximumMaterializedExerciseBytes),
+            stringifyBounded(exercise.answerContract, maximumMaterializedExerciseBytes),
             stringifyBounded(exercise.aiProvenance),
-            stringifyBounded(started.snapshot),
+            stringifyBounded(started.snapshot, maximumExerciseSnapshotBytes),
           );
         connection
           .prepare(
@@ -2780,7 +2792,7 @@ export class CallNinaRepository {
             started.attemptId,
             exercise.exerciseId,
             record.startedAt,
-            stringifyBounded(started.snapshot),
+            stringifyBounded(started.snapshot, maximumExerciseSnapshotBytes),
           );
         connection
           .prepare(
@@ -2805,7 +2817,7 @@ export class CallNinaRepository {
         .get(record.attemptId, record.activityId) as Record<string, unknown> | undefined;
       if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
       const snapshot = startedExerciseSnapshotSchema.parse(
-        parseJson(row["exercise_snapshot_json"]),
+        parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
       );
       const evaluation = evaluateExerciseAnswer(
         snapshot.exercise,
@@ -2914,7 +2926,7 @@ export class CallNinaRepository {
       const readingMaterial = readStoredExerciseContent(
         connection,
         record.activityId,
-        parseJson(payload.output_json),
+        parseJson(payload.output_json, maximumExerciseContentBytes),
       ).payload.readingMaterial;
       const expectedCount = (
         connection
@@ -2938,7 +2950,7 @@ export class CallNinaRepository {
           .get(item.attemptId, record.activityId) as Record<string, unknown> | undefined;
         if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
         const snapshot = startedExerciseSnapshotSchema.parse(
-          parseJson(row["exercise_snapshot_json"]),
+          parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
         );
         const evaluation = evaluateExerciseAnswer(
           snapshot.exercise,
@@ -3042,7 +3054,7 @@ export class CallNinaRepository {
           .run(
             elapsed,
             stringifyBounded(objectiveEvaluations),
-            stringifyBounded(feedback),
+            stringifyBounded(feedback, maximumExerciseFeedbackBytes),
             item.attemptId,
           );
         const reconstruction = generatedExerciseHistorySchema.parse({
@@ -3079,7 +3091,7 @@ export class CallNinaRepository {
             activityType,
             activityTitle,
             record.completedAt,
-            stringifyBounded(reconstruction),
+            stringifyBounded(reconstruction, maximumExerciseHistoryBytes),
             this.#database.rootGeneration,
           );
         if (activityContext.learningPath) {
@@ -3345,7 +3357,7 @@ export class CallNinaRepository {
           } else if (record["entity_kind"] === "attempt") {
             const attemptId = attemptIdSchema.parse(record["entity_id"]);
             const reconstructed = generatedExerciseHistorySchema.safeParse(
-              parseJson(record["reconstruction_json"]),
+              parseJson(record["reconstruction_json"], maximumExerciseHistoryBytes),
             );
             const source = connection
               .prepare(
