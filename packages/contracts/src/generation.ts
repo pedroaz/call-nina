@@ -1,3 +1,4 @@
+import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
 import { materialDraftSchema, materialReferenceSchema } from "./material.js";
 import { learningContextSchema } from "./learning-context.js";
@@ -505,9 +506,10 @@ export const generationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("exercise-generation"),
+    entry: exerciseEntryContextSchema,
     material: materialDraftSchema.optional(),
     materialReference: materialReferenceSchema.optional(),
-    practiceType: z.literal("grammar").optional(),
+    practiceType: z.enum(["grammar", "vocabulary-review"]).optional(),
     learningPath: courseReferenceSchema.optional(),
     courseTeaching: courseTeachingContextSchema.optional(),
     ...learningContextFields,

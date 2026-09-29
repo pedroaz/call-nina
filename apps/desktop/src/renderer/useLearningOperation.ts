@@ -6,6 +6,7 @@ import {
   callNinaErrorSchema,
   type DesktopIpcEvent,
   type DesktopIpcRequest,
+  type DesktopIpcResponse,
   type ErrorKind,
 } from "@call-nina/contracts";
 import {
@@ -20,7 +21,12 @@ type Input = Extract<
   { channel: "learning-operation/start" }
 >["payload"]["input"];
 type Finished = Extract<DesktopIpcEvent, { event: "learning-operation-finished" }>;
-type Result = Extract<Finished["outcome"], { status: "validated" }>;
+type Result =
+  | Extract<Finished["outcome"], { status: "validated" }>
+  | (Extract<
+      Extract<DesktopIpcResponse, { status: "ok"; channel: "learning-operation/start" }>["result"],
+      { status: "retained-feedback" }
+    > & { activityId?: never });
 
 function operationError(kind: ErrorKind, correlationId: string) {
   const definition = errorDefinitions[kind];
@@ -95,6 +101,11 @@ export function runLearningOperation(
     void invokeDesktop("learning-operation/start", { routeId: "codex", submissionId, input })
       .then((accepted) => {
         operationId = accepted.operationId;
+        if (!settled && accepted.status === "retained-feedback") {
+          cleanup();
+          resolve(accepted);
+          return;
+        }
         // Cancellation can arrive before the start acknowledgement.
         if (cancellationRequested) cancelBackend();
       })

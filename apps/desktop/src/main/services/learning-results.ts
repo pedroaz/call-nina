@@ -304,13 +304,15 @@ export class LearningResultService {
     const activity = {
       activityId,
       activityType:
-        operation.input.courseTeaching?.delivery === "writing"
-          ? ("writing" as const)
-          : operation.input.reading
-            ? ("reading" as const)
-            : operation.input.practiceType === "grammar" || operation.input.targetedMistakePattern
-              ? ("grammar" as const)
-              : ("custom-lesson" as const),
+        operation.input.practiceType === "vocabulary-review"
+          ? ("vocabulary-review" as const)
+          : operation.input.courseTeaching?.delivery === "writing"
+            ? ("writing" as const)
+            : operation.input.reading
+              ? ("reading" as const)
+              : operation.input.practiceType === "grammar" || operation.input.targetedMistakePattern
+                ? ("grammar" as const)
+                : ("custom-lesson" as const),
       title:
         state.output.lesson?.title ??
         state.output.exercises[0]?.title ??
@@ -318,6 +320,7 @@ export class LearningResultService {
       originSurface: "desktop" as const,
       context: {
         learningScope: await this.#repository.requireLearningScope(),
+        entry: operation.input.entry,
         ...(operation.input.learningPath ? { learningPath: operation.input.learningPath } : {}),
         ...(operation.input.courseTeaching
           ? { courseTeaching: operation.input.courseTeaching }

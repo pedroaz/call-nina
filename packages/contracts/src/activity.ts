@@ -1,3 +1,4 @@
+import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { learningScopeSchema } from "./learning-context.js";
 import { courseReferenceSchema, courseTeachingContextSchema } from "./learning-path.js";
 import {
@@ -30,6 +31,7 @@ export const preparedActivitySchema = z
     originSurface: z.enum(["desktop", "codex"]),
     context: z.strictObject({
       learningScope: learningScopeSchema,
+      entry: exerciseEntryContextSchema.optional(),
       naturalRequest: z.string().min(1).max(1_000),
       instructions: z.string().min(1).max(2_000).optional(),
       curriculumTopicIds: z.array(curriculumTopicIdSchema).max(12),
@@ -37,11 +39,25 @@ export const preparedActivitySchema = z
       vocabularyIds: z.array(vocabularyIdSchema).max(24),
       voiceContext: voiceActivityContextSchema.optional(),
       learningPath: courseReferenceSchema.optional(),
+      // Instructional/evaluation context survives reuse outside its originating course.
+      // Course credit requires learningPath, independently of this context.
       courseTeaching: courseTeachingContextSchema.optional(),
     }),
     preparedAt: utcInstantSchema,
   })
   .superRefine((activity, context) => {
+    if (
+      activity.context.entry &&
+      (activity.context.entry.origin === "learning-path"
+        ? JSON.stringify(activity.context.entry.reference) !==
+          JSON.stringify(activity.context.learningPath)
+        : activity.context.learningPath !== undefined)
+    )
+      context.addIssue({
+        code: "custom",
+        path: ["context", "entry"],
+        message: "OD_ACTIVITY_CAPABILITY_INVALID",
+      });
     const expected =
       activity.activityType === "codex-listening"
         ? "listening"

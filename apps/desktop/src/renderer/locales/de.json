@@ -330,6 +330,9 @@
     "readyBody_other": "Dieses Set enthält {{count}} kurze Übungen.",
     "navigationLabel": "Navigation zwischen besuchten Übungen",
     "start": "Übung starten",
+    "resume": "Übung fortsetzen",
+    "savingAnswer": "Antwort wird gespeichert…",
+    "answerSaveFailed": "Deine Antwort konnte nicht gespeichert werden. Versuche es erneut.",
     "startAgain": "Neu starten",
     "starting": "Übung wird gestartet…",
     "startFailed": "Die Übung konnte nicht gestartet werden. Es wurde keine Antwort gespeichert.",
@@ -368,7 +371,9 @@
     },
     "aiFeedback": {
       "evaluating": "Deine Antwort wird geprüft…",
-      "failed": "Deine Antwort wurde gespeichert, aber die Rückmeldung ist nicht verfügbar. Sende sie erneut, ohne deine Antwort zu verlieren.",
+      "failed": "Deine Antwort wurde gespeichert, aber die Rückmeldung ist nicht verfügbar. Fordere die Rückmeldung für deine gespeicherte Antwort erneut an.",
+      "pending": "Deine Antwort ist gespeichert. Die KI-Rückmeldung steht noch aus.",
+      "retry": "Rückmeldung erneut anfordern",
       "strengths": "Was gut funktioniert",
       "improvements": "Was du verbessern kannst",
       "suggestedAnswer": "Vorschlag:"

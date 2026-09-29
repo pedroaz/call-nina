@@ -1,4 +1,9 @@
 export {
+  exerciseEntryContextSchema,
+  reuseExerciseActionSchema,
+  type ExerciseEntryContext,
+} from "./exercise-launch.js";
+export {
   activityActionSchema,
   activityDestinationSchema,
   openActivityActionSchema,

@@ -13,7 +13,7 @@ import { useLearningOperation } from "./useLearningOperation.js";
 import { ReadingPractice } from "./ReadingPractice.js";
 import { PreparedActivityWorkspace } from "./PreparedActivityWorkspace.js";
 import { useActivityLibrary } from "./useActivityLibrary.js";
-import { generatePracticeActivity } from "./generatePracticeActivity.js";
+import { generatePracticeActivity, reusePracticeActivity } from "./generatePracticeActivity.js";
 import { OperationError } from "./Startup.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { materializeContentExercises } from "@call-nina/domain";
@@ -42,7 +42,7 @@ import {
   Muted,
 } from "./components/ui/index.js";
 import { ActionGroup, Page } from "./components/layout/index.js";
-import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
+import { createDesktopSubmissionId, invokeDesktop, normalizeDesktopError } from "./ipc.js";
 
 type PreparedActivityId = Extract<
   DesktopIpcResponse,
@@ -86,6 +86,10 @@ export function PracticePage({
       Extract<DesktopIpcResponse, { status: "ok"; channel: "prepared-activity/read" }>["result"]
     >();
   const [error, setError] = useState<CallNinaError>();
+  const launchIds = useRef({
+    resume: createDesktopSubmissionId(),
+    newAttempt: createDesktopSubmissionId(),
+  });
   const [startedAttemptIds, setStartedAttemptIds] =
     useState<
       Extract<
@@ -125,9 +129,27 @@ export function PracticePage({
   const [deleting, setDeleting] = useState(false);
   const [libraryView, setLibraryView] = useState(false);
   const returnPosition = useRef<{ y: number; id: string } | undefined>(undefined);
-  const openSavedActivity = (id: PreparedActivityId) => {
+  const openSavedActivity = async (id: PreparedActivityId) => {
     returnPosition.current = { y: window.scrollY, id };
-    onOpenActivity(id);
+    try {
+      const source = await invokeDesktop("activity/resolve", {
+        action: "open-activity",
+        activityId: id,
+      });
+      if (source.destination === "generated-exercises" && source.activity.context.learningPath) {
+        const content = await invokeDesktop("prepared-activity/read", { activityId: id });
+        onOpenActivity(
+          await reusePracticeActivity({
+            activityId: id,
+            content: content.content,
+            context: { origin: "free-practice" },
+            expectedGeneration: source.rootGeneration,
+          }),
+        );
+      } else onOpenActivity(id);
+    } catch (cause) {
+      setLibraryMutationError(normalizeDesktopError(cause).detail);
+    }
   };
   const [selectedKind, setSelectedKind] = useState<PracticeKind>(
     initialPreparation?.kind ?? "custom",
@@ -179,6 +201,10 @@ export function PracticePage({
       setPrepared(undefined);
       setGenerated(undefined);
       setStartedAttemptIds(undefined);
+      launchIds.current = {
+        resume: createDesktopSubmissionId(),
+        newAttempt: createDesktopSubmissionId(),
+      };
       setError(undefined);
       if (!activityId) return;
       window.scrollTo(0, 0);
@@ -370,20 +396,43 @@ export function PracticePage({
               key={activityId}
               exercises={exercises}
               evaluationProgress={<OperationProgress progress={feedback.progress} />}
-              restart={Boolean(generated.activeSet)}
+              {...(generated.activeSet ? { progress: generated.activeSet.progress } : {})}
               onStarted={async () => {
-                if (generated.activeSet) {
-                  await invokeDesktop("exercise-set/abandon", { activityId });
-                  setGenerated((current) => (current ? { ...current, activeSet: null } : current));
-                }
+                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
                 const started = await invokeDesktop("exercise-set/start", {
                   activityId,
+                  intent: "resume",
+                  launchId: launchIds.current.resume,
+                  expectedGeneration: prepared.rootGeneration,
                 });
                 setStartedAttemptIds(started.attemptIds);
+              }}
+              onNewAttempt={async () => {
+                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
+                const started = await invokeDesktop("exercise-set/start", {
+                  activityId,
+                  intent: "new-attempt",
+                  launchId: launchIds.current.newAttempt,
+                  expectedGeneration: prepared.rootGeneration,
+                });
+                setStartedAttemptIds(started.attemptIds);
+              }}
+              onAnswerSubmitted={async (answer, position) => {
+                const attemptId = startedAttemptIds?.[position];
+                if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
+                const saved = await invokeDesktop("exercise-set/answer", {
+                  activityId,
+                  attemptId,
+                  answer,
+                  expectedGeneration: prepared.rootGeneration,
+                });
+                return saved.feedback;
               }}
               onAiEvaluationRequested={async (evaluation, exercisePosition) => {
                 if (!(await requestAiAccess("exercise-feedback")))
                   throw new Error("OD_AI_DISCLOSURE_REQUIRED");
+                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
                 const attemptId = startedAttemptIds?.[exercisePosition];
                 if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
                 if (
@@ -395,6 +444,7 @@ export function PracticePage({
                 }
                 const result = await feedback.run({
                   kind: "exercise-feedback",
+                  expectedGeneration: prepared.rootGeneration,
                   activityId,
                   attemptId,
                   answer: evaluation.answer,
@@ -791,7 +841,7 @@ export function PracticePage({
                             aria-label={t("practice.library.open", { title: activity.title })}
                             className={styles.generatedActivityOpen}
                             onPress={() => {
-                              openSavedActivity(activity.activityId);
+                              void openSavedActivity(activity.activityId);
                             }}
                           >
                             <span className={styles.generatedActivityCopy}>

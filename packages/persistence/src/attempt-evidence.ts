@@ -207,7 +207,7 @@ export function captureExerciseAttempt(
   if (
     connection
       .prepare(
-        `SELECT 1 FROM attempts a JOIN exercises e USING(exercise_id) WHERE e.activity_id = ? AND a.started_at < ? LIMIT 1`,
+        `SELECT 1 FROM attempts a JOIN exercises e USING(exercise_id) JOIN activity_content_revisions c ON c.activity_id = e.activity_id WHERE c.revision_id = (SELECT revision_id FROM activity_content_revisions WHERE activity_id = ?) AND a.started_at < ? LIMIT 1`,
       )
       .get(activityId, startedAt)
   )

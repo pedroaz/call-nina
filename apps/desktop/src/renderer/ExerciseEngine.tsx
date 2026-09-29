@@ -1,4 +1,4 @@
-import type { GenerationCandidateOutputMap } from "@call-nina/contracts";
+import type { DesktopIpcResponse, GenerationCandidateOutputMap } from "@call-nina/contracts";
 import {
   evaluateExerciseAnswer,
   type ExerciseAnswer,
@@ -252,10 +252,56 @@ function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
   );
 }
 
+type ExerciseProgress = NonNullable<
+  Extract<
+    DesktopIpcResponse,
+    { status: "ok"; channel: "prepared-activity/read" }
+  >["result"]["activeSet"]
+>["progress"];
+
+function resumeExerciseProgress(
+  exercises: readonly ExerciseDefinition[],
+  progress: ExerciseProgress | undefined,
+  targetLanguage: "de",
+) {
+  const values: Record<number, readonly string[]> = {};
+  const feedback: Record<number, ExerciseAiFeedback> = {};
+  const hints: Record<number, number> = {};
+  const submitted: Record<number, boolean> = {};
+  const evaluations: ExerciseEvaluation[] = [];
+  for (const [position, item] of (progress ?? []).entries()) {
+    hints[position] = item.hintsUsed;
+    const answer = item.answer;
+    const exercise = exercises[position];
+    if (!answer || !exercise) continue;
+    submitted[position] = true;
+    values[position] =
+      answer.kind === "fill-in-the-blank"
+        ? answer.valuesByBlankPosition
+        : answer.kind === "multiple-choice"
+          ? [String(answer.selectedOptionPosition)]
+          : [answer.text];
+    const evaluation = evaluateExerciseAnswer(exercise, answer, targetLanguage);
+    if (item.feedback) feedback[position] = item.feedback;
+    if (position === evaluations.length && (evaluation.status !== "requires-ai" || item.feedback))
+      evaluations.push(evaluation);
+  }
+  return {
+    values,
+    feedback,
+    hints,
+    submitted,
+    evaluations,
+    position: Math.min(evaluations.length, Math.max(0, exercises.length - 1)),
+  };
+}
+
 export function ExerciseEngine({
   targetLanguage,
   exercises,
-  restart = false,
+  progress,
+  onNewAttempt,
+  onAnswerSubmitted,
   onStarted,
   onCompleted,
   onAbandoned,
@@ -266,7 +312,12 @@ export function ExerciseEngine({
 }: {
   targetLanguage: "de";
   exercises: readonly ExerciseDefinition[];
-  restart?: boolean;
+  progress?: ExerciseProgress;
+  onNewAttempt?: () => Promise<void>;
+  onAnswerSubmitted?: (
+    answer: ExerciseAnswer,
+    position: number,
+  ) => Promise<ExerciseAiFeedback | null>;
   evaluationProgress?: ReactNode;
   onStarted?: () => void | Promise<void>;
   onCompleted?: (evaluations: readonly ExerciseEvaluation[]) => void | Promise<void>;
@@ -279,22 +330,28 @@ export function ExerciseEngine({
   ) => Promise<ExerciseAiFeedback>;
 }) {
   const { t } = useTranslation();
+  const [initial] = useState(() => resumeExerciseProgress(exercises, progress, targetLanguage));
+  const [resuming, setResuming] = useState(Boolean(progress));
   const [started, setStarted] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [furthestPosition, setFurthestPosition] = useState(0);
-  const [values, setValues] = useState<readonly string[]>([]);
+  const [position, setPosition] = useState(initial.position);
+  const [furthestPosition, setFurthestPosition] = useState(initial.position);
+  const [values, setValues] = useState<readonly string[]>(initial.values[initial.position] ?? []);
   const [valuesByPosition, setValuesByPosition] = useState<
     Readonly<Record<number, readonly string[]>>
-  >({});
+  >(initial.values);
   const [savingSupport, setSavingSupport] = useState(false);
   const [supportFailed, setSupportFailed] = useState(false);
-  const [hintCount, setHintCount] = useState(0);
+  const [hintCount, setHintCount] = useState(initial.hints[initial.position] ?? 0);
   const [hintOpen, setHintOpen] = useState(false);
   const [hintCountByPosition, setHintCountByPosition] = useState<Readonly<Record<number, number>>>(
-    {},
+    initial.hints,
   );
-  const [evaluations, setEvaluations] = useState<readonly ExerciseEvaluation[]>([]);
-  const [currentEvaluation, setCurrentEvaluation] = useState<ExerciseEvaluation>();
+  const [evaluations, setEvaluations] = useState<readonly ExerciseEvaluation[]>(
+    initial.evaluations,
+  );
+  const [currentEvaluation, setCurrentEvaluation] = useState<ExerciseEvaluation | undefined>(
+    initial.evaluations[initial.position],
+  );
   const [starting, setStarting] = useState(false);
   const [startFailed, setStartFailed] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -302,10 +359,17 @@ export function ExerciseEngine({
   const [answerInvalid, setAnswerInvalid] = useState(false);
   const [evaluatingWithAi, setEvaluatingWithAi] = useState(false);
   const [aiEvaluationFailed, setAiEvaluationFailed] = useState(false);
-  const [currentAiFeedback, setCurrentAiFeedback] = useState<ExerciseAiFeedback>();
+  const [savingAnswer, setSavingAnswer] = useState(false);
+  const [submittedByPosition, setSubmittedByPosition] = useState<Readonly<Record<number, boolean>>>(
+    initial.submitted,
+  );
+  const [answerSaveFailed, setAnswerSaveFailed] = useState(false);
+  const [currentAiFeedback, setCurrentAiFeedback] = useState<ExerciseAiFeedback | undefined>(
+    initial.feedback[initial.position],
+  );
   const [aiFeedbackByPosition, setAiFeedbackByPosition] = useState<
     Readonly<Record<number, ExerciseAiFeedback>>
-  >({});
+  >(initial.feedback);
   const [abandoning, setAbandoning] = useState(false);
   const [abandonFailed, setAbandonFailed] = useState(false);
   const [abandoned, setAbandoned] = useState(false);
@@ -387,6 +451,7 @@ export function ExerciseEngine({
     setCurrentEvaluation(evaluations[nextPosition]);
     setCurrentAiFeedback(aiFeedbackByPosition[nextPosition]);
     setAnswerInvalid(false);
+    setAnswerSaveFailed(false);
     setAiEvaluationFailed(false);
   };
   const advance = async (nextEvaluations: readonly ExerciseEvaluation[]) => {
@@ -425,15 +490,29 @@ export function ExerciseEngine({
       setAnswerInvalid(true);
       return;
     }
+    setSavingAnswer(true);
+    setAnswerSaveFailed(false);
+    let retainedFeedback: ExerciseAiFeedback | null | undefined;
+    try {
+      retainedFeedback = await onAnswerSubmitted?.(evaluation.answer, position);
+      setSubmittedByPosition((current) => ({ ...current, [position]: true }));
+    } catch {
+      setAnswerSaveFailed(true);
+      return;
+    } finally {
+      setSavingAnswer(false);
+    }
     if (evaluation.status === "requires-ai") {
-      if (!onAiEvaluationRequested) {
+      if (!retainedFeedback && !onAiEvaluationRequested) {
         setAiEvaluationFailed(true);
         return;
       }
       setEvaluatingWithAi(true);
       setAiEvaluationFailed(false);
       try {
-        const feedback = await onAiEvaluationRequested(evaluation, position);
+        const feedback =
+          retainedFeedback ?? (await onAiEvaluationRequested?.(evaluation, position));
+        if (!feedback) throw new Error("OD_EXERCISE_AI_FEEDBACK_REQUIRED");
         const nextEvaluations = [...evaluations, evaluation];
         setEvaluations(nextEvaluations);
         setAiFeedbackByPosition((current) => ({ ...current, [position]: feedback }));
@@ -452,11 +531,25 @@ export function ExerciseEngine({
   };
 
   if (!started) {
-    const start = async () => {
+    const start = async (newAttempt = false) => {
       setStarting(true);
       setStartFailed(false);
       try {
-        await onStarted?.();
+        if (newAttempt && onNewAttempt) {
+          await onNewAttempt();
+          setPosition(0);
+          setFurthestPosition(0);
+          setValues([]);
+          setValuesByPosition({});
+          setSubmittedByPosition({});
+          setHintCount(0);
+          setHintCountByPosition({});
+          setEvaluations([]);
+          setCurrentEvaluation(undefined);
+          setAiFeedbackByPosition({});
+          setCurrentAiFeedback(undefined);
+          setResuming(false);
+        } else await onStarted?.();
         setStarted(true);
       } catch {
         setStartFailed(true);
@@ -473,11 +566,18 @@ export function ExerciseEngine({
             {t("exercises.startFailed")}
           </Feedback>
         )}
-        <Button variant="primary" isDisabled={starting} onPress={() => void start()}>
-          {starting
-            ? t("exercises.starting")
-            : t(restart ? "exercises.startAgain" : "exercises.start")}
-        </Button>
+        <ActionGroup>
+          <Button variant="primary" isDisabled={starting} onPress={() => void start()}>
+            {starting
+              ? t("exercises.starting")
+              : t(resuming ? "exercises.resume" : "exercises.start")}
+          </Button>
+          {resuming && onNewAttempt && (
+            <Button variant="secondary" isDisabled={starting} onPress={() => void start(true)}>
+              {t("exercises.startAgain")}
+            </Button>
+          )}
+        </ActionGroup>
       </Card>
     );
   }
@@ -495,7 +595,9 @@ export function ExerciseEngine({
         >
           <IconButton
             className={styles.exerciseNavButton}
-            isDisabled={position === 0 || evaluatingWithAi || completing || savingSupport}
+            isDisabled={
+              position === 0 || evaluatingWithAi || savingAnswer || completing || savingSupport
+            }
             label={t("exercises.previous")}
             leadingIcon={<ChevronLeft aria-hidden="true" />}
             onPress={() => {
@@ -505,7 +607,11 @@ export function ExerciseEngine({
           <IconButton
             className={styles.exerciseNavButton}
             isDisabled={
-              position >= furthestPosition || evaluatingWithAi || completing || savingSupport
+              position >= furthestPosition ||
+              evaluatingWithAi ||
+              savingAnswer ||
+              completing ||
+              savingSupport
             }
             label={t("exercises.forward")}
             leadingIcon={<ChevronRight aria-hidden="true" />}
@@ -528,7 +634,9 @@ export function ExerciseEngine({
             <Button
               variant="quiet"
               leadingIcon={<Lightbulb aria-hidden="true" />}
-              isDisabled={evaluatingWithAi || (Boolean(currentEvaluation) && hintCount === 0)}
+              isDisabled={
+                evaluatingWithAi || savingAnswer || (Boolean(currentEvaluation) && hintCount === 0)
+              }
             >
               {t("exercises.hint")}
             </Button>
@@ -566,7 +674,12 @@ export function ExerciseEngine({
       </div>
       <ExerciseContent
         definition={definition}
-        evaluated={currentEvaluation !== undefined}
+        evaluated={
+          currentEvaluation !== undefined ||
+          evaluatingWithAi ||
+          savingAnswer ||
+          Boolean(submittedByPosition[position])
+        }
         values={values}
         setValue={setValue}
       />
@@ -575,6 +688,11 @@ export function ExerciseEngine({
         {answerInvalid && (
           <Feedback live="assertive" tone="error">
             {t("exercises.answerRequired")}
+          </Feedback>
+        )}
+        {answerSaveFailed && (
+          <Feedback live="assertive" tone="error">
+            {t("exercises.answerSaveFailed")}
           </Feedback>
         )}
         {completionFailed && (
@@ -592,6 +710,9 @@ export function ExerciseEngine({
             {t("exercises.aiFeedback.failed")}
           </Feedback>
         )}
+        {submittedByPosition[position] && !currentEvaluation && !aiEvaluationFailed && (
+          <Feedback live="polite">{t("exercises.aiFeedback.pending")}</Feedback>
+        )}
         {currentEvaluation && (
           <>
             <Evaluation evaluation={currentEvaluation} aiFeedback={currentAiFeedback} />
@@ -604,7 +725,9 @@ export function ExerciseEngine({
         {onAbandoned && (
           <Button
             variant="secondary"
-            isDisabled={abandoning || completing || evaluatingWithAi || savingSupport}
+            isDisabled={
+              abandoning || completing || evaluatingWithAi || savingAnswer || savingSupport
+            }
             onPress={() => {
               setAbandoning(true);
               setAbandonFailed(false);
@@ -629,7 +752,7 @@ export function ExerciseEngine({
           <Button
             className={styles.primaryAction}
             variant="primary"
-            isDisabled={evaluatingWithAi || savingSupport || completing}
+            isDisabled={evaluatingWithAi || savingAnswer || savingSupport || completing}
             onPress={() => {
               if (currentEvaluation) void advance(evaluations);
               else void submit();
@@ -637,13 +760,19 @@ export function ExerciseEngine({
           >
             {evaluatingWithAi
               ? t("exercises.aiFeedback.evaluating")
-              : completing
-                ? t("exercises.completing")
-                : !currentEvaluation
-                  ? t("exercises.submit")
-                  : position + 1 === exercises.length
-                    ? t("exercises.finish")
-                    : t("exercises.next")}
+              : savingAnswer
+                ? t("exercises.savingAnswer")
+                : completing
+                  ? t("exercises.completing")
+                  : !currentEvaluation
+                    ? t(
+                        submittedByPosition[position]
+                          ? "exercises.aiFeedback.retry"
+                          : "exercises.submit",
+                      )
+                    : position + 1 === exercises.length
+                      ? t("exercises.finish")
+                      : t("exercises.next")}
           </Button>
         )}
         {evaluatingWithAi && onCancelAiEvaluation && (

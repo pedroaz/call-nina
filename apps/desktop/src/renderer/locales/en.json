@@ -330,6 +330,9 @@
     "readyBody_other": "This set contains {{count}} short exercises.",
     "navigationLabel": "Visited exercise navigation",
     "start": "Start practice",
+    "resume": "Resume practice",
+    "savingAnswer": "Saving answer…",
+    "answerSaveFailed": "Your answer could not be saved. Try again.",
     "startAgain": "Start again",
     "starting": "Starting practice…",
     "startFailed": "Practice could not be started. No answer was saved.",
@@ -368,7 +371,9 @@
     },
     "aiFeedback": {
       "evaluating": "Reviewing your answer…",
-      "failed": "Your answer was saved, but feedback is unavailable. Submit again to retry without losing your response.",
+      "failed": "Your answer was saved, but feedback is unavailable. Retry feedback without changing your saved response.",
+      "pending": "Your answer is saved. AI feedback is still pending.",
+      "retry": "Retry feedback",
       "strengths": "What worked",
       "improvements": "What to improve",
       "suggestedAnswer": "Suggested answer:"

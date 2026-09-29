@@ -132,12 +132,22 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
         issues.push(issue);
       }
     };
+    if (
+      workloadInput?.kind === "exercise-generation" &&
+      workloadInput.practiceType === "vocabulary-review" &&
+      output.exercises.some(
+        (exercise) => !["vocabulary-recall", "multiple-choice"].includes(exercise.kind),
+      )
+    ) {
+      report("OD_GENERATION_EXERCISE_CONSTRAINT_INVALID");
+    }
     if (workloadInput?.kind === "exercise-generation" && workloadInput.reading) {
       if (
         !output.readingMaterial ||
         (workloadInput.reading.passage !== null &&
           output.readingMaterial.passage !== workloadInput.reading.passage) ||
-        !output.exercises.some((exercise) => exercise.kind === "free-writing")
+        (workloadInput.practiceType !== "vocabulary-review" &&
+          !output.exercises.some((exercise) => exercise.kind === "free-writing"))
       ) {
         report("OD_READING_MATERIAL_INVALID");
       }

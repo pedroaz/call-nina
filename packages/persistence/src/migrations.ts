@@ -1537,6 +1537,45 @@ export const callNinaMigrations = [
         BEGIN SELECT RAISE(ABORT, 'OD_MATERIAL_OWNERSHIP_IMMUTABLE'); END;
     `,
   },
+  {
+    version: 29,
+    name: "shared-exercise-reuse-and-resume",
+    sql: `
+      DROP TRIGGER attempt_content_revision_immutable;
+      DROP TRIGGER activity_content_revision_immutable;
+      ALTER TABLE attempt_content_revisions RENAME TO previous_attempt_content_revisions;
+      ALTER TABLE activity_content_revisions RENAME TO previous_activity_content_revisions;
+      CREATE TABLE activity_content_revisions (
+        activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+        revision_id TEXT NOT NULL,
+        material_revision_id TEXT NOT NULL REFERENCES material_revisions(revision_id) ON DELETE RESTRICT,
+        UNIQUE(activity_id, revision_id)
+      ) STRICT;
+      INSERT INTO activity_content_revisions SELECT * FROM previous_activity_content_revisions;
+      CREATE INDEX activities_by_content_revision ON activity_content_revisions(revision_id);
+      CREATE TABLE attempt_content_revisions (
+        attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id) ON DELETE CASCADE,
+        activity_id TEXT NOT NULL,
+        content_revision_id TEXT NOT NULL,
+        FOREIGN KEY(activity_id, content_revision_id) REFERENCES activity_content_revisions(activity_id, revision_id) ON DELETE RESTRICT
+      ) STRICT;
+      INSERT INTO attempt_content_revisions
+        SELECT a.attempt_id, c.activity_id, a.content_revision_id
+        FROM previous_attempt_content_revisions a JOIN previous_activity_content_revisions c ON c.revision_id = a.content_revision_id;
+      DROP TABLE previous_attempt_content_revisions;
+      DROP TABLE previous_activity_content_revisions;
+      CREATE TRIGGER activity_content_revision_immutable BEFORE UPDATE ON activity_content_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;
+      CREATE TRIGGER attempt_content_revision_immutable BEFORE UPDATE ON attempt_content_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;
+      CREATE TABLE exercise_attempt_feedback (
+        attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id) ON DELETE CASCADE,
+        feedback_json TEXT NOT NULL CHECK(json_valid(feedback_json))
+      ) STRICT;
+      CREATE TRIGGER exercise_attempt_feedback_immutable BEFORE UPDATE ON exercise_attempt_feedback
+        BEGIN SELECT RAISE(ABORT, 'OD_EXERCISE_FEEDBACK_IMMUTABLE'); END;
+    `,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {
