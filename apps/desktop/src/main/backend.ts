@@ -719,8 +719,21 @@ export class DesktopBackend {
     if (request.source === "suggestion") {
       if (request.suggestion.rootGeneration !== this.#database.rootGeneration)
         throw new Error("OD_DATA_ROOT_STALE");
-      const scope = await repository.readSuggestionLearningScope(request.suggestion.context);
-      return scope ? repository.readLearnerSettingsForScope(scope) : settings;
+      const declaredScope = await repository.requireLearningScope(
+        request.suggestion.targetLanguage,
+      );
+      const evidenceScope = await repository.readSuggestionLearningScope(
+        request.suggestion.context,
+      );
+      if (
+        evidenceScope &&
+        (evidenceScope.learnerId !== declaredScope.learnerId ||
+          evidenceScope.targetLanguage !== declaredScope.targetLanguage)
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      // Evidence can have no course owner. Capture the declared language even
+      // without evidence, so later active-language changes cannot redirect it.
+      return repository.readLearnerSettingsForScope(evidenceScope ?? declaredScope);
     }
     if (request.source === "learning-path") {
       if (request.expectedGeneration !== this.#database.rootGeneration)

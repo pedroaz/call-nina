@@ -43,7 +43,6 @@ export function buildPracticeSuggestions(input: {
     activityId: string;
     activityType: PracticeSuggestion["kind"] | "placement" | "flashcards";
     title: string;
-    deletionStatus: "available" | "cascade" | "retained-data";
   }[];
 }): PracticeSuggestion[] {
   const context = learningContextSchema.parse(input.learningContext);
@@ -277,9 +276,9 @@ export function buildPracticeSuggestions(input: {
       reason,
     ),
   ];
+  // Attempts and retained evidence protect deletion, not reuse of immutable content.
   const prepared = input.preparedActivities?.find(
     (activity) =>
-      activity.deletionStatus === "available" &&
       ["grammar", "reading", "writing", "custom-lesson"].includes(activity.activityType) &&
       activity.title.toLocaleLowerCase().includes(topic.toLocaleLowerCase()),
   );
