@@ -21,3 +21,21 @@
   margin-top: auto;
   align-self: start;
 }
+
+.request {
+  display: flex;
+  flex-direction: column;
+  gap: var(--od-space-4);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.request h2,
+.request p {
+  margin-block: 0;
+}
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--od-space-4);
+  align-items: start;
+}

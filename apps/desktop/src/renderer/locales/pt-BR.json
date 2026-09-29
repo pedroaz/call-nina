@@ -1462,5 +1462,56 @@
     "open": "Praticar: {{title}}",
     "refresh": "Atualizar práticas preparadas",
     "more": "Mostrar mais"
+  },
+  "ninaHome": {
+    "title": "Nina",
+    "heading": "O que você gostaria de praticar?",
+    "intro": "Descreva um objetivo ou escolha uma ideia. Nina vai sugerir uma atividade para iniciar ou gerar.",
+    "request": "Seu pedido de prática",
+    "placeholder": "Por exemplo: praticar a leitura de uma mensagem curta para marcar um horário.",
+    "examples": {
+      "reading": "Ler uma mensagem curta sobre um compromisso",
+      "grammar": "Praticar verbos para conversas do dia a dia",
+      "writing": "Escrever um e-mail para um vizinho"
+    },
+    "time": "Tempo disponível (opcional)",
+    "timeHint": "Uma preferência de tamanho e uma estimativa aproximada, sem cronômetro nem garantia.",
+    "noTime": "Deixar a Nina sugerir o tamanho",
+    "minutes": "{{count}} min",
+    "material": "Usar material salvo (opcional)",
+    "materialLabel": "Tema ou texto salvo",
+    "materialHint": "O material salvo permite praticar leitura ou vocabulário no idioma de estudo. A versão escolhida permanece inalterada.",
+    "noMaterial": "Criar prática sem material próprio",
+    "savedRevision": "Versão salva selecionada",
+    "moreMaterials": "Mostrar mais material salvo",
+    "emptyMaterials": "Ainda não há material salvo aqui. Você pode gerar prática sem ele.",
+    "plan": "Sugerir uma atividade",
+    "clarification": "Que tipo de prática ajudaria?",
+    "supported": "Escolha uma atividade disponível para transformar seu pedido em prática. Voice e outras práticas continuam disponíveis no menu.",
+    "kinds": {
+      "grammar": "Prática de gramática",
+      "reading": "Prática de leitura",
+      "vocabulary-review": "Prática de vocabulário",
+      "writing": "Prática de escrita",
+      "custom-lesson": "Prática variada"
+    },
+    "tasks": {
+      "grammar": "Complete uma série curta de exercícios de gramática: {{request}}",
+      "reading": "Leia um texto e responda a perguntas de compreensão: {{request}}",
+      "vocabulary-review": "Lembre palavras e escolha seus significados: {{request}}",
+      "writing": "Escreva respostas curtas a propostas concretas: {{request}}",
+      "custom-lesson": "Complete uma série curta de exercícios variados: {{request}}"
+    },
+    "preparedReason": "Esta atividade salva corresponde ao seu pedido, nível e tamanho escolhido. Inicie uma tentativa separada sem gerar de novo.",
+    "freshReason": "Nina vai criar uma série limitada de exercícios para seu pedido e contexto de estudo atual.",
+    "estimate": "Cerca de {{count}} minutos · no seu ritmo",
+    "languages": "Prática: {{target}} · explicações: {{explanation}}",
+    "unavailable": "A geração não foi iniciada. Seu pedido foi mantido; atividades preparadas e o acesso direto à prática continuam disponíveis.",
+    "start": "Iniciar atividade preparada",
+    "generate": "Gerar prática nova",
+    "continue": "Continuar",
+    "noResume": "Ainda não há uma atividade para retomar neste contexto de estudo. Comece com um pedido ou uma recomendação.",
+    "recent": "Sua atividade retomável usada mais recentemente.",
+    "savedWording": "O texto salvo permanece como foi criado. Os idiomas acima se aplicam à prática nova."
   }
 }

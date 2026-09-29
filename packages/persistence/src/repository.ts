@@ -57,6 +57,7 @@ import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 
 import {
+  ninaContinueSchema,
   generationProvenanceSchema,
   reuseExerciseActionSchema,
   type ActivityAction,
@@ -1750,6 +1751,56 @@ export class CallNinaRepository {
   async dismissDevelopmentNotice(): Promise<void> {
     await withLeasedTransaction(this.#database, (connection) => {
       connection.prepare("UPDATE development_notices SET dismissed = 1 WHERE dismissed = 0").run();
+    });
+  }
+
+  async recordActivityUse(activityIdValue: string, expectedGeneration: number) {
+    const activityId = activityIdSchema.parse(activityIdValue);
+    if (expectedGeneration !== this.#database.rootGeneration) throw new Error("OD_DATA_ROOT_STALE");
+    await withLeasedTransaction(this.#database, (connection) => {
+      // An older activity may be opened while another language is active. Its own scope remains authoritative.
+      assertLocalLearningScope(connection, activityLearningScope(connection, activityId));
+      const previous = connection
+        .prepare("SELECT max(last_used_at) AS last_used_at FROM activity_usage")
+        .get()?.["last_used_at"];
+      const lastUsedAt = new Date(
+        Math.max(Date.now(), previous ? Date.parse(utcInstantSchema.parse(previous)) + 1 : 0),
+      ).toISOString();
+      connection
+        .prepare(
+          `INSERT INTO activity_usage(activity_id, last_used_at) VALUES (?, ?)
+        ON CONFLICT(activity_id) DO UPDATE SET last_used_at = excluded.last_used_at`,
+        )
+        .run(activityId, lastUsedAt);
+    });
+  }
+
+  async readNinaContinue(contextValue: unknown) {
+    const context = learningContextSchema.parse(contextValue);
+    return withLeasedConnection(this.#database, (connection) => {
+      assertLocalLearningScope(connection, context);
+      const row = connection
+        .prepare(
+          `SELECT p.activity_id, p.title, u.last_used_at
+        FROM activity_usage u JOIN prepared_activities p USING(activity_id)
+        LEFT JOIN flashcard_decks f USING(activity_id)
+        WHERE p.status = 'prepared' AND p.target_language = ?
+          AND json_extract(p.context_json, '$.learningScope.learnerId') = ?
+          AND (json_extract(p.context_json, '$.learningScope.courseId') IS ?
+            OR json_extract(p.context_json, '$.learningScope.courseId') IS NULL)
+          AND (f.completed = 0 OR EXISTS (
+            SELECT 1 FROM generated_activity_payloads g WHERE g.activity_id = p.activity_id
+          ) OR json_type(p.context_json, '$.voiceContext') = 'object')
+        ORDER BY u.last_used_at DESC, p.activity_id DESC LIMIT 1`,
+        )
+        .get(context.targetLanguage, context.learnerId, context.courseId);
+      return row
+        ? ninaContinueSchema.parse({
+            activityId: row["activity_id"],
+            title: row["title"],
+            lastUsedAt: row["last_used_at"],
+          })
+        : null;
     });
   }
 

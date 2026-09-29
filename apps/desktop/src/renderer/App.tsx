@@ -30,7 +30,7 @@ import { ActionGroup, AppShell as ApplicationShell, Page } from "./components/la
 
 import callNinaLogo from "../../assets/call-nina.svg";
 import styles from "./AppStyles.module.css";
-import { Dashboard } from "./Dashboard.js";
+import { NinaHome, emptyNinaHomeDraft, type NinaHomeDraft } from "./Dashboard.js";
 import { useHelperSelection } from "./useHelperSelection.js";
 import { ContextualHelper } from "./ContextualHelper.js";
 import { HistoryPage, type HistoryPracticeSeed } from "./HistoryPage.js";
@@ -151,6 +151,8 @@ function DesktopWorkspace({
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
   const [learningScope, setLearningScope] = useState<LearningScope>();
+  const [ninaDrafts, setNinaDrafts] = useState<Record<string, NinaHomeDraft>>({});
+  const ninaScopeKey = JSON.stringify(learningScope ?? null);
   const [switchingLanguage, setSwitchingLanguage] = useState(false);
   const refreshScope = useCallback(async () => {
     const settings = await invokeDesktop("learner-settings/read", {});
@@ -483,9 +485,13 @@ function DesktopWorkspace({
                 <UserRound aria-hidden="true" /> {t("codex.signedOut")}
               </Feedback>
             )}
-            {page === "nina" ? (
-              <Dashboard
-                key={learningScope?.targetLanguage}
+            {page === "nina" && learningScope ? (
+              <NinaHome
+                key={ninaScopeKey}
+                draft={ninaDrafts[ninaScopeKey] ?? emptyNinaHomeDraft}
+                onDraftChange={(draft) => {
+                  setNinaDrafts((current) => ({ ...current, [ninaScopeKey]: draft }));
+                }}
                 requestAiAccess={openAi}
                 onLaunch={launchPractice}
                 onNavigate={navigate}
