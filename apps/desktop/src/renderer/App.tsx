@@ -1,6 +1,6 @@
 import i18n from "./i18n.js";
 import type { PracticeLaunch } from "./usePracticeSuggestion.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   type DesktopIpcRequest,
   type ProviderAccess,
@@ -10,11 +10,10 @@ import {
 } from "@call-nina/contracts";
 import type { ModelWorkload } from "@call-nina/domain";
 import {
-  Database,
   FilePenLine,
   Gauge,
   History,
-  LayoutDashboard,
+  MessageCircle,
   LibraryBig,
   LoaderCircle,
   Settings,
@@ -56,7 +55,7 @@ type PreparedActivityId = Extract<
   { status: "ok"; channel: "dashboard/read" }
 >["result"]["preparedActivities"][number]["activityId"];
 type Page =
-  | "dashboard"
+  | "nina"
   | "practice"
   | "writing"
   | "vocabulary"
@@ -67,16 +66,13 @@ type Page =
 
 const navigation: ReadonlyArray<{
   page: Page;
-  icon: typeof LayoutDashboard;
+  icon: typeof MessageCircle;
 }> = [
-  { page: "dashboard", icon: LayoutDashboard },
+  { page: "nina", icon: MessageCircle },
   { page: "practice", icon: Gauge },
-  { page: "writing", icon: FilePenLine },
+  { page: "learningPath", icon: Sparkles },
   { page: "vocabulary", icon: LibraryBig },
   { page: "history", icon: History },
-  { page: "learningPath", icon: Sparkles },
-  { page: "personalData", icon: Database },
-  { page: "settings", icon: Settings },
 ];
 
 function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) {
@@ -147,6 +143,9 @@ function DesktopWorkspace({
       >
     >();
   const [page, setPage] = useState<Page>(initialPage);
+  const [writingOrigin, setWritingOrigin] = useState<Page>("practice");
+  const [activityOrigin, setActivityOrigin] = useState<Page>();
+  const [settingsTab, setSettingsTab] = useState("profile");
   const [navCollapsed, setNavCollapsed] = useState(false);
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -190,16 +189,42 @@ function DesktopWorkspace({
   }, []);
 
   const [writingDirty, setWritingDirty] = useState(false);
-  const [pendingPage, setPendingPage] = useState<Page>();
+  const [pendingNavigation, setPendingNavigation] = useState<
+    | { destination: Page; mode: "normal" }
+    | { destination: Page; mode: "return" }
+    | { destination: "practice"; mode: "externalActivity"; activityId: PreparedActivityId }
+  >();
   const [writingSeed, setWritingSeed] =
     useState<Extract<HistoryPracticeSeed, { kind: "writing" }>>();
   const [preparedActivityId, setPreparedActivityId] = useState<PreparedActivityId>();
   const [suggestedWriting, setSuggestedWriting] = useState<string>();
   const [practiceSeed, setPracticeSeed] =
     useState<Extract<PracticeLaunch, { destination: "preparation" }>>();
+  const practiceContainer = useRef<HTMLDivElement>(null);
+  const [practiceReturnRequest, setPracticeReturnRequest] = useState(0);
+  const focusedPracticeReturn = useRef(0);
+  useLayoutEffect(() => {
+    if (page !== "practice" || practiceReturnRequest === focusedPracticeReturn.current) return;
+    focusedPracticeReturn.current = practiceReturnRequest;
+    practiceContainer.current?.querySelector<HTMLHeadingElement>("h1")?.focus({
+      preventScroll: true,
+    });
+  }, [page, practiceReturnRequest]);
+  const returnTo = (destination: Page) => {
+    if (page === "writing" && destination === "practice")
+      setPracticeReturnRequest((request) => request + 1);
+    setPage(destination);
+  };
+  const openExternalActivity = (activityId: PreparedActivityId) => {
+    setPracticeSeed(undefined);
+    setPreparedActivityId(activityId);
+    setActivityOrigin(undefined);
+    setPage("practice");
+  };
   const [vocabularyDue, setVocabularyDue] = useState(false);
   const launchPractice = (intent: PracticeLaunch) => {
     if (intent.destination === "writing") {
+      setWritingOrigin(page);
       setWritingSeed(undefined);
       setSuggestedWriting(intent.prompt);
       setPage("writing");
@@ -207,6 +232,7 @@ function DesktopWorkspace({
       setVocabularyDue(true);
       setPage("vocabulary");
     } else {
+      setActivityOrigin(page);
       setPreparedActivityId(intent.destination === "activity" ? intent.activityId : undefined);
       setPracticeSeed(intent.destination === "preparation" ? intent : undefined);
       setPage("practice");
@@ -242,10 +268,13 @@ function DesktopWorkspace({
   useEffect(() => {
     const unsubscribe = subscribeDesktop((event) => {
       if (event.event === "prepared-activity-open") {
-        setPracticeSeed(undefined);
-        setPreparedActivityId(event.activityId);
-        if (writingDirty) setPendingPage("practice");
-        else setPage("practice");
+        if (writingDirty)
+          setPendingNavigation({
+            destination: "practice",
+            mode: "externalActivity",
+            activityId: event.activityId,
+          });
+        else openExternalActivity(event.activityId);
         return;
       }
       if (event.event === "data-root-changed") {
@@ -306,29 +335,54 @@ function DesktopWorkspace({
     buttons[(current + delta + buttons.length) % buttons.length]?.focus();
   };
 
-  const navigate = (destination: Page) => {
+  const applyNavigation = (destination: Page) => {
     if (destination === "history") setHistoryEntryIds(undefined);
-    if (page === "writing" && writingDirty && destination !== "writing") {
-      setPendingPage(destination);
-      return;
-    }
     if (destination === "writing" && page !== "writing") {
+      setWritingOrigin(page);
       setWritingSeed(undefined);
       setSuggestedWriting(undefined);
     }
     if (destination === "practice") {
       setPreparedActivityId(undefined);
       setPracticeSeed(undefined);
+      setActivityOrigin(undefined);
     }
     if (destination === "vocabulary") setVocabularyDue(false);
     setPage(destination);
   };
+  const navigate = (destination: Page, mode: "normal" | "return" = "normal") => {
+    if (page === "writing" && writingDirty && destination !== "writing") {
+      setPendingNavigation({ destination, mode });
+      return;
+    }
+    if (mode === "return") returnTo(destination);
+    else applyNavigation(destination);
+  };
+  const parent =
+    page === "writing"
+      ? {
+          label: t(`nav.${writingOrigin}`),
+          onPress: () => {
+            navigate(writingOrigin, "return");
+          },
+        }
+      : page === "personalData"
+        ? {
+            label: t("nav.settings"),
+            onPress: () => {
+              navigate("settings");
+            },
+          }
+        : undefined;
+  const shellPage = page === "writing" ? "practice" : page === "personalData" ? "settings" : page;
   const modelWorkload: ModelWorkload = page === "writing" ? "correction" : "generation";
 
   return (
     <>
       <ApplicationShell
-        activePage={page}
+        activePage={shellPage}
+        locationLabel={t(`nav.${page}`)}
+        {...(parent ? { parent } : {})}
         brandMark={callNinaLogo}
         brandName={t("app.name")}
         content={
@@ -381,24 +435,44 @@ function DesktopWorkspace({
                 <UserRound aria-hidden="true" /> {t("codex.signedOut")}
               </Feedback>
             )}
-            {page === "dashboard" ? (
+            {page === "nina" ? (
               <Dashboard requestAiAccess={openAi} onLaunch={launchPractice} onNavigate={navigate} />
             ) : null}
-            {page === "practice" ? (
-              <PracticePage
-                onVocabulary={() => {
-                  navigate("vocabulary");
-                }}
-                {...(practiceSeed ? { initialPreparation: practiceSeed } : {})}
-                {...(preparedActivityId ? { activityId: preparedActivityId } : {})}
-                requestAiAccess={openAi}
-                onOpenActivity={(activityId) => {
-                  setPreparedActivityId(activityId);
-                }}
-                onCloseActivity={() => {
-                  setPreparedActivityId(undefined);
-                }}
-              />
+            {page === "practice" || (page === "writing" && writingOrigin === "practice") ? (
+              <div ref={practiceContainer} hidden={page !== "practice"}>
+                {!preparedActivityId && page === "practice" && (
+                  <div className={styles.practiceSecondary}>
+                    <Button
+                      variant="secondary"
+                      leadingIcon={<FilePenLine aria-hidden="true" />}
+                      onPress={() => {
+                        navigate("writing");
+                      }}
+                    >
+                      {t("nav.writing")}
+                    </Button>
+                  </div>
+                )}
+                <PracticePage
+                  {...(activityOrigin ? { parentLabel: t(`nav.${activityOrigin}`) } : {})}
+                  onVocabulary={() => {
+                    navigate("vocabulary");
+                  }}
+                  {...(practiceSeed ? { initialPreparation: practiceSeed } : {})}
+                  {...(preparedActivityId ? { activityId: preparedActivityId } : {})}
+                  requestAiAccess={openAi}
+                  onOpenActivity={(activityId) => {
+                    setPreparedActivityId(activityId);
+                  }}
+                  onCloseActivity={() => {
+                    setPreparedActivityId(undefined);
+                    if (activityOrigin && activityOrigin !== "practice") {
+                      setPage(activityOrigin);
+                      setActivityOrigin(undefined);
+                    }
+                  }}
+                />
+              </div>
             ) : null}
             {page === "writing" ? (
               <WritingWorkspace
@@ -419,10 +493,12 @@ function DesktopWorkspace({
                 requestAiAccess={openAi}
                 onPracticeAgain={(seed) => {
                   if (seed.kind === "exercise") {
+                    setActivityOrigin("history");
                     setPracticeSeed(undefined);
                     setPreparedActivityId(seed.activityId as PreparedActivityId);
                     setPage("practice");
                   } else {
+                    setWritingOrigin("history");
                     setWritingSeed(seed);
                     setWritingDirty(false);
                     setPage("writing");
@@ -442,6 +518,7 @@ function DesktopWorkspace({
             {page === "vocabulary" ? (
               <VocabularyPage
                 onOpenActivity={(activityId) => {
+                  setActivityOrigin("vocabulary");
                   setPreparedActivityId(activityId);
                   setPracticeSeed(undefined);
                   setPage("practice");
@@ -468,6 +545,11 @@ function DesktopWorkspace({
             {page === "settings" ? (
               <SettingsPage
                 readiness={readiness}
+                selectedTab={settingsTab}
+                onTabChange={setSettingsTab}
+                onOpenPersonalData={() => {
+                  navigate("personalData");
+                }}
                 onDataRootChanged={reload}
                 onRunSetup={onRunSetup}
               />
@@ -491,6 +573,7 @@ function DesktopWorkspace({
           icon,
           label: t(`nav.${destination}`),
         }))}
+        settingsNavigation={{ page: "settings", icon: Settings, label: t("nav.settings") }}
         navigationLabel={t("nav.label")}
         navFooter={
           <>
@@ -519,12 +602,12 @@ function DesktopWorkspace({
           }}
         />
       )}
-      {pendingPage && (
+      {pendingNavigation && (
         <ModalDialog
           isOpen
           title={t("writing.unsavedTitle")}
           onOpenChange={(open) => {
-            if (!open) setPendingPage(undefined);
+            if (!open) setPendingNavigation(undefined);
           }}
         >
           <p>{t("writing.unsavedBody")}</p>
@@ -533,15 +616,19 @@ function DesktopWorkspace({
               variant="danger"
               onPress={() => {
                 setWritingDirty(false);
-                setPage(pendingPage);
-                setPendingPage(undefined);
+                if (pendingNavigation.mode === "normal")
+                  applyNavigation(pendingNavigation.destination);
+                else if (pendingNavigation.mode === "return")
+                  returnTo(pendingNavigation.destination);
+                else openExternalActivity(pendingNavigation.activityId);
+                setPendingNavigation(undefined);
               }}
             >
               {t("writing.leave")}
             </Button>
             <Button
               onPress={() => {
-                setPendingPage(undefined);
+                setPendingNavigation(undefined);
               }}
             >
               {t("writing.keepEditing")}
@@ -560,7 +647,7 @@ export default function App() {
   const [recoveringRoot, setRecoveringRoot] = useState(false);
   const [profileOnboarding, setProfileOnboarding] = useState(false);
   const [repeatSetup, setRepeatSetup] = useState(false);
-  const [initialPage, setInitialPage] = useState<Page>("dashboard");
+  const [initialPage, setInitialPage] = useState<Page>("nina");
   const load = useCallback(async () => {
     setFatal(undefined);
     try {

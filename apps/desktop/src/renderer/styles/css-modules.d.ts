@@ -18,6 +18,8 @@ declare module "*AppShell.module.css" {
     readonly navInner: string;
     readonly navLabel: string;
     readonly navList: string;
+    readonly parentLink: string;
+    readonly settingsNavigation: string;
     readonly shell: string;
     readonly wide: string;
     readonly workspace: string;
@@ -29,6 +31,7 @@ declare module "*AppShell.module.css" {
 
 declare module "*AppStyles.module.css" {
   const styles: {
+    readonly practiceSecondary: string;
     readonly startupCard: string;
   };
   export default styles;
