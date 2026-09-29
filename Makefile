@@ -45,6 +45,13 @@ build-website: ## Typecheck and build the static website into apps/website/dist.
 preview-website: ## Preview the built website locally in the foreground (Ctrl-C to stop).
 	@pnpm --filter @call-nina/website run preview $(ARGS)
 
+.PHONY: package-website website-deployment-help
+package-website: ## Build and package only the static website for a manual Vercel upload; no remote actions.
+	@node scripts/build/package-website.mjs
+
+website-deployment-help: ## Print the desired Vercel settings and coordinator deploy/readback commands; no remote actions.
+	@node scripts/build/package-website.mjs --help
+
 dev: ## Start the development stack in the background and wait for health.
 	@echo "+ node scripts/dev/lifecycle.mjs start dev"
 	@node scripts/dev/lifecycle.mjs start dev
