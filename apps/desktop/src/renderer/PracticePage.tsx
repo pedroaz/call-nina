@@ -325,6 +325,15 @@ export function PracticePage({
         key={activityId}
         activityId={activityId}
         parentLabel={parentLabel ?? t("practice.title")}
+        onHistory={() => {
+          onHistory(
+            prepared.activity.context.learningScope.targetLanguage,
+            prepared.rootGeneration,
+          );
+        }}
+        onNina={() => {
+          onNina(prepared.activity.context.learningScope.targetLanguage, prepared.rootGeneration);
+        }}
         onClose={onCloseActivity}
         onVocabulary={onVocabulary ?? onCloseActivity}
         requestAiAccess={requestAiAccess}

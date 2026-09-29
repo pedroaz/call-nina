@@ -1538,6 +1538,7 @@
     "evidence": "Tus respuestas y comentarios están guardados en el historial. Las pistas, las respuestas repetidas y las autoevaluaciones se distinguen de los resultados independientes.",
     "nextHint": "Vuelve a Nina para elegir un repaso o una práctica nueva. Las actividades preparadas siguen disponibles sin IA.",
     "nina": "Ver las recomendaciones de Nina",
-    "return": "Volver a {{origin}}"
+    "return": "Volver a {{origin}}",
+    "selfAssessment": "El repaso de tarjetas se guarda con esta actividad. Las autoevaluaciones orientan el repaso de vocabulario; no demuestran un dominio independiente."
   }
 }

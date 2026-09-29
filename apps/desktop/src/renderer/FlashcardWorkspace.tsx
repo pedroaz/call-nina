@@ -1,3 +1,4 @@
+import { CompletionActions } from "./CompletionActions.js";
 import { SavedTranslation, type TranslationAccess } from "./SavedTranslation.js";
 import {
   translationRevealSchema,
@@ -20,12 +21,16 @@ export function FlashcardWorkspace({
   parentLabel,
   onClose,
   onVocabulary,
+  onHistory,
+  onNina,
   requestAiAccess,
 }: {
   activityId: ActivityId;
   parentLabel: string;
   onClose: () => void;
   onVocabulary: () => void;
+  onHistory: () => void;
+  onNina: () => void;
   requestAiAccess: TranslationAccess;
 }) {
   const { t } = useTranslation();
@@ -201,6 +206,15 @@ export function FlashcardWorkspace({
                 {t("flashcards.complete")}
               </h2>
               <p>{t("flashcards.completeBody", { count: deck.content.cards.length })}</p>
+              <CompletionActions
+                targetLanguage={deck.content.language}
+                rootGeneration={deck.rootGeneration}
+                evidence="self-assessment"
+                parentLabel={parentLabel}
+                onReturn={onClose}
+                onHistory={onHistory}
+                onNina={onNina}
+              />
               <ActionGroup>
                 <Button
                   isDisabled={busy}
@@ -210,7 +224,6 @@ export function FlashcardWorkspace({
                 >
                   {t("flashcards.restart")}
                 </Button>
-                <Button onPress={onClose}>{t("flashcards.back")}</Button>
               </ActionGroup>
             </>
           ) : (

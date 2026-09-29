@@ -1538,6 +1538,7 @@
     "evidence": "Your answers and feedback are saved in History. Hints, repeated answers and self-ratings remain distinct from independent evidence.",
     "nextHint": "Return to Nina to choose relevant review or fresh practice. Prepared activities stay available without AI.",
     "nina": "See Nina’s recommendations",
-    "return": "Back to {{origin}}"
+    "return": "Back to {{origin}}",
+    "selfAssessment": "Card review is saved with this activity. Self-ratings guide vocabulary review; they do not establish independent proficiency."
   }
 }

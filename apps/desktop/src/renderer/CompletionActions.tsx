@@ -13,6 +13,7 @@ import { ActionGroup } from "./components/layout/index.js";
 /** Read-only follow-up to the shared player's committed completion. */
 export function CompletionActions({
   targetLanguage,
+  evidence = "answers",
   rootGeneration,
   parentLabel,
   onReturn,
@@ -20,6 +21,7 @@ export function CompletionActions({
   onNina,
 }: {
   targetLanguage: Language;
+  evidence?: "answers" | "self-assessment";
   rootGeneration: DataRootGeneration;
   parentLabel: string;
   onReturn: () => void;
@@ -48,7 +50,9 @@ export function CompletionActions({
       <h3 ref={heading} tabIndex={-1}>
         {t("completion.next")}
       </h3>
-      <Muted as="p">{t("completion.evidence")}</Muted>
+      <Muted as="p">
+        {t(evidence === "answers" ? "completion.evidence" : "completion.selfAssessment")}
+      </Muted>
       {suggestion ? (
         <>
           <p>

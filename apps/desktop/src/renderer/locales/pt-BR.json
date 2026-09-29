@@ -1538,6 +1538,7 @@
     "evidence": "Suas respostas e o feedback estão salvos no histórico. Dicas, respostas repetidas e autoavaliações são diferenciadas dos resultados independentes.",
     "nextHint": "Volte à Nina para escolher uma revisão ou uma nova prática. As atividades preparadas continuam disponíveis sem IA.",
     "nina": "Ver as recomendações da Nina",
-    "return": "Voltar para {{origin}}"
+    "return": "Voltar para {{origin}}",
+    "selfAssessment": "A revisão dos cartões fica salva nesta atividade. As autoavaliações orientam a revisão do vocabulário; elas não comprovam proficiência independente."
   }
 }

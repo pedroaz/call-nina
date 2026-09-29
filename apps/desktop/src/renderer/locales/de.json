@@ -1538,6 +1538,7 @@
     "evidence": "Deine Antworten und Rückmeldungen sind im Verlauf gespeichert. Hinweise, wiederholte Antworten und Selbsteinschätzungen bleiben von selbstständigen Leistungen getrennt.",
     "nextHint": "Wähle bei Nina eine passende Wiederholung oder neue Übung. Vorbereitete Aktivitäten bleiben ohne KI verfügbar.",
     "nina": "Ninas Empfehlungen ansehen",
-    "return": "Zurück zu {{origin}}"
+    "return": "Zurück zu {{origin}}",
+    "selfAssessment": "Die Kartenwiederholung ist bei dieser Aktivität gespeichert. Selbsteinschätzungen steuern die Vokabelwiederholung; sie belegen keine selbstständige Sprachkompetenz."
   }
 }
