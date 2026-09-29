@@ -1513,5 +1513,21 @@
     "noResume": "In diesem Lernkontext gibt es noch keine fortsetzbare Aktivität. Starte mit einem Wunsch oder einer Empfehlung.",
     "recent": "Deine zuletzt genutzte fortsetzbare Aktivität.",
     "savedWording": "Gespeicherte Formulierungen bleiben unverändert. Die obige Sprachauswahl gilt für neu erstellte Übungen."
+  },
+  "translation": {
+    "action": "Übersetzen",
+    "close": "Übersetzung schließen",
+    "description": "Diesen gespeicherten Begleittext übersetzen. Das Original bleibt unverändert.",
+    "language": "Sprache der Übersetzung",
+    "derived": "Gespeicherte abgeleitete Übersetzung",
+    "label": "Gespeicherte Übersetzung · {{language}}",
+    "revision": "Originalversion: {{revision}}",
+    "translating": "Wird übersetzt…",
+    "failed": "Die Übersetzung konnte nicht gespeichert werden. Das Original und bisherige Übersetzungen bleiben unverändert. Bei verfügbarer KI erneut versuchen.",
+    "cancelled": "Übersetzung abgebrochen. Das Original und bisherige Übersetzungen bleiben unverändert.",
+    "unavailable": "KI ist für die Übersetzung nicht verfügbar. Das Original und gespeicherte Übersetzungen bleiben nutzbar.",
+    "loadFailed": "Gespeicherte Übersetzungen konnten nicht geöffnet werden. Das Original bleibt verfügbar.",
+    "saved": "Übersetzung gespeichert. Sie kann ohne KI wieder geöffnet werden.",
+    "retryRead": "Gespeicherte Übersetzungen neu laden"
   }
 }

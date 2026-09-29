@@ -13,3 +13,4 @@ export {
 } from "./output-validation.js";
 export { buildLearningCalibration, generationLevel } from "./context.js";
 export { interpretNinaRequest, ninaExerciseCount, matchesNinaRequest } from "./nina.js";
+export { savedTranslationInput, translationParts } from "./translation.js";

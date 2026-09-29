@@ -1513,5 +1513,21 @@
     "noResume": "Ainda não há uma atividade para retomar neste contexto de estudo. Comece com um pedido ou uma recomendação.",
     "recent": "Sua atividade retomável usada mais recentemente.",
     "savedWording": "O texto salvo permanece como foi criado. Os idiomas acima se aplicam à prática nova."
+  },
+  "translation": {
+    "action": "Traduzir",
+    "close": "Fechar tradução",
+    "description": "Traduza este texto de apoio salvo. O original permanece inalterado.",
+    "language": "Idioma da tradução",
+    "derived": "Tradução derivada salva",
+    "label": "Tradução salva · {{language}}",
+    "revision": "Versão original: {{revision}}",
+    "translating": "Traduzindo…",
+    "failed": "Não foi possível salvar a tradução. O original e as traduções anteriores permanecem inalterados. Tente novamente quando a IA estiver disponível.",
+    "cancelled": "Tradução cancelada. O original e as traduções anteriores permanecem inalterados.",
+    "unavailable": "A IA não está disponível para tradução. Você ainda pode usar o original e as traduções salvas.",
+    "loadFailed": "Não foi possível abrir as traduções salvas. O original continua disponível.",
+    "saved": "Tradução salva. Você pode reabri-la sem IA.",
+    "retryRead": "Recarregar traduções salvas"
   }
 }

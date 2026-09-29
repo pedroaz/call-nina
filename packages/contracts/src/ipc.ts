@@ -4,6 +4,14 @@ import {
   ninaContinueSchema,
   ninaGenerationRequestSchema,
 } from "./nina.js";
+import {
+  translationRequestSchema,
+  translationStartSchema,
+  translationCancelSchema,
+  translationRevealSchema,
+  translationReadSchema,
+  translationFinishedEventSchema,
+} from "./translation.js";
 import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
 import { exerciseEntryContextSchema, reuseExerciseActionSchema } from "./exercise-launch.js";
 import {
@@ -20,6 +28,7 @@ import {
   materialSourceSchema,
 } from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
+import { contentReferenceSchema } from "./content-reference.js";
 import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
 import {
   targetLanguageSchema,
@@ -86,6 +95,10 @@ import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "translation/read",
+  "translation/start",
+  "translation/cancel",
+  "translation/flashcard-visibility",
   "app/readiness",
   "provider/access/read",
   "data-root/read",
@@ -724,6 +737,10 @@ const learningOperationRetryRequest = request(
 );
 
 export const desktopIpcRequestSchema = boundaryUnion([
+  request("translation/read", translationRequestSchema),
+  request("translation/start", translationStartSchema),
+  request("translation/cancel", translationCancelSchema),
+  request("translation/flashcard-visibility", translationRevealSchema),
   appReadinessRequest,
   providerAccessReadRequest,
   dataRootReadRequest,
@@ -1371,6 +1388,18 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
     kind: z.literal("exercise-attempt"),
     readingMaterial: generationCandidateOutputSchemas["exercise-generation"].shape.readingMaterial,
     activityId: activityIdSchema,
+    translation: z
+      .strictObject({
+        content: contentReferenceSchema,
+        position: z.int().min(0).max(29),
+        attemptId: attemptIdSchema,
+        fields: z.strictObject({
+          summary: z.boolean(),
+          strengths: z.array(z.int().min(0).max(19)).max(20),
+          improvements: z.array(z.int().min(0).max(19)).max(20),
+        }),
+      })
+      .optional(),
     exerciseKind: z.enum([
       "free-writing",
       "short-answer",
@@ -1676,6 +1705,16 @@ const errorResponse = strictBoundaryObject({
 });
 
 export const desktopIpcResponseSchema = boundaryUnion([
+  response("translation/read", translationReadSchema),
+  response(
+    "translation/start",
+    z.strictObject({ operationId: correlationIdSchema, status: z.enum(["accepted", "saved"]) }),
+  ),
+  response(
+    "translation/cancel",
+    z.strictObject({ status: z.enum(["cancelling", "already-finished"]) }),
+  ),
+  response("translation/flashcard-visibility", z.strictObject({ visible: z.boolean() })),
   appReadinessResponse,
   providerAccessReadResponse,
   dataRootReadResponse,
@@ -1754,6 +1793,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
 ]);
 
 export const desktopIpcEventSchema = boundaryUnion([
+  translationFinishedEventSchema,
   strictBoundaryObject({
     event: z.literal("account-login"),
     loginId: correlationIdSchema,

@@ -1755,6 +1755,22 @@ export const callNinaMigrations = [
       JOIN prepared_activities p ON p.activity_id = e.activity_id
       GROUP BY e.activity_id;`,
   },
+  {
+    version: 33,
+    name: "saved-supporting-translations",
+    sql: `CREATE TABLE saved_supporting_translations (
+      activity_id TEXT NOT NULL,
+      content_revision_id TEXT NOT NULL,
+      field_key TEXT NOT NULL,
+      language TEXT NOT NULL CHECK(language IN ('en-US','pt-BR','es','de')),
+      feedback_attempt_id TEXT REFERENCES attempts(attempt_id) ON DELETE CASCADE,
+      translation_json TEXT NOT NULL CHECK(json_valid(translation_json)),
+      PRIMARY KEY(activity_id, content_revision_id, field_key, language),
+      FOREIGN KEY(activity_id, content_revision_id) REFERENCES activity_content_revisions(activity_id, revision_id) ON DELETE CASCADE
+    ) STRICT;
+    CREATE TRIGGER saved_supporting_translation_immutable BEFORE UPDATE ON saved_supporting_translations
+      BEGIN SELECT RAISE(ABORT, 'OD_TRANSLATION_IMMUTABLE'); END;`,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

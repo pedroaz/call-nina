@@ -1,0 +1,14 @@
+.controls,
+.saved {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.saved {
+  padding: var(--od-space-3);
+  border: 1px solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+  overflow-wrap: anywhere;
+}
+.saved p {
+  white-space: pre-wrap;
+}

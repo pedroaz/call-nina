@@ -336,6 +336,14 @@ declare module "*ProfileOnboarding.module.css" {
   export default styles;
 }
 
+declare module "*SavedTranslation.module.css" {
+  const styles: {
+    readonly controls: string;
+    readonly saved: string;
+  };
+  export default styles;
+}
+
 declare module "*SettingsPage.module.css" {
   const styles: {
     readonly detailList: string;
