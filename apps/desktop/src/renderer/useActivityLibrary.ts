@@ -5,13 +5,19 @@ import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js
 type Filter = Extract<DesktopIpcRequest, { channel: "activity/list" }>["payload"];
 type Snapshot = Extract<DesktopIpcResponse, { status: "ok"; channel: "activity/list" }>["result"];
 
-export function useActivityLibrary(activityTypes: Filter["activityTypes"], enabled = true) {
+export function useActivityLibrary(
+  activityTypes: Filter["activityTypes"],
+  enabled = true,
+  material?: Filter["material"],
+) {
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
   const version = useRef(0);
   const retainedCount = useRef(20);
   const filterKey = activityTypes.join(",");
+  const materialId = material?.materialId;
+  const revisionId = material?.revisionId;
   const fetchPage = useCallback(
     async (cursor?: NonNullable<Snapshot["nextCursor"]>) => {
       const current = ++version.current;
@@ -26,6 +32,7 @@ export function useActivityLibrary(activityTypes: Filter["activityTypes"], enabl
           next = await invokeDesktop("activity/list", {
             activityTypes: filterKey.split(",").filter(Boolean) as Filter["activityTypes"],
             maximum: 20,
+            ...(materialId && revisionId ? { material: { materialId, revisionId } } : {}),
             ...(nextCursor ? { cursor: nextCursor } : {}),
           });
           if (current !== version.current) return;
@@ -53,7 +60,7 @@ export function useActivityLibrary(activityTypes: Filter["activityTypes"], enabl
         if (current === version.current) setBusy(false);
       }
     },
-    [filterKey],
+    [filterKey, materialId, revisionId],
   );
   const refresh = useCallback(() => fetchPage(), [fetchPage]);
   useEffect(() => {

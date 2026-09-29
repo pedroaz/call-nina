@@ -1,3 +1,4 @@
+import { materialReferenceSchema } from "./material.js";
 import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { learningScopeSchema } from "./learning-context.js";
 import { courseReferenceSchema, courseTeachingContextSchema } from "./learning-path.js";
@@ -81,6 +82,7 @@ export const activityLibraryFilterSchema = z.strictObject({
   activityTypes: z.array(activityTypeSchema).max(9).default([]),
   maximum: z.int().min(1).max(50).default(20),
   cursor: activityLibraryCursorSchema.optional(),
+  material: materialReferenceSchema.optional(),
 });
 export const activityLibraryItemSchema = z
   .strictObject(preparedActivitySchema.shape)

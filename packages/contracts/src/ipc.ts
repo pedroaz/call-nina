@@ -7,7 +7,12 @@ import {
 } from "./provider-access.js";
 import { generationProvenanceSchema } from "./generation-provenance.js";
 import { attemptEvidenceSchema, externalAttemptFeedbackSchema } from "./attempt-evidence.js";
-import { materialReferenceSchema, materialSourceSchema } from "./material.js";
+import {
+  materialDraftSchema,
+  materialRevisionSchema,
+  materialReferenceSchema,
+  materialSourceSchema,
+} from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
 import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
 import {
@@ -121,6 +126,9 @@ export const desktopIpcChannels = [
   "vocabulary/suspend",
   "vocabulary/resume",
   "vocabulary/delete",
+  "material/list",
+  "material/read",
+  "material/save",
   "prepared-activity/read",
   "voice-activity/read",
   "voice-activity/open-in-codex",
@@ -389,6 +397,25 @@ const vocabularyDeleteRequest = request(
   }),
 );
 
+const materialListRequest = request(
+  "material/list",
+  z.strictObject({ cursor: z.int().positive().optional() }),
+);
+const materialReadRequest = request(
+  "material/read",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    reference: materialReferenceSchema,
+  }),
+);
+const materialSaveRequest = request(
+  "material/save",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    draft: materialDraftSchema,
+    previous: materialReferenceSchema.optional(),
+  }),
+);
 const preparedActivityReadRequest = request(
   "prepared-activity/read",
   z.strictObject({ activityId: activityIdSchema }),
@@ -627,6 +654,7 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
         expectedGeneration: dataRootGenerationSchema,
         material: materialReferenceSchema,
         exerciseCount: z.int().min(3).max(30).optional(),
+        targetLevel: z.enum(["a1", "a2", "b1", "b2"]).optional(),
       }),
       z.strictObject({
         source: z.literal("prepared-activity"),
@@ -731,6 +759,9 @@ export const desktopIpcRequestSchema = boundaryUnion([
   vocabularySuspendRequest,
   vocabularyResumeRequest,
   vocabularyDeleteRequest,
+  materialListRequest,
+  materialReadRequest,
+  materialSaveRequest,
   preparedActivityReadRequest,
   voiceActivityReadRequest,
   voiceActivityOpenInCodexRequest,
@@ -1212,6 +1243,23 @@ const generatedActivityProvenanceSchema = z.strictObject({
   modelId: text(128),
   effortId: text(128),
 });
+const materialListResponse = response(
+  "material/list",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    language: targetLanguageSchema,
+    materials: z.array(materialRevisionSchema).max(100),
+    nextCursor: z.int().positive().optional(),
+  }),
+);
+const materialReadResponse = response(
+  "material/read",
+  z.strictObject({ material: materialRevisionSchema }),
+);
+const materialSaveResponse = response(
+  "material/save",
+  z.strictObject({ material: materialRevisionSchema }),
+);
 const preparedActivityReadResponse = response(
   "prepared-activity/read",
   z.strictObject({
@@ -1652,6 +1700,9 @@ export const desktopIpcResponseSchema = boundaryUnion([
   vocabularySuspendResponse,
   vocabularyResumeResponse,
   vocabularyDeleteResponse,
+  materialListResponse,
+  materialReadResponse,
+  materialSaveResponse,
   preparedActivityReadResponse,
   voiceActivityReadResponse,
   voiceActivityOpenInCodexResponse,

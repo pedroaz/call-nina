@@ -1,43 +1,48 @@
-import type { ProviderOperation, ActivityId, CallNinaError, Language } from "@call-nina/contracts";
-import { practiceStarterExamples } from "./practiceStarterExamples.js";
+import { MaterialPractice, type MaterialPracticeState } from "./MaterialPractice.js";
+import type { ProviderOperation, ActivityId, CallNinaError } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
-import { useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, Disclosure, FieldGroup } from "./components/ui/index.js";
+import { Button, Card, FieldGroup } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { OperationError } from "./Startup.js";
 import { normalizeDesktopError } from "./ipc.js";
 import { generatePracticeActivity } from "./generatePracticeActivity.js";
 
 export function ReadingPractice({
-  targetLanguage,
   exerciseCount,
   countValid,
   targetLevel,
   onBusyChange,
   requestAiAccess,
   onOpenActivity,
+  topic,
+  setTopic,
+  materialState,
+  setMaterialState,
 }: {
-  targetLanguage?: Language | undefined;
   exerciseCount: number;
   countValid: boolean;
   targetLevel: "a1" | "a2" | "b1" | "b2";
   onBusyChange: (busy: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenActivity: (activityId: ActivityId) => void;
+  topic: string;
+  setTopic: (topic: string) => void;
+  materialState: MaterialPracticeState;
+  setMaterialState: Dispatch<SetStateAction<MaterialPracticeState>>;
 }) {
   const { t } = useTranslation();
-  const [topic, setTopic] = useState("");
-  const [passage, setPassage] = useState("");
+  const [materialBusy, setMaterialBusy] = useState(false);
   const generation = useLearningOperation();
-  const busy = generation.busy;
-  const [source, setSource] = useState<"topic" | "passage">("topic");
+  const busy = generation.busy || materialBusy;
+  useEffect(() => {
+    onBusyChange(busy);
+  }, [busy, onBusyChange]);
   const [error, setError] = useState<CallNinaError>();
-  const generate = async (usePassage: boolean) => {
+  const generate = async () => {
     if (!countValid || !(await requestAiAccess("exercise-generation"))) return;
-    onBusyChange(true);
-    setSource(usePassage ? "passage" : "topic");
     setError(undefined);
     try {
       const activityId = await generatePracticeActivity(
@@ -46,15 +51,12 @@ export function ReadingPractice({
           exerciseCount,
           targetLevel,
           naturalRequest: topic.trim() || t("practice.readingFlow.defaultRequest"),
-          ...(usePassage ? { passage } : {}),
         },
         generation.run,
       );
       onOpenActivity(activityId);
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
-    } finally {
-      onBusyChange(false);
     }
   };
   return (
@@ -86,55 +88,28 @@ export function ReadingPractice({
         <Button
           variant="primary"
           isDisabled={busy || !countValid || !topic.trim()}
-          onPress={() => void generate(false)}
+          onPress={() => void generate()}
         >
-          {busy && source === "topic"
-            ? t("exercises.custom.generating")
-            : t("practice.readingFlow.generate")}
+          {generation.busy ? t("exercises.custom.generating") : t("practice.readingFlow.generate")}
         </Button>
-        {busy && source === "topic" && (
+        {generation.busy && (
           <Button variant="secondary" onPress={generation.cancel}>
             {t("actions.cancel")}
           </Button>
         )}
       </ActionGroup>
-      <Disclosure label={t("practice.readingFlow.importLabel")}>
-        <FieldGroup>
-          {t("practice.readingFlow.importLabel")}
-          <textarea
-            rows={6}
-            maxLength={12_000}
-            value={passage}
-            disabled={busy}
-            onChange={(event) => {
-              setPassage(event.target.value);
-            }}
-          />
-        </FieldGroup>
-        <ActionGroup>
-          <Button
-            isDisabled={busy || !targetLanguage}
-            onPress={() => {
-              if (targetLanguage) setPassage(practiceStarterExamples[targetLanguage].reading);
-            }}
-          >
-            {t("practice.readingFlow.useStarter")}
-          </Button>
-          <Button
-            isDisabled={busy || !countValid || !passage.trim()}
-            onPress={() => void generate(true)}
-          >
-            {busy && source === "passage"
-              ? t("exercises.custom.generating")
-              : t("practice.readingFlow.useImport")}
-          </Button>
-          {busy && source === "passage" && (
-            <Button variant="secondary" onPress={generation.cancel}>
-              {t("actions.cancel")}
-            </Button>
-          )}
-        </ActionGroup>
-      </Disclosure>
+      <MaterialPractice
+        state={materialState}
+        setState={setMaterialState}
+        practiceType="reading"
+        targetLevel={targetLevel}
+        exerciseCount={exerciseCount}
+        countValid={countValid}
+        disabled={generation.busy}
+        onBusyChange={setMaterialBusy}
+        requestAiAccess={requestAiAccess}
+        onOpenActivity={onOpenActivity}
+      />
       <OperationProgress progress={generation.progress} />
       {error && <OperationError error={error} />}
     </Card>

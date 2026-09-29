@@ -1,4 +1,9 @@
 import {
+  MaterialPractice,
+  emptyMaterialPracticeState,
+  type MaterialPracticeState,
+} from "./MaterialPractice.js";
+import {
   type ProviderOperation,
   exerciseFeedbackCandidateSchema,
   type DesktopIpcResponse,
@@ -106,11 +111,19 @@ export function PracticePage({
   const [quizCount, setQuizCount] = useState("6");
   const [cardCount, setCardCount] = useState("10");
   const [flashcardTopic, setFlashcardTopic] = useState("");
+  const [readingTopic, setReadingTopic] = useState("");
+  const [vocabularyMaterialState, setVocabularyMaterialState] = useState<MaterialPracticeState>(
+    emptyMaterialPracticeState,
+  );
+  const [readingMaterialState, setReadingMaterialState] = useState<MaterialPracticeState>(
+    emptyMaterialPracticeState,
+  );
   const exerciseCount = Number(quizCount);
   const quizCountValid = validPracticeCount(quizCount);
   const [targetLevel, setTargetLevel] = useState<PracticeLevel>("a2");
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [readingBusy, setReadingBusy] = useState(false);
+  const [materialBusy, setMaterialBusy] = useState(false);
   const levelEdited = useRef(false);
   useEffect(() => {
     let current = true;
@@ -128,7 +141,7 @@ export function PracticePage({
   const generation = useLearningOperation();
   const feedback = useLearningOperation();
   const generating = generation.busy;
-  const formBusy = generating || voiceBusy || readingBusy;
+  const formBusy = generating || voiceBusy || readingBusy || materialBusy;
   const [generationError, setGenerationError] = useState<CallNinaError>();
   const [deleting, setDeleting] = useState(false);
   const [libraryView, setLibraryView] = useState(false);
@@ -611,7 +624,7 @@ export function PracticePage({
 
                 {generationError && <OperationError error={generationError} />}
                 <div className={styles.practiceContent}>
-                  {selectedKind === "flashcards" && (
+                  <div hidden={selectedKind !== "flashcards"}>
                     <Card as="article">
                       <h2>{t("flashcards.title")}</h2>
                       <p>{t("flashcards.description")}</p>
@@ -643,8 +656,20 @@ export function PracticePage({
                           <Button onPress={generation.cancel}>{t("actions.cancel")}</Button>
                         )}
                       </ActionGroup>
+                      <MaterialPractice
+                        state={vocabularyMaterialState}
+                        setState={setVocabularyMaterialState}
+                        practiceType="vocabulary-review"
+                        targetLevel={targetLevel}
+                        exerciseCount={Number(cardCount)}
+                        countValid={validPracticeCount(cardCount)}
+                        disabled={generating}
+                        onBusyChange={setMaterialBusy}
+                        requestAiAccess={requestAiAccess}
+                        onOpenActivity={onOpenActivity}
+                      />
                     </Card>
-                  )}
+                  </div>
                   <div hidden={selectedKind !== "custom"}>
                     <Card as="article">
                       <h2>{t("exercises.custom.title")}</h2>
@@ -729,7 +754,10 @@ export function PracticePage({
                   </div>
                   <div hidden={selectedKind !== "reading"}>
                     <ReadingPractice
-                      targetLanguage={targetLanguage}
+                      topic={readingTopic}
+                      setTopic={setReadingTopic}
+                      materialState={readingMaterialState}
+                      setMaterialState={setReadingMaterialState}
                       exerciseCount={exerciseCount}
                       countValid={quizCountValid}
                       targetLevel={targetLevel}

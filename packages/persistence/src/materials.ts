@@ -98,15 +98,18 @@ export async function readMaterialRevision(
     readMaterialRevisionInTransaction(connection, reference),
   );
 }
-export async function listMaterials(database: CallNinaDatabase) {
+export async function listMaterials(database: CallNinaDatabase, cursor?: number) {
   return withLeasedConnection(database, (connection) => {
     requireLocalLearningScope(connection);
-    return connection
+    const rows = connection
       .prepare(
-        "SELECT material_id, revision_id FROM material_revisions m WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1) AND revision = (SELECT max(revision) FROM material_revisions WHERE material_id = m.material_id) ORDER BY rowid DESC LIMIT 100",
+        "SELECT rowid, material_id, revision_id FROM material_revisions m WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1) AND revision = (SELECT max(revision) FROM material_revisions WHERE material_id = m.material_id) AND (? IS NULL OR rowid < ?) ORDER BY rowid DESC LIMIT 101",
       )
-      .all()
-      .map((row) =>
+      .all(cursor ?? null, cursor ?? null);
+    const page = rows.slice(0, 100);
+    const last = page.at(-1);
+    return {
+      materials: page.map((row) =>
         readMaterialRevisionInTransaction(
           connection,
           materialReferenceSchema.parse({
@@ -114,7 +117,9 @@ export async function listMaterials(database: CallNinaDatabase) {
             revisionId: row["revision_id"],
           }),
         ),
-      );
+      ),
+      ...(rows.length > 100 && last ? { nextCursor: Number(last["rowid"]) } : {}),
+    };
   });
 }
 

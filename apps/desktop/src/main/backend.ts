@@ -4,6 +4,8 @@ import { desktopPathOption } from "./options.js";
 import {
   readFlashcards,
   readMaterialRevision,
+  listMaterials,
+  saveMaterial,
   createVocabularyFlashcards,
   updateFlashcardProgress,
   saveFlashcardVocabulary,
@@ -1034,7 +1036,12 @@ export class DesktopBackend {
                 ...(material.kind === "pasted-text" ? { reading: { passage: material.text } } : {}),
               }),
           requestedExerciseCount: input.request.exerciseCount ?? 6,
-          calibration,
+          calibration: {
+            ...calibration,
+            approximateLevel: input.request.targetLevel
+              ? generationLevel[input.request.targetLevel]
+              : calibration.approximateLevel,
+          },
           curriculumTopicIds: [],
           relevantMistakeIds: [],
           relevantVocabularyIds: [],
@@ -2269,6 +2276,41 @@ export class DesktopBackend {
           status: "updated",
         });
       }
+      if (
+        request.channel === "material/list" ||
+        request.channel === "material/read" ||
+        request.channel === "material/save"
+      ) {
+        const root = await this.#dataRootState(request.requestId);
+        const database = this.#database;
+        if (
+          root.status !== "ready" ||
+          !database ||
+          !this.#repository ||
+          ("rootGeneration" in request.payload &&
+            request.payload.rootGeneration !== database.rootGeneration)
+        )
+          return this.#failure(request, "stale-data-root");
+        const scope = await this.#repository.requireLearningScope();
+        if (request.channel === "material/list")
+          return this.#success(request, {
+            rootGeneration: database.rootGeneration,
+            language: scope.targetLanguage,
+            ...(await listMaterials(database, request.payload.cursor)),
+          });
+        if (request.channel === "material/read")
+          return this.#success(request, {
+            material: await readMaterialRevision(database, request.payload.reference),
+          });
+        if (request.payload.draft.language !== scope.targetLanguage)
+          return this.#failure(request, "conflict");
+        const material = await saveMaterial(
+          database,
+          request.payload.draft,
+          request.payload.previous,
+        );
+        return this.#success(request, { material });
+      }
       if (request.channel === "prepared-activity/read") {
         return this.#success(
           request,
@@ -2813,17 +2855,20 @@ export class DesktopBackend {
         );
       }
       const code = diagnosticErrorCode(error);
-      const kind = code.includes("HANDOFF")
-        ? "handoff"
-        : code.includes("STALE")
-          ? "stale-data-root"
-          : code.includes("CONFLICT") || code.includes("DELETE_BLOCKED")
-            ? "conflict"
-            : code.includes("NOT_FOUND")
-              ? "not-found"
-              : code.includes("DATABASE") || code.includes("SQLITE")
-                ? "database"
-                : "validation";
+      const kind =
+        code === "OD_MATERIAL_REVISION_STALE"
+          ? "conflict"
+          : code.includes("HANDOFF")
+            ? "handoff"
+            : code.includes("STALE")
+              ? "stale-data-root"
+              : code.includes("CONFLICT") || code.includes("DELETE_BLOCKED")
+                ? "conflict"
+                : code.includes("NOT_FOUND")
+                  ? "not-found"
+                  : code.includes("DATABASE") || code.includes("SQLITE")
+                    ? "database"
+                    : "validation";
       return this.#failure(request, kind);
     }
   }
