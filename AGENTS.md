@@ -50,6 +50,7 @@ Read the skill relevant to the task, then inspect the owning code and its caller
 - [call-nina-desktop-ui](.agents/skills/call-nina-desktop-ui/SKILL.md): renderer controls, layout, localization, accessibility, and visual review.
 - [call-nina-codex-integration](.agents/skills/call-nina-codex-integration/SKILL.md): App Server, models, plugin/MCP boundaries, and learner-facing skill maintenance.
 - [call-nina-electron-verification](.agents/skills/call-nina-electron-verification/SKILL.md): operate the real app interactively during development; no test suite.
+- [call-nina-android-verification](.agents/skills/call-nina-android-verification/SKILL.md): discover and operate the real Android target with exclusive session ownership; no test suite.
 
 User instructions and the concise decisions in `AGENTS.md` and skills guide intended changes; inspect source code to determine current behavior. Legal notices stay in `docs/`; curriculum is product data under `content/curriculum/`. Learner-facing skills ship under `plugins/call-nina/skills/`. Curriculum authoring includes agent quality checks and publication without a separate human approval step; honor an explicit draft-only request.
 

@@ -12,6 +12,8 @@ const generated = [
   "apps/mcp-server/build",
   "apps/website/dist",
   "apps/website/build",
+  "apps/mobile/dist",
+  "apps/mobile/build",
   "packages/codex-client/dist",
   "packages/learning-workflows/dist",
   "packages/contracts/dist",

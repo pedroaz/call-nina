@@ -5,6 +5,7 @@ import jsxA11y from "eslint-plugin-jsx-a11y";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
+import { builtinModules } from "node:module";
 import tseslint from "typescript-eslint";
 
 import callNina from "./scripts/eslint-rules/call-nina.mjs";
@@ -27,6 +28,9 @@ export default tseslint.config(
       "packages/*/build/**",
       "**/out/**",
       "**/release/**",
+      "apps/mobile/.expo/**",
+      "apps/mobile/android/**",
+      "apps/mobile/ios/**",
       "node_modules/**",
     ],
   },
@@ -97,6 +101,40 @@ export default tseslint.config(
       ...reactHooks.configs.flat["recommended-latest"].rules,
       ...jsxA11y.flatConfigs.recommended.rules,
       "call-nina/no-direct-react-aria-controls": "error",
+    },
+  },
+  {
+    name: "call-nina/mobile-react",
+    files: ["apps/mobile/src/**/*.{ts,tsx}"],
+    plugins: { react, "react-hooks": reactHooks },
+    settings: { react: { version: "19.2" } },
+    rules: {
+      ...react.configs.flat.recommended.rules,
+      ...react.configs.flat["jsx-runtime"].rules,
+      ...reactHooks.configs.flat["recommended-latest"].rules,
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: builtinModules.map((name) => ({
+            name,
+            message: "Mobile cannot use Node.js builtins.",
+          })),
+          patterns: [
+            {
+              group: ["node:*", "electron", "electron/*"],
+              message: "Mobile cannot use desktop runtimes.",
+            },
+            {
+              group: ["@call-nina/**", "!@call-nina/design-system"],
+              message: "Mobile currently consumes only the portable design foundation.",
+            },
+            {
+              group: ["../**/packages/**", "../**/apps/**"],
+              message: "Consume shared code through its public workspace export.",
+            },
+          ],
+        },
+      ],
     },
   },
   {

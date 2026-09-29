@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Android Verification"
+  short_description: "Interactively verify the real Android app"
+  default_prompt: "Use $call-nina-android-verification to verify changed Android behavior on the agreed device while preserving existing apps and session ownership."
