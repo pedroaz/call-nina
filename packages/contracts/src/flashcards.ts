@@ -1,3 +1,5 @@
+import { portableContentShape, portableAiProvenanceSchema } from "./content-reference.js";
+import { contentJsonByteLength, maximumFlashcardContentBytes } from "./content-limits.js";
 import { germanVocabularyLemma, normalizeGermanVocabularyIdentity } from "./german-language.js";
 import { z, strictBoundaryObject } from "./schema-system.js";
 import { activityIdSchema, dataRootGenerationSchema, vocabularyIdSchema } from "./common.js";
@@ -35,12 +37,43 @@ export const flashcardProgressSchema = z.strictObject({
   completed: z.boolean(),
   revision: z.int().nonnegative(),
 });
+export const portableFlashcardContentSchema = z
+  .strictObject({
+    ...portableContentShape,
+    kind: z.literal("flashcard-deck"),
+    provenance: z.discriminatedUnion("producer", [
+      portableAiProvenanceSchema,
+      z.strictObject({ producer: z.literal("local-vocabulary") }),
+    ]),
+    evaluation: z.literal("self-assessment"),
+    cardRevisions: z
+      .array(
+        z.strictObject({
+          cardId: z.string().regex(/^content-card_[0-9a-z]{16,64}$/u),
+          revisionId: z.string().regex(/^card-revision_[0-9a-z]{16,64}$/u),
+        }),
+      )
+      .min(3)
+      .max(30),
+    cards: z.array(flashcardSchema).min(3).max(30),
+  })
+  .superRefine((content, ctx) => {
+    if (
+      contentJsonByteLength(content) > maximumFlashcardContentBytes ||
+      content.cards.length !== content.cardRevisions.length ||
+      new Set(content.cardRevisions.map((card) => card.cardId)).size !== content.cards.length ||
+      new Set(content.cardRevisions.map((card) => card.revisionId)).size !== content.cards.length
+    )
+      ctx.addIssue({ code: "custom", message: "OD_CONTENT_INVALID" });
+  });
+export type PortableFlashcardContent = z.infer<typeof portableFlashcardContentSchema>;
+
 export const flashcardDeckSchema = z.strictObject({
   activityId: activityIdSchema,
   rootGeneration: dataRootGenerationSchema,
   title: text(160),
   source: z.enum(["generated", "vocabulary"]),
-  cards: z.array(flashcardSchema).min(3).max(30),
+  content: portableFlashcardContentSchema,
   progress: flashcardProgressSchema,
   vocabulary: z
     .array(

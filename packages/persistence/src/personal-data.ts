@@ -99,6 +99,7 @@ export async function clearPersonalData(
       connection.prepare(`DELETE FROM exercises`).run();
       connection.prepare(`DELETE FROM lessons`).run();
       connection.prepare(`DELETE FROM prepared_activities`).run();
+      connection.prepare("DELETE FROM material_revisions").run();
       // The mistake-deletion trigger requires the record to be absent before its marker.
       const removedMistakes = connection.prepare(`DELETE FROM mistakes RETURNING mistake_id`).all();
       const markMistake = connection.prepare(

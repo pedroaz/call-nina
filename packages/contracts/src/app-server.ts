@@ -1,3 +1,4 @@
+import { materialDraftSchema, materialReferenceSchema } from "./material.js";
 import { learningContextSchema } from "./learning-context.js";
 import {
   flashcardGenerationCandidateSchema,
@@ -615,6 +616,8 @@ export const appServerWorkloadInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("exercise-generation"),
+    material: materialDraftSchema.optional(),
+    materialReference: materialReferenceSchema.optional(),
     practiceType: z.literal("grammar").optional(),
     learningPath: courseReferenceSchema.optional(),
     courseTeaching: courseTeachingContextSchema.optional(),

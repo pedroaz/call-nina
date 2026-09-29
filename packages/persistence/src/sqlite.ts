@@ -12,6 +12,7 @@ export type DatabaseMigration = Readonly<{
   version: number;
   name: string;
   sql: string;
+  migrate?: (connection: DatabaseSync) => void;
 }>;
 
 const connections = new WeakMap<CallNinaDatabase, DatabaseSync>();
@@ -178,6 +179,7 @@ function migrate(connection: DatabaseSync, migrations: readonly DatabaseMigratio
     try {
       connection.exec("BEGIN IMMEDIATE;");
       connection.exec(migration.sql);
+      migration.migrate?.(connection);
       connection.exec(`PRAGMA user_version = ${String(migration.version)};`);
       connection.exec("COMMIT;");
       currentVersion = migration.version;

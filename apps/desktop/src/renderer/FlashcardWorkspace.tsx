@@ -100,7 +100,7 @@ export function FlashcardWorkspace({
       return result;
     });
   };
-  const card = deck?.cards[deck.progress.position];
+  const card = deck?.content.cards[deck.progress.position];
   const saved = deck?.vocabulary.find((item) => item.position === deck.progress.position);
   return (
     <Page
@@ -124,7 +124,7 @@ export function FlashcardWorkspace({
               <h2 ref={heading} tabIndex={-1}>
                 {t("flashcards.complete")}
               </h2>
-              <p>{t("flashcards.completeBody", { count: deck.cards.length })}</p>
+              <p>{t("flashcards.completeBody", { count: deck.content.cards.length })}</p>
               <ActionGroup>
                 <Button
                   isDisabled={busy}
@@ -142,7 +142,7 @@ export function FlashcardWorkspace({
               <p aria-live="polite">
                 {t("flashcards.position", {
                   current: deck.progress.position + 1,
-                  total: deck.cards.length,
+                  total: deck.content.cards.length,
                 })}
               </p>
               <h2 ref={heading} tabIndex={-1} lang="de">
@@ -204,13 +204,13 @@ export function FlashcardWorkspace({
                   isDisabled={busy}
                   onPress={() => {
                     move(
-                      Math.min(deck.cards.length - 1, deck.progress.position + 1),
-                      deck.progress.position === deck.cards.length - 1,
+                      Math.min(deck.content.cards.length - 1, deck.progress.position + 1),
+                      deck.progress.position === deck.content.cards.length - 1,
                     );
                   }}
                 >
                   {t(
-                    deck.progress.position === deck.cards.length - 1
+                    deck.progress.position === deck.content.cards.length - 1
                       ? "flashcards.finish"
                       : "flashcards.next",
                   )}
@@ -237,11 +237,11 @@ export function FlashcardWorkspace({
               <Button
                 isDisabled={
                   busy ||
-                  (deck.vocabulary.length === deck.cards.length &&
+                  (deck.vocabulary.length === deck.content.cards.length &&
                     deck.vocabulary.every((item) => item.status !== "candidate"))
                 }
                 onPress={() => {
-                  save(deck.cards.map((_, index) => index));
+                  save(deck.content.cards.map((_, index) => index));
                 }}
               >
                 {t("flashcards.saveAll")}

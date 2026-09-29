@@ -1,13 +1,13 @@
 import { normalizeGermanAnswer, vocabularyIdentity, vocabularyLemma } from "@call-nina/contracts";
 import {
   appServerCandidateOutputSchemas,
+  maximumStructuredOutputBytes,
   generatedExerciseInstructions,
   type AppServerCandidateOutputMap,
   type AppServerWorkloadInput,
   type AppServerWorkloadKind,
 } from "@call-nina/contracts";
 
-const maximumStructuredOutputBytes = 512 * 1024;
 const maximumIssues = 12;
 
 export type SafeOutputValidationIssue = Readonly<{

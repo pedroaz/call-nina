@@ -1,3 +1,6 @@
+import { materialReferenceSchema, materialSourceSchema } from "./material.js";
+import { portableExerciseContentSchema } from "./content.js";
+import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
 import { learningContextSchema, learningScopeSchema } from "./learning-context.js";
 import { openActivityActionSchema, activityDestinationSchema } from "./activity-action.js";
 import {
@@ -546,22 +549,34 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
       }),
       z.strictObject({
         source: z.literal("natural-request"),
+        materialTitle: text(160).optional(),
+        materialSource: materialSourceSchema.optional(),
         naturalRequest: text(2_000),
         exerciseCount: z.int().min(3).max(30).optional(),
         targetLevel: z.enum(["a1", "a2", "b1", "b2"]).optional(),
       }),
       z.strictObject({
         source: z.literal("grammar"),
+        materialTitle: text(160).optional(),
+        materialSource: materialSourceSchema.optional(),
         naturalRequest: text(2_000),
         exerciseCount: z.int().min(3).max(30).optional(),
         targetLevel: z.enum(["a1", "a2", "b1", "b2"]),
       }),
       z.strictObject({
         source: z.literal("reading"),
+        materialTitle: text(160).optional(),
+        materialSource: materialSourceSchema.optional(),
         naturalRequest: text(2_000),
         passage: text(12_000).optional(),
         exerciseCount: z.int().min(3).max(30).optional(),
         targetLevel: z.enum(["a1", "a2", "b1", "b2"]).optional(),
+      }),
+      z.strictObject({
+        source: z.literal("saved-material"),
+        expectedGeneration: dataRootGenerationSchema,
+        material: materialReferenceSchema,
+        exerciseCount: z.int().min(3).max(30).optional(),
       }),
       z.strictObject({
         source: z.literal("prepared-activity"),
@@ -1163,7 +1178,7 @@ const preparedActivityReadResponse = response(
       .default(null),
     missionFacts: text(4000).optional(),
     provenance: generatedActivityProvenanceSchema,
-    output: appServerCandidateOutputSchemas["exercise-generation"],
+    content: portableExerciseContentSchema,
   }),
 );
 const voiceActivityReadResponse = response(
@@ -1229,7 +1244,7 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
       "vocabulary-recall",
     ]),
     instructions: text(4_000),
-    prompt: text(12_000),
+    prompt: text(maximumExerciseHistoryPromptCharacters),
     answer: exerciseSessionAnswerSchema,
     objectiveEvaluations: z
       .array(
