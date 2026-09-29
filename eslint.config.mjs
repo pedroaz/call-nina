@@ -78,7 +78,7 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-return": "error",
       "import-x/first": "error",
       "import-x/newline-after-import": "error",
-      "import-x/no-duplicates": "error",
+      "import-x/no-duplicates": ["error", { "prefer-inline": true }],
       "call-nina/enforce-package-boundaries": "error",
     },
   },

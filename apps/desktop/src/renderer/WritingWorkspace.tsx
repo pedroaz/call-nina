@@ -1,14 +1,12 @@
-import type {
-  ProviderOperation,
-  GenerationCandidateOutputMap,
-  CallNinaError,
-} from "@call-nina/contracts";
-import { useOperationProgress } from "./useOperationProgress.js";
-import { OperationProgress } from "./OperationProgress.js";
 import {
+  type ProviderOperation,
+  type GenerationCandidateOutputMap,
+  type CallNinaError,
   writingCorrectionCandidateSchema,
   writingPromptCandidateSchema,
 } from "@call-nina/contracts";
+import { useOperationProgress } from "./useOperationProgress.js";
+import { OperationProgress } from "./OperationProgress.js";
 import { useEffect, useRef, useState } from "react";
 import { MousePointer2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
