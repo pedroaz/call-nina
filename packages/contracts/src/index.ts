@@ -247,3 +247,4 @@ export * from "./material.js";
 export * from "./content.js";
 
 export * from "./content-reference.js";
+export * from "./content-limits.js";

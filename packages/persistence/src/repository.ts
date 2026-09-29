@@ -21,6 +21,7 @@ import {
   learningContextSchema,
   learningGoalSchema,
   portableExerciseContentSchema,
+  maximumExerciseContentBytes,
   type LearningCourse,
   type CourseEvidence,
   vocabularyLibraryFilterSchema,
@@ -2499,7 +2500,7 @@ export class CallNinaRepository {
           modelSelection.modelId,
           modelSelection.effortId,
           record.aiProvenance.generatedAt,
-          stringifyBounded(content, 1_048_576),
+          stringifyBounded(content, maximumExerciseContentBytes),
         );
       linkPortableContent(connection, record.activity.activityId, content);
       const insertReference = connection.prepare(
@@ -2580,7 +2581,7 @@ export class CallNinaRepository {
           modelSelection.modelId,
           modelSelection.effortId,
           record.aiProvenance.generatedAt,
-          stringifyBounded(content, 1_048_576),
+          stringifyBounded(content, maximumExerciseContentBytes),
         );
       linkPortableContent(connection, record.activity.activityId, content);
       const insertReference = connection.prepare(

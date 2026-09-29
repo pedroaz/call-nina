@@ -1,4 +1,5 @@
 import { portableContentShape, portableAiProvenanceSchema } from "./content-reference.js";
+import { contentJsonByteLength, maximumFlashcardContentBytes } from "./content-limits.js";
 import { germanVocabularyLemma, normalizeGermanVocabularyIdentity } from "./german-language.js";
 import { z, strictBoundaryObject } from "./schema-system.js";
 import { activityIdSchema, dataRootGenerationSchema, vocabularyIdSchema } from "./common.js";
@@ -58,7 +59,7 @@ export const portableFlashcardContentSchema = z
   })
   .superRefine((content, ctx) => {
     if (
-      JSON.stringify(content).length > 262_144 ||
+      contentJsonByteLength(content) > maximumFlashcardContentBytes ||
       content.cards.length !== content.cardRevisions.length ||
       new Set(content.cardRevisions.map((card) => card.cardId)).size !== content.cards.length ||
       new Set(content.cardRevisions.map((card) => card.revisionId)).size !== content.cards.length

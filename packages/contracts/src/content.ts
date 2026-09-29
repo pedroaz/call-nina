@@ -1,4 +1,5 @@
 import { exerciseGenerationCandidateSchema } from "./app-server.js";
+import { contentJsonByteLength, maximumExerciseContentBytes } from "./content-limits.js";
 import {
   portableContentShape,
   portableAiProvenanceSchema,
@@ -26,7 +27,7 @@ export const portableExerciseContentSchema = z
   })
   .superRefine((content, ctx) => {
     if (
-      JSON.stringify(content).length > 262_144 ||
+      contentJsonByteLength(content) > maximumExerciseContentBytes ||
       content.exercises.length !== content.payload.exercises.length ||
       new Set(content.exercises.map((item) => item.exerciseId)).size !== content.exercises.length ||
       new Set(content.exercises.map((item) => item.revisionId)).size !== content.exercises.length ||
