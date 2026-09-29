@@ -52,14 +52,14 @@ export const languageCapabilities = {
     generation: true,
     evaluation: true,
     vocabulary: true,
-    interface: false,
+    interface: true,
     structuredPath: false,
   },
   es: {
     generation: true,
     evaluation: true,
     vocabulary: true,
-    interface: false,
+    interface: true,
     structuredPath: false,
   },
   de: {
