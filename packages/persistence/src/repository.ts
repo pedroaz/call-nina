@@ -5,6 +5,7 @@ import {
   historyAttemptEvidence,
   readAttemptEvidence,
 } from "./attempt-evidence.js";
+import { readRecommendationEvidence } from "./recommendation-evidence.js";
 import { linkPortableContent, deletePreparedActivityAndOwnedMaterial } from "./materials.js";
 import {
   contentMaterialInputSchema,
@@ -711,6 +712,13 @@ export class CallNinaRepository {
           if (!evidence) throw new Error("OD_ATTEMPT_NOT_FOUND");
           return evidence;
         }),
+    );
+  }
+
+  async readRecommendationEvidence(contextValue: unknown) {
+    const context = learningContextSchema.parse(contextValue);
+    return withLeasedConnection(this.#database, (connection) =>
+      readRecommendationEvidence(connection, context),
     );
   }
 

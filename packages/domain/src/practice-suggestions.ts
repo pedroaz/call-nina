@@ -11,6 +11,14 @@ import {
 
 type Context = z.input<typeof practiceSuggestionContextSchema>;
 const emptyContext = (): Context => ({ curriculumTopicIds: [], mistakeIds: [], vocabularyIds: [] });
+type CourseEvidence = Readonly<{
+  objectiveId: string;
+  skill: "reading" | "writing" | "listening" | "speaking";
+  outcome: "difficulty" | "independent" | "supported";
+  occurredAt: string;
+  curriculumTopicIds: readonly string[];
+  unitId: string;
+}>;
 
 export function isCurrentStudyWeek(weekStartsOn: string, today: string): boolean {
   const date = new Date(`${today.slice(0, 10)}T12:00:00.000Z`);
@@ -30,11 +38,19 @@ export function buildPracticeSuggestions(input: {
     category: { kind: "grammar" | "vocabulary"; categoryKey: string; lemma?: string };
     occurrenceCount: number;
   }[];
+  courseEvidence?: readonly CourseEvidence[];
+  preparedActivities?: readonly {
+    activityId: string;
+    activityType: PracticeSuggestion["kind"] | "placement" | "flashcards";
+    title: string;
+    deletionStatus: "available" | "cascade" | "retained-data";
+  }[];
 }): PracticeSuggestion[] {
   const context = learningContextSchema.parse(input.learningContext);
   const policy = supportedLanguagePolicy(context.targetLanguage);
   const say = (en: string, pt: string, es: string, de: string) =>
     ({ "en-US": en, "pt-BR": pt, es, de })[input.locale];
+  const de = context.explanationLanguage === "de";
   const make = (
     id: string,
     source: PracticeSuggestion["source"],
@@ -44,6 +60,7 @@ export function buildPracticeSuggestions(input: {
     rationale: string,
     estimatedMinutes = 10,
     context = emptyContext(),
+    preparedActivityId?: string,
   ): PracticeSuggestion =>
     practiceSuggestionSchema.parse({
       id,
@@ -55,8 +72,47 @@ export function buildPracticeSuggestions(input: {
       rationale,
       estimatedMinutes,
       context,
+      ...(preparedActivityId ? { preparedActivityId } : {}),
     });
   const review: PracticeSuggestion[] = [];
+  const latest = new Map<string, CourseEvidence>();
+  for (const evidence of [...(input.courseEvidence ?? [])].sort((a, b) =>
+    b.occurredAt.localeCompare(a.occurredAt),
+  )) {
+    const key = `${evidence.unitId}:${evidence.objectiveId}:${evidence.skill}`;
+    if (!latest.has(key)) latest.set(key, evidence);
+  }
+  for (const evidence of [...latest.values()]
+    .filter((item) => item.outcome === "difficulty")
+    .slice(0, 3)) {
+    const kind =
+      evidence.skill === "speaking"
+        ? "voice-speaking"
+        : evidence.skill === "listening"
+          ? "codex-listening"
+          : evidence.skill;
+    const topic =
+      context.goal.preferredTopics[0] ?? context.goal.interests[0] ?? context.goal.description;
+    review.push(
+      make(
+        `course-review:${evidence.unitId}:${evidence.objectiveId}:${evidence.skill}`,
+        "starter",
+        kind,
+        de
+          ? `${evidence.skill === "writing" ? "Schreiben" : evidence.skill === "reading" ? "Lesen" : evidence.skill === "listening" ? "Hören" : "Sprechen"} wiederholen`
+          : `Review ${evidence.skill}`,
+        policy.practiceRequest(evidence.skill, context.explanationLanguage, topic, input.level),
+        de
+          ? "Bei diesem Lernziel gab es zuletzt Schwierigkeiten. Eine kurze Wiederholung kann helfen."
+          : "Your latest result showed difficulty with this course objective. A short review may help.",
+        10,
+        {
+          ...emptyContext(),
+          curriculumTopicIds: [...new Set(evidence.curriculumTopicIds)].slice(0, 12),
+        },
+      ),
+    );
+  }
   if (input.dueVocabulary.length) {
     const words = input.dueVocabulary.slice(0, 12);
     review.push(
@@ -111,10 +167,10 @@ export function buildPracticeSuggestions(input: {
     context.goal.preferredTopics[0] ?? context.goal.interests[0] ?? context.goal.description;
   const level = input.level.toUpperCase();
   const reason = say(
-    `Matched to your ${level} level.`,
-    `Adaptado ao seu nível ${level}.`,
-    `Adaptado a tu nivel ${level}.`,
-    `Passend zu deinem Niveau ${level}.`,
+    `Matched to your goal of ${topic} at ${level} level.`,
+    `Adaptado ao seu objetivo de ${topic} no nível ${level}.`,
+    `Adaptado a tu objetivo de ${topic} en el nivel ${level}.`,
+    `Passend zu deinem Lernziel „${topic}“ und Niveau ${level}.`,
   );
   const starters = [
     make(
@@ -191,6 +247,29 @@ export function buildPracticeSuggestions(input: {
       reason,
     ),
   ];
+  const prepared = input.preparedActivities?.find(
+    (activity) =>
+      activity.deletionStatus === "available" &&
+      ["grammar", "reading", "writing", "custom-lesson"].includes(activity.activityType) &&
+      activity.title.toLocaleLowerCase().includes(topic.toLocaleLowerCase()),
+  );
+  if (prepared && prepared.activityType !== "placement" && prepared.activityType !== "flashcards") {
+    starters.unshift(
+      make(
+        `prepared:${prepared.activityId}`,
+        "starter",
+        prepared.activityType,
+        prepared.title,
+        policy.practiceRequest("lesson", context.explanationLanguage, topic, input.level),
+        de
+          ? "Diese vorbereitete Übung passt zu deinem Lernziel und kann erneut bearbeitet werden."
+          : "This prepared activity matches your learning goal and can be attempted again.",
+        10,
+        emptyContext(),
+        prepared.activityId,
+      ),
+    );
+  }
   // Interleave evidence-based review and independent practice.
   const candidates: PracticeSuggestion[] = [];
   for (let i = 0; i < Math.max(review.length, starters.length); i += 1) {

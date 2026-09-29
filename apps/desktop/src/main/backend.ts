@@ -1985,6 +1985,10 @@ export class DesktopBackend {
               recurringMistakes: [],
             };
         const settings = await this.#readActiveLearnerSettings();
+        const courseEvidence =
+          settings && this.#repository
+            ? await this.#repository.readRecommendationEvidence(settings.learningContext)
+            : [];
         const suggestions = settings
           ? buildPracticeSuggestions({
               ...snapshot,
@@ -1992,6 +1996,7 @@ export class DesktopBackend {
               locale: request.payload.locale ?? settings.profile.uiLocale,
               level: settings.profile.levelEstimate.currentLevel,
               learningContext: settings.learningContext,
+              courseEvidence,
             })
           : [];
         return this.#success(request, {

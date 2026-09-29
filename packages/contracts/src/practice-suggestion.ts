@@ -1,4 +1,5 @@
 import {
+  activityIdSchema,
   curriculumTopicIdSchema,
   dataRootGenerationSchema,
   mistakeIdSchema,
@@ -32,6 +33,7 @@ export const practiceSuggestionSchema = z.strictObject({
   naturalRequest: text(1_000),
   estimatedMinutes: z.int().min(5).max(180),
   context: practiceSuggestionContextSchema,
+  preparedActivityId: activityIdSchema.optional(),
 });
 
 export type PracticeSuggestion = z.infer<typeof practiceSuggestionSchema>;
