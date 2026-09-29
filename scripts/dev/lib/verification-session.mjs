@@ -383,7 +383,7 @@ export class VerificationSession {
     const materialScope =
       kind === "material"
         ? undefined
-        : await this.scopeOf(this.page.locator("[data-material-workspace]"));
+        : await this.scopeOf(this.page.locator("[data-material-workspace]:visible"));
     const ids = await this.activityIds(kind);
     const scope = await this.scopeOf(
       kind === "material" ? await this.materialLibrary() : await this.library(kind),
@@ -446,7 +446,7 @@ export class VerificationSession {
     }
     if (baseline.materialIds) {
       const materials = await this.activityIds("material");
-      await this.assertScope(this.page.locator("[data-material-workspace]"), baseline);
+      await this.assertScope(this.page.locator("[data-material-workspace]:visible"), baseline);
       if (
         materials.length !== baseline.materialIds.length ||
         materials.some((id) => !baseline.materialIds.includes(id))
@@ -477,11 +477,15 @@ export class VerificationSession {
         !(material && owned && this.baseline.revisions?.[id] === owned.revision))
     )
       throw failure("VERIFY_RECORD_NOT_NEW");
-    const visible = this.page.locator(material ? "[data-material-id]" : "[data-activity-id]");
+    const visible = this.page.locator(
+      material ? "[data-material-id]:visible" : "[data-activity-id]:visible",
+    );
     if ((await visible.getAttribute(material ? "data-material-id" : "data-activity-id")) !== id)
       throw failure("VERIFY_RECORD_NOT_VISIBLE");
     await this.assertScope(
-      material ? this.page.locator("[data-material-workspace]") : visible,
+      material
+        ? this.page.locator("[data-material-workspace]:visible").filter({ has: visible })
+        : visible,
       this.baseline,
     );
     const revision = material ? await visible.getAttribute("data-material-revision") : undefined;
