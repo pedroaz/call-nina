@@ -15,9 +15,11 @@ export const landingSections: readonly LandingSection[] = [
   { id: "contact", title: { en: "Contact", de: "Kontakt" }, Content: Contact },
 ];
 
-// Add links only when their destination exists (for example the future blog index).
+// Add links only when their destination exists.
 export interface SiteLink {
   href: string;
   label: LocalizedText;
 }
-export const siteLinks: readonly SiteLink[] = [];
+export const siteLinks: readonly SiteLink[] = [
+  { href: "/blog/", label: { en: "Blog (English)", de: "Blog (Englisch)" } },
+];
