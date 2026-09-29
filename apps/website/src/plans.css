@@ -1,0 +1,77 @@
+.plans-content,
+.contact-content {
+  display: grid;
+  gap: var(--od-space-5);
+  margin-top: var(--od-space-6);
+}
+.plans-current {
+  padding: var(--od-space-5);
+  border-left: 3px solid var(--od-color-primary);
+  background: var(--od-color-primary-soft);
+}
+.comparison-hint,
+#contact-hint {
+  font-size: 0.9rem;
+}
+.comparison-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--od-color-border);
+  border-radius: var(--od-radius-md);
+}
+.comparison-scroll:focus-visible,
+.faq-list summary:focus-visible {
+  outline: 3px solid var(--od-color-focus);
+  outline-offset: var(--od-space-1);
+}
+.comparison {
+  width: 100%;
+  min-width: 54rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: left;
+  font-size: 0.95rem;
+}
+.comparison caption {
+  padding: var(--od-space-5);
+  text-align: left;
+  font-weight: 650;
+  background: var(--od-color-surface);
+}
+.comparison th,
+.comparison td {
+  padding: var(--od-space-5);
+  border-top: 1px solid var(--od-color-border);
+  vertical-align: top;
+}
+.comparison thead {
+  background: var(--od-color-primary-soft);
+}
+.comparison tbody th {
+  background: var(--od-color-surface);
+  font-weight: 650;
+}
+.faq-list {
+  margin-top: var(--od-space-6);
+  border-top: 1px solid var(--od-color-border);
+}
+.faq-list details {
+  border-bottom: 1px solid var(--od-color-border);
+  padding: var(--od-space-2) var(--od-space-1);
+}
+.faq-list summary {
+  padding: var(--od-space-4);
+  cursor: pointer;
+  font-weight: 650;
+}
+.faq-list details[open] summary {
+  color: var(--od-color-primary);
+}
+.faq-list details p {
+  max-width: 52rem;
+  padding: var(--od-space-2) var(--od-space-4) var(--od-space-5);
+}
+.contact-content {
+  justify-items: start;
+  max-width: 42rem;
+}
