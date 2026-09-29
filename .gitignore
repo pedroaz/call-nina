@@ -42,6 +42,7 @@ logs/
 !.env.example
 !.env.*.example
 .call-nina/
+.vercel/
 
 # Mutable databases and SQLite sidecars
 *.db

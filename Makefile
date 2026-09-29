@@ -67,6 +67,13 @@ run-mobile-android: ## Generate, compile and launch a local Android debug app (r
 run-mobile-ios: ## Generate, compile and launch a local iOS debug app (requires macOS/Xcode).
 	@pnpm --filter @call-nina/mobile run ios $(ARGS)
 
+.PHONY: package-website website-deployment-help
+package-website: ## Build and package only the static website for a manual Vercel upload; no remote actions.
+	@node scripts/build/package-website.mjs
+
+website-deployment-help: ## Print the desired Vercel settings and coordinator deploy/readback commands; no remote actions.
+	@node scripts/build/package-website.mjs --help
+
 dev: ## Start the development stack in the background and wait for health.
 	@echo "+ node scripts/dev/lifecycle.mjs start dev"
 	@node scripts/dev/lifecycle.mjs start dev
