@@ -2843,6 +2843,9 @@ export class DesktopBackend {
                       kind: entry.detail.kind,
                       readingMaterial: entry.detail.readingMaterial,
                       activityId: entry.detail.activityId,
+                      ...(entry.detail.translation
+                        ? { translation: entry.detail.translation }
+                        : {}),
                       exerciseKind: entry.detail.snapshot.exercise.kind,
                       instructions: entry.detail.snapshot.exercise.instructions,
                       prompt: exerciseHistoryPrompt(entry.detail.snapshot.exercise),

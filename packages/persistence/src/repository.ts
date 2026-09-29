@@ -222,6 +222,16 @@ export type HistoryEntryRecord = Readonly<{
         readingMaterial: ReturnType<
           typeof exerciseGenerationCandidateSchema.parse
         >["readingMaterial"];
+        translation?: Readonly<{
+          content: Readonly<{ contentId: string; revisionId: string }>;
+          position: number;
+          attemptId: string;
+          fields: Readonly<{
+            summary: boolean;
+            strengths: readonly number[];
+            improvements: readonly number[];
+          }>;
+        }>;
       }>
     | Readonly<{
         kind: "voice-summary";
@@ -3805,9 +3815,88 @@ export class CallNinaRepository {
               )
               .get(attemptId) as Record<string, unknown> | undefined;
             if (reconstructed.success && source) {
+              const activityId = activityIdSchema.parse(source["activity_id"]);
+              const reference = reconstructed.data.snapshot.exercise.contentReference;
+              let translation: Extract<
+                HistoryEntryRecord["detail"],
+                { kind: "exercise-attempt" }
+              >["translation"];
+              const translationSource = reference
+                ? connection
+                    .prepare(
+                      `SELECT a.status, r.content_revision_id, g.output_json, f.feedback_json FROM attempts a
+                       JOIN attempt_content_revisions r ON r.attempt_id = a.attempt_id AND r.activity_id = ?
+                       JOIN generated_activity_payloads g ON g.activity_id = r.activity_id
+                       LEFT JOIN exercise_attempt_feedback f ON f.attempt_id = a.attempt_id
+                       WHERE a.attempt_id = ?`,
+                    )
+                    .get(activityId, attemptId)
+                : undefined;
+              if (
+                translationSource?.["status"] === "completed" &&
+                translationSource["feedback_json"] &&
+                reference
+              ) {
+                // Historic reconstruction predates saved translations. Resolve its position
+                // against the retained current content; never infer it from a new attempt.
+                try {
+                  const content = readStoredExerciseContent(
+                    connection,
+                    activityId,
+                    parseJson(translationSource["output_json"], maximumExerciseContentBytes),
+                  );
+                  const feedback = storedExerciseFeedbackSchema.parse(
+                    parseJson(translationSource["feedback_json"], maximumExerciseFeedbackBytes),
+                  ).output;
+                  const fields = {
+                    summary: feedback.summary === reconstructed.data.feedback.summary,
+                    strengths: reconstructed.data.feedback.strengths.flatMap((value, index) =>
+                      feedback.strengths[index] === value ? [index] : [],
+                    ),
+                    improvements: reconstructed.data.feedback.improvements.flatMap(
+                      (value, index) => (feedback.improvements[index] === value ? [index] : []),
+                    ),
+                  };
+                  const position = content.exercises.findIndex(
+                    (exercise) =>
+                      exercise.exerciseId === reference.exercise.exerciseId &&
+                      exercise.revisionId === reference.exercise.revisionId,
+                  );
+                  const active =
+                    position >= 0
+                      ? connection
+                          .prepare(
+                            `SELECT a.attempt_id FROM attempts a JOIN exercises e USING(exercise_id)
+                             WHERE e.activity_id = ? AND a.status = 'in-progress'
+                               AND json_extract(a.exercise_snapshot_json, '$.exercise.contentReference.exercise.revisionId') = ?`,
+                          )
+                          .get(activityId, content.exercises[position]?.revisionId ?? "")
+                      : undefined;
+                  if (
+                    content.contentId === reference.contentId &&
+                    content.revisionId === reference.revisionId &&
+                    translationSource["content_revision_id"] === reference.revisionId &&
+                    position >= 0 &&
+                    !active &&
+                    (fields.summary ||
+                      fields.strengths.length > 0 ||
+                      fields.improvements.length > 0)
+                  ) {
+                    translation = {
+                      content: { contentId: content.contentId, revisionId: content.revisionId },
+                      position,
+                      attemptId,
+                      fields,
+                    };
+                  }
+                } catch {
+                  // Older history remains readable when its source content is unavailable.
+                }
+              }
               detail = Object.freeze({
                 ...reconstructed.data,
-                activityId: activityIdSchema.parse(source["activity_id"]),
+                activityId,
+                ...(translation ? { translation } : {}),
               });
             }
           }

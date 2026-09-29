@@ -28,6 +28,7 @@ import {
   materialSourceSchema,
 } from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
+import { contentReferenceSchema } from "./content-reference.js";
 import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
 import {
   targetLanguageSchema,
@@ -1387,6 +1388,18 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
     kind: z.literal("exercise-attempt"),
     readingMaterial: generationCandidateOutputSchemas["exercise-generation"].shape.readingMaterial,
     activityId: activityIdSchema,
+    translation: z
+      .strictObject({
+        content: contentReferenceSchema,
+        position: z.int().min(0).max(29),
+        attemptId: attemptIdSchema,
+        fields: z.strictObject({
+          summary: z.boolean(),
+          strengths: z.array(z.int().min(0).max(19)).max(20),
+          improvements: z.array(z.int().min(0).max(19)).max(20),
+        }),
+      })
+      .optional(),
     exerciseKind: z.enum([
       "free-writing",
       "short-answer",

@@ -8,6 +8,7 @@ import {
 } from "@call-nina/contracts";
 import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
+import { SavedTranslation } from "./SavedTranslation.js";
 import { History, Repeat2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -282,6 +283,37 @@ export function HistoryPage({
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     }
+  };
+
+  const feedbackTranslation = (
+    entry: Entry,
+    field: "feedback-summary" | "feedback-strength" | "feedback-improvement",
+    index?: number,
+  ) => {
+    if (entry.detail.kind !== "exercise-attempt" || !entry.detail.translation || !snapshot)
+      return null;
+    const { content, position, attemptId, fields } = entry.detail.translation;
+    if (
+      (field === "feedback-summary" && !fields.summary) ||
+      (field === "feedback-strength" && !fields.strengths.includes(index ?? 0)) ||
+      (field === "feedback-improvement" && !fields.improvements.includes(index ?? 0))
+    )
+      return null;
+    const target =
+      field === "feedback-summary"
+        ? { kind: field, position, attemptId }
+        : { kind: field, position, attemptId, index: index ?? 0 };
+    return (
+      <SavedTranslation
+        request={{
+          rootGeneration: snapshot.rootGeneration,
+          activityId: entry.detail.activityId,
+          content,
+          field: target,
+        }}
+        requestAiAccess={requestAiAccess}
+      />
+    );
   };
 
   return (
@@ -806,6 +838,33 @@ export function HistoryPage({
                   <section>
                     <h3>{t("history.feedback")}</h3>
                     <p>{entry.detail.feedback.summary}</p>
+                    {feedbackTranslation(entry, "feedback-summary")}
+                    {entry.detail.feedback.strengths.length > 0 && (
+                      <>
+                        <h4>{t("history.strengths")}</h4>
+                        <ItemList>
+                          {entry.detail.feedback.strengths.map((strength, index) => (
+                            <li key={index}>
+                              {strength}
+                              {feedbackTranslation(entry, "feedback-strength", index)}
+                            </li>
+                          ))}
+                        </ItemList>
+                      </>
+                    )}
+                    {entry.detail.feedback.improvements.length > 0 && (
+                      <>
+                        <h4>{t("history.improvements")}</h4>
+                        <ItemList>
+                          {entry.detail.feedback.improvements.map((improvement, index) => (
+                            <li key={index}>
+                              {improvement}
+                              {feedbackTranslation(entry, "feedback-improvement", index)}
+                            </li>
+                          ))}
+                        </ItemList>
+                      </>
+                    )}
                     <ItemList>
                       {entry.detail.objectiveEvaluations.map((evaluation, position) => (
                         <li key={`${evaluation.outcome}:${String(position)}`}>
