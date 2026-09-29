@@ -1,0 +1,78 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  color: var(--od-color-text);
+  background: var(--od-color-canvas);
+  line-height: 1.6;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  width: min(100%, 48rem);
+  margin-inline: auto;
+  padding: clamp(var(--od-space-6), 6vw, var(--od-space-12));
+  padding-block: clamp(var(--od-space-12), 12vh, 8rem);
+  overflow-wrap: anywhere;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(3rem, 12vw, 5rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin-block: var(--od-space-4);
+}
+
+h2 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.eyebrow {
+  color: var(--od-color-primary);
+  font-weight: 600;
+}
+
+.introduction {
+  font-size: 1.25rem;
+}
+
+section {
+  display: grid;
+  gap: var(--od-space-4);
+  margin-top: var(--od-space-10);
+  padding: var(--od-space-6);
+  background: var(--od-color-surface);
+  border: 1px solid var(--od-color-border);
+  border-radius: var(--od-radius-lg);
+}
+
+a {
+  justify-self: start;
+  color: var(--od-color-primary);
+  text-underline-offset: 0.2em;
+  padding-block: var(--od-space-2);
+}
+
+a:hover {
+  color: var(--od-color-primary-hover);
+}
+
+a:focus-visible {
+  outline: 3px solid var(--od-color-focus);
+  outline-offset: var(--od-space-1);
+  border-radius: var(--od-radius-sm);
+}

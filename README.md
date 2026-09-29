@@ -80,6 +80,14 @@ There are **no automated application tests or saved test journeys**. Reserve the
 
 Bug reports are welcome; outside feature contributions are not currently a project priority. Remove private learner data and credentials before sharing diagnostics. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Website development
+
+The minimal React/Vite website lives in `apps/website` and imports the browser CSS from `@call-nina/design-system`. It has no dependency on Electron or desktop services.
+
+After `make setup`, run `make dev-website` and open the local URL printed by Vite. The server runs in the foreground; stop it with Ctrl-C. Use `make build-website` to typecheck and produce static files in `apps/website/dist`, then `make preview-website` to inspect that build locally. Both servers bind to loopback by default; pass Vite options explicitly, for example `make dev-website ARGS="--port 5174"`.
+
+The website participates in `make build` and `make check`; `make clean` removes its generated output. This is a Coming soon foundation for later website work. Hosting, deployment and backend services are not configured by these commands.
+
 ## Troubleshooting
 
 - **Runtime unavailable:** install/open the supported desktop app, sign in, and retry connection. Use the executable override for a nonstandard installation. Plugin installation is optional and will not fix an incompatible runtime.
