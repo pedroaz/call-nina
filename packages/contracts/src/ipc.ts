@@ -1,3 +1,4 @@
+import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
 import { exerciseEntryContextSchema, reuseExerciseActionSchema } from "./exercise-launch.js";
 import {
   providerRouteIdSchema,
@@ -9,7 +10,12 @@ import { attemptEvidenceSchema, externalAttemptFeedbackSchema } from "./attempt-
 import { materialReferenceSchema, materialSourceSchema } from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
 import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
-import { languageSchema, learningContextSchema, learningScopeSchema } from "./learning-context.js";
+import {
+  targetLanguageSchema,
+  languageSchema,
+  learningContextSchema,
+  learningScopeSchema,
+} from "./learning-context.js";
 import { openActivityActionSchema, activityDestinationSchema } from "./activity-action.js";
 import {
   flashcardCreateRequestSchema,
@@ -1056,34 +1062,9 @@ const vocabularyProjectionSchema = z.strictObject({
   vocabularyId: vocabularyIdSchema,
   lemma: text(160),
   meaning: text(500),
-  lexeme: z.discriminatedUnion("partOfSpeech", [
-    z.strictObject({
-      partOfSpeech: z.literal("noun"),
-      nounForm: z.strictObject({
-        gender: z.enum(["masculine", "feminine", "neuter"]),
-        article: z.enum(["der", "die", "das"]),
-      }),
-      plural: z.discriminatedUnion("status", [
-        z.strictObject({ status: z.literal("form"), form: text(160) }),
-        z.strictObject({ status: z.literal("unchanged") }),
-        z.strictObject({ status: z.literal("not-applicable") }),
-        z.strictObject({ status: z.literal("unknown") }),
-      ]),
-    }),
-    z.strictObject({ partOfSpeech: z.literal("verb"), pattern: text(160).optional() }),
-    z.strictObject({
-      partOfSpeech: z.literal("phrase"),
-      function: text(160).optional(),
-      register: z.enum(["informal", "formal", "neutral"]).optional(),
-    }),
-    ...(["adjective", "adverb", "other"] as const).map((partOfSpeech) =>
-      z.strictObject({ partOfSpeech: z.literal(partOfSpeech) }),
-    ),
-  ]),
-  examples: z
-    .array(z.strictObject({ german: text(500), meaning: text(500) }))
-    .min(1)
-    .max(12),
+  targetLanguage: targetLanguageSchema,
+  lexeme: vocabularyLexemeSchema,
+  examples: z.array(vocabularyExampleSchema).min(1).max(12),
   source: z.discriminatedUnion("kind", [
     z.strictObject({
       kind: z.literal("correction"),

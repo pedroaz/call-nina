@@ -163,7 +163,7 @@ export class LearningResultService {
       lemma: candidate.lemma,
       meaning: candidate.meaning,
       lexeme: { partOfSpeech: "other" as const },
-      examples: [{ german: candidate.sourceExcerpt, meaning: candidate.meaning }],
+      examples: [{ text: candidate.sourceExcerpt, meaning: candidate.meaning }],
       source: {
         kind: "correction" as const,
         correctionId,
@@ -361,10 +361,10 @@ export class LearningResultService {
       schemaVersion: 1 as const,
       targetLanguage: operation.input.learningContext.targetLanguage,
       vocabularyId: vocabularyIdSchema.parse(opaqueId("vocabulary")),
-      lemma: item.german,
+      lemma: item.term,
       meaning: item.explanation,
       lexeme: { partOfSpeech: "other" as const },
-      examples: [{ german: item.example, meaning: item.explanation }],
+      examples: [{ text: item.example, meaning: item.explanation }],
       source: {
         kind: "activity" as const,
         activityId,

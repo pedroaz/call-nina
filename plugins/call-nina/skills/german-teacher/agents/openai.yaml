@@ -1,4 +1,4 @@
 interface:
-  display_name: "German Teacher"
-  short_description: "Practice German with bounded learner context"
-  default_prompt: "Use $german-teacher to help me practice German using my Call Nina context."
+  display_name: "Language Teacher"
+  short_description: "Practice your selected language with bounded learner context"
+  default_prompt: "Use $german-teacher to help me practice my selected language using my Call Nina context."

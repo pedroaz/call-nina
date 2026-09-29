@@ -325,7 +325,7 @@ export const mcpToolContracts = {
   open_deutsch_create_activity: {
     title: "Create a desktop activity",
     description:
-      "Create one validated persistent learning activity in the Call Nina Practice library. Copy learningScope from the original learner/activity context; never infer it from the current interface language. Listening and speaking require matching structured voiceContext.",
+      "Create one validated persistent learning activity in the Call Nina Practice library. Copy learningScope from the original learner/activity context; never infer it from the current interface language. Supports en-US, pt-BR, es and de with independent explanation languages; only de supports a structured course. Listening and speaking require matching structured voiceContext.",
     annotations: additiveWriteAnnotations,
     confirmationPolicy: "none",
     inputSchema: activityCreateInputSchema,

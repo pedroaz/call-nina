@@ -106,6 +106,7 @@ export function vocabularyProjection(
       : null;
   return {
     schemaVersion: entry.schemaVersion,
+    targetLanguage: entry.targetLanguage,
     vocabularyId: entry.vocabularyId,
     lemma: entry.lemma,
     meaning: entry.meaning,
@@ -141,13 +142,11 @@ export function vocabularyCandidateFromRecord(
   record: Awaited<ReturnType<CallNinaRepository["listVocabularyRecords"]>>[number],
 ): VocabularyCandidate {
   const { entry } = record;
-  const lexeme = entry.lexeme.partOfSpeech === "noun" ? entry.lexeme : undefined;
   return {
     lemma: entry.lemma,
     meaning: entry.meaning,
-    ...(lexeme?.nounForm.article ? { article: lexeme.nounForm.article } : {}),
-    ...(lexeme?.plural.status === "form" ? { plural: lexeme.plural.form } : {}),
-    example: entry.examples[0]?.german ?? entry.lemma,
+    lexeme: entry.lexeme,
+    example: entry.examples[0]?.text ?? entry.lemma,
     sourceContext: entry.source.context,
     origin:
       entry.source.kind === "correction"

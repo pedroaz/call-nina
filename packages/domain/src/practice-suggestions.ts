@@ -33,7 +33,8 @@ export function buildPracticeSuggestions(input: {
 }): PracticeSuggestion[] {
   const context = learningContextSchema.parse(input.learningContext);
   const policy = supportedLanguagePolicy(context.targetLanguage);
-  const de = input.locale === "de";
+  const say = (en: string, pt: string, es: string, de: string) =>
+    ({ "en-US": en, "pt-BR": pt, es, de })[input.locale];
   const make = (
     id: string,
     source: PracticeSuggestion["source"],
@@ -63,11 +64,24 @@ export function buildPracticeSuggestions(input: {
         "due-vocabulary",
         "due-vocabulary",
         "vocabulary-review",
-        de ? "Fällige Wörter wiederholen" : "Review your due words",
-        de
-          ? "Rufe die Bedeutung deiner fälligen Wörter ab und bilde jeweils einen Satz."
-          : "Recall the meaning of your due words and use each in a sentence.",
-        de ? "Diese Wörter sind jetzt zur Wiederholung fällig." : "These words are due for review.",
+        say(
+          "Review your due words",
+          "Revise as palavras pendentes",
+          "Repasa las palabras pendientes",
+          "Fällige Wörter wiederholen",
+        ),
+        policy.practiceRequest(
+          "lesson",
+          context.explanationLanguage,
+          words.map((word) => word.lemma).join(", "),
+          input.level,
+        ),
+        say(
+          "These words are due for review.",
+          "Está na hora de revisar estas palavras.",
+          "Es momento de repasar estas palabras.",
+          "Diese Wörter sind jetzt zur Wiederholung fällig.",
+        ),
         5,
         { ...emptyContext(), vocabularyIds: words.map(({ vocabularyId }) => vocabularyId) },
       ),
@@ -80,11 +94,14 @@ export function buildPracticeSuggestions(input: {
         `mistake:${mistake.mistakeId}`,
         "mistake",
         mistake.category.kind === "grammar" ? "grammar" : "custom-lesson",
-        de ? `Übe: ${topic}` : `Practise: ${topic}`,
+        say(`Practise: ${topic}`, `Pratique: ${topic}`, `Practica: ${topic}`, `Übe: ${topic}`),
         policy.practiceRequest("mistake", context.explanationLanguage, topic, input.level),
-        de
-          ? `Dieses Muster kam ${String(mistake.occurrenceCount)} Mal vor.`
-          : `This pattern appeared ${String(mistake.occurrenceCount)} times.`,
+        say(
+          `This pattern appeared ${String(mistake.occurrenceCount)} times.`,
+          `Este padrão apareceu ${String(mistake.occurrenceCount)} vezes.`,
+          `Este patrón apareció ${String(mistake.occurrenceCount)} veces.`,
+          `Dieses Muster kam ${String(mistake.occurrenceCount)} Mal vor.`,
+        ),
         10,
         { ...emptyContext(), mistakeIds: [mistake.mistakeId] },
       ),
@@ -92,15 +109,24 @@ export function buildPracticeSuggestions(input: {
   }
   const topic =
     context.goal.preferredTopics[0] ?? context.goal.interests[0] ?? context.goal.description;
-  const reason = de
-    ? `Passend zu deinem Niveau ${input.level.toUpperCase()}.`
-    : `Matched to your ${input.level.toUpperCase()} level.`;
+  const level = input.level.toUpperCase();
+  const reason = say(
+    `Matched to your ${level} level.`,
+    `Adaptado ao seu nível ${level}.`,
+    `Adaptado a tu nivel ${level}.`,
+    `Passend zu deinem Niveau ${level}.`,
+  );
   const starters = [
     make(
       "starter:writing",
       "starter",
       "writing",
-      de ? "Eine kurze Nachricht schreiben" : "Write a short message",
+      say(
+        "Write a short message",
+        "Escreva uma mensagem curta",
+        "Escribe un mensaje breve",
+        "Eine kurze Nachricht schreiben",
+      ),
       policy.practiceRequest("writing", context.explanationLanguage, topic, input.level),
       reason,
     ),
@@ -108,7 +134,7 @@ export function buildPracticeSuggestions(input: {
       "starter:reading",
       "starter",
       "reading",
-      de ? "Lesen und verstehen" : "Read and understand",
+      say("Read and understand", "Leia e compreenda", "Lee y comprende", "Lesen und verstehen"),
       policy.practiceRequest("reading", context.explanationLanguage, topic, input.level),
       reason,
     ),
@@ -116,7 +142,12 @@ export function buildPracticeSuggestions(input: {
       "starter:speaking",
       "starter",
       "voice-speaking",
-      de ? "Einen Termin vereinbaren" : "Arrange an appointment",
+      say(
+        "Arrange an appointment",
+        "Combine um horário",
+        "Concierta una cita",
+        "Einen Termin vereinbaren",
+      ),
       policy.practiceRequest("speaking", context.explanationLanguage, topic, input.level),
       reason,
     ),
@@ -124,7 +155,12 @@ export function buildPracticeSuggestions(input: {
       "starter:grammar",
       "starter",
       "grammar",
-      de ? "Sicherere Sätze bilden" : "Build clearer sentences",
+      say(
+        "Build clearer sentences",
+        "Forme frases mais claras",
+        "Forma oraciones más claras",
+        "Sicherere Sätze bilden",
+      ),
       policy.practiceRequest("grammar", context.explanationLanguage, topic, input.level),
       reason,
     ),
@@ -132,7 +168,12 @@ export function buildPracticeSuggestions(input: {
       "starter:listening",
       "starter",
       "codex-listening",
-      de ? "Eine Alltagssituation hören" : "Listen to an everyday situation",
+      say(
+        "Listen to an everyday situation",
+        "Ouça uma situação cotidiana",
+        "Escucha una situación cotidiana",
+        "Eine Alltagssituation hören",
+      ),
       policy.practiceRequest("listening", context.explanationLanguage, topic, input.level),
       reason,
     ),
@@ -140,7 +181,12 @@ export function buildPracticeSuggestions(input: {
       "starter:lesson",
       "starter",
       "custom-lesson",
-      de ? "Wörter im Alltag verwenden" : "Use words in everyday life",
+      say(
+        "Use words in everyday life",
+        "Use palavras no dia a dia",
+        "Usa palabras en la vida cotidiana",
+        "Wörter im Alltag verwenden",
+      ),
       policy.practiceRequest("lesson", context.explanationLanguage, topic, input.level),
       reason,
     ),

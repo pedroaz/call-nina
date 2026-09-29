@@ -2,17 +2,25 @@ import {
   activityIdSchema,
   dataRootGenerationSchema,
   openActivityActionSchema,
+  learningScopeSchema,
+  type LearningScope,
 } from "@call-nina/contracts";
 import { callNinaMarketplaceName, callNinaPluginName } from "@call-nina/codex-client";
 
-export function createCodexVoiceActivityUrl(activityIdValue: string, generationValue: number) {
+export function createCodexVoiceActivityUrl(
+  activityIdValue: string,
+  generationValue: number,
+  scopeValue: LearningScope,
+) {
+  const scope = learningScopeSchema.parse(scopeValue);
   const activityId = activityIdSchema.parse(activityIdValue);
   const generation = dataRootGenerationSchema.parse(generationValue);
   const pluginId = `${callNinaPluginName}@${callNinaMarketplaceName}`;
   const prompt = [
     `[@Call Nina](plugin://${pluginId}) Prepare my saved activity for Voice.`,
     `Activity: ${activityId}; dataRootGeneration: ${String(generation)}.`,
-    "Load this exact activity and its teaching defaults, briefly acknowledge the scenario,",
+    `Target language: ${scope.targetLanguage}. Load this exact activity and its teaching defaults, briefly acknowledge the scenario,`,
+    "Use its stored learningContext target language for the conversation and its explanation language for feedback, even if my active language has changed. Never infer either from the interface or this message.",
     "and wait for me to begin without revealing listening scripts or answers.",
     "If this reference is missing or stale, ask me to reopen it in Call Nina instead of selecting another activity.",
   ].join(" ");

@@ -196,6 +196,7 @@ export {
   exerciseFeedbackCandidateSchema,
   exerciseGenerationCandidateSchema,
   generatedExerciseInstructions,
+  isGeneratedExerciseInstruction,
   writingCorrectionCandidateSchema,
   writingPromptCandidateSchema,
   voiceActivityDraftCandidateSchema,
@@ -274,3 +275,5 @@ export {
   type ProviderOperation,
   type ProviderAccess,
 } from "./provider-access.js";
+
+export * from "./language-policy.js";

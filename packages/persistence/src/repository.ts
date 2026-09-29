@@ -1289,8 +1289,8 @@ export class CallNinaRepository {
       const page = Math.min(filter.page, Math.max(0, Math.ceil(total / 30) - 1));
       const order =
         filter.sort === "due"
-          ? "due_on IS NULL, due_on, lemma COLLATE NOCASE, vocabulary_id"
-          : "lemma COLLATE NOCASE, vocabulary_id";
+          ? `due_on IS NULL, due_on, ${fold("lemma")}, vocabulary_id`
+          : `${fold("lemma")}, vocabulary_id`;
       const entries = connection
         .prepare(
           `SELECT vocabulary_id, lemma, meaning, status, due_on, revision, updated_at
@@ -1438,7 +1438,7 @@ export class CallNinaRepository {
       expectedUpdatedAt?: string;
       lemma: string;
       meaning: string;
-      example: { german: string; meaning: string };
+      example: { text: string; meaning: string };
       updatedAt: string;
     }>,
   ): Promise<void> {
@@ -1884,7 +1884,7 @@ export class CallNinaRepository {
           vocabularyId: entry.vocabularyId,
           lemma: entry.lemma,
           meaning: entry.meaning,
-          ...(entry.examples[0] ? { example: entry.examples[0].german } : {}),
+          ...(entry.examples[0] ? { example: entry.examples[0].text } : {}),
         })),
       };
     });

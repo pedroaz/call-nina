@@ -335,8 +335,8 @@ export function WritingWorkspace({
             {prompt.helpfulVocabulary.length > 0 ? (
               <ul>
                 {prompt.helpfulVocabulary.map((item) => (
-                  <li key={item.german}>
-                    <strong>{item.german}</strong> — {item.explanation}
+                  <li key={item.term}>
+                    <strong>{item.term}</strong> — {item.explanation}
                   </li>
                 ))}
               </ul>

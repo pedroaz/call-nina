@@ -246,7 +246,11 @@ export class ActivityService {
       activityId: activity.activityId,
       expectedGeneration: this.generation,
     });
-    const url = createCodexVoiceActivityUrl(activity.activityId, this.generation);
+    const url = createCodexVoiceActivityUrl(
+      activity.activityId,
+      this.generation,
+      activity.context.learningScope,
+    );
     try {
       await ports.openExternal(url);
     } catch {

@@ -1,10 +1,11 @@
+import { migrateExerciseFields } from "./teaching-migration.js";
 import { migrateFlashcardContent } from "./flashcards.js";
 import { assertLocalLearningScope } from "./learning-context.js";
 import type { DatabaseSync } from "node:sqlite";
 import {
   generationProvenanceSchema,
   type GenerationProvenance,
-  exerciseGenerationCandidateSchema,
+  type exerciseGenerationCandidateSchema,
   type learningGoalSchema,
   materialDraftSchema,
   materialReferenceSchema,
@@ -113,7 +114,7 @@ export function migrateVersionedContent(connection: DatabaseSync) {
         effortId: aiProvenance.modelSelection.effortId,
       },
       learnerGoal: null,
-      output: exerciseGenerationCandidateSchema.parse(JSON.parse(String(row["output_json"]))),
+      output: migrateExerciseFields(JSON.parse(String(row["output_json"]))),
       // Only the request survived older storage; do not invent a pasted source or historic profile goal.
       material: {
         kind: "topic",

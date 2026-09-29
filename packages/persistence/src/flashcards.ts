@@ -1,3 +1,4 @@
+import { migrateFlashcardFields } from "./teaching-migration.js";
 import {
   contentIdentity,
   saveMaterialInTransaction,
@@ -290,14 +291,18 @@ export async function saveFlashcardVocabulary(
     const identities = new Map<string, string>();
     for (const row of rows) {
       const lexeme = flashcardSchema.shape.lexeme.parse(JSON.parse(row.lexeme_json) as unknown);
-      const identity = vocabularyIdentity({ lemma: row.lemma, meaning: row.meaning, lexeme });
+      const identity = vocabularyIdentity(
+        { lemma: row.lemma, meaning: row.meaning, lexeme },
+        deck.content.language,
+      );
       if (!identities.has(identity)) identities.set(identity, row.vocabulary_id);
     }
     for (const position of request.positions) {
       const card = deck.content.cards[position];
       if (!card) throw new Error("OD_FLASHCARD_POSITION_INVALID");
       const linked = deck.vocabulary.find((entry) => entry.position === position);
-      let vocabularyId = linked?.vocabularyId ?? identities.get(vocabularyIdentity(card));
+      let vocabularyId =
+        linked?.vocabularyId ?? identities.get(vocabularyIdentity(card, deck.content.language));
       if (!vocabularyId) {
         vocabularyId = vocabularyIdSchema.parse(`vocabulary_${randomUUID().replaceAll("-", "")}`);
         // Explicitly saved words belong to the learner, so deleting a deck cannot delete them.
@@ -308,7 +313,7 @@ export async function saveFlashcardVocabulary(
           .run(
             deck.content.language,
             vocabularyId,
-            vocabularyLemma(card),
+            vocabularyLemma(card, deck.content.language),
             card.meaning,
             JSON.stringify(card.lexeme),
             JSON.stringify(card.examples),
@@ -316,7 +321,7 @@ export async function saveFlashcardVocabulary(
             now,
             now,
           );
-        identities.set(vocabularyIdentity(card), vocabularyId);
+        identities.set(vocabularyIdentity(card, deck.content.language), vocabularyId);
       }
       connection
         .prepare(
@@ -421,7 +426,7 @@ export function migrateFlashcardContent(connection: DatabaseSync) {
       .array(flashcardSchema)
       .min(3)
       .max(30)
-      .parse(JSON.parse(String(row["content_json"])));
+      .parse(migrateFlashcardFields(JSON.parse(String(row["content_json"]))));
     const position = z
       .int()
       .min(0)

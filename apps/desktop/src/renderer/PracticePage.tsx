@@ -371,8 +371,8 @@ export function PracticePage({
                   <h3>{t("exercises.custom.vocabulary")}</h3>
                   <ItemList>
                     {generated.content.payload.lesson.vocabularyFoundations.map((item) => (
-                      <li key={`${item.german}:${item.example}`}>
-                        <strong>{item.german}</strong> — {item.explanation}
+                      <li key={`${item.term}:${item.example}`}>
+                        <strong>{item.term}</strong> — {item.explanation}
                         <Muted as="span">{item.example}</Muted>
                       </li>
                     ))}

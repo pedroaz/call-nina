@@ -5,7 +5,8 @@ import {
   type PortableExerciseContent,
   exerciseGenerationCandidateSchema,
   exerciseIdSchema,
-  generatedExerciseInstructions,
+  isGeneratedExerciseInstruction,
+  type Language,
   type z,
 } from "@call-nina/contracts";
 
@@ -21,100 +22,109 @@ import {
 
 type Candidate = z.infer<typeof exerciseGenerationCandidateSchema>["exercises"][number];
 
-function normalized(value: string): string {
-  return supportedLanguagePolicy("de").normalize(value);
-}
+function qualityPolicy(language: Language) {
+  const normalized = supportedLanguagePolicy(language).normalize;
 
-function containsCompleteAnswer(text: string, answer: string): boolean {
-  const haystack = normalized(text);
-  const needle = normalized(answer);
-  if (needle.length < 3) return false;
-  let position = haystack.indexOf(needle);
-  while (position >= 0) {
-    const before = haystack.slice(Math.max(0, position - 1), position);
-    const after = haystack.slice(position + needle.length, position + needle.length + 1);
-    if (!/[\p{L}\p{N}]/u.test(before) && !/[\p{L}\p{N}]/u.test(after)) {
-      return true;
+  function containsCompleteAnswer(text: string, answer: string, caseSensitive = false): boolean {
+    const normalize = caseSensitive
+      ? (value: string) => value.normalize("NFKC").trim().replaceAll(/\s+/gu, " ")
+      : normalized;
+    const haystack = normalize(text);
+    const needle = normalize(answer);
+    if (needle.length === 0) return false;
+    let position = haystack.indexOf(needle);
+    while (position >= 0) {
+      const before = haystack.slice(Math.max(0, position - 1), position);
+      const after = haystack.slice(position + needle.length, position + needle.length + 1);
+      if (!/[\p{L}\p{N}]/u.test(before) && !/[\p{L}\p{N}]/u.test(after)) {
+        return true;
+      }
+      position = haystack.indexOf(needle, position + 1);
     }
-    position = haystack.indexOf(needle, position + 1);
+    return false;
   }
-  return false;
-}
 
-function assertDistinct(values: readonly string[], code: string): void {
-  const keys = values.map(normalized);
-  if (new Set(keys).size !== keys.length) throw new Error(code);
-}
+  function assertDistinct(values: readonly string[], code: string): void {
+    const keys = values.map(normalized);
+    if (new Set(keys).size !== keys.length) throw new Error(code);
+  }
 
-function acceptedAnswers(candidate: Candidate): readonly string[] {
-  if (
-    candidate.kind === "short-answer" ||
-    candidate.kind === "sentence-correction" ||
-    candidate.kind === "vocabulary-recall"
-  ) {
-    return candidate.acceptedAnswers;
-  }
-  if (candidate.kind === "fill-in-the-blank") {
-    return candidate.blanks.flatMap(({ acceptedAnswers: answers }) => answers);
-  }
-  if (candidate.kind === "multiple-choice") {
-    return [candidate.options[candidate.correctOptionPosition] ?? ""];
-  }
-  return [];
-}
-
-function visibleCandidateText(candidate: Candidate): string {
-  // Explanations appear after submission. App-owned wording does not disclose an answer.
-  const shared = [candidate.title];
-  if (
-    candidate.kind === "free-writing" ||
-    candidate.instructions !== generatedExerciseInstructions[candidate.kind]
-  ) {
-    shared.push(candidate.instructions);
-  }
-  if (candidate.kind === "free-writing") shared.push(candidate.prompt);
-  else if (candidate.kind === "short-answer" || candidate.kind === "multiple-choice") {
-    shared.push(candidate.question);
-  } else if (candidate.kind === "fill-in-the-blank") {
-    shared.push(
-      candidate.leadingText,
-      ...candidate.blanks.map(({ followingText }) => followingText),
-    );
-  } else if (candidate.kind === "sentence-correction") shared.push(candidate.sentence);
-  else shared.push(candidate.cue);
-  return normalized(shared.join(" "));
-}
-
-function assertCandidateQuality(candidate: Candidate): void {
-  const answers = acceptedAnswers(candidate);
-  if (candidate.kind === "fill-in-the-blank") {
-    for (const blank of candidate.blanks) {
-      assertDistinct(blank.acceptedAnswers, "OD_EXERCISE_DUPLICATE_ANSWER");
+  function acceptedAnswers(candidate: Candidate): readonly string[] {
+    if (
+      candidate.kind === "short-answer" ||
+      candidate.kind === "sentence-correction" ||
+      candidate.kind === "vocabulary-recall"
+    ) {
+      return candidate.acceptedAnswers;
     }
-  } else {
-    assertDistinct(answers, "OD_EXERCISE_DUPLICATE_ANSWER");
+    if (candidate.kind === "fill-in-the-blank") {
+      return candidate.blanks.flatMap(({ acceptedAnswers: answers }) => answers);
+    }
+    if (candidate.kind === "multiple-choice") {
+      return [candidate.options[candidate.correctOptionPosition] ?? ""];
+    }
+    return [];
   }
-  if (candidate.kind === "multiple-choice") {
-    assertDistinct(candidate.options, "OD_EXERCISE_DUPLICATE_OPTION");
+
+  function visibleCandidateText(candidate: Candidate): string {
+    // Explanations appear after submission. App-owned wording does not disclose an answer.
+    const shared = [candidate.title];
+    if (
+      candidate.kind === "free-writing" ||
+      !isGeneratedExerciseInstruction(candidate.kind, candidate.instructions)
+    ) {
+      shared.push(candidate.instructions);
+    }
+    if (candidate.kind === "free-writing") shared.push(candidate.prompt);
+    else if (candidate.kind === "short-answer" || candidate.kind === "multiple-choice") {
+      shared.push(candidate.question);
+    } else if (candidate.kind === "fill-in-the-blank") {
+      shared.push(
+        candidate.leadingText,
+        ...candidate.blanks.map(({ followingText }) => followingText),
+      );
+    } else if (candidate.kind === "sentence-correction") shared.push(candidate.sentence);
+    else shared.push(candidate.cue);
+    return shared.join(" ");
   }
-  const preSubmitText = normalized(
-    `${visibleCandidateText(candidate)} ${candidate.hints.join(" ")}`,
-  );
-  if (answers.some((answer) => containsCompleteAnswer(preSubmitText, answer))) {
-    throw new Error("OD_EXERCISE_ANSWER_LEAK");
+
+  function assertCandidateQuality(candidate: Candidate): void {
+    const answers = acceptedAnswers(candidate);
+    if (candidate.kind === "fill-in-the-blank") {
+      for (const blank of candidate.blanks) {
+        assertDistinct(blank.acceptedAnswers, "OD_EXERCISE_DUPLICATE_ANSWER");
+      }
+    } else {
+      assertDistinct(answers, "OD_EXERCISE_DUPLICATE_ANSWER");
+    }
+    if (candidate.kind === "multiple-choice") {
+      assertDistinct(candidate.options, "OD_EXERCISE_DUPLICATE_OPTION");
+    }
+    const preSubmitText = `${visibleCandidateText(candidate)} ${candidate.hints.join(" ")}`;
+    if (
+      answers.some((answer) =>
+        containsCompleteAnswer(preSubmitText, answer, candidate.kind === "sentence-correction"),
+      )
+    ) {
+      throw new Error("OD_EXERCISE_ANSWER_LEAK");
+    }
   }
+
+  return { assertCandidateQuality, assertDistinct };
 }
 
-export function materializeGeneratedExercise(
+function materializeExercise(
   candidateValue: Candidate,
   options: {
     exerciseId: string;
     aiProvenance: AiProvenance;
+    targetLanguage: Language;
     curriculumTopicIds?: readonly string[];
   },
+  validateQuality: boolean,
 ): ExerciseDefinition {
   const candidate = exerciseGenerationCandidateSchema.shape.exercises.element.parse(candidateValue);
-  assertCandidateQuality(candidate);
+  if (validateQuality) qualityPolicy(options.targetLanguage).assertCandidateQuality(candidate);
   const shared = {
     exerciseId: exerciseIdSchema.parse(options.exerciseId),
     aiProvenance: aiProvenanceSchema.parse(options.aiProvenance),
@@ -194,11 +204,19 @@ export function materializeGeneratedExercise(
   });
 }
 
+export function materializeGeneratedExercise(
+  candidate: Candidate,
+  options: Parameters<typeof materializeExercise>[1],
+): ExerciseDefinition {
+  return materializeExercise(candidate, options, true);
+}
+
 export function materializeGeneratedExerciseSet(
   outputValue: z.infer<typeof exerciseGenerationCandidateSchema>,
   options: {
     exerciseIds: readonly string[];
     aiProvenance: AiProvenance;
+    targetLanguage: Language;
     curriculumTopicIds?: readonly string[];
   },
 ): readonly ExerciseDefinition[] {
@@ -206,7 +224,7 @@ export function materializeGeneratedExerciseSet(
   if (output.exercises.length !== options.exerciseIds.length) {
     throw new Error("OD_EXERCISE_ID_COUNT_INVALID");
   }
-  assertDistinct(
+  qualityPolicy(options.targetLanguage).assertDistinct(
     output.exercises.map(({ title }) => title),
     "OD_EXERCISE_DUPLICATE_CONTENT",
   );
@@ -214,6 +232,7 @@ export function materializeGeneratedExerciseSet(
     output.exercises.map((candidate, position) =>
       materializeGeneratedExercise(candidate, {
         exerciseId: options.exerciseIds[position] ?? "",
+        targetLanguage: options.targetLanguage,
         aiProvenance: options.aiProvenance,
         ...(options.curriculumTopicIds ? { curriculumTopicIds: options.curriculumTopicIds } : {}),
       }),
@@ -228,6 +247,7 @@ export function materializeGeneratedLesson(
     naturalRequest: string;
     exerciseIds: readonly string[];
     aiProvenance: AiProvenance;
+    targetLanguage: Language;
     curriculumTopicIds?: readonly string[];
   },
 ): LessonDefinition | undefined {
@@ -258,7 +278,7 @@ export function materializeGeneratedLesson(
     content: [
       ...output.lesson.sections,
       ...output.lesson.vocabularyFoundations.map((item) => ({
-        heading: item.german,
+        heading: item.term,
         content: `${item.explanation} — ${item.example}`,
       })),
     ],
@@ -269,24 +289,38 @@ export function materializeGeneratedLesson(
 /** Materialize a stored revision, preserving its identity across practice attempts. */
 export function materializeContentExercises(
   contentValue: PortableExerciseContent,
-  options: Parameters<typeof materializeGeneratedExerciseSet>[1],
+  options: Omit<Parameters<typeof materializeGeneratedExerciseSet>[1], "targetLanguage">,
 ): readonly ExerciseDefinition[] {
   const content = parsePortableExerciseContent(contentValue);
-  return materializeGeneratedExerciseSet(content.payload, {
-    ...options,
-    curriculumTopicIds: content.goal.curriculumTopicIds,
-  }).map((exercise, position) =>
-    exerciseDefinitionSchema.parse({
-      ...exercise,
-      contentReference: {
-        contentId: content.contentId,
-        revisionId: content.revisionId,
-        exercise: content.exercises[position],
-        materials: content.materials.map(({ materialId, revisionId }) => ({
-          materialId,
-          revisionId,
-        })),
-      },
-    }),
-  );
+  // Reopening an immutable revision validates its contract, not today's generation-quality policy.
+  // Old accepted drafts keep their exact instructions/answers even as generation rules improve.
+  if (content.payload.exercises.length !== options.exerciseIds.length)
+    throw new Error("OD_EXERCISE_ID_COUNT_INVALID");
+  return content.payload.exercises
+    .map((candidate, position) =>
+      materializeExercise(
+        candidate,
+        {
+          exerciseId: options.exerciseIds[position] ?? "",
+          aiProvenance: options.aiProvenance,
+          targetLanguage: content.language,
+          curriculumTopicIds: content.goal.curriculumTopicIds,
+        },
+        false,
+      ),
+    )
+    .map((exercise, position) =>
+      exerciseDefinitionSchema.parse({
+        ...exercise,
+        contentReference: {
+          contentId: content.contentId,
+          revisionId: content.revisionId,
+          exercise: content.exercises[position],
+          materials: content.materials.map(({ materialId, revisionId }) => ({
+            materialId,
+            revisionId,
+          })),
+        },
+      }),
+    );
 }
