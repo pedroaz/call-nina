@@ -1,5 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
+  attemptOwnershipSchema,
   exerciseGenerationCandidateSchema,
   parsePortableExerciseContent,
   portableFlashcardContentSchema,
@@ -77,6 +78,31 @@ export function migrateMultilingualTeaching(connection: DatabaseSync) {
       .run(JSON.stringify(examples), String(row["vocabulary_id"]));
   }
   for (const row of connection
+    .prepare("SELECT attempt_id, ownership_json FROM learning_attempts")
+    .all()) {
+    const ownership = object(JSON.parse(String(row["ownership_json"])));
+    const source = object(ownership["source"]);
+    if (source["kind"] !== "vocabulary-review" || source["snapshot"] === null) {
+      attemptOwnershipSchema.parse(ownership);
+      continue;
+    }
+    // Retain the reviewed revision, even when the live vocabulary entry has changed.
+    const snapshot = object(source["snapshot"]);
+    const converted = attemptOwnershipSchema.parse({
+      ...ownership,
+      source: {
+        ...source,
+        snapshot: {
+          ...snapshot,
+          examples: migrateVocabularyExamples(snapshot["examples"]),
+        },
+      },
+    });
+    connection
+      .prepare("UPDATE learning_attempts SET ownership_json = ? WHERE attempt_id = ?")
+      .run(JSON.stringify(converted), String(row["attempt_id"]));
+  }
+  for (const row of connection
     .prepare("SELECT activity_id, output_json FROM generated_activity_payloads")
     .all()) {
     const content = object(JSON.parse(String(row["output_json"])));
@@ -103,6 +129,8 @@ export function migrateMultilingualTeaching(connection: DatabaseSync) {
       .run(JSON.stringify(converted), String(row["activity_id"]));
   }
   connection.exec(`
+    CREATE TRIGGER learning_attempt_immutable BEFORE UPDATE ON learning_attempts
+      BEGIN SELECT RAISE(ABORT, 'OD_ATTEMPT_OWNERSHIP_IMMUTABLE'); END;
     CREATE TRIGGER generated_activity_payload_immutable BEFORE UPDATE ON generated_activity_payloads
       BEGIN SELECT RAISE(ABORT, 'OD_GENERATED_ACTIVITY_IMMUTABLE'); END;
     CREATE TRIGGER flashcard_content_immutable BEFORE UPDATE OF activity_id, source, content_json ON flashcard_decks
