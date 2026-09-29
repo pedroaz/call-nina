@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import {
   materialDraftSchema,
@@ -23,6 +23,16 @@ import styles from "./MaterialPractice.module.css";
 type Snapshot = Extract<DesktopIpcResponse, { status: "ok"; channel: "material/list" }>["result"];
 type Draft = { kind: MaterialDraft["kind"]; title: string; text: string; source: string };
 type PracticeType = "reading" | "vocabulary-review";
+export type MaterialPracticeState = {
+  snapshot?: Snapshot;
+  selected?: MaterialRevision;
+  view: "list" | "detail" | "edit";
+  drafts: Record<string, Draft>;
+};
+export const emptyMaterialPracticeState = (): MaterialPracticeState => ({
+  view: "list",
+  drafts: {},
+});
 const emptyDraft: Draft = { kind: "pasted-text", title: "", text: "", source: "" };
 const reference = (material: MaterialRevision) => ({
   materialId: material.materialId,
@@ -39,6 +49,8 @@ export function MaterialPractice({
   onBusyChange,
   requestAiAccess,
   onOpenActivity,
+  state,
+  setState,
 }: {
   practiceType: PracticeType;
   exerciseCount: number;
@@ -48,13 +60,29 @@ export function MaterialPractice({
   onBusyChange: (busy: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenActivity: (id: ActivityId) => void;
+  state: MaterialPracticeState;
+  setState: Dispatch<SetStateAction<MaterialPracticeState>>;
 }) {
   const { t } = useTranslation();
-  const [snapshot, setSnapshot] = useState<Snapshot>();
-  const [selected, setSelected] = useState<MaterialRevision>();
-  const [view, setView] = useState<"list" | "detail" | "edit">("list");
+  const { snapshot, selected, view, drafts } = state;
+  const setSnapshot = (next: Snapshot) => {
+    setState((current) => ({ ...current, snapshot: next }));
+  };
+  const setSelected = (next: MaterialRevision | undefined) => {
+    setState((current) => {
+      if (next) return { ...current, selected: next };
+      const cleared = { ...current };
+      delete cleared.selected;
+      return cleared;
+    });
+  };
+  const setView = (next: MaterialPracticeState["view"]) => {
+    setState((current) => ({ ...current, view: next }));
+  };
   // Cancelling the editor only hides it; each material retains its own unsaved draft.
-  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const setDrafts = (next: (current: Record<string, Draft>) => Record<string, Draft>) => {
+    setState((current) => ({ ...current, drafts: next(current.drafts) }));
+  };
   const [error, setError] = useState<CallNinaError>();
   const [localBusy, setLocalBusy] = useState(false);
   const generation = useLearningOperation();
@@ -112,18 +140,41 @@ export function MaterialPractice({
         draft: value.data,
         ...(selected ? { previous: reference(selected) } : {}),
       });
-      setSnapshot({
-        ...snapshot,
-        materials: [
-          material,
-          ...snapshot.materials.filter((entry) => entry.materialId !== material.materialId),
-        ].slice(0, 100),
-      });
       setDrafts((current) => {
         return Object.fromEntries(Object.entries(current).filter(([draftKey]) => draftKey !== key));
       });
       setSelected(material);
       navigate("detail");
+      try {
+        setSnapshot(await invokeDesktop("material/list", {}));
+      } catch (cause) {
+        setError(normalizeDesktopError(cause).detail);
+      }
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+    } finally {
+      setLocalBusy(false);
+    }
+  };
+  const loadMore = async () => {
+    if (!snapshot?.nextCursor) return;
+    setLocalBusy(true);
+    setError(undefined);
+    try {
+      const next = await invokeDesktop("material/list", { cursor: snapshot.nextCursor });
+      setState((current) => ({
+        ...current,
+        snapshot: {
+          ...next,
+          materials: [
+            ...(current.snapshot?.rootGeneration === next.rootGeneration &&
+            current.snapshot.language === next.language
+              ? current.snapshot.materials
+              : []),
+            ...next.materials,
+          ],
+        },
+      }));
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -154,6 +205,7 @@ export function MaterialPractice({
   };
   return (
     <Disclosure
+      defaultOpen={view !== "list"}
       label={t(
         practiceType === "reading"
           ? "materialPractice.optional"
@@ -206,6 +258,11 @@ export function MaterialPractice({
                     </li>
                   ))}
                 </ItemList>
+                {snapshot.nextCursor && (
+                  <Button variant="secondary" isDisabled={locked} onPress={() => void loadMore()}>
+                    {t("materialPractice.more")}
+                  </Button>
+                )}
               </>
             )}
           </>

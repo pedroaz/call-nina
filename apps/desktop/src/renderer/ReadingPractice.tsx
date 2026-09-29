@@ -1,8 +1,8 @@
-import { MaterialPractice } from "./MaterialPractice.js";
+import { MaterialPractice, type MaterialPracticeState } from "./MaterialPractice.js";
 import type { ProviderOperation, ActivityId, CallNinaError } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, FieldGroup } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
@@ -17,6 +17,10 @@ export function ReadingPractice({
   onBusyChange,
   requestAiAccess,
   onOpenActivity,
+  topic,
+  setTopic,
+  materialState,
+  setMaterialState,
 }: {
   exerciseCount: number;
   countValid: boolean;
@@ -24,9 +28,12 @@ export function ReadingPractice({
   onBusyChange: (busy: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenActivity: (activityId: ActivityId) => void;
+  topic: string;
+  setTopic: (topic: string) => void;
+  materialState: MaterialPracticeState;
+  setMaterialState: Dispatch<SetStateAction<MaterialPracticeState>>;
 }) {
   const { t } = useTranslation();
-  const [topic, setTopic] = useState("");
   const [materialBusy, setMaterialBusy] = useState(false);
   const generation = useLearningOperation();
   const busy = generation.busy || materialBusy;
@@ -92,6 +99,8 @@ export function ReadingPractice({
         )}
       </ActionGroup>
       <MaterialPractice
+        state={materialState}
+        setState={setMaterialState}
         practiceType="reading"
         targetLevel={targetLevel}
         exerciseCount={exerciseCount}

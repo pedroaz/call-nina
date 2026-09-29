@@ -2296,7 +2296,7 @@ export class DesktopBackend {
           return this.#success(request, {
             rootGeneration: database.rootGeneration,
             language: scope.targetLanguage,
-            materials: await listMaterials(database),
+            ...(await listMaterials(database, request.payload.cursor)),
           });
         if (request.channel === "material/read")
           return this.#success(request, {

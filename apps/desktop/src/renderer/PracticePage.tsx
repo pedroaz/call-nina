@@ -1,4 +1,8 @@
-import { MaterialPractice } from "./MaterialPractice.js";
+import {
+  MaterialPractice,
+  emptyMaterialPracticeState,
+  type MaterialPracticeState,
+} from "./MaterialPractice.js";
 import {
   type ProviderOperation,
   exerciseFeedbackCandidateSchema,
@@ -107,6 +111,13 @@ export function PracticePage({
   const [quizCount, setQuizCount] = useState("6");
   const [cardCount, setCardCount] = useState("10");
   const [flashcardTopic, setFlashcardTopic] = useState("");
+  const [readingTopic, setReadingTopic] = useState("");
+  const [vocabularyMaterialState, setVocabularyMaterialState] = useState<MaterialPracticeState>(
+    emptyMaterialPracticeState,
+  );
+  const [readingMaterialState, setReadingMaterialState] = useState<MaterialPracticeState>(
+    emptyMaterialPracticeState,
+  );
   const exerciseCount = Number(quizCount);
   const quizCountValid = validPracticeCount(quizCount);
   const [targetLevel, setTargetLevel] = useState<PracticeLevel>("a2");
@@ -646,6 +657,8 @@ export function PracticePage({
                         )}
                       </ActionGroup>
                       <MaterialPractice
+                        state={vocabularyMaterialState}
+                        setState={setVocabularyMaterialState}
                         practiceType="vocabulary-review"
                         targetLevel={targetLevel}
                         exerciseCount={Number(cardCount)}
@@ -741,6 +754,10 @@ export function PracticePage({
                   </div>
                   <div hidden={selectedKind !== "reading"}>
                     <ReadingPractice
+                      topic={readingTopic}
+                      setTopic={setReadingTopic}
+                      materialState={readingMaterialState}
+                      setMaterialState={setReadingMaterialState}
                       exerciseCount={exerciseCount}
                       countValid={quizCountValid}
                       targetLevel={targetLevel}

@@ -397,7 +397,10 @@ const vocabularyDeleteRequest = request(
   }),
 );
 
-const materialListRequest = request("material/list", z.strictObject({}));
+const materialListRequest = request(
+  "material/list",
+  z.strictObject({ cursor: z.int().positive().optional() }),
+);
 const materialReadRequest = request(
   "material/read",
   z.strictObject({
@@ -1246,6 +1249,7 @@ const materialListResponse = response(
     rootGeneration: dataRootGenerationSchema,
     language: targetLanguageSchema,
     materials: z.array(materialRevisionSchema).max(100),
+    nextCursor: z.int().positive().optional(),
   }),
 );
 const materialReadResponse = response(
