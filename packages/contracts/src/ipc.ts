@@ -637,6 +637,7 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
   }),
   z.strictObject({
     kind: z.literal("exercise-feedback"),
+    expectedGeneration: dataRootGenerationSchema,
     activityId: activityIdSchema,
     attemptId: attemptIdSchema,
     answer: z.discriminatedUnion("kind", [
@@ -954,7 +955,10 @@ const activityReuseResponse = response(
 );
 const exerciseSetAnswerResponse = response(
   "exercise-set/answer",
-  z.strictObject({ saved: z.literal(true) }),
+  z.strictObject({
+    saved: z.literal(true),
+    feedback: generationCandidateOutputSchemas["exercise-feedback"].nullable(),
+  }),
 );
 const learningPathReadResponse = response("learning-path/read", learningPathSnapshotSchema);
 const learningPathUpdateResponse = response("learning-path/update", learningPathSnapshotSchema);
@@ -1568,14 +1572,25 @@ const accountLogoutResponse = response(
 );
 const modelsReadResponse = response("codex/models/read", modelCatalogSchema);
 const rateLimitsReadResponse = response("codex/rate-limits/read", rateLimitStateSchema);
-const learningOperationStartResponse = response(
-  "learning-operation/start",
+const learningOperationAcceptanceSchema = z.discriminatedUnion("status", [
   z.strictObject({
     operationId: correlationIdSchema,
     submissionId: correlationIdSchema,
     status: z.literal("accepted"),
     submission: z.literal("retained"),
   }),
+  z.strictObject({
+    operationId: correlationIdSchema,
+    submissionId: correlationIdSchema,
+    status: z.literal("retained-feedback"),
+    submission: z.literal("retained"),
+    modelRequestId: modelRequestIdSchema,
+    output: generationCandidateOutputSchemas["exercise-feedback"],
+  }),
+]);
+const learningOperationStartResponse = response(
+  "learning-operation/start",
+  learningOperationAcceptanceSchema,
 );
 const learningOperationCancelResponse = response(
   "learning-operation/cancel",
@@ -1586,12 +1601,7 @@ const learningOperationCancelResponse = response(
 );
 const learningOperationRetryResponse = response(
   "learning-operation/retry",
-  z.strictObject({
-    operationId: correlationIdSchema,
-    submissionId: correlationIdSchema,
-    status: z.literal("accepted"),
-    submission: z.literal("retained"),
-  }),
+  learningOperationAcceptanceSchema,
 );
 const errorResponse = strictBoundaryObject({
   status: z.literal("error"),

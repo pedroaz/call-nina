@@ -32,7 +32,10 @@ export type AcceptedOperation = Readonly<{
   operation: Parameters<GenerationService["runOperation"]>[0];
   startedAt: string;
   helperSessionId?: string;
-  exerciseFeedback?: Readonly<{ activityId: string; attemptId: string }>;
+  exerciseFeedback?: Extract<
+    Extract<DesktopIpcRequest, { channel: "learning-operation/start" }>["payload"]["input"],
+    { kind: "exercise-feedback" }
+  >;
 }>;
 
 export type ValidatedWritingState = Readonly<{

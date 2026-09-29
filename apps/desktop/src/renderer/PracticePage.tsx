@@ -421,16 +421,18 @@ export function PracticePage({
                 const attemptId = startedAttemptIds?.[position];
                 if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
                 if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
-                await invokeDesktop("exercise-set/answer", {
+                const saved = await invokeDesktop("exercise-set/answer", {
                   activityId,
                   attemptId,
                   answer,
                   expectedGeneration: prepared.rootGeneration,
                 });
+                return saved.feedback;
               }}
               onAiEvaluationRequested={async (evaluation, exercisePosition) => {
                 if (!(await requestAiAccess("exercise-feedback")))
                   throw new Error("OD_AI_DISCLOSURE_REQUIRED");
+                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
                 const attemptId = startedAttemptIds?.[exercisePosition];
                 if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
                 if (
@@ -442,6 +444,7 @@ export function PracticePage({
                 }
                 const result = await feedback.run({
                   kind: "exercise-feedback",
+                  expectedGeneration: prepared.rootGeneration,
                   activityId,
                   attemptId,
                   answer: evaluation.answer,

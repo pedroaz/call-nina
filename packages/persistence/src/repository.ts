@@ -349,6 +349,66 @@ const storedExerciseFeedbackSchema = z.strictObject({
   modelRequestId: modelRequestIdSchema,
   output: exerciseFeedbackCandidateSchema,
 });
+
+function readGeneratedExerciseAttempt(
+  connection: DatabaseSync,
+  activityId: string,
+  attemptId: string,
+) {
+  const row = connection
+    .prepare(
+      `SELECT a.exercise_snapshot_json, p.activity_type, p.title,
+        p.origin_surface, p.prepared_at, p.context_json, g.output_json,
+        r.content_revision_id, ans.answer_json, f.feedback_json
+       FROM attempts a JOIN exercises e USING(exercise_id)
+       JOIN prepared_activities p ON p.activity_id = e.activity_id
+       JOIN generated_activity_payloads g ON g.activity_id = p.activity_id
+       JOIN attempt_content_revisions r ON r.attempt_id = a.attempt_id AND r.activity_id = p.activity_id
+       LEFT JOIN answers ans ON ans.attempt_id = a.attempt_id AND ans.position = 0
+       LEFT JOIN exercise_attempt_feedback f ON f.attempt_id = a.attempt_id
+       WHERE a.attempt_id = ? AND p.activity_id = ? AND a.status = 'in-progress' AND p.status = 'prepared'`,
+    )
+    .get(attemptId, activityId);
+  if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+  assertSharedExerciseActivity({
+    activityId,
+    activityType: row["activity_type"],
+    title: row["title"],
+    originSurface: row["origin_surface"],
+    preparedAt: row["prepared_at"],
+    context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
+  });
+  const content = readStoredExerciseContent(
+    connection,
+    activityId,
+    parseJson(row["output_json"], maximumExerciseContentBytes),
+  );
+  if (content.revisionId !== row["content_revision_id"])
+    throw new Error("OD_ATTEMPT_REVISION_MISMATCH");
+  const snapshot = startedExerciseSnapshotSchema.parse(
+    parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
+  );
+  const answer = row["answer_json"]
+    ? exerciseAnswerSchema.parse(parseJson(row["answer_json"]))
+    : null;
+  const feedback = row["feedback_json"]
+    ? storedExerciseFeedbackSchema.parse(
+        parseJson(row["feedback_json"], maximumExerciseFeedbackBytes),
+      )
+    : null;
+  if (
+    feedback &&
+    (!answer ||
+      evaluateExerciseAnswer(
+        snapshot.exercise,
+        answer,
+        requireLocalLearningScope(connection).targetLanguage,
+      ).status !== "requires-ai" ||
+      feedback.output.objectiveEvaluations.length !== snapshot.exercise.objectives.length)
+  )
+    throw new Error("OD_EXERCISE_AI_FEEDBACK_INVALID");
+  return { snapshot, answer, feedback };
+}
 export const generatedExerciseSetStartSchema = strictBoundaryObject({
   activityId: activityIdSchema,
   startedAt: utcInstantSchema,
@@ -2811,20 +2871,15 @@ export class CallNinaRepository {
     const attemptId = attemptIdSchema.parse(attemptIdValue);
     const feedback = storedExerciseFeedbackSchema.parse(value);
     await withLeasedTransaction(this.#database, (connection) => {
-      const row = connection
-        .prepare(
-          `SELECT a.exercise_snapshot_json, ans.answer_json FROM attempts a
-        JOIN exercises e USING(exercise_id) JOIN answers ans ON ans.attempt_id = a.attempt_id AND ans.position = 0
-        WHERE a.attempt_id = ? AND e.activity_id = ? AND a.status = 'in-progress'`,
-        )
-        .get(attemptId, activityId);
-      if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-      const snapshot = startedExerciseSnapshotSchema.parse(
-        parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
-      );
+      const {
+        snapshot,
+        answer,
+        feedback: existing,
+      } = readGeneratedExerciseAttempt(connection, activityId, attemptId);
+      if (!answer) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
       const evaluation = evaluateExerciseAnswer(
         snapshot.exercise,
-        exerciseAnswerSchema.parse(parseJson(row["answer_json"])),
+        answer,
         requireLocalLearningScope(connection).targetLanguage,
       );
       if (
@@ -2832,17 +2887,8 @@ export class CallNinaRepository {
         feedback.output.objectiveEvaluations.length !== snapshot.exercise.objectives.length
       )
         throw new Error("OD_EXERCISE_AI_FEEDBACK_INVALID");
-      const existing = connection
-        .prepare("SELECT feedback_json FROM exercise_attempt_feedback WHERE attempt_id = ?")
-        .get(attemptId);
       if (existing) {
-        if (
-          JSON.stringify(
-            storedExerciseFeedbackSchema.parse(
-              parseJson(existing["feedback_json"], maximumExerciseFeedbackBytes),
-            ),
-          ) !== JSON.stringify(feedback)
-        )
+        if (JSON.stringify(existing) !== JSON.stringify(feedback))
           throw new Error("OD_EXERCISE_FEEDBACK_IMMUTABLE");
         return;
       }
@@ -3089,52 +3135,35 @@ export class CallNinaRepository {
     });
   }
 
-  async saveGeneratedExerciseAnswer(
-    value: GeneratedExerciseAnswerSave,
-  ): Promise<ReturnType<typeof startedExerciseSnapshotSchema.parse>> {
+  async saveGeneratedExerciseAnswer(value: GeneratedExerciseAnswerSave) {
     const record = generatedExerciseAnswerSaveSchema.parse(value);
     return withLeasedTransaction(this.#database, (connection) => {
-      const row = connection
-        .prepare(
-          `SELECT a.started_at, a.exercise_snapshot_json
-           FROM attempts a JOIN exercises e ON e.exercise_id = a.exercise_id
-           WHERE a.attempt_id = ? AND a.status = 'in-progress' AND e.activity_id = ?`,
-        )
-        .get(record.attemptId, record.activityId) as Record<string, unknown> | undefined;
-      if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-      const snapshot = startedExerciseSnapshotSchema.parse(
-        parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
+      const { snapshot, answer, feedback } = readGeneratedExerciseAttempt(
+        connection,
+        record.activityId,
+        record.attemptId,
       );
       evaluateExerciseAnswer(
         snapshot.exercise,
         record.answer,
         requireLocalLearningScope(connection).targetLanguage,
       );
-      const elapsed = Math.max(
-        0,
-        Date.parse(record.submittedAt) - Date.parse(utcInstantSchema.parse(row["started_at"])),
-      );
-      const existing = connection
-        .prepare(`SELECT answer_json FROM answers WHERE attempt_id = ? AND position = 0`)
-        .get(record.attemptId) as { answer_json: string } | undefined;
-      if (existing) {
-        if (
-          JSON.stringify(exerciseAnswerSchema.parse(parseJson(existing.answer_json))) !==
-          JSON.stringify(record.answer)
-        ) {
+      if (answer) {
+        if (JSON.stringify(answer) !== JSON.stringify(record.answer))
           throw new Error("OD_EXERCISE_ANSWER_CONFLICT");
-        }
-      } else {
-        connection
-          .prepare(
-            `INSERT INTO answers (
-              attempt_id, position, submitted_after_previous_event_ms, answer_json
-            ) VALUES (?, 0, ?, ?)`,
-          )
-          .run(record.attemptId, elapsed, stringifyBounded(record.answer));
+        // Recovery reads the original result without completing or recapturing evidence.
+        return { snapshot, feedback };
       }
+      const elapsed = Math.max(0, Date.parse(record.submittedAt) - Date.parse(snapshot.startedAt));
+      connection
+        .prepare(
+          `INSERT INTO answers (
+            attempt_id, position, submitted_after_previous_event_ms, answer_json
+          ) VALUES (?, 0, ?, ?)`,
+        )
+        .run(record.attemptId, elapsed, stringifyBounded(record.answer));
       captureExerciseAttempt(connection, record.attemptId);
-      return snapshot;
+      return { snapshot, feedback: null };
     });
   }
 

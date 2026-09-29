@@ -314,7 +314,10 @@ export function ExerciseEngine({
   exercises: readonly ExerciseDefinition[];
   progress?: ExerciseProgress;
   onNewAttempt?: () => Promise<void>;
-  onAnswerSubmitted?: (answer: ExerciseAnswer, position: number) => Promise<void>;
+  onAnswerSubmitted?: (
+    answer: ExerciseAnswer,
+    position: number,
+  ) => Promise<ExerciseAiFeedback | null>;
   evaluationProgress?: ReactNode;
   onStarted?: () => void | Promise<void>;
   onCompleted?: (evaluations: readonly ExerciseEvaluation[]) => void | Promise<void>;
@@ -489,8 +492,9 @@ export function ExerciseEngine({
     }
     setSavingAnswer(true);
     setAnswerSaveFailed(false);
+    let retainedFeedback: ExerciseAiFeedback | null | undefined;
     try {
-      await onAnswerSubmitted?.(evaluation.answer, position);
+      retainedFeedback = await onAnswerSubmitted?.(evaluation.answer, position);
       setSubmittedByPosition((current) => ({ ...current, [position]: true }));
     } catch {
       setAnswerSaveFailed(true);
@@ -499,14 +503,16 @@ export function ExerciseEngine({
       setSavingAnswer(false);
     }
     if (evaluation.status === "requires-ai") {
-      if (!onAiEvaluationRequested) {
+      if (!retainedFeedback && !onAiEvaluationRequested) {
         setAiEvaluationFailed(true);
         return;
       }
       setEvaluatingWithAi(true);
       setAiEvaluationFailed(false);
       try {
-        const feedback = await onAiEvaluationRequested(evaluation, position);
+        const feedback =
+          retainedFeedback ?? (await onAiEvaluationRequested?.(evaluation, position));
+        if (!feedback) throw new Error("OD_EXERCISE_AI_FEEDBACK_REQUIRED");
         const nextEvaluations = [...evaluations, evaluation];
         setEvaluations(nextEvaluations);
         setAiFeedbackByPosition((current) => ({ ...current, [position]: feedback }));

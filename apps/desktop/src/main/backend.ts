@@ -642,9 +642,38 @@ export class DesktopBackend {
     };
   }
 
+  async #prepareExerciseFeedback(input: NonNullable<AcceptedOperation["exerciseFeedback"]>) {
+    if (!this.#repository || input.expectedGeneration !== this.#database?.rootGeneration)
+      throw new Error("OD_DATA_ROOT_STALE");
+    const saved = await this.#repository.saveGeneratedExerciseAnswer({
+      activityId: input.activityId,
+      attemptId: input.attemptId,
+      submittedAt: utcInstantSchema.parse(new Date().toISOString()),
+      answer: input.answer,
+    });
+    if (
+      evaluateExerciseAnswer(saved.snapshot.exercise, input.answer, "de").status !== "requires-ai"
+    )
+      throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
+    return saved;
+  }
+
+  #hasActiveExerciseFeedback(input: NonNullable<AcceptedOperation["exerciseFeedback"]>) {
+    return [...this.#operationsBySubmission.values()].some(
+      (accepted) =>
+        this.#activeOperations.has(accepted.operationId) &&
+        accepted.dataRootGeneration === input.expectedGeneration &&
+        accepted.exerciseFeedback?.activityId === input.activityId &&
+        accepted.exerciseFeedback.attemptId === input.attemptId,
+    );
+  }
+
   async #enrichedOperationInput(
     input: Extract<DesktopIpcRequest, { channel: "learning-operation/start" }>["payload"]["input"],
     settings: LearnerSettingsRecord,
+    feedbackSnapshot?: Awaited<
+      ReturnType<CallNinaRepository["saveGeneratedExerciseAnswer"]>
+    >["snapshot"],
   ) {
     const profile = settings.profile;
     const calibration = buildLearningCalibration(settings.learningContext, profile);
@@ -712,14 +741,8 @@ export class DesktopBackend {
     }
     if (input.kind === "exercise-feedback") {
       if (!this.#repository) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-      const snapshot = await this.#repository.saveGeneratedExerciseAnswer({
-        activityId: input.activityId,
-        attemptId: input.attemptId,
-        submittedAt: utcInstantSchema.parse(new Date().toISOString()),
-        answer: input.answer,
-      });
-      if (evaluateExerciseAnswer(snapshot.exercise, input.answer, "de").status !== "requires-ai")
-        throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
+      if (!feedbackSnapshot) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+      const snapshot = feedbackSnapshot;
       const generated = await this.#repository.readGeneratedActivity(input.activityId);
       const readingPassage = generated?.content.payload.readingMaterial?.passage;
       const readingContext = {
@@ -2136,13 +2159,13 @@ export class DesktopBackend {
           request.payload.expectedGeneration !== this.#database?.rootGeneration
         )
           return this.#failure(request, "stale-data-root");
-        await this.#repository.saveGeneratedExerciseAnswer({
+        const saved = await this.#repository.saveGeneratedExerciseAnswer({
           activityId: request.payload.activityId,
           attemptId: request.payload.attemptId,
           answer: request.payload.answer,
           submittedAt: utcInstantSchema.parse(new Date().toISOString()),
         });
-        return this.#success(request, { saved: true });
+        return this.#success(request, { saved: true, feedback: saved.feedback?.output ?? null });
       }
       if (request.channel === "exercise-set/start") {
         return this.#success(
@@ -2404,14 +2427,6 @@ export class DesktopBackend {
         return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
       }
       if (request.channel === "learning-operation/start") {
-        if (!(await this.#hasAcknowledgedAiDisclosure())) {
-          return this.#operationRequestFailure(
-            request,
-            "validation",
-            "OD_AI_DISCLOSURE_REQUIRED",
-            "ai-disclosure",
-          );
-        }
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") {
           return this.#operationRequestFailure(
@@ -2423,16 +2438,46 @@ export class DesktopBackend {
         }
         const inputFingerprint = operationInputFingerprint(request.payload.input);
         const previous = this.#operationsBySubmission.get(request.payload.submissionId);
-        if (previous) {
-          if (previous.inputFingerprint !== inputFingerprint) {
+        if (
+          previous &&
+          (previous.inputFingerprint !== inputFingerprint ||
+            previous.dataRootGeneration !== dataRoot.generation)
+        )
+          return this.#failure(request, "conflict");
+        // Requests and result projections share the queue. A cancelled UI waiter
+        // can therefore recover a committed result before any provider access.
+        const savedFeedback =
+          request.payload.input.kind === "exercise-feedback"
+            ? await this.#prepareExerciseFeedback(request.payload.input)
+            : undefined;
+        if (request.payload.input.kind === "exercise-feedback") {
+          const feedback = savedFeedback?.feedback;
+          if (feedback)
+            return this.#success(request, {
+              operationId: previous?.operationId ?? selectionId(),
+              submissionId: request.payload.submissionId,
+              status: "retained-feedback",
+              submission: "retained",
+              ...feedback,
+            });
+          if (!previous && this.#hasActiveExerciseFeedback(request.payload.input))
             return this.#failure(request, "conflict");
-          }
+        }
+        if (previous) {
           return this.#success(request, {
             operationId: previous.operationId,
             submissionId: request.payload.submissionId,
             status: "accepted",
             submission: "retained",
           });
+        }
+        if (!(await this.#hasAcknowledgedAiDisclosure())) {
+          return this.#operationRequestFailure(
+            request,
+            "validation",
+            "OD_AI_DISCLOSURE_REQUIRED",
+            "ai-disclosure",
+          );
         }
         if (!this.#makeOperationRoom()) {
           return this.#failure(request, "conflict");
@@ -2446,12 +2491,6 @@ export class DesktopBackend {
             "learner-settings-missing",
           );
         }
-        // Persist and validate submitted answers before provider availability can
-        // reject feedback. Other workloads enrich only once access is available.
-        const feedbackInput =
-          request.payload.input.kind === "exercise-feedback"
-            ? await this.#enrichedOperationInput(request.payload.input, learnerSettings)
-            : undefined;
         const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (!access.modelSelection || !this.#generation)
@@ -2467,8 +2506,11 @@ export class DesktopBackend {
             effort: { selection: "exact", effortId: access.modelSelection.effortId },
           },
           input: {
-            ...(feedbackInput ??
-              (await this.#enrichedOperationInput(request.payload.input, learnerSettings))),
+            ...(await this.#enrichedOperationInput(
+              request.payload.input,
+              learnerSettings,
+              savedFeedback?.snapshot,
+            )),
             learningContext: learnerSettings.learningContext,
           },
         });
@@ -2483,10 +2525,7 @@ export class DesktopBackend {
             : {}),
           ...(request.payload.input.kind === "exercise-feedback"
             ? {
-                exerciseFeedback: {
-                  activityId: request.payload.input.activityId,
-                  attemptId: request.payload.input.attemptId,
-                },
+                exerciseFeedback: request.payload.input,
               }
             : {}),
         });
@@ -2502,26 +2541,40 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "learning-operation/retry") {
-        if (!(await this.#hasAcknowledgedAiDisclosure())) {
-          return this.#failure(request, "validation");
-        }
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
         const prior = [...this.#operationsBySubmission.values()].find(
           ({ operationId }) => operationId === request.payload.previousOperationId,
         );
         if (!prior) return this.#failure(request, "not-found");
-        if (!this.#retryableOperations.has(prior.operationId)) {
-          return this.#failure(request, "conflict");
-        }
         if (prior.dataRootGeneration !== dataRoot.generation) {
           return this.#failure(request, "stale-data-root");
         }
         const replay = this.#operationsBySubmission.get(request.payload.submissionId);
+        if (
+          replay &&
+          (replay.inputFingerprint !== prior.inputFingerprint ||
+            replay.dataRootGeneration !== dataRoot.generation)
+        )
+          return this.#failure(request, "conflict");
+        if (prior.exerciseFeedback) {
+          const { feedback } = await this.#prepareExerciseFeedback(prior.exerciseFeedback);
+          if (feedback)
+            return this.#success(request, {
+              operationId: replay?.operationId ?? selectionId(),
+              submissionId: request.payload.submissionId,
+              status: "retained-feedback",
+              submission: "retained",
+              ...feedback,
+            });
+        }
+        if (!this.#retryableOperations.has(prior.operationId)) {
+          return this.#failure(request, "conflict");
+        }
+        if (!(await this.#hasAcknowledgedAiDisclosure())) {
+          return this.#failure(request, "validation");
+        }
         if (replay) {
-          if (replay.inputFingerprint !== prior.inputFingerprint) {
-            return this.#failure(request, "conflict");
-          }
           return this.#success(request, {
             operationId: replay.operationId,
             submissionId: request.payload.submissionId,
@@ -2529,6 +2582,8 @@ export class DesktopBackend {
             submission: "retained",
           });
         }
+        if (prior.exerciseFeedback && this.#hasActiveExerciseFeedback(prior.exerciseFeedback))
+          return this.#failure(request, "conflict");
         if (!this.#makeOperationRoom(prior.operationId)) {
           return this.#failure(request, "conflict");
         }
