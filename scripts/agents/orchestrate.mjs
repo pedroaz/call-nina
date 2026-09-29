@@ -6,6 +6,11 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { parse } from "smol-toml";
 import { taskBranch } from "./lib/task-metadata.mjs";
+import {
+  assignmentPolicy,
+  assignmentSettings,
+  assertEffectiveSettings,
+} from "./lib/assignment-policy.mjs";
 import { developmentConfig } from "../lib/config.mjs";
 import {
   root,
@@ -42,12 +47,14 @@ const bindingFile = path.join(stateRoot, "run.json");
 const startupFile = path.join(stateRoot, "coordinator-start.json");
 const help = `Call Nina Orca coordination (Git owns integration):
   No arguments: start an Orca-managed coordinator using its role settings.
-  roles | doctor
+  roles | policy | doctor
+  select                   Read-only selection check: role + execution JSON on stdin
   start [--idle]            Managed coordinator; --idle delivers policy then waits for user work
   start --role product-owner  Interactive planning agent in this terminal
   bind --run RUN --coordinator HANDLE
   task                     Assignment JSON on stdin: run, role, title, brief,
-                           owned:[], acceptance:[], exclusions:[], skills:[], deps:[], issue + branch (writers), commit (reviewer/verifier)
+                           owned:[], acceptance:[], exclusions:[], skills:[], deps:[], issue + branch (writers), commit (reviewer/verifier),
+                           execution:{risk,model,effort,rationale,escalation?}; see policy
   launch --run RUN --task TASK --worktree PATH --baseline COMMIT
   verify-enter --run RUN --worktree PATH
   verify-leave --run RUN
@@ -449,6 +456,12 @@ function startCoordinator() {
 }
 function main() {
   if (command === "help") return { help };
+  if (command === "policy") return assignmentPolicy;
+  if (command === "select") {
+    const input = JSON.parse(readFileSync(0, "utf8"));
+    const selected = assignmentSettings(input);
+    return { role: role(input.role).name, execution: input.execution, ...selected };
+  }
   if (["roles", "doctor"].includes(command)) {
     const configs = readdirSync(path.join(root, ".codex/agents"))
       .filter((n) => n.endsWith(".toml"))
@@ -542,7 +555,7 @@ function main() {
     if (command === "task") {
       const input = JSON.parse(readFileSync(0, "utf8"));
       const binding = bound(input.run);
-      const config = role(input.role);
+      const config = { ...role(input.role), ...assignmentSettings(input) };
       if (["coordinator", "product-owner"].includes(input.role))
         throw new Error("MAIN_ROLE_CANNOT_BE_WORKER");
       for (const key of ["title", "brief"])
@@ -585,7 +598,7 @@ function main() {
       const task = all.find((item) => item.id === values.task);
       if (!task || task.status !== "ready") throw new Error("TASK_NOT_READY");
       const spec = assignment(task);
-      const config = role(spec.role);
+      const config = { ...role(spec.role), ...assignmentSettings(spec) };
       const limits = developmentConfig().workers;
       if (
         active.length >= limits.maximum ||
@@ -622,6 +635,7 @@ function main() {
         target,
         baseline,
         role: spec.role,
+        execution: spec.execution,
       });
       const result = orca([
         "orchestration",
@@ -642,11 +656,7 @@ function main() {
         config.model_reasoning_effort,
       ]);
       save(receiptFile(task.id) + ".receipt", result);
-      if (
-        result.launch?.effective?.model !== config.model ||
-        result.launch?.effective?.effort !== config.model_reasoning_effort
-      )
-        throw new Error("LAUNCH_PREFERENCES_UNCONFIRMED: reconcile saved receipt");
+      assertEffectiveSettings(result, config);
       return result;
     }
     if (command === "verify-enter") {
