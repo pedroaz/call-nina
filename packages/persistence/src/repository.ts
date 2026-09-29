@@ -1,3 +1,9 @@
+import { linkPortableContent } from "./materials.js";
+import {
+  contentMaterialInputSchema,
+  preparePortableContent,
+  readStoredExerciseContent,
+} from "./content.js";
 import {
   vocabularySearchPolicy,
   readLocalLearningScope,
@@ -13,6 +19,8 @@ import type { DatabaseSync } from "node:sqlite";
 
 import {
   learningContextSchema,
+  learningGoalSchema,
+  portableExerciseContentSchema,
   type LearningCourse,
   type CourseEvidence,
   vocabularyLibraryFilterSchema,
@@ -54,8 +62,7 @@ import {
   defaultModelPreferences,
   exerciseAnswerSchema,
   evaluateExerciseAnswer,
-  materializeGeneratedExerciseSet,
-  materializeGeneratedLesson,
+  materializeContentExercises,
   learnerProfileSchema,
   mistakeCategorySchema,
   modelPreferencesSchema,
@@ -248,6 +255,8 @@ export type MistakePatternRecord = Readonly<{
 }>;
 
 export const targetedPracticeActivitySchema = strictBoundaryObject({
+  material: contentMaterialInputSchema,
+  learnerGoal: learningGoalSchema,
   activity: preparedActivitySchema,
   category: mistakeCategorySchema,
   aiProvenance: aiProvenanceSchema,
@@ -256,6 +265,8 @@ export const targetedPracticeActivitySchema = strictBoundaryObject({
 });
 export type TargetedPracticeActivity = z.infer<typeof targetedPracticeActivitySchema>;
 export const generatedPracticeActivitySchema = strictBoundaryObject({
+  material: contentMaterialInputSchema,
+  learnerGoal: learningGoalSchema,
   activity: preparedActivitySchema,
   aiProvenance: aiProvenanceSchema,
   output: exerciseGenerationCandidateSchema,
@@ -268,7 +279,7 @@ export const generatedActivityReadSchema = strictBoundaryObject({
   title: z.string().min(1).max(160),
   context: preparedActivitySchema.shape.context,
   aiProvenance: aiProvenanceSchema,
-  output: exerciseGenerationCandidateSchema,
+  content: portableExerciseContentSchema,
 });
 export const generatedExerciseSetStartSchema = strictBoundaryObject({
   activityId: activityIdSchema,
@@ -2459,6 +2470,7 @@ export class CallNinaRepository {
         recordedAt: record.activity.preparedAt,
       });
       if (claim.replayed) return claim;
+      const content = preparePortableContent(connection, record);
       connection
         .prepare(
           `INSERT INTO prepared_activities (
@@ -2487,8 +2499,9 @@ export class CallNinaRepository {
           modelSelection.modelId,
           modelSelection.effortId,
           record.aiProvenance.generatedAt,
-          stringifyBounded(record.output),
+          stringifyBounded(content, 1_048_576),
         );
+      linkPortableContent(connection, record.activity.activityId, content);
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
          VALUES (?, ?, ?)`,
@@ -2538,6 +2551,7 @@ export class CallNinaRepository {
         recordedAt: record.activity.preparedAt,
       });
       if (claim.replayed) return claim;
+      const content = preparePortableContent(connection, record);
       connection
         .prepare(
           `INSERT INTO prepared_activities (
@@ -2566,8 +2580,9 @@ export class CallNinaRepository {
           modelSelection.modelId,
           modelSelection.effortId,
           record.aiProvenance.generatedAt,
-          stringifyBounded(record.output),
+          stringifyBounded(content, 1_048_576),
         );
+      linkPortableContent(connection, record.activity.activityId, content);
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
          VALUES (?, ?, ?)`,
@@ -2619,7 +2634,7 @@ export class CallNinaRepository {
             effortId: row["effort_id"],
           },
         },
-        output: parseJson(row["output_json"]),
+        content: readStoredExerciseContent(connection, activityId, parseJson(row["output_json"])),
       });
     });
   }
@@ -2712,19 +2727,17 @@ export class CallNinaRepository {
           effortId: row["effort_id"],
         },
       });
-      const output = exerciseGenerationCandidateSchema.parse(parseJson(row["output_json"]));
+      const content = readStoredExerciseContent(
+        connection,
+        record.activityId,
+        parseJson(row["output_json"]),
+      );
       const materializeOptions = {
         exerciseIds: record.exercises.map(({ snapshot }) => snapshot.exercise.exerciseId),
         aiProvenance: provenance,
         curriculumTopicIds: context.curriculumTopicIds,
       };
-      const lesson = materializeGeneratedLesson(output, {
-        ...materializeOptions,
-        activityId: record.activityId,
-        naturalRequest: context.naturalRequest,
-      });
-      const expected =
-        lesson?.exercises ?? materializeGeneratedExerciseSet(output, materializeOptions);
+      const expected = materializeContentExercises(content, materializeOptions);
       for (const [position, exercise] of expected.entries()) {
         const started = record.exercises[position];
         if (
@@ -2768,6 +2781,11 @@ export class CallNinaRepository {
             record.startedAt,
             stringifyBounded(started.snapshot),
           );
+        connection
+          .prepare(
+            "INSERT INTO attempt_content_revisions(attempt_id, content_revision_id) VALUES (?, ?)",
+          )
+          .run(started.attemptId, content.revisionId);
       }
     });
   }
@@ -2892,9 +2910,11 @@ export class CallNinaRepository {
         .prepare("SELECT output_json FROM generated_activity_payloads WHERE activity_id = ?")
         .get(record.activityId) as { output_json: string } | undefined;
       if (!payload) throw new Error("OD_GENERATED_ACTIVITY_NOT_FOUND");
-      const readingMaterial = exerciseGenerationCandidateSchema.parse(
+      const readingMaterial = readStoredExerciseContent(
+        connection,
+        record.activityId,
         parseJson(payload.output_json),
-      ).readingMaterial;
+      ).payload.readingMaterial;
       const expectedCount = (
         connection
           .prepare(

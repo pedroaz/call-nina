@@ -104,3 +104,5 @@ export {
   updateFlashcardProgress,
   saveFlashcardVocabulary,
 } from "./flashcards.js";
+
+export { saveMaterial, readMaterialRevision, listMaterials } from "./materials.js";

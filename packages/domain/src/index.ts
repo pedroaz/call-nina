@@ -108,6 +108,7 @@ export {
 export {
   materializeGeneratedExercise,
   materializeGeneratedExerciseSet,
+  materializeContentExercises,
   materializeGeneratedLesson,
 } from "./generated-exercise.js";
 export {

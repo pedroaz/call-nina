@@ -1,5 +1,8 @@
 import {
   activityIdSchema,
+  contentReferenceSchema,
+  contentExerciseRevisionSchema,
+  materialReferenceSchema,
   boundaryUnion,
   curriculumTopicIdSchema,
   exerciseIdSchema,
@@ -111,6 +114,12 @@ export const vocabularySetLinkSchema = z.discriminatedUnion("source", [
 
 const sharedExerciseShape = {
   exerciseId: exerciseIdSchema,
+  contentReference: contentReferenceSchema
+    .extend({
+      exercise: contentExerciseRevisionSchema,
+      materials: z.array(materialReferenceSchema).length(1),
+    })
+    .optional(),
   aiProvenance: aiProvenanceSchema,
   cefrBand: cefrBandSchema,
   objectives: z.array(learningObjectiveSchema).min(1).max(12),

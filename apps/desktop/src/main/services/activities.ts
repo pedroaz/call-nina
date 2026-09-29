@@ -11,7 +11,7 @@ import {
   type DesktopIpcEvent,
 } from "@call-nina/contracts";
 import {
-  materializeGeneratedExerciseSet,
+  materializeContentExercises,
   resolveActivityDestination,
   resolveCourseReference,
 } from "@call-nina/domain";
@@ -122,7 +122,7 @@ export class ActivityService {
         modelId: generated.aiProvenance.modelSelection.modelId,
         effortId: generated.aiProvenance.modelSelection.effortId,
       },
-      output: generated.output,
+      content: generated.content,
     };
   }
 
@@ -145,8 +145,8 @@ export class ActivityService {
     });
     if (!generated) throw new Error("OD_ACTIVITY_NOT_FOUND");
     const startedAt = utcInstantSchema.parse(new Date().toISOString());
-    const definitions = materializeGeneratedExerciseSet(generated.output, {
-      exerciseIds: generated.output.exercises.map(() =>
+    const definitions = materializeContentExercises(generated.content, {
+      exerciseIds: generated.content.payload.exercises.map(() =>
         exerciseIdSchema.parse(opaqueId("exercise")),
       ),
       aiProvenance: generated.aiProvenance,

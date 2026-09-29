@@ -3,6 +3,7 @@ import { LearningResultService } from "./services/learning-results.js";
 import { desktopPathOption } from "./options.js";
 import {
   readFlashcards,
+  readMaterialRevision,
   createVocabularyFlashcards,
   updateFlashcardProgress,
   saveFlashcardVocabulary,
@@ -704,7 +705,7 @@ export class DesktopBackend {
         answer: input.answer,
       });
       const generated = await this.#repository.readGeneratedActivity(input.activityId);
-      const readingPassage = generated?.output.readingMaterial?.passage;
+      const readingPassage = generated?.content.payload.readingMaterial?.passage;
       const readingContext = {
         ...(readingPassage ? { readingPassage } : {}),
         ...(generated?.context.courseTeaching?.objectives.length
@@ -866,6 +867,33 @@ export class DesktopBackend {
           },
         };
       }
+      if (input.request.source === "saved-material") {
+        if (!this.#database || input.request.expectedGeneration !== this.#database.rootGeneration)
+          throw new Error("OD_DATA_ROOT_STALE");
+        const material = await readMaterialRevision(this.#database, input.request.material);
+        return {
+          kind: input.kind,
+          ...reviewContext,
+          materialReference: input.request.material,
+          material: {
+            kind: material.kind,
+            title: material.title,
+            language: material.language,
+            text: material.text,
+            ...(material.source ? { source: material.source } : {}),
+          },
+          naturalRequest:
+            material.kind === "topic"
+              ? material.text.slice(0, 2_000)
+              : "Practise comprehension of the selected passage.",
+          ...(material.kind === "pasted-text" ? { reading: { passage: material.text } } : {}),
+          requestedExerciseCount: input.request.exerciseCount ?? 6,
+          calibration,
+          curriculumTopicIds: [],
+          relevantMistakeIds: [],
+          relevantVocabularyIds: [],
+        };
+      }
       if (input.request.source === "prepared-activity") {
         const prepared = await (
           await this.#activities(selectionId())
@@ -889,6 +917,19 @@ export class DesktopBackend {
         kind: input.kind,
         ...reviewContext,
         naturalRequest: input.request.naturalRequest,
+        material: {
+          kind:
+            input.request.source === "reading" && input.request.passage
+              ? ("pasted-text" as const)
+              : ("topic" as const),
+          title: input.request.materialTitle ?? input.request.naturalRequest.trim().slice(0, 160),
+          language: "de" as const,
+          text:
+            input.request.source === "reading" && input.request.passage
+              ? input.request.passage
+              : input.request.naturalRequest,
+          ...(input.request.materialSource ? { source: input.request.materialSource } : {}),
+        },
         ...(input.request.source === "grammar" ? { practiceType: "grammar" as const } : {}),
         ...(input.request.source === "reading"
           ? { reading: { passage: input.request.passage ?? null } }

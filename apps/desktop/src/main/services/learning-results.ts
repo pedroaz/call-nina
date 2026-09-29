@@ -292,6 +292,7 @@ export class LearningResultService {
           effortId: selection.effort.effortId,
         },
       },
+      { learnerGoal: input.learningContext.goal, topic: input.topic },
       accepted.operationId,
     );
     this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
@@ -376,11 +377,20 @@ export class LearningResultService {
       },
       state: { status: "candidate" as const, confirmation: "required" as const },
     }));
+    const material = operation.input.materialReference ??
+      operation.input.material ?? {
+        kind: operation.input.reading?.passage ? ("pasted-text" as const) : ("topic" as const),
+        title: activity.title,
+        language: operation.input.learningContext.targetLanguage,
+        text: operation.input.reading?.passage ?? operation.input.naturalRequest,
+      };
     if (operation.input.targetedMistakePattern) {
       await repository.saveTargetedPracticeActivity(
         {
           activity,
           category: operation.input.targetedMistakePattern.category,
+          material,
+          learnerGoal: operation.input.learningContext.goal,
           aiProvenance,
           output: state.output,
           vocabularyEntries,
@@ -389,7 +399,14 @@ export class LearningResultService {
       );
     } else {
       await repository.saveGeneratedPracticeActivity(
-        { activity, aiProvenance, output: state.output, vocabularyEntries },
+        {
+          activity,
+          material,
+          learnerGoal: operation.input.learningContext.goal,
+          aiProvenance,
+          output: state.output,
+          vocabularyEntries,
+        },
         accepted.operationId,
       );
     }

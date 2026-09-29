@@ -1,3 +1,4 @@
+import { migrateVersionedContent } from "./content.js";
 import type { DataRootGeneration } from "@call-nina/contracts";
 
 import { openDataRootDatabase, type DatabaseMigration } from "./sqlite.js";
@@ -1417,6 +1418,38 @@ export const callNinaMigrations = [
         WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
         BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
     `,
+  },
+  {
+    version: 25,
+    name: "versioned-materials-portable-content",
+    sql: `
+      CREATE TABLE material_revisions (
+        material_id TEXT NOT NULL,
+        revision_id TEXT PRIMARY KEY,
+        revision INTEGER NOT NULL CHECK(revision > 0),
+        revision_json TEXT NOT NULL CHECK(json_valid(revision_json)),
+        learning_scope_id INTEGER NOT NULL DEFAULT 1 REFERENCES local_learning_scope(singleton),
+        UNIQUE(material_id, revision)
+      ) STRICT;
+      CREATE TRIGGER material_revision_immutable BEFORE UPDATE ON material_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_MATERIAL_REVISION_IMMUTABLE'); END;
+      CREATE TABLE activity_content_revisions (
+        activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+        revision_id TEXT NOT NULL UNIQUE,
+        material_revision_id TEXT NOT NULL REFERENCES material_revisions(revision_id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE TRIGGER activity_content_revision_immutable BEFORE UPDATE ON activity_content_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;
+      CREATE TABLE attempt_content_revisions (
+        attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id) ON DELETE CASCADE,
+        content_revision_id TEXT NOT NULL REFERENCES activity_content_revisions(revision_id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE TRIGGER attempt_content_revision_immutable BEFORE UPDATE ON attempt_content_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;
+      DROP TRIGGER generated_activity_payload_immutable;
+      ALTER TABLE flashcard_decks RENAME COLUMN cards_json TO content_json;
+    `,
+    migrate: migrateVersionedContent,
   },
 ] as const satisfies readonly DatabaseMigration[];
 

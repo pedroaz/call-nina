@@ -243,3 +243,7 @@ export * from "./flashcards.js";
 export * from "./learning-context.js";
 
 export * from "./german-language.js";
+export * from "./material.js";
+export * from "./content.js";
+
+export * from "./content-reference.js";
