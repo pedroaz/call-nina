@@ -16,3 +16,9 @@
   line-height: var(--od-line-tight);
   margin: 0 0 var(--od-space-3);
 }
+
+.practiceSecondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-3);
+}

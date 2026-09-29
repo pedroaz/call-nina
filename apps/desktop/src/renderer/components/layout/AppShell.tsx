@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 import {
+  ChevronLeft,
   type LucideIcon,
   PanelLeftClose,
   PanelLeftOpen,
@@ -19,6 +20,9 @@ export type ShellNavigationItem<Page extends string> = Readonly<{
 export function AppShell<Page extends string>(props: {
   activePage: Page;
   navigation: ReadonlyArray<ShellNavigationItem<Page>>;
+  settingsNavigation: ShellNavigationItem<Page>;
+  parent?: { label: string; onPress: () => void };
+  locationLabel: string;
   navigationLabel: string;
   brandName: string;
   brandMark: string;
@@ -154,15 +158,46 @@ export function AppShell<Page extends string>(props: {
               );
             })}
           </ul>
+          <ul className={`${styles.navList} ${styles.settingsNavigation}`}>
+            {(() => {
+              const { page, label, icon: Icon } = props.settingsNavigation;
+              const control = (
+                <button
+                  aria-label={label}
+                  aria-current={props.activePage === page ? "page" : undefined}
+                  className={styles.navButton}
+                  data-nav
+                  onClick={() => {
+                    props.onNavigate(page);
+                  }}
+                  onKeyDown={props.onMoveNavFocus}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" />
+                  <span className={styles.navLabel}>{label}</span>
+                </button>
+              );
+              return (
+                <li>{props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}</li>
+              );
+            })()}
+          </ul>
           {props.navFooter && <div className={styles.navFooter}>{props.navFooter}</div>}
         </div>
       </nav>
       <main className={styles.workspace} id="main-content">
         <div className={styles.workspaceInner}>
           <header className={styles.workspaceHeader}>
-            <span className={styles.location}>
-              {props.navigation.find((item) => item.page === props.activePage)?.label}
-            </span>
+            <div className={styles.location}>
+              {props.parent && (
+                <button className={styles.parentLink} onClick={props.parent.onPress} type="button">
+                  <ChevronLeft aria-hidden="true" />
+                  {props.parent.label}
+                </button>
+              )}
+              {props.parent && <span aria-hidden="true">/</span>}
+              <span aria-current="page">{props.locationLabel}</span>
+            </div>
             {!helperOpen && (
               <IconButton
                 variant="quiet"

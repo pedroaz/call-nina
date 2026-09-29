@@ -92,6 +92,9 @@ function modelValue(preference: ModelPreferences[ModelWorkload]): string {
 export function SettingsPage({
   readiness,
   onRunSetup,
+  onOpenPersonalData,
+  selectedTab,
+  onTabChange,
   adapter = desktopSettingsAdapter,
   onDataRootChanged = () => {
     window.location.reload();
@@ -99,11 +102,13 @@ export function SettingsPage({
 }: {
   readiness: Readiness;
   onRunSetup: () => void;
+  onOpenPersonalData: () => void;
+  selectedTab: string;
+  onTabChange: (tab: string) => void;
   adapter?: DesktopSettingsAdapter;
   onDataRootChanged?: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
-  const [tab, setTab] = useState("profile");
   const [account, setAccount] = useState<Account>();
   const [catalog, setCatalog] = useState<Catalog>();
   const [limits, setLimits] = useState<Limits>();
@@ -383,6 +388,13 @@ export function SettingsPage({
         <Button isDisabled={loading || busy || dirty} onPress={onRunSetup}>
           {t("onboarding.runAgain")}
         </Button>
+        <Button
+          variant="secondary"
+          isDisabled={loading || busy || dirty}
+          onPress={onOpenPersonalData}
+        >
+          {t("nav.personalData")}
+        </Button>
         {dirty && <span>{t("onboarding.saveSettingsFirst")}</span>}
       </ActionGroup>
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
@@ -399,8 +411,8 @@ export function SettingsPage({
       )}
 
       <Tabs
-        selectedKey={tab}
-        onSelectionChange={setTab}
+        selectedKey={selectedTab}
+        onSelectionChange={onTabChange}
         label={t("settings.title")}
         items={[
           {
@@ -855,9 +867,9 @@ export function SettingsPage({
         ]}
       />
 
-      {draft && (tab === "profile" || tab === "models" || dirty) && (
+      {draft && (selectedTab === "profile" || selectedTab === "models" || dirty) && (
         <div className={styles.settingsActions}>
-          {tab === "models" && (
+          {selectedTab === "models" && (
             <Button
               isDisabled={busy}
               onPress={() => {
