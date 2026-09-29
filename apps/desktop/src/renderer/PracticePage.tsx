@@ -152,7 +152,9 @@ export function PracticePage({
   const [libraryMutationError, setLibraryMutationError] = useState<CallNinaError>();
   const libraryError = libraryMutationError ?? library.error;
   const [prepared, setPrepared] =
-    useState<Extract<DesktopIpcResponse, { status: "ok"; channel: "activity/read" }>["result"]>();
+    useState<
+      Extract<DesktopIpcResponse, { status: "ok"; channel: "activity/resolve" }>["result"]
+    >();
 
   const generated = prepared?.activity.activityId === activityId ? generatedResult : undefined;
   useEffect(() => {
@@ -179,11 +181,11 @@ export function PracticePage({
       setError(undefined);
       if (!activityId) return;
       window.scrollTo(0, 0);
-      void invokeDesktop("activity/read", { activityId })
+      void invokeDesktop("activity/resolve", { action: "open-activity", activityId })
         .then(async (result) => {
           if (!current) return;
           setPrepared(result);
-          if (result.generated && result.activity.activityType !== "flashcards") {
+          if (result.destination === "generated-exercises") {
             const loaded = await invokeDesktop("prepared-activity/read", { activityId });
             if (isCurrent()) setGenerated(loaded);
           }
@@ -233,7 +235,7 @@ export function PracticePage({
   if (
     activityId &&
     prepared?.activity.activityId === activityId &&
-    prepared.activity.activityType === "flashcards"
+    prepared.destination === "flashcards"
   ) {
     return (
       <FlashcardWorkspace
@@ -248,7 +250,7 @@ export function PracticePage({
     activityId &&
     prepared &&
     prepared.activity.activityId === activityId &&
-    !prepared.generated
+    prepared.destination === "prepared"
   ) {
     return (
       <PreparedActivityWorkspace

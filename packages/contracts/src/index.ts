@@ -1,4 +1,12 @@
 export {
+  activityActionSchema,
+  activityDestinationSchema,
+  openActivityActionSchema,
+  type ActivityAction,
+  type ActivityDestination,
+} from "./activity-action.js";
+
+export {
   boundarySurfaceSchema,
   boundarySurfaces,
   boundaryUnion,

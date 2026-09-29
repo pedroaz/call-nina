@@ -16,7 +16,10 @@ import { OperationError } from "./Startup.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 import { generatePracticeActivity } from "./generatePracticeActivity.js";
 
-type Prepared = Extract<DesktopIpcResponse, { status: "ok"; channel: "activity/read" }>["result"];
+type Prepared = Extract<
+  DesktopIpcResponse,
+  { status: "ok"; channel: "activity/resolve" }
+>["result"];
 export function PreparedActivityWorkspace({
   prepared,
   parentLabel,
