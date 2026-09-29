@@ -18,6 +18,7 @@ Inspect the current implementation and runtime capabilities before diagnosing co
 ## Decisions to preserve
 
 - Main owns App Server over local STDIO; MCP is independently launched STDIO and keeps stdout protocol-only. Renderer receives neither raw protocols nor generic execution capabilities.
+- Bind saved model/effort choices and operation access to the selected implemented route. Recheck account, model and operation capabilities before dispatch; retries retain their original model/effort. Codex Voice handoff checks its own integration capabilities and plugin, independently of structured generation model settings. Provider connection failures must not block local setup or prepared practice.
 - Keep desktop workloads bounded by the owning sandbox, tool, deadline and output contracts. Read the installed runtime's model catalog; a CLI version, registration or resource probe is not evidence of a working learner action.
 - Before changing host/API, manifest or installation assumptions, consult current official OpenAI documentation. Do not create a local copy of that documentation. Do not weaken validation to accommodate unsupported behavior.
 - Scope plugin operations to Call Nina and preserve unrelated configuration. Inspect Make targets and lifecycle code; do not reinstall merely because a skill changed. Report when an installed copy still needs a refresh.

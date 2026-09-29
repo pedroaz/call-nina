@@ -204,10 +204,10 @@ export type AppServerCommand = z.infer<typeof appServerCommandSchema>;
 export type AppServerCommandName = z.infer<typeof appServerCommandNameSchema>;
 // Structural adapter support; account, installation and session availability are checked at use.
 export const codexIntegrationCapabilitiesSchema = z.strictObject({
-  voiceHandoff: z.literal(true),
-  externalConversation: z.literal(true),
-  localMcp: z.literal(true),
-  plugin: z.literal(true),
+  voiceHandoff: z.boolean(),
+  externalConversation: z.boolean(),
+  localMcp: z.boolean(),
+  plugin: z.boolean(),
 });
 export interface CallNinaAppServerAdapter<
   Outputs extends GenerationOutputMap = GenerationOutputMap,

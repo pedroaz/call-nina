@@ -1514,6 +1514,16 @@ export const callNinaMigrations = [
     `,
     migrate: migrateAttemptEvidence,
   },
+  {
+    version: 27,
+    name: "codex-route-model-preferences",
+    sql: `
+      ALTER TABLE model_preference_defaults
+        ADD COLUMN route_id TEXT NOT NULL DEFAULT 'codex' CHECK(route_id = 'codex');
+      ALTER TABLE model_preference_overrides
+        ADD COLUMN route_id TEXT NOT NULL DEFAULT 'codex' CHECK(route_id = 'codex');
+    `,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

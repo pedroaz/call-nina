@@ -1,3 +1,8 @@
+import {
+  providerRouteIdSchema,
+  providerOperationSchema,
+  providerAccessSchema,
+} from "./provider-access.js";
 import { generationProvenanceSchema } from "./generation-provenance.js";
 import { attemptEvidenceSchema, externalAttemptFeedbackSchema } from "./attempt-evidence.js";
 import { materialReferenceSchema, materialSourceSchema } from "./material.js";
@@ -64,6 +69,7 @@ const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
   "app/readiness",
+  "provider/access/read",
   "data-root/read",
   "data-root/choose",
   "data-root/confirm",
@@ -145,6 +151,10 @@ const request = <
     payload,
   });
 
+const providerAccessReadRequest = request(
+  "provider/access/read",
+  z.strictObject({ routeId: providerRouteIdSchema, operation: providerOperationSchema }),
+);
 const appReadinessRequest = request("app/readiness", emptyPayload);
 const dataRootReadRequest = request("data-root/read", emptyPayload);
 const dataRootChooseRequest = request(
@@ -193,6 +203,7 @@ const modelPreferenceSchema = z.strictObject({
   ]),
 });
 const persistedModelPreferencesSchema = z.strictObject({
+  routeId: providerRouteIdSchema,
   schemaVersion: z.literal(1),
   correction: modelPreferenceSchema,
   generation: modelPreferenceSchema,
@@ -616,7 +627,11 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
 
 const learningOperationStartRequest = request(
   "learning-operation/start",
-  z.strictObject({ submissionId: correlationIdSchema, input: learningOperationInputSchema }),
+  z.strictObject({
+    routeId: providerRouteIdSchema,
+    submissionId: correlationIdSchema,
+    input: learningOperationInputSchema,
+  }),
 );
 const learningOperationCancelRequest = request(
   "learning-operation/cancel",
@@ -625,6 +640,7 @@ const learningOperationCancelRequest = request(
 const learningOperationRetryRequest = request(
   "learning-operation/retry",
   z.strictObject({
+    routeId: providerRouteIdSchema,
     previousOperationId: correlationIdSchema,
     submissionId: correlationIdSchema,
   }),
@@ -632,6 +648,7 @@ const learningOperationRetryRequest = request(
 
 export const desktopIpcRequestSchema = boundaryUnion([
   appReadinessRequest,
+  providerAccessReadRequest,
   dataRootReadRequest,
   dataRootChooseRequest,
   dataRootConfirmRequest,
@@ -756,6 +773,7 @@ const response = <
     result,
   });
 
+const providerAccessReadResponse = response("provider/access/read", providerAccessSchema);
 const appReadinessResponse = response(
   "app/readiness",
   z.strictObject({
@@ -1542,6 +1560,7 @@ const errorResponse = strictBoundaryObject({
 
 export const desktopIpcResponseSchema = boundaryUnion([
   appReadinessResponse,
+  providerAccessReadResponse,
   dataRootReadResponse,
   dataRootChooseResponse,
   dataRootConfirmResponse,

@@ -1,3 +1,9 @@
+import {
+  type ProviderOperation,
+  exerciseFeedbackCandidateSchema,
+  type DesktopIpcResponse,
+  type CallNinaError,
+} from "@call-nina/contracts";
 import { PracticeCount, validPracticeCount } from "./PracticeCount.js";
 import { FlashcardWorkspace } from "./FlashcardWorkspace.js";
 import { OperationProgress } from "./OperationProgress.js";
@@ -10,11 +16,6 @@ import { useActivityLibrary } from "./useActivityLibrary.js";
 import { generatePracticeActivity } from "./generatePracticeActivity.js";
 import { OperationError } from "./Startup.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  exerciseFeedbackCandidateSchema,
-  type DesktopIpcResponse,
-  type CallNinaError,
-} from "@call-nina/contracts";
 import { materializeContentExercises } from "@call-nina/domain";
 import {
   BookOpen,
@@ -74,7 +75,7 @@ export function PracticePage({
   parentLabel?: string;
   initialPreparation?: Extract<PracticeLaunch, { destination: "preparation" }>;
   activityId?: PreparedActivityId;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenActivity: (activityId: PreparedActivityId) => void;
   onCloseActivity: () => void;
   onVocabulary?: () => void;
@@ -381,7 +382,8 @@ export function PracticePage({
                 setStartedAttemptIds(started.attemptIds);
               }}
               onAiEvaluationRequested={async (evaluation, exercisePosition) => {
-                if (!(await requestAiAccess())) throw new Error("OD_AI_DISCLOSURE_REQUIRED");
+                if (!(await requestAiAccess("exercise-feedback")))
+                  throw new Error("OD_AI_DISCLOSURE_REQUIRED");
                 const attemptId = startedAttemptIds?.[exercisePosition];
                 if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
                 if (
@@ -427,7 +429,12 @@ export function PracticePage({
     requestedLesson: string,
     source: "natural-request" | "grammar",
   ) => {
-    if (!quizCountValid || !requestedLesson.trim() || !(await requestAiAccess())) return;
+    if (
+      !quizCountValid ||
+      !requestedLesson.trim() ||
+      !(await requestAiAccess("exercise-generation"))
+    )
+      return;
     setGenerationError(undefined);
     try {
       const createdId = await generatePracticeActivity(
@@ -464,7 +471,11 @@ export function PracticePage({
     />
   );
   const generateFlashcards = async () => {
-    if (!validPracticeCount(cardCount) || !flashcardTopic.trim() || !(await requestAiAccess()))
+    if (
+      !validPracticeCount(cardCount) ||
+      !flashcardTopic.trim() ||
+      !(await requestAiAccess("flashcard-generation"))
+    )
       return;
     setGenerationError(undefined);
     try {

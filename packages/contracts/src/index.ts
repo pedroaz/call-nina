@@ -260,3 +260,12 @@ export * from "./content-limits.js";
 
 export { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
 export * from "./attempt-evidence.js";
+
+export {
+  providerRouteIdSchema,
+  providerOperationSchema,
+  providerAccessSchema,
+  providerAccessReasonSchema,
+  type ProviderOperation,
+  type ProviderAccess,
+} from "./provider-access.js";

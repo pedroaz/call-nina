@@ -16,6 +16,8 @@ import path from "node:path";
 
 import {
   type GenerationService,
+  type ProviderAccess,
+  type ProviderOperation,
   learnerIdSchema,
   activityIdSchema,
   correlationIdSchema,
@@ -1035,6 +1037,120 @@ export class DesktopBackend {
     };
   }
 
+  async #providerAccess(
+    operation: ProviderOperation,
+    correlationId: string,
+    retainedSelection?: AcceptedOperation["operation"]["modelSelection"],
+  ): Promise<ProviderAccess> {
+    const unavailable = (
+      reason: Extract<ProviderAccess, { status: "unavailable" }>["reason"],
+    ): ProviderAccess => ({ routeId: "codex", operation, status: "unavailable", reason });
+    let appServer: CallNinaAppServerAdapter | undefined;
+    try {
+      appServer = await this.#ensureAppServer();
+      if (!appServer) return unavailable("runtime-unavailable");
+      const snapshot = await appServer.snapshot();
+      if (snapshot.lifecycle.status !== "ready") return unavailable("runtime-unavailable");
+      if (snapshot.account.status === "signed-out" || snapshot.account.status === "expired")
+        return unavailable("account-required");
+      if (snapshot.account.status !== "signed-in") return unavailable("account-unavailable");
+    } catch {
+      return unavailable("runtime-unavailable");
+    }
+    if (operation === "voice-handoff") {
+      const capabilities = appServer.codexCapabilities;
+      if (
+        !this.#openExternal ||
+        !capabilities.voiceHandoff ||
+        !capabilities.externalConversation ||
+        !capabilities.localMcp ||
+        !capabilities.plugin
+      )
+        return unavailable("capability-unavailable");
+      const integration = await this.#codexState(correlationId);
+      if (integration.status !== "available") return unavailable("runtime-unavailable");
+      if (integration.plugin !== "installed") return unavailable("plugin-required");
+      return { routeId: "codex", operation, status: "available", modelSelection: null };
+    }
+    const settings = await this.#readActiveLearnerSettings();
+    const capabilities = this.#generation?.generationCapabilities;
+    if (
+      !settings ||
+      !capabilities ||
+      capabilities.providerId !== settings.modelPreferences.routeId ||
+      !capabilities.operations.includes(operation)
+    )
+      return unavailable("capability-unavailable");
+    try {
+      const catalog = await appServer.refreshModels();
+      // Retry retains the original model/effort and never silently changes it.
+      if (retainedSelection) {
+        const model = retainedSelection.model;
+        const effort = retainedSelection.effort;
+        if (model.selection !== "exact" || effort.selection !== "exact")
+          return unavailable("model-unavailable");
+        const entry = catalog.models.find(({ id }) => id === model.modelId);
+        if (
+          !entry?.inputModalities.includes("text") ||
+          !entry.supportedReasoningEfforts.includes(effort.effortId)
+        )
+          return unavailable("model-unavailable");
+        return {
+          routeId: settings.modelPreferences.routeId,
+          operation,
+          status: "available",
+          modelSelection: { modelId: model.modelId, effortId: effort.effortId },
+        };
+      }
+      const workload = operationModelWorkload[operation];
+      const resolution = resolveModelPreference(
+        workload,
+        settings.modelPreferences[workload],
+        catalog,
+      ).resolution;
+      if (
+        resolution.status === "unavailable" ||
+        !catalog.models
+          .find(({ id }) => id === resolution.effectiveModelId)
+          ?.inputModalities.includes("text")
+      )
+        return unavailable("model-unavailable");
+      return {
+        routeId: settings.modelPreferences.routeId,
+        operation,
+        status: "available",
+        modelSelection: {
+          modelId: resolution.effectiveModelId,
+          effortId: resolution.effectiveEffortId,
+        },
+      };
+    } catch {
+      return unavailable("model-unavailable");
+    }
+  }
+
+  #providerAccessFailure(
+    request: DesktopIpcRequest,
+    access: Extract<ProviderAccess, { status: "unavailable" }>,
+  ) {
+    const kind: ErrorKind =
+      access.reason === "account-required" || access.reason === "account-unavailable"
+        ? "authentication"
+        : access.reason === "model-unavailable"
+          ? "model-unavailable"
+          : access.reason === "capability-unavailable"
+            ? "unsupported-operation"
+            : access.reason === "plugin-required"
+              ? "mcp"
+              : "app-server";
+    return this.#operationRequestFailure(
+      request,
+      kind,
+      safeError(kind, request.requestId).code,
+      access.reason,
+    );
+  }
+
   #success(request: DesktopIpcRequest, result: unknown): DesktopIpcResponse {
     return desktopIpcResponseSchema.parse({
       status: "ok",
@@ -1192,14 +1308,23 @@ export class DesktopBackend {
       if (request.channel === "app/readiness") {
         const [dataRoot, codex] = await Promise.all([
           this.#dataRootState(request.requestId),
-          this.#codexState(request.requestId),
+          this.#codexState(request.requestId).catch(() => ({
+            status: "unavailable" as const,
+            reason: "app-server-unavailable" as const,
+            error: safeError("app-server", request.requestId),
+          })),
         ]);
         return this.#success(request, {
-          status:
-            dataRoot.status === "ready" && codex.status === "available" ? "ready" : "degraded",
+          status: dataRoot.status === "ready" ? "ready" : "degraded",
           dataRoot,
           codex,
         });
+      }
+      if (request.channel === "provider/access/read") {
+        return this.#success(
+          request,
+          await this.#providerAccess(request.payload.operation, request.requestId),
+        );
       }
       if (request.channel === "data-root/read") {
         return this.#success(request, await this.#dataRootState(request.requestId));
@@ -1371,12 +1496,6 @@ export class DesktopBackend {
         )
           return this.#failure(request, "stale-data-root");
         const repository = this.#repository;
-        const appServer = await this.#ensureAppServer();
-        if (!appServer) return this.#failure(request, "app-server");
-        const snapshot = await appServer.snapshot();
-        if (snapshot.lifecycle.status !== "ready") return this.#failure(request, "app-server");
-        if (snapshot.account.status !== "signed-in")
-          return this.#failure(request, "authentication");
         const current = await repository.readCurrentLearnerSettings();
         if (!current) return this.#failure(request, "not-found");
         if (current.profile.updatedAt !== request.payload.expectedUpdatedAt)
@@ -1945,9 +2064,10 @@ export class DesktopBackend {
           request,
           await activities.openVoice(request.payload.activityId, {
             isCodexVoiceAvailable: async () => {
-              if (!this.#appServer?.codexCapabilities.voiceHandoff) return false;
-              const integration = await this.#codexState(request.requestId);
-              return integration.status === "available" && integration.plugin === "installed";
+              return (
+                (await this.#providerAccess("voice-handoff", request.requestId)).status ===
+                "available"
+              );
             },
             ...(this.#openExternal ? { openExternal: this.#openExternal } : {}),
           }),
@@ -2183,9 +2303,13 @@ export class DesktopBackend {
         );
       }
       if (request.channel === "codex/account/read") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) return this.#success(request, (await appServer.snapshot()).account);
-        return this.#success(request, { status: "signed-out" });
+        try {
+          const appServer = await this.#ensureAppServer();
+          if (appServer) return this.#success(request, (await appServer.snapshot()).account);
+        } catch {
+          // Optional provider state must not turn local setup into an error screen.
+        }
+        return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
       }
       if (request.channel === "codex/account/login/start") {
         const appServer = await this.#ensureAppServer();
@@ -2230,7 +2354,7 @@ export class DesktopBackend {
       if (request.channel === "codex/rate-limits/read") {
         const appServer = await this.#ensureAppServer();
         if (appServer) return this.#success(request, await appServer.refreshRateLimits());
-        return this.#success(request, { buckets: [] });
+        return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
       }
       if (request.channel === "learning-operation/start") {
         if (!(await this.#hasAcknowledgedAiDisclosure())) {
@@ -2239,23 +2363,6 @@ export class DesktopBackend {
             "validation",
             "OD_AI_DISCLOSURE_REQUIRED",
             "ai-disclosure",
-          );
-        }
-        const appServer = await this.#ensureAppServer();
-        if (!appServer) {
-          return this.#operationRequestFailure(
-            request,
-            "app-server",
-            "OD_APP_SERVER_UNAVAILABLE",
-            "app-server-unavailable",
-          );
-        }
-        if ((await appServer.snapshot()).account.status !== "signed-in") {
-          return this.#operationRequestFailure(
-            request,
-            "app-server",
-            "OD_APP_SERVER_ACCOUNT_NOT_SIGNED_IN",
-            "account-not-signed-in",
           );
         }
         const dataRoot = await this.#dataRootState(request.requestId);
@@ -2292,32 +2399,19 @@ export class DesktopBackend {
             "learner-settings-missing",
           );
         }
-        const workload = operationModelWorkload[request.payload.input.kind];
-        const modelPreference = learnerSettings.modelPreferences[workload];
-        const modelResolution = resolveModelPreference(
-          workload,
-          modelPreference,
-          await appServer.refreshModels(),
-        ).resolution;
-        if (modelResolution.status === "unavailable") {
-          return this.#operationRequestFailure(
-            request,
-            "app-server",
-            "OD_APP_SERVER_MODEL_UNAVAILABLE",
-            "model-unavailable",
-          );
-        }
+        const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
+        if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
+        if (!access.modelSelection || !this.#generation)
+          return this.#failure(request, "unsupported-operation");
         const generation = this.#generation;
-        if (!generation?.generationCapabilities.operations.includes(request.payload.input.kind))
-          return this.#failure(request, "app-server");
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
           operationId,
           submissionId: request.payload.submissionId,
           dataRootGeneration: dataRoot.generation,
           modelSelection: {
-            model: { selection: "exact", modelId: modelResolution.effectiveModelId },
-            effort: { selection: "exact", effortId: modelResolution.effectiveEffortId },
+            model: { selection: "exact", modelId: access.modelSelection.modelId },
+            effort: { selection: "exact", effortId: access.modelSelection.effortId },
           },
           input: {
             ...(await this.#enrichedOperationInput(request.payload.input, learnerSettings)),
@@ -2357,11 +2451,6 @@ export class DesktopBackend {
         if (!(await this.#hasAcknowledgedAiDisclosure())) {
           return this.#failure(request, "validation");
         }
-        const appServer = await this.#ensureAppServer();
-        if (!appServer) return this.#failure(request, "app-server");
-        if ((await appServer.snapshot()).account.status !== "signed-in") {
-          return this.#failure(request, "authentication");
-        }
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
         const prior = [...this.#operationsBySubmission.values()].find(
@@ -2389,9 +2478,14 @@ export class DesktopBackend {
         if (!this.#makeOperationRoom(prior.operationId)) {
           return this.#failure(request, "conflict");
         }
+        const access = await this.#providerAccess(
+          prior.operation.input.kind,
+          request.requestId,
+          prior.operation.modelSelection,
+        );
+        if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
+        if (!this.#generation) return this.#failure(request, "unsupported-operation");
         const generation = this.#generation;
-        if (!generation?.generationCapabilities.operations.includes(prior.operation.input.kind))
-          return this.#failure(request, "app-server");
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
           ...prior.operation,

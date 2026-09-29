@@ -1,10 +1,11 @@
-import { useOperationProgress } from "./useOperationProgress.js";
-import { OperationProgress } from "./OperationProgress.js";
 import {
+  type ProviderOperation,
   contextualHelpCandidateSchema,
   type GenerationCandidateOutputMap,
   type CallNinaError,
 } from "@call-nina/contracts";
+import { useOperationProgress } from "./useOperationProgress.js";
+import { OperationProgress } from "./OperationProgress.js";
 import { Languages, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -45,7 +46,7 @@ export function ContextualHelper({
   requestAiAccess,
 }: {
   selection: ContextualHelperSelection | undefined;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
 }) {
   const { t } = useTranslation();
   const progress = useOperationProgress();
@@ -119,7 +120,7 @@ export function ContextualHelper({
   );
 
   const submit = async (request: SubmittedRequest, modelQuestion: string) => {
-    if (!selection || stage !== "idle" || !(await requestAiAccess())) return;
+    if (!selection || stage !== "idle" || !(await requestAiAccess("contextual-help"))) return;
     const nextSubmissionId = createDesktopSubmissionId();
     submissionId.current = nextSubmissionId;
     progress.begin(nextSubmissionId, "contextual-help");
@@ -128,6 +129,7 @@ export function ContextualHelper({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
+        routeId: "codex",
         submissionId: nextSubmissionId,
         input: {
           kind: "contextual-help",

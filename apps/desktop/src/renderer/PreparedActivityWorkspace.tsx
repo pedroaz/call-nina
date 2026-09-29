@@ -1,8 +1,13 @@
+import type {
+  ProviderOperation,
+  ActivityId,
+  DesktopIpcResponse,
+  CallNinaError,
+} from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { ActivityId, DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import {
   Button,
   Card,
@@ -31,7 +36,7 @@ export function PreparedActivityWorkspace({
   parentLabel: string;
   onClose: () => void;
   onOpenActivity: (activityId: ActivityId) => void;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
 }) {
   const { t } = useTranslation();
   const generation = useLearningOperation();
@@ -54,7 +59,7 @@ export function PreparedActivityWorkspace({
     setError(undefined);
     setOpenStatus(undefined);
     try {
-      if (!(await requestAiAccess())) return;
+      if (!(await requestAiAccess("voice-handoff"))) return;
       const result = await invokeDesktop("voice-activity/open-in-codex", {
         activityId: activity.activityId,
       });
@@ -66,7 +71,7 @@ export function PreparedActivityWorkspace({
     }
   };
   const generate = async () => {
-    if (!(await requestAiAccess())) return;
+    if (!(await requestAiAccess("exercise-generation"))) return;
     setError(undefined);
     try {
       onOpenActivity(

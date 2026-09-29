@@ -110,12 +110,13 @@ export function ProfileOnboarding({
         setChoices(settings.settings);
         await i18n.changeLanguage(settings.settings.uiLocale);
       }
-      await refreshConnection();
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
       setLoading(false);
     }
+    // Provider inspection is optional; local setup never waits for authentication.
+    void refreshConnection().catch(() => undefined);
   }, [refreshConnection]);
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
@@ -255,7 +256,7 @@ export function ProfileOnboarding({
                 ? step === 3
                   ? "onboarding.readyToFinish"
                   : "onboarding.readyToContinue"
-                : "onboarding.connectionRequired",
+                : "onboarding.connectionOptional",
             )}
           </p>
           {connectionChecked && !connectionFailed && <p>{t("onboarding.checkComplete")}</p>}
@@ -304,6 +305,7 @@ export function ProfileOnboarding({
               {step === 0 && (
                 <fieldset disabled={busy} className={styles.onboardingSection}>
                   <legend>{t("onboarding.accountTitle")}</legend>
+                  <p>{t("providerAccess.identityBoundary")}</p>
                   {connectionStatus}
                   {loginStatus && <p role="status">{t(`onboarding.login.${loginStatus}`)}</p>}
                   <ActionGroup>
@@ -549,7 +551,7 @@ export function ProfileOnboarding({
                 ) : (
                   <Button
                     variant="primary"
-                    isDisabled={busy || checking || !connected}
+                    isDisabled={busy || !choices.everydayLifeGoal.trim()}
                     onPress={finish}
                   >
                     {t("onboarding.finish")}

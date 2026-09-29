@@ -1,6 +1,11 @@
+import type {
+  ProviderOperation,
+  DesktopIpcRequest,
+  DesktopIpcResponse,
+  CallNinaError,
+} from "@call-nina/contracts";
 import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
-import type { DesktopIpcRequest, DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import { calendarDateSchema, curriculumTopicIdSchema } from "@call-nina/contracts";
 import { History, Repeat2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -80,7 +85,7 @@ export function HistoryPage({
 }: {
   onPracticeAgain: (seed: HistoryPracticeSeed) => void;
   initialHistoryEntryIds?: NonNullable<HistoryPayload["historyEntryIds"]>;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
 }) {
   const { i18n, t } = useTranslation();
   const progress = useOperationProgress();
@@ -211,7 +216,7 @@ export function HistoryPage({
   };
 
   const createTargetedPractice = async (pattern: Snapshot["mistakePatterns"][number]) => {
-    if (!(await requestAiAccess())) return;
+    if (!(await requestAiAccess("exercise-generation"))) return;
     const patternKey = `${pattern.category.kind}:${pattern.category.categoryKey}`;
     const submissionId = createDesktopSubmissionId();
     practiceSubmissionId.current = submissionId;
@@ -220,6 +225,7 @@ export function HistoryPage({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
+        routeId: "codex",
         submissionId,
         input: {
           kind: "exercise-generation",
@@ -238,7 +244,7 @@ export function HistoryPage({
     if (entry.detail.kind !== "voice-summary") return;
     const nextStep = entry.detail.nextSteps[0];
     if (!nextStep) return;
-    if (!(await requestAiAccess())) return;
+    if (!(await requestAiAccess("exercise-generation"))) return;
     const patternKey = `voice:${entry.historyEntryId}`;
     const submissionId = createDesktopSubmissionId();
     practiceSubmissionId.current = submissionId;
@@ -247,6 +253,7 @@ export function HistoryPage({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
+        routeId: "codex",
         submissionId,
         input: {
           kind: "exercise-generation",

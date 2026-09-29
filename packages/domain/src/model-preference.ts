@@ -1,4 +1,9 @@
-import { modelCatalogSchema, strictBoundaryObject, z } from "@call-nina/contracts";
+import {
+  providerRouteIdSchema,
+  modelCatalogSchema,
+  strictBoundaryObject,
+  z,
+} from "@call-nina/contracts";
 
 export const modelWorkloads = ["correction", "generation", "helper", "research"] as const;
 export const modelWorkloadSchema = z.enum(modelWorkloads);
@@ -51,6 +56,7 @@ export const workloadModelPreferenceSchema = z.strictObject({
 });
 
 export const modelPreferencesSchema = strictBoundaryObject({
+  routeId: providerRouteIdSchema,
   schemaVersion: z.literal(1),
   correction: workloadModelPreferenceSchema,
   generation: workloadModelPreferenceSchema,
@@ -63,6 +69,7 @@ const semantic = (effort: (typeof semanticEfforts)[number]) =>
   ({ mode: "semantic", effort }) as const;
 
 export const defaultModelPreferences = {
+  routeId: "codex",
   schemaVersion: 1,
   correction: { model: automatic, effort: semantic("balanced") },
   generation: { model: automatic, effort: semantic("balanced") },
