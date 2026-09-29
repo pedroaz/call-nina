@@ -40,7 +40,14 @@ export type LearningScope = z.infer<typeof learningScopeSchema>;
 export type LearningContext = z.infer<typeof learningContextSchema>;
 
 /** Implemented policies/resources, independently of selectable storage languages. Owners #73/#74 extend these with their implementations. */
-export const languageCapabilities = {
+type LanguageCapabilities = Readonly<{
+  generation: boolean;
+  evaluation: boolean;
+  vocabulary: boolean;
+  interface: boolean;
+  structuredPath: boolean;
+}>;
+export const languageCapabilities: Readonly<Record<Language, LanguageCapabilities>> = {
   "en-US": {
     generation: true,
     evaluation: true,
@@ -69,13 +76,4 @@ export const languageCapabilities = {
     interface: true,
     structuredPath: true,
   },
-} as const satisfies Record<
-  Language,
-  {
-    generation: boolean;
-    evaluation: boolean;
-    vocabulary: boolean;
-    interface: boolean;
-    structuredPath: boolean;
-  }
->;
+};
