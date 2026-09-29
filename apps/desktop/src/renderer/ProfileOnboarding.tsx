@@ -469,7 +469,7 @@ export function ProfileOnboarding({
                     >
                       {["en-US", "de"].map((language) => (
                         <option key={language} value={language}>
-                          {t(`onboarding.languages.${language}`)}
+                          {t(`onboarding.languages.${language === "en-US" ? "en" : language}`)}
                         </option>
                       ))}
                     </select>
@@ -487,7 +487,7 @@ export function ProfileOnboarding({
                     >
                       {["en-US", "de"].map((language) => (
                         <option key={language} value={language}>
-                          {t(`onboarding.languages.${language}`)}
+                          {t(`onboarding.languages.${language === "en-US" ? "en" : language}`)}
                         </option>
                       ))}
                     </select>

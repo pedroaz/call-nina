@@ -714,8 +714,14 @@ export class CallNinaRepository {
     );
   }
 
-  async requireLearningScope() {
-    return withLeasedConnection(this.#database, requireLocalLearningScope);
+  async requireLearningScope(language?: Language) {
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = language
+        ? scopeForLanguage(connection, languageSchema.parse(language))
+        : requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
+      return scope;
+    });
   }
 
   async requireLearningContext() {
@@ -1635,17 +1641,22 @@ export class CallNinaRepository {
     });
   }
 
-  async listDueVocabulary(onDateValue: string): Promise<readonly VocabularyEntry[]> {
+  async listDueVocabulary(
+    onDateValue: string,
+    requestedScope?: LearningScope,
+  ): Promise<readonly VocabularyEntry[]> {
     const onDate = calendarDateSchema.parse(onDateValue);
-    return withLeasedConnection(this.#database, (connection) =>
-      connection
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
+      return connection
         .prepare(
-          `SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1))
-           WHERE status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT 500`,
+          `SELECT * FROM vocabulary_entries
+           WHERE target_language = ? AND status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT 500`,
         )
-        .all(onDate)
-        .map((row) => vocabularyEntryFromRow(row as Record<string, unknown>)),
-    );
+        .all(scope.targetLanguage, onDate)
+        .map((row) => vocabularyEntryFromRow(row as Record<string, unknown>));
+    });
   }
 
   async createVocabularyReviewSession(
@@ -1800,19 +1811,46 @@ export class CallNinaRepository {
     });
   }
 
-  async readSuggestionLearningContext(contextValue: unknown) {
+  async readSuggestionLearningScope(contextValue: unknown): Promise<LearningScope | undefined> {
     const context = practiceSuggestionContextSchema.parse(contextValue);
     return withLeasedConnection(this.#database, (connection) => {
+      let scope: LearningScope | undefined;
+      for (const [table, column, ids] of [
+        ["mistakes", "mistake_id", context.mistakeIds],
+        ["vocabulary_entries", "vocabulary_id", context.vocabularyIds],
+      ] as const) {
+        const statement = connection.prepare(
+          `SELECT target_language FROM ${table} WHERE ${column} = ?`,
+        );
+        for (const id of ids) {
+          const row = statement.get(id);
+          if (!row) throw new Error("OD_PRACTICE_SUGGESTION_NOT_FOUND");
+          const language = languageSchema.parse(row["target_language"]);
+          if (scope && scope.targetLanguage !== language)
+            throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+          scope = { ...scopeForLanguage(connection, language), courseId: null };
+          assertLocalLearningScope(connection, scope);
+        }
+      }
+      return scope;
+    });
+  }
+
+  async readSuggestionLearningContext(contextValue: unknown, requestedScope?: LearningScope) {
+    const context = practiceSuggestionContextSchema.parse(contextValue);
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
       const mistakes = connection
         .prepare(
           `SELECT m.mistake_id, m.effective_category_json, COUNT(*) AS occurrence_count,
           MAX(o.observed_on) AS last_observed_on
-         FROM (SELECT * FROM mistakes WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) m JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
+         FROM (SELECT * FROM mistakes WHERE target_language = ?) m JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
          WHERE m.disposition = 'active'
            AND m.mistake_id IN (SELECT value FROM json_each(?))
          GROUP BY m.mistake_id ORDER BY last_observed_on DESC, m.mistake_id LIMIT 12`,
         )
-        .all(JSON.stringify(context.mistakeIds))
+        .all(scope.targetLanguage, JSON.stringify(context.mistakeIds))
         .map((raw) => {
           const row = raw as Record<string, unknown>;
           const category = mistakeCategorySchema.parse(parseJson(row["effective_category_json"]));
@@ -1829,11 +1867,11 @@ export class CallNinaRepository {
         });
       const vocabulary = connection
         .prepare(
-          `SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE status = 'active'
+          `SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = ?) WHERE status = 'active'
          AND vocabulary_id IN (SELECT value FROM json_each(?))
          ORDER BY due_on, vocabulary_id LIMIT 24`,
         )
-        .all(JSON.stringify(context.vocabularyIds))
+        .all(scope.targetLanguage, JSON.stringify(context.vocabularyIds))
         .map((row) => vocabularyEntryFromRow(row as Record<string, unknown>));
       return {
         relevantMistakes: mistakes
@@ -1852,16 +1890,21 @@ export class CallNinaRepository {
     });
   }
 
-  async readCorrectionMistakeSample(maximumValue = 6): Promise<readonly CorrectionMistakeSample[]> {
+  async readCorrectionMistakeSample(
+    maximumValue = 6,
+    requestedScope?: LearningScope,
+  ): Promise<readonly CorrectionMistakeSample[]> {
     const maximum = z.int().min(0).max(6).parse(maximumValue);
     if (maximum === 0) return Object.freeze([]);
-    return withLeasedConnection(this.#database, (connection) =>
-      Object.freeze(
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
+      return Object.freeze(
         connection
           .prepare(
             `SELECT m.effective_category_json, COUNT(*) AS occurrence_count,
               MAX(o.observed_on) AS last_observed_on
-             FROM (SELECT * FROM mistakes WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) m
+             FROM (SELECT * FROM mistakes WHERE target_language = ?) m
              JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
              WHERE m.disposition = 'active'
              GROUP BY m.mistake_id, m.effective_category_json
@@ -1869,7 +1912,7 @@ export class CallNinaRepository {
              ORDER BY last_observed_on DESC, m.mistake_id
              LIMIT ?`,
           )
-          .all(maximum)
+          .all(scope.targetLanguage, maximum)
           .map((rawRow) => {
             const row = rawRow as Record<string, unknown>;
             const category = mistakeCategorySchema.parse(parseJson(row["effective_category_json"]));
@@ -1885,18 +1928,21 @@ export class CallNinaRepository {
                 : { ...shared, kind: "grammar" as const },
             );
           }),
-      ),
-    );
+      );
+    });
   }
 
   async listMistakePatterns(
     filterValue: z.input<typeof mistakePatternFilterSchema> = {},
+    requestedScope?: LearningScope,
   ): Promise<readonly MistakePatternRecord[]> {
     const filter = mistakePatternFilterSchema.parse(filterValue);
     if (filter.fromDate && filter.toDate && filter.fromDate > filter.toDate) {
       throw new Error("OD_HISTORY_DATE_RANGE_INVALID");
     }
     return withLeasedConnection(this.#database, (connection) => {
+      const scope = requestedScope ?? requireLocalLearningScope(connection);
+      assertLocalLearningScope(connection, scope);
       const clauses = ["m.disposition = 'active'"];
       const parameters: string[] = [];
       if (filter.fromDate) {
@@ -1935,7 +1981,7 @@ export class CallNinaRepository {
                  ORDER BY o.observed_on DESC, m.mistake_id, o.correction_id,
                    o.alignment_segment_position
                ) AS occurrence_position
-             FROM (SELECT * FROM mistakes WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) m
+             FROM (SELECT * FROM mistakes WHERE target_language = ?) m
              JOIN mistake_occurrences o ON o.mistake_id = m.mistake_id
              WHERE ${clauses.join(" AND ")}
            ), selected_categories AS (
@@ -1951,7 +1997,7 @@ export class CallNinaRepository {
            ORDER BY r.last_observed_on DESC, r.effective_category_json,
              r.observed_on DESC, r.mistake_id, r.occurrence_position`,
         )
-        .all(...parameters, filter.maximum) as Record<string, unknown>[];
+        .all(scope.targetLanguage, ...parameters, filter.maximum) as Record<string, unknown>[];
       const groups = new Map<
         string,
         {

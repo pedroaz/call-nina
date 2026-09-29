@@ -18,6 +18,7 @@ import {
   type CourseEvidence,
   type CourseReference,
   type LearningCourse,
+  type LearningScope,
 } from "@call-nina/contracts";
 import {
   parseSupportedLearningCourse,
@@ -158,10 +159,11 @@ export async function prepareCourseTeaching(
   course: LearningCourse,
   reference: CourseReference,
   locale: "en" | "de",
+  scope?: LearningScope,
 ) {
   const { unit, activity } = resolveCourseReference(course, reference);
   return withLeasedTransaction(database, (connection) => {
-    assertCourseScope(connection, course);
+    assertCourseScope(connection, course, scope);
     const row =
       reference.mode === "course"
         ? connection
@@ -460,8 +462,12 @@ export async function addCourseVocabulary(
   });
 }
 
-function assertCourseScope(connection: DatabaseSync, course: LearningCourse) {
-  const scope = requireLocalLearningScope(connection);
+function assertCourseScope(
+  connection: DatabaseSync,
+  course: LearningCourse,
+  requestedScope?: LearningScope,
+) {
+  const scope = requestedScope ?? requireLocalLearningScope(connection);
   if (scope.targetLanguage !== course.targetLanguage || scope.courseId !== course.courseId)
     throw new Error("OD_COURSE_UNAVAILABLE");
   assertLocalLearningScope(connection, {

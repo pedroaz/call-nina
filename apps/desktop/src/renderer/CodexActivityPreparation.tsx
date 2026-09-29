@@ -98,6 +98,8 @@ export function CodexActivityPreparation({
         correctionTiming,
         ...(kind === "speaking" ? { speakingPace } : {}),
       });
+      if (result.status !== "validated" || !result.learningScope)
+        throw new Error("OD_LEARNING_CONTEXT_REQUIRED");
       const output = voiceActivityDraftCandidateSchema.parse(result.output);
       setLearningScope(result.learningScope);
       setScenario(output.scenario);
