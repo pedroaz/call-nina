@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.renderer.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "types": ["vite/client"],
+    "outDir": "build/types",
+    "tsBuildInfoFile": "build/tsconfig.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

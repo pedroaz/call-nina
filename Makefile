@@ -35,6 +35,16 @@ build-desktop: ## Incrementally compile desktop dependencies and refresh Electro
 	@echo "+ pnpm --filter @call-nina/desktop run build"
 	@pnpm --filter @call-nina/desktop run build
 
+.PHONY: dev-website build-website preview-website
+dev-website: ## Run the website locally in the foreground (Ctrl-C to stop).
+	@pnpm --filter @call-nina/website run dev $(ARGS)
+
+build-website: ## Typecheck and build the static website into apps/website/dist.
+	@pnpm --filter @call-nina/website run build
+
+preview-website: ## Preview the built website locally in the foreground (Ctrl-C to stop).
+	@pnpm --filter @call-nina/website run preview $(ARGS)
+
 dev: ## Start the development stack in the background and wait for health.
 	@echo "+ node scripts/dev/lifecycle.mjs start dev"
 	@node scripts/dev/lifecycle.mjs start dev

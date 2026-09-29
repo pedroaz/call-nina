@@ -10,6 +10,8 @@ const generated = [
   "apps/desktop/build",
   "apps/mcp-server/dist",
   "apps/mcp-server/build",
+  "apps/website/dist",
+  "apps/website/build",
   "packages/codex-client/dist",
   "packages/contracts/dist",
   "packages/design-system/dist",
