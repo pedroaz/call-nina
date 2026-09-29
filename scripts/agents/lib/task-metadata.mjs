@@ -109,9 +109,14 @@ export function taskIssue(issue, repo, number) {
     issue.state !== "OPEN"
   )
     throw new Error("OPEN_REPOSITORY_TASK_REQUIRED");
-  // The bug label classifies an existing defect; Ready/claim and coordinator
-  // ownership still govern authorization. Product tasks must have a parent.
-  if (!issue.parent && issue.labels?.nodes?.some((label) => label.name === "bug")) return;
+  // Explicit classification permits standalone defects/internal workflow work;
+  // labels do not grant Ready/claim or coordinator authority. Product tasks
+  // still require a native open parent, and an existing parent is validated.
+  if (
+    !issue.parent &&
+    issue.labels?.nodes?.some((label) => ["bug", "internal-workflow"].includes(label.name))
+  )
+    return;
   if (
     !issue.parent ||
     issue.parent.number === number ||

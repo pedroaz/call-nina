@@ -40,6 +40,8 @@ An interrupted mutating request is not cancelled by a client timeout. Do not ret
 
 ## Evidence and failures
 
+Plan verification after related implementation changes are integrated. On a later revision, rerun only behavior affected by the diff or changed environment; retain the original observed commit, changed scope and a specific reason earlier evidence still covers unchanged behavior. Do not claim an unobserved scenario or new-head pass. Consolidated acceptance, independent exact-head review, local `make check`, fixed-checkout ownership, settings restoration and record cleanup remain required. Reuse the supported stop/resume/recovery paths above before repeating setup or asking for manual intervention; a distinct unresolved defect goes to the coordinator. The verification agent normally uses Sol medium under assignment policy; application AI remains Luna at runtime-default effort.
+
 Use `make logs-once ARGS="--component desktop"` with explicit filters for bounded redacted evidence. During a long action, request `status`; `VERIFY_BUSY` means the session is still executing, not permission to retry generation. Inspect the first failure before deciding whether a retry is useful.
 
 Screenshots and visible UI snapshots may be shown in the agent session. Do not copy learner content into logs, Git, persistent trace/video archives, or reports. The screenshot is deleted on graceful stop. Native OS dialogs and external Codex Voice are outside this controller's scope.
