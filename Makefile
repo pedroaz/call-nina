@@ -160,7 +160,7 @@ uninstall-plugin: ## Uninstall only the scoped Call Nina Codex plugin.
 	@echo "+ pnpm run plugin:uninstall"
 	@pnpm run plugin:uninstall
 
-.PHONY: verify-start verify-resume verify-status verify-inspect verify-do verify-shot verify-stop logs-once
+.PHONY: verify-start verify-resume verify-status verify-inspect verify-do verify-shot verify-stop verify-suspend verify-recovery-stop verify-recovery-advance verify-reconcile-disclosure verify-reconcile-plugin-refresh logs-once
 verify-start: ## Build once and launch an interactive real Electron verification session.
 	@node scripts/dev/verify.mjs start $(ARGS)
 verify-resume: ## Rebuild and reopen a stopped verification session while retaining its recovery journal.
@@ -173,7 +173,17 @@ verify-do: ## Send one bounded JSON UI action on stdin to the running session.
 	@node scripts/dev/verify.mjs do
 verify-shot: ## Capture a private screenshot deleted when the session stops.
 	@node scripts/dev/verify.mjs screenshot
-verify-stop: ## Clean up tracked records, restore preferences, and close the owned session.
+verify-suspend: ## Stop exact-owned processes without UI cleanup; preserve records/preferences for verify-resume.
+	@node scripts/dev/verify.mjs suspend
+verify-recovery-stop: ## Coordinator: stop only the existing Run barrier target and retain terminal identity proof.
+	@node scripts/dev/verify.mjs recovery-stop $(ARGS)
+verify-recovery-advance: ## Coordinator: advance the stopped reserved checkout to a reviewed descendant, preserving its journal.
+	@node scripts/dev/verify.mjs recovery-advance
+verify-reconcile-disclosure: ## Coordinator: reconcile one source-bounded disclosure from stdin using stopped proof and journal CAS.
+	@node scripts/dev/verify.mjs reconcile-disclosure $(ARGS)
+verify-reconcile-plugin-refresh: ## Coordinator: reconcile an evidenced scoped plugin refresh after verified UI registration.
+	@node scripts/dev/verify.mjs reconcile-plugin-refresh $(ARGS)
+verify-stop: ## Bounded graceful-first shutdown of exact-owned processes; retain incomplete UI recovery.
 	@node scripts/dev/verify.mjs stop
 logs-once: ## Read bounded redacted logs once with the same filters as make logs.
 	@node scripts/dev/lifecycle.mjs logs $(ARGS)

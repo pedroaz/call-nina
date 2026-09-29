@@ -1,6 +1,7 @@
 import { _electron as electron } from "playwright";
-import { readFile, writeFile, rename } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { recordVerificationApp, writePrivateJson } from "./verification-client.mjs";
 
 export const root = path.resolve(import.meta.dirname, "../../..");
 export const runtimeRoot = path.join(root, ".runtime");
@@ -39,16 +40,16 @@ export function productionEnvironment() {
   return environment;
 }
 export class VerificationSession {
-  constructor(directory, recovery, options = {}) {
+  constructor(directory, recovery, options = {}, ownership) {
     this.options = options;
     this.directory = directory;
+    this.ownership = ownership;
     this.journal = recovery ?? { schemaVersion: 1, preferences: {}, records: [], notes: [] };
+    this.baseline = this.journal.baseline;
     this.phase = "launch";
   }
   async persist() {
-    const temporary = path.join(this.directory, "recovery.tmp");
-    await writeFile(temporary, JSON.stringify(this.journal), { mode: 0o600 });
-    await rename(temporary, path.join(this.directory, "recovery.json"));
+    await writePrivateJson(path.join(this.directory, "recovery.json"), this.journal);
   }
   async launch() {
     const packagedExecutable = this.options.executable;
@@ -71,6 +72,7 @@ export class VerificationSession {
       .catch(() => {
         throw failure("VERIFY_ELECTRON_LAUNCH_FAILED_OR_APP_ALREADY_RUNNING");
       });
+    await recordVerificationApp(this.ownership, this.application.process().pid);
     this.page = await this.application.firstWindow({ timeout: 15000 });
     this.mainPage = this.page;
     this.page.setDefaultTimeout(15000);
@@ -87,6 +89,7 @@ export class VerificationSession {
     this.initialLocale =
       this.journal.locale ?? (await this.page.locator("html").getAttribute("lang"));
     this.journal.locale = this.initialLocale;
+    delete this.journal.suspended;
     await this.persist();
     this.phase = "ready";
   }
@@ -230,13 +233,46 @@ export class VerificationSession {
     );
   }
   async beginRecords(kind = "practice") {
+    if (this.journal.notes.includes("UNCONFIRMED_CREATION"))
+      throw failure("VERIFY_RECORD_BASELINE_UNRESOLVED");
     if (!["practice", "speaking", "listening"].includes(kind))
       throw failure("VERIFY_RECORD_KIND_INVALID");
     this.baseline = { kind, ids: await this.activityIds(kind) };
+    this.journal.baseline = this.baseline;
     if (!this.journal.notes.includes("UNCONFIRMED_CREATION"))
       this.journal.notes.push("UNCONFIRMED_CREATION");
     await this.persist();
     return { kind, existingCount: this.baseline.ids.length };
+  }
+  async confirmNoCreation(confirmation) {
+    if (
+      confirmation !== "no-creation-submitted" ||
+      this.journal.records.length ||
+      this.journal.pendingAction ||
+      this.journal.interruptedActions?.length ||
+      !this.journal.baseline ||
+      !this.journal.notes.includes("UNCONFIRMED_CREATION")
+    )
+      throw failure("VERIFY_NO_CREATION_UNPROVEN");
+    const baseline = this.journal.baseline;
+    const observed = await this.activityIds(baseline.kind);
+    if (
+      observed.length !== baseline.ids.length ||
+      observed.some((id) => !baseline.ids.includes(id))
+    )
+      throw failure("VERIFY_NO_CREATION_UNPROVEN");
+    this.journal.receipts ??= [];
+    this.journal.receipts.push({
+      code: "NO_CREATION_SUBMITTED",
+      at: new Date().toISOString(),
+      evidence: "unchanged-library-and-operator-attestation",
+      deletedRecords: 0,
+    });
+    this.journal.notes = this.journal.notes.filter((note) => note !== "UNCONFIRMED_CREATION");
+    delete this.journal.baseline;
+    this.baseline = undefined;
+    await this.persist();
+    return { status: "reconciled", deletedRecords: 0 };
   }
   async trackActivity(id) {
     if (!/^activity_[0-9a-z]{16,64}$/.test(id ?? "")) throw failure("VERIFY_INVALID_ACTIVITY_ID");
@@ -246,6 +282,8 @@ export class VerificationSession {
     if (!this.journal.records.some((record) => record.id === id))
       this.journal.records.push({ id, kind: this.baseline.kind });
     this.journal.notes = this.journal.notes.filter((note) => note !== "UNCONFIRMED_CREATION");
+    delete this.journal.baseline;
+    this.baseline = undefined;
     await this.persist();
   }
   async cleanupActivity(id) {
@@ -332,6 +370,20 @@ export class VerificationSession {
       this.journal.notes = this.journal.notes.filter(
         (note) => note !== "SETTINGS_RESTORE_REQUIRED",
       );
+    if (!failures.length) {
+      // These operations are reconciled by the successful UI readback above.
+      this.journal.interruptedActions = (this.journal.interruptedActions ?? []).filter(
+        (entry) => !["prepare-ai", "restore", "stop", "cleanup"].includes(entry.action),
+      );
+      if (
+        !this.journal.interruptedActions.length &&
+        (!this.journal.pendingAction ||
+          ["restore", "stop"].includes(this.journal.pendingAction.action))
+      )
+        this.journal.notes = this.journal.notes.filter(
+          (note) => !["INTERRUPTED_SHUTDOWN", "ACTION_RECONCILIATION_REQUIRED"].includes(note),
+        );
+    }
     this.aiPrepared = false;
     await this.persist();
     return {

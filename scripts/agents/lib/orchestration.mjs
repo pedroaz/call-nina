@@ -183,4 +183,160 @@ export function assertVerificationBarrier() {
   if (gate.worktree !== root) throw new Error("VERIFY_CHECKOUT_MISMATCH");
   if (git(["rev-parse", "HEAD"]).trim() !== gate.head || git(["status", "--porcelain"]).trim())
     throw new Error("VERIFY_CHECKOUT_CHANGED");
+  return gate;
+}
+
+// Offline recovery may only address the existing Run's reserved fixed checkout.
+// Caller holds the shared operation lock throughout stop/reconciliation.
+export function coordinatorVerificationBarrier(run, expectedHead) {
+  assertCoordinator(run);
+  if (!existsSync(verificationGate)) throw new Error("VERIFY_BARRIER_REQUIRED");
+  const gate = load(verificationGate);
+  if (gate.run !== run || gate.head !== expectedHead) throw new Error("VERIFY_BARRIER_MISMATCH");
+  const common = (cwd) =>
+    realpathSync(git(["rev-parse", "--path-format=absolute", "--git-common-dir"], cwd).trim());
+  if (common(gate.worktree) !== common(root)) throw new Error("VERIFY_REPOSITORY_MISMATCH");
+  if (
+    git(["rev-parse", "HEAD"], gate.worktree).trim() !== gate.head ||
+    git(["status", "--porcelain"], gate.worktree).trim()
+  )
+    throw new Error("VERIFY_CHECKOUT_CHANGED");
+  return gate;
+}
+
+// A stopped recovery may advance the *same* reserved checkout without releasing
+// its obligations. The prepared receipt makes checkout/barrier crashes resumable.
+export async function advanceVerificationBarrier(request) {
+  const { run, expectedHead, nextHead, reviewTask, expectedJournalFingerprint } = request;
+  if (
+    Object.keys(request).some(
+      (key) =>
+        !["run", "expectedHead", "nextHead", "reviewTask", "expectedJournalFingerprint"].includes(
+          key,
+        ),
+    ) ||
+    !/^[a-f0-9]{40}$/.test(expectedHead ?? "") ||
+    !/^[a-f0-9]{40}$/.test(nextHead ?? "") ||
+    expectedHead === nextHead ||
+    !/^[a-f0-9]{64}$/.test(expectedJournalFingerprint ?? "")
+  )
+    throw new Error("VERIFY_ADVANCE_INVALID");
+  assertCoordinator(run);
+  if (!existsSync(verificationGate)) throw new Error("VERIFY_BARRIER_REQUIRED");
+  const gate = load(verificationGate);
+  if (gate.run !== run || ![expectedHead, nextHead].includes(gate.head))
+    throw new Error("VERIFY_BARRIER_MISMATCH");
+  const common = (cwd) =>
+    realpathSync(git(["rev-parse", "--path-format=absolute", "--git-common-dir"], cwd).trim());
+  if (common(gate.worktree) !== common(root)) throw new Error("VERIFY_REPOSITORY_MISMATCH");
+  if (
+    git(["status", "--porcelain"], gate.worktree).trim() ||
+    git(["status", "--porcelain"], root).trim() ||
+    git(["rev-parse", "HEAD"], root).trim() !== nextHead
+  )
+    throw new Error("VERIFY_CLEAN_REVIEWED_SOURCE_REQUIRED");
+  git(["merge-base", "--is-ancestor", expectedHead, nextHead]);
+  if (git(["ls-tree", "-r", "--name-only", nextHead, "--", ".runtime"]).trim())
+    throw new Error("VERIFY_TRACKED_RUNTIME_FORBIDDEN");
+  const all = tasks(run);
+  for (const task of all.filter((item) => item.status === "dispatched")) {
+    const file = path.join(stateRoot, "launches", `${task.id}.json`);
+    if (!existsSync(file) || load(file).target === gate.worktree)
+      throw new Error("VERIFY_WORKER_STILL_OWNS_CHECKOUT");
+  }
+  const review = all.find((item) => item.id === reviewTask);
+  const spec = /^NINA_ASSIGNMENT=([^\n]+)/.exec(review?.spec ?? "");
+  if (
+    review?.status !== "completed" ||
+    !spec ||
+    JSON.parse(spec[1]).role !== "reviewer" ||
+    JSON.parse(spec[1]).commit !== nextHead ||
+    !/^task_[\w-]+$/.test(reviewTask)
+  )
+    throw new Error("VERIFY_EXACT_REVIEW_REQUIRED");
+  const reviewLaunch = load(path.join(stateRoot, "launches", `${reviewTask}.json`));
+  if (reviewLaunch.run !== run || reviewLaunch.baseline !== nextHead)
+    throw new Error("VERIFY_EXACT_REVIEW_REQUIRED");
+  const { stoppedVerificationEvidence, journalFingerprint } =
+    await import("../../dev/lib/verification-client.mjs");
+  const { proof, original, journal } = await stoppedVerificationEvidence({
+    ...gate,
+    head: expectedHead,
+  });
+  if (
+    journalFingerprint(original) !== expectedJournalFingerprint ||
+    proof.journalFingerprint !== expectedJournalFingerprint
+  )
+    throw new Error("VERIFY_JOURNAL_CHANGED");
+  const file = path.join(
+    gate.worktree,
+    ".runtime/verification",
+    `advance-${expectedHead}-${nextHead}.json`,
+  );
+  const observedHead = git(["rev-parse", "HEAD"], gate.worktree).trim();
+  let receipt;
+  if (existsSync(file)) {
+    receipt = load(file);
+    if (
+      JSON.stringify(receipt.request) !== JSON.stringify(request) ||
+      receipt.worktree !== gate.worktree
+    )
+      throw new Error("VERIFY_ADVANCE_RECEIPT_MISMATCH");
+  } else {
+    if (gate.head !== expectedHead || observedHead !== expectedHead)
+      throw new Error("VERIFY_ADVANCE_RECEIPT_REQUIRED");
+    receipt = {
+      id: randomUUID(),
+      at: new Date().toISOString(),
+      request,
+      worktree: gate.worktree,
+      lifecycleRunId: proof.lifecycleRunId,
+      stopProof: proof,
+      actions: [
+        ...(journal.interruptedActions ?? []),
+        ...(journal.pendingAction ? [journal.pendingAction] : []),
+      ].map((entry) => ({
+        action: entry.action,
+        startedAt: entry.startedAt,
+        actionId: entry.actionId,
+        requestFingerprint: entry.requestFingerprint,
+        sourceHead: entry.sourceHead ?? expectedHead,
+      })),
+    };
+    replace(file, receipt);
+  }
+  if (![expectedHead, nextHead].includes(observedHead)) throw new Error("VERIFY_CHECKOUT_CHANGED");
+  if (observedHead === expectedHead) git(["checkout", "--detach", nextHead], gate.worktree);
+  if (
+    git(["status", "--porcelain"], gate.worktree).trim() ||
+    git(["rev-parse", "HEAD"], gate.worktree).trim() !== nextHead ||
+    readFileSync(path.join(gate.worktree, ".runtime/verification/recovery.json"), "utf8") !==
+      original
+  )
+    throw new Error("VERIFY_ADVANCE_READBACK_FAILED");
+  if (gate.head !== nextHead)
+    replace(verificationGate, {
+      ...gate,
+      head: nextHead,
+      advances: [
+        ...(gate.advances ?? []),
+        {
+          id: receipt.id,
+          from: expectedHead,
+          to: nextHead,
+          journalFingerprint: expectedJournalFingerprint,
+          reviewTask,
+          actions: receipt.actions,
+        },
+      ],
+    });
+  else if (!gate.advances?.some((entry) => entry.id === receipt.id))
+    throw new Error("VERIFY_ADVANCE_RECEIPT_MISMATCH");
+  return {
+    status: "advanced",
+    head: nextHead,
+    receiptId: receipt.id,
+    journalFingerprint: expectedJournalFingerprint,
+    recovery: "retained-resume-required",
+  };
 }

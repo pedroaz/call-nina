@@ -44,23 +44,27 @@ async function kill() {
   let incomplete = false;
   for (const lifecycleMode of lifecycleModes) {
     if (lifecycleMode === "verify") {
-      const state = await statusMode({ mode: lifecycleMode, runtimeRoot });
-      if (["ready", "starting"].includes(state.status)) {
-        try {
-          const { requestVerification } = await import("./lib/verification-client.mjs");
-          const result = await requestVerification({ action: "stop" });
-          process.stdout.write(
-            `verify: ${result.status} cleanup=${result.failures?.length || result.notes?.length ? "incomplete" : "complete"}\n`,
-          );
-          if (result.failures?.length || result.notes?.length) incomplete = true;
-        } catch {
-          process.stderr.write(
-            "verify: retained; use make verify-stop after the active operation finishes.\n",
-          );
-          incomplete = true;
-        }
-        continue;
+      try {
+        const result = await killMode({ mode: lifecycleMode, runtimeRoot });
+        const recoveryIncomplete = Boolean(
+          result.failures?.length ||
+          result.notes?.length ||
+          result.pendingAction ||
+          result.interruptedActions?.length ||
+          result.remainingRecords?.length ||
+          result.remainingPreferences?.length,
+        );
+        process.stdout.write(
+          `verify: ${result.status} cleanup=${recoveryIncomplete ? "incomplete" : "complete"}\n`,
+        );
+        if (recoveryIncomplete) incomplete = true;
+      } catch {
+        process.stderr.write(
+          "verify: retained; inspect make verify-stop for the exact ownership/recovery blocker.\n",
+        );
+        incomplete = true;
       }
+      continue;
     }
     const result = await killMode({ mode: lifecycleMode, runtimeRoot });
     process.stdout.write(

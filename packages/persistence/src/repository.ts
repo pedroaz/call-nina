@@ -100,6 +100,44 @@ import { type CallNinaDatabase, withLeasedConnection, withLeasedTransaction } fr
 import { claimIdempotentWrite, type IdempotentWriteResult } from "./idempotency.js";
 import { saveWritingAttempt, type WritingAttemptPersistence } from "./writing-attempt.js";
 
+// Use the same policy for dashboard/library projections, detail reads and the transactional guard.
+// Completion alone is not retained evidence after the learner explicitly deletes its history.
+// Course missions keep their explicitly confirmed cascade; confirmed vocabulary always blocks.
+const preparedActivityDeletionStatusSql = `CASE
+  WHEN EXISTS (
+    SELECT 1 FROM vocabulary_entries v
+    WHERE json_extract(v.source_json, '$.kind') = 'activity'
+      AND json_extract(v.source_json, '$.activityId') = p.activity_id
+      AND v.status <> 'candidate'
+  ) THEN 'retained-data'
+  WHEN json_extract(p.context_json, '$.courseTeaching.mission.id') IS NULL AND (
+    EXISTS (
+      SELECT 1 FROM attempts a JOIN exercises e USING(exercise_id)
+      WHERE e.activity_id = p.activity_id AND (
+        a.status = 'completed' OR EXISTS (
+          SELECT 1 FROM history_entries h
+          WHERE h.entity_kind = 'attempt' AND h.entity_id = a.attempt_id
+        )
+      )
+    ) OR EXISTS (
+      SELECT 1 FROM mcp_attempt_feedback f WHERE f.activity_id = p.activity_id
+    ) OR EXISTS (
+      SELECT 1 FROM learning_attempts a
+      WHERE a.source_kind IN ('external', 'listening')
+        AND json_extract(a.ownership_json, '$.source.activityId') = p.activity_id
+    ) OR EXISTS (
+      SELECT 1 FROM voice_summaries v
+      WHERE json_extract(v.summary_json, '$.activity.activityId') = p.activity_id
+    ) OR EXISTS (
+      SELECT 1 FROM course_results r WHERE r.activity_id = p.activity_id
+    )
+  ) THEN 'retained-data'
+  WHEN EXISTS (SELECT 1 FROM exercises e WHERE e.activity_id = p.activity_id)
+    OR EXISTS (SELECT 1 FROM course_results r WHERE r.activity_id = p.activity_id)
+    THEN 'cascade'
+  ELSE 'available'
+END`;
+
 export { preparedActivitySchema } from "@call-nina/contracts";
 
 const historyActivityTypeSchema = z.enum([
@@ -1683,18 +1721,7 @@ export class CallNinaRepository {
       const preparedActivities = connection
         .prepare(
           `SELECT p.activity_id, p.activity_type, p.title, p.origin_surface, p.prepared_at,
-             CASE
-               WHEN EXISTS (
-                 SELECT 1 FROM vocabulary_entries v
-                 WHERE json_extract(v.source_json, '$.kind') = 'activity'
-                   AND json_extract(v.source_json, '$.activityId') = p.activity_id
-                   AND v.status <> 'candidate'
-               ) THEN 'retained-data'
-               WHEN EXISTS (
-                 SELECT 1 FROM exercises e WHERE e.activity_id = p.activity_id
-               ) THEN 'cascade'
-               ELSE 'available'
-             END AS deletion_status
+             ${preparedActivityDeletionStatusSql} AS deletion_status
            FROM prepared_activities p
            WHERE p.status = 'prepared'
            ORDER BY prepared_at DESC, activity_id
@@ -2208,14 +2235,7 @@ export class CallNinaRepository {
           `
         SELECT p.*, EXISTS (SELECT 1 FROM generated_activity_payloads g
           WHERE g.activity_id = p.activity_id) AS generated,
-          CASE WHEN (p.status <> 'prepared' AND json_type(p.context_json, '$.learningPath') IS NULL) OR EXISTS (
-            SELECT 1 FROM vocabulary_entries v
-            WHERE json_extract(v.source_json, '$.kind') = 'activity'
-              AND json_extract(v.source_json, '$.activityId') = p.activity_id
-              AND v.status <> 'candidate'
-          ) THEN 'retained-data'
-          WHEN EXISTS (SELECT 1 FROM exercises e WHERE e.activity_id = p.activity_id) OR EXISTS (SELECT 1 FROM course_results r WHERE r.activity_id = p.activity_id)
-            THEN 'cascade' ELSE 'available' END AS deletion_status
+          ${preparedActivityDeletionStatusSql} AS deletion_status
         FROM prepared_activities p WHERE ${clauses.join(" AND ")}
         ORDER BY p.prepared_at DESC, p.activity_id LIMIT ?
       `,
@@ -2275,27 +2295,17 @@ export class CallNinaRepository {
     const deletedAt = utcInstantSchema.parse(new Date().toISOString());
     await withLeasedTransaction(this.#database, (connection) => {
       const activity = connection
-        .prepare(`SELECT status, context_json FROM prepared_activities WHERE activity_id = ?`)
-        .get(activityId) as { status: string; context_json: string } | undefined;
+        .prepare(
+          `SELECT p.context_json, ${preparedActivityDeletionStatusSql} AS deletion_status
+           FROM prepared_activities p WHERE p.activity_id = ?`,
+        )
+        .get(activityId) as { context_json: string; deletion_status: string } | undefined;
       if (!activity) throw new Error("OD_PREPARED_ACTIVITY_NOT_FOUND");
       const courseMissionId = parseScopedActivityContext(
         connection,
         parseJson(activity.context_json),
       ).courseTeaching?.mission.id;
-      if (activity.status !== "prepared" && !courseMissionId) {
-        throw new Error("OD_PREPARED_ACTIVITY_DELETE_BLOCKED");
-      }
-      const retainedVocabulary = connection
-        .prepare(
-          `SELECT 1
-           FROM vocabulary_entries
-           WHERE json_extract(source_json, '$.kind') = 'activity'
-             AND json_extract(source_json, '$.activityId') = ?
-             AND status <> 'candidate'
-           LIMIT 1`,
-        )
-        .get(activityId);
-      if (retainedVocabulary) {
+      if (activity.deletion_status === "retained-data") {
         throw new Error("OD_PREPARED_ACTIVITY_DELETE_BLOCKED");
       }
       const courseVoice = connection
@@ -2721,19 +2731,7 @@ export class CallNinaRepository {
     return withLeasedConnection(this.#database, (connection) => {
       const row = connection
         .prepare(
-          `SELECT CASE
-             WHEN p.status <> 'prepared' AND json_type(p.context_json, '$.learningPath') IS NULL THEN 'retained-data'
-             WHEN EXISTS (
-               SELECT 1 FROM vocabulary_entries v
-               WHERE json_extract(v.source_json, '$.kind') = 'activity'
-                 AND json_extract(v.source_json, '$.activityId') = p.activity_id
-                 AND v.status <> 'candidate'
-             ) THEN 'retained-data'
-             WHEN EXISTS (
-               SELECT 1 FROM exercises e WHERE e.activity_id = p.activity_id
-             ) OR EXISTS (SELECT 1 FROM course_results r WHERE r.activity_id = p.activity_id) THEN 'cascade'
-             ELSE 'available'
-           END AS deletion_status
+          `SELECT ${preparedActivityDeletionStatusSql} AS deletion_status
            FROM prepared_activities p
            WHERE p.activity_id = ?`,
         )

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { randomUUID } from "node:crypto";
 import { parseArgs } from "node:util";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
@@ -6,15 +7,23 @@ import { chmod, lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { assertVerificationBarrier, locked } from "../agents/lib/orchestration.mjs";
 import {
-  inspectOwnedProcess,
-  killMode,
-  lifecyclePaths,
-  startMode,
-  statusMode,
-} from "./lib/lifecycle.mjs";
-import { requestVerification, verificationRoot, socketPath } from "./lib/verification-client.mjs";
+  assertVerificationBarrier,
+  coordinatorVerificationBarrier,
+  advanceVerificationBarrier,
+  locked,
+} from "../agents/lib/orchestration.mjs";
+import { inspectOwnedProcess, lifecyclePaths, startMode, statusMode } from "./lib/lifecycle.mjs";
+import {
+  requestVerification,
+  verificationRoot,
+  socketPath,
+  recordVerificationController,
+  persistVerificationProcesses,
+  stopVerification,
+  journalFingerprint,
+  reconcileVerificationEffect,
+} from "./lib/verification-client.mjs";
 import {
   VerificationSession,
   root,
@@ -26,18 +35,29 @@ import {
 const { positionals, values: launchOptions } = parseArgs({
   allowPositionals: true,
   options: {
+    run: { type: "string" },
+    "expected-head": { type: "string" },
     executable: { type: "string" },
     "config-dir": { type: "string" },
     "codex-executable": { type: "string" },
   },
 });
-for (const value of Object.values(launchOptions))
+const { run: recoveryRun, "expected-head": expectedHead, ...appOptions } = launchOptions;
+for (const value of Object.values(appOptions))
   if (!path.isAbsolute(value)) throw failure("VERIFY_OPTION_PATH_INVALID");
-const forwardedOptions = Object.entries(launchOptions).flatMap(([key, value]) => [
-  `--${key}`,
-  value,
-]);
+const forwardedOptions = Object.entries(appOptions).flatMap(([key, value]) => [`--${key}`, value]);
 const maxRequest = 64 * 1024;
+const mutatingActions = [
+  "click",
+  "double-click",
+  "fill",
+  "select",
+  "press",
+  "prepare-ai",
+  "cleanup",
+  "restore",
+  "stop",
+];
 async function run(command, args) {
   const child = spawn(command, args, { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
   const lines = [];
@@ -84,18 +104,20 @@ function validateRequest(request) {
     wait: ["target", "state", "timeoutMs"],
     "prepare-ai": [],
     "begin-records": ["kind"],
+    "confirm-no-creation": ["confirmation"],
     track: ["id"],
     cleanup: ["id"],
     note: ["code"],
     restore: [],
     stop: [],
+    suspend: [],
   };
   if (
     !Object.hasOwn(fields, request.action) ||
     Object.keys(request).some((key) => key !== "action" && !fields[request.action].includes(key))
   )
     throw failure("VERIFY_REQUEST_INVALID");
-  for (const key of ["value", "key", "id", "code", "kind"]) {
+  for (const key of ["value", "key", "id", "code", "kind", "confirmation"]) {
     if (
       request[key] !== undefined &&
       (typeof request[key] !== "string" || request[key].length > 16000)
@@ -125,12 +147,16 @@ function locate(page, target) {
   )
     throw failure("VERIFY_TARGET_INVALID");
   for (const key of ["role", "name", "label", "selector"])
-    if (target[key] !== undefined && (typeof target[key] !== "string" || target[key].length > 500))
+    if (
+      target[key] !== undefined &&
+      (typeof target[key] !== "string" || !target[key].length || target[key].length > 500)
+    )
       throw failure("VERIFY_TARGET_INVALID");
   if (
     [target.role, target.label, target.selector].filter((value) => value !== undefined).length !== 1
   )
     throw failure("VERIFY_TARGET_INVALID");
+  if (target.name !== undefined && !target.role) throw failure("VERIFY_TARGET_INVALID");
   let locator = target.role
     ? page.getByRole(target.role, { name: target.name, exact: true })
     : target.label
@@ -144,12 +170,13 @@ function locate(page, target) {
   return locator;
 }
 async function serve(resume = false) {
-  assertVerificationBarrier();
+  const barrier = assertVerificationBarrier();
   const lifecycle = lifecyclePaths(runtimeRoot, "verify");
   if (!process.env.CALL_NINA_RUN_ID || process.env.CALL_NINA_READY_FILE !== lifecycle.ready)
     throw failure("VERIFY_LIFECYCLE_OWNER_REQUIRED");
   // The starter records ownership just after spawn; do not build or launch until it is proven.
   let lifecycleOwned = false;
+  let lifecycleState;
   for (let attempt = 0; attempt < 50; attempt += 1) {
     try {
       const state = JSON.parse(await readFile(lifecycle.state, "utf8"));
@@ -164,28 +191,38 @@ async function serve(resume = false) {
     await delay(10);
   }
   if (!lifecycleOwned) throw failure("VERIFY_LIFECYCLE_OWNER_REQUIRED");
+  lifecycleState = JSON.parse(await readFile(lifecycle.state, "utf8"));
   let recovery;
   process.umask(0o077);
   await mkdir(verificationRoot, { recursive: true, mode: 0o700 });
   const info = await lstat(verificationRoot);
   if (!info.isDirectory() || info.uid !== process.getuid() || info.mode & 0o077)
     throw failure("VERIFY_DIRECTORY_UNSAFE");
+  const ownership = await recordVerificationController(lifecycleState);
   try {
     const previous = JSON.parse(
       await readFile(path.join(verificationRoot, "recovery.json"), "utf8"),
     );
-    if (
+    const needsRecovery = Boolean(
+      previous.suspended ||
       previous.records?.length ||
       Object.keys(previous.preferences ?? {}).length ||
-      previous.notes?.length
-    ) {
+      previous.notes?.length ||
+      previous.pendingAction ||
+      previous.interruptedActions?.length,
+    );
+    if (needsRecovery) {
       if (!resume) throw failure("VERIFY_RECOVERY_REQUIRED");
+    }
+    {
       if (
         previous.schemaVersion !== 1 ||
         !Array.isArray(previous.records) ||
         !Array.isArray(previous.notes) ||
         !previous.preferences ||
-        !["en", "de"].includes(previous.locale)
+        (previous.receipts !== undefined && !Array.isArray(previous.receipts)) ||
+        (previous.locale !== undefined && !["en", "de"].includes(previous.locale)) ||
+        (previous.locale === undefined && Object.keys(previous.preferences).length)
       )
         throw failure("VERIFY_RECOVERY_INVALID");
       if (
@@ -204,7 +241,48 @@ async function serve(resume = false) {
         )
           throw failure("VERIFY_RECOVERY_INVALID");
       }
-      recovery = previous;
+      if (
+        previous.notes.some(
+          (note) => typeof note !== "string" || !/^[A-Z][A-Z0-9_]{0,100}$/.test(note),
+        ) ||
+        (previous.interruptedActions !== undefined && !Array.isArray(previous.interruptedActions))
+      )
+        throw failure("VERIFY_RECOVERY_INVALID");
+      for (const entry of [
+        ...(previous.interruptedActions ?? []),
+        ...(previous.pendingAction ? [previous.pendingAction] : []),
+      ]) {
+        if (
+          !entry ||
+          !mutatingActions.includes(entry.action) ||
+          typeof entry.startedAt !== "string" ||
+          !Number.isFinite(Date.parse(entry.startedAt))
+        )
+          throw failure("VERIFY_RECOVERY_INVALID");
+      }
+      if (
+        previous.baseline &&
+        (!Array.isArray(previous.baseline.ids) ||
+          !["practice", "speaking", "listening"].includes(previous.baseline.kind) ||
+          previous.baseline.ids.some((id) => !/^activity_[0-9a-z]{16,64}$/.test(id)))
+      )
+        throw failure("VERIFY_RECOVERY_INVALID");
+      recovery = needsRecovery
+        ? previous
+        : {
+            schemaVersion: 1,
+            records: [],
+            notes: [],
+            preferences: {},
+            receipts: previous.receipts ?? [],
+          };
+      if (recovery.pendingAction) {
+        recovery.interruptedActions ??= [];
+        recovery.interruptedActions.push(recovery.pendingAction);
+        delete recovery.pendingAction;
+        if (!recovery.notes.includes("ACTION_RECONCILIATION_REQUIRED"))
+          recovery.notes.push("ACTION_RECONCILIATION_REQUIRED");
+      }
     }
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
@@ -212,15 +290,92 @@ async function serve(resume = false) {
   await rm(socketPath, { force: true });
   await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
   await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
-  const session = new VerificationSession(verificationRoot, recovery, launchOptions);
+  const session = new VerificationSession(verificationRoot, recovery, appOptions, ownership);
+  await session.persist();
+  let recording;
+  const ownershipTimer = setInterval(() => {
+    if (recording) return;
+    recording = persistVerificationProcesses(ownership)
+      .catch(() => {
+        // Retain the last proof; recovery revalidates every identity before acting.
+      })
+      .finally(() => {
+        recording = undefined;
+      });
+  }, 1000);
   let server;
   let closing = false;
-  async function close() {
+  let shutdownRequested = false;
+  let active = Promise.resolve();
+  let shutdown;
+  function requestStop(suspend = false) {
+    shutdownRequested = true;
+    shutdown ??= active.then(() => close(suspend));
+    return shutdown;
+  }
+  async function journaled(request, operation) {
+    const { action } = request;
+    if (!mutatingActions.includes(action)) return operation();
+    const identity = {
+      actionId: randomUUID(),
+      action,
+      startedAt: new Date().toISOString(),
+      sourceHead: barrier.head,
+    };
+    // Only the digest is retained; selectors, labels, keys and fill text stay ephemeral.
+    identity.requestFingerprint = journalFingerprint(JSON.stringify(request));
+    let target;
+    try {
+      if (["click", "double-click", "fill", "select", "press"].includes(action)) {
+        if (["fill", "select"].includes(action) && typeof request.value !== "string")
+          throw failure("VERIFY_REQUEST_INVALID");
+        if (action === "press" && (typeof request.key !== "string" || !request.key.length))
+          throw failure("VERIFY_REQUEST_INVALID");
+        target = locate(session.page, request.target);
+        const count = await target.count().catch(() => {
+          throw failure("VERIFY_TARGET_INVALID");
+        });
+        if (count !== 1) throw failure(count ? "VERIFY_TARGET_AMBIGUOUS" : "VERIFY_TARGET_MISSING");
+      }
+      if (
+        action === "cleanup" &&
+        (!/^activity_[0-9a-z]{16,64}$/.test(request.id ?? "") ||
+          !session.journal.records.some((entry) => entry.id === request.id))
+      )
+        throw failure("VERIFY_RECORD_NOT_OWNED");
+    } catch (error) {
+      session.journal.receipts ??= [];
+      session.journal.receipts.push({
+        ...identity,
+        phase: "not-dispatched",
+        code: safeCode(error),
+      });
+      await session.persist();
+      throw error;
+    }
+    if (session.journal.pendingAction) {
+      session.journal.interruptedActions ??= [];
+      session.journal.interruptedActions.push(session.journal.pendingAction);
+      if (!session.journal.notes.includes("ACTION_RECONCILIATION_REQUIRED"))
+        session.journal.notes.push("ACTION_RECONCILIATION_REQUIRED");
+    }
+    session.journal.pendingAction = { ...identity, phase: "dispatch-may-have-started" };
+    await session.persist();
+    const result = await operation(target);
+    delete session.journal.pendingAction;
+    await session.persist();
+    return result;
+  }
+  async function close(suspend = false) {
     if (closing) return { status: "stopping" };
     closing = true;
     let cleanup;
     try {
-      cleanup = await session.restore();
+      if (suspend) {
+        session.journal.suspended = { at: new Date().toISOString() };
+        await session.persist();
+        cleanup = { failures: [], retained: true };
+      } else cleanup = await journaled({ action: "stop" }, () => session.restore());
     } catch {
       cleanup = {
         failures: ["VERIFY_CLEANUP_FAILED"],
@@ -236,13 +391,13 @@ async function serve(resume = false) {
       return { status: "retained", ...cleanup };
     }
     await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
-    if (!cleanup.failures.length && !cleanup.notes?.length)
-      await rm(path.join(verificationRoot, "recovery.json"), { force: true });
+    // Keep the private journal as the immutable receipt archive, even when all
+    // cleanup obligations are settled. A later launch preserves these receipts.
     // Defer closing the listener until the stop response has been flushed.
     setTimeout(() => server?.close(), 25);
-    return { status: "stopped", ...cleanup };
+    return { status: suspend ? "suspended" : "stopped", ...cleanup };
   }
-  async function dispatch(input) {
+  async function dispatch(input, target) {
     const request = validateRequest(input);
     if (closing) throw failure("VERIFY_STOPPING");
     const page = session.page;
@@ -255,6 +410,8 @@ async function serve(resume = false) {
           aiPrepared: Boolean(session.aiPrepared),
           records: session.journal.records,
           notes: session.journal.notes,
+          pendingAction: session.journal.pendingAction,
+          interruptedActions: session.journal.interruptedActions,
         };
       case "windows": {
         let timeout;
@@ -325,22 +482,22 @@ async function serve(resume = false) {
         break;
       }
       case "click":
-        await locate(page, request.target).click();
+        await target.click();
         break;
       case "double-click":
-        await locate(page, request.target).dblclick();
+        await target.dblclick();
         break;
       case "fill":
         if (typeof request.value !== "string") throw failure("VERIFY_REQUEST_INVALID");
-        await locate(page, request.target).fill(request.value);
+        await target.fill(request.value);
         break;
       case "select":
         if (typeof request.value !== "string") throw failure("VERIFY_REQUEST_INVALID");
-        await locate(page, request.target).selectOption(request.value);
+        await target.selectOption(request.value);
         break;
       case "press":
         if (typeof request.key !== "string") throw failure("VERIFY_REQUEST_INVALID");
-        await locate(page, request.target).press(request.key);
+        await target.press(request.key);
         break;
       case "wait":
         await locate(page, request.target).waitFor({
@@ -353,6 +510,9 @@ async function serve(resume = false) {
         break;
       case "begin-records":
         result = await session.beginRecords(request.kind);
+        break;
+      case "confirm-no-creation":
+        result = await session.confirmNoCreation(request.confirmation);
         break;
       case "track":
         await session.trackActivity(request.id);
@@ -370,7 +530,8 @@ async function serve(resume = false) {
         result = await session.restore();
         break;
       case "stop":
-        return close();
+      case "suspend":
+        return requestStop(request.action === "suspend");
     }
     session.phase = "ready";
     return result ?? { status: "ok" };
@@ -395,13 +556,31 @@ async function serve(resume = false) {
         if (!buffer.includes("\n")) return;
         submitted = true;
         connection.setTimeout(300000);
-        if (busy) {
-          let request;
+        let request;
+        try {
+          request = validateRequest(JSON.parse(buffer.slice(0, buffer.indexOf("\n"))));
+        } catch {
+          connection.end(JSON.stringify({ ok: false, code: "VERIFY_REQUEST_INVALID" }) + "\n");
+          return;
+        }
+        if (["stop", "suspend"].includes(request.action)) {
           try {
-            request = validateRequest(JSON.parse(buffer.slice(0, buffer.indexOf("\n"))));
-          } catch {
-            /* Return a bounded busy response. */
+            connection.end(
+              JSON.stringify({
+                ok: true,
+                result: await requestStop(request.action === "suspend"),
+              }) + "\n",
+            );
+          } catch (error) {
+            connection.end(JSON.stringify({ ok: false, code: safeCode(error) }) + "\n");
           }
+          return;
+        }
+        if (shutdownRequested) {
+          connection.end(JSON.stringify({ ok: false, code: "VERIFY_STOPPING" }) + "\n");
+          return;
+        }
+        if (busy) {
           connection.end(
             JSON.stringify(
               request?.action === "status"
@@ -412,11 +591,15 @@ async function serve(resume = false) {
           return;
         }
         busy = true;
+        let finish;
+        active = new Promise((resolve) => {
+          finish = resolve;
+        });
         try {
           connection.end(
             JSON.stringify({
               ok: true,
-              result: await dispatch(JSON.parse(buffer.slice(0, buffer.indexOf("\n")))),
+              result: await journaled(request, (target) => dispatch(request, target)),
             }) + "\n",
           );
         } catch (error) {
@@ -425,6 +608,7 @@ async function serve(resume = false) {
           );
         } finally {
           busy = false;
+          finish();
         }
       });
     });
@@ -439,14 +623,28 @@ async function serve(resume = false) {
     );
     for (const signal of ["SIGINT", "SIGTERM"])
       process.on(signal, () => {
-        if (!busy) void close();
+        void requestStop();
       });
     await once(server, "close");
     await rm(socketPath, { force: true });
   } catch (error) {
-    await session.application?.close().catch(() => {});
+    // Preserve process/journal proof for bounded external recovery if close hangs.
+    void session.application?.close().catch(() => {});
     throw error;
+  } finally {
+    clearInterval(ownershipTimer);
+    await recording;
   }
+}
+
+async function stopLocal(suspend) {
+  let barrier;
+  try {
+    barrier = assertVerificationBarrier();
+  } catch (error) {
+    if (suspend) throw error;
+  }
+  return stopVerification({ suspend, barrier });
 }
 
 try {
@@ -489,20 +687,49 @@ try {
       input += chunk;
       if (Buffer.byteLength(input) > maxRequest) throw failure("VERIFY_REQUEST_LIMIT");
     }
-    result = await requestVerification(validateRequest(JSON.parse(input)));
-  } else if (["snapshot", "screenshot", "stop"].includes(action)) {
-    const state = await statusMode({ mode: "verify", runtimeRoot });
-    if (
-      action === "stop" &&
-      (state.status === "stopped" || (state.status === "stale" && state.reason === "not-running"))
-    ) {
-      await killMode({ mode: "verify", runtimeRoot });
-      result = { status: "already-stopped" };
-    } else result = await requestVerification({ action });
+    const request = validateRequest(JSON.parse(input));
+    result = ["stop", "suspend"].includes(request.action)
+      ? await locked(() => stopLocal(request.action === "suspend"))
+      : await requestVerification(request);
+  } else if (["stop", "suspend"].includes(action)) {
+    result = await locked(() => stopLocal(action === "suspend"));
+  } else if (
+    [
+      "recovery-stop",
+      "reconcile-disclosure",
+      "reconcile-plugin-refresh",
+      "recovery-advance",
+    ].includes(action)
+  ) {
+    let input = "";
+    if (action !== "recovery-stop") {
+      for await (const chunk of process.stdin) {
+        input += chunk;
+        if (Buffer.byteLength(input) > maxRequest) throw failure("VERIFY_REQUEST_LIMIT");
+      }
+    }
+    result = await locked(async () => {
+      if (action === "recovery-advance") return advanceVerificationBarrier(JSON.parse(input));
+      const barrier = coordinatorVerificationBarrier(recoveryRun, expectedHead);
+      if (action === "recovery-stop")
+        return stopVerification({ targetRoot: barrier.worktree, barrier });
+      return reconcileVerificationEffect(barrier, JSON.parse(input), action);
+    });
+  } else if (["snapshot", "screenshot"].includes(action)) {
+    result = await requestVerification({ action });
   } else throw failure("VERIFY_COMMAND_INVALID");
   if (result) {
     process.stdout.write(JSON.stringify(result) + "\n");
-    if (result.failures?.length || result.notes?.length) process.exitCode = 1;
+    if (
+      result.failures?.length ||
+      (result.status !== "suspended" &&
+        (result.notes?.length ||
+          result.pendingAction ||
+          result.interruptedActions?.length ||
+          result.remainingRecords?.length ||
+          result.remainingPreferences?.length))
+    )
+      process.exitCode = 1;
   }
 } catch (error) {
   const code = error.message?.startsWith("LIFECYCLE_APP_ALREADY_RUNNING_OR_RETAINED:")
