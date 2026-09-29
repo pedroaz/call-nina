@@ -1,7 +1,7 @@
 import { useOperationProgress } from "./useOperationProgress.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  appServerWorkloadPolicies,
+  generationDeadlineMilliseconds,
   errorDefinitions,
   callNinaErrorSchema,
   type DesktopIpcEvent,
@@ -90,7 +90,7 @@ export function runLearningOperation(
       cancelBackend();
       cleanup();
       reject(operationError("ai-timeout", operationId ?? submissionId));
-    }, appServerWorkloadPolicies[input.kind].absoluteDeadlineMilliseconds + 30_000);
+    }, generationDeadlineMilliseconds[input.kind] + 30_000);
     signal.addEventListener("abort", abort, { once: true });
     void invokeDesktop("learning-operation/start", { submissionId, input })
       .then((accepted) => {

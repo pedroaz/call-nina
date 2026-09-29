@@ -1,4 +1,5 @@
 import {
+  type GenerationProvenance,
   activityIdSchema,
   attemptIdSchema,
   correctionIdSchema,
@@ -64,12 +65,6 @@ export class LearningResultService {
     if (operation.input.kind !== "writing-correction") {
       throw new Error("OD_WRITING_ATTEMPT_KIND_INVALID");
     }
-    if (
-      operation.modelSelection.model.selection !== "exact" ||
-      operation.modelSelection.effort.selection !== "exact"
-    ) {
-      throw new Error("OD_WRITING_ATTEMPT_MODEL_SELECTION_INVALID");
-    }
     const completedAt = utcInstantSchema.parse(new Date().toISOString());
     const activityId = activityIdSchema.parse(opaqueId("activity"));
     const exerciseId = exerciseIdSchema.parse(opaqueId("exercise"));
@@ -83,8 +78,8 @@ export class LearningResultService {
       generatedAt: completedAt,
       modelSelection: {
         availability: "reported" as const,
-        modelId: operation.modelSelection.model.modelId,
-        effortId: operation.modelSelection.effort.effortId,
+        modelId: state.provenance.modelId,
+        effortId: state.provenance.effortId,
       },
     };
     const objective = {
@@ -250,8 +245,8 @@ export class LearningResultService {
 
   async persistFlashcards(
     accepted: AcceptedOperation,
-    modelRequestId: string,
     outputValue: unknown,
+    provenance: GenerationProvenance,
   ) {
     await this.#assertGeneration(accepted);
     const input = accepted.operation.input;
@@ -261,9 +256,6 @@ export class LearningResultService {
       `activity_${accepted.operationId.replaceAll(/[^a-z0-9]/gu, "")}`,
     );
     const preparedAt = accepted.startedAt;
-    const selection = accepted.operation.modelSelection;
-    if (selection.model.selection !== "exact" || selection.effort.selection !== "exact")
-      throw new Error("OD_FLASHCARD_MODEL_INVALID");
     await saveGeneratedFlashcards(
       this.#database,
       {
@@ -281,17 +273,7 @@ export class LearningResultService {
         },
       },
       output.cards,
-      {
-        source: "ai",
-        producer: "desktop-app-server",
-        modelRequestId,
-        generatedAt: preparedAt,
-        modelSelection: {
-          availability: "reported",
-          modelId: selection.model.modelId,
-          effortId: selection.effort.effortId,
-        },
-      },
+      provenance,
       { learnerGoal: input.learningContext.goal, topic: input.topic },
       accepted.operationId,
     );
@@ -303,6 +285,7 @@ export class LearningResultService {
     accepted: AcceptedOperation,
     state: Readonly<{
       modelRequestId: string;
+      provenance: GenerationProvenance;
       output: ReturnType<typeof exerciseGenerationCandidateSchema.parse>;
     }>,
   ): Promise<ReturnType<typeof activityIdSchema.parse>> {
@@ -311,12 +294,6 @@ export class LearningResultService {
     const operation = accepted.operation;
     if (operation.input.kind !== "exercise-generation")
       throw new Error("OD_GENERATED_ACTIVITY_INPUT_INVALID");
-    if (
-      operation.modelSelection.model.selection !== "exact" ||
-      operation.modelSelection.effort.selection !== "exact"
-    ) {
-      throw new Error("OD_TARGETED_PRACTICE_MODEL_SELECTION_INVALID");
-    }
     if (operation.input.learningPath) {
       const course = await readLearningCourse(this.#curriculumRoot);
       if (!course) throw new Error("OD_COURSE_UNAVAILABLE");
@@ -359,8 +336,8 @@ export class LearningResultService {
       generatedAt: preparedAt,
       modelSelection: {
         availability: "reported",
-        modelId: operation.modelSelection.model.modelId,
-        effortId: operation.modelSelection.effort.effortId,
+        modelId: state.provenance.modelId,
+        effortId: state.provenance.effortId,
       },
     } as const;
     const vocabularyEntries = (state.output.lesson?.vocabularyFoundations ?? []).map((item) => ({
@@ -392,6 +369,7 @@ export class LearningResultService {
           material,
           learnerGoal: operation.input.learningContext.goal,
           aiProvenance,
+          generationProvenance: state.provenance,
           output: state.output,
           vocabularyEntries,
         },
@@ -404,6 +382,7 @@ export class LearningResultService {
           material,
           learnerGoal: operation.input.learningContext.goal,
           aiProvenance,
+          generationProvenance: state.provenance,
           output: state.output,
           vocabularyEntries,
         },

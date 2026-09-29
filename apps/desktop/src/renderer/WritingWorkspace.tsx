@@ -1,6 +1,6 @@
 import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
-import type { AppServerCandidateOutputMap, CallNinaError } from "@call-nina/contracts";
+import type { GenerationCandidateOutputMap, CallNinaError } from "@call-nina/contracts";
 import {
   writingCorrectionCandidateSchema,
   writingPromptCandidateSchema,
@@ -33,8 +33,8 @@ import {
 type TeachingProfileChoice = "profile-default" | "conversation-partner" | "strict-corrector";
 type FeedbackChoice = "all-meaningful" | "priority-only";
 
-type PromptOutput = AppServerCandidateOutputMap["writing-prompt"];
-type CorrectionOutput = AppServerCandidateOutputMap["writing-correction"];
+type PromptOutput = GenerationCandidateOutputMap["writing-prompt"];
+type CorrectionOutput = GenerationCandidateOutputMap["writing-correction"];
 type CorrelationId = ReturnType<typeof createDesktopSubmissionId>;
 type OperationStage = "idle" | "queued" | "running" | "validating" | "cancelling";
 

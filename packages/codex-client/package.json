@@ -17,6 +17,7 @@
   "dependencies": {
     "@call-nina/contracts": "workspace:*",
     "zod": "catalog:",
-    "@call-nina/platform": "workspace:*"
+    "@call-nina/platform": "workspace:*",
+    "@call-nina/learning-workflows": "workspace:*"
   }
 }

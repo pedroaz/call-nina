@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { AppServerOutputValidationError } from "./output-validation.js";
+import { GenerationOutputValidationError } from "@call-nina/learning-workflows";
 
 export type OperationStage =
   | "queued"
@@ -144,7 +144,7 @@ export class OperationController<Input, Output> {
         return this.#finish(state, {
           status: "failed",
           errorCode: safeFailureCode(error),
-          ...(error instanceof AppServerOutputValidationError
+          ...(error instanceof GenerationOutputValidationError
             ? { errorKind: "model-output" as const }
             : {}),
         });

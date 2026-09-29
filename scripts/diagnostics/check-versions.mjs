@@ -9,6 +9,7 @@ const manifests = [
   "apps/desktop/package.json",
   "apps/mcp-server/package.json",
   "packages/codex-client/package.json",
+  "packages/learning-workflows/package.json",
   "packages/contracts/package.json",
   "packages/design-system/package.json",
   "packages/domain/package.json",

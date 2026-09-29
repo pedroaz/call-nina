@@ -18,6 +18,7 @@ import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 
 import {
+  generationProvenanceSchema,
   learningContextSchema,
   learningGoalSchema,
   portableExerciseContentSchema,
@@ -265,6 +266,7 @@ export const targetedPracticeActivitySchema = strictBoundaryObject({
   activity: preparedActivitySchema,
   category: mistakeCategorySchema,
   aiProvenance: aiProvenanceSchema,
+  generationProvenance: generationProvenanceSchema,
   output: exerciseGenerationCandidateSchema,
   vocabularyEntries: z.array(vocabularyEntrySchema).max(50).default([]),
 });
@@ -274,6 +276,7 @@ export const generatedPracticeActivitySchema = strictBoundaryObject({
   learnerGoal: learningGoalSchema,
   activity: preparedActivitySchema,
   aiProvenance: aiProvenanceSchema,
+  generationProvenance: generationProvenanceSchema,
   output: exerciseGenerationCandidateSchema,
   vocabularyEntries: z.array(vocabularyEntrySchema).max(50).default([]),
 });

@@ -1,0 +1,20 @@
+{
+  "name": "@call-nina/learning-workflows",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Portable learning prompts, structured output validation and bounded repair.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@call-nina/contracts": "workspace:*"
+  }
+}

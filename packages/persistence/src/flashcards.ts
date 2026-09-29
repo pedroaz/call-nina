@@ -8,6 +8,7 @@ import { requireLocalLearningScope, assertLocalLearningScope } from "./learning-
 import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
+  generationProvenanceSchema,
   activityIdSchema,
   portableFlashcardContentSchema,
   type PortableFlashcardContent,
@@ -60,7 +61,7 @@ function read(
     vocabulary,
   });
   assertStoredContentRevision(connection, activityId, deck.content);
-  if ((deck.source === "generated") !== (deck.content.provenance.producer === "codex"))
+  if ((deck.source === "generated") !== "modelId" in deck.content.provenance)
     throw new Error("OD_CONTENT_PROVENANCE_INVALID");
   if (
     deck.progress.position >= deck.content.cards.length ||
@@ -338,11 +339,8 @@ function prepareFlashcardContent(
   provenanceValue: unknown,
   goal: { learnerGoal: z.infer<typeof learningGoalSchema> | null; topic: string },
 ): PortableFlashcardContent {
-  const ai = provenanceValue === null ? null : aiProvenanceSchema.parse(provenanceValue);
-  if (
-    (source === "generated" && ai?.modelSelection.availability !== "reported") ||
-    (source === "vocabulary" && ai !== null)
-  )
+  const ai = provenanceValue === null ? null : generationProvenanceSchema.parse(provenanceValue);
+  if ((source === "generated" && ai === null) || (source === "vocabulary" && ai !== null))
     throw new Error("OD_CONTENT_PROVENANCE_INVALID");
   const material = saveMaterialInTransaction(
     connection,
@@ -370,14 +368,7 @@ function prepareFlashcardContent(
     },
     materials: [material],
     assets: [],
-    provenance:
-      ai?.modelSelection.availability === "reported"
-        ? {
-            producer: "codex",
-            modelId: ai.modelSelection.modelId,
-            effortId: ai.modelSelection.effortId,
-          }
-        : { producer: "local-vocabulary" },
+    provenance: ai ?? { producer: "local-vocabulary" },
     evaluation: "self-assessment",
     cardRevisions: cards.map(() => ({
       cardId: contentIdentity("content-card"),
@@ -417,14 +408,24 @@ export function migrateFlashcardContent(connection: DatabaseSync) {
       .parse(row["position"]);
     if (row["completed"] === 1 && position !== cards.length - 1)
       throw new Error("OD_FLASHCARD_PROGRESS_INVALID");
+    const legacyProvenance =
+      row["provenance_json"] === null
+        ? null
+        : aiProvenanceSchema.parse(JSON.parse(String(row["provenance_json"])) as unknown);
+    if (legacyProvenance && legacyProvenance.modelSelection.availability !== "reported")
+      throw new Error("OD_CONTENT_PROVENANCE_INVALID");
     const content = prepareFlashcardContent(
       connection,
       activity,
       z.enum(["generated", "vocabulary"]).parse(row["source"]),
       cards,
-      row["provenance_json"] === null
-        ? null
-        : (JSON.parse(String(row["provenance_json"])) as unknown),
+      legacyProvenance?.modelSelection.availability === "reported"
+        ? {
+            producer: "codex",
+            modelId: legacyProvenance.modelSelection.modelId,
+            effortId: legacyProvenance.modelSelection.effortId,
+          }
+        : null,
       { learnerGoal: null, topic: activity.context.naturalRequest },
     );
     connection
