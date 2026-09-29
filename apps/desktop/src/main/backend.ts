@@ -15,12 +15,13 @@ import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  type GenerationService,
   learnerIdSchema,
   activityIdSchema,
   correlationIdSchema,
   contextualHelpCandidateSchema,
   historyEntryIdSchema,
-  appServerOperationStartSchema,
+  generationOperationStartSchema,
   dataRootGenerationSchema,
   modelRequestIdSchema,
   utcInstantSchema,
@@ -61,7 +62,6 @@ import {
 } from "@call-nina/persistence";
 
 import {
-  appServerLevel,
   diagnosticErrorCode,
   exerciseHistoryPrompt,
   freshTimestampAfter,
@@ -77,12 +77,14 @@ import {
   type AcceptedOperation,
   type PendingSelection,
 } from "./backend-support.js";
+import { buildLearningCalibration, generationLevel } from "@call-nina/learning-workflows";
 
 export class DesktopBackend {
   readonly #curriculumRoot: string;
   readonly #bootstrapFile: string;
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
+  readonly #generation: GenerationService | undefined;
   readonly #appServer: CallNinaAppServerAdapter | undefined;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
   readonly #emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
@@ -133,7 +135,7 @@ export class DesktopBackend {
         operation.operationId === protectedOperationId
       )
         continue;
-      this.#appServer?.releaseOperation(correlationIdSchema.parse(operation.operationId));
+      this.#generation?.releaseOperation(correlationIdSchema.parse(operation.operationId));
       this.#operationsBySubmission.delete(submissionId);
       this.#retryableOperations.delete(operation.operationId);
     }
@@ -158,11 +160,12 @@ export class DesktopBackend {
     this.#chooseDirectory = options.chooseDirectory;
     this.#knownInstallRoots = options.knownInstallRoots;
     this.#appServer = options.appServer;
+    this.#generation = options.appServer;
     this.#log = options.log;
     this.#emitEvent = options.emitEvent;
     this.#openExternal = options.openExternal;
     this.#exportDiagnostics = options.exportDiagnostics;
-    this.#appServer?.subscribe((event) => {
+    const projectEvent = (event: AppServerEvent) => {
       void this.#enqueue(async () => {
         if (!this.#closing) await this.#projectAppServerEvent(event);
       }).catch(() => {
@@ -179,7 +182,16 @@ export class DesktopBackend {
           if (accepted) void this.#rejectUnsettledOperation(accepted.operation);
         }
       });
+    };
+    this.#appServer?.subscribe((event) => {
+      if (
+        event.event !== "operation-state-changed" &&
+        event.event !== "operation-progress" &&
+        event.event !== "operation-finished"
+      )
+        projectEvent(event);
     });
+    this.#generation?.subscribeGeneration(projectEvent);
   }
 
   close(): void {
@@ -328,6 +340,7 @@ export class DesktopBackend {
               operationId: state.operationId,
               submissionId: state.submissionId,
               modelRequestId: state.modelRequestId,
+              provenance: state.provenance,
               output: writingCorrectionCandidateSchema.parse(state.output),
             });
           } catch (error) {
@@ -367,11 +380,12 @@ export class DesktopBackend {
               state.kind === "flashcard-generation"
                 ? await this.#learningResults().persistFlashcards(
                     accepted,
-                    state.modelRequestId,
                     state.output,
+                    state.provenance,
                   )
                 : await this.#learningResults().persistTargetedPractice(accepted, {
                     modelRequestId: state.modelRequestId,
+                    provenance: state.provenance,
                     output: exerciseGenerationCandidateSchema.parse(state.output),
                   });
           } catch (error) {
@@ -451,6 +465,7 @@ export class DesktopBackend {
           outcome: {
             status: "validated",
             modelRequestId: state.modelRequestId,
+            provenance: state.provenance,
             output: state.output,
             ...(savedActivityId ? { activityId: savedActivityId } : {}),
           },
@@ -629,13 +644,9 @@ export class DesktopBackend {
     settings: LearnerSettingsRecord,
   ) {
     const profile = settings.profile;
-    const calibration = {
-      approximateLevel: appServerLevel[profile.levelEstimate.currentLevel],
-      explanationLanguage: settings.learningContext.explanationLanguage,
-      teachingProfile: profile.defaultTeachingProfileId,
-    } as const;
+    const calibration = buildLearningCalibration(settings.learningContext, profile);
     if (input.kind === "flashcard-generation")
-      return { ...input, targetLevel: appServerLevel[input.targetLevel] };
+      return { ...input, targetLevel: generationLevel[input.targetLevel] };
     if (input.kind === "writing-prompt") {
       return {
         ...input,
@@ -645,8 +656,8 @@ export class DesktopBackend {
     if (input.kind === "voice-activity-draft") {
       return {
         ...input,
-        targetLevel: appServerLevel[input.targetLevel],
-        calibration: { ...calibration, approximateLevel: appServerLevel[input.targetLevel] },
+        targetLevel: generationLevel[input.targetLevel],
+        calibration: { ...calibration, approximateLevel: generationLevel[input.targetLevel] },
       };
     }
     if (input.kind === "writing-correction") {
@@ -938,7 +949,7 @@ export class DesktopBackend {
         calibration: {
           ...calibration,
           approximateLevel: input.request.targetLevel
-            ? appServerLevel[input.request.targetLevel]
+            ? generationLevel[input.request.targetLevel]
             : calibration.approximateLevel,
         },
         curriculumTopicIds: [],
@@ -1256,7 +1267,7 @@ export class DesktopBackend {
         }
         this.#repository = new CallNinaRepository(this.#database);
         for (const operation of this.#operationsBySubmission.values()) {
-          this.#appServer?.releaseOperation(correlationIdSchema.parse(operation.operationId));
+          this.#generation?.releaseOperation(correlationIdSchema.parse(operation.operationId));
         }
         this.#operationsBySubmission.clear();
         this.#retryableOperations.clear();
@@ -1503,7 +1514,7 @@ export class DesktopBackend {
         const result = await this.#repository.clearPersonalData(request.payload);
         if (result.status === "cleared") {
           for (const operation of this.#operationsBySubmission.values()) {
-            this.#appServer?.releaseOperation(correlationIdSchema.parse(operation.operationId));
+            this.#generation?.releaseOperation(correlationIdSchema.parse(operation.operationId));
           }
           this.#operationsBySubmission.clear();
           this.#retryableOperations.clear();
@@ -1936,6 +1947,7 @@ export class DesktopBackend {
           request,
           await activities.openVoice(request.payload.activityId, {
             isCodexVoiceAvailable: async () => {
+              if (!this.#appServer?.codexCapabilities.voiceHandoff) return false;
               const integration = await this.#codexState(request.requestId);
               return integration.status === "available" && integration.plugin === "installed";
             },
@@ -2296,8 +2308,11 @@ export class DesktopBackend {
             "model-unavailable",
           );
         }
+        const generation = this.#generation;
+        if (!generation?.generationCapabilities.operations.includes(request.payload.input.kind))
+          return this.#failure(request, "app-server");
         const operationId = selectionId();
-        const operation = appServerOperationStartSchema.parse({
+        const operation = generationOperationStartSchema.parse({
           operationId,
           submissionId: request.payload.submissionId,
           dataRootGeneration: dataRoot.generation,
@@ -2329,7 +2344,7 @@ export class DesktopBackend {
             : {}),
         });
         this.#activeOperations.add(operationId);
-        void appServer
+        void generation
           .runOperation(operation)
           .catch(() => this.#rejectUnsettledOperation(operation));
         return this.#success(request, {
@@ -2375,8 +2390,11 @@ export class DesktopBackend {
         if (!this.#makeOperationRoom(prior.operationId)) {
           return this.#failure(request, "conflict");
         }
+        const generation = this.#generation;
+        if (!generation?.generationCapabilities.operations.includes(prior.operation.input.kind))
+          return this.#failure(request, "app-server");
         const operationId = selectionId();
-        const operation = appServerOperationStartSchema.parse({
+        const operation = generationOperationStartSchema.parse({
           ...prior.operation,
           operationId,
           submissionId: request.payload.submissionId,
@@ -2392,7 +2410,7 @@ export class DesktopBackend {
           ...(prior.exerciseFeedback ? { exerciseFeedback: prior.exerciseFeedback } : {}),
         });
         this.#activeOperations.add(operationId);
-        void appServer
+        void generation
           .retryOperation({
             previousOperationId: correlationIdSchema.parse(request.payload.previousOperationId),
             operationId,
@@ -2408,8 +2426,8 @@ export class DesktopBackend {
       }
       const active = this.#activeOperations.has(request.payload.operationId);
       if (active) {
-        const appServer = await this.#ensureAppServer();
-        await appServer?.cancelOperation(request.payload.operationId);
+        await this.#ensureAppServer();
+        await this.#generation?.cancelOperation(request.payload.operationId);
       }
       const status = active ? "cancelling" : "already-finished";
       return this.#success(request, { operationId: request.payload.operationId, status });

@@ -2,7 +2,7 @@ import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
 import {
   contextualHelpCandidateSchema,
-  type AppServerCandidateOutputMap,
+  type GenerationCandidateOutputMap,
   type CallNinaError,
 } from "@call-nina/contracts";
 import { Languages, Send, Square } from "lucide-react";
@@ -19,7 +19,7 @@ import {
 } from "./ipc.js";
 
 type CorrelationId = ReturnType<typeof createDesktopSubmissionId>;
-type HelpOutput = AppServerCandidateOutputMap["contextual-help"];
+type HelpOutput = GenerationCandidateOutputMap["contextual-help"];
 type HelperIntent = "chat" | "translate";
 type HelperTurn = Readonly<{
   prompt: string;

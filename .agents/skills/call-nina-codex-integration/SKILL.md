@@ -8,7 +8,8 @@ description: Maintain Call Nina's Codex App Server adapter, model selection, plu
 Inspect the current implementation and runtime capabilities before diagnosing compatibility. Repository-relative starting points:
 
 - Runtime discovery and transport: `packages/codex-client/src/desktop-runtime.ts`, `discovery.ts`, `process-manager.ts`, `adapter.ts`.
-- Workload isolation, output validation and cancellation: `packages/codex-client/src/workload.ts`, `output-validation.ts`, `operation-controller.ts`; wire policy: `packages/contracts/src/app-server.ts`.
+- Codex workload isolation and cancellation: `packages/codex-client/src/workload.ts`, `operation-controller.ts`; wire policy and Codex integration capabilities: `packages/contracts/src/app-server.ts`.
+- Portable context, teaching prompts, output validation, quality and the single deadline-bound repair live in `packages/learning-workflows/src/`; app-owned requests, results, states, capabilities and provenance live in `packages/contracts/src/generation.ts` and `generation-provenance.ts`. This boundary must not import provider transport, credentials, Node or Electron.
 - Model catalog and saved/effective choices: `packages/codex-client/src/catalog.ts`, `packages/domain/src/model-preference.ts` and their renderer callers.
 - Scoped installation and payload staging: `packages/codex-client/src/plugin.ts`, `plugin-source.ts`, `apps/desktop/src/main/plugin-integration.ts`, `plugins/call-nina/.codex-plugin/plugin.json`, `.mcp.json`, and `Makefile`.
 - MCP tools: `packages/contracts/src/mcp.ts`, `apps/mcp-server/src/index.ts`; teaching workflows: `plugins/call-nina/skills/`.

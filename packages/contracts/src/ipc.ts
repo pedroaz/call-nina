@@ -1,3 +1,4 @@
+import { generationProvenanceSchema } from "./generation-provenance.js";
 import { materialReferenceSchema, materialSourceSchema } from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
 import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
@@ -54,7 +55,7 @@ import {
   modelCatalogSchema,
   rateLimitStateSchema,
 } from "./app-server-state.js";
-import { appServerCandidateOutputSchemas } from "./app-server.js";
+import { generationCandidateOutputSchemas } from "./generation.js";
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 
@@ -1233,7 +1234,7 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("reference") }),
   z.strictObject({
     kind: z.literal("exercise-attempt"),
-    readingMaterial: appServerCandidateOutputSchemas["exercise-generation"].shape.readingMaterial,
+    readingMaterial: generationCandidateOutputSchemas["exercise-generation"].shape.readingMaterial,
     activityId: activityIdSchema,
     exerciseKind: z.enum([
       "free-writing",
@@ -1630,7 +1631,8 @@ export const desktopIpcEventSchema = boundaryUnion([
         z.strictObject({
           status: z.literal("validated"),
           modelRequestId: modelRequestIdSchema,
-          output: appServerCandidateOutputSchemas[kind],
+          provenance: generationProvenanceSchema,
+          output: generationCandidateOutputSchemas[kind],
           activityId: activityIdSchema.optional(),
         }),
         z.strictObject({ status: z.literal("cancelled") }),

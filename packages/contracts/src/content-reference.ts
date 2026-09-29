@@ -36,8 +36,3 @@ export const portableContentShape = {
   // The text players cannot resolve media. Reject assets until a resolver exists.
   assets: z.array(contentAssetReferenceSchema).max(0),
 };
-export const portableAiProvenanceSchema = z.strictObject({
-  producer: z.literal("codex"),
-  modelId: z.string().min(1).max(200),
-  effortId: z.string().min(1).max(128),
-});

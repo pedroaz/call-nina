@@ -2,6 +2,8 @@ import { migrateFlashcardContent } from "./flashcards.js";
 import { assertLocalLearningScope } from "./learning-context.js";
 import type { DatabaseSync } from "node:sqlite";
 import {
+  generationProvenanceSchema,
+  type GenerationProvenance,
   exerciseGenerationCandidateSchema,
   type learningGoalSchema,
   materialDraftSchema,
@@ -28,14 +30,12 @@ export function preparePortableContent(
   input: {
     activity: z.infer<typeof preparedActivitySchema>;
     output: z.infer<typeof exerciseGenerationCandidateSchema>;
-    aiProvenance: z.infer<typeof aiProvenanceSchema>;
+    generationProvenance: GenerationProvenance;
     material: z.infer<typeof contentMaterialInputSchema>;
     learnerGoal: z.infer<typeof learningGoalSchema> | null;
   },
 ): PortableExerciseContent {
-  const { activity, output, aiProvenance } = input;
-  if (aiProvenance.modelSelection.availability !== "reported")
-    throw new Error("OD_CONTENT_PROVENANCE_INVALID");
+  const { activity, output } = input;
   const material =
     "revisionId" in input.material
       ? readMaterialRevisionInTransaction(connection, input.material)
@@ -57,11 +57,7 @@ export function preparePortableContent(
       curriculumTopicIds: activity.context.curriculumTopicIds,
     },
     materials: [material],
-    provenance: {
-      producer: "codex",
-      modelId: aiProvenance.modelSelection.modelId,
-      effortId: aiProvenance.modelSelection.effortId,
-    },
+    provenance: generationProvenanceSchema.parse(input.generationProvenance),
     assets: [],
     exercises: output.exercises.map((exercise) => ({
       exerciseId: contentIdentity("content-exercise"),
@@ -101,9 +97,15 @@ export function migrateVersionedContent(connection: DatabaseSync) {
         effortId: row["effort_id"],
       },
     });
+    if (aiProvenance.modelSelection.availability !== "reported")
+      throw new Error("OD_CONTENT_PROVENANCE_INVALID");
     const content = preparePortableContent(connection, {
       activity,
-      aiProvenance,
+      generationProvenance: {
+        producer: "codex",
+        modelId: aiProvenance.modelSelection.modelId,
+        effortId: aiProvenance.modelSelection.effortId,
+      },
       learnerGoal: null,
       output: exerciseGenerationCandidateSchema.parse(JSON.parse(String(row["output_json"]))),
       // Only the request survived older storage; do not invent a pasted source or historic profile goal.

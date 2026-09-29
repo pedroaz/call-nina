@@ -49,7 +49,7 @@ For an ordinary lesson, answer directly unless persistence adds clear value. For
 
 ## Voice and desktop boundaries
 
-Live listening and speaking belong in Codex Voice. Offer an everyday Germany scenario, a difficulty level, correction timing, and a German-first role-play. At the end, summarize the topic, useful vocabulary, observed issues, feedback, and next steps, then offer the explicit save-summary action.
+Desktop structured generation has its own bounded learning workflow; its availability does not imply Voice, external conversation or tool support in another provider. This plugin and its local MCP connection are Codex integrations. Live listening and speaking belong in Codex Voice. Offer an everyday Germany scenario, a difficulty level, correction timing, and a German-first role-play. At the end, summarize the topic, useful vocabulary, observed issues, feedback, and next steps, then offer the explicit save-summary action.
 
 Call Nina's **Open in Codex** action opens a new chat with a plugin mention and exact activity reference in the composer. The learner sends that message and can start Voice in the same task where supported. For a request to prepare for Voice, retrieve the activity, briefly acknowledge its scenario and settings, and wait for the learner to begin; do not reveal listening scripts, answer guidance, or start a text role-play during setup. When the learner begins, use the loaded context and start in German without requiring another setup explanation. A direct request to start an activity during Voice can begin immediately after retrieval.
 

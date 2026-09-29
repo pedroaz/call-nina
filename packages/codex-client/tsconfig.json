@@ -11,6 +11,9 @@
     },
     {
       "path": "../platform"
+    },
+    {
+      "path": "../learning-workflows"
     }
   ]
 }

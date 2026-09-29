@@ -1,11 +1,13 @@
-import { normalizeGermanAnswer, vocabularyIdentity, vocabularyLemma } from "@call-nina/contracts";
 import {
-  appServerCandidateOutputSchemas,
+  normalizeGermanAnswer,
+  vocabularyIdentity,
+  vocabularyLemma,
+  generationCandidateOutputSchemas,
   maximumStructuredOutputBytes,
   generatedExerciseInstructions,
-  type AppServerCandidateOutputMap,
-  type AppServerWorkloadInput,
-  type AppServerWorkloadKind,
+  type GenerationCandidateOutputMap,
+  type GenerationInput,
+  type GenerationKind,
 } from "@call-nina/contracts";
 
 const maximumIssues = 12;
@@ -35,7 +37,7 @@ export type ExerciseValidationLocation = Readonly<{
   fieldIndex?: number;
 }>;
 
-export class AppServerOutputValidationError extends Error {
+export class GenerationOutputValidationError extends Error {
   readonly issues: readonly SafeOutputValidationIssue[];
   readonly location: ExerciseValidationLocation | undefined;
 
@@ -45,7 +47,7 @@ export class AppServerOutputValidationError extends Error {
     location?: ExerciseValidationLocation,
   ) {
     super(code);
-    this.name = "AppServerOutputValidationError";
+    this.name = "GenerationOutputValidationError";
     this.issues = Object.freeze([...issues]);
     this.location = location ?? issues[0]?.location;
   }
@@ -71,59 +73,58 @@ function safeIssues(error: {
   );
 }
 
-export function parseAppServerCandidateOutput<Kind extends AppServerWorkloadKind>(
+export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
   kind: Kind,
   finalOutput: unknown,
-  input?: Extract<AppServerWorkloadInput, { kind: Kind }>,
-): AppServerCandidateOutputMap[Kind] {
+  input?: Extract<GenerationInput, { kind: Kind }>,
+): GenerationCandidateOutputMap[Kind] {
   if (typeof finalOutput !== "string") {
-    throw new AppServerOutputValidationError("OD_APP_SERVER_OUTPUT_NOT_TEXT");
+    throw new GenerationOutputValidationError("OD_GENERATION_OUTPUT_NOT_TEXT");
   }
-  const byteLength = Buffer.byteLength(finalOutput, "utf8");
+  const byteLength = new TextEncoder().encode(finalOutput).byteLength;
   if (byteLength === 0 || byteLength > maximumStructuredOutputBytes) {
-    throw new AppServerOutputValidationError("OD_APP_SERVER_OUTPUT_SIZE_INVALID");
+    throw new GenerationOutputValidationError("OD_GENERATION_OUTPUT_SIZE_INVALID");
   }
 
   let candidate: unknown;
   try {
     candidate = JSON.parse(finalOutput) as unknown;
   } catch {
-    throw new AppServerOutputValidationError("OD_APP_SERVER_OUTPUT_JSON_INVALID");
+    throw new GenerationOutputValidationError("OD_GENERATION_OUTPUT_JSON_INVALID");
   }
 
-  const parsed = appServerCandidateOutputSchemas[kind].safeParse(candidate);
+  const parsed = generationCandidateOutputSchemas[kind].safeParse(candidate);
   if (!parsed.success) {
-    throw new AppServerOutputValidationError(
-      "OD_APP_SERVER_OUTPUT_SCHEMA_INVALID",
+    throw new GenerationOutputValidationError(
+      "OD_GENERATION_OUTPUT_SCHEMA_INVALID",
       safeIssues(parsed.error),
     );
   }
-  const workloadInput: AppServerWorkloadInput | undefined = input;
+  const workloadInput: GenerationInput | undefined = input;
   if (kind === "voice-activity-draft" && workloadInput?.kind === "voice-activity-draft") {
-    const output = parsed.data as AppServerCandidateOutputMap["voice-activity-draft"];
+    const output = parsed.data as GenerationCandidateOutputMap["voice-activity-draft"];
     if (
       (workloadInput.voiceKind === "listening" && output.script === null) ||
       (workloadInput.voiceKind === "speaking" && output.script !== null)
     ) {
-      throw new AppServerOutputValidationError("OD_VOICE_ACTIVITY_DRAFT_INVALID");
+      throw new GenerationOutputValidationError("OD_VOICE_ACTIVITY_DRAFT_INVALID");
     }
   }
   if (kind === "flashcard-generation") {
-    const output = parsed.data as AppServerCandidateOutputMap["flashcard-generation"];
+    const output = parsed.data as GenerationCandidateOutputMap["flashcard-generation"];
     output.cards = output.cards.map((card) => ({ ...card, lemma: vocabularyLemma(card) }));
-    const request = input as
-      Extract<AppServerWorkloadInput, { kind: "flashcard-generation" }> | undefined;
+    const request = input as Extract<GenerationInput, { kind: "flashcard-generation" }> | undefined;
     if (
       request &&
       (output.cards.length !== request.cardCount ||
         output.targetLevel !== request.targetLevel ||
         new Set(output.cards.map(vocabularyIdentity)).size !== output.cards.length)
     ) {
-      throw new AppServerOutputValidationError("OD_APP_SERVER_FLASHCARD_CONSTRAINT_INVALID");
+      throw new GenerationOutputValidationError("OD_GENERATION_FLASHCARD_CONSTRAINT_INVALID");
     }
   }
   if (kind === "exercise-generation") {
-    const output = parsed.data as AppServerCandidateOutputMap["exercise-generation"];
+    const output = parsed.data as GenerationCandidateOutputMap["exercise-generation"];
     const issues: SafeOutputValidationIssue[] = [];
     const report: ReportIssue = (code, location) => {
       const issue = { code, path: [], ...(location ? { location } : {}) };
@@ -183,9 +184,9 @@ export function parseAppServerCandidateOutput<Kind extends AppServerWorkloadKind
         : undefined,
     );
     const first = issues[0];
-    if (first) throw new AppServerOutputValidationError(first.code, issues);
+    if (first) throw new GenerationOutputValidationError(first.code, issues);
   }
-  return parsed.data as AppServerCandidateOutputMap[Kind];
+  return parsed.data as GenerationCandidateOutputMap[Kind];
 }
 
 function normalized(value: string): string {
@@ -227,7 +228,7 @@ function collectDuplicates(
 }
 
 function exerciseSignature(
-  exercise: AppServerCandidateOutputMap["exercise-generation"]["exercises"][number],
+  exercise: GenerationCandidateOutputMap["exercise-generation"]["exercises"][number],
 ): string {
   if (exercise.kind === "free-writing") return `${exercise.kind}:${normalized(exercise.prompt)}`;
   if (exercise.kind === "short-answer") return `${exercise.kind}:${normalized(exercise.question)}`;
@@ -246,7 +247,7 @@ function exerciseSignature(
 }
 
 function visibleExerciseFields(
-  exercise: AppServerCandidateOutputMap["exercise-generation"]["exercises"][number],
+  exercise: GenerationCandidateOutputMap["exercise-generation"]["exercises"][number],
 ): { field: ExerciseValidationLocation["field"]; text: string; fieldIndex?: number }[] {
   // Fixed instructions cannot disclose a choice; explanations are post-submission feedback.
   const fields: {
@@ -287,7 +288,7 @@ function visibleExerciseFields(
 }
 
 function collectExerciseGenerationIssues(
-  output: AppServerCandidateOutputMap["exercise-generation"],
+  output: GenerationCandidateOutputMap["exercise-generation"],
   report: ReportIssue,
   expectedLevel?: "A1" | "A2" | "B1" | "B2",
   expectedExerciseCount?: number,
@@ -380,7 +381,7 @@ function collectExerciseGenerationIssues(
   }
 }
 
-export function repairIssueCodes(error: AppServerOutputValidationError): readonly string[] {
+export function repairIssueCodes(error: GenerationOutputValidationError): readonly string[] {
   const codes = new Set<string>([error.message]);
   for (const issue of error.issues) codes.add(issue.code);
   return Object.freeze([...codes].slice(0, maximumIssues + 1));

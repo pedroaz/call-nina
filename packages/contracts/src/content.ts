@@ -1,10 +1,7 @@
-import { exerciseGenerationCandidateSchema } from "./app-server.js";
+import { generationProvenanceSchema } from "./generation-provenance.js";
+import { exerciseGenerationCandidateSchema } from "./generation.js";
 import { contentJsonByteLength, maximumExerciseContentBytes } from "./content-limits.js";
-import {
-  portableContentShape,
-  portableAiProvenanceSchema,
-  contentExerciseRevisionSchema,
-} from "./content-reference.js";
+import { portableContentShape, contentExerciseRevisionSchema } from "./content-reference.js";
 import { portableFlashcardContentSchema } from "./flashcards.js";
 import { z } from "./schema-system.js";
 
@@ -20,7 +17,7 @@ export const portableExerciseContentSchema = z
   .strictObject({
     ...portableContentShape,
     kind: z.literal("exercise-set"),
-    provenance: portableAiProvenanceSchema,
+    provenance: generationProvenanceSchema,
     exercises: z.array(contentExerciseRevisionSchema).min(1).max(30),
     // Contains prompts, answer keys, objectives and prepared explanations; never runtime transport state.
     payload: exerciseGenerationCandidateSchema,

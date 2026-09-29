@@ -1,4 +1,4 @@
-import type { AppServerCandidateOutputMap } from "@call-nina/contracts";
+import type { GenerationCandidateOutputMap } from "@call-nina/contracts";
 import {
   evaluateExerciseAnswer,
   type ExerciseAnswer,
@@ -180,7 +180,7 @@ function ExerciseContent({
   );
 }
 
-type ExerciseAiFeedback = AppServerCandidateOutputMap["exercise-feedback"];
+type ExerciseAiFeedback = GenerationCandidateOutputMap["exercise-feedback"];
 
 function Evaluation({
   evaluation,

@@ -1,4 +1,5 @@
-import { portableContentShape, portableAiProvenanceSchema } from "./content-reference.js";
+import { generationProvenanceSchema } from "./generation-provenance.js";
+import { portableContentShape } from "./content-reference.js";
 import { contentJsonByteLength, maximumFlashcardContentBytes } from "./content-limits.js";
 import { germanVocabularyLemma, normalizeGermanVocabularyIdentity } from "./german-language.js";
 import { z, strictBoundaryObject } from "./schema-system.js";
@@ -41,8 +42,8 @@ export const portableFlashcardContentSchema = z
   .strictObject({
     ...portableContentShape,
     kind: z.literal("flashcard-deck"),
-    provenance: z.discriminatedUnion("producer", [
-      portableAiProvenanceSchema,
+    provenance: z.union([
+      generationProvenanceSchema,
       z.strictObject({ producer: z.literal("local-vocabulary") }),
     ]),
     evaluation: z.literal("self-assessment"),
