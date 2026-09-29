@@ -1,3 +1,9 @@
+import {
+  ninaRequestSchema,
+  ninaPlanSchema,
+  ninaContinueSchema,
+  ninaGenerationRequestSchema,
+} from "./nina.js";
 import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
 import { exerciseEntryContextSchema, reuseExerciseActionSchema } from "./exercise-launch.js";
 import {
@@ -106,6 +112,8 @@ export const desktopIpcChannels = [
   "learning-path/update",
   "learning-path/vocabulary",
   "learning-path/prepare-voice",
+  "nina/plan",
+  "nina/read",
   "dashboard/read",
   "activity/list",
   "activity/resolve",
@@ -309,6 +317,8 @@ const logsClearRequest = request("logs/clear", emptyPayload);
 const activityListRequest = request("activity/list", activityLibraryFilterSchema);
 const activityReuseRequest = request("activity/reuse", reuseExerciseActionSchema);
 const activityResolveRequest = request("activity/resolve", openActivityActionSchema);
+const ninaPlanRequest = request("nina/plan", ninaRequestSchema);
+const ninaReadRequest = request("nina/read", emptyPayload);
 const dashboardReadRequest = request(
   "dashboard/read",
   z.strictObject({ locale: languageSchema.optional() }),
@@ -614,6 +624,7 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
     kind: z.literal("exercise-generation"),
     context: exerciseEntryContextSchema,
     request: z.discriminatedUnion("source", [
+      ninaGenerationRequestSchema,
       z.strictObject({
         source: z.literal("learning-path"),
         expectedGeneration: dataRootGenerationSchema,
@@ -742,6 +753,8 @@ export const desktopIpcRequestSchema = boundaryUnion([
   learningPathUpdateRequest,
   learningPathVocabularyRequest,
   learningPathPrepareVoiceRequest,
+  ninaPlanRequest,
+  ninaReadRequest,
   dashboardReadRequest,
   request("flashcards/create", flashcardCreateRequestSchema),
   request("flashcards/read", flashcardReadRequestSchema),
@@ -1020,6 +1033,15 @@ const learningPathVocabularyResponse = response(
 const learningPathPrepareVoiceResponse = response(
   "learning-path/prepare-voice",
   z.strictObject({ activityId: activityIdSchema }),
+);
+const ninaPlanResponse = response("nina/plan", ninaPlanSchema);
+const ninaReadResponse = response(
+  "nina/read",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    learningContext: learningContextSchema,
+    resume: ninaContinueSchema.nullable(),
+  }),
 );
 const dashboardReadResponse = response(
   "dashboard/read",
@@ -1683,6 +1705,8 @@ export const desktopIpcResponseSchema = boundaryUnion([
   learningPathUpdateResponse,
   learningPathVocabularyResponse,
   learningPathPrepareVoiceResponse,
+  ninaPlanResponse,
+  ninaReadResponse,
   dashboardReadResponse,
   response("flashcards/create", flashcardDeckSchema),
   response("flashcards/read", flashcardDeckSchema),

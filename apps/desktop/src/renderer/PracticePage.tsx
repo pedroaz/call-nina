@@ -228,10 +228,25 @@ export function PracticePage({
       void invokeDesktop("activity/resolve", { action: "open-activity", activityId })
         .then(async (result) => {
           if (!current) return;
-          setPrepared(result);
           if (result.destination === "generated-exercises") {
             const loaded = await invokeDesktop("prepared-activity/read", { activityId });
-            if (isCurrent()) setGenerated(loaded);
+            if (!isCurrent()) return;
+            const opened = await invokeDesktop("activity/resolve", {
+              action: "open-activity",
+              activityId,
+              expectedGeneration: result.rootGeneration,
+            });
+            if (isCurrent()) {
+              setPrepared(opened);
+              setGenerated(loaded);
+            }
+          } else {
+            const opened = await invokeDesktop("activity/resolve", {
+              action: "open-activity",
+              activityId,
+              expectedGeneration: result.rootGeneration,
+            });
+            if (isCurrent()) setPrepared(opened);
           }
         })
         .catch((cause: unknown) => {
@@ -243,6 +258,23 @@ export function PracticePage({
       window.clearTimeout(timer);
     };
   }, [activityId]);
+  useEffect(() => {
+    if (!activityId || prepared?.activity.activityId !== activityId) return;
+    // This effect runs after the resolved activity has committed to the view.
+    // Loading and reuse probes must never advance Continue's last-used marker.
+    let current = true;
+    void invokeDesktop("activity/resolve", {
+      action: "open-activity",
+      activityId,
+      expectedGeneration: prepared.rootGeneration,
+      recordUse: true,
+    }).catch((cause: unknown) => {
+      if (current) setError(normalizeDesktopError(cause).detail);
+    });
+    return () => {
+      current = false;
+    };
+  }, [activityId, prepared]);
   const exercises = useMemo(
     () =>
       generated

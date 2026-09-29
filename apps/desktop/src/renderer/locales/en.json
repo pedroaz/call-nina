@@ -1462,5 +1462,56 @@
     "open": "Practise: {{title}}",
     "refresh": "Refresh prepared practice",
     "more": "Show more"
+  },
+  "ninaHome": {
+    "title": "Nina",
+    "heading": "What would you like to practise?",
+    "intro": "Describe a goal or choose an idea. Nina will suggest an activity you can start or generate.",
+    "request": "Your practice request",
+    "placeholder": "For example: practise reading a short message about making an appointment.",
+    "examples": {
+      "reading": "Read a short message about an appointment",
+      "grammar": "Practise verbs for everyday conversations",
+      "writing": "Write an email to a neighbour"
+    },
+    "time": "Available time (optional)",
+    "timeHint": "A sizing preference and rough estimate, not a timer or guarantee.",
+    "noTime": "Let Nina suggest a size",
+    "minutes": "{{count}} min",
+    "material": "Use saved material (optional)",
+    "materialLabel": "Saved topic or passage",
+    "materialHint": "Saved material supports reading or vocabulary practice in the learning language. Its selected revision stays unchanged.",
+    "noMaterial": "Create practice without my own material",
+    "savedRevision": "Selected saved revision",
+    "moreMaterials": "Show more saved material",
+    "emptyMaterials": "No saved material here yet. You can generate practice without it.",
+    "plan": "Suggest an activity",
+    "clarification": "Which kind of practice would help?",
+    "supported": "Choose one supported activity to turn your request into practice. Voice and other practice remain available from the menu.",
+    "kinds": {
+      "grammar": "Grammar practice",
+      "reading": "Reading practice",
+      "vocabulary-review": "Vocabulary practice",
+      "writing": "Writing practice",
+      "custom-lesson": "Mixed practice"
+    },
+    "tasks": {
+      "grammar": "Complete a short grammar exercise set: {{request}}",
+      "reading": "Read a passage and answer comprehension questions: {{request}}",
+      "vocabulary-review": "Recall words and choose their meanings: {{request}}",
+      "writing": "Write short responses to concrete prompts: {{request}}",
+      "custom-lesson": "Complete a short mixed exercise set: {{request}}"
+    },
+    "preparedReason": "This saved activity matches your request, level and chosen size. Start a separate attempt without regenerating it.",
+    "freshReason": "Nina will create a bounded exercise set for your request and current learning context.",
+    "estimate": "About {{count}} minutes · work at your own pace",
+    "languages": "Practice: {{target}} · explanations: {{explanation}}",
+    "unavailable": "Generation did not start. Your request is kept; prepared activities and direct practice remain available.",
+    "start": "Start prepared activity",
+    "generate": "Generate fresh practice",
+    "continue": "Continue",
+    "noResume": "No resumable activity in this learning context yet. Choose a request or recommendation to get started.",
+    "recent": "Your most recently used resumable activity.",
+    "savedWording": "Saved wording stays as created. The language choices above apply to fresh generation."
   }
 }

@@ -11,6 +11,7 @@ export const openActivityActionSchema = z.strictObject({
   action: z.literal("open-activity"),
   activityId: activityIdSchema,
   expectedGeneration: dataRootGenerationSchema.optional(),
+  recordUse: z.literal(true).optional(),
 });
 
 export const activityActionSchema = z.discriminatedUnion("action", [

@@ -12,3 +12,4 @@ export {
   type SafeOutputValidationIssue,
 } from "./output-validation.js";
 export { buildLearningCalibration, generationLevel } from "./context.js";
+export { interpretNinaRequest, ninaExerciseCount, matchesNinaRequest } from "./nina.js";

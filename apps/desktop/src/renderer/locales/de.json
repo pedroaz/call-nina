@@ -1462,5 +1462,56 @@
     "open": "Üben: {{title}}",
     "refresh": "Vorbereitete Übungen aktualisieren",
     "more": "Mehr anzeigen"
+  },
+  "ninaHome": {
+    "title": "Nina",
+    "heading": "Was möchtest du üben?",
+    "intro": "Beschreibe ein Ziel oder wähle eine Idee. Nina schlägt dir eine Aktivität zum Starten oder Erstellen vor.",
+    "request": "Dein Übungswunsch",
+    "placeholder": "Zum Beispiel: eine kurze Nachricht über eine Terminvereinbarung lesen.",
+    "examples": {
+      "reading": "Eine kurze Nachricht über einen Termin lesen",
+      "grammar": "Verben für Alltagsgespräche üben",
+      "writing": "Eine E-Mail an einen Nachbarn schreiben"
+    },
+    "time": "Verfügbare Zeit (optional)",
+    "timeHint": "Eine Größenpräferenz und grobe Schätzung, kein Timer oder Zeitversprechen.",
+    "noTime": "Nina schlägt einen Umfang vor",
+    "minutes": "{{count}} Min.",
+    "material": "Gespeichertes Material nutzen (optional)",
+    "materialLabel": "Gespeichertes Thema oder Text",
+    "materialHint": "Gespeichertes Material unterstützt Lese- oder Wortschatzübungen in der Lernsprache. Die gewählte Fassung bleibt unverändert.",
+    "noMaterial": "Übung ohne eigenes Material erstellen",
+    "savedRevision": "Gewählte gespeicherte Fassung",
+    "moreMaterials": "Weiteres Material anzeigen",
+    "emptyMaterials": "Hier ist noch kein Material gespeichert. Du kannst auch ohne eigenes Material Übungen erstellen.",
+    "plan": "Aktivität vorschlagen",
+    "clarification": "Welche Art von Übung hilft dir?",
+    "supported": "Wähle eine unterstützte Aktivität für deinen Wunsch. Voice und weitere Übungen findest du weiterhin im Menü.",
+    "kinds": {
+      "grammar": "Grammatikübung",
+      "reading": "Leseübung",
+      "vocabulary-review": "Wortschatzübung",
+      "writing": "Schreibübung",
+      "custom-lesson": "Gemischte Übungen"
+    },
+    "tasks": {
+      "grammar": "Bearbeite kurze Grammatikübungen: {{request}}",
+      "reading": "Lies einen Text und beantworte Verständnisfragen: {{request}}",
+      "vocabulary-review": "Rufe Wörter ab und wähle ihre Bedeutung: {{request}}",
+      "writing": "Schreibe kurze Antworten auf konkrete Aufgaben: {{request}}",
+      "custom-lesson": "Bearbeite eine kurze gemischte Übungseinheit: {{request}}"
+    },
+    "preparedReason": "Diese gespeicherte Aktivität passt zu deinem Wunsch, Niveau und gewählten Umfang. Starte einen eigenen Versuch ohne erneutes Erstellen.",
+    "freshReason": "Nina erstellt eine begrenzte Übungseinheit passend zu deinem Wunsch und aktuellen Lernkontext.",
+    "estimate": "Etwa {{count}} Minuten · in deinem eigenen Tempo",
+    "languages": "Übung: {{target}} · Erklärungen: {{explanation}}",
+    "unavailable": "Die Erstellung wurde nicht gestartet. Dein Wunsch bleibt erhalten; vorbereitete Aktivitäten und direkte Übungszugänge sind weiter verfügbar.",
+    "start": "Vorbereitete Aktivität starten",
+    "generate": "Neue Übung erstellen",
+    "continue": "Fortsetzen",
+    "noResume": "In diesem Lernkontext gibt es noch keine fortsetzbare Aktivität. Starte mit einem Wunsch oder einer Empfehlung.",
+    "recent": "Deine zuletzt genutzte fortsetzbare Aktivität.",
+    "savedWording": "Gespeicherte Formulierungen bleiben unverändert. Die obige Sprachauswahl gilt für neu erstellte Übungen."
   }
 }

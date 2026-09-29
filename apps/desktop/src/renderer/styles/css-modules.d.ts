@@ -87,6 +87,8 @@ declare module "*CorrectionComparison.module.css" {
 
 declare module "*Dashboard.module.css" {
   const styles: {
+    readonly options: string;
+    readonly request: string;
     readonly suggestion: string;
     readonly suggestions: string;
     readonly summary: string;

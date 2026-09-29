@@ -28,6 +28,8 @@ import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
 import path from "node:path";
 
 import {
+  ninaGenerationRequestSchema,
+  type NinaPlan,
   type GenerationService,
   type LearningScope,
   type ProviderAccess,
@@ -86,7 +88,13 @@ import {
   type AcceptedOperation,
   type PendingSelection,
 } from "./backend-support.js";
-import { buildLearningCalibration, generationLevel } from "@call-nina/learning-workflows";
+import {
+  buildLearningCalibration,
+  generationLevel,
+  interpretNinaRequest,
+  ninaExerciseCount,
+  matchesNinaRequest,
+} from "@call-nina/learning-workflows";
 
 export class DesktopBackend {
   readonly #curriculumRoot: string;
@@ -701,6 +709,14 @@ export class DesktopBackend {
     if (input.kind !== "exercise-generation") return settings;
     assertExerciseGenerationContext(input);
     const request = input.request;
+    if (request.source === "nina") {
+      if (input.context.origin !== "nina") throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
+      if (request.expectedGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const owned = await repository.readLearnerSettingsForScope(request.learningContext);
+      // The explicit card captures the original explanation/goal as well as language ownership.
+      return { ...owned, learningContext: request.learningContext };
+    }
     if (request.source === "prepared-activity") {
       const activity = await (
         await this.#activities(selectionId())
@@ -898,6 +914,49 @@ export class DesktopBackend {
         ...(await this.#reviewContext(settings.learningContext)),
         entry: input.context,
       };
+      if (input.request.source === "nina") {
+        const request = ninaGenerationRequestSchema.parse(input.request);
+        if (!this.#database || request.expectedGeneration !== this.#database.rootGeneration)
+          throw new Error("OD_DATA_ROOT_STALE");
+        const material = request.material
+          ? await readMaterialRevision(this.#database, request.material)
+          : undefined;
+        if (material && material.language !== settings.learningContext.targetLanguage)
+          throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+        return {
+          kind: input.kind,
+          ...reviewContext,
+          calibration,
+          naturalRequest:
+            request.kind === "writing"
+              ? `Create short free-writing exercises for this request: ${request.naturalRequest}`
+              : request.naturalRequest,
+          requestedExerciseCount: ninaExerciseCount(request.estimatedMinutes),
+          ...(request.kind === "grammar" || request.kind === "vocabulary-review"
+            ? { practiceType: request.kind }
+            : {}),
+          ...(request.kind === "reading" || material?.kind === "pasted-text"
+            ? { reading: { passage: material?.kind === "pasted-text" ? material.text : null } }
+            : {}),
+          ...(material
+            ? {
+                materialReference: request.material,
+                material: {
+                  kind: material.kind,
+                  title: material.title,
+                  language: material.language,
+                  text: material.text,
+                  ...(material.source ? { source: material.source } : {}),
+                },
+              }
+            : {}),
+          curriculumTopicIds: [],
+          relevantMistakeIds: [],
+          relevantVocabularyIds: reviewContext.vocabularyToReview.map(
+            ({ vocabularyId }) => vocabularyId,
+          ),
+        };
+      }
       if (input.request.source === "learning-path") {
         if (
           !this.#repository ||
@@ -1991,6 +2050,110 @@ export class DesktopBackend {
           ),
         );
       }
+      if (request.channel === "nina/read" || request.channel === "nina/plan") {
+        const root = await this.#dataRootState(request.requestId);
+        const repository = this.#repository;
+        const database = this.#database;
+        if (root.status !== "ready" || !repository || !database)
+          return this.#failure(request, "stale-data-root");
+        const settings = await this.#readActiveLearnerSettings();
+        if (!settings) return this.#failure(request, "not-found");
+        const context = settings.learningContext;
+        if (request.channel === "nina/read")
+          return this.#success(request, {
+            rootGeneration: root.generation,
+            learningContext: context,
+            resume: await repository.readNinaContinue(context),
+          });
+        const input = request.payload;
+        if (input.expectedGeneration !== root.generation)
+          return this.#failure(request, "stale-data-root");
+        if (
+          input.scope.learnerId !== context.learnerId ||
+          input.scope.targetLanguage !== context.targetLanguage ||
+          input.scope.courseId !== context.courseId
+        )
+          return this.#failure(request, "conflict");
+        const kind = interpretNinaRequest(input);
+        if (!kind || (input.material && !["reading", "vocabulary-review"].includes(kind)))
+          return this.#success(request, { status: "clarification" });
+        if (input.material) {
+          const material = await readMaterialRevision(database, input.material);
+          if (material.language !== context.targetLanguage)
+            return this.#failure(request, "conflict");
+        }
+        const generationRequest = ninaGenerationRequestSchema.parse({
+          source: "nina",
+          expectedGeneration: root.generation,
+          learningContext: context,
+          naturalRequest: input.naturalRequest,
+          kind,
+          estimatedMinutes: input.minutes ?? 10,
+          ...(input.material ? { material: input.material } : {}),
+        });
+        let prepared: Extract<NinaPlan, { status: "ready" }>["prepared"] = null;
+        let cursor: Awaited<ReturnType<typeof repository.listPreparedActivities>>["nextCursor"] =
+          null;
+        do {
+          const candidates = await repository.listPreparedActivities({
+            activityTypes: kind === "writing" ? ["writing", "custom-lesson"] : [kind],
+            maximum: 50,
+            ...(input.material ? { material: input.material } : {}),
+            ...(cursor ? { cursor } : {}),
+          });
+          cursor = candidates.nextCursor;
+          for (const candidate of candidates.entries) {
+            if (!candidate.generated) continue;
+            const saved = await repository.readGeneratedActivity(candidate.activityId);
+            if (
+              !saved ||
+              saved.context.learningScope.learnerId !== context.learnerId ||
+              saved.context.learningScope.targetLanguage !== context.targetLanguage ||
+              (saved.context.learningScope.courseId !== null &&
+                saved.context.learningScope.courseId !== context.courseId)
+            )
+              continue;
+            const expectedRequest =
+              kind === "writing"
+                ? `Create short free-writing exercises for this request: ${input.naturalRequest}`
+                : input.naturalRequest;
+            if (
+              expectedRequest.length > 1000 ||
+              !matchesNinaRequest(saved.content.goal.request, expectedRequest) ||
+              saved.content.payload.exercises.length > 12 ||
+              (input.minutes !== undefined &&
+                saved.content.payload.exercises.length !== ninaExerciseCount(input.minutes)) ||
+              saved.content.payload.exercises.some(
+                (exercise) =>
+                  exercise.cefrBand !==
+                  generationLevel[settings.profile.levelEstimate.currentLevel],
+              )
+            )
+              continue;
+            if (
+              input.material &&
+              !saved.content.materials.some(
+                (material) =>
+                  material.materialId === input.material?.materialId &&
+                  material.revisionId === input.material.revisionId,
+              )
+            )
+              continue;
+            if (input.minutes === undefined)
+              generationRequest.estimatedMinutes = Math.max(
+                5,
+                saved.content.payload.exercises.length * 2,
+              );
+            prepared = {
+              activityId: candidate.activityId,
+              title: candidate.title,
+              content: { contentId: saved.content.contentId, revisionId: saved.content.revisionId },
+            };
+            break;
+          }
+        } while (!prepared && cursor);
+        return this.#success(request, { status: "ready", request: generationRequest, prepared });
+      }
       if (request.channel === "dashboard/read") {
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
@@ -2062,10 +2225,13 @@ export class DesktopBackend {
         );
       }
       if (request.channel === "activity/resolve") {
-        return this.#success(
-          request,
-          await (await this.#activities(request.requestId)).resolve(request.payload),
-        );
+        const resolved = await (await this.#activities(request.requestId)).resolve(request.payload);
+        if (request.payload.recordUse)
+          await this.#repository?.recordActivityUse(
+            resolved.activity.activityId,
+            resolved.rootGeneration,
+          );
+        return this.#success(request, resolved);
       }
       if (
         request.channel === "flashcards/create" ||

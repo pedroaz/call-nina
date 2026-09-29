@@ -1743,6 +1743,18 @@ export const callNinaMigrations = [
       DROP TRIGGER learning_attempt_immutable;`,
     migrate: migrateMultilingualTeaching,
   },
+  {
+    version: 32,
+    name: "nina-recent-activity-use",
+    sql: `CREATE TABLE activity_usage (
+      activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+      last_used_at TEXT NOT NULL CHECK(last_used_at GLOB '????-??-??T??:??:??.???Z')
+    ) STRICT;
+    INSERT INTO activity_usage(activity_id, last_used_at)
+      SELECT e.activity_id, max(a.started_at) FROM attempts a JOIN exercises e USING(exercise_id)
+      JOIN prepared_activities p ON p.activity_id = e.activity_id
+      GROUP BY e.activity_id;`,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {
