@@ -1,0 +1,9 @@
+# Expo's local device history and generated native projects stay on this machine.
+.expo/
+android/
+ios/
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision

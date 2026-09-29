@@ -1,0 +1,15 @@
+{
+  "extends": ["../../tsconfig.base.json", "expo/tsconfig.base"],
+  "compilerOptions": {
+    "allowJs": false,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "lib": ["ES2023"],
+    "types": ["react"],
+    "rootDir": "src",
+    "outDir": "build/types",
+    "tsBuildInfoFile": "build/tsconfig.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "references": [{ "path": "../../packages/design-system" }]
+}

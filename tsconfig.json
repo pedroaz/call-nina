@@ -30,6 +30,9 @@
       "path": "./apps/website"
     },
     {
+      "path": "./apps/mobile"
+    },
+    {
       "path": "./packages/learning-workflows"
     }
   ]

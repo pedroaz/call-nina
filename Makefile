@@ -45,6 +45,28 @@ build-website: ## Typecheck and build the static website into apps/website/dist.
 preview-website: ## Preview the built website locally in the foreground (Ctrl-C to stop).
 	@pnpm --filter @call-nina/website run preview $(ARGS)
 
+.PHONY: dev-mobile dev-mobile-android dev-mobile-ios build-mobile config-mobile run-mobile-android run-mobile-ios
+dev-mobile: ## Start Expo Go's foreground Metro server; scan its QR code on a native device.
+	@pnpm --filter @call-nina/mobile run dev $(ARGS)
+
+dev-mobile-android: ## Start Metro and open Expo Go on an available Android device/emulator.
+	@pnpm --filter @call-nina/mobile run dev --android $(ARGS)
+
+dev-mobile-ios: ## Start Metro and open Expo Go in the iOS Simulator (macOS only).
+	@pnpm --filter @call-nina/mobile run dev --ios $(ARGS)
+
+build-mobile: ## Typecheck and export Android/iOS JavaScript bundles; does not build/install a native app.
+	@pnpm --filter @call-nina/mobile run build
+
+config-mobile: ## Resolve public Expo configuration without starting the app.
+	@pnpm --filter @call-nina/mobile run config
+
+run-mobile-android: ## Generate, compile and launch a local Android debug app (requires Android SDK).
+	@pnpm --filter @call-nina/mobile run android $(ARGS)
+
+run-mobile-ios: ## Generate, compile and launch a local iOS debug app (requires macOS/Xcode).
+	@pnpm --filter @call-nina/mobile run ios $(ARGS)
+
 .PHONY: package-website website-deployment-help
 package-website: ## Build and package only the static website for a manual Vercel upload; no remote actions.
 	@node scripts/build/package-website.mjs
