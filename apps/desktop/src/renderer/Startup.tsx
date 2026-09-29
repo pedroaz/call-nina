@@ -1,6 +1,6 @@
 import { type ReactNode, Component, useState } from "react";
-import { type DesktopIpcResponse, type CallNinaError } from "@call-nina/contracts";
-import { Languages, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { type DesktopIpcResponse, type CallNinaError, type Language } from "@call-nina/contracts";
+import { ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import styles from "./Startup.module.css";
@@ -13,6 +13,7 @@ import {
   Muted,
 } from "./components/ui/index.js";
 import i18n from "./i18n.js";
+import { LanguageSelect } from "./LanguageSelect.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 
 type Readiness = Extract<DesktopIpcResponse, { status: "ok"; channel: "app/readiness" }>["result"];
@@ -31,13 +32,12 @@ const warningKeys = {
 export function LanguageButton() {
   const { t } = useTranslation();
   return (
-    <Button
-      className={styles.languageButton}
-      onPress={() => void i18n.changeLanguage(i18n.language === "de" ? "en" : "de")}
-    >
-      <Languages aria-hidden="true" />
-      {t("actions.switchLanguage")}
-    </Button>
+    <LanguageSelect
+      label={t("onboarding.interfaceLanguage")}
+      value={i18n.language as Language}
+      interfaceOnly
+      onChange={(language) => void i18n.changeLanguage(language)}
+    />
   );
 }
 

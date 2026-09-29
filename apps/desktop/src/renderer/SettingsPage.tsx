@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
+import {
+  languageDefinitions,
+  type Language,
+  type DesktopIpcResponse,
+  type CallNinaError,
+} from "@call-nina/contracts";
 import {
   defaultModelPreferences,
   modelWorkloads,
@@ -25,6 +30,7 @@ import { ActionGroup, Page } from "./components/layout/index.js";
 
 import styles from "./SettingsPage.module.css";
 import i18n from "./i18n.js";
+import { LanguageSelect } from "./LanguageSelect.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import {
   desktopSettingsAdapter,
@@ -95,6 +101,7 @@ export function SettingsPage({
   onOpenPersonalData,
   selectedTab,
   onTabChange,
+  onLearningLanguageChange,
   adapter = desktopSettingsAdapter,
   onDataRootChanged = () => {
     window.location.reload();
@@ -105,6 +112,7 @@ export function SettingsPage({
   onOpenPersonalData: () => void;
   selectedTab: string;
   onTabChange: (tab: string) => void;
+  onLearningLanguageChange?: (language: Language) => void;
   adapter?: DesktopSettingsAdapter;
   onDataRootChanged?: () => void | Promise<void>;
 }) {
@@ -220,6 +228,33 @@ export function SettingsPage({
       setDraft(next.settings);
       await i18n.changeLanguage(next.settings.uiLocale);
       setNotice(i18n.t("settings.saved"));
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const selectTarget = async (targetLanguage: Language) => {
+    if (!persisted || !draft || busy) return;
+    setBusy(true);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      let current = persisted;
+      if (dirty) {
+        current = await adapter.update(current.updatedAt, draft);
+        setPersisted(current);
+        setDraft(current.settings);
+        await i18n.changeLanguage(current.settings.uiLocale);
+      }
+      const next = await invokeDesktop("learner-settings/select-language", {
+        expectedGeneration: current.dataRoot.generation,
+        targetLanguage,
+      });
+      setPersisted(next);
+      setDraft(next.settings);
+      onLearningLanguageChange?.(next.settings.learningScope.targetLanguage);
+      setNotice(t("settings.languageSelected"));
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -426,6 +461,35 @@ export function SettingsPage({
                     <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
                   ) : (
                     <div className={styles.settingsControls}>
+                      <LanguageSelect
+                        label={t("onboarding.targetLanguage")}
+                        value={draft.learningScope.targetLanguage}
+                        disabled={busy}
+                        onChange={(language) => void selectTarget(language)}
+                      />
+                      {draft.learningScope.targetLanguage === "de" ? (
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={
+                              draft.learningScope.courseId ===
+                              languageDefinitions.de.structuredCourseId
+                            }
+                            disabled={busy}
+                            onChange={(event) => {
+                              setProfile("learningScope", {
+                                ...draft.learningScope,
+                                courseId: event.currentTarget.checked
+                                  ? languageDefinitions.de.structuredCourseId
+                                  : null,
+                              });
+                            }}
+                          />
+                          {t("onboarding.enrollCourse")}
+                        </label>
+                      ) : (
+                        <p>{t("onboarding.pathUnavailable")}</p>
+                      )}
                       <FieldGroup>
                         <span>{t("onboarding.level")}</span>
                         <select
@@ -476,35 +540,26 @@ export function SettingsPage({
                           </option>
                         </select>
                       </FieldGroup>
-                      <FieldGroup>
-                        <span>{t("onboarding.explanationLanguage")}</span>
-                        <select
-                          value={draft.explanationLanguage}
-                          onChange={(event) => {
-                            setProfile(
-                              "explanationLanguage",
-                              event.currentTarget.value as "en-US" | "de",
-                            );
-                          }}
-                        >
-                          <option value="en-US">{t("onboarding.languages.en")}</option>
-                          <option value="de">{t("onboarding.languages.de")}</option>
-                        </select>
-                      </FieldGroup>
-                      <FieldGroup>
-                        <span>{t("settings.uiLocale")}</span>
-                        <select
-                          aria-label={t("settings.uiLocale")}
+                      <LanguageSelect
+                        label={t("onboarding.explanationLanguage")}
+                        value={draft.explanationLanguage}
+                        disabled={busy}
+                        onChange={(language) => {
+                          setProfile("explanationLanguage", language);
+                        }}
+                      />
+                      <div>
+                        <LanguageSelect
+                          label={t("settings.uiLocale")}
                           value={draft.uiLocale}
-                          onChange={(event) => {
-                            setProfile("uiLocale", event.currentTarget.value as "en-US" | "de");
+                          interfaceOnly
+                          disabled={busy}
+                          onChange={(language) => {
+                            setProfile("uiLocale", language);
                           }}
-                        >
-                          <option value="en-US">English</option>
-                          <option value="de">Deutsch</option>
-                        </select>
+                        />
                         <small>{t("settings.localeSeparate")}</small>
-                      </FieldGroup>
+                      </div>
                     </div>
                   )}
                 </Card>
