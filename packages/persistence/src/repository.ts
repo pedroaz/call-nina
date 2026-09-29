@@ -1,3 +1,4 @@
+import { copySupportingTranslations } from "./translation.js";
 import {
   captureExerciseAttempt,
   captureVocabularyReview,
@@ -2925,6 +2926,7 @@ export class CallNinaRepository {
         )
         .run(activityId, source.activityId);
       linkPortableContent(connection, activityId, content, "reused-or-historic");
+      copySupportingTranslations(connection, source.activityId, activityId, content);
       connection
         .prepare(
           `INSERT INTO activity_context_references(activity_id, reference_kind, reference_id)

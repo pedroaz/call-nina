@@ -1513,5 +1513,21 @@
     "noResume": "No resumable activity in this learning context yet. Choose a request or recommendation to get started.",
     "recent": "Your most recently used resumable activity.",
     "savedWording": "Saved wording stays as created. The language choices above apply to fresh generation."
+  },
+  "translation": {
+    "action": "Translate",
+    "close": "Close translation",
+    "description": "Translate this saved supporting text. The original stays unchanged.",
+    "language": "Translation language",
+    "derived": "Saved derived translation",
+    "label": "Saved translation · {{language}}",
+    "revision": "Original revision: {{revision}}",
+    "translating": "Translating…",
+    "failed": "Translation could not be saved. The original and previous translations are unchanged. Try again when AI is available.",
+    "cancelled": "Translation cancelled. The original and previous translations are unchanged.",
+    "unavailable": "AI is unavailable for translation. You can still use the original and saved translations.",
+    "loadFailed": "Saved translations could not be opened. The original remains available.",
+    "saved": "Translation saved. It can be reopened without AI.",
+    "retryRead": "Reload saved translations"
   }
 }

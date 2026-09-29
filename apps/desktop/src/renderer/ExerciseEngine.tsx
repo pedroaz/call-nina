@@ -1,4 +1,6 @@
+import { SavedTranslation, type SavedTranslationContext } from "./SavedTranslation.js";
 import type {
+  AttemptId,
   Language,
   DesktopIpcResponse,
   GenerationCandidateOutputMap,
@@ -222,17 +224,30 @@ function Evaluation({
   );
 }
 
-function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
+function AiFeedback({
+  feedback,
+  translate,
+}: {
+  feedback: ExerciseAiFeedback;
+  translate?: (
+    field: "feedback-summary" | "feedback-strength" | "feedback-improvement",
+    index?: number,
+  ) => ReactNode;
+}) {
   const { t } = useTranslation();
   return (
     <div className={styles.exerciseAiFeedback}>
       <p>{feedback.summary}</p>
+      {translate?.("feedback-summary")}
       {feedback.strengths.length > 0 && (
         <section>
           <h3>{t("exercises.aiFeedback.strengths")}</h3>
           <ul>
-            {feedback.strengths.map((item) => (
-              <li key={item}>{item}</li>
+            {feedback.strengths.map((item, index) => (
+              <li key={item}>
+                {item}
+                {translate?.("feedback-strength", index)}
+              </li>
             ))}
           </ul>
         </section>
@@ -241,8 +256,11 @@ function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
         <section>
           <h3>{t("exercises.aiFeedback.improvements")}</h3>
           <ul>
-            {feedback.improvements.map((item) => (
-              <li key={item}>{item}</li>
+            {feedback.improvements.map((item, index) => (
+              <li key={item}>
+                {item}
+                {translate?.("feedback-improvement", index)}
+              </li>
             ))}
           </ul>
         </section>
@@ -302,6 +320,8 @@ function resumeExerciseProgress(
 
 export function ExerciseEngine({
   targetLanguage,
+  translation,
+  attemptIds,
   exercises,
   progress,
   onNewAttempt,
@@ -315,6 +335,8 @@ export function ExerciseEngine({
   evaluationProgress,
 }: {
   targetLanguage: Language;
+  translation?: SavedTranslationContext;
+  attemptIds?: readonly AttemptId[] | undefined;
   exercises: readonly ExerciseDefinition[];
   progress?: ExerciseProgress;
   onNewAttempt?: () => Promise<void>;
@@ -378,6 +400,30 @@ export function ExerciseEngine({
   const [abandonFailed, setAbandonFailed] = useState(false);
   const [abandoned, setAbandoned] = useState(false);
   const definition = exercises[position];
+  const translationFor = (
+    exercisePosition: number,
+    field:
+      | "exercise-explanation"
+      | "exercise-hint"
+      | "feedback-summary"
+      | "feedback-strength"
+      | "feedback-improvement",
+    index?: number,
+  ) => {
+    const attemptId = attemptIds?.[exercisePosition];
+    if (!translation || !attemptId) return null;
+    const { requestAiAccess, ...reference } = translation;
+    const target =
+      field === "exercise-hint" || field === "feedback-strength" || field === "feedback-improvement"
+        ? { kind: field, position: exercisePosition, attemptId, index: index ?? 0 }
+        : { kind: field, position: exercisePosition, attemptId };
+    return (
+      <SavedTranslation
+        request={{ ...reference, field: target }}
+        requestAiAccess={requestAiAccess}
+      />
+    );
+  };
 
   if (abandoned) {
     return (
@@ -396,7 +442,18 @@ export function ExerciseEngine({
           {evaluations.map((evaluation, index) => (
             <li key={`${evaluation.exerciseKind}:${String(index)}`}>
               <Evaluation evaluation={evaluation} aiFeedback={aiFeedbackByPosition[index]} />
-              {aiFeedbackByPosition[index] && <AiFeedback feedback={aiFeedbackByPosition[index]} />}
+              {exercises[index]?.explanation && (
+                <>
+                  <p>{exercises[index].explanation}</p>
+                  {translationFor(index, "exercise-explanation")}
+                </>
+              )}
+              {aiFeedbackByPosition[index] && (
+                <AiFeedback
+                  feedback={aiFeedbackByPosition[index]}
+                  translate={(field, fieldIndex) => translationFor(index, field, fieldIndex)}
+                />
+              )}
             </li>
           ))}
         </ItemList>
@@ -649,7 +706,11 @@ export function ExerciseEngine({
                 <Heading slot="title">{t("exercises.hint")}</Heading>
                 <div aria-live="polite" className={styles.hintContent}>
                   {displayedHints.slice(0, hintCount).map((hint, index) => (
-                    <p key={index}>{hint.text}</p>
+                    <div key={index}>
+                      <p>{hint.text}</p>
+                      {index < definition.hints.length &&
+                        translationFor(position, "exercise-hint", index)}
+                    </div>
                   ))}
                 </div>
                 {supportFailed && (
@@ -720,10 +781,20 @@ export function ExerciseEngine({
         {currentEvaluation && (
           <>
             <Evaluation evaluation={currentEvaluation} aiFeedback={currentAiFeedback} />
-            {definition.explanation && <p>{definition.explanation}</p>}
+            {definition.explanation && (
+              <>
+                <p>{definition.explanation}</p>
+                {translationFor(position, "exercise-explanation")}
+              </>
+            )}
           </>
         )}
-        {currentAiFeedback && <AiFeedback feedback={currentAiFeedback} />}
+        {currentAiFeedback && (
+          <AiFeedback
+            feedback={currentAiFeedback}
+            translate={(field, index) => translationFor(position, field, index)}
+          />
+        )}
       </div>
       <ActionGroup className={styles.exerciseActions}>
         {onAbandoned && (

@@ -2,6 +2,9 @@ import { ActivityService } from "./services/activities.js";
 import { LearningResultService } from "./services/learning-results.js";
 import { desktopPathOption } from "./options.js";
 import {
+  readSavedTranslations,
+  saveSupportingTranslation,
+  validateTranslationReveal,
   readFlashcards,
   readMaterialRevision,
   listMaterials,
@@ -30,6 +33,14 @@ import path from "node:path";
 import {
   ninaGenerationRequestSchema,
   type NinaPlan,
+  translationRequestSchema,
+  type TranslationRequest,
+  type TranslationStart,
+  type TranslationReveal,
+  type LearningContext,
+  type GenerationOperationStart,
+  type GenerationProvenance,
+  type CorrelationId,
   type GenerationService,
   type LearningScope,
   type ProviderAccess,
@@ -94,7 +105,15 @@ import {
   interpretNinaRequest,
   ninaExerciseCount,
   matchesNinaRequest,
+  savedTranslationInput,
+  translationParts,
 } from "@call-nina/learning-workflows";
+
+type TranslationJob = {
+  request: TranslationStart;
+  cancelled: boolean;
+  providerOperationId: CorrelationId | undefined;
+};
 
 export class DesktopBackend {
   readonly #curriculumRoot: string;
@@ -111,6 +130,9 @@ export class DesktopBackend {
         content: string,
       ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>)
     | undefined;
+  readonly #translationJobs = new Map<string, TranslationJob>();
+  readonly #translationReveals = new Map<string, TranslationReveal>();
+  readonly #translationProviderOperations = new Set<string>();
   readonly #pending = new Map<string, PendingSelection>();
   readonly #operationsBySubmission = new Map<string, AcceptedOperation>();
   readonly #activeOperations = new Set<string>();
@@ -176,6 +198,16 @@ export class DesktopBackend {
     this.#openExternal = options.openExternal;
     this.#exportDiagnostics = options.exportDiagnostics;
     const projectEvent = (event: AppServerEvent) => {
+      // Saved translations have their own settlement and never enter helper history,
+      // course support, skill evidence, or learning-operation output events.
+      const translationOperationId =
+        event.event === "operation-state-changed"
+          ? event.state.operationId
+          : event.event === "operation-progress" || event.event === "operation-finished"
+            ? event.operationId
+            : undefined;
+      if (translationOperationId && this.#translationProviderOperations.has(translationOperationId))
+        return;
       void this.#enqueue(async () => {
         if (!this.#closing) await this.#projectAppServerEvent(event);
       }).catch(() => {
@@ -205,6 +237,12 @@ export class DesktopBackend {
   }
 
   close(): void {
+    for (const job of this.#translationJobs.values()) {
+      job.cancelled = true;
+      if (job.providerOperationId)
+        void this.#generation?.cancelOperation(job.providerOperationId).catch(() => undefined);
+    }
+    this.#translationReveals.clear();
     this.#database?.close();
     this.#database = undefined;
     this.#repository = undefined;
@@ -1515,6 +1553,121 @@ export class DesktopBackend {
     return response;
   }
 
+  #translationReveal(request: TranslationRequest) {
+    return "revealId" in request.field
+      ? this.#translationReveals.get(request.field.revealId)
+      : undefined;
+  }
+
+  #finishTranslation(job: TranslationJob, outcome: "saved" | "cancelled" | "failed") {
+    this.#translationJobs.delete(job.request.operationId);
+    this.#activeOperations.delete(job.request.operationId);
+    if (!this.#closing)
+      this.#emitEvent?.({
+        event: "translation-finished",
+        operationId: job.request.operationId,
+        rootGeneration: job.request.rootGeneration,
+        outcome,
+      });
+  }
+
+  async #runTranslation(
+    job: TranslationJob,
+    database: CallNinaDatabase,
+    source: Awaited<ReturnType<typeof readSavedTranslations>>,
+    context: LearningContext,
+    modelSelection: GenerationOperationStart["modelSelection"],
+  ) {
+    const request = translationRequestSchema.parse({
+      rootGeneration: job.request.rootGeneration,
+      activityId: job.request.activityId,
+      content: job.request.content,
+      field: job.request.field,
+    });
+    const generation = this.#generation;
+    if (!generation) {
+      this.#finishTranslation(job, "failed");
+      return;
+    }
+    const assertActive = () => {
+      if (job.cancelled || this.#closing) throw new Error("OD_TRANSLATION_CANCELLED");
+    };
+    try {
+      const translated: string[] = [];
+      let provenance: GenerationProvenance | undefined;
+      for (const part of translationParts(source.original)) {
+        assertActive();
+        // Recheck lease/visibility between bounded provider calls, without ever
+        // holding a database transaction or the IPC queue during generation.
+        await this.#enqueue(async () => {
+          if (database !== this.#database) throw new Error("OD_DATA_ROOT_STALE");
+          const access = await this.#providerAccess(
+            "contextual-help",
+            job.request.operationId,
+            modelSelection,
+          );
+          if (access.status === "unavailable")
+            throw new Error("OD_TRANSLATION_PROVIDER_UNAVAILABLE");
+          await readSavedTranslations(database, request, this.#translationReveal(job.request));
+        });
+        assertActive();
+        const operationId = selectionId();
+        job.providerOperationId = operationId;
+        this.#translationProviderOperations.add(operationId);
+        try {
+          const result = await generation.runOperation({
+            operationId,
+            submissionId: operationId,
+            dataRootGeneration: job.request.rootGeneration,
+            modelSelection,
+            input: savedTranslationInput(job.request, part, context),
+          });
+          translated.push(contextualHelpCandidateSchema.parse(result.output).answer);
+          provenance = result.provenance;
+        } finally {
+          this.#translationProviderOperations.delete(operationId);
+          generation.releaseOperation(operationId);
+          job.providerOperationId = undefined;
+        }
+      }
+      await this.#enqueue(async () => {
+        assertActive();
+        if (database !== this.#database || !provenance) throw new Error("OD_DATA_ROOT_STALE");
+        await saveSupportingTranslation(
+          database,
+          request,
+          {
+            schemaVersion: 1,
+            activityId: job.request.activityId,
+            content: job.request.content,
+            fieldKey: source.fieldKey,
+            original: source.original,
+            learningScope: source.learningScope,
+            language: job.request.language,
+            text: translated.join("\n\n"),
+            createdAt: utcInstantSchema.parse(new Date().toISOString()),
+            provenance,
+          },
+          this.#translationReveal(job.request),
+        );
+        this.#finishTranslation(job, "saved");
+      });
+    } catch (error) {
+      await this.#enqueue(() => {
+        this.#operationLog(
+          "warn",
+          "DESKTOP_TRANSLATION_FAILED",
+          job.request.operationId,
+          "translation/start",
+          diagnosticErrorCode(error),
+          "Saved translation did not complete.",
+          { action: "translation/start", phase: "failed", outcome: "error" },
+        );
+        this.#finishTranslation(job, job.cancelled || this.#closing ? "cancelled" : "failed");
+      });
+    }
+  }
+
   async #handleRequest(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
     try {
       if (
@@ -1525,6 +1678,88 @@ export class DesktopBackend {
         this.#database?.rootGeneration !== request.payload.rootGeneration
       ) {
         return this.#failure(request, "stale-data-root");
+      }
+      if (request.channel === "translation/flashcard-visibility") {
+        const root = await this.#dataRootState(request.requestId);
+        if (
+          root.status !== "ready" ||
+          root.generation !== request.payload.rootGeneration ||
+          !this.#database
+        )
+          return this.#failure(request, "stale-data-root");
+        if (request.payload.visible) {
+          await validateTranslationReveal(this.#database, request.payload);
+          // Only the currently displayed back is authorized; a new flip revokes old capabilities.
+          this.#translationReveals.clear();
+          this.#translationReveals.set(request.payload.revealId, request.payload);
+        } else this.#translationReveals.delete(request.payload.revealId);
+        return this.#success(request, { visible: request.payload.visible });
+      }
+      if (request.channel === "translation/read" || request.channel === "translation/start") {
+        const root = await this.#dataRootState(request.requestId);
+        if (
+          root.status !== "ready" ||
+          root.generation !== request.payload.rootGeneration ||
+          !this.#database ||
+          !this.#repository
+        )
+          return this.#failure(request, "stale-data-root");
+        const database = this.#database;
+        const source = await readSavedTranslations(
+          database,
+          translationRequestSchema.parse({
+            rootGeneration: request.payload.rootGeneration,
+            activityId: request.payload.activityId,
+            content: request.payload.content,
+            field: request.payload.field,
+          }),
+          this.#translationReveal(request.payload),
+        );
+        if (request.channel === "translation/read")
+          return this.#success(request, { translations: source.translations });
+        if (source.translations.some((item) => item.language === request.payload.language))
+          return this.#success(request, {
+            operationId: request.payload.operationId,
+            status: "saved",
+          });
+        if (
+          this.#translationJobs.size > 0 ||
+          this.#activeOperations.has(request.payload.operationId)
+        )
+          return this.#failure(request, "conflict");
+        if (!(await this.#hasAcknowledgedAiDisclosure()))
+          return this.#failure(request, "validation");
+        const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
+        const access = await this.#providerAccess("contextual-help", request.requestId);
+        if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
+        if (!this.#generation || !access.modelSelection)
+          return this.#failure(request, "unsupported-operation");
+        const job: TranslationJob = {
+          request: request.payload,
+          cancelled: false,
+          providerOperationId: undefined,
+        };
+        this.#translationJobs.set(request.payload.operationId, job);
+        this.#activeOperations.add(request.payload.operationId);
+        void this.#runTranslation(job, database, source, settings.learningContext, {
+          model: { selection: "exact", modelId: access.modelSelection.modelId },
+          effort: { selection: "exact", effortId: access.modelSelection.effortId },
+        });
+        return this.#success(request, {
+          operationId: request.payload.operationId,
+          status: "accepted",
+        });
+      }
+      if (request.channel === "translation/cancel") {
+        const job = this.#translationJobs.get(request.payload.operationId);
+        if (job && job.request.rootGeneration !== request.payload.rootGeneration)
+          return this.#failure(request, "stale-data-root");
+        if (job) {
+          job.cancelled = true;
+          if (job.providerOperationId)
+            await this.#generation?.cancelOperation(job.providerOperationId);
+        }
+        return this.#success(request, { status: job ? "cancelling" : "already-finished" });
       }
       if (request.channel === "app/readiness") {
         const [dataRoot, codex] = await Promise.all([
@@ -1640,6 +1875,7 @@ export class DesktopBackend {
         this.#operationsBySubmission.clear();
         this.#retryableOperations.clear();
         this.#helperSessions.clear();
+        this.#translationReveals.clear();
         const state = await this.#dataRootState(request.requestId);
         if (state.status === "ready") {
           this.#emitEvent?.({
@@ -1903,6 +2139,7 @@ export class DesktopBackend {
           this.#operationsBySubmission.clear();
           this.#retryableOperations.clear();
           this.#helperSessions.clear();
+          this.#translationReveals.clear();
           for (const scope of ["dashboard", "history", "vocabulary", "settings"] as const) {
             this.#emitEvent?.({ event: "state-invalidated", scope });
           }

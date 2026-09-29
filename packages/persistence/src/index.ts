@@ -106,3 +106,9 @@ export {
 } from "./flashcards.js";
 
 export { saveMaterial, readMaterialRevision, listMaterials } from "./materials.js";
+
+export {
+  readSavedTranslations,
+  saveSupportingTranslation,
+  validateTranslationReveal,
+} from "./translation.js";

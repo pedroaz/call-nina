@@ -4,6 +4,14 @@ import {
   ninaContinueSchema,
   ninaGenerationRequestSchema,
 } from "./nina.js";
+import {
+  translationRequestSchema,
+  translationStartSchema,
+  translationCancelSchema,
+  translationRevealSchema,
+  translationReadSchema,
+  translationFinishedEventSchema,
+} from "./translation.js";
 import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
 import { exerciseEntryContextSchema, reuseExerciseActionSchema } from "./exercise-launch.js";
 import {
@@ -86,6 +94,10 @@ import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "translation/read",
+  "translation/start",
+  "translation/cancel",
+  "translation/flashcard-visibility",
   "app/readiness",
   "provider/access/read",
   "data-root/read",
@@ -724,6 +736,10 @@ const learningOperationRetryRequest = request(
 );
 
 export const desktopIpcRequestSchema = boundaryUnion([
+  request("translation/read", translationRequestSchema),
+  request("translation/start", translationStartSchema),
+  request("translation/cancel", translationCancelSchema),
+  request("translation/flashcard-visibility", translationRevealSchema),
   appReadinessRequest,
   providerAccessReadRequest,
   dataRootReadRequest,
@@ -1676,6 +1692,16 @@ const errorResponse = strictBoundaryObject({
 });
 
 export const desktopIpcResponseSchema = boundaryUnion([
+  response("translation/read", translationReadSchema),
+  response(
+    "translation/start",
+    z.strictObject({ operationId: correlationIdSchema, status: z.enum(["accepted", "saved"]) }),
+  ),
+  response(
+    "translation/cancel",
+    z.strictObject({ status: z.enum(["cancelling", "already-finished"]) }),
+  ),
+  response("translation/flashcard-visibility", z.strictObject({ visible: z.boolean() })),
   appReadinessResponse,
   providerAccessReadResponse,
   dataRootReadResponse,
@@ -1754,6 +1780,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
 ]);
 
 export const desktopIpcEventSchema = boundaryUnion([
+  translationFinishedEventSchema,
   strictBoundaryObject({
     event: z.literal("account-login"),
     loginId: correlationIdSchema,

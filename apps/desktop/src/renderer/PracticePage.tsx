@@ -1,3 +1,4 @@
+import { SavedTranslation } from "./SavedTranslation.js";
 import {
   MaterialPractice,
   emptyMaterialPracticeState,
@@ -319,6 +320,7 @@ export function PracticePage({
         activityId={activityId}
         onClose={onCloseActivity}
         onVocabulary={onVocabulary ?? onCloseActivity}
+        requestAiAccess={requestAiAccess}
       />
     );
   }
@@ -339,6 +341,21 @@ export function PracticePage({
     );
   }
   if (activityId) {
+    const translateLesson = (field: Parameters<typeof SavedTranslation>[0]["request"]["field"]) =>
+      generated && prepared ? (
+        <SavedTranslation
+          request={{
+            activityId,
+            rootGeneration: prepared.rootGeneration,
+            content: {
+              contentId: generated.content.contentId,
+              revisionId: generated.content.revisionId,
+            },
+            field,
+          }}
+          requestAiAccess={requestAiAccess}
+        />
+      ) : null;
     const deleteGeneratedLesson = async () => {
       setDeleting(true);
       setError(undefined);
@@ -409,20 +426,23 @@ export function PracticePage({
             </summary>
             <div className={styles.practiceLessonBody}>
               <p>{generated.content.payload.lesson.explanation}</p>
-              {generated.content.payload.lesson.sections.map((section) => (
+              {translateLesson({ kind: "lesson-explanation" })}
+              {generated.content.payload.lesson.sections.map((section, index) => (
                 <section key={section.heading}>
                   <h3>{section.heading}</h3>
                   <p>{section.content}</p>
+                  {translateLesson({ kind: "lesson-section", index })}
                 </section>
               ))}
               {generated.content.payload.lesson.vocabularyFoundations.length > 0 && (
                 <section>
                   <h3>{t("exercises.custom.vocabulary")}</h3>
                   <ItemList>
-                    {generated.content.payload.lesson.vocabularyFoundations.map((item) => (
+                    {generated.content.payload.lesson.vocabularyFoundations.map((item, index) => (
                       <li key={`${item.term}:${item.example}`}>
                         <strong>{item.term}</strong> — {item.explanation}
                         <Muted as="span">{item.example}</Muted>
+                        {translateLesson({ kind: "lesson-vocabulary", index })}
                       </li>
                     ))}
                   </ItemList>
@@ -441,6 +461,20 @@ export function PracticePage({
             )}
             <ExerciseEngine
               targetLanguage={generated.learningScope.targetLanguage}
+              {...(prepared
+                ? {
+                    translation: {
+                      activityId,
+                      rootGeneration: prepared.rootGeneration,
+                      content: {
+                        contentId: generated.content.contentId,
+                        revisionId: generated.content.revisionId,
+                      },
+                      requestAiAccess,
+                    },
+                  }
+                : {})}
+              attemptIds={startedAttemptIds}
               {...(feedback.busy ? { onCancelAiEvaluation: feedback.cancel } : {})}
               key={activityId}
               exercises={exercises}

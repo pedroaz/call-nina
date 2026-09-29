@@ -1,4 +1,7 @@
+import { SavedTranslation, type TranslationAccess } from "./SavedTranslation.js";
 import {
+  translationRevealSchema,
+  type CorrelationId,
   vocabularyLemma,
   type ActivityId,
   type FlashcardDeck,
@@ -8,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, ConfirmDialog, Feedback, LoadingState } from "./components/ui/index.js";
 import { Page, ActionGroup } from "./components/layout/index.js";
-import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
+import { createDesktopSubmissionId, invokeDesktop, normalizeDesktopError } from "./ipc.js";
 import { OperationError } from "./Startup.js";
 import styles from "./FlashcardWorkspace.module.css";
 
@@ -16,14 +19,17 @@ export function FlashcardWorkspace({
   activityId,
   onClose,
   onVocabulary,
+  requestAiAccess,
 }: {
   activityId: ActivityId;
   onClose: () => void;
   onVocabulary: () => void;
+  requestAiAccess: TranslationAccess;
 }) {
   const { t } = useTranslation();
   const [deck, setDeck] = useState<FlashcardDeck>();
   const [flipped, setFlipped] = useState(false);
+  const [revealId, setRevealId] = useState<CorrelationId>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
   const [notice, setNotice] = useState(false);
@@ -44,6 +50,7 @@ export function FlashcardWorkspace({
       if (current === version.current) {
         setDeck(result);
         setFlipped(false);
+        setRevealId(undefined);
       }
     } catch (cause) {
       if (current === version.current) setError(normalizeDesktopError(cause).detail);
@@ -88,6 +95,7 @@ export function FlashcardWorkspace({
         completed,
       });
       setFlipped(false);
+      setRevealId(undefined);
       setNotice(false);
       return result;
     });
@@ -104,6 +112,64 @@ export function FlashcardWorkspace({
       return result;
     });
   };
+  const revealKey =
+    deck && revealId
+      ? JSON.stringify({
+          activityId,
+          rootGeneration: deck.rootGeneration,
+          content: { contentId: deck.content.contentId, revisionId: deck.content.revisionId },
+          position: deck.progress.position,
+          progressRevision: deck.progress.revision,
+          revealId,
+          visible: false,
+        })
+      : null;
+  useEffect(() => {
+    if (!revealKey) return;
+    const payload = translationRevealSchema.parse(JSON.parse(revealKey));
+    return () => {
+      void invokeDesktop("translation/flashcard-visibility", payload).catch(() => undefined);
+    };
+  }, [revealKey]);
+  const flip = async () => {
+    if (!deck || locked.current) return;
+    locked.current = true;
+    setBusy(true);
+    try {
+      const nextId = revealId && flipped ? revealId : createDesktopSubmissionId();
+      await invokeDesktop("translation/flashcard-visibility", {
+        activityId,
+        rootGeneration: deck.rootGeneration,
+        content: { contentId: deck.content.contentId, revisionId: deck.content.revisionId },
+        position: deck.progress.position,
+        progressRevision: deck.progress.revision,
+        revealId: nextId,
+        visible: !flipped,
+      });
+      setRevealId(flipped ? undefined : nextId);
+      setFlipped(!flipped);
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+    } finally {
+      locked.current = false;
+      setBusy(false);
+    }
+  };
+  const translateCard = (index?: number) =>
+    deck && revealId ? (
+      <SavedTranslation
+        request={{
+          activityId,
+          rootGeneration: deck.rootGeneration,
+          content: { contentId: deck.content.contentId, revisionId: deck.content.revisionId },
+          field:
+            index === undefined
+              ? { kind: "flashcard-meaning", position: deck.progress.position, revealId }
+              : { kind: "flashcard-example", position: deck.progress.position, index, revealId },
+        }}
+        requestAiAccess={requestAiAccess}
+      />
+    ) : null;
   const card = deck?.content.cards[deck.progress.position];
   const saved = deck?.vocabulary.find((item) => item.position === deck.progress.position);
   return (
@@ -161,7 +227,8 @@ export function FlashcardWorkspace({
                   aria-label={t("flashcards.meaning")}
                   aria-live="polite"
                 >
-                  <p lang={deck.source === "generated" ? "en" : undefined}>{card.meaning}</p>
+                  <p>{card.meaning}</p>
+                  {translateCard()}
                   {card.lexeme.partOfSpeech === "noun" && card.lexeme.plural.status === "form" && (
                     <p lang={deck.content.language}>
                       {t("flashcards.plural")}: {card.lexeme.plural.form}
@@ -180,7 +247,8 @@ export function FlashcardWorkspace({
                   {card.examples.map((example, index) => (
                     <div key={index}>
                       <p lang={deck.content.language}>{example.text}</p>
-                      <p lang={deck.source === "generated" ? "en" : undefined}>{example.meaning}</p>
+                      <p>{example.meaning}</p>
+                      {translateCard(index)}
                     </div>
                   ))}
                 </div>
@@ -198,7 +266,7 @@ export function FlashcardWorkspace({
                   isDisabled={busy}
                   aria-pressed={flipped}
                   onPress={() => {
-                    setFlipped(!flipped);
+                    void flip();
                   }}
                 >
                   {t(flipped ? "flashcards.front" : "flashcards.flip")}

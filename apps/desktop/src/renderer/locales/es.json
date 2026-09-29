@@ -1513,5 +1513,21 @@
     "noResume": "Todavía no hay una actividad que puedas retomar en este contexto de aprendizaje. Empieza con una solicitud o recomendación.",
     "recent": "Tu actividad retomable utilizada más recientemente.",
     "savedWording": "El texto guardado se conserva tal como se creó. Los idiomas indicados se aplican a la práctica nueva."
+  },
+  "translation": {
+    "action": "Traducir",
+    "close": "Cerrar traducción",
+    "description": "Traduce este texto de apoyo guardado. El original no cambia.",
+    "language": "Idioma de traducción",
+    "derived": "Traducción derivada guardada",
+    "label": "Traducción guardada · {{language}}",
+    "revision": "Versión original: {{revision}}",
+    "translating": "Traduciendo…",
+    "failed": "No se pudo guardar la traducción. El original y las traducciones anteriores no cambian. Inténtalo de nuevo cuando la IA esté disponible.",
+    "cancelled": "Traducción cancelada. El original y las traducciones anteriores no cambian.",
+    "unavailable": "La IA no está disponible para traducir. Puedes seguir usando el original y las traducciones guardadas.",
+    "loadFailed": "No se pudieron abrir las traducciones guardadas. El original sigue disponible.",
+    "saved": "Traducción guardada. Puedes volver a abrirla sin IA.",
+    "retryRead": "Volver a cargar las traducciones guardadas"
   }
 }
