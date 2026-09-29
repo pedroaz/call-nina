@@ -1,3 +1,4 @@
+import { migrateAttemptEvidence } from "./attempt-evidence.js";
 import { migrateVersionedContent } from "./content.js";
 import type { DataRootGeneration } from "@call-nina/contracts";
 
@@ -1450,6 +1451,68 @@ export const callNinaMigrations = [
       ALTER TABLE flashcard_decks RENAME COLUMN cards_json TO content_json;
     `,
     migrate: migrateVersionedContent,
+  },
+  {
+    version: 26,
+    name: "attempt-ownership-and-evidence-events",
+    sql: `
+      CREATE TABLE learning_attempts (
+        attempt_id TEXT PRIMARY KEY, source_kind TEXT NOT NULL CHECK(source_kind IN ('exercise', 'vocabulary-review', 'external', 'listening')), source_id TEXT NOT NULL,
+        ownership_json TEXT NOT NULL CHECK(json_valid(ownership_json) AND json_extract(ownership_json, '$.attemptId') = attempt_id),
+        UNIQUE(source_kind, source_id)
+      ) STRICT;
+      CREATE TABLE learning_attempt_events (
+        event_id TEXT PRIMARY KEY,
+        attempt_id TEXT NOT NULL REFERENCES learning_attempts(attempt_id) ON DELETE CASCADE,
+        event_json TEXT NOT NULL CHECK(json_valid(event_json) AND json_extract(event_json, '$.attemptId') = attempt_id AND json_extract(event_json, '$.eventId') = event_id)
+      ) STRICT;
+      CREATE INDEX learning_attempt_events_by_attempt ON learning_attempt_events(attempt_id);
+      CREATE TRIGGER learning_attempt_immutable BEFORE UPDATE ON learning_attempts
+        BEGIN SELECT RAISE(ABORT, 'OD_ATTEMPT_OWNERSHIP_IMMUTABLE'); END;
+      CREATE TRIGGER learning_attempt_event_immutable BEFORE UPDATE ON learning_attempt_events
+        BEGIN SELECT RAISE(ABORT, 'OD_ATTEMPT_EVENT_IMMUTABLE'); END;
+      ALTER TABLE mcp_attempt_feedback RENAME TO previous_attempt_feedback;
+      DROP TRIGGER mcp_attempt_feedback_immutable_update;
+      DROP INDEX mcp_attempt_feedback_by_activity;
+      CREATE TABLE mcp_attempt_feedback (
+        attempt_id TEXT PRIMARY KEY,
+        activity_id TEXT NOT NULL,
+        expected_activity_revision INTEGER NOT NULL CHECK(expected_activity_revision = 1),
+        feedback_json TEXT NOT NULL CHECK(json_valid(feedback_json)),
+        saved_at TEXT NOT NULL CHECK(saved_at GLOB '????-??-??T??:??:??.???Z'),
+        root_generation INTEGER NOT NULL CHECK(root_generation > 0),
+        target_attempt_id TEXT REFERENCES learning_attempts(attempt_id) ON DELETE CASCADE
+      ) STRICT;
+      INSERT INTO mcp_attempt_feedback SELECT *, NULL FROM previous_attempt_feedback;
+      DROP TABLE previous_attempt_feedback;
+      CREATE INDEX mcp_attempt_feedback_by_activity ON mcp_attempt_feedback(activity_id, saved_at DESC);
+      CREATE TRIGGER mcp_attempt_feedback_immutable_update BEFORE UPDATE ON mcp_attempt_feedback
+        BEGIN SELECT RAISE(ABORT, 'OD_MCP_ATTEMPT_FEEDBACK_IMMUTABLE'); END;
+      CREATE TRIGGER mcp_feedback_requires_owner BEFORE INSERT ON mcp_attempt_feedback
+        WHEN NOT EXISTS (SELECT 1 FROM prepared_activities WHERE activity_id = NEW.activity_id)
+          AND NOT EXISTS (SELECT 1 FROM learning_attempts WHERE attempt_id = NEW.target_attempt_id
+            AND json_extract(ownership_json, '$.source.activityId') = NEW.activity_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_ATTEMPT_REVISION_MISMATCH'); END;
+      CREATE TRIGGER activity_feedback_delete AFTER DELETE ON prepared_activities BEGIN
+        DELETE FROM mcp_attempt_feedback WHERE activity_id = OLD.activity_id;
+      END;
+      CREATE TRIGGER exercise_attempt_evidence_delete AFTER DELETE ON attempts BEGIN
+        DELETE FROM learning_attempts WHERE source_kind = 'exercise' AND source_id = OLD.attempt_id;
+      END;
+      CREATE TRIGGER vocabulary_attempt_evidence_delete AFTER DELETE ON vocabulary_reviews BEGIN
+        DELETE FROM learning_attempts WHERE source_kind = 'vocabulary-review' AND source_id = OLD.review_id;
+      END;
+      CREATE TRIGGER external_attempt_evidence_delete AFTER DELETE ON mcp_attempt_feedback BEGIN
+        DELETE FROM learning_attempt_events WHERE json_extract(event_json, '$.detail.kind') = 'feedback'
+          AND json_extract(event_json, '$.detail.recordId') = OLD.attempt_id;
+        DELETE FROM learning_attempts WHERE source_kind = 'external' AND source_id = OLD.attempt_id;
+        DELETE FROM history_entries WHERE entity_id = OLD.attempt_id;
+      END;
+      CREATE TRIGGER listening_attempt_evidence_delete AFTER DELETE ON history_entries BEGIN
+        DELETE FROM learning_attempts WHERE source_kind = 'listening' AND source_id = OLD.entity_id;
+      END;
+    `,
+    migrate: migrateAttemptEvidence,
   },
 ] as const satisfies readonly DatabaseMigration[];
 

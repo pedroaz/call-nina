@@ -95,7 +95,7 @@ export function courseOutcomeProgress(
       for (const event of events.filter(
         (e) => e.skill === skill && e.outcome !== "not-evaluated",
       )) {
-        const key = `${event.activityId}:${event.occurredAt}`;
+        const key = event.attemptEvidence?.ownership.attemptId ?? event.historyEntryId;
         const previous = attempts.get(key);
         if (!previous) attempts.set(key, { ...event });
         else {
@@ -108,6 +108,7 @@ export function courseOutcomeProgress(
       const successes = evaluated.filter(
         (e) =>
           ["independent", "transfer"].includes(e.outcome) &&
+          e.attemptEvidence?.basis === "independent" &&
           e.uncertainty === "none" &&
           !e.support.some((s) =>
             ["hint", "model-answer", "translation", "transcript", "repeat-attempt"].includes(s),
@@ -312,7 +313,15 @@ export function courseLanguageProgress(
           (e) => !["independent", "transfer"].includes(e.outcome) || e.uncertainty !== "none",
         );
         const successes = new Set(
-          attempts.slice(difficulty + 1).map((e) => e.occurredAt.slice(0, 10)),
+          attempts
+            .slice(difficulty + 1)
+            .filter(
+              (e) =>
+                e.attemptEvidence?.basis === "independent" &&
+                ["independent", "transfer"].includes(e.outcome) &&
+                e.uncertainty === "none",
+            )
+            .map((e) => e.occurredAt.slice(0, 10)),
         ).size;
         const interval = intervals[Math.min(Math.max(0, successes - 1), 4)] ?? 30;
         // Unpractised retrieval modes become due after the target's first encounter.

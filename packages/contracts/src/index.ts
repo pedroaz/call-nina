@@ -259,3 +259,4 @@ export * from "./content-reference.js";
 export * from "./content-limits.js";
 
 export { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
+export * from "./attempt-evidence.js";

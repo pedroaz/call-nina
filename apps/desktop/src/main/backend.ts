@@ -1865,8 +1865,6 @@ export class DesktopBackend {
           expectedRevision: request.payload.expectedRevision,
           expectedUpdatedAt: request.payload.expectedUpdatedAt,
           reviewedAt: new Date().toISOString(),
-          reviewId: opaqueId("review"),
-          historyEntryId: opaqueId("history-entry"),
           idempotencyKey: `vocabulary-review:${request.requestId}`,
         });
         this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
@@ -2053,7 +2051,7 @@ export class DesktopBackend {
           allTimeSkillTotals,
           entries: entries.map((entry) => {
             const detail =
-              entry.detail.kind === "reference"
+              entry.detail.kind === "reference" || entry.detail.kind === "attempt-feedback"
                 ? entry.detail
                 : entry.detail.kind === "exercise-attempt"
                   ? {
@@ -2118,6 +2116,7 @@ export class DesktopBackend {
                       };
             return {
               historyEntryId: entry.historyEntryId,
+              evidence: entry.evidence,
               entityKind: entry.entityKind,
               skill: entry.skill,
               activityType: entry.activityType,

@@ -496,6 +496,9 @@ export function HistoryPage({
                 {dateFormatter.format(new Date(entry.occurredAt))}
               </time>
             </header>
+            {entry.evidence && (
+              <Muted as="p">{t(`history.evidenceBasis.${entry.evidence.basis}`)}</Muted>
+            )}
             <Disclosure label={t("ui.details")}>
               {entry.curriculumTopicIds.length > 0 && (
                 <Muted as="p">
@@ -507,7 +510,26 @@ export function HistoryPage({
                   {t("history.mistakes")}: {entry.mistakeCategories.join(", ")}
                 </Muted>
               )}
-              {entry.detail.kind === "writing-correction" ? (
+              {entry.detail.kind === "attempt-feedback" ? (
+                <div className={styles.historyDetail}>
+                  <h3>{t(entry.detail.later ? "history.laterFeedback" : "history.feedback")}</h3>
+                  <p>{entry.detail.feedback.summary}</p>
+                  <ItemList>
+                    {entry.detail.feedback.evidence.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ItemList>
+                  <ConfirmDialog
+                    body={t("history.deleteBody")}
+                    cancel={t("actions.cancel")}
+                    confirm={t("actions.delete")}
+                    onConfirm={() => deleteEntry(entry)}
+                    title={t("history.deleteTitle")}
+                    triggerVariant="quiet"
+                    trigger={t("history.delete")}
+                  />
+                </div>
+              ) : entry.detail.kind === "writing-correction" ? (
                 <div className={styles.historyDetail}>
                   <div className={styles.correctionGrid}>
                     <section className={styles.correctionPane}>

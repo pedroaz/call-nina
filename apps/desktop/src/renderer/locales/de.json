@@ -650,6 +650,13 @@
     "keepEditing": "Weiter bearbeiten"
   },
   "history": {
+    "evidenceBasis": {
+      "independent": "Selbstständig beantwortet · Auswertung gespeichert",
+      "supported": "Unterstützte Übung · kein selbstständiger Kompetenznachweis",
+      "self-assessment": "Selbsteinschätzung · bestimmt die Wiederholung",
+      "participation": "Teilnahme · kein selbstständiger Antwortnachweis",
+      "unknown": "Selbstständigkeit nicht erfasst"
+    },
     "eyebrow": "Lernnachweis",
     "title": "Verlauf",
     "intro": "Sieh dir gespeicherte Versuche und Rückmeldungen an und wähle, was du erneut üben möchtest.",
@@ -759,7 +766,8 @@
         "cancelled": "Die gezielte Übung wurde abgebrochen. Deine Belege wurden nicht verändert.",
         "failed": "Die gezielte Übung konnte nicht erstellt werden. Deine Belege wurden nicht verändert."
       }
-    }
+    },
+    "laterFeedback": "Späteres Feedback"
   },
   "pages": {
     "writing": "Schreiben",

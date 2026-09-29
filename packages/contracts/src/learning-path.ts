@@ -1,3 +1,4 @@
+import { attemptEvidenceSchema } from "./attempt-evidence.js";
 import { germanArticleSchema } from "./german-language.js";
 import { learningContextSchema, targetLanguageSchema } from "./learning-context.js";
 import {
@@ -201,6 +202,7 @@ export const courseActivityResultSchema = z.strictObject({
       courseEvidenceSchema.extend({
         occurredAt: utcInstantSchema,
         historyEntryId: historyEntryIdSchema,
+        attemptEvidence: attemptEvidenceSchema.nullable(),
       }),
     )
     .max(500),

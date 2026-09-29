@@ -1,4 +1,5 @@
 import { generationProvenanceSchema } from "./generation-provenance.js";
+import { attemptEvidenceSchema, externalAttemptFeedbackSchema } from "./attempt-evidence.js";
 import { materialReferenceSchema, materialSourceSchema } from "./material.js";
 import { portableExerciseContentSchema } from "./content.js";
 import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
@@ -1233,6 +1234,11 @@ const exerciseSetAbandonResponse = response(
 const historyDetailSchema = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("reference") }),
   z.strictObject({
+    kind: z.literal("attempt-feedback"),
+    feedback: externalAttemptFeedbackSchema,
+    later: z.boolean(),
+  }),
+  z.strictObject({
     kind: z.literal("exercise-attempt"),
     readingMaterial: generationCandidateOutputSchemas["exercise-generation"].shape.readingMaterial,
     activityId: activityIdSchema,
@@ -1441,6 +1447,7 @@ const historyReadResponse = response(
       .array(
         z.strictObject({
           historyEntryId: historyEntryIdSchema,
+          evidence: attemptEvidenceSchema.nullable(),
           entityKind: z.enum([
             "attempt",
             "correction",
