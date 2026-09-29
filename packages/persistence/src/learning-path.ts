@@ -235,6 +235,15 @@ export async function prepareCourseTeaching(
 }
 export async function readLearningPathState(database: CallNinaDatabase) {
   return withLeasedConnection(database, (connection) => {
+    const scope = requireLocalLearningScope(connection);
+    if (scope.targetLanguage !== "de" || scope.courseId === null)
+      return learningPathStateSchema.parse({
+        selectedStage: "a1-1",
+        current: null,
+        missions: [],
+        marks: [],
+        activities: [],
+      });
     const selection = connection
       .prepare("SELECT selected_stage, current_json FROM course_selection WHERE singleton = 1")
       .get() as { selected_stage: string; current_json: string | null } | undefined;
@@ -409,6 +418,7 @@ export async function addCourseVocabulary(
                 ? { partOfSpeech: "verb", pattern: target.pattern }
                 : { partOfSpeech: "other" };
         vocabularyEntrySchema.parse({
+          targetLanguage: "de",
           schemaVersion: 1,
           vocabularyId: id,
           lemma: target.german,
@@ -452,6 +462,8 @@ export async function addCourseVocabulary(
 
 function assertCourseScope(connection: DatabaseSync, course: LearningCourse) {
   const scope = requireLocalLearningScope(connection);
+  if (scope.targetLanguage !== course.targetLanguage || scope.courseId !== course.courseId)
+    throw new Error("OD_COURSE_UNAVAILABLE");
   assertLocalLearningScope(connection, {
     ...scope,
     courseId: course.courseId,

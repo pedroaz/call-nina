@@ -1,9 +1,13 @@
 import {
+  learningScopeSchema,
+  explanationLanguageSchema,
+  learningContextSchema,
+} from "./learning-context.js";
+import {
   externalAttemptFeedbackSchema,
   attemptEventIdSchema,
   attemptEvidenceSchema,
 } from "./attempt-evidence.js";
-import { learningContextSchema } from "./learning-context.js";
 import {
   courseReferenceSchema,
   courseTeachingContextSchema,
@@ -134,7 +138,7 @@ const preparedVoiceActivityDataSchema = z.strictObject({
   learningPath: courseReferenceSchema.optional(),
   courseTeaching: courseTeachingContextSchema.optional(),
   teachingDefaults: z.strictObject({
-    explanationLanguage: z.enum(["en", "de"]),
+    explanationLanguage: explanationLanguageSchema,
     teachingProfile: z.enum(["conversation-partner", "strict-corrector"]),
   }),
 });
@@ -162,6 +166,7 @@ const curriculumCoverageDataSchema = z.strictObject({
 });
 
 const activityCreateFields = {
+  learningScope: learningScopeSchema,
   title: text(160),
   instructions: text(2_000),
   curriculumTopicIds: z.array(curriculumTopicIdSchema).max(12),
@@ -209,6 +214,7 @@ const attemptFeedbackDataSchema = z.strictObject({
 });
 
 export const voiceSummarySaveInputSchema = strictBoundaryObject({
+  learningScope: learningScopeSchema,
   ...writeInput,
   activity: z
     .strictObject({
@@ -319,7 +325,7 @@ export const mcpToolContracts = {
   open_deutsch_create_activity: {
     title: "Create a desktop activity",
     description:
-      "Create one validated persistent learning activity in the Call Nina Practice library. Listening and speaking require matching structured voiceContext.",
+      "Create one validated persistent learning activity in the Call Nina Practice library. Copy learningScope from the original learner/activity context; never infer it from the current interface language. Listening and speaking require matching structured voiceContext.",
     annotations: additiveWriteAnnotations,
     confirmationPolicy: "none",
     inputSchema: activityCreateInputSchema,
@@ -345,7 +351,7 @@ export const mcpToolContracts = {
   open_deutsch_save_voice_summary: {
     title: "Save a Voice summary",
     description:
-      "Save one bounded structured Codex Voice session summary without audio or transcript content.",
+      "Save one bounded structured Codex Voice session summary without audio or transcript content. Retain the learningScope read when this session began, including after a language switch.",
     annotations: additiveWriteAnnotations,
     confirmationPolicy: "none",
     inputSchema: voiceSummarySaveInputSchema,

@@ -1,12 +1,27 @@
 import { learnerIdSchema } from "./common.js";
 import { z } from "./schema-system.js";
 
-// These are learning capabilities, independent of interface localization.
-export const targetLanguageSchema = z.literal("de");
-export const explanationLanguageSchema = z.enum(["en", "de"]);
+export const languageIds = ["en-US", "pt-BR", "es", "de"] as const;
+export const languageSchema = z.enum(languageIds);
+export const targetLanguageSchema = languageSchema;
+export const explanationLanguageSchema = languageSchema;
+export const interfaceLanguageSchema = languageSchema;
+export type Language = z.infer<typeof languageSchema>;
+
+// Registration and storage support do not imply implemented teaching or UI policies.
+export const languageDefinitions = {
+  "en-US": { name: "English", structuredCourseId: null },
+  "pt-BR": { name: "Português brasileiro", structuredCourseId: null },
+  es: { name: "Español", structuredCourseId: null },
+  de: { name: "Deutsch", structuredCourseId: "german-foundations" },
+} as const satisfies Record<Language, { name: string; structuredCourseId: string | null }>;
+export const courseEnrollmentSchema = z
+  .string()
+  .regex(/^[a-z][a-z0-9-]{0,79}$/u)
+  .nullable();
 export const learningScopeSchema = z.strictObject({
   learnerId: learnerIdSchema,
-  courseId: z.string().regex(/^[a-z][a-z0-9-]{0,79}$/u),
+  courseId: courseEnrollmentSchema,
   targetLanguage: targetLanguageSchema,
 });
 export const learningGoalSchema = z.strictObject({
@@ -23,3 +38,44 @@ export const learningContextSchema = learningScopeSchema.extend({
 });
 export type LearningScope = z.infer<typeof learningScopeSchema>;
 export type LearningContext = z.infer<typeof learningContextSchema>;
+
+/** Implemented policies/resources, independently of selectable storage languages. Owners #73/#74 extend these with their implementations. */
+export const languageCapabilities = {
+  "en-US": {
+    generation: false,
+    evaluation: false,
+    vocabulary: false,
+    interface: true,
+    structuredPath: false,
+  },
+  "pt-BR": {
+    generation: false,
+    evaluation: false,
+    vocabulary: false,
+    interface: false,
+    structuredPath: false,
+  },
+  es: {
+    generation: false,
+    evaluation: false,
+    vocabulary: false,
+    interface: false,
+    structuredPath: false,
+  },
+  de: {
+    generation: true,
+    evaluation: true,
+    vocabulary: true,
+    interface: true,
+    structuredPath: true,
+  },
+} as const satisfies Record<
+  Language,
+  {
+    generation: boolean;
+    evaluation: boolean;
+    vocabulary: boolean;
+    interface: boolean;
+    structuredPath: boolean;
+  }
+>;

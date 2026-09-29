@@ -1,5 +1,6 @@
 import { supportedLanguagePolicy } from "./language-policy.js";
 import {
+  type Language,
   learningContextSchema,
   type LearningContext,
   practiceSuggestionSchema,
@@ -20,7 +21,7 @@ export function isCurrentStudyWeek(weekStartsOn: string, today: string): boolean
 export function buildPracticeSuggestions(input: {
   rootGeneration: number;
   today: string;
-  locale: "en" | "de";
+  locale: Language;
   level: string;
   learningContext: LearningContext;
   dueVocabulary: readonly { vocabularyId: string; lemma: string }[];

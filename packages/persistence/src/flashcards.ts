@@ -4,12 +4,18 @@ import {
   linkPortableContent,
   assertStoredContentRevision,
 } from "./materials.js";
-import { requireLocalLearningScope, assertLocalLearningScope } from "./learning-context.js";
+import {
+  scopeForLanguage,
+  assertLocalLearningScope,
+  assertActivityReferences,
+} from "./learning-context.js";
 import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
+  type Language,
   generationProvenanceSchema,
   activityIdSchema,
+  targetLanguageSchema,
   portableFlashcardContentSchema,
   type PortableFlashcardContent,
   type learningGoalSchema,
@@ -85,7 +91,7 @@ function insert(
   idempotencyRequest?: unknown,
 ) {
   const activity = preparedActivitySchema.parse(activityValue);
-  assertLocalLearningScope(connection, activity.context.learningScope);
+  assertActivityReferences(connection, activity.context);
   if (activity.activityType !== "flashcards") throw new Error("OD_FLASHCARD_ACTIVITY_INVALID");
   const cards = z.array(flashcardSchema).min(3).max(30).parse(cardsValue);
   const claim = claimIdempotentWrite(connection, {
@@ -106,9 +112,10 @@ function insert(
     );
     connection
       .prepare(
-        `INSERT INTO prepared_activities(activity_id, activity_type, title, origin_surface, context_json, prepared_at, root_generation) VALUES (?, 'flashcards', ?, ?, ?, ?, ?)`,
+        `INSERT INTO prepared_activities(target_language, activity_id, activity_type, title, origin_surface, context_json, prepared_at, root_generation) VALUES (?, ?, 'flashcards', ?, ?, ?, ?, ?)`,
       )
       .run(
+        activity.context.learningScope.targetLanguage,
         activity.activityId,
         activity.title,
         activity.originSurface,
@@ -166,6 +173,7 @@ export async function createVocabularyFlashcards(
       });
       return read(connection, database, activityId);
     }
+    let sourceLanguage: Language | undefined;
     const cards: Flashcard[] = request.entries.map((entry) => {
       const row = connection
         .prepare(
@@ -174,6 +182,10 @@ export async function createVocabularyFlashcards(
         .get(entry.vocabularyId, entry.expectedRevision, entry.expectedUpdatedAt) as
         Record<string, unknown> | undefined;
       if (!row) throw new Error("OD_VOCABULARY_CONFLICT");
+      const language = targetLanguageSchema.parse(row["target_language"]);
+      if (sourceLanguage && sourceLanguage !== language)
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      sourceLanguage = language;
       return flashcardSchema.parse({
         lemma: row["lemma"],
         meaning: row["meaning"],
@@ -191,7 +203,10 @@ export async function createVocabularyFlashcards(
         originSurface: "desktop",
         preparedAt: new Date().toISOString(),
         context: {
-          learningScope: requireLocalLearningScope(connection),
+          learningScope: {
+            ...scopeForLanguage(connection, targetLanguageSchema.parse(sourceLanguage)),
+            courseId: null,
+          },
           naturalRequest: request.title,
           curriculumTopicIds: [],
           mistakeIds: [],
@@ -264,9 +279,14 @@ export async function saveFlashcardVocabulary(
     if (claim.replayed) return deck;
     const rows = connection
       .prepare(
-        "SELECT vocabulary_id, lemma, meaning, lexeme_json FROM vocabulary_entries ORDER BY created_at, vocabulary_id",
+        "SELECT vocabulary_id, lemma, meaning, lexeme_json FROM vocabulary_entries WHERE target_language = ? ORDER BY created_at, vocabulary_id",
       )
-      .all() as { vocabulary_id: string; lemma: string; meaning: string; lexeme_json: string }[];
+      .all(deck.content.language) as {
+      vocabulary_id: string;
+      lemma: string;
+      meaning: string;
+      lexeme_json: string;
+    }[];
     const identities = new Map<string, string>();
     for (const row of rows) {
       const lexeme = flashcardSchema.shape.lexeme.parse(JSON.parse(row.lexeme_json) as unknown);
@@ -283,9 +303,10 @@ export async function saveFlashcardVocabulary(
         // Explicitly saved words belong to the learner, so deleting a deck cannot delete them.
         connection
           .prepare(
-            `INSERT INTO vocabulary_entries(vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO vocabulary_entries(target_language, vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
+            deck.content.language,
             vocabularyId,
             vocabularyLemma(card),
             card.meaning,

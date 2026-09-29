@@ -28,7 +28,10 @@ export const portableContentShape = {
   createdAt: utcInstantSchema,
   goal: z.strictObject({
     learnerGoal: learningGoalSchema.nullable(),
-    courseId: z.string().regex(/^[a-z][a-z0-9-]{0,79}$/u),
+    courseId: z
+      .string()
+      .regex(/^[a-z][a-z0-9-]{0,79}$/u)
+      .nullable(),
     request: z.string().min(1).max(2_000),
     curriculumTopicIds: z.array(curriculumTopicIdSchema).max(20),
   }),

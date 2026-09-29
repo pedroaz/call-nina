@@ -364,10 +364,14 @@ export function createProductionServer(runtime: Runtime) {
         const input = practiceContextReadInputSchema.parse(raw);
         return await withInputFreshRoot(runtime, input.dataRootGeneration, async () => {
           const snapshot = await runtime.repository.readDashboardSnapshot(now().slice(0, 10));
-          const course = await readLearningCourse(
-            process.env["CALL_NINA_CURRICULUM_ROOT"] ??
-              path.resolve(path.dirname(thisFile), "../../../content/curriculum"),
-          );
+          const scope = await runtime.repository.requireLearningScope();
+          const course =
+            scope.courseId === "german-foundations" && scope.targetLanguage === "de"
+              ? await readLearningCourse(
+                  process.env["CALL_NINA_CURRICULUM_ROOT"] ??
+                    path.resolve(path.dirname(thisFile), "../../../content/curriculum"),
+                )
+              : null;
           const pathState = await runtime.repository.readLearningPathState();
           const next = course
             ? (recommendCourseActivity(course, pathState)?.reference ?? null)
@@ -385,11 +389,13 @@ export function createProductionServer(runtime: Runtime) {
               (include("learning-path") || include("recommendation")) && next && nextUnit
                 ? {
                     reference: next,
-                    title: nextUnit.title[learningContext.explanationLanguage],
+                    title:
+                      nextUnit.title[learningContext.explanationLanguage === "de" ? "de" : "en"],
                     objective: (
                       nextUnit.activities.find((a) => a.id === next.activityKey)?.instructions[
-                        learningContext.explanationLanguage
-                      ] ?? nextUnit.scenario[learningContext.explanationLanguage]
+                        learningContext.explanationLanguage === "de" ? "de" : "en"
+                      ] ??
+                      nextUnit.scenario[learningContext.explanationLanguage === "de" ? "de" : "en"]
                     ).slice(0, 1000),
                   }
                 : null,
@@ -410,7 +416,7 @@ export function createProductionServer(runtime: Runtime) {
               include("recommendation") && nextUnit
                 ? {
                     primary:
-                      `Continue: ${nextUnit.title[learningContext.explanationLanguage]}`.slice(
+                      `Continue: ${nextUnit.title[learningContext.explanationLanguage === "de" ? "de" : "en"]}`.slice(
                         0,
                         500,
                       ),
@@ -513,8 +519,9 @@ export function createProductionServer(runtime: Runtime) {
           if (!activity?.context.voiceContext) {
             return failureResult("not-found", "No matching prepared Voice activity was found.");
           }
-          const settings = await runtime.repository.readCurrentLearnerSettings();
-          if (!settings) return failureResult("not-found", "No learner profile is configured yet.");
+          const settings = await runtime.repository.readLearnerSettingsForScope(
+            activity.context.learningScope,
+          );
           return successResult("Prepared Voice activity is ready.", {
             activityId: activity.activityId,
             title: activity.title,
@@ -574,7 +581,7 @@ export function createProductionServer(runtime: Runtime) {
                 title: input.activity.title,
                 originSurface: "codex",
                 context: {
-                  learningScope: await runtime.repository.requireLearningScope(),
+                  learningScope: input.activity.learningScope,
                   naturalRequest,
                   instructions: input.activity.instructions,
                   curriculumTopicIds: input.activity.curriculumTopicIds,
@@ -629,9 +636,9 @@ export function createProductionServer(runtime: Runtime) {
         try {
           const input = voiceSummarySaveInputSchema.parse(raw);
           return await withInputFreshRoot(runtime, input.dataRootGeneration, async () => {
-            const settings = await runtime.repository.readCurrentLearnerSettings();
-            if (!settings)
-              return failureResult("not-found", "No learner profile is configured yet.");
+            const settings = await runtime.repository.readLearnerSettingsForScope(
+              input.learningScope,
+            );
             const linked = input.activity
               ? await runtime.repository.readPreparedActivity(input.activity.activityId)
               : undefined;
@@ -649,6 +656,7 @@ export function createProductionServer(runtime: Runtime) {
               );
             }
             const summary = voiceSummarySchema.parse({
+              learningScope: input.learningScope,
               ...(input.activity ? { activity: input.activity } : {}),
               schemaVersion: 1,
               voiceSessionId: deterministicId("voice-session", input.idempotencyKey),

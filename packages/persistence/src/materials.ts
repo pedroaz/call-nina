@@ -8,7 +8,11 @@ import {
   type MaterialReference,
   type MaterialRevision,
 } from "@call-nina/contracts";
-import { requireLocalLearningScope } from "./learning-context.js";
+import {
+  requireLocalLearningScope,
+  activityLearningScope,
+  scopeForLanguage,
+} from "./learning-context.js";
 import { withLeasedConnection, withLeasedTransaction, type CallNinaDatabase } from "./sqlite.js";
 
 export function contentIdentity(prefix: string) {
@@ -46,6 +50,7 @@ export function saveMaterialInTransaction(
   requireLocalLearningScope(connection);
   const draft = materialDraftSchema.parse(value);
   const prior = previous ? readMaterialRevisionInTransaction(connection, previous) : undefined;
+  if (prior && prior.language !== draft.language) throw new Error("OD_MATERIAL_LANGUAGE_IMMUTABLE");
   if (
     prior &&
     connection
@@ -63,9 +68,15 @@ export function saveMaterialInTransaction(
   });
   connection
     .prepare(
-      "INSERT INTO material_revisions(material_id, revision_id, revision, revision_json) VALUES (?, ?, ?, ?)",
+      "INSERT INTO material_revisions(target_language, material_id, revision_id, revision, revision_json) VALUES (?, ?, ?, ?, ?)",
     )
-    .run(revision.materialId, revision.revisionId, revision.revision, JSON.stringify(revision));
+    .run(
+      revision.language,
+      revision.materialId,
+      revision.revisionId,
+      revision.revision,
+      JSON.stringify(revision),
+    );
   return revision;
 }
 
@@ -74,9 +85,10 @@ export async function saveMaterial(
   draft: MaterialDraft,
   previous?: MaterialReference,
 ) {
-  return withLeasedTransaction(database, (connection) =>
-    saveMaterialInTransaction(connection, draft, new Date().toISOString(), previous),
-  );
+  return withLeasedTransaction(database, (connection) => {
+    scopeForLanguage(connection, materialDraftSchema.parse(draft).language);
+    return saveMaterialInTransaction(connection, draft, new Date().toISOString(), previous);
+  });
 }
 export async function readMaterialRevision(
   database: CallNinaDatabase,
@@ -91,7 +103,7 @@ export async function listMaterials(database: CallNinaDatabase) {
     requireLocalLearningScope(connection);
     return connection
       .prepare(
-        "SELECT material_id, revision_id FROM material_revisions m WHERE revision = (SELECT max(revision) FROM material_revisions WHERE material_id = m.material_id) ORDER BY rowid DESC LIMIT 100",
+        "SELECT material_id, revision_id FROM material_revisions m WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1) AND revision = (SELECT max(revision) FROM material_revisions WHERE material_id = m.material_id) ORDER BY rowid DESC LIMIT 100",
       )
       .all()
       .map((row) =>
@@ -202,11 +214,11 @@ export function assertStoredContentRevision(
   content: {
     revisionId: string;
     materials: readonly MaterialRevision[];
-    goal: { courseId: string };
+    goal: { courseId: string | null };
     language: string;
   },
 ) {
-  const scope = requireLocalLearningScope(connection);
+  const scope = activityLearningScope(connection, activityId);
   const link = connection
     .prepare(
       "SELECT revision_id, material_revision_id FROM activity_content_revisions WHERE activity_id = ?",

@@ -1,4 +1,6 @@
 import {
+  targetLanguageSchema,
+  learningScopeSchema,
   germanArticleSchema,
   germanNounGender,
   vocabularyLexemeSchema,
@@ -63,6 +65,7 @@ export const vocabularyCandidateSchema = strictBoundaryObject({
 });
 
 export const vocabularyLessonSetRequestSchema = strictBoundaryObject({
+  learningScope: learningScopeSchema,
   requestedFrom: z.enum(["desktop", "codex"]),
   title: text(160),
   naturalRequest: text(1_000),
@@ -82,6 +85,7 @@ export type VocabularyLessonSetRequest = z.infer<typeof vocabularyLessonSetReque
  * instead of being guessed and presented as fact.
  */
 export function vocabularyEntryFromCandidate(input: {
+  targetLanguage: z.infer<typeof targetLanguageSchema>;
   vocabularyId: string;
   candidate: VocabularyCandidate;
   source: VocabularySource;
@@ -102,6 +106,7 @@ export function vocabularyEntryFromCandidate(input: {
     : { partOfSpeech: "other" as const };
   return vocabularyEntrySchema.parse({
     schemaVersion: 1,
+    targetLanguage: input.targetLanguage,
     vocabularyId: input.vocabularyId,
     lemma: candidate.lemma,
     meaning: candidate.meaning,
@@ -191,6 +196,7 @@ export const vocabularyStateSchema = z.union([
 ]);
 
 export const vocabularyEntrySchema = strictBoundaryObject({
+  targetLanguage: targetLanguageSchema,
   schemaVersion: z.literal(1),
   vocabularyId: vocabularyIdSchema,
   lemma: text(160),

@@ -109,7 +109,11 @@ export async function clearPersonalData(
         markMistake.run(mistakeIdSchema.parse(row["mistake_id"]), deletedAt);
       }
       connection.prepare(`DELETE FROM voice_summaries`).run();
-      connection.prepare(`DELETE FROM learner_profile_insights`).run();
+      connection
+        .prepare(
+          `UPDATE language_profiles SET profile_json = json_set(profile_json, '$.inferredStrengths', json('[]'), '$.inferredWeaknesses', json('[]'))`,
+        )
+        .run();
     }
     return personalDataCleanupResultSchema.parse({ status: "cleared", scope });
   });

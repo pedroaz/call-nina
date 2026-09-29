@@ -1,3 +1,4 @@
+import { migrateLanguageProfiles } from "./language-migration.js";
 import { migrateAttemptEvidence } from "./attempt-evidence.js";
 import { migrateVersionedContent } from "./content.js";
 import type { DataRootGeneration } from "@call-nina/contracts";
@@ -1575,6 +1576,163 @@ export const callNinaMigrations = [
       CREATE TRIGGER exercise_attempt_feedback_immutable BEFORE UPDATE ON exercise_attempt_feedback
         BEGIN SELECT RAISE(ABORT, 'OD_EXERCISE_FEEDBACK_IMMUTABLE'); END;
     `,
+  },
+  {
+    version: 30,
+    name: "independent-learning-language-ownership",
+    sql: `DROP TRIGGER voice_summary_immutable;
+      DROP TRIGGER prepared_activity_scope_insert;
+      DROP TRIGGER prepared_activity_scope_update;
+      DROP TRIGGER local_learning_scope_immutable_update;
+      DROP TRIGGER local_learning_scope_immutable_delete;
+      CREATE TABLE learner_identity (
+        learner_id TEXT PRIMARY KEY,
+        created_at TEXT NOT NULL CHECK(created_at GLOB '????-??-??T??:??:??.???Z')
+      ) STRICT;
+      INSERT INTO learner_identity SELECT learner_id, created_at FROM learner_profiles;
+      CREATE TABLE language_profiles (
+        target_language TEXT PRIMARY KEY CHECK(target_language IN ('en-US','pt-BR','es','de')),
+        learner_id TEXT NOT NULL REFERENCES learner_identity(learner_id) ON DELETE RESTRICT,
+        course_id TEXT CHECK(course_id IS NULL OR (target_language = 'de' AND course_id = 'german-foundations')),
+        profile_json TEXT NOT NULL CHECK(json_valid(profile_json) AND json_extract(profile_json, '$.targetLanguage') = target_language AND json_extract(profile_json, '$.learnerId') = learner_id)
+      ) STRICT;
+      DROP TRIGGER lessons_requires_learning_scope;
+      ALTER TABLE lessons DROP COLUMN learning_scope_id;
+      ALTER TABLE lessons ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX lessons_by_language ON lessons(target_language);
+      DROP TRIGGER exercises_requires_learning_scope;
+      ALTER TABLE exercises DROP COLUMN learning_scope_id;
+      ALTER TABLE exercises ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX exercises_by_language ON exercises(target_language);
+      ALTER TABLE exercises ADD COLUMN learning_scope_json TEXT CHECK(learning_scope_json IS NULL OR json_valid(learning_scope_json));
+      UPDATE exercises SET learning_scope_json = (SELECT json_object('learnerId', learner_id, 'courseId', course_id, 'targetLanguage', target_language) FROM local_learning_scope WHERE singleton = 1);
+      DROP TRIGGER mistakes_requires_learning_scope;
+      ALTER TABLE mistakes DROP COLUMN learning_scope_id;
+      ALTER TABLE mistakes ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX mistakes_by_language ON mistakes(target_language);
+      DROP TRIGGER vocabulary_entries_requires_learning_scope;
+      ALTER TABLE vocabulary_entries DROP COLUMN learning_scope_id;
+      ALTER TABLE vocabulary_entries ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX vocabulary_entries_by_language ON vocabulary_entries(target_language);
+      DROP TRIGGER voice_summaries_requires_learning_scope;
+      ALTER TABLE voice_summaries DROP COLUMN learning_scope_id;
+      ALTER TABLE voice_summaries ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX voice_summaries_by_language ON voice_summaries(target_language);
+      DROP TRIGGER prepared_activities_requires_learning_scope;
+      ALTER TABLE prepared_activities DROP COLUMN learning_scope_id;
+      ALTER TABLE prepared_activities ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX prepared_activities_by_language ON prepared_activities(target_language);
+      DROP TRIGGER history_entries_requires_learning_scope;
+      ALTER TABLE history_entries DROP COLUMN learning_scope_id;
+      ALTER TABLE history_entries ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX history_entries_by_language ON history_entries(target_language);
+      DROP TRIGGER vocabulary_lesson_sets_requires_learning_scope;
+      ALTER TABLE vocabulary_lesson_sets DROP COLUMN learning_scope_id;
+      ALTER TABLE vocabulary_lesson_sets ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX vocabulary_lesson_sets_by_language ON vocabulary_lesson_sets(target_language);
+      DROP TRIGGER course_selection_requires_learning_scope;
+      ALTER TABLE course_selection DROP COLUMN learning_scope_id;
+      ALTER TABLE course_selection ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX course_selection_by_language ON course_selection(target_language);
+      DROP TRIGGER course_marks_requires_learning_scope;
+      ALTER TABLE course_marks DROP COLUMN learning_scope_id;
+      ALTER TABLE course_marks ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX course_marks_by_language ON course_marks(target_language);
+      DROP TRIGGER course_missions_requires_learning_scope;
+      ALTER TABLE course_missions DROP COLUMN learning_scope_id;
+      ALTER TABLE course_missions ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'));
+      CREATE INDEX course_missions_by_language ON course_missions(target_language);
+      ALTER TABLE material_revisions DROP COLUMN learning_scope_id;
+
+      ALTER TABLE local_learning_scope RENAME TO previous_learning_scope;
+      CREATE TABLE local_learning_scope (
+        singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+        learner_id TEXT NOT NULL UNIQUE REFERENCES learner_identity(learner_id) ON DELETE RESTRICT,
+        course_id TEXT CHECK(course_id IS NULL OR (target_language = 'de' AND course_id = 'german-foundations')),
+        target_language TEXT NOT NULL CHECK(target_language IN ('en-US','pt-BR','es','de'))
+      ) STRICT;
+      INSERT INTO local_learning_scope SELECT * FROM previous_learning_scope;
+      DROP TABLE previous_learning_scope;
+      CREATE TRIGGER prepared_activity_scope_insert BEFORE INSERT ON prepared_activities
+        WHEN NOT EXISTS (SELECT 1 FROM language_profiles WHERE learner_id = json_extract(NEW.context_json, '$.learningScope.learnerId') AND target_language = NEW.target_language)
+          OR json_extract(NEW.context_json, '$.learningScope.targetLanguage') IS NOT NEW.target_language
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_MISMATCH'); END;
+      CREATE TRIGGER prepared_activity_scope_update BEFORE UPDATE OF context_json, target_language ON prepared_activities
+        WHEN json_extract(NEW.context_json, '$.learningScope') IS NOT json_extract(OLD.context_json, '$.learningScope') OR NEW.target_language IS NOT OLD.target_language
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_IMMUTABLE'); END;
+`,
+    migrate: (connection) => {
+      // Roots already beyond migration 25 have not used its current material writer.
+      if (
+        !connection
+          .prepare("PRAGMA table_info(material_revisions)")
+          .all()
+          .some((column) => column["name"] === "target_language")
+      )
+        connection.exec(
+          "ALTER TABLE material_revisions ADD COLUMN target_language TEXT NOT NULL DEFAULT 'de' CHECK(target_language IN ('en-US','pt-BR','es','de'))",
+        );
+      connection.exec(
+        "CREATE INDEX material_revisions_by_language ON material_revisions(target_language)",
+      );
+      migrateLanguageProfiles(connection);
+      connection.exec(`
+      CREATE TABLE global_learner_settings (
+        learner_id TEXT PRIMARY KEY REFERENCES learner_identity(learner_id) ON DELETE CASCADE,
+        ui_locale TEXT NOT NULL CHECK(ui_locale IN ('en-US','pt-BR','es','de')),
+        updated_at TEXT NOT NULL CHECK(updated_at GLOB '????-??-??T??:??:??.???Z')
+      ) STRICT;
+      INSERT INTO global_learner_settings SELECT learner_id, CASE ui_locale WHEN 'en' THEN 'en-US' ELSE ui_locale END, updated_at FROM learner_settings;
+      CREATE TABLE language_model_preferences (
+        learner_id TEXT NOT NULL REFERENCES learner_identity(learner_id) ON DELETE CASCADE,
+        route_id TEXT NOT NULL CHECK(route_id = 'codex'),
+        workload TEXT NOT NULL CHECK (workload IN ('correction', 'generation', 'helper', 'research')),
+        model_mode TEXT NOT NULL CHECK (model_mode IN ('automatic', 'exact')),
+        model_id TEXT,
+        effort_mode TEXT NOT NULL CHECK (effort_mode IN ('semantic', 'exact')),
+        semantic_effort TEXT,
+        effort_id TEXT,
+        updated_at TEXT NOT NULL CHECK (updated_at GLOB '????-??-??T??:??:??.???Z'),
+        PRIMARY KEY (learner_id, workload),
+        CHECK (
+          (model_mode = 'automatic' AND model_id IS NULL) OR
+          (model_mode = 'exact' AND model_id IS NOT NULL AND length(model_id) BETWEEN 1 AND 128)
+        ),
+        CHECK (
+          (effort_mode = 'semantic' AND semantic_effort IS NOT NULL AND
+            semantic_effort IN ('fast', 'balanced', 'deep') AND effort_id IS NULL) OR
+          (effort_mode = 'exact' AND semantic_effort IS NULL AND effort_id IS NOT NULL AND
+            length(effort_id) BETWEEN 1 AND 64)
+        )
+      ) STRICT;
+
+      INSERT INTO language_model_preferences(learner_id, route_id, workload, model_mode, model_id, effort_mode, semantic_effort, effort_id, updated_at)
+        SELECT learner_id, route_id, workload, model_mode, model_id, effort_mode, semantic_effort, effort_id, updated_at FROM model_preference_overrides;
+      DROP TABLE model_preference_overrides;
+      ALTER TABLE language_model_preferences RENAME TO model_preference_overrides;
+      DROP TABLE learner_settings;
+      ALTER TABLE global_learner_settings RENAME TO learner_settings;
+      DROP TABLE learner_interests;
+      DROP TABLE learner_preferred_topics;
+      DROP TABLE learner_profile_insights;
+      DROP TABLE learner_profiles;
+      ALTER TABLE learner_identity RENAME TO learner_profiles;
+      CREATE TRIGGER single_local_learner BEFORE INSERT ON learner_profiles
+        WHEN EXISTS (SELECT 1 FROM learner_profiles)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_SCOPE_ALREADY_EXISTS'); END;
+
+      CREATE TRIGGER voice_summary_immutable BEFORE UPDATE ON voice_summaries
+        BEGIN SELECT RAISE(ABORT, 'OD_VOICE_SUMMARY_IMMUTABLE'); END;
+      CREATE TRIGGER history_language_insert AFTER INSERT ON history_entries BEGIN
+        UPDATE history_entries SET target_language = CASE NEW.entity_kind
+          WHEN 'attempt' THEN coalesce((SELECT e.target_language FROM attempts a JOIN exercises e USING(exercise_id) WHERE a.attempt_id = NEW.entity_id), (SELECT p.target_language FROM mcp_attempt_feedback f JOIN prepared_activities p USING(activity_id) WHERE f.attempt_id = NEW.entity_id), NEW.target_language)
+          WHEN 'correction' THEN (SELECT e.target_language FROM corrections c JOIN attempts a USING(attempt_id) JOIN exercises e USING(exercise_id) WHERE c.correction_id = NEW.entity_id)
+          WHEN 'vocabulary-review' THEN (SELECT v.target_language FROM vocabulary_reviews r JOIN vocabulary_entries v USING(vocabulary_id) WHERE r.review_id = NEW.entity_id)
+          WHEN 'voice-summary' THEN (SELECT v.target_language FROM voice_summaries v WHERE v.voice_session_id = NEW.entity_id)
+          ELSE NEW.target_language END WHERE history_entry_id = NEW.history_entry_id;
+      END;
+`);
+    },
   },
 ] as const satisfies readonly DatabaseMigration[];
 

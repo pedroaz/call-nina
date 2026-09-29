@@ -26,7 +26,7 @@ export function Dashboard({
     ? (recommendCourseActivity(learning.snapshot.course, learning.snapshot.state)?.reference ??
       null)
     : null;
-  const locale = i18n.resolvedLanguage === "de" ? "de" : "en";
+  const locale = i18n.resolvedLanguage === "de" ? "de" : "en-US";
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [offset, setOffset] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -79,7 +79,7 @@ export function Dashboard({
             <h2>{t("learningPath.continue")}</h2>
             <p>
               {next
-                ? `${learning.snapshot?.course?.units.find((u) => u.id === next.unitId)?.title[locale] ?? ""} · ${learning.snapshot?.course?.units.find((u) => u.id === next.unitId)?.activities.find((a) => a.id === next.activityKey)?.title[locale] ?? ""}`
+                ? `${learning.snapshot?.course?.units.find((u) => u.id === next.unitId)?.title[locale === "de" ? "de" : "en"] ?? ""} · ${learning.snapshot?.course?.units.find((u) => u.id === next.unitId)?.activities.find((a) => a.id === next.activityKey)?.title[locale === "de" ? "de" : "en"] ?? ""}`
                 : t("learningPath.intro")}
             </p>
             <Button

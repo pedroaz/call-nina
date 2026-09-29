@@ -6,9 +6,8 @@ export const personalDataGroups = {
   profile: [
     "learner_profiles",
     "learner_settings",
-    "learner_interests",
-    "learner_preferred_topics",
-    "learner_profile_insights",
+    "language_profiles",
+    "local_learning_scope",
     "model_preference_defaults",
     "model_preference_overrides",
   ],

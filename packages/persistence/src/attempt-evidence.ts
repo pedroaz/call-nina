@@ -6,6 +6,7 @@ import {
   attemptEventSchema,
   attemptEvidenceSchema,
   type AttemptOwnership,
+  targetLanguageSchema,
   type AttemptEvent,
   type AttemptEvidence,
 } from "@call-nina/contracts";
@@ -16,6 +17,8 @@ import {
 } from "@call-nina/domain";
 import {
   assertLocalLearningScope,
+  activityLearningScope,
+  scopeForLanguage,
   requireLocalLearningScope,
   parseScopedActivityContext,
 } from "./learning-context.js";
@@ -92,7 +95,7 @@ function saveOwnership(
     .run(parsed.attemptId, sourceKind, sourceId, JSON.stringify(parsed));
   return parsed;
 }
-function activityOwnership(connection: DatabaseSync, activityId: string) {
+function activityOwnership(connection: DatabaseSync, activityId: string, historic = false) {
   const row = connection
     .prepare("SELECT context_json FROM prepared_activities WHERE activity_id = ?")
     .get(activityId);
@@ -108,7 +111,11 @@ function activityOwnership(connection: DatabaseSync, activityId: string) {
     )
     .get(activityId);
   return {
-    learningScope: context?.learningScope ?? requireLocalLearningScope(connection),
+    learningScope:
+      context?.learningScope ??
+      (historic
+        ? requireLocalLearningScope(connection)
+        : activityLearningScope(connection, activityId)),
     courseRevision: context?.learningPath?.version ?? null,
     content: revision
       ? { contentId: String(revision["content_id"]), revisionId: String(revision["revision_id"]) }
@@ -139,7 +146,7 @@ export function captureExerciseAttempt(
     JSON.parse(String(row["exercise_snapshot_json"])),
   );
   const activityId = String(row["activity_id"]);
-  const source = activityOwnership(connection, activityId);
+  const source = activityOwnership(connection, activityId, historic);
   const reference = snapshot.exercise.contentReference;
   const retainedRevision = connection
     .prepare("SELECT content_revision_id FROM attempt_content_revisions WHERE attempt_id = ?")
@@ -248,9 +255,7 @@ export function captureVocabularyReview(
   if (!row) throw new Error("OD_VOCABULARY_REVIEW_NOT_FOUND");
   const attemptId = identity("attempt", `vocabulary:${reviewId}`);
   const entry = connection
-    .prepare(
-      "SELECT lemma, meaning, lexeme_json, examples_json FROM vocabulary_entries WHERE vocabulary_id = ?",
-    )
+    .prepare("SELECT * FROM vocabulary_entries WHERE vocabulary_id = ?")
     .get(String(row["vocabulary_id"]));
   saveOwnership(
     connection,
@@ -259,7 +264,12 @@ export function captureVocabularyReview(
     attemptOwnershipSchema.parse({
       attemptId,
       originatingDeviceId: historic ? null : device(connection),
-      learningScope: requireLocalLearningScope(connection),
+      learningScope: historic
+        ? requireLocalLearningScope(connection)
+        : {
+            ...scopeForLanguage(connection, targetLanguageSchema.parse(entry?.["target_language"])),
+            courseId: null,
+          },
       courseRevision: null,
       startedAt: row["reviewed_at"],
       source: {

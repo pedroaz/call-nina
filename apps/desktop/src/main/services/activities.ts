@@ -287,7 +287,7 @@ export class ActivityService {
         title: action.title,
         originSurface: "desktop",
         context: {
-          learningScope: await this.#repository.requireLearningScope(),
+          learningScope: action.learningScope,
           naturalRequest: context.scenario,
           instructions: `Prepared ${context.kind} context for ${context.scenario}.`,
           curriculumTopicIds: [],
@@ -311,6 +311,9 @@ export class ActivityService {
     const action = await this.#validate(value);
     if (action.action !== "prepare-course-voice") throw new Error("OD_ACTIVITY_ACTION_INVALID");
     const requestId = correlationIdSchema.parse(requestIdValue);
+    const learningScope = await this.#repository.requireLearningScope();
+    if (learningScope.targetLanguage !== "de" || learningScope.courseId !== "german-foundations")
+      throw new Error("OD_COURSE_UNAVAILABLE");
     const course = await readLearningCourse(this.#curriculumRoot);
     if (!course) throw new Error("OD_COURSE_NOT_FOUND");
     const { reference, unit, activity } = resolveCourseReference(course, action.reference);
@@ -325,7 +328,7 @@ export class ActivityService {
         title: `${unit.title[locale]} · ${activity.title[locale]}`.slice(0, 160),
         originSurface: "desktop",
         context: {
-          learningScope: await this.#repository.requireLearningScope(),
+          learningScope,
           naturalRequest: activity.instructions[locale].slice(0, 1000),
           curriculumTopicIds: unit.curriculumTopicIds,
           mistakeIds: [],

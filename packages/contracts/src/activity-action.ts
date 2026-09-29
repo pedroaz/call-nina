@@ -1,3 +1,4 @@
+import { learningScopeSchema } from "./learning-context.js";
 import { reuseExerciseActionSchema } from "./exercise-launch.js";
 import { activityIdSchema, dataRootGenerationSchema } from "./common.js";
 import { courseReferenceSchema } from "./learning-path.js";
@@ -29,6 +30,7 @@ export const activityActionSchema = z.discriminatedUnion("action", [
   }),
   z.strictObject({
     action: z.literal("prepare-voice"),
+    learningScope: learningScopeSchema,
     title: z.string().min(1).max(160).regex(/\S/u),
     context: voiceActivityContextSchema,
     expectedGeneration: dataRootGenerationSchema,

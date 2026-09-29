@@ -31,7 +31,7 @@ export async function inspectCleanup(bootstrapFile) {
       );
     if (database.prepare("PRAGMA quick_check").get().quick_check !== "ok")
       throw new Error("DATA_DATABASE_DAMAGED");
-    database.prepare("SELECT learner_id, onboarding_state FROM learner_profiles LIMIT 1").all();
+    database.prepare("SELECT learner_id, created_at FROM learner_profiles LIMIT 1").all();
     attachments = database.prepare("SELECT relative_path, sha256 FROM attachment_metadata").all();
   } finally {
     database.close();

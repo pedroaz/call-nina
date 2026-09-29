@@ -1,7 +1,9 @@
+import { assertRegisteredLearningScope as assertLocalLearningScope } from "./learning-context.js";
 import { captureExerciseAttempt } from "./attempt-evidence.js";
 import { claimIdempotentWrite } from "./idempotency.js";
 import {
   activityIdSchema,
+  learningScopeSchema,
   historyEntryIdSchema,
   mistakeIdSchema,
   strictBoundaryObject,
@@ -23,6 +25,7 @@ import { type CallNinaDatabase, withLeasedTransaction } from "./sqlite.js";
 
 export const writingAttemptPersistenceSchema = strictBoundaryObject({
   activityId: activityIdSchema,
+  learningScope: learningScopeSchema,
   historyEntryId: historyEntryIdSchema,
   title: z.string().min(1).max(160).regex(/\S/u),
   workload: z.literal("correction"),
@@ -105,6 +108,7 @@ export async function saveWritingAttempt(
       [...record.feedback.vocabularyCandidateIds].sort().join("\0") ||
     record.vocabularyEntries.some(
       (entry) =>
+        entry.targetLanguage !== record.learningScope.targetLanguage ||
         entry.state.status !== "candidate" ||
         entry.source.kind !== "correction" ||
         entry.source.correctionId !== record.correction.correctionId ||
@@ -115,6 +119,7 @@ export async function saveWritingAttempt(
   }
 
   await withLeasedTransaction(database, (connection) => {
+    assertLocalLearningScope(connection, record.learningScope);
     const claim = claimIdempotentWrite(connection, {
       operation: "attempt-completion",
       idempotencyKey: record.attemptId,
@@ -125,13 +130,15 @@ export async function saveWritingAttempt(
     if (claim.replayed) return;
     connection
       .prepare(
-        `INSERT INTO exercises (
+        `INSERT INTO exercises (learning_scope_json, target_language,
           exercise_id, activity_id, kind, cefr_band, started_at, objectives_json,
           instructions, explanation, content_json, answer_contract_json,
           ai_provenance_json, snapshot_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
+        JSON.stringify(record.learningScope),
+        record.learningScope.targetLanguage,
         exercise.exerciseId,
         record.activityId,
         exercise.kind,
@@ -235,8 +242,8 @@ export async function saveWritingAttempt(
     const insertMistake = connection.prepare(
       `INSERT INTO mistakes (
         mistake_id, inferred_category_json, effective_category_json,
-        classification_source, disposition
-      ) VALUES (?, ?, ?, 'inferred', 'active')`,
+        classification_source, disposition, target_language
+      ) VALUES (?, ?, ?, 'inferred', 'active', ?)`,
     );
     const insertOccurrence = connection.prepare(
       `INSERT INTO mistake_occurrences (
@@ -252,12 +259,19 @@ export async function saveWritingAttempt(
       const existing = connection
         .prepare(
           `SELECT mistake_id FROM mistakes
-           WHERE effective_category_json = ? AND disposition = 'active'
+           WHERE target_language = ? AND effective_category_json = ? AND disposition = 'active'
            ORDER BY mistake_id LIMIT 1`,
         )
-        .get(categoryJson) as { mistake_id: string } | undefined;
+        .get(record.learningScope.targetLanguage, categoryJson) as
+        { mistake_id: string } | undefined;
       const mistakeId = existing?.mistake_id ?? mistake.proposedMistakeId;
-      if (!existing) insertMistake.run(mistakeId, categoryJson, categoryJson);
+      if (!existing)
+        insertMistake.run(
+          mistakeId,
+          categoryJson,
+          categoryJson,
+          record.learningScope.targetLanguage,
+        );
       const segment = correction.alignment[mistake.alignmentSegmentPosition];
       if (!segment || segment.kind === "unchanged") {
         throw new Error("OD_WRITING_ATTEMPT_MISTAKES_INVALID");
@@ -330,13 +344,14 @@ export async function saveWritingAttempt(
       insertHistoryCategory.run(record.historyEntryId, category.categoryKey);
     }
     const insertVocabulary = connection.prepare(
-      `INSERT INTO vocabulary_entries (
+      `INSERT INTO vocabulary_entries (target_language,
         vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     for (const entry of record.vocabularyEntries) {
       insertVocabulary.run(
+        entry.targetLanguage,
         entry.vocabularyId,
         entry.lemma,
         entry.meaning,

@@ -470,6 +470,11 @@ export class DesktopBackend {
             modelRequestId: state.modelRequestId,
             provenance: state.provenance,
             output: state.output,
+            learningScope: {
+              learnerId: acceptedOperation.operation.input.learningContext.learnerId,
+              courseId: acceptedOperation.operation.input.learningContext.courseId,
+              targetLanguage: acceptedOperation.operation.input.learningContext.targetLanguage,
+            },
             ...(savedActivityId ? { activityId: savedActivityId } : {}),
           },
         });
@@ -613,6 +618,11 @@ export class DesktopBackend {
     return {
       dataRoot: { generation: dataRoot.generation, displayName: dataRoot.displayName },
       settings: {
+        learningScope: {
+          learnerId: settings.learningContext.learnerId,
+          courseId: settings.learningContext.courseId,
+          targetLanguage: settings.learningContext.targetLanguage,
+        },
         approximateLevel: profile.levelEstimate.currentLevel,
         everydayLifeGoal: profile.everydayLifeGoal,
         defaultTeachingProfileId: profile.defaultTeachingProfileId,
@@ -651,8 +661,14 @@ export class DesktopBackend {
       submittedAt: utcInstantSchema.parse(new Date().toISOString()),
       answer: input.answer,
     });
+    const activity = await this.#repository.readPreparedActivity(input.activityId);
+    if (!activity) throw new Error("OD_ACTIVITY_NOT_FOUND");
     if (
-      evaluateExerciseAnswer(saved.snapshot.exercise, input.answer, "de").status !== "requires-ai"
+      evaluateExerciseAnswer(
+        saved.snapshot.exercise,
+        input.answer,
+        activity.context.learningScope.targetLanguage,
+      ).status !== "requires-ai"
     )
       throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
     return saved;
@@ -675,6 +691,11 @@ export class DesktopBackend {
       ReturnType<CallNinaRepository["saveGeneratedExerciseAnswer"]>
     >["snapshot"],
   ) {
+    if (input.kind === "exercise-feedback") {
+      const activity = await this.#repository?.readPreparedActivity(input.activityId);
+      if (!activity || !this.#repository) throw new Error("OD_ACTIVITY_NOT_FOUND");
+      settings = await this.#repository.readLearnerSettingsForScope(activity.context.learningScope);
+    }
     const profile = settings.profile;
     const calibration = buildLearningCalibration(settings.learningContext, profile);
     if (input.kind === "flashcard-generation")
@@ -716,15 +737,16 @@ export class DesktopBackend {
     }
     if (input.kind === "contextual-help") {
       if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
-      await this.#repository.recordCourseHelperSupport(input.intent);
-      let session = this.#helperSessions.get(input.sessionId);
+      await this.#repository.recordCourseHelperSupport(input.intent, settings.learningContext);
+      const helperKey = `${input.sessionId}:${settings.learningContext.targetLanguage}`;
+      let session = this.#helperSessions.get(helperKey);
       if (!session) {
         if (this.#helperSessions.size >= 64) {
           const oldest = this.#helperSessions.keys().next().value;
           if (oldest) this.#helperSessions.delete(oldest);
         }
         session = { activityId: activityIdSchema.parse(opaqueId("activity")), turns: [] };
-        this.#helperSessions.set(input.sessionId, session);
+        this.#helperSessions.set(helperKey, session);
       }
       return {
         kind: input.kind,
@@ -761,6 +783,7 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...readingContext,
+          learningContext: settings.learningContext,
           exercise: {
             kind: exercise.kind,
             instructions: exercise.instructions,
@@ -775,6 +798,7 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...readingContext,
+          learningContext: settings.learningContext,
           exercise: {
             kind: exercise.kind,
             instructions: exercise.instructions,
@@ -790,6 +814,7 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...readingContext,
+          learningContext: settings.learningContext,
           exercise: {
             kind: exercise.kind,
             instructions: exercise.instructions,
@@ -820,7 +845,7 @@ export class DesktopBackend {
         );
         if (!["practice", "reading", "writing"].includes(activity.delivery))
           throw new Error("OD_COURSE_ACTIVITY_INVALID");
-        const locale = profile.explanationLanguage;
+        const locale = profile.explanationLanguage === "de" ? "de" : "en";
         if (!course) throw new Error("OD_COURSE_REFERENCE_STALE");
         const teaching = await prepareCourseTeaching(this.#database, course, reference, locale);
         return {
@@ -1504,6 +1529,7 @@ export class DesktopBackend {
         }
         const timestamp = utcInstantSchema.parse(new Date().toISOString());
         const profile = createInitialLearnerProfile({
+          targetLanguage: request.payload.targetLanguage,
           schemaVersion: 1,
           learnerId,
           levelEstimate: {
@@ -1620,6 +1646,22 @@ export class DesktopBackend {
         await this.#repository.dismissDevelopmentNotice();
         return this.#success(request, { dismissed: true });
       }
+      if (request.channel === "learner-settings/select-language") {
+        const dataRoot = await this.#dataRootState(request.requestId);
+        if (
+          dataRoot.status !== "ready" ||
+          dataRoot.generation !== request.payload.expectedGeneration ||
+          !this.#repository
+        )
+          return this.#failure(request, "stale-data-root");
+        const settings = await this.#repository.selectLearningLanguage(
+          request.payload.targetLanguage,
+        );
+        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+        return this.#success(request, this.#settingsProjection(settings, dataRoot));
+      }
       if (request.channel === "learner-settings/read") {
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
@@ -1634,10 +1676,16 @@ export class DesktopBackend {
         if (!current) return this.#failure(request, "not-found");
         const timestamp = freshTimestampAfter(current.profile.updatedAt);
         const editable = request.payload.settings;
+        if (
+          editable.learningScope.learnerId !== current.profile.learnerId ||
+          editable.learningScope.targetLanguage !== current.profile.targetLanguage
+        )
+          return this.#failure(request, "conflict");
         const levelChanged =
           editable.approximateLevel !== current.profile.levelEstimate.currentLevel;
         const next: LearnerSettingsRecord = {
           ...current,
+          learningContext: { ...current.learningContext, ...editable.learningScope },
           profile: {
             ...current.profile,
             levelEstimate: levelChanged
@@ -1790,9 +1838,13 @@ export class DesktopBackend {
         const root = await this.#dataRootState(request.requestId);
         if (root.status !== "ready" || !this.#repository || !this.#database)
           return this.#failure(request, "stale-data-root");
-        const course = await readLearningCourse(this.#curriculumRoot);
         const learningContext = await this.#repository.requireLearningContext();
-        const explanationLanguage = learningContext.explanationLanguage;
+        const course =
+          learningContext.targetLanguage === "de" &&
+          learningContext.courseId === "german-foundations"
+            ? await readLearningCourse(this.#curriculumRoot)
+            : null;
+        const explanationLanguage = learningContext.explanationLanguage === "de" ? "de" : "en";
         if (request.channel === "learning-path/read")
           return this.#success(request, {
             rootGeneration: root.generation,
@@ -1993,6 +2045,7 @@ export class DesktopBackend {
         );
         const candidates = records.slice(0, 50).map(vocabularyCandidateFromRecord);
         const requestValue = {
+          learningScope: await this.#repository.requireLearningScope(),
           requestedFrom: "desktop" as const,
           title: request.payload.title,
           naturalRequest: request.payload.naturalRequest,
@@ -2226,7 +2279,6 @@ export class DesktopBackend {
           }),
           this.#repository.readHistorySkillTotals(),
         ]);
-        const learningContext = await this.#repository.requireLearningContext();
         return this.#success(request, {
           rootGeneration: dataRoot.generation,
           mistakePatterns,
@@ -2258,7 +2310,7 @@ export class DesktopBackend {
                       acceptedAnswerReveal: evaluateExerciseAnswer(
                         entry.detail.snapshot.exercise,
                         entry.detail.answer,
-                        learningContext.targetLanguage,
+                        entry.targetLanguage,
                       ).acceptedAnswerReveal,
                       suggestedAnswer: entry.detail.suggestedAnswer,
                     }
@@ -2506,12 +2558,12 @@ export class DesktopBackend {
             effort: { selection: "exact", effortId: access.modelSelection.effortId },
           },
           input: {
+            learningContext: learnerSettings.learningContext,
             ...(await this.#enrichedOperationInput(
               request.payload.input,
               learnerSettings,
               savedFeedback?.snapshot,
             )),
-            learningContext: learnerSettings.learningContext,
           },
         });
         this.#operationsBySubmission.set(request.payload.submissionId, {
@@ -2521,7 +2573,9 @@ export class DesktopBackend {
           operation,
           startedAt: utcInstantSchema.parse(new Date().toISOString()),
           ...(request.payload.input.kind === "contextual-help"
-            ? { helperSessionId: request.payload.input.sessionId }
+            ? {
+                helperSessionId: `${request.payload.input.sessionId}:${learnerSettings.learningContext.targetLanguage}`,
+              }
             : {}),
           ...(request.payload.input.kind === "exercise-feedback"
             ? {

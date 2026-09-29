@@ -33,14 +33,14 @@ type CleanupResult = Extract<
 type BlockReason = Extract<CleanupResult, { status: "blocked" }>["reason"];
 
 const categories: ReadonlyArray<{ id: string; tables: readonly PersonalDataTable[] }> = [
-  { id: "profile", tables: ["learner_profiles"] },
+  { id: "profile", tables: ["learner_profiles", "language_profiles"] },
   { id: "preferences", tables: ["learner_settings"] },
   { id: "practice", tables: ["prepared_activities"] },
   { id: "attempts", tables: ["attempts"] },
   { id: "vocabulary", tables: ["vocabulary_entries"] },
   { id: "voice", tables: ["voice_summaries"] },
   { id: "history", tables: ["history_entries"] },
-  { id: "insights", tables: ["mistakes", "learner_profile_insights"] },
+  { id: "insights", tables: ["mistakes"] },
   { id: "files", tables: ["attachment_metadata"] },
 ];
 const cleanupScopes = ["practice", "vocabulary", "learning"] as const;

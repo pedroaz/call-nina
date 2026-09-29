@@ -97,7 +97,7 @@ export function resolveTeachingProfile(
     explanationLanguage: validatedLanguage,
     englishSupport:
       profile.explanationLanguagePolicy === "configured-with-english-support" &&
-      validatedLanguage !== "en"
+      validatedLanguage !== "en-US"
         ? "when-useful"
         : "none",
   };

@@ -1,7 +1,7 @@
 import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
 import { materialDraftSchema, materialReferenceSchema } from "./material.js";
-import { learningContextSchema } from "./learning-context.js";
+import { languageSchema, learningContextSchema } from "./learning-context.js";
 import {
   flashcardGenerationCandidateSchema,
   generatedFlashcardSchema,
@@ -410,7 +410,7 @@ const resolvedModelSelectionSchema = z.strictObject({
 
 const learnerCalibrationSchema = z.strictObject({
   approximateLevel: z.enum(["A1", "A2", "B1", "B2"]),
-  explanationLanguage: z.enum(["en", "de"]),
+  explanationLanguage: languageSchema,
   teachingProfile: z.enum(["conversation-partner", "strict-corrector"]),
 });
 
