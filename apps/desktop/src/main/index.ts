@@ -9,6 +9,7 @@ import {
   desktopIpcEventSchema,
   desktopIpcRequestSchema,
   desktopIpcResponseSchema,
+  type ActivityId,
 } from "@call-nina/contracts";
 import { CallNinaAppServerClient } from "@call-nina/codex-client";
 import { app, BrowserWindow, dialog, ipcMain, session } from "electron";
@@ -31,7 +32,7 @@ const preload = fileURLToPath(new URL("../preload/index.cjs", import.meta.url));
 const developmentWindowIcon = fileURLToPath(new URL("../../assets/call-nina.png", import.meta.url));
 let backend: DesktopBackend | undefined;
 let mainWindow: BrowserWindow | undefined;
-let pendingActivityId: string | undefined;
+let pendingActivityId: ActivityId | undefined;
 let readinessPublished = false;
 let workspaceReady = false;
 let shutdownStarted = false;
@@ -71,7 +72,7 @@ function createWindow(): BrowserWindow {
   return window;
 }
 
-function deliverActivity(activityId: string): void {
+function deliverActivity(activityId: ActivityId): void {
   if (!workspaceReady || !mainWindow || mainWindow.webContents.isLoading()) {
     pendingActivityId = activityId;
     return;
@@ -79,11 +80,14 @@ function deliverActivity(activityId: string): void {
   if (mainWindow.isMinimized()) mainWindow.restore();
   mainWindow.show();
   mainWindow.focus();
-  mainWindow.webContents.send("call-nina:event", {
-    event: "prepared-activity-open",
-    activityId,
-    source: "url-scheme",
-  });
+  void backend
+    ?.openActivityLink({
+      action: "open-activity",
+      activityId,
+    })
+    .catch(() => {
+      // Missing, stale or unsupported external references never trigger navigation.
+    });
 }
 
 function handleProtocolArguments(argumentsList: readonly string[]): void {
@@ -245,6 +249,13 @@ if (!app.requestSingleInstanceLock()) {
       log,
       emitEvent: (event) => {
         const safeEvent = desktopIpcEventSchema.parse(event);
+        if (
+          safeEvent.event === "prepared-activity-open" &&
+          (!workspaceReady || !mainWindow || mainWindow.webContents.isLoading())
+        ) {
+          pendingActivityId = safeEvent.activityId;
+          return;
+        }
         mainWindow?.webContents.send("call-nina:event", safeEvent);
       },
       exportDiagnostics: async (content) => {

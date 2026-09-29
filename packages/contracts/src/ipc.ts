@@ -1,3 +1,4 @@
+import { openActivityActionSchema, activityDestinationSchema } from "./activity-action.js";
 import {
   flashcardCreateRequestSchema,
   flashcardReadRequestSchema,
@@ -82,7 +83,7 @@ export const desktopIpcChannels = [
   "learning-path/prepare-voice",
   "dashboard/read",
   "activity/list",
-  "activity/read",
+  "activity/resolve",
   "flashcards/create",
   "flashcards/read",
   "flashcards/progress",
@@ -259,10 +260,7 @@ const diagnosticsReadRequest = request("diagnostics/read", emptyPayload);
 const diagnosticsExportRequest = request("diagnostics/export", emptyPayload);
 const logsClearRequest = request("logs/clear", emptyPayload);
 const activityListRequest = request("activity/list", activityLibraryFilterSchema);
-const activityReadRequest = request(
-  "activity/read",
-  z.strictObject({ activityId: activityIdSchema }),
-);
+const activityResolveRequest = request("activity/resolve", openActivityActionSchema);
 const dashboardReadRequest = request(
   "dashboard/read",
   z.strictObject({ locale: z.enum(["en", "de"]).optional() }),
@@ -636,7 +634,7 @@ export const desktopIpcRequestSchema = boundaryUnion([
   diagnosticsExportRequest,
   logsClearRequest,
   activityListRequest,
-  activityReadRequest,
+  activityResolveRequest,
   learningPathReadRequest,
   learningPathUpdateRequest,
   learningPathVocabularyRequest,
@@ -881,11 +879,12 @@ const activityListResponse = response(
     nextCursor: activityLibraryCursorSchema.nullable(),
   }),
 );
-const activityReadResponse = response(
-  "activity/read",
+const activityResolveResponse = response(
+  "activity/resolve",
   z.strictObject({
     activity: preparedActivitySchema,
-    generated: z.boolean(),
+    rootGeneration: dataRootGenerationSchema,
+    destination: activityDestinationSchema,
     deletionStatus: z.enum(["available", "cascade", "retained-data"]),
   }),
 );
@@ -1538,7 +1537,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
   diagnosticsExportResponse,
   logsClearResponse,
   activityListResponse,
-  activityReadResponse,
+  activityResolveResponse,
   learningPathReadResponse,
   learningPathUpdateResponse,
   learningPathVocabularyResponse,
