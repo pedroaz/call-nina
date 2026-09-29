@@ -265,11 +265,18 @@ function DesktopWorkspace({
     };
   }, [reload, writingDirty]);
 
-  const openAi = async (operation: ProviderOperation) => {
+  const openAi = async (
+    operation: ProviderOperation,
+    previousOperationId?: DesktopIpcRequest["requestId"],
+  ) => {
     setOperationError(undefined);
     setProviderUnavailable(undefined);
     try {
-      const access = await invokeDesktop("provider/access/read", { routeId: "codex", operation });
+      const access = await invokeDesktop("provider/access/read", {
+        routeId: "codex",
+        operation,
+        ...(previousOperationId ? { previousOperationId } : {}),
+      });
       if (access.status === "unavailable") {
         setProviderUnavailable(access);
         return false;

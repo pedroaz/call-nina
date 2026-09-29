@@ -153,7 +153,11 @@ const request = <
 
 const providerAccessReadRequest = request(
   "provider/access/read",
-  z.strictObject({ routeId: providerRouteIdSchema, operation: providerOperationSchema }),
+  z.strictObject({
+    routeId: providerRouteIdSchema,
+    operation: providerOperationSchema,
+    previousOperationId: correlationIdSchema.optional(),
+  }),
 );
 const appReadinessRequest = request("app/readiness", emptyPayload);
 const dataRootReadRequest = request("data-root/read", emptyPayload);

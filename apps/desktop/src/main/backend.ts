@@ -1321,9 +1321,31 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "provider/access/read") {
+        let retainedSelection: AcceptedOperation["operation"]["modelSelection"] | undefined;
+        if (request.payload.previousOperationId) {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
+          const prior = [...this.#operationsBySubmission.values()].find(
+            ({ operationId }) => operationId === request.payload.previousOperationId,
+          );
+          if (!prior) return this.#failure(request, "not-found");
+          if (prior.dataRootGeneration !== dataRoot.generation)
+            return this.#failure(request, "stale-data-root");
+          if (
+            prior.operation.input.kind !== request.payload.operation ||
+            !this.#retryableOperations.has(prior.operationId)
+          )
+            return this.#failure(request, "conflict");
+          // Resolve retry access from main-owned state, never the current sidebar preference.
+          retainedSelection = prior.operation.modelSelection;
+        }
         return this.#success(
           request,
-          await this.#providerAccess(request.payload.operation, request.requestId),
+          await this.#providerAccess(
+            request.payload.operation,
+            request.requestId,
+            retainedSelection,
+          ),
         );
       }
       if (request.channel === "data-root/read") {

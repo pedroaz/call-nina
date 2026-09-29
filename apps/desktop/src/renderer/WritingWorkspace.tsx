@@ -50,7 +50,10 @@ export function WritingWorkspace({
   onHelperSelection,
 }: {
   onDirtyChange: (dirty: boolean) => void;
-  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
+  requestAiAccess: (
+    operation: ProviderOperation,
+    previousOperationId?: CorrelationId,
+  ) => Promise<boolean>;
   initialContext?: string;
   initialDraft?: string;
   onHelperSelection: (selection: Omit<ContextualHelperSelection, "sessionId"> | undefined) => void;
@@ -257,7 +260,11 @@ export function WritingWorkspace({
   };
 
   const retryCorrection = async () => {
-    if (!previousCorrectionOperationId || !(await requestAiAccess("writing-correction"))) return;
+    if (
+      !previousCorrectionOperationId ||
+      !(await requestAiAccess("writing-correction", previousCorrectionOperationId))
+    )
+      return;
     const original = correctionSubmissionId.current
       ? correctionOriginals.current.get(correctionSubmissionId.current)
       : undefined;
