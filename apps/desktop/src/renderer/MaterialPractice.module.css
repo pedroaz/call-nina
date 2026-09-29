@@ -1,0 +1,16 @@
+.workspace {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+
+.source {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--od-font-reading);
+  line-height: var(--od-line-normal);
+}
+
+.reference {
+  overflow-wrap: anywhere;
+}

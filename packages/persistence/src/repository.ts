@@ -2305,6 +2305,14 @@ export class CallNinaRepository {
         clauses.push(`p.activity_type IN (${filter.activityTypes.map(() => "?").join(", ")})`);
         parameters.push(...filter.activityTypes);
       }
+      if (filter.material) {
+        clauses.push(`p.activity_type IN ('reading', 'vocabulary-review') AND EXISTS (
+          SELECT 1 FROM activity_content_revisions c JOIN material_revisions m
+          ON m.revision_id = c.material_revision_id
+          WHERE c.activity_id = p.activity_id AND m.material_id = ? AND m.revision_id = ?
+        )`);
+        parameters.push(filter.material.materialId, filter.material.revisionId);
+      }
       if (filter.cursor) {
         clauses.push("(p.prepared_at < ? OR (p.prepared_at = ? AND p.activity_id > ?))");
         parameters.push(

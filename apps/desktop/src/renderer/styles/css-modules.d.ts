@@ -241,6 +241,15 @@ declare module "*LearningPathPage.module.css" {
   export default styles;
 }
 
+declare module "*MaterialPractice.module.css" {
+  const styles: {
+    readonly reference: string;
+    readonly source: string;
+    readonly workspace: string;
+  };
+  export default styles;
+}
+
 declare module "*OperationProgress.module.css" {
   const styles: {
     readonly attempt: string;
