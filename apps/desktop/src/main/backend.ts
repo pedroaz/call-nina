@@ -719,8 +719,21 @@ export class DesktopBackend {
     if (request.source === "suggestion") {
       if (request.suggestion.rootGeneration !== this.#database.rootGeneration)
         throw new Error("OD_DATA_ROOT_STALE");
-      const scope = await repository.readSuggestionLearningScope(request.suggestion.context);
-      return scope ? repository.readLearnerSettingsForScope(scope) : settings;
+      const declaredScope = await repository.requireLearningScope(
+        request.suggestion.targetLanguage,
+      );
+      const evidenceScope = await repository.readSuggestionLearningScope(
+        request.suggestion.context,
+      );
+      if (
+        evidenceScope &&
+        (evidenceScope.learnerId !== declaredScope.learnerId ||
+          evidenceScope.targetLanguage !== declaredScope.targetLanguage)
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      // Evidence can have no course owner. Capture the declared language even
+      // without evidence, so later active-language changes cannot redirect it.
+      return repository.readLearnerSettingsForScope(evidenceScope ?? declaredScope);
     }
     if (request.source === "learning-path") {
       if (request.expectedGeneration !== this.#database.rootGeneration)
@@ -1985,13 +1998,23 @@ export class DesktopBackend {
               recurringMistakes: [],
             };
         const settings = await this.#readActiveLearnerSettings();
+        const courseEvidence =
+          settings && this.#repository
+            ? await this.#repository.readRecommendationEvidence(settings.learningContext)
+            : [];
+        const preparedCandidates =
+          settings && this.#repository
+            ? await this.#repository.readRecommendationPreparedActivities(settings.learningContext)
+            : [];
         const suggestions = settings
           ? buildPracticeSuggestions({
               ...snapshot,
+              preparedActivities: preparedCandidates,
               today: refreshedAt.slice(0, 10),
               locale: request.payload.locale ?? settings.profile.uiLocale,
               level: settings.profile.levelEstimate.currentLevel,
               learningContext: settings.learningContext,
+              courseEvidence,
             })
           : [];
         return this.#success(request, {

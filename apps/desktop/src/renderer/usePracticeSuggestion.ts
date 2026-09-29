@@ -14,7 +14,7 @@ import {
   normalizeDesktopError,
 } from "./ipc.js";
 import { useLearningOperation } from "./useLearningOperation.js";
-import { generatePracticeActivity } from "./generatePracticeActivity.js";
+import { generatePracticeActivity, reusePracticeActivity } from "./generatePracticeActivity.js";
 
 export type PracticeLaunch =
   | { destination: "activity"; activityId: ActivityId }
@@ -31,6 +31,7 @@ export function usePracticeSuggestion({ requestAiAccess, onLaunch }: SuggestionA
   const operation = useLearningOperation();
   const active = useRef(false);
   const mounted = useRef(true);
+  const reuseLaunchIds = useRef(new Map<string, ReturnType<typeof createDesktopSubmissionId>>());
   const [starting, setStarting] = useState<string>();
   const [error, setError] = useState<CallNinaError>();
   useEffect(() => {
@@ -64,7 +65,45 @@ export function usePracticeSuggestion({ requestAiAccess, onLaunch }: SuggestionA
           }),
         );
       }
-      if (suggestion.kind === "writing") {
+      const profile = await invokeDesktop("learner-profile/read", {});
+      if (
+        profile.status !== "ready" ||
+        profile.profile.learningContext.targetLanguage !== suggestion.targetLanguage
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      if (suggestion.preparedActivityId) {
+        const source = await invokeDesktop("activity/resolve", {
+          action: "open-activity",
+          activityId: suggestion.preparedActivityId,
+        });
+        if (
+          source.rootGeneration !== suggestion.rootGeneration ||
+          source.destination !== "generated-exercises" ||
+          source.activity.activityType !== suggestion.kind ||
+          source.activity.context.learningScope.targetLanguage !== suggestion.targetLanguage ||
+          source.activity.context.learningScope.learnerId !==
+            profile.profile.learningContext.learnerId ||
+          source.activity.context.learningScope.courseId !==
+            profile.profile.learningContext.courseId
+        )
+          throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
+        const content = await invokeDesktop("prepared-activity/read", {
+          activityId: suggestion.preparedActivityId,
+        });
+        const launchId = reuseLaunchIds.current.get(suggestion.id) ?? createDesktopSubmissionId();
+        reuseLaunchIds.current.set(suggestion.id, launchId);
+        const activityId = await reusePracticeActivity(
+          {
+            activityId: suggestion.preparedActivityId,
+            content: content.content,
+            context: { origin: "nina" },
+            expectedGeneration: suggestion.rootGeneration,
+          },
+          launchId,
+        );
+        reuseLaunchIds.current.delete(suggestion.id);
+        if (isMounted()) onLaunch({ destination: "activity", activityId });
+      } else if (suggestion.kind === "writing") {
         onLaunch({ destination: "writing", prompt: suggestion.naturalRequest });
       } else if (suggestion.source === "due-vocabulary") {
         onLaunch({ destination: "vocabulary" });
