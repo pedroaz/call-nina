@@ -1,6 +1,6 @@
 import i18n from "./i18n.js";
 import type { PracticeLaunch } from "./usePracticeSuggestion.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   type DesktopIpcRequest,
   type ProviderAccess,
@@ -189,16 +189,38 @@ function DesktopWorkspace({
   }, []);
 
   const [writingDirty, setWritingDirty] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<{
-    destination: Page;
-    mode: "normal" | "return" | "externalActivity";
-  }>();
+  const [pendingNavigation, setPendingNavigation] = useState<
+    | { destination: Page; mode: "normal" }
+    | { destination: Page; mode: "return" }
+    | { destination: "practice"; mode: "externalActivity"; activityId: PreparedActivityId }
+  >();
   const [writingSeed, setWritingSeed] =
     useState<Extract<HistoryPracticeSeed, { kind: "writing" }>>();
   const [preparedActivityId, setPreparedActivityId] = useState<PreparedActivityId>();
   const [suggestedWriting, setSuggestedWriting] = useState<string>();
   const [practiceSeed, setPracticeSeed] =
     useState<Extract<PracticeLaunch, { destination: "preparation" }>>();
+  const practiceContainer = useRef<HTMLDivElement>(null);
+  const [practiceReturnRequest, setPracticeReturnRequest] = useState(0);
+  const focusedPracticeReturn = useRef(0);
+  useLayoutEffect(() => {
+    if (page !== "practice" || practiceReturnRequest === focusedPracticeReturn.current) return;
+    focusedPracticeReturn.current = practiceReturnRequest;
+    practiceContainer.current?.querySelector<HTMLHeadingElement>("h1")?.focus({
+      preventScroll: true,
+    });
+  }, [page, practiceReturnRequest]);
+  const returnTo = (destination: Page) => {
+    if (page === "writing" && destination === "practice")
+      setPracticeReturnRequest((request) => request + 1);
+    setPage(destination);
+  };
+  const openExternalActivity = (activityId: PreparedActivityId) => {
+    setPracticeSeed(undefined);
+    setPreparedActivityId(activityId);
+    setActivityOrigin(undefined);
+    setPage("practice");
+  };
   const [vocabularyDue, setVocabularyDue] = useState(false);
   const launchPractice = (intent: PracticeLaunch) => {
     if (intent.destination === "writing") {
@@ -246,12 +268,13 @@ function DesktopWorkspace({
   useEffect(() => {
     const unsubscribe = subscribeDesktop((event) => {
       if (event.event === "prepared-activity-open") {
-        setPracticeSeed(undefined);
-        setPreparedActivityId(event.activityId);
-        setActivityOrigin(undefined);
         if (writingDirty)
-          setPendingNavigation({ destination: "practice", mode: "externalActivity" });
-        else setPage("practice");
+          setPendingNavigation({
+            destination: "practice",
+            mode: "externalActivity",
+            activityId: event.activityId,
+          });
+        else openExternalActivity(event.activityId);
         return;
       }
       if (event.event === "data-root-changed") {
@@ -332,7 +355,7 @@ function DesktopWorkspace({
       setPendingNavigation({ destination, mode });
       return;
     }
-    if (mode === "return") setPage(destination);
+    if (mode === "return") returnTo(destination);
     else applyNavigation(destination);
   };
   const parent =
@@ -416,7 +439,7 @@ function DesktopWorkspace({
               <Dashboard requestAiAccess={openAi} onLaunch={launchPractice} onNavigate={navigate} />
             ) : null}
             {page === "practice" || (page === "writing" && writingOrigin === "practice") ? (
-              <div hidden={page !== "practice"}>
+              <div ref={practiceContainer} hidden={page !== "practice"}>
                 {!preparedActivityId && page === "practice" && (
                   <div className={styles.practiceSecondary}>
                     <Button
@@ -584,10 +607,7 @@ function DesktopWorkspace({
           isOpen
           title={t("writing.unsavedTitle")}
           onOpenChange={(open) => {
-            if (!open) {
-              if (pendingNavigation.mode === "externalActivity") setPreparedActivityId(undefined);
-              setPendingNavigation(undefined);
-            }
+            if (!open) setPendingNavigation(undefined);
           }}
         >
           <p>{t("writing.unsavedBody")}</p>
@@ -598,7 +618,9 @@ function DesktopWorkspace({
                 setWritingDirty(false);
                 if (pendingNavigation.mode === "normal")
                   applyNavigation(pendingNavigation.destination);
-                else setPage(pendingNavigation.destination);
+                else if (pendingNavigation.mode === "return")
+                  returnTo(pendingNavigation.destination);
+                else openExternalActivity(pendingNavigation.activityId);
                 setPendingNavigation(undefined);
               }}
             >
@@ -606,7 +628,6 @@ function DesktopWorkspace({
             </Button>
             <Button
               onPress={() => {
-                if (pendingNavigation.mode === "externalActivity") setPreparedActivityId(undefined);
                 setPendingNavigation(undefined);
               }}
             >
