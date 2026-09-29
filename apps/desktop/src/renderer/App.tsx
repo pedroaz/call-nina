@@ -151,12 +151,10 @@ function DesktopWorkspace({
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
   const [learningScope, setLearningScope] = useState<LearningScope>();
-  const [explanationLanguage, setExplanationLanguage] = useState<Language>();
   const [switchingLanguage, setSwitchingLanguage] = useState(false);
   const refreshScope = useCallback(async () => {
     const settings = await invokeDesktop("learner-settings/read", {});
     setLearningScope(settings.settings.learningScope);
-    setExplanationLanguage(settings.settings.explanationLanguage);
   }, []);
   const selectTarget = async (targetLanguage: Language) => {
     if (
@@ -611,7 +609,6 @@ function DesktopWorkspace({
             ) : null}
             {page === "vocabulary" ? (
               <VocabularyPage
-                explanationLanguage={explanationLanguage}
                 targetLanguage={learningScope?.targetLanguage}
                 onOpenActivity={(activityId) => {
                   setActivityOrigin("vocabulary");

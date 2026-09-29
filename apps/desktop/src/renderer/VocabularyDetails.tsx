@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type {
-  CallNinaError,
-  VocabularyId,
-  DataRootGeneration,
-  Language,
-} from "@call-nina/contracts";
+import type { CallNinaError, VocabularyId, DataRootGeneration } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { ActionGroup } from "./components/layout/index.js";
 import {
@@ -23,17 +18,12 @@ import {
 } from "./useVocabularyLibrary.js";
 import styles from "./VocabularyPage.module.css";
 
-export function VocabularyInformation({
-  entry,
-  explanationLanguage,
-}: {
-  entry: VocabularyEntry;
-  explanationLanguage?: Language | undefined;
-}) {
+export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
   const { t } = useTranslation();
   return (
     <>
-      <p lang={explanationLanguage}>{entry.meaning}</p>
+      {/* Saved meanings have no recorded language; current preferences cannot identify it. */}
+      <p lang="">{entry.meaning}</p>
       {entry.lexeme.partOfSpeech === "noun" && (
         <p>
           <span lang={entry.targetLanguage}>{entry.lexeme.nounForm.article}</span> ·{" "}
@@ -57,7 +47,7 @@ export function VocabularyInformation({
       {entry.examples.map((example, index) => (
         <div key={index}>
           <p lang={entry.targetLanguage}>{example.text}</p>
-          <p className={styles.muted} lang={explanationLanguage}>
+          <p className={styles.muted} lang="">
             {example.meaning}
           </p>
         </div>
@@ -67,7 +57,6 @@ export function VocabularyInformation({
 }
 
 export function VocabularyDetails(props: {
-  explanationLanguage?: Language | undefined;
   vocabularyId: VocabularyId;
   rootGeneration: DataRootGeneration;
   onClose: () => void;
@@ -165,7 +154,7 @@ export function VocabularyDetails(props: {
       {loading && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {entry && !editing && (
         <>
-          <VocabularyInformation entry={entry} explanationLanguage={props.explanationLanguage} />
+          <VocabularyInformation entry={entry} />
           <p>{t(`vocabulary.filters.${entry.state.status}`)}</p>
           {entry.state.status !== "candidate" && (
             <>

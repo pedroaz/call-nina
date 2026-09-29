@@ -24,7 +24,6 @@ import { VocabularyReview } from "./VocabularyReview.js";
 import styles from "./VocabularyPage.module.css";
 
 type Props = Readonly<{
-  explanationLanguage?: Language | undefined;
   targetLanguage?: Language | undefined;
   initialDueOnly?: boolean;
   onOpenActivity: (activityId: ActivityId) => void;
@@ -32,7 +31,6 @@ type Props = Readonly<{
 }>;
 
 export function VocabularyPage({
-  explanationLanguage,
   targetLanguage,
   initialDueOnly = false,
   onNavigate,
@@ -43,7 +41,6 @@ export function VocabularyPage({
     <VocabularyWorkspace
       key={library.rootGeneration ?? "unconfigured"}
       library={library}
-      explanationLanguage={explanationLanguage}
       targetLanguage={targetLanguage}
       onNavigate={onNavigate}
       onOpenActivity={onOpenActivity}
@@ -53,13 +50,11 @@ export function VocabularyPage({
 
 function VocabularyWorkspace({
   library,
-  explanationLanguage,
   targetLanguage,
   onNavigate,
   onOpenActivity,
 }: {
   library: ReturnType<typeof useVocabularyLibrary>;
-  explanationLanguage?: Language | undefined;
   targetLanguage?: Language | undefined;
   onNavigate: Props["onNavigate"];
   onOpenActivity: Props["onOpenActivity"];
@@ -230,7 +225,6 @@ function VocabularyWorkspace({
     <>
       {reviewing && result && (
         <VocabularyReview
-          explanationLanguage={explanationLanguage}
           key={result.rootGeneration}
           rootGeneration={result.rootGeneration}
           onChanged={changed}
@@ -433,12 +427,12 @@ function VocabularyWorkspace({
                           >
                             <span lang={targetLanguage}>{entry.lemma}</span>
                           </Button>
-                          <span className={styles.compactMeaning} lang={explanationLanguage}>
+                          <span className={styles.compactMeaning} lang="">
                             {entry.meaning}
                           </span>
                         </td>
                         <td className={styles.meaningColumn}>
-                          <span className={styles.summary} lang={explanationLanguage}>
+                          <span className={styles.summary} lang="">
                             {entry.meaning}
                           </span>
                         </td>
@@ -489,7 +483,6 @@ function VocabularyWorkspace({
       </div>
       {detailId && result && (
         <VocabularyDetails
-          explanationLanguage={explanationLanguage}
           key={`${String(result.rootGeneration)}:${detailId}`}
           vocabularyId={detailId}
           rootGeneration={result.rootGeneration}
