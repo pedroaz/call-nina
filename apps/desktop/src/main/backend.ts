@@ -52,6 +52,7 @@ import {
 } from "@call-nina/contracts";
 import {
   buildPracticeSuggestions,
+  assertExerciseGenerationContext,
   resolveCourseReference,
   createInitialLearnerProfile,
   defaultModelPreferences,
@@ -103,13 +104,6 @@ export class DesktopBackend {
   readonly #operationsBySubmission = new Map<string, AcceptedOperation>();
   readonly #activeOperations = new Set<string>();
   readonly #retryableOperations = new Set<string>();
-  readonly #exerciseFeedbackByAttempt = new Map<
-    string,
-    Readonly<{
-      modelRequestId: ReturnType<typeof modelRequestIdSchema.parse>;
-      output: ReturnType<typeof exerciseFeedbackCandidateSchema.parse>;
-    }>
-  >();
   readonly #helperSessions = new Map<
     string,
     {
@@ -207,7 +201,6 @@ export class DesktopBackend {
     this.#operationsBySubmission.clear();
     this.#activeOperations.clear();
     this.#retryableOperations.clear();
-    this.#exerciseFeedbackByAttempt.clear();
     this.#helperSessions.clear();
   }
 
@@ -440,10 +433,15 @@ export class DesktopBackend {
           if (!accepted?.exerciseFeedback) {
             throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
           }
-          this.#exerciseFeedbackByAttempt.set(accepted.exerciseFeedback.attemptId, {
-            modelRequestId: modelRequestIdSchema.parse(state.modelRequestId),
-            output: exerciseFeedbackCandidateSchema.parse(state.output),
-          });
+          if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
+          await this.#repository.saveGeneratedExerciseFeedback(
+            accepted.exerciseFeedback.activityId,
+            accepted.exerciseFeedback.attemptId,
+            {
+              modelRequestId: modelRequestIdSchema.parse(state.modelRequestId),
+              output: exerciseFeedbackCandidateSchema.parse(state.output),
+            },
+          );
         }
         this.#operationLog(
           "info",
@@ -720,6 +718,8 @@ export class DesktopBackend {
         submittedAt: utcInstantSchema.parse(new Date().toISOString()),
         answer: input.answer,
       });
+      if (evaluateExerciseAnswer(snapshot.exercise, input.answer, "de").status !== "requires-ai")
+        throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
       const generated = await this.#repository.readGeneratedActivity(input.activityId);
       const readingPassage = generated?.content.payload.readingMaterial?.passage;
       const readingContext = {
@@ -781,7 +781,8 @@ export class DesktopBackend {
       throw new Error("OD_EXERCISE_ANSWER_KIND_MISMATCH");
     }
     {
-      const reviewContext = await this.#reviewContext();
+      assertExerciseGenerationContext(input);
+      const reviewContext = { ...(await this.#reviewContext()), entry: input.context };
       if (input.request.source === "learning-path") {
         if (
           !this.#repository ||
@@ -901,8 +902,15 @@ export class DesktopBackend {
           naturalRequest:
             material.kind === "topic"
               ? material.text.slice(0, 2_000)
-              : "Practise comprehension of the selected passage.",
-          ...(material.kind === "pasted-text" ? { reading: { passage: material.text } } : {}),
+              : input.request.practiceType === "reading"
+                ? "Practise comprehension of the selected passage."
+                : "Practise vocabulary from the selected passage with vocabulary-recall and multiple-choice exercises.",
+          ...(input.request.practiceType === "reading"
+            ? { reading: { passage: material.kind === "pasted-text" ? material.text : null } }
+            : {
+                practiceType: "vocabulary-review" as const,
+                ...(material.kind === "pasted-text" ? { reading: { passage: material.text } } : {}),
+              }),
           requestedExerciseCount: input.request.exerciseCount ?? 6,
           calibration,
           curriculumTopicIds: [],
@@ -1422,7 +1430,6 @@ export class DesktopBackend {
         this.#operationsBySubmission.clear();
         this.#retryableOperations.clear();
         this.#helperSessions.clear();
-        this.#exerciseFeedbackByAttempt.clear();
         const state = await this.#dataRootState(request.requestId);
         if (state.status === "ready") {
           this.#emitEvent?.({
@@ -1663,7 +1670,6 @@ export class DesktopBackend {
           this.#operationsBySubmission.clear();
           this.#retryableOperations.clear();
           this.#helperSessions.clear();
-          this.#exerciseFeedbackByAttempt.clear();
           for (const scope of ["dashboard", "history", "vocabulary", "settings"] as const) {
             this.#emitEvent?.({ event: "state-invalidated", scope });
           }
@@ -1859,6 +1865,12 @@ export class DesktopBackend {
         return this.#success(
           request,
           await this.#repository.listPreparedActivities(request.payload),
+        );
+      }
+      if (request.channel === "activity/reuse") {
+        return this.#success(
+          request,
+          await (await this.#activities(request.requestId)).reuseExercises(request.payload),
         );
       }
       if (request.channel === "activity/resolve") {
@@ -2118,12 +2130,24 @@ export class DesktopBackend {
         );
         return this.#success(request, { recorded: true });
       }
+      if (request.channel === "exercise-set/answer") {
+        if (
+          !this.#repository ||
+          request.payload.expectedGeneration !== this.#database?.rootGeneration
+        )
+          return this.#failure(request, "stale-data-root");
+        await this.#repository.saveGeneratedExerciseAnswer({
+          activityId: request.payload.activityId,
+          attemptId: request.payload.attemptId,
+          answer: request.payload.answer,
+          submittedAt: utcInstantSchema.parse(new Date().toISOString()),
+        });
+        return this.#success(request, { saved: true });
+      }
       if (request.channel === "exercise-set/start") {
         return this.#success(
           request,
-          await (
-            await this.#activities(request.requestId)
-          ).startExercises(request.payload.activityId),
+          await (await this.#activities(request.requestId)).startExercises(request.payload),
         );
       }
       if (request.channel === "exercise-set/complete") {
@@ -2132,18 +2156,11 @@ export class DesktopBackend {
         await this.#repository.completeGeneratedExerciseSet({
           activityId: request.payload.activityId,
           completedAt,
-          answers: request.payload.answers.map((answer) => {
-            const aiFeedback = this.#exerciseFeedbackByAttempt.get(answer.attemptId);
-            return {
-              ...answer,
-              historyEntryId: historyEntryIdSchema.parse(opaqueId("history-entry")),
-              ...(aiFeedback ? { aiFeedback } : {}),
-            };
-          }),
+          answers: request.payload.answers.map((answer) => ({
+            ...answer,
+            historyEntryId: historyEntryIdSchema.parse(opaqueId("history-entry")),
+          })),
         });
-        for (const { attemptId } of request.payload.answers) {
-          this.#exerciseFeedbackByAttempt.delete(attemptId);
-        }
         this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
         this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
         return this.#success(request, {
@@ -2155,13 +2172,10 @@ export class DesktopBackend {
       if (request.channel === "exercise-set/abandon") {
         if (!this.#repository) return this.#failure(request, "stale-data-root");
         const abandonedAt = utcInstantSchema.parse(new Date().toISOString());
-        const attemptIds = await this.#repository.abandonGeneratedExerciseSet({
+        await this.#repository.abandonGeneratedExerciseSet({
           activityId: request.payload.activityId,
           abandonedAt,
         });
-        for (const attemptId of attemptIds) {
-          this.#exerciseFeedbackByAttempt.delete(attemptId);
-        }
         this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
         return this.#success(request, {
           activityId: request.payload.activityId,

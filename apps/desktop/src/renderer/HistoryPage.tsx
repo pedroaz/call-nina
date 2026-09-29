@@ -230,6 +230,7 @@ export function HistoryPage({
         submissionId,
         input: {
           kind: "exercise-generation",
+          context: { origin: "history" },
           request: { source: "mistake-pattern", category: pattern.category },
         },
       });
@@ -258,6 +259,7 @@ export function HistoryPage({
         submissionId,
         input: {
           kind: "exercise-generation",
+          context: { origin: "history" },
           request: {
             source: "natural-request",
             naturalRequest: nextStep.naturalRequest,

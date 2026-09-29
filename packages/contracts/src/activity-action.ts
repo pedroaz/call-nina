@@ -1,3 +1,4 @@
+import { reuseExerciseActionSchema } from "./exercise-launch.js";
 import { activityIdSchema, dataRootGenerationSchema } from "./common.js";
 import { courseReferenceSchema } from "./learning-path.js";
 import { voiceActivityContextSchema } from "./voice.js";
@@ -13,6 +14,7 @@ export const openActivityActionSchema = z.strictObject({
 
 export const activityActionSchema = z.discriminatedUnion("action", [
   openActivityActionSchema,
+  reuseExerciseActionSchema,
   z.strictObject({
     action: z.enum([
       "read-generated",

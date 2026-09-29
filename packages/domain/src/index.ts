@@ -231,7 +231,12 @@ export {
 } from "./voice-summary.js";
 
 export { buildPracticeSuggestions, isCurrentStudyWeek } from "./practice-suggestions.js";
-export { resolveActivityDestination } from "./activity-routing.js";
+export {
+  resolveActivityDestination,
+  assertExerciseGenerationContext,
+  assertSharedExerciseActivity,
+  sameExerciseCourse,
+} from "./activity-routing.js";
 export * from "./learning-path.js";
 
 export * from "./learning-context.js";

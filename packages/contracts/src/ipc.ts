@@ -1,3 +1,4 @@
+import { exerciseEntryContextSchema, reuseExerciseActionSchema } from "./exercise-launch.js";
 import {
   providerRouteIdSchema,
   providerOperationSchema,
@@ -96,6 +97,7 @@ export const desktopIpcChannels = [
   "dashboard/read",
   "activity/list",
   "activity/resolve",
+  "activity/reuse",
   "flashcards/create",
   "flashcards/read",
   "flashcards/progress",
@@ -118,6 +120,7 @@ export const desktopIpcChannels = [
   "prepared-activity/delete",
   "exercise-set/support",
   "exercise-set/start",
+  "exercise-set/answer",
   "exercise-set/complete",
   "exercise-set/abandon",
   "history/read",
@@ -281,6 +284,7 @@ const diagnosticsReadRequest = request("diagnostics/read", emptyPayload);
 const diagnosticsExportRequest = request("diagnostics/export", emptyPayload);
 const logsClearRequest = request("logs/clear", emptyPayload);
 const activityListRequest = request("activity/list", activityLibraryFilterSchema);
+const activityReuseRequest = request("activity/reuse", reuseExerciseActionSchema);
 const activityResolveRequest = request("activity/resolve", openActivityActionSchema);
 const dashboardReadRequest = request(
   "dashboard/read",
@@ -394,6 +398,9 @@ const exerciseSetStartRequest = request(
   "exercise-set/start",
   z.strictObject({
     activityId: activityIdSchema,
+    intent: z.enum(["resume", "new-attempt"]),
+    launchId: correlationIdSchema,
+    expectedGeneration: dataRootGenerationSchema,
   }),
 );
 const exerciseSessionAnswerSchema = z.discriminatedUnion("kind", [
@@ -410,6 +417,15 @@ const exerciseSessionAnswerSchema = z.discriminatedUnion("kind", [
   }),
   z.strictObject({ kind: z.literal("vocabulary-recall"), text: text(12_000) }),
 ]);
+const exerciseSetAnswerRequest = request(
+  "exercise-set/answer",
+  z.strictObject({
+    expectedGeneration: dataRootGenerationSchema,
+    activityId: activityIdSchema,
+    attemptId: attemptIdSchema,
+    answer: exerciseSessionAnswerSchema,
+  }),
+);
 const exerciseSetCompleteRequest = request(
   "exercise-set/complete",
   z.strictObject({
@@ -554,6 +570,7 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
   }),
   z.strictObject({
     kind: z.literal("exercise-generation"),
+    context: exerciseEntryContextSchema,
     request: z.discriminatedUnion("source", [
       z.strictObject({
         source: z.literal("learning-path"),
@@ -591,6 +608,7 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
       }),
       z.strictObject({
         source: z.literal("saved-material"),
+        practiceType: z.enum(["reading", "vocabulary-review"]),
         expectedGeneration: dataRootGenerationSchema,
         material: materialReferenceSchema,
         exerciseCount: z.int().min(3).max(30).optional(),
@@ -674,6 +692,7 @@ export const desktopIpcRequestSchema = boundaryUnion([
   logsClearRequest,
   activityListRequest,
   activityResolveRequest,
+  activityReuseRequest,
   learningPathReadRequest,
   learningPathUpdateRequest,
   learningPathVocabularyRequest,
@@ -701,6 +720,7 @@ export const desktopIpcRequestSchema = boundaryUnion([
   preparedActivityDeleteRequest,
   exerciseSupportRequest,
   exerciseSetStartRequest,
+  exerciseSetAnswerRequest,
   exerciseSetCompleteRequest,
   exerciseSetAbandonRequest,
   historyReadRequest,
@@ -927,6 +947,14 @@ const activityResolveResponse = response(
     destination: activityDestinationSchema,
     deletionStatus: z.enum(["available", "cascade", "retained-data"]),
   }),
+);
+const activityReuseResponse = response(
+  "activity/reuse",
+  z.strictObject({ activityId: activityIdSchema }),
+);
+const exerciseSetAnswerResponse = response(
+  "exercise-set/answer",
+  z.strictObject({ saved: z.literal(true) }),
 );
 const learningPathReadResponse = response("learning-path/read", learningPathSnapshotSchema);
 const learningPathUpdateResponse = response("learning-path/update", learningPathSnapshotSchema);
@@ -1197,6 +1225,16 @@ const preparedActivityReadResponse = response(
       .strictObject({
         startedAt: utcInstantSchema,
         attemptIds: z.array(attemptIdSchema).min(1).max(30),
+        progress: z
+          .array(
+            z.strictObject({
+              answer: exerciseSessionAnswerSchema.nullable(),
+              feedback: generationCandidateOutputSchemas["exercise-feedback"].nullable(),
+              hintsUsed: z.int().nonnegative(),
+            }),
+          )
+          .min(1)
+          .max(30),
       })
       .nullable()
       .default(null),
@@ -1586,6 +1624,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
   logsClearResponse,
   activityListResponse,
   activityResolveResponse,
+  activityReuseResponse,
   learningPathReadResponse,
   learningPathUpdateResponse,
   learningPathVocabularyResponse,
@@ -1613,6 +1652,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
   preparedActivityDeleteResponse,
   exerciseSupportResponse,
   exerciseSetStartResponse,
+  exerciseSetAnswerResponse,
   exerciseSetCompleteResponse,
   exerciseSetAbandonResponse,
   historyReadResponse,

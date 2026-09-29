@@ -9,9 +9,11 @@ import {
   utcInstantSchema,
   type ActivityAction,
   type DesktopIpcEvent,
+  type DesktopIpcRequest,
 } from "@call-nina/contracts";
 import {
   materializeContentExercises,
+  assertSharedExerciseActivity,
   resolveActivityDestination,
   resolveCourseReference,
 } from "@call-nina/domain";
@@ -65,11 +67,6 @@ export class ActivityService {
       action.activityId,
     );
     if (!activity || !deletionStatus) throw new Error("OD_ACTIVITY_NOT_FOUND");
-    if (activity.context.learningPath) {
-      const course = await readLearningCourse(this.#curriculumRoot);
-      if (!course) throw new Error("OD_COURSE_NOT_FOUND");
-      resolveCourseReference(course, activity.context.learningPath);
-    }
     const generated = await this.#repository.readGeneratedActivity(action.activityId);
     return { activity, deletionStatus, generated };
   }
@@ -132,36 +129,74 @@ export class ActivityService {
       activityId: activityIdSchema.parse(activityId),
       expectedGeneration: this.generation,
     });
-    if (activity.context.voiceContext || activity.activityType === "flashcards")
-      throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
-    return activity;
+    return assertSharedExerciseActivity(activity);
   }
 
-  async startExercises(activityId: string) {
-    const { generated } = await this.#load({
+  async reuseExercises(value: Extract<ActivityAction, { action: "reuse-exercises" }>) {
+    await this.#validate(value);
+    // Validate course association against the installed course only when credit is requested.
+    if (value.context.origin === "learning-path") {
+      const course = await readLearningCourse(this.#curriculumRoot);
+      resolveCourseReference(course, value.context.reference);
+    }
+    return this.#repository.reuseGeneratedActivity(value);
+  }
+
+  async startExercises(
+    input: Extract<DesktopIpcRequest, { channel: "exercise-set/start" }>["payload"],
+  ) {
+    const { activityId } = input;
+    const { activity, generated } = await this.#load({
       action: "start-exercises",
       activityId: activityIdSchema.parse(activityId),
-      expectedGeneration: this.generation,
+      expectedGeneration: input.expectedGeneration,
     });
     if (!generated) throw new Error("OD_ACTIVITY_NOT_FOUND");
+    assertSharedExerciseActivity(activity);
+    const active = await this.#repository.readActiveGeneratedExerciseSet(activityId);
+    if (active && input.intent === "resume") {
+      return {
+        activityId: generated.activityId,
+        status: "started" as const,
+        startedAt: active.startedAt,
+        attemptIds: active.attemptIds,
+      };
+    }
+    if (activity.context.learningPath) {
+      const course = await readLearningCourse(this.#curriculumRoot);
+      resolveCourseReference(course, activity.context.learningPath);
+    }
     const startedAt = utcInstantSchema.parse(new Date().toISOString());
     const definitions = materializeContentExercises(generated.content, {
-      exerciseIds: generated.content.payload.exercises.map(() =>
-        exerciseIdSchema.parse(opaqueId("exercise")),
+      exerciseIds: generated.content.payload.exercises.map((_, position) =>
+        exerciseIdSchema.parse(
+          `exercise_${createHash("sha256")
+            .update(`${input.launchId}:exercise:${String(position)}`)
+            .digest("hex")
+            .slice(0, 32)}`,
+        ),
       ),
       aiProvenance: generated.aiProvenance,
       curriculumTopicIds: generated.context.curriculumTopicIds,
     });
-    const attemptIds = definitions.map(() => attemptIdSchema.parse(opaqueId("attempt")));
-    await this.#repository.startGeneratedExerciseSet({
+    const attemptIds = definitions.map((_, position) =>
+      attemptIdSchema.parse(
+        `attempt_${createHash("sha256")
+          .update(`${input.launchId}:attempt:${String(position)}`)
+          .digest("hex")
+          .slice(0, 32)}`,
+      ),
+    );
+    const set = await this.#repository.startGeneratedExerciseSet({
       activityId: generated.activityId,
       startedAt,
+      replaces: input.intent === "new-attempt" ? (active?.attemptIds ?? []) : [],
       exercises: definitions.map((exercise, position) => ({
         attemptId: attemptIdSchema.parse(attemptIds[position]),
         snapshot: { schemaVersion: 1, lifecycle: "started", startedAt, exercise },
       })),
     });
-    return { activityId: generated.activityId, status: "started" as const, startedAt, attemptIds };
+    return { activityId: generated.activityId, status: "started" as const, ...set };
   }
 
   async #voice(action: ActivityAction) {

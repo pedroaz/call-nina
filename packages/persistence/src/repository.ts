@@ -20,6 +20,8 @@ import {
 } from "./learning-context.js";
 import {
   resolveLearningContext,
+  assertSharedExerciseActivity,
+  sameExerciseCourse,
   supportedCourse,
   validateCourseEvidence,
   aiProvenanceSchema,
@@ -54,6 +56,8 @@ import type { DatabaseSync } from "node:sqlite";
 
 import {
   generationProvenanceSchema,
+  reuseExerciseActionSchema,
+  type ActivityAction,
   learningContextSchema,
   learningGoalSchema,
   portableExerciseContentSchema,
@@ -341,9 +345,14 @@ export const generatedActivityReadSchema = strictBoundaryObject({
   aiProvenance: aiProvenanceSchema,
   content: portableExerciseContentSchema,
 });
+const storedExerciseFeedbackSchema = z.strictObject({
+  modelRequestId: modelRequestIdSchema,
+  output: exerciseFeedbackCandidateSchema,
+});
 export const generatedExerciseSetStartSchema = strictBoundaryObject({
   activityId: activityIdSchema,
   startedAt: utcInstantSchema,
+  replaces: z.array(attemptIdSchema).max(30),
   exercises: z
     .array(
       z.strictObject({
@@ -358,6 +367,16 @@ export type GeneratedActivityRead = z.infer<typeof generatedActivityReadSchema>;
 export const activeGeneratedExerciseSetSchema = strictBoundaryObject({
   startedAt: utcInstantSchema,
   attemptIds: z.array(attemptIdSchema).min(1).max(30),
+  progress: z
+    .array(
+      z.strictObject({
+        answer: exerciseAnswerSchema.nullable(),
+        feedback: exerciseFeedbackCandidateSchema.nullable(),
+        hintsUsed: z.int().nonnegative(),
+      }),
+    )
+    .min(1)
+    .max(30),
 });
 export type ActiveGeneratedExerciseSet = z.infer<typeof activeGeneratedExerciseSetSchema>;
 export type GeneratedExerciseSetStart = z.infer<typeof generatedExerciseSetStartSchema>;
@@ -370,12 +389,6 @@ export const generatedExerciseSetCompleteSchema = strictBoundaryObject({
         attemptId: attemptIdSchema,
         historyEntryId: historyEntryIdSchema,
         answer: exerciseAnswerSchema,
-        aiFeedback: z
-          .strictObject({
-            modelRequestId: modelRequestIdSchema,
-            output: exerciseFeedbackCandidateSchema,
-          })
-          .optional(),
       }),
     )
     .min(1)
@@ -2689,6 +2702,154 @@ export class CallNinaRepository {
     });
   }
 
+  /** Reuse the exact immutable payload, with fresh ownership supplied by this entry point. */
+  async reuseGeneratedActivity(value: Extract<ActivityAction, { action: "reuse-exercises" }>) {
+    const action = reuseExerciseActionSchema.parse(value);
+    if (action.expectedGeneration !== this.#database.rootGeneration)
+      throw new Error("OD_DATA_ROOT_STALE");
+    const activityId = activityIdSchema.parse(
+      `activity_${createHash("sha256").update(action.launchId).digest("hex").slice(0, 32)}`,
+    );
+    return withLeasedTransaction(this.#database, (connection) => {
+      const now = utcInstantSchema.parse(new Date().toISOString());
+      const claim = claimIdempotentWrite(connection, {
+        operation: "prepared-activity",
+        idempotencyKey: action.launchId,
+        request: action,
+        entityId: activityId,
+        recordedAt: now,
+      });
+      if (claim.replayed) return { activityId };
+      const row = connection
+        .prepare(
+          `SELECT a.*, p.output_json FROM prepared_activities a
+        JOIN generated_activity_payloads p USING(activity_id) WHERE a.activity_id = ?`,
+        )
+        .get(action.activityId);
+      if (!row) throw new Error("OD_ACTIVITY_NOT_FOUND");
+      const source = assertSharedExerciseActivity({
+        activityId: row["activity_id"],
+        activityType: row["activity_type"],
+        title: row["title"],
+        originSurface: row["origin_surface"],
+        preparedAt: row["prepared_at"],
+        context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
+      });
+      const content = readStoredExerciseContent(
+        connection,
+        source.activityId,
+        parseJson(row["output_json"], maximumExerciseContentBytes),
+      );
+      if (
+        content.contentId !== action.content.contentId ||
+        content.revisionId !== action.content.revisionId
+      )
+        throw new Error("OD_ATTEMPT_REVISION_MISMATCH");
+      if (
+        action.context.origin === "learning-path" &&
+        (!source.context.learningPath ||
+          !sameExerciseCourse(action.context.reference, source.context.learningPath))
+      )
+        throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
+      if (
+        action.context.origin === "materials" &&
+        !["reading", "vocabulary-review"].includes(source.activityType)
+      )
+        throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
+      const { learningPath, courseTeaching, ...context } = source.context;
+      const activity = preparedActivitySchema.parse({
+        ...source,
+        activityId,
+        originSurface: "desktop",
+        preparedAt: now,
+        context: {
+          ...context,
+          entry: action.context,
+          ...(action.context.origin === "learning-path" ? { learningPath, courseTeaching } : {}),
+        },
+      });
+      assertLocalLearningScope(connection, activity.context.learningScope);
+      connection
+        .prepare(
+          `INSERT INTO prepared_activities(activity_id, activity_type, title, origin_surface, context_json, prepared_at, root_generation)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          activityId,
+          activity.activityType,
+          activity.title,
+          activity.originSurface,
+          stringifyBounded(activity.context),
+          now,
+          this.#database.rootGeneration,
+        );
+      connection
+        .prepare(
+          `INSERT INTO generated_activity_payloads(activity_id, workload, model_request_id, model_id, effort_id, generated_at, output_json)
+        SELECT ?, workload, model_request_id, model_id, effort_id, generated_at, output_json FROM generated_activity_payloads WHERE activity_id = ?`,
+        )
+        .run(activityId, source.activityId);
+      linkPortableContent(connection, activityId, content, "reused-or-historic");
+      connection
+        .prepare(
+          `INSERT INTO activity_context_references(activity_id, reference_kind, reference_id)
+        SELECT ?, reference_kind, reference_id FROM activity_context_references WHERE activity_id = ?`,
+        )
+        .run(activityId, source.activityId);
+      return { activityId };
+    });
+  }
+
+  async saveGeneratedExerciseFeedback(
+    activityIdValue: string,
+    attemptIdValue: string,
+    value: unknown,
+  ) {
+    const activityId = activityIdSchema.parse(activityIdValue);
+    const attemptId = attemptIdSchema.parse(attemptIdValue);
+    const feedback = storedExerciseFeedbackSchema.parse(value);
+    await withLeasedTransaction(this.#database, (connection) => {
+      const row = connection
+        .prepare(
+          `SELECT a.exercise_snapshot_json, ans.answer_json FROM attempts a
+        JOIN exercises e USING(exercise_id) JOIN answers ans ON ans.attempt_id = a.attempt_id AND ans.position = 0
+        WHERE a.attempt_id = ? AND e.activity_id = ? AND a.status = 'in-progress'`,
+        )
+        .get(attemptId, activityId);
+      if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+      const snapshot = startedExerciseSnapshotSchema.parse(
+        parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
+      );
+      const evaluation = evaluateExerciseAnswer(
+        snapshot.exercise,
+        exerciseAnswerSchema.parse(parseJson(row["answer_json"])),
+        requireLocalLearningScope(connection).targetLanguage,
+      );
+      if (
+        evaluation.status !== "requires-ai" ||
+        feedback.output.objectiveEvaluations.length !== snapshot.exercise.objectives.length
+      )
+        throw new Error("OD_EXERCISE_AI_FEEDBACK_INVALID");
+      const existing = connection
+        .prepare("SELECT feedback_json FROM exercise_attempt_feedback WHERE attempt_id = ?")
+        .get(attemptId);
+      if (existing) {
+        if (
+          JSON.stringify(
+            storedExerciseFeedbackSchema.parse(
+              parseJson(existing["feedback_json"], maximumExerciseFeedbackBytes),
+            ),
+          ) !== JSON.stringify(feedback)
+        )
+          throw new Error("OD_EXERCISE_FEEDBACK_IMMUTABLE");
+        return;
+      }
+      connection
+        .prepare("INSERT INTO exercise_attempt_feedback(attempt_id, feedback_json) VALUES (?, ?)")
+        .run(attemptId, stringifyBounded(feedback, maximumExerciseFeedbackBytes));
+    });
+  }
+
   async readGeneratedActivity(activityIdValue: string): Promise<GeneratedActivityRead | undefined> {
     const activityId = activityIdSchema.parse(activityIdValue);
     return withLeasedConnection(this.#database, (connection) => {
@@ -2751,8 +2912,11 @@ export class CallNinaRepository {
     return withLeasedConnection(this.#database, (connection) => {
       const rows = connection
         .prepare(
-          `SELECT a.attempt_id, a.started_at FROM attempts a
+          `SELECT a.attempt_id, a.started_at, ans.answer_json, f.feedback_json, coalesce(s.hints_used, 0) AS hints_used FROM attempts a
            JOIN exercises e ON e.exercise_id = a.exercise_id
+           LEFT JOIN answers ans ON ans.attempt_id = a.attempt_id AND ans.position = 0
+           LEFT JOIN exercise_attempt_feedback f ON f.attempt_id = a.attempt_id
+           LEFT JOIN exercise_support s ON s.attempt_id = a.attempt_id
            WHERE e.activity_id = ? AND a.status = 'in-progress'
            ORDER BY e.rowid`,
         )
@@ -2765,13 +2929,24 @@ export class CallNinaRepository {
       return activeGeneratedExerciseSetSchema.parse({
         startedAt,
         attemptIds: rows.map((row) => attemptIdSchema.parse(row["attempt_id"])),
+        progress: rows.map((row) => ({
+          answer: row["answer_json"]
+            ? exerciseAnswerSchema.parse(parseJson(row["answer_json"]))
+            : null,
+          feedback: row["feedback_json"]
+            ? storedExerciseFeedbackSchema.parse(
+                parseJson(row["feedback_json"], maximumExerciseFeedbackBytes),
+              ).output
+            : null,
+          hintsUsed: row["hints_used"],
+        })),
       });
     });
   }
 
-  async startGeneratedExerciseSet(value: GeneratedExerciseSetStart): Promise<void> {
+  async startGeneratedExerciseSet(value: GeneratedExerciseSetStart) {
     const record = generatedExerciseSetStartSchema.parse(value);
-    await withLeasedTransaction(this.#database, (connection) => {
+    return withLeasedTransaction(this.#database, (connection) => {
       const row = connection
         .prepare(
           `SELECT a.context_json, p.model_request_id, p.model_id, p.effort_id,
@@ -2782,14 +2957,56 @@ export class CallNinaRepository {
         )
         .get(record.activityId) as Record<string, unknown> | undefined;
       if (!row) throw new Error("OD_GENERATED_ACTIVITY_NOT_FOUND");
-      const activeAttempt = connection
+      const first = record.exercises[0];
+      if (!first) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+      const replay = connection
         .prepare(
-          `SELECT 1 FROM attempts a
-           JOIN exercises e ON e.exercise_id = a.exercise_id
-           WHERE e.activity_id = ? AND a.status = 'in-progress' LIMIT 1`,
+          `SELECT a.started_at, e.activity_id FROM attempts a JOIN exercises e USING(exercise_id) WHERE a.attempt_id = ?`,
         )
-        .get(record.activityId);
-      if (activeAttempt !== undefined) throw new Error("OD_EXERCISE_ATTEMPT_SET_ACTIVE");
+        .get(first.attemptId);
+      if (replay) {
+        for (const item of record.exercises) {
+          const attempt = connection
+            .prepare(
+              `SELECT a.started_at, e.activity_id, a.exercise_id FROM attempts a JOIN exercises e USING(exercise_id) WHERE a.attempt_id = ?`,
+            )
+            .get(item.attemptId);
+          if (
+            !attempt ||
+            attempt["activity_id"] !== record.activityId ||
+            attempt["started_at"] !== replay["started_at"] ||
+            attempt["exercise_id"] !== item.snapshot.exercise.exerciseId
+          )
+            throw new Error("OD_IDEMPOTENCY_CONFLICT");
+        }
+        return {
+          startedAt: utcInstantSchema.parse(replay["started_at"]),
+          attemptIds: record.exercises.map((item) => item.attemptId),
+        };
+      }
+      const active = connection
+        .prepare(
+          `SELECT a.attempt_id, a.started_at FROM attempts a JOIN exercises e USING(exercise_id) WHERE e.activity_id = ? AND a.status = 'in-progress'`,
+        )
+        .all(record.activityId);
+      const activeIds = active.map((item) => String(item["attempt_id"])).sort();
+      if (JSON.stringify(activeIds) !== JSON.stringify([...record.replaces].sort()))
+        throw new Error("OD_EXERCISE_ATTEMPT_SET_ACTIVE");
+      // End the explicitly replaced set and create its successor in the same transaction.
+      for (const attempt of active)
+        connection
+          .prepare(
+            `UPDATE attempts SET status = 'abandoned', terminal_after_previous_event_ms = ? WHERE attempt_id = ?`,
+          )
+          .run(
+            Math.max(0, Date.parse(record.startedAt) - Date.parse(String(attempt["started_at"]))),
+            String(attempt["attempt_id"]),
+          );
+      connection
+        .prepare(
+          "UPDATE prepared_activities SET status = 'prepared', completed_at = NULL WHERE activity_id = ?",
+        )
+        .run(record.activityId);
       const context = parseScopedActivityContext(connection, parseJson(row["context_json"]));
       const provenance = aiProvenanceSchema.parse({
         source: "ai",
@@ -2858,11 +3075,15 @@ export class CallNinaRepository {
           );
         connection
           .prepare(
-            "INSERT INTO attempt_content_revisions(attempt_id, content_revision_id) VALUES (?, ?)",
+            "INSERT INTO attempt_content_revisions(attempt_id, activity_id, content_revision_id) VALUES (?, ?, ?)",
           )
-          .run(started.attemptId, content.revisionId);
+          .run(started.attemptId, record.activityId, content.revisionId);
         captureExerciseAttempt(connection, started.attemptId);
       }
+      return {
+        startedAt: record.startedAt,
+        attemptIds: record.exercises.map((item) => item.attemptId),
+      };
     });
   }
 
@@ -2882,14 +3103,11 @@ export class CallNinaRepository {
       const snapshot = startedExerciseSnapshotSchema.parse(
         parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
       );
-      const evaluation = evaluateExerciseAnswer(
+      evaluateExerciseAnswer(
         snapshot.exercise,
         record.answer,
         requireLocalLearningScope(connection).targetLanguage,
       );
-      if (evaluation.status !== "requires-ai") {
-        throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
-      }
       const elapsed = Math.max(
         0,
         Date.parse(record.submittedAt) - Date.parse(utcInstantSchema.parse(row["started_at"])),
@@ -3040,7 +3258,15 @@ export class CallNinaRepository {
           item.answer,
           requireLocalLearningScope(connection).targetLanguage,
         );
-        if (evaluation.status === "requires-ai" && item.aiFeedback === undefined) {
+        const feedbackRow = connection
+          .prepare("SELECT feedback_json FROM exercise_attempt_feedback WHERE attempt_id = ?")
+          .get(item.attemptId);
+        const retainedFeedback = feedbackRow
+          ? storedExerciseFeedbackSchema.parse(
+              parseJson(feedbackRow["feedback_json"], maximumExerciseFeedbackBytes),
+            )
+          : undefined;
+        if (evaluation.status === "requires-ai" && retainedFeedback === undefined) {
           throw new Error("OD_EXERCISE_AI_FEEDBACK_REQUIRED");
         }
         const elapsed = Math.max(
@@ -3069,7 +3295,7 @@ export class CallNinaRepository {
         let objectiveEvaluations;
         let feedback;
         if (evaluation.status === "requires-ai") {
-          const ai = item.aiFeedback;
+          const ai = retainedFeedback;
           if (
             !ai ||
             ai.output.objectiveEvaluations.length !== snapshot.exercise.objectives.length
@@ -3149,7 +3375,7 @@ export class CallNinaRepository {
           feedback,
           suggestedAnswer:
             evaluation.status === "requires-ai"
-              ? (item.aiFeedback?.output.suggestedAnswer ?? null)
+              ? (retainedFeedback?.output.suggestedAnswer ?? null)
               : null,
         });
         const skill =
@@ -3182,7 +3408,7 @@ export class CallNinaRepository {
           const teaching = activityContext.courseTeaching;
           const repeatedAttempt = !!connection
             .prepare(
-              `SELECT 1 FROM attempts a JOIN exercises e ON e.exercise_id = a.exercise_id WHERE e.activity_id = ? AND a.started_at < ? LIMIT 1`,
+              `SELECT 1 FROM attempts a JOIN exercises e ON e.exercise_id = a.exercise_id JOIN activity_content_revisions c ON c.activity_id = e.activity_id WHERE c.revision_id = (SELECT revision_id FROM activity_content_revisions WHERE activity_id = ?) AND a.started_at < ? LIMIT 1`,
             )
             .get(record.activityId, snapshot.startedAt);
           const assistance = connection
