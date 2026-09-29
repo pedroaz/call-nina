@@ -235,7 +235,6 @@ export function PracticePage({
               action: "open-activity",
               activityId,
               expectedGeneration: result.rootGeneration,
-              recordUse: true,
             });
             if (isCurrent()) {
               setPrepared(opened);
@@ -246,7 +245,6 @@ export function PracticePage({
               action: "open-activity",
               activityId,
               expectedGeneration: result.rootGeneration,
-              recordUse: true,
             });
             if (isCurrent()) setPrepared(opened);
           }
@@ -260,6 +258,23 @@ export function PracticePage({
       window.clearTimeout(timer);
     };
   }, [activityId]);
+  useEffect(() => {
+    if (!activityId || prepared?.activity.activityId !== activityId) return;
+    // This effect runs after the resolved activity has committed to the view.
+    // Loading and reuse probes must never advance Continue's last-used marker.
+    let current = true;
+    void invokeDesktop("activity/resolve", {
+      action: "open-activity",
+      activityId,
+      expectedGeneration: prepared.rootGeneration,
+      recordUse: true,
+    }).catch((cause: unknown) => {
+      if (current) setError(normalizeDesktopError(cause).detail);
+    });
+    return () => {
+      current = false;
+    };
+  }, [activityId, prepared]);
   const exercises = useMemo(
     () =>
       generated
