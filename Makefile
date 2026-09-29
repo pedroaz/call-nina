@@ -46,11 +46,15 @@ preview-website: ## Preview the built website locally in the foreground (Ctrl-C 
 	@pnpm --filter @call-nina/website run preview $(ARGS)
 
 .PHONY: dev-mobile dev-mobile-android dev-mobile-ios build-mobile config-mobile run-mobile-android run-mobile-ios
+# Expo's localhost URL uses 127.0.0.1 through adb reverse. Prefer IPv4 for that
+# route so Node does not bind Metro only to ::1 on IPv6-first hosts.
+mobile-localhost-node-options = $(if $(or $(findstring --localhost,$(ARGS)),$(findstring --host localhost,$(ARGS))),NODE_OPTIONS="$${NODE_OPTIONS:+$$NODE_OPTIONS }--dns-result-order=ipv4first" ,)
+
 dev-mobile: ## Start Expo Go's foreground Metro server; scan its QR code on a native device.
-	@pnpm --filter @call-nina/mobile run dev $(ARGS)
+	@$(mobile-localhost-node-options)pnpm --filter @call-nina/mobile run dev $(ARGS)
 
 dev-mobile-android: ## Start Metro and open Expo Go on an available Android device/emulator.
-	@pnpm --filter @call-nina/mobile run dev --android $(ARGS)
+	@$(mobile-localhost-node-options)pnpm --filter @call-nina/mobile run dev --android $(ARGS)
 
 dev-mobile-ios: ## Start Metro and open Expo Go in the iOS Simulator (macOS only).
 	@pnpm --filter @call-nina/mobile run dev --ios $(ARGS)
