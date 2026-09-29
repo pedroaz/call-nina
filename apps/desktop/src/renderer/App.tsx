@@ -3,6 +3,8 @@ import type { PracticeLaunch } from "./usePracticeSuggestion.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   type DesktopIpcRequest,
+  type ProviderAccess,
+  type ProviderOperation,
   type DesktopIpcResponse,
   type CallNinaError,
 } from "@call-nina/contracts";
@@ -173,6 +175,8 @@ function DesktopWorkspace({
     [],
   );
   const [accountSignedOut, setAccountSignedOut] = useState(false);
+  const [providerUnavailable, setProviderUnavailable] =
+    useState<Extract<ProviderAccess, { status: "unavailable" }>>();
   const [operationError, setOperationError] = useState<CallNinaError>();
   const [resetNotice, setResetNotice] = useState(false);
   useEffect(() => {
@@ -216,7 +220,7 @@ function DesktopWorkspace({
     const refreshAccount = () => {
       void invokeDesktop("codex/account/read", {})
         .then((state) => {
-          if (!disposed) setAccountSignedOut(state.status === "signed-out");
+          if (!disposed) setAccountSignedOut(state.status !== "signed-in");
         })
         .catch((cause: unknown) => {
           if (!disposed) setOperationError(normalizeDesktopError(cause).detail);
@@ -224,7 +228,10 @@ function DesktopWorkspace({
     };
     refreshAccount();
     const unsubscribe = subscribeDesktop((event) => {
-      if (event.event === "state-invalidated" && event.scope === "account") refreshAccount();
+      if (event.event === "state-invalidated" && event.scope === "account") {
+        setProviderUnavailable(undefined);
+        refreshAccount();
+      }
     });
     return () => {
       disposed = true;
@@ -258,9 +265,22 @@ function DesktopWorkspace({
     };
   }, [reload, writingDirty]);
 
-  const openAi = async () => {
+  const openAi = async (
+    operation: ProviderOperation,
+    previousOperationId?: DesktopIpcRequest["requestId"],
+  ) => {
     setOperationError(undefined);
+    setProviderUnavailable(undefined);
     try {
+      const access = await invokeDesktop("provider/access/read", {
+        routeId: "codex",
+        operation,
+        ...(previousOperationId ? { previousOperationId } : {}),
+      });
+      if (access.status === "unavailable") {
+        setProviderUnavailable(access);
+        return false;
+      }
       const privacy = await invokeDesktop("privacy/ai-disclosure/read", {});
       if (!privacy.acknowledged) {
         if (disclosure.current.length > 0) return false;
@@ -333,6 +353,29 @@ function DesktopWorkspace({
               </Feedback>
             )}
             {operationError && <OperationError error={operationError} />}
+            {providerUnavailable && (
+              <Feedback live="assertive" tone="warning">
+                <p>{t(`providerAccess.reasons.${providerUnavailable.reason}`)}</p>
+                <p>{t("providerAccess.localAvailable")}</p>
+                <ActionGroup>
+                  <Button
+                    onPress={() => {
+                      navigate("settings");
+                    }}
+                  >
+                    {t("nav.settings")}
+                  </Button>
+                  <Button
+                    variant="quiet"
+                    onPress={() => {
+                      setProviderUnavailable(undefined);
+                    }}
+                  >
+                    {t("providerAccess.dismiss")}
+                  </Button>
+                </ActionGroup>
+              </Feedback>
+            )}
             {accountSignedOut && readiness.codex.status === "available" && (
               <Feedback live="polite">
                 <UserRound aria-hidden="true" /> {t("codex.signedOut")}

@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import type {
+  ProviderOperation,
   ActivityId,
   CourseActivity,
   CourseReference,
@@ -8,6 +7,8 @@ import type {
   DesktopIpcRequest,
   CallNinaError,
 } from "@call-nina/contracts";
+import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   courseActivityStatus,
   courseLanguageProgress,
@@ -43,7 +44,7 @@ export function LearningPathPage({
   requestAiAccess,
   onOpenHistory,
 }: {
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenHistory: (
     ids?: NonNullable<
       Extract<DesktopIpcRequest, { channel: "history/read" }>["payload"]["historyEntryIds"]
@@ -134,7 +135,7 @@ export function LearningPathPage({
         });
         setActivityId(result.activityId);
       } else {
-        if (!(await requestAiAccess())) return;
+        if (!(await requestAiAccess("exercise-generation"))) return;
         setActivityId(
           await generatePracticeActivity(
             {

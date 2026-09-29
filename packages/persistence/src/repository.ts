@@ -481,12 +481,14 @@ function writeModelPreferences(
   preferences: ModelPreferences,
   updatedAt: string,
 ) {
-  connection.prepare(`DELETE FROM model_preference_overrides WHERE learner_id = ?`).run(learnerId);
+  connection
+    .prepare(`DELETE FROM model_preference_overrides WHERE learner_id = ? AND route_id = ?`)
+    .run(learnerId, preferences.routeId);
   const insert = connection.prepare(
     `INSERT INTO model_preference_overrides (
-      learner_id, workload, model_mode, model_id, effort_mode,
+      learner_id, route_id, workload, model_mode, model_id, effort_mode,
       semantic_effort, effort_id, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const workload of modelWorkloads) {
     const preference = preferences[workload];
@@ -494,6 +496,7 @@ function writeModelPreferences(
     const columns = modelPreferenceColumns(preference);
     insert.run(
       learnerId,
+      preferences.routeId,
       workload,
       columns.modelMode,
       columns.modelId,
@@ -579,7 +582,7 @@ function readLearnerSettingsFromConnection(
 
   const preferenceRows = connection
     .prepare(
-      `SELECT d.workload,
+      `SELECT d.route_id, d.workload,
         COALESCE(o.model_mode, d.model_mode) AS model_mode,
         COALESCE(o.model_id, d.model_id) AS model_id,
         COALESCE(o.effort_mode, d.effort_mode) AS effort_mode,
@@ -587,7 +590,8 @@ function readLearnerSettingsFromConnection(
         COALESCE(o.effort_id, d.effort_id) AS effort_id
        FROM model_preference_defaults d
        LEFT JOIN model_preference_overrides o
-         ON o.workload = d.workload AND o.learner_id = ?
+         ON o.workload = d.workload AND o.route_id = d.route_id AND o.learner_id = ?
+       WHERE d.route_id = 'codex'
        ORDER BY d.workload`,
     )
     .all(learnerId);
@@ -606,6 +610,7 @@ function readLearnerSettingsFromConnection(
   ]);
   const modelPreferences = modelPreferencesSchema.parse({
     schemaVersion: 1,
+    routeId: preferenceRows[0]?.["route_id"],
     ...Object.fromEntries(preferenceEntries),
   });
   const scope = requireLocalLearningScope(connection);

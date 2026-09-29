@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
 import {
+  type ProviderOperation,
   errorDefinitions,
   callNinaErrorSchema,
   type ActivityId,
   type CallNinaError,
   type PracticeSuggestion,
 } from "@call-nina/contracts";
+import { useEffect, useRef, useState } from "react";
 import {
   createDesktopSubmissionId,
   DesktopOperationError,
@@ -22,7 +23,7 @@ export type PracticeLaunch =
   | { destination: "preparation"; kind: "listening" | "speaking"; prompt: string };
 
 export type SuggestionActions = {
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onLaunch: (intent: PracticeLaunch) => void;
 };
 
@@ -74,7 +75,7 @@ export function usePracticeSuggestion({ requestAiAccess, onLaunch }: SuggestionA
           prompt: suggestion.naturalRequest,
         });
       } else {
-        if (!(await requestAiAccess()) || !isMounted()) return;
+        if (!(await requestAiAccess("exercise-generation")) || !isMounted()) return;
         const activityId = await generatePracticeActivity(
           { source: "suggestion", suggestion },
           operation.run,

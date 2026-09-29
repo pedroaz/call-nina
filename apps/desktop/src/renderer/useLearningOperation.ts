@@ -92,7 +92,7 @@ export function runLearningOperation(
       reject(operationError("ai-timeout", operationId ?? submissionId));
     }, generationDeadlineMilliseconds[input.kind] + 30_000);
     signal.addEventListener("abort", abort, { once: true });
-    void invokeDesktop("learning-operation/start", { submissionId, input })
+    void invokeDesktop("learning-operation/start", { routeId: "codex", submissionId, input })
       .then((accepted) => {
         operationId = accepted.operationId;
         // Cancellation can arrive before the start acknowledgement.

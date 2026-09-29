@@ -120,9 +120,17 @@ export function SettingsPage({
       invokeDesktop("codex/models/read", {}),
       invokeDesktop("codex/rate-limits/read", {}),
     ]);
-    if (accountResult.status === "fulfilled") setAccount(accountResult.value);
-    if (catalogResult.status === "fulfilled") setCatalog(catalogResult.value);
-    if (limitsResult.status === "fulfilled") setLimits(limitsResult.value);
+    setAccount(
+      accountResult.status === "fulfilled"
+        ? accountResult.value
+        : { status: "unavailable", reason: "runtime-not-ready" },
+    );
+    setCatalog(catalogResult.status === "fulfilled" ? catalogResult.value : undefined);
+    setLimits(
+      limitsResult.status === "fulfilled"
+        ? limitsResult.value
+        : { status: "unavailable", reason: "runtime-not-ready" },
+    );
     const failure = [accountResult, catalogResult, limitsResult].find(
       (result) => result.status === "rejected",
     );
@@ -132,25 +140,20 @@ export function SettingsPage({
   const load = useCallback(async () => {
     setLoading(true);
     setError(undefined);
-    const [accountResult, catalogResult, limitsResult, settingsResult] = await Promise.allSettled([
-      invokeDesktop("codex/account/read", {}),
-      invokeDesktop("codex/models/read", {}),
-      invokeDesktop("codex/rate-limits/read", {}),
-      adapter.available() ? adapter.read() : Promise.resolve(undefined),
-    ]);
-    if (accountResult.status === "fulfilled") setAccount(accountResult.value);
-    if (catalogResult.status === "fulfilled") setCatalog(catalogResult.value);
-    if (limitsResult.status === "fulfilled") setLimits(limitsResult.value);
-    if (settingsResult.status === "fulfilled" && settingsResult.value) {
-      setPersisted(settingsResult.value);
-      setDraft(settingsResult.value.settings);
+    try {
+      const settings = adapter.available() ? await adapter.read() : undefined;
+      if (settings) {
+        setPersisted(settings);
+        setDraft(settings.settings);
+      }
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+    } finally {
+      setLoading(false);
     }
-    const failure = [accountResult, catalogResult, limitsResult, settingsResult].find(
-      (result) => result.status === "rejected",
-    );
-    if (failure?.status === "rejected") setError(normalizeDesktopError(failure.reason).detail);
-    setLoading(false);
-  }, [adapter]);
+    // Provider failures cannot prevent local settings from loading.
+    void refreshRuntime();
+  }, [adapter, refreshRuntime]);
 
   useEffect(() => {
     const initialLoad = window.setTimeout(() => void load(), 0);
@@ -478,6 +481,8 @@ export function SettingsPage({
               <>
                 <Card as="section" aria-labelledby="settings-models-title">
                   <h2 id="settings-models-title">{t("settings.modelsTitle")}</h2>
+                  <p>{t("providerAccess.selectedRoute")}</p>
+                  <p>{t("providerAccess.preferences")}</p>
                   {!draft ? (
                     <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
                   ) : (
@@ -621,6 +626,8 @@ export function SettingsPage({
               <>
                 <Card as="section" aria-labelledby="settings-account-title">
                   <h2 id="settings-account-title">{t("settings.accountTitle")}</h2>
+                  <p>{t("providerAccess.identityBoundary")}</p>
+                  <p>{t("providerAccess.localAvailable")}</p>
                   <p>
                     {account ? t(`settings.account.${account.status}`) : t("settings.notReported")}
                   </p>
@@ -635,7 +642,7 @@ export function SettingsPage({
                     ) : (
                       <Button
                         variant="primary"
-                        isDisabled={busy || readiness.codex.status !== "available"}
+                        isDisabled={busy || integration.status !== "available"}
                         onPress={() => void login()}
                       >
                         <UserRound aria-hidden="true" />

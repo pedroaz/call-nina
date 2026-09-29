@@ -1,12 +1,13 @@
-import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
+  type ProviderOperation,
   voiceActivityContextSchema,
   voiceActivityDraftCandidateSchema,
   type ActivityId,
   type VoiceActivityContext,
   type CallNinaError,
 } from "@call-nina/contracts";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Card, Disclosure, Feedback, FieldGroup, InfoHint } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { OperationProgress } from "./OperationProgress.js";
@@ -33,7 +34,7 @@ export function CodexActivityPreparation({
   initialScenario?: string;
   targetLevel: VoiceActivityContext["targetLevel"];
   onBusyChange: (busy: boolean) => void;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenActivity: (id: ActivityId) => void;
 }) {
   const { t } = useTranslation();
@@ -82,7 +83,7 @@ export function CodexActivityPreparation({
   const valid = voiceActivityContextSchema.safeParse(context).success;
 
   const generateDraft = async () => {
-    if (!request.trim() || !(await requestAiAccess())) return;
+    if (!request.trim() || !(await requestAiAccess("voice-activity-draft"))) return;
     onBusyChange(true);
     setError(undefined);
     try {

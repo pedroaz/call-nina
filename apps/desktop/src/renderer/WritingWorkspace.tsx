@@ -1,6 +1,10 @@
+import type {
+  ProviderOperation,
+  GenerationCandidateOutputMap,
+  CallNinaError,
+} from "@call-nina/contracts";
 import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
-import type { GenerationCandidateOutputMap, CallNinaError } from "@call-nina/contracts";
 import {
   writingCorrectionCandidateSchema,
   writingPromptCandidateSchema,
@@ -46,7 +50,10 @@ export function WritingWorkspace({
   onHelperSelection,
 }: {
   onDirtyChange: (dirty: boolean) => void;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (
+    operation: ProviderOperation,
+    previousOperationId?: CorrelationId,
+  ) => Promise<boolean>;
   initialContext?: string;
   initialDraft?: string;
   onHelperSelection: (selection: Omit<ContextualHelperSelection, "sessionId"> | undefined) => void;
@@ -171,13 +178,14 @@ export function WritingWorkspace({
 
   const generatePrompt = async () => {
     setPromptError(undefined);
-    if (!(await requestAiAccess())) return;
+    if (!(await requestAiAccess("writing-prompt"))) return;
     const nextSubmissionId = createDesktopSubmissionId();
     submissionId.current = nextSubmissionId;
     promptProgress.begin(nextSubmissionId, "writing-prompt");
     setPromptStage("queued");
     try {
       const result = await invokeDesktop("learning-operation/start", {
+        routeId: "codex",
         submissionId: nextSubmissionId,
         input: {
           kind: "writing-prompt",
@@ -209,7 +217,7 @@ export function WritingWorkspace({
   };
 
   const startCorrection = async () => {
-    if (!draft.trim() || !(await requestAiAccess())) return;
+    if (!draft.trim() || !(await requestAiAccess("writing-correction"))) return;
     const nextSubmissionId = createDesktopSubmissionId();
     correctionSubmissionId.current = nextSubmissionId;
     correctionProgress.begin(nextSubmissionId, "writing-correction");
@@ -221,6 +229,7 @@ export function WritingWorkspace({
     setCorrection(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
+        routeId: "codex",
         submissionId: nextSubmissionId,
         input: {
           kind: "writing-correction",
@@ -251,7 +260,11 @@ export function WritingWorkspace({
   };
 
   const retryCorrection = async () => {
-    if (!previousCorrectionOperationId || !(await requestAiAccess())) return;
+    if (
+      !previousCorrectionOperationId ||
+      !(await requestAiAccess("writing-correction", previousCorrectionOperationId))
+    )
+      return;
     const original = correctionSubmissionId.current
       ? correctionOriginals.current.get(correctionSubmissionId.current)
       : undefined;
@@ -266,6 +279,7 @@ export function WritingWorkspace({
     setCorrectionOutcome(undefined);
     try {
       const result = await invokeDesktop("learning-operation/retry", {
+        routeId: "codex",
         previousOperationId: previousCorrectionOperationId,
         submissionId: nextSubmissionId,
       });
