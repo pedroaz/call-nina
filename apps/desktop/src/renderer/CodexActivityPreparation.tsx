@@ -1,9 +1,9 @@
 import {
   type ProviderOperation,
-  type LearningScope,
   voiceActivityContextSchema,
   voiceActivityDraftCandidateSchema,
   type ActivityId,
+  type ModelRequestId,
   type VoiceActivityContext,
   type CallNinaError,
 } from "@call-nina/contracts";
@@ -50,7 +50,8 @@ export function CodexActivityPreparation({
   const [questions, setQuestions] = useState("");
   const [script, setScript] = useState("");
   const [guidance, setGuidance] = useState("");
-  const [learningScope, setLearningScope] = useState<LearningScope>();
+  const [draftModelRequestId, setDraftModelRequestId] = useState<ModelRequestId>();
+  const [draftTargetLevel, setDraftTargetLevel] = useState(targetLevel);
   const [hasDraft, setHasDraft] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<CallNinaError>();
@@ -59,7 +60,7 @@ export function CodexActivityPreparation({
     () => ({
       schemaVersion: 1 as const,
       kind,
-      targetLevel,
+      targetLevel: draftTargetLevel,
       scenario: scenario.trim(),
       difficulty,
       correctionTiming,
@@ -71,7 +72,7 @@ export function CodexActivityPreparation({
     }),
     [
       kind,
-      targetLevel,
+      draftTargetLevel,
       scenario,
       difficulty,
       correctionTiming,
@@ -101,7 +102,8 @@ export function CodexActivityPreparation({
       if (result.status !== "validated" || !result.learningScope)
         throw new Error("OD_LEARNING_CONTEXT_REQUIRED");
       const output = voiceActivityDraftCandidateSchema.parse(result.output);
-      setLearningScope(result.learningScope);
+      setDraftModelRequestId(result.modelRequestId);
+      setDraftTargetLevel(targetLevel);
       setScenario(output.scenario);
       setObjectives(output.objectives.join("\n"));
       setQuestions(output.questions.join("\n"));
@@ -115,13 +117,13 @@ export function CodexActivityPreparation({
     }
   };
   const prepare = async () => {
-    if (!valid || !learningScope) return;
+    if (!valid || !draftModelRequestId) return;
     onBusyChange(true);
     setPreparing(true);
     setError(undefined);
     try {
       const result = await invokeDesktop("codex-activity/prepare", {
-        learningScope,
+        draftModelRequestId,
         title: scenario.trim().slice(0, 160),
         context: voiceActivityContextSchema.parse(context),
       });

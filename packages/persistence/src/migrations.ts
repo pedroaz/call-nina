@@ -1771,6 +1771,27 @@ export const callNinaMigrations = [
     CREATE TRIGGER saved_supporting_translation_immutable BEFORE UPDATE ON saved_supporting_translations
       BEGIN SELECT RAISE(ABORT, 'OD_TRANSLATION_IMMUTABLE'); END;`,
   },
+  {
+    version: 34,
+    name: "captured-exercise-context",
+    // No inferred backfill: existing originals and attempts remain unchanged.
+    sql: `CREATE TABLE captured_exercise_contexts (
+      activity_id TEXT NOT NULL,
+      content_revision_id TEXT NOT NULL,
+      context_json TEXT NOT NULL CHECK(json_valid(context_json)),
+      PRIMARY KEY(activity_id, content_revision_id),
+      FOREIGN KEY(activity_id, content_revision_id) REFERENCES activity_content_revisions(activity_id, revision_id) ON DELETE CASCADE
+    ) STRICT;
+    CREATE TRIGGER captured_exercise_context_immutable BEFORE UPDATE ON captured_exercise_contexts
+      BEGIN SELECT RAISE(ABORT, 'OD_EXERCISE_CONTEXT_IMMUTABLE'); END;
+    CREATE TABLE captured_activity_contexts (
+      activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+      activity_revision INTEGER NOT NULL CHECK(activity_revision = 1),
+      context_json TEXT NOT NULL CHECK(json_valid(context_json))
+    ) STRICT;
+    CREATE TRIGGER captured_activity_context_immutable BEFORE UPDATE ON captured_activity_contexts
+      BEGIN SELECT RAISE(ABORT, 'OD_ACTIVITY_CONTEXT_IMMUTABLE'); END;`,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

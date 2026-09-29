@@ -1025,6 +1025,7 @@
     "finishBeforeSwitch": "Termina esta actividad o sal de ella antes de cambiar el idioma de aprendizaje."
   },
   "errors": {
+    "exerciseContextMissing": "Esta actividad no guardó sus ajustes de aprendizaje originales. Crea una práctica nueva para recibir nuevos comentarios o ayuda de la IA. Tu actividad, respuestas y comentarios guardados no cambian.",
     "boundaryTitle": "No se pudo mostrar esta vista",
     "boundaryBody": "Se produjo un error inesperado en esta vista. Intenta abrirla de nuevo. Tal vez tengas que volver a escribir lo que no se haya guardado.",
     "validation": "Algunos datos son inválidos o están incompletos. Revisa los campos obligatorios e inténtalo de nuevo.",

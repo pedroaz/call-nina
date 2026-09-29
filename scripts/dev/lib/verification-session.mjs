@@ -1,7 +1,11 @@
 import { _electron as electron } from "playwright";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { recordVerificationApp, writePrivateJson } from "./verification-client.mjs";
+import {
+  recordVerificationApp,
+  writePrivateJson,
+  journalFingerprint,
+} from "./verification-client.mjs";
 
 export const root = path.resolve(import.meta.dirname, "../../..");
 export const runtimeRoot = path.join(root, ".runtime");
@@ -211,6 +215,31 @@ export class VerificationSession {
         "VERIFY_LANGUAGE_SWITCH_FAILED",
       );
     }
+  }
+  async languageSelectionOwnership(target, selectedLanguage) {
+    if (!Object.hasOwn(locales, selectedLanguage)) return undefined;
+    const name = await this.t("onboarding.targetLanguage");
+    const profile = this.page.getByRole("tabpanel").getByRole("combobox", { name, exact: true });
+    const navigation = this.page
+      .getByRole("navigation")
+      .getByRole("combobox", { name, exact: true });
+    const kind =
+      (await target.and(profile).count()) === 1
+        ? "profile-language"
+        : (await target.and(navigation).count()) === 1
+          ? "navigation-language"
+          : undefined;
+    if (!kind) return undefined;
+    const rootGeneration = await this.page
+      .locator("[data-learning-root]")
+      .getAttribute("data-learning-root");
+    if (
+      !Object.hasOwn(locales, this.journal.initialTarget) ||
+      !/^[1-9][0-9]*$/.test(rootGeneration ?? "") ||
+      rootGeneration !== this.journal.initialRoot
+    )
+      throw failure("VERIFY_SETTINGS_BASELINE_REQUIRED");
+    return { kind, selectedLanguage, rootGeneration, initialTarget: this.journal.initialTarget };
   }
   async scopeOf(element) {
     const language = await element.getAttribute("data-learning-language");
@@ -546,6 +575,59 @@ export class VerificationSession {
     this.baseline = undefined;
     await this.persist();
   }
+  async cleanupActivityHistory(record) {
+    // Each row must prove exact exercise/activity ownership; never delete by title or position.
+    for (let count = 0; count < 200; count++) {
+      await this.navigate(await this.t("nav.nina"));
+      await this.navigate(await this.t("nav.history"));
+      const history = this.page.locator('[data-history-ready="true"]');
+      await history.waitFor();
+      if ((await history.getAttribute("data-root-generation")) !== record.rootGeneration)
+        throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
+      const candidate = history.locator(`[data-history-activity-id="${record.id}"]`).first();
+      if (!(await candidate.count())) return;
+      const historyEntryId = await candidate.getAttribute("data-history-entry-id");
+      if (!/^history-entry_[0-9a-z]{16,64}$/.test(historyEntryId ?? ""))
+        throw failure("VERIFY_HISTORY_OWNERSHIP_UNPROVEN");
+      const entry = this.page.locator(`[data-history-entry-id="${historyEntryId}"]`);
+      await this.assertScope(entry, record);
+      await entry.locator("summary").first().click();
+      await (await this.button("history.delete", entry)).click();
+      await (await this.button("actions.delete", this.page.getByRole("dialog"))).click();
+      await entry.waitFor({ state: "detached" });
+      this.journal.receipts ??= [];
+      this.journal.receipts.push({
+        code: "OWNED_ACTIVITY_HISTORY_REMOVED",
+        at: new Date().toISOString(),
+        activityId: record.id,
+        historyEntryId,
+        language: record.language,
+        rootGeneration: record.rootGeneration,
+      });
+      await this.persist();
+    }
+    throw failure("VERIFY_HISTORY_CLEANUP_LIMIT");
+  }
+  recordCleanupReadback(record) {
+    const fingerprints = [
+      { action: "cleanup", id: record.id },
+      { id: record.id, action: "cleanup" },
+    ].map((request) => journalFingerprint(JSON.stringify(request)));
+    this.journal.receipts ??= [];
+    this.journal.interruptedActions = (this.journal.interruptedActions ?? []).filter((entry) => {
+      if (entry.action !== "cleanup" || !fingerprints.includes(entry.requestFingerprint))
+        return true;
+      this.journal.receipts.push({
+        code: "INTERRUPTED_CLEANUP_RECONCILED",
+        at: new Date().toISOString(),
+        originalAction: entry,
+        dispatchOccurrence: "unknown",
+        resolution: "scoped-record-absence-readback",
+        record,
+      });
+      return false;
+    });
+  }
   async cleanupActivity(id) {
     const record = this.journal.records.find((record) => record.id === id);
     if (!record) throw failure("VERIFY_RECORD_NOT_OWNED");
@@ -569,10 +651,12 @@ export class VerificationSession {
       await this.assertScope(await this.materialLibrary(), record);
       if ((await this.activityIds("material")).includes(id))
         throw failure("VERIFY_RECORD_RETAINED");
+      this.recordCleanupReadback(record);
       this.journal.records = this.journal.records.filter((entry) => entry.id !== id);
       await this.persist();
       return;
     }
+    await this.cleanupActivityHistory(record);
     await this.assertScope(await this.library(record.kind), record);
     const open = this.page.locator(`[id="activity-open-${id}"]`);
     if (await open.count()) {
@@ -591,12 +675,80 @@ export class VerificationSession {
     }
     await this.assertScope(await this.library(record.kind), record);
     if ((await this.activityIds(record.kind)).includes(id)) throw failure("VERIFY_RECORD_RETAINED");
+    this.recordCleanupReadback(record);
     this.journal.records = this.journal.records.filter((record) => record.id !== id);
     await this.persist();
   }
-  async restore() {
+  async historicalLanguageSelection(proof) {
+    const invalid = () => failure("VERIFY_LANGUAGE_SELECTION_PROOF_INVALID");
+    if (
+      !proof ||
+      typeof proof !== "object" ||
+      Array.isArray(proof) ||
+      Object.keys(proof).sort().join(",") !==
+        "actionId,initialTarget,request,rootGeneration,sourceHead" ||
+      !/^[0-9a-f-]{36}$/.test(proof.actionId ?? "") ||
+      !/^[0-9a-f]{40}$/.test(proof.sourceHead ?? "") ||
+      !Object.hasOwn(locales, proof.initialTarget) ||
+      !/^[1-9][0-9]*$/.test(proof.rootGeneration ?? "") ||
+      proof.initialTarget !== this.journal.initialTarget ||
+      proof.rootGeneration !== this.journal.initialRoot
+    )
+      throw invalid();
+    const request = proof.request;
+    if (
+      !request ||
+      typeof request !== "object" ||
+      Array.isArray(request) ||
+      Object.keys(request).sort().join(",") !== "action,target,value" ||
+      request.action !== "select" ||
+      !Object.hasOwn(locales, request.value) ||
+      !request.target ||
+      typeof request.target !== "object" ||
+      Array.isArray(request.target) ||
+      Object.keys(request.target).sort().join(",") !== "name,role" ||
+      request.target.role !== "combobox" ||
+      typeof request.target.name !== "string"
+    )
+      throw invalid();
+    const labels = [];
+    for (const locale of Object.values(locales)) {
+      const catalog = JSON.parse(
+        await readFile(path.join(root, `apps/desktop/src/renderer/locales/${locale}.json`), "utf8"),
+      );
+      labels.push(catalog.onboarding.targetLanguage);
+    }
+    if (!labels.includes(request.target.name)) throw invalid();
+    const matches = (this.journal.interruptedActions ?? []).filter(
+      (entry) => entry.actionId === proof.actionId,
+    );
+    const entry = matches[0];
+    if (
+      matches.length !== 1 ||
+      entry.action !== "select" ||
+      entry.phase !== "dispatch-may-have-started" ||
+      entry.sourceHead !== proof.sourceHead ||
+      entry.requestFingerprint !== journalFingerprint(JSON.stringify(request))
+    )
+      throw invalid();
+    return {
+      actionId: entry.actionId,
+      selection: {
+        kind: "learning-language",
+        selectedLanguage: request.value,
+        rootGeneration: proof.rootGeneration,
+        initialTarget: proof.initialTarget,
+      },
+    };
+  }
+  async restore(languageSelectionProof) {
+    const historicalSelection =
+      languageSelectionProof === undefined
+        ? undefined
+        : await this.historicalLanguageSelection(languageSelectionProof);
     this.page = this.mainPage;
     const failures = [];
+    let restoredSelection;
     for (const record of [...this.journal.records].sort(
       (a, b) => Number(a.kind === "material") - Number(b.kind === "material"),
     )) {
@@ -634,13 +786,19 @@ export class VerificationSession {
         if (JSON.stringify(await this.profileValues()) !== JSON.stringify(preference))
           throw failure("VERIFY_SETTINGS_RESTORE_FAILED");
       }
-      if (this.journal.initialTarget) await this.selectLanguage(this.journal.initialTarget);
-      delete this.journal.learningPreferences;
-      delete this.journal.initialTarget;
-      delete this.journal.initialRoot;
-      this.journal.notes = this.journal.notes.filter(
-        (note) => note !== "LEARNING_SETTINGS_RESTORE_REQUIRED",
-      );
+      if (this.journal.initialTarget) {
+        await this.selectLanguage(this.journal.initialTarget);
+        const observed = await this.profileValues();
+        if (
+          observed.language !== this.journal.initialTarget ||
+          observed.rootGeneration !== this.journal.initialRoot
+        )
+          throw failure("VERIFY_SETTINGS_RESTORE_FAILED");
+        restoredSelection = {
+          language: observed.language,
+          rootGeneration: observed.rootGeneration,
+        };
+      }
       if (Object.keys(this.journal.preferences).length) {
         await this.settings();
         for (const [workload, preference] of Object.entries(this.journal.preferences)) {
@@ -682,20 +840,71 @@ export class VerificationSession {
           "VERIFY_LOCALE_RESTORE_FAILED",
         );
       }
+      delete this.journal.learningPreferences;
+      this.journal.notes = this.journal.notes.filter(
+        (note) => note !== "LEARNING_SETTINGS_RESTORE_REQUIRED",
+      );
     } catch {
       failures.push("VERIFY_SETTINGS_RESTORE_FAILED");
       if (!this.journal.notes.includes("SETTINGS_RESTORE_REQUIRED"))
         this.journal.notes.push("SETTINGS_RESTORE_REQUIRED");
     }
-    if (!failures.includes("VERIFY_SETTINGS_RESTORE_FAILED"))
+    if (!failures.includes("VERIFY_SETTINGS_RESTORE_FAILED")) {
       this.journal.notes = this.journal.notes.filter(
         (note) => note !== "SETTINGS_RESTORE_REQUIRED",
       );
+      this.journal.interruptedActions = (this.journal.interruptedActions ?? []).filter((entry) => {
+        const historical =
+          historicalSelection !== undefined && historicalSelection.actionId === entry.actionId;
+        const selection = historical
+          ? historicalSelection.selection
+          : entry.learningLanguageSelection;
+        if (
+          entry.action !== "select" ||
+          !selection ||
+          !(historical
+            ? selection.kind === "learning-language"
+            : ["profile-language", "navigation-language"].includes(selection.kind)) ||
+          !Object.hasOwn(locales, selection.selectedLanguage) ||
+          !restoredSelection ||
+          selection.initialTarget !== restoredSelection.language ||
+          selection.rootGeneration !== restoredSelection.rootGeneration ||
+          !/^[a-f0-9]{64}$/.test(entry.requestFingerprint ?? "")
+        )
+          return true;
+        this.journal.receipts ??= [];
+        this.journal.receipts.push({
+          code: "INTERRUPTED_LANGUAGE_SELECTION_RECONCILED",
+          at: new Date().toISOString(),
+          originalAction: entry,
+          selectionOwnership: selection,
+          proof: historical ? "exact-request-fingerprint" : "pre-dispatch-target-ownership",
+          dispatchOccurrence: "unknown",
+          resolution: "initial-language-and-settings-ui-readback",
+          readback: restoredSelection,
+        });
+        return false;
+      });
+      // Preserve the original selection baseline while any unproven select remains.
+      if (!this.journal.interruptedActions.some((entry) => entry.action === "select")) {
+        delete this.journal.initialTarget;
+        delete this.journal.initialRoot;
+      }
+    }
     if (!failures.length) {
       // These operations are reconciled by the successful UI readback above.
-      this.journal.interruptedActions = (this.journal.interruptedActions ?? []).filter(
-        (entry) => !["prepare-ai", "restore", "stop", "cleanup"].includes(entry.action),
-      );
+      this.journal.interruptedActions = (this.journal.interruptedActions ?? []).filter((entry) => {
+        if (!["prepare-ai", "restore", "stop"].includes(entry.action)) return true;
+        this.journal.receipts ??= [];
+        this.journal.receipts.push({
+          code: "INTERRUPTED_RESTORATION_RECONCILED",
+          at: new Date().toISOString(),
+          originalAction: entry,
+          dispatchOccurrence: "unknown",
+          resolution: "settings-and-owned-records-readback",
+        });
+        return false;
+      });
       if (
         !this.journal.interruptedActions.length &&
         (!this.journal.pendingAction ||

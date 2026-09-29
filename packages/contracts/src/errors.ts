@@ -2,6 +2,10 @@ import { correlationIdSchema, runIdSchema, sessionIdSchema, utcInstantSchema } f
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 
 export const errorDefinitions = {
+  "exercise-context-missing": {
+    code: "OD_EXERCISE_CONTEXT_MISSING",
+    messageKey: "errors.exerciseContextMissing",
+  },
   validation: { code: "OD_VALIDATION_FAILED", messageKey: "errors.validation" },
   "not-found": { code: "OD_NOT_FOUND", messageKey: "errors.notFound" },
   conflict: { code: "OD_CONFLICT", messageKey: "errors.conflict" },
@@ -90,6 +94,8 @@ export type CallNinaError = z.infer<typeof callNinaErrorSchema>;
 
 export const safeErrorMessages = {
   en: {
+    "exercise-context-missing":
+      "This activity did not save its original teaching settings. Create fresh practice for new AI feedback or teaching. Your saved activity, answers and feedback are unchanged.",
     validation:
       "Some information is invalid or incomplete. Check the required fields and try again.",
     "not-found": "This item is no longer available. Reopen the list and select another item.",
@@ -124,6 +130,8 @@ export const safeErrorMessages = {
       "The selected model or reasoning setting is unavailable. Choose Automatic or another available option in the model selector, then retry.",
   },
   de: {
+    "exercise-context-missing":
+      "Für diese Aktivität wurden die ursprünglichen Lerneinstellungen nicht gespeichert. Erstelle eine neue Übung für neues KI-Feedback oder weitere KI-Begleitung. Deine gespeicherte Aktivität, Antworten und Rückmeldungen bleiben unverändert.",
     validation:
       "Einige Angaben sind ungültig oder unvollständig. Prüfe die Pflichtfelder und versuche es erneut.",
     "not-found":

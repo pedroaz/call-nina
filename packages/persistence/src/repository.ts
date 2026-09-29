@@ -1,5 +1,10 @@
 import { copySupportingTranslations } from "./translation.js";
 import {
+  saveCapturedExerciseContext,
+  readCapturedExerciseContext,
+  copyCapturedExerciseContext,
+} from "./exercise-context.js";
+import {
   captureExerciseAttempt,
   captureVocabularyReview,
   captureActivityAttempt,
@@ -59,6 +64,8 @@ import type { DatabaseSync } from "node:sqlite";
 
 import {
   ninaContinueSchema,
+  capturedTeachingContextSchema,
+  type CapturedTeachingContext,
   generationProvenanceSchema,
   reuseExerciseActionSchema,
   type ActivityAction,
@@ -335,6 +342,7 @@ export type MistakePatternRecord = Readonly<{
 }>;
 
 export const targetedPracticeActivitySchema = strictBoundaryObject({
+  capturedContext: capturedTeachingContextSchema,
   material: contentMaterialInputSchema,
   learnerGoal: learningGoalSchema,
   activity: preparedActivitySchema,
@@ -346,6 +354,7 @@ export const targetedPracticeActivitySchema = strictBoundaryObject({
 });
 export type TargetedPracticeActivity = z.infer<typeof targetedPracticeActivitySchema>;
 export const generatedPracticeActivitySchema = strictBoundaryObject({
+  capturedContext: capturedTeachingContextSchema,
   material: contentMaterialInputSchema,
   learnerGoal: learningGoalSchema,
   activity: preparedActivitySchema,
@@ -425,7 +434,7 @@ function readGeneratedExerciseAttempt(
       feedback.output.objectiveEvaluations.length !== snapshot.exercise.objectives.length)
   )
     throw new Error("OD_EXERCISE_AI_FEEDBACK_INVALID");
-  return { snapshot, answer, feedback };
+  return { snapshot, answer, feedback, content };
 }
 export const generatedExerciseSetStartSchema = strictBoundaryObject({
   activityId: activityIdSchema,
@@ -2303,6 +2312,8 @@ export class CallNinaRepository {
   async savePreparedActivity(
     activityValue: PreparedActivityRecord,
     idempotencyKey: string,
+    capture:
+      { source: "current-settings" } | { source: "captured"; context: CapturedTeachingContext },
   ): Promise<IdempotentWriteResult> {
     const activity = preparedActivitySchema.parse(activityValue);
     return withLeasedTransaction(this.#database, (connection) => {
@@ -2310,11 +2321,42 @@ export class CallNinaRepository {
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
-        request: { ...activity, preparedAt: null },
+        request: { ...activity, preparedAt: null, capture },
         entityId: activity.activityId,
         recordedAt: activity.preparedAt,
       });
       if (claim.replayed) return claim;
+      const settings =
+        capture.source === "current-settings"
+          ? readLearnerSettingsFromConnection(
+              connection,
+              activity.context.learningScope.learnerId,
+              activity.context.learningScope,
+            )
+          : undefined;
+      if (capture.source === "current-settings" && !settings)
+        throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
+      const capturedContext = capturedTeachingContextSchema.parse(
+        capture.source === "captured"
+          ? capture.context
+          : settings && {
+              learningContext: settings.learningContext,
+              calibration: {
+                explanationLanguage: settings.learningContext.explanationLanguage,
+                approximateLevel: { a1: "A1", a2: "A2", b1: "B1", b2: "B2" }[
+                  settings.profile.levelEstimate.currentLevel
+                ],
+                teachingProfile: settings.profile.defaultTeachingProfileId,
+              },
+            },
+      );
+      const scope = activity.context.learningScope;
+      if (
+        capturedContext.learningContext.learnerId !== scope.learnerId ||
+        capturedContext.learningContext.courseId !== scope.courseId ||
+        capturedContext.learningContext.targetLanguage !== scope.targetLanguage
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
       connection
         .prepare(
           `INSERT INTO prepared_activities (target_language,
@@ -2332,6 +2374,12 @@ export class CallNinaRepository {
           activity.preparedAt,
           this.#database.rootGeneration,
         );
+      connection
+        .prepare(
+          `INSERT INTO captured_activity_contexts(activity_id, activity_revision, context_json)
+         VALUES (?, 1, ?)`,
+        )
+        .run(activity.activityId, stringifyBounded(capturedContext));
       return claim;
     });
   }
@@ -2355,6 +2403,27 @@ export class CallNinaRepository {
         context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
         preparedAt: row["prepared_at"],
       });
+    });
+  }
+
+  async readPreparedActivityContext(activityIdValue: string): Promise<CapturedTeachingContext> {
+    const activityId = activityIdSchema.parse(activityIdValue);
+    return withLeasedConnection(this.#database, (connection) => {
+      const scope = activityLearningScope(connection, activityId);
+      const row = connection
+        .prepare(
+          "SELECT context_json FROM captured_activity_contexts WHERE activity_id = ? AND activity_revision = 1",
+        )
+        .get(activityId);
+      if (!row) throw new Error("OD_EXERCISE_CONTEXT_MISSING");
+      const captured = capturedTeachingContextSchema.parse(parseJson(row["context_json"]));
+      if (
+        captured.learningContext.learnerId !== scope.learnerId ||
+        captured.learningContext.courseId !== scope.courseId ||
+        captured.learningContext.targetLanguage !== scope.targetLanguage
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      return captured;
     });
   }
 
@@ -2736,6 +2805,12 @@ export class CallNinaRepository {
         content,
         "revisionId" in record.material ? "reused-or-historic" : "inline-created",
       );
+      saveCapturedExerciseContext(
+        connection,
+        record.activity.activityId,
+        content,
+        record.capturedContext,
+      );
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
          VALUES (?, ?, ?)`,
@@ -2822,6 +2897,12 @@ export class CallNinaRepository {
         record.activity.activityId,
         content,
         "revisionId" in record.material ? "reused-or-historic" : "inline-created",
+      );
+      saveCapturedExerciseContext(
+        connection,
+        record.activity.activityId,
+        content,
+        record.capturedContext,
       );
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
@@ -2937,6 +3018,7 @@ export class CallNinaRepository {
         )
         .run(activityId, source.activityId);
       linkPortableContent(connection, activityId, content, "reused-or-historic");
+      copyCapturedExerciseContext(connection, source.activityId, activityId, content);
       copySupportingTranslations(connection, source.activityId, activityId, content);
       connection
         .prepare(
@@ -2981,6 +3063,28 @@ export class CallNinaRepository {
       connection
         .prepare("INSERT INTO exercise_attempt_feedback(attempt_id, feedback_json) VALUES (?, ?)")
         .run(attemptId, stringifyBounded(feedback, maximumExerciseFeedbackBytes));
+    });
+  }
+
+  async readGeneratedExerciseContext(activityIdValue: string, attemptIdValue?: string) {
+    const activityId = activityIdSchema.parse(activityIdValue);
+    const attemptId =
+      attemptIdValue === undefined ? undefined : attemptIdSchema.parse(attemptIdValue);
+    return withLeasedConnection(this.#database, (connection) => {
+      if (attemptId) {
+        const { content } = readGeneratedExerciseAttempt(connection, activityId, attemptId);
+        return readCapturedExerciseContext(connection, activityId, content);
+      }
+      const row = connection
+        .prepare("SELECT output_json FROM generated_activity_payloads WHERE activity_id = ?")
+        .get(activityId);
+      if (!row) throw new Error("OD_EXERCISE_CONTEXT_MISSING");
+      const content = readStoredExerciseContent(
+        connection,
+        activityId,
+        parseJson(row["output_json"], maximumExerciseContentBytes),
+      );
+      return readCapturedExerciseContext(connection, activityId, content);
     });
   }
 

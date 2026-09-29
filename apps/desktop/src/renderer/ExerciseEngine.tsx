@@ -1,4 +1,5 @@
 import { SavedTranslation, type SavedTranslationContext } from "./SavedTranslation.js";
+import { normalizeDesktopError } from "./ipc.js";
 import type {
   AttemptId,
   Language,
@@ -386,7 +387,9 @@ export function ExerciseEngine({
   const [completionFailed, setCompletionFailed] = useState(false);
   const [answerInvalid, setAnswerInvalid] = useState(false);
   const [evaluatingWithAi, setEvaluatingWithAi] = useState(false);
-  const [aiEvaluationFailed, setAiEvaluationFailed] = useState(false);
+  const [aiEvaluationFailed, setAiEvaluationFailed] = useState<
+    false | "failed" | "context-missing"
+  >(false);
   const [savingAnswer, setSavingAnswer] = useState(false);
   const [submittedByPosition, setSubmittedByPosition] = useState<Readonly<Record<number, boolean>>>(
     initial.submitted,
@@ -568,7 +571,7 @@ export function ExerciseEngine({
     }
     if (evaluation.status === "requires-ai") {
       if (!retainedFeedback && !onAiEvaluationRequested) {
-        setAiEvaluationFailed(true);
+        setAiEvaluationFailed("failed");
         return;
       }
       setEvaluatingWithAi(true);
@@ -582,8 +585,12 @@ export function ExerciseEngine({
         setAiFeedbackByPosition((current) => ({ ...current, [position]: feedback }));
         setCurrentAiFeedback(feedback);
         setCurrentEvaluation(evaluation);
-      } catch {
-        setAiEvaluationFailed(true);
+      } catch (cause) {
+        setAiEvaluationFailed(
+          normalizeDesktopError(cause).detail.kind === "exercise-context-missing"
+            ? "context-missing"
+            : "failed",
+        );
       } finally {
         setEvaluatingWithAi(false);
       }
@@ -775,7 +782,11 @@ export function ExerciseEngine({
         )}
         {aiEvaluationFailed && (
           <Feedback live="assertive" tone="error">
-            {t("exercises.aiFeedback.failed")}
+            {t(
+              aiEvaluationFailed === "context-missing"
+                ? "errors.exerciseContextMissing"
+                : "exercises.aiFeedback.failed",
+            )}
           </Feedback>
         )}
         {submittedByPosition[position] && !currentEvaluation && !aiEvaluationFailed && (

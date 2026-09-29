@@ -318,7 +318,7 @@ const placementCompleteRequest = request(
 const codexActivityPrepareRequest = request(
   "codex-activity/prepare",
   z.strictObject({
-    learningScope: learningScopeSchema,
+    draftModelRequestId: modelRequestIdSchema,
     title: text(160),
     context: voiceActivityContextSchema,
   }),

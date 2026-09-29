@@ -190,6 +190,8 @@ export {
   generationOutputSchemaIds,
   generationOutputSchemaIdSchema,
   generationInputSchema,
+  capturedTeachingContextSchema,
+  type CapturedTeachingContext,
   generationKindSchema,
   generationKinds,
   contextualHelpCandidateSchema,

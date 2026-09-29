@@ -1025,6 +1025,7 @@
     "finishBeforeSwitch": "Schließe die Aktivität ab oder verlasse sie, bevor du die Lernsprache wechselst."
   },
   "errors": {
+    "exerciseContextMissing": "Für diese Aktivität wurden die ursprünglichen Lerneinstellungen nicht gespeichert. Erstelle eine neue Übung für neues KI-Feedback oder weitere KI-Begleitung. Deine gespeicherte Aktivität, Antworten und Rückmeldungen bleiben unverändert.",
     "boundaryTitle": "Diese Ansicht konnte nicht angezeigt werden",
     "boundaryBody": "In dieser Ansicht ist ein unerwarteter Fehler aufgetreten. Öffne sie erneut. Nicht gespeicherte Eingaben musst du eventuell erneut eingeben.",
     "validation": "Einige Angaben sind ungültig oder unvollständig. Prüfe die Pflichtfelder und versuche es erneut.",

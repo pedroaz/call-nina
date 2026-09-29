@@ -386,6 +386,10 @@ export class LearningResultService {
           category: operation.input.targetedMistakePattern.category,
           material,
           learnerGoal: operation.input.learningContext.goal,
+          capturedContext: {
+            learningContext: operation.input.learningContext,
+            calibration: operation.input.calibration,
+          },
           aiProvenance,
           generationProvenance: state.provenance,
           output: state.output,
@@ -399,6 +403,10 @@ export class LearningResultService {
           activity,
           material,
           learnerGoal: operation.input.learningContext.goal,
+          capturedContext: {
+            learningContext: operation.input.learningContext,
+            calibration: operation.input.calibration,
+          },
           aiProvenance,
           generationProvenance: state.provenance,
           output: state.output,

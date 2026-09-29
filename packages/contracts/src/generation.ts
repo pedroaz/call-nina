@@ -447,6 +447,17 @@ const learnerCalibrationSchema = z.strictObject({
   teachingProfile: z.enum(["conversation-partner", "strict-corrector"]),
 });
 
+export const capturedTeachingContextSchema = z
+  .strictObject({
+    learningContext: learningContextSchema,
+    calibration: learnerCalibrationSchema,
+  })
+  .refine(
+    (value) => value.learningContext.explanationLanguage === value.calibration.explanationLanguage,
+    { message: "OD_LEARNING_CONTEXT_MISMATCH" },
+  );
+export type CapturedTeachingContext = z.infer<typeof capturedTeachingContextSchema>;
+
 const correctionMistakeSampleSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: z.literal("grammar"),

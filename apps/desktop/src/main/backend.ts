@@ -39,6 +39,7 @@ import {
   type TranslationStart,
   type TranslationReveal,
   type LearningContext,
+  type CapturedTeachingContext,
   type GenerationOperationStart,
   type GenerationProvenance,
   type CorrelationId,
@@ -509,6 +510,11 @@ export class DesktopBackend {
         );
         this.#activeOperations.delete(state.operationId);
         this.#retryableOperations.delete(state.operationId);
+        if (state.kind === "voice-activity-draft")
+          this.#operationsBySubmission.set(state.submissionId, {
+            ...acceptedOperation,
+            validatedVoiceModelRequestId: state.modelRequestId,
+          });
         this.#emitEvent?.({
           event: "learning-operation-finished",
           operationId: state.operationId,
@@ -737,13 +743,18 @@ export class DesktopBackend {
   async #operationLearnerSettings(
     input: Extract<DesktopIpcRequest, { channel: "learning-operation/start" }>["payload"]["input"],
     settings: LearnerSettingsRecord,
-  ) {
+  ): Promise<LearnerSettingsRecord & { capturedContext?: CapturedTeachingContext }> {
     const repository = this.#repository;
     if (!repository || !this.#database) throw new Error("OD_DATA_ROOT_STALE");
     if (input.kind === "exercise-feedback") {
       const activity = await repository.readPreparedActivity(input.activityId);
       if (!activity) throw new Error("OD_ACTIVITY_NOT_FOUND");
-      return repository.readLearnerSettingsForScope(activity.context.learningScope);
+      const owned = await repository.readLearnerSettingsForScope(activity.context.learningScope);
+      const capturedContext = await repository.readGeneratedExerciseContext(
+        activity.activityId,
+        input.attemptId,
+      );
+      return { ...owned, learningContext: capturedContext.learningContext, capturedContext };
     }
     if (input.kind !== "exercise-generation") return settings;
     assertExerciseGenerationContext(input);
@@ -766,7 +777,11 @@ export class DesktopBackend {
       const activity = await (
         await this.#activities(selectionId())
       ).readGenerationSource(request.activityId);
-      return repository.readLearnerSettingsForScope(activity.context.learningScope);
+      const owned = await repository.readLearnerSettingsForScope(activity.context.learningScope);
+      const capturedContext = (await repository.readGeneratedActivity(activity.activityId))
+        ? await repository.readGeneratedExerciseContext(activity.activityId)
+        : await repository.readPreparedActivityContext(activity.activityId);
+      return { ...owned, learningContext: capturedContext.learningContext, capturedContext };
     }
     if (request.source === "saved-material") {
       if (request.expectedGeneration !== this.#database.rootGeneration)
@@ -813,13 +828,15 @@ export class DesktopBackend {
 
   async #enrichedOperationInput(
     input: Extract<DesktopIpcRequest, { channel: "learning-operation/start" }>["payload"]["input"],
-    settings: LearnerSettingsRecord,
+    settings: LearnerSettingsRecord & { capturedContext?: CapturedTeachingContext },
     feedbackSnapshot?: Awaited<
       ReturnType<CallNinaRepository["saveGeneratedExerciseAnswer"]>
     >["snapshot"],
   ) {
     const profile = settings.profile;
-    const calibration = buildLearningCalibration(settings.learningContext, profile);
+    const calibration =
+      settings.capturedContext?.calibration ??
+      buildLearningCalibration(settings.learningContext, profile);
     if (input.kind === "flashcard-generation")
       return { ...input, targetLevel: generationLevel[input.targetLevel] };
     if (input.kind === "writing-prompt") {
@@ -2025,15 +2042,35 @@ export class DesktopBackend {
       }
       if (request.channel === "codex-activity/prepare") {
         const activities = await this.#activities(request.requestId);
+        const accepted = [...this.#operationsBySubmission.values()].find(
+          (operation) =>
+            operation.validatedVoiceModelRequestId === request.payload.draftModelRequestId,
+        );
+        if (!accepted || accepted.dataRootGeneration !== activities.generation)
+          return this.#failure(request, "exercise-context-missing");
+        const input = accepted.operation.input;
+        if (
+          input.kind !== "voice-activity-draft" ||
+          input.voiceKind !== request.payload.context.kind ||
+          input.targetLevel !== generationLevel[request.payload.context.targetLevel]
+        )
+          return this.#failure(request, "validation");
         return this.#success(
           request,
           await activities.prepareVoice(
             {
               action: "prepare-voice",
-              ...request.payload,
+              title: request.payload.title,
+              context: request.payload.context,
+              learningScope: {
+                learnerId: input.learningContext.learnerId,
+                courseId: input.learningContext.courseId,
+                targetLanguage: input.learningContext.targetLanguage,
+              },
               expectedGeneration: activities.generation,
             },
             request.requestId,
+            { learningContext: input.learningContext, calibration: input.calibration },
           ),
         );
       }
@@ -3276,19 +3313,21 @@ export class DesktopBackend {
       }
       const code = diagnosticErrorCode(error);
       const kind =
-        code === "OD_MATERIAL_REVISION_STALE"
-          ? "conflict"
-          : code.includes("HANDOFF")
-            ? "handoff"
-            : code.includes("STALE")
-              ? "stale-data-root"
-              : code.includes("CONFLICT") || code.includes("DELETE_BLOCKED")
-                ? "conflict"
-                : code.includes("NOT_FOUND")
-                  ? "not-found"
-                  : code.includes("DATABASE") || code.includes("SQLITE")
-                    ? "database"
-                    : "validation";
+        code === "OD_EXERCISE_CONTEXT_MISSING"
+          ? "exercise-context-missing"
+          : code === "OD_MATERIAL_REVISION_STALE"
+            ? "conflict"
+            : code.includes("HANDOFF")
+              ? "handoff"
+              : code.includes("STALE")
+                ? "stale-data-root"
+                : code.includes("CONFLICT") || code.includes("DELETE_BLOCKED")
+                  ? "conflict"
+                  : code.includes("NOT_FOUND")
+                    ? "not-found"
+                    : code.includes("DATABASE") || code.includes("SQLITE")
+                      ? "database"
+                      : "validation";
       return this.#failure(request, kind);
     }
   }

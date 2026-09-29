@@ -1025,6 +1025,7 @@
     "finishBeforeSwitch": "Finish or leave this activity before switching learning languages."
   },
   "errors": {
+    "exerciseContextMissing": "This activity did not save its original teaching settings. Create fresh practice for new AI feedback or teaching. Your saved activity, answers and feedback are unchanged.",
     "boundaryTitle": "This view could not be displayed",
     "boundaryBody": "This view encountered an unexpected error. Try opening it again. Unsaved input may need to be entered again.",
     "validation": "Some information is invalid or incomplete. Check the required fields and try again.",

@@ -109,7 +109,7 @@ function validateRequest(request) {
     track: ["id"],
     cleanup: ["id"],
     note: ["code"],
-    restore: [],
+    restore: ["languageSelection"],
     stop: [],
     suspend: [],
   };
@@ -356,6 +356,8 @@ async function serve(resume = false) {
     identity.requestFingerprint = journalFingerprint(JSON.stringify(request));
     let target;
     try {
+      if (action === "restore" && request.languageSelection !== undefined)
+        await session.historicalLanguageSelection(request.languageSelection);
       if (["click", "double-click", "fill", "select", "press"].includes(action)) {
         if (["fill", "select"].includes(action) && typeof request.value !== "string")
           throw failure("VERIFY_REQUEST_INVALID");
@@ -367,6 +369,10 @@ async function serve(resume = false) {
         });
         if (count !== 1) throw failure(count ? "VERIFY_TARGET_AMBIGUOUS" : "VERIFY_TARGET_MISSING");
         await session.rememberSettings();
+        if (action === "select") {
+          const selection = await session.languageSelectionOwnership(target, request.value);
+          if (selection) identity.learningLanguageSelection = selection;
+        }
       }
       if (
         action === "cleanup" &&
@@ -563,7 +569,7 @@ async function serve(resume = false) {
         await session.persist();
         break;
       case "restore":
-        result = await session.restore();
+        result = await session.restore(request.languageSelection);
         break;
       case "stop":
       case "suspend":
