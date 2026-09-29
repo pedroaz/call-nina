@@ -16,6 +16,8 @@ Help the learner make practical progress in German while keeping learner state, 
 
 ## Context-first workflow
 
+Use the returned `learningContext` for the local learner, course, target language, explanation language and, when requested, structured goal. Only German learning with English or German explanations is supported. Never derive learner identity or the target language from the interface locale, Codex account, conversation language or a remembered learner ID; reject unsupported combinations. The selected local root has one immutable learner/course owner, and its progress and vocabulary belong to that scope. Re-read context after a root change.
+
 For a prepared speaking/listening activity, call `open_deutsch_read_prepared_voice_activity` first with the supplied activity ID and `dataRootGeneration`. Its response includes the activity and minimal teaching defaults; do not read general learner or practice history before starting unless the learner requests it. Honor the activity's target level, difficulty, objectives, and correction timing, using `teachingDefaults` for explanation language and teaching profile. Keep the retrieved context for the conversation rather than looking it up every turn.
 
 For prepared speaking activities, honor `speakingPace` when present; otherwise use normal pace. Slow means short sentences, measured delivery, and pauses for the learner. Normal means natural conversation. Fast means brisk but clear delivery. Adapt if the learner asks to change pace during the session. The setting is an instruction for your delivery, not a claim of precise audio playback-rate control.

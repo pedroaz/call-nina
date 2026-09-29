@@ -239,3 +239,7 @@ export * from "./learning-path.js";
 
 export * from "./vocabulary-content.js";
 export * from "./flashcards.js";
+
+export * from "./learning-context.js";
+
+export * from "./german-language.js";

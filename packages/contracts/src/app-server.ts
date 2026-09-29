@@ -1,3 +1,4 @@
+import { learningContextSchema } from "./learning-context.js";
 import {
   flashcardGenerationCandidateSchema,
   generatedFlashcardSchema,
@@ -555,20 +556,20 @@ const learningContextFields = {
 
 export const appServerWorkloadInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
+    learningContext: learningContextSchema,
     kind: z.literal("flashcard-generation"),
     topic: text(2_000),
     cardCount: practiceCountSchema,
     targetLevel: z.enum(["A1", "A2", "B1", "B2"]),
   }),
   z.strictObject({
+    learningContext: learningContextSchema,
     kind: z.literal("writing-prompt"),
     naturalRequest: text(1_000).optional(),
     calibration: learnerCalibrationSchema,
-    everydayLifeGoal: text(500),
-    interests: z.array(text(80)).max(8),
-    preferredTopics: z.array(text(120)).max(8),
   }),
   z.strictObject({
+    learningContext: learningContextSchema,
     kind: z.literal("voice-activity-draft"),
     voiceKind: z.enum(["listening", "speaking"]),
     naturalRequest: text(2_000),
@@ -579,6 +580,7 @@ export const appServerWorkloadInputSchema = z.discriminatedUnion("kind", [
     calibration: learnerCalibrationSchema,
   }),
   z.strictObject({
+    learningContext: learningContextSchema,
     kind: z.literal("writing-correction"),
     learnerText: text(12_000),
     activityGoal: text(1_000),
@@ -591,6 +593,7 @@ export const appServerWorkloadInputSchema = z.discriminatedUnion("kind", [
     relevantMistakes: z.array(correctionMistakeSampleSchema).max(6),
   }),
   z.strictObject({
+    learningContext: learningContextSchema,
     kind: z.literal("contextual-help"),
     activityId: activityIdSchema,
     intent: z.enum(["chat", "translate"]),
@@ -610,14 +613,12 @@ export const appServerWorkloadInputSchema = z.discriminatedUnion("kind", [
       .max(6),
   }),
   z.strictObject({
+    learningContext: learningContextSchema,
     kind: z.literal("exercise-generation"),
     practiceType: z.literal("grammar").optional(),
     learningPath: courseReferenceSchema.optional(),
     courseTeaching: courseTeachingContextSchema.optional(),
     ...learningContextFields,
-    everydayLifeGoal: text(500).optional(),
-    interests: z.array(text(80)).max(8).default([]),
-    preferredTopics: z.array(text(120)).max(8).default([]),
     naturalRequest: text(2_000),
     requestedExerciseCount: z.int().min(1).max(30),
     reading: z.strictObject({ passage: text(12_000).nullable() }).optional(),
@@ -654,6 +655,7 @@ export const appServerWorkloadInputSchema = z.discriminatedUnion("kind", [
       .optional(),
   }),
   z.strictObject({
+    learningContext: learningContextSchema,
     kind: z.literal("exercise-feedback"),
     courseCriterion: text(4000).optional(),
     readingPassage: text(12_000).optional(),

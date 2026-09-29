@@ -3,7 +3,6 @@ import { createHash, randomUUID } from "node:crypto";
 import {
   correlationIdSchema,
   errorDefinitions,
-  learnerIdSchema,
   callNinaErrorSchema,
   utcInstantSchema,
   type writingCorrectionCandidateSchema,
@@ -43,7 +42,6 @@ export type ValidatedWritingState = Readonly<{
 }>;
 
 export const maximumRetainedSubmissions = 256;
-export const activeLearnerId = learnerIdSchema.parse("learner_0123456789abcdefgh");
 
 export function diagnosticErrorCode(error: unknown): string {
   return error instanceof Error && /^(?:OD|APP_SERVER)_[A-Z0-9_]{3,100}$/u.test(error.message)
@@ -76,6 +74,7 @@ export function selectionId() {
 
 export function opaqueId(
   prefix:
+    | "learner"
     | "activity"
     | "attempt"
     | "correction"

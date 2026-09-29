@@ -1322,6 +1322,102 @@ export const callNinaMigrations = [
       ) STRICT;
     `,
   },
+  {
+    version: 24,
+    name: "explicit-local-learning-context",
+    sql: `
+      -- No identity guessing, resets or deletes: ambiguous/orphaned roots roll back this migration.
+      CREATE TEMP TABLE learning_owner_guard (valid INTEGER NOT NULL CHECK(valid = 1));
+      INSERT INTO learning_owner_guard SELECT CASE WHEN
+        (SELECT count(*) FROM learner_profiles) > 1 OR
+        ((SELECT count(*) FROM learner_profiles) = 0 AND (EXISTS (SELECT 1 FROM lessons) OR EXISTS (SELECT 1 FROM exercises) OR EXISTS (SELECT 1 FROM mistakes) OR EXISTS (SELECT 1 FROM vocabulary_entries) OR EXISTS (SELECT 1 FROM voice_summaries) OR EXISTS (SELECT 1 FROM prepared_activities) OR EXISTS (SELECT 1 FROM history_entries) OR EXISTS (SELECT 1 FROM vocabulary_lesson_sets) OR EXISTS (SELECT 1 FROM course_selection) OR EXISTS (SELECT 1 FROM course_marks) OR EXISTS (SELECT 1 FROM course_missions)))
+        THEN 0 ELSE 1 END;
+      DROP TABLE learning_owner_guard;
+      ALTER TABLE learner_profiles RENAME COLUMN everyday_germany_goal TO everyday_life_goal;
+      ALTER TABLE learner_settings RENAME COLUMN teaching_language TO explanation_language;
+      CREATE TABLE local_learning_scope (
+        singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+        learner_id TEXT NOT NULL UNIQUE REFERENCES learner_profiles(learner_id) ON DELETE RESTRICT,
+        course_id TEXT NOT NULL CHECK(course_id = 'german-foundations'),
+        target_language TEXT NOT NULL CHECK(target_language = 'de')
+      ) STRICT;
+      INSERT INTO local_learning_scope SELECT 1, learner_id, 'german-foundations', 'de' FROM learner_profiles;
+      CREATE TRIGGER local_learning_scope_immutable_update BEFORE UPDATE ON local_learning_scope
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_SCOPE_IMMUTABLE'); END;
+      CREATE TRIGGER local_learning_scope_immutable_delete BEFORE DELETE ON local_learning_scope
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_SCOPE_IMMUTABLE'); END;
+      CREATE TRIGGER single_local_learner BEFORE INSERT ON learner_profiles
+        WHEN EXISTS (SELECT 1 FROM learner_profiles)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_SCOPE_ALREADY_EXISTS'); END;
+      UPDATE prepared_activities SET context_json = json_set(context_json, '$.learningScope',
+        json((SELECT json_object('learnerId', learner_id, 'courseId', course_id, 'targetLanguage', target_language) FROM local_learning_scope)));
+
+      CREATE TRIGGER prepared_activity_scope_insert BEFORE INSERT ON prepared_activities
+        WHEN json_extract(NEW.context_json, '$.learningScope.learnerId') IS NOT (SELECT learner_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.courseId') IS NOT (SELECT course_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.targetLanguage') IS NOT (SELECT target_language FROM local_learning_scope WHERE singleton = 1)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_MISMATCH'); END;
+      CREATE TRIGGER prepared_activity_scope_update BEFORE UPDATE OF context_json ON prepared_activities
+        WHEN json_extract(NEW.context_json, '$.learningScope.learnerId') IS NOT (SELECT learner_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.courseId') IS NOT (SELECT course_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.targetLanguage') IS NOT (SELECT target_language FROM local_learning_scope WHERE singleton = 1)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_MISMATCH'); END;
+      ALTER TABLE lessons ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER lessons_requires_learning_scope BEFORE INSERT ON lessons
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE exercises ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER exercises_requires_learning_scope BEFORE INSERT ON exercises
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE mistakes ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER mistakes_requires_learning_scope BEFORE INSERT ON mistakes
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE vocabulary_entries ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER vocabulary_entries_requires_learning_scope BEFORE INSERT ON vocabulary_entries
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE voice_summaries ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER voice_summaries_requires_learning_scope BEFORE INSERT ON voice_summaries
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE prepared_activities ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER prepared_activities_requires_learning_scope BEFORE INSERT ON prepared_activities
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE history_entries ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER history_entries_requires_learning_scope BEFORE INSERT ON history_entries
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE vocabulary_lesson_sets ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER vocabulary_lesson_sets_requires_learning_scope BEFORE INSERT ON vocabulary_lesson_sets
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE course_selection ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER course_selection_requires_learning_scope BEFORE INSERT ON course_selection
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE course_marks ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER course_marks_requires_learning_scope BEFORE INSERT ON course_marks
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE course_missions ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER course_missions_requires_learning_scope BEFORE INSERT ON course_missions
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+    `,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

@@ -362,6 +362,7 @@ export function PracticePage({
               </Card>
             )}
             <ExerciseEngine
+              targetLanguage={generated.learningScope.targetLanguage}
               {...(feedback.busy ? { onCancelAiEvaluation: feedback.cancel } : {})}
               key={activityId}
               exercises={exercises}

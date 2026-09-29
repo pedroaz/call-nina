@@ -409,9 +409,9 @@ export function SettingsPage({
                         <textarea
                           rows={3}
                           maxLength={500}
-                          value={draft.everydayGermanyGoal}
+                          value={draft.everydayLifeGoal}
                           onChange={(event) => {
-                            setProfile("everydayGermanyGoal", event.currentTarget.value);
+                            setProfile("everydayLifeGoal", event.currentTarget.value);
                           }}
                         />
                       </FieldGroup>
