@@ -1,4 +1,6 @@
 import { desktopPathOption } from "./options.js";
+import { diagnosticErrorCode } from "./backend-support.js";
+import { appendDesktopLog } from "./logging.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { app } from "electron";
@@ -52,12 +54,16 @@ export async function runPluginIntegrationAction(
   codexVersion: string,
 ) {
   let sourceVersion = "unavailable";
+  let stage = "client";
   try {
     const integration = await client();
     sourceVersion = integration.options.sourceVersion;
     let status: Awaited<ReturnType<ScopedPluginClient["status"]>>;
-    if (action === "uninstall") status = await integration.uninstall();
-    else {
+    if (action === "uninstall") {
+      stage = "uninstall";
+      status = await integration.uninstall();
+    } else {
+      stage = "stage-source";
       const staged = await stagePluginSource({
         pluginRoot: pluginRoot(),
         runtimeRoot: path.join(app.getPath("userData"), "integration"),
@@ -66,6 +72,7 @@ export async function runPluginIntegrationAction(
           ? { kind: "packaged", executable: process.execPath, resourcesRoot: process.resourcesPath }
           : { kind: "development", executable: process.execPath, repositoryRoot, electron: true },
       });
+      stage = "install";
       status = await integration.install(staged.marketplaceRoot, staged.version);
     }
     return {
@@ -79,13 +86,25 @@ export async function runPluginIntegrationAction(
           : "Installed the stable Call Nina plugin source and verified plugin/MCP registration. Start a new Codex session to use it.",
       ],
     };
-  } catch {
+  } catch (error) {
+    const code = diagnosticErrorCode(error);
+    await appendDesktopLog(path.join(app.getPath("userData"), "bootstrap.json"), {
+      timestamp: new Date().toISOString(),
+      severity: "warn",
+      component: "desktop",
+      code: "DESKTOP_PLUGIN_ACTION_FAILED",
+      action: "codex/integration/action",
+      phase: "failed",
+      outcome: "error",
+      message: "Scoped plugin action failed.",
+      metadata: { action, stage, code },
+    }).catch(() => undefined);
     return {
       action,
       result: "failed" as const,
       sourceVersion,
       status: await readPluginIntegrationState(codexVersion),
-      steps: ["The scoped integration action failed; no success is reported."],
+      steps: [`The scoped integration action failed (${stage}: ${code}); no success is reported.`],
     };
   }
 }

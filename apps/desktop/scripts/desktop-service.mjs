@@ -144,6 +144,12 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 try {
   let rendererUrl;
   if (mode === "dev") {
+    await run("tsc", ["-b", "../mcp-server"], "compile-plugin-runtime");
+    await run(
+      "vite",
+      ["build", "../mcp-server", "--config", "../mcp-server/vite.config.ts"],
+      "bundle-plugin-runtime",
+    );
     await run("node", ["apps/desktop/scripts/generate-css-types.mjs"], "css-module-types");
     await run("tsc", ["-b", "tsconfig.main.json", "tsconfig.preload.json"], "compile-electron");
     await run("vite", ["build", "--config", "vite.main.config.ts"], "bundle-main");

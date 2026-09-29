@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import {
   defaultModelPreferences,
@@ -35,6 +35,10 @@ import {
 } from "./settings-adapter.js";
 
 type Readiness = Extract<DesktopIpcResponse, { status: "ok"; channel: "app/readiness" }>["result"];
+type Integration = Extract<
+  DesktopIpcResponse,
+  { status: "ok"; channel: "codex/integration/read" }
+>["result"];
 type Account = Extract<
   DesktopIpcResponse,
   { status: "ok"; channel: "codex/account/read" }
@@ -112,7 +116,22 @@ export function SettingsPage({
   const [integrationFailure, setIntegrationFailure] = useState<string>();
   const [dataRootSelection, setDataRootSelection] = useState<DataRootSelection>();
   const [diagnostics, setDiagnostics] = useState<Diagnostics>();
-  const [integration, setIntegration] = useState(readiness.codex);
+  const [integration, setIntegration] = useState<Integration>();
+  const integrationReadRevision = useRef(0);
+  const integrationActionPending = useRef(false);
+
+  const refreshIntegration = useCallback(async () => {
+    if (integrationActionPending.current) return;
+    const revision = ++integrationReadRevision.current;
+    try {
+      const result = await invokeDesktop("codex/integration/read", {});
+      if (revision === integrationReadRevision.current) setIntegration(result);
+    } catch (cause) {
+      if (revision !== integrationReadRevision.current) return;
+      setIntegration(undefined);
+      setError(normalizeDesktopError(cause).detail);
+    }
+  }, []);
 
   const refreshRuntime = useCallback(async () => {
     const [accountResult, catalogResult, limitsResult] = await Promise.allSettled([
@@ -140,6 +159,7 @@ export function SettingsPage({
   const load = useCallback(async () => {
     setLoading(true);
     setError(undefined);
+    void refreshIntegration();
     try {
       const settings = adapter.available() ? await adapter.read() : undefined;
       if (settings) {
@@ -153,7 +173,7 @@ export function SettingsPage({
     }
     // Provider failures cannot prevent local settings from loading.
     void refreshRuntime();
-  }, [adapter, refreshRuntime]);
+  }, [adapter, refreshRuntime, refreshIntegration]);
 
   useEffect(() => {
     const initialLoad = window.setTimeout(() => void load(), 0);
@@ -228,6 +248,10 @@ export function SettingsPage({
   };
 
   const manageIntegration = async (action: "install" | "refresh" | "uninstall") => {
+    if (integrationActionPending.current) return;
+    integrationActionPending.current = true;
+    // An older status read must not overwrite the verified action result.
+    integrationReadRevision.current += 1;
     setBusy(true);
     setError(undefined);
     setNotice(undefined);
@@ -240,6 +264,7 @@ export function SettingsPage({
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
+      integrationActionPending.current = false;
       setBusy(false);
     }
   };
@@ -642,7 +667,7 @@ export function SettingsPage({
                     ) : (
                       <Button
                         variant="primary"
-                        isDisabled={busy || integration.status !== "available"}
+                        isDisabled={busy || integration?.status !== "available"}
                         onPress={() => void login()}
                       >
                         <UserRound aria-hidden="true" />
@@ -651,11 +676,13 @@ export function SettingsPage({
                     )}
                   </ActionGroup>
                   <p>
-                    {integration.status === "available"
-                      ? t("settings.codexVersion", { version: integration.codexVersion })
-                      : t("settings.codexUnavailable")}
+                    {integration === undefined
+                      ? t("settings.notReported")
+                      : integration.status === "available"
+                        ? t("settings.codexVersion", { version: integration.codexVersion })
+                        : t("settings.codexUnavailable")}
                   </p>
-                  {integration.status === "available" && (
+                  {integration?.status === "available" && (
                     <>
                       <p>{t(`settings.plugin.${integration.plugin}`)}</p>
                       <ActionGroup>

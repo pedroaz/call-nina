@@ -1524,6 +1524,19 @@ export const callNinaMigrations = [
         ADD COLUMN route_id TEXT NOT NULL DEFAULT 'codex' CHECK(route_id = 'codex');
     `,
   },
+  {
+    version: 28,
+    name: "inline-material-activity-ownership",
+    // Existing material lifetime is unknown. Only new inline creation records ownership.
+    sql: `
+      CREATE TABLE activity_owned_materials (
+        activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+        material_revision_id TEXT NOT NULL UNIQUE REFERENCES material_revisions(revision_id) ON DELETE CASCADE
+      ) STRICT;
+      CREATE TRIGGER activity_owned_material_immutable BEFORE UPDATE ON activity_owned_materials
+        BEGIN SELECT RAISE(ABORT, 'OD_MATERIAL_OWNERSHIP_IMMUTABLE'); END;
+    `,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

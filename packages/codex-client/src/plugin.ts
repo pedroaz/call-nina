@@ -26,7 +26,18 @@ const marketplacesSchema = z.object({
 export class ScopedPluginClient {
   constructor(readonly options: { executable: string; cwd: string; sourceVersion: string }) {}
 
-  async #command(args: readonly string[]): Promise<unknown> {
+  async #command(
+    args: readonly string[],
+    stage:
+      | "LIST"
+      | "MCP_LIST"
+      | "MARKETPLACE_LIST"
+      | "MARKETPLACE_REMOVE"
+      | "MARKETPLACE_ADD"
+      | "ADD"
+      | "REMOVE",
+  ): Promise<unknown> {
+    let output: string;
     try {
       const { stdout } = await execFileAsync(this.options.executable, [...args, "--json"], {
         cwd: this.options.cwd,
@@ -34,9 +45,14 @@ export class ScopedPluginClient {
         timeout: 20_000,
         maxBuffer: 2 * 1024 * 1024,
       });
-      return JSON.parse(stdout) as unknown;
+      output = stdout;
     } catch {
-      throw new Error("OD_PLUGIN_COMMAND_FAILED");
+      throw new Error(`OD_PLUGIN_${stage}_COMMAND_FAILED`);
+    }
+    try {
+      return JSON.parse(output) as unknown;
+    } catch {
+      throw new Error(`OD_PLUGIN_${stage}_RESPONSE_INVALID`);
     }
   }
 
@@ -55,8 +71,8 @@ export class ScopedPluginClient {
 
   async status() {
     const [plugins, servers] = await Promise.all([
-      this.#command(["plugin", "list"]).then((value) => pluginsSchema.parse(value)),
-      this.#command(["mcp", "list"]).then((value) => serversSchema.parse(value)),
+      this.#command(["plugin", "list"], "LIST").then((value) => pluginsSchema.parse(value)),
+      this.#command(["mcp", "list"], "MCP_LIST").then((value) => serversSchema.parse(value)),
     ]);
     const installed = plugins.installed.find((entry) => entry.pluginId === pluginId);
     const server = servers.find((entry) => entry.name === callNinaPluginName);
@@ -76,24 +92,30 @@ export class ScopedPluginClient {
 
   async install(marketplaceRoot: string, expectedVersion: string) {
     const marketplaces = marketplacesSchema.parse(
-      await this.#command(["plugin", "marketplace", "list"]),
+      await this.#command(["plugin", "marketplace", "list"], "MARKETPLACE_LIST"),
     );
     const previous = marketplaces.marketplaces.find(
       (entry) => entry.name === callNinaMarketplaceName,
     );
     if (previous && previous.root !== marketplaceRoot) {
-      await this.#command(["plugin", "marketplace", "remove", callNinaMarketplaceName]);
+      await this.#command(
+        ["plugin", "marketplace", "remove", callNinaMarketplaceName],
+        "MARKETPLACE_REMOVE",
+      );
     }
     try {
       if (previous?.root !== marketplaceRoot)
-        await this.#command(["plugin", "marketplace", "add", marketplaceRoot]);
+        await this.#command(["plugin", "marketplace", "add", marketplaceRoot], "MARKETPLACE_ADD");
     } catch (error) {
       if (previous && previous.root !== marketplaceRoot) {
-        await this.#command(["plugin", "marketplace", "add", previous.root]).catch(() => undefined);
+        await this.#command(
+          ["plugin", "marketplace", "add", previous.root],
+          "MARKETPLACE_ADD",
+        ).catch(() => undefined);
       }
       throw error;
     }
-    await this.#command(["plugin", "add", pluginId]);
+    await this.#command(["plugin", "add", pluginId], "ADD");
     const status = await this.status();
     if (status.state !== "installed" || status.installed?.version !== expectedVersion)
       throw new Error("OD_PLUGIN_INSTALL_NOT_VERIFIED");
@@ -101,15 +123,18 @@ export class ScopedPluginClient {
   }
 
   async uninstall() {
-    const plugins = pluginsSchema.parse(await this.#command(["plugin", "list"]));
+    const plugins = pluginsSchema.parse(await this.#command(["plugin", "list"], "LIST"));
     if (plugins.installed.some((entry) => entry.pluginId === pluginId)) {
-      await this.#command(["plugin", "remove", pluginId]);
+      await this.#command(["plugin", "remove", pluginId], "REMOVE");
     }
     const marketplaces = marketplacesSchema.parse(
-      await this.#command(["plugin", "marketplace", "list"]),
+      await this.#command(["plugin", "marketplace", "list"], "MARKETPLACE_LIST"),
     );
     if (marketplaces.marketplaces.some((entry) => entry.name === callNinaMarketplaceName)) {
-      await this.#command(["plugin", "marketplace", "remove", callNinaMarketplaceName]);
+      await this.#command(
+        ["plugin", "marketplace", "remove", callNinaMarketplaceName],
+        "MARKETPLACE_REMOVE",
+      );
     }
     const status = await this.status();
     if (status.state !== "missing") throw new Error("OD_PLUGIN_UNINSTALL_NOT_VERIFIED");

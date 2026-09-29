@@ -112,8 +112,8 @@
       "open": "Open {{title}}",
       "deleteAction": "Delete {{title}}",
       "deleteTitle": "Delete “{{title}}”?",
-      "deleteBody": "This permanently removes the activity and its unconfirmed vocabulary candidates.",
-      "deleteCascadeBody": "This permanently removes the quiz, its attempts, answers, feedback, related History entries, and unconfirmed vocabulary candidates.",
+      "deleteBody": "This permanently removes the activity and its unconfirmed vocabulary candidates. Unused, unchanged source material created with this activity may also be removed.",
+      "deleteCascadeBody": "This permanently removes the quiz, its attempts, answers, feedback, related History entries, and unconfirmed vocabulary candidates. Unused, unchanged source material created with this activity may also be removed.",
       "deleteConfirm": "Delete exercise",
       "deleteBlocked": {
         "retained-data": "{{title}} has completed results, retained feedback or confirmed vocabulary and cannot be deleted here."
@@ -1398,7 +1398,7 @@
     "suspended": "This word is suspended. You can resume scheduled reviews in Vocabulary.",
     "saveNotice": "Words saved. Existing review schedules and suspended words were kept.",
     "delete": "Delete deck",
-    "deleteBody": "Delete this deck and its progress? Words saved to Vocabulary will remain.",
+    "deleteBody": "Delete this deck and its progress? Unused, unchanged source material created with this deck may also be removed. Words saved to Vocabulary will remain.",
     "vocabularyDeck": "My vocabulary flashcards",
     "study": "Study flashcards",
     "selectRange": "Select 3–30 words to create a deck."
