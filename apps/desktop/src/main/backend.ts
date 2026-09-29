@@ -752,7 +752,13 @@ export class DesktopBackend {
       if (input.context.origin !== "nina") throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
       if (request.expectedGeneration !== this.#database.rootGeneration)
         throw new Error("OD_DATA_ROOT_STALE");
-      const owned = await repository.readLearnerSettingsForScope(request.learningContext);
+      // The repository resolves a fresh context from a strict ownership scope.
+      // Do not pass the card's goal/explanation fields across that boundary.
+      const owned = await repository.readLearnerSettingsForScope({
+        learnerId: request.learningContext.learnerId,
+        courseId: request.learningContext.courseId,
+        targetLanguage: request.learningContext.targetLanguage,
+      });
       // The explicit card captures the original explanation/goal as well as language ownership.
       return { ...owned, learningContext: request.learningContext };
     }
@@ -1196,7 +1202,7 @@ export class DesktopBackend {
               ? ("pasted-text" as const)
               : ("topic" as const),
           title: input.request.materialTitle ?? input.request.naturalRequest.trim().slice(0, 160),
-          language: "de" as const,
+          language: settings.learningContext.targetLanguage,
           text:
             input.request.source === "reading" && input.request.passage
               ? input.request.passage
