@@ -2092,59 +2092,66 @@ export class DesktopBackend {
           ...(input.material ? { material: input.material } : {}),
         });
         let prepared: Extract<NinaPlan, { status: "ready" }>["prepared"] = null;
-        const candidates = await repository.listPreparedActivities({
-          activityTypes: kind === "writing" ? ["writing", "custom-lesson"] : [kind],
-          maximum: 50,
-          ...(input.material ? { material: input.material } : {}),
-        });
-        for (const candidate of candidates.entries) {
-          if (!candidate.generated) continue;
-          const saved = await repository.readGeneratedActivity(candidate.activityId);
-          if (
-            !saved ||
-            saved.context.learningScope.learnerId !== context.learnerId ||
-            saved.context.learningScope.targetLanguage !== context.targetLanguage ||
-            (saved.context.learningScope.courseId !== null &&
-              saved.context.learningScope.courseId !== context.courseId)
-          )
-            continue;
-          const expectedRequest =
-            kind === "writing"
-              ? `Create short free-writing exercises for this request: ${input.naturalRequest}`
-              : input.naturalRequest;
-          if (
-            expectedRequest.length > 1000 ||
-            !matchesNinaRequest(saved.content.goal.request, expectedRequest) ||
-            saved.content.payload.exercises.length > 12 ||
-            (input.minutes !== undefined &&
-              saved.content.payload.exercises.length !== ninaExerciseCount(input.minutes)) ||
-            saved.content.payload.exercises.some(
-              (exercise) =>
-                exercise.cefrBand !== generationLevel[settings.profile.levelEstimate.currentLevel],
+        let cursor: Awaited<ReturnType<typeof repository.listPreparedActivities>>["nextCursor"] =
+          null;
+        do {
+          const candidates = await repository.listPreparedActivities({
+            activityTypes: kind === "writing" ? ["writing", "custom-lesson"] : [kind],
+            maximum: 50,
+            ...(input.material ? { material: input.material } : {}),
+            ...(cursor ? { cursor } : {}),
+          });
+          cursor = candidates.nextCursor;
+          for (const candidate of candidates.entries) {
+            if (!candidate.generated) continue;
+            const saved = await repository.readGeneratedActivity(candidate.activityId);
+            if (
+              !saved ||
+              saved.context.learningScope.learnerId !== context.learnerId ||
+              saved.context.learningScope.targetLanguage !== context.targetLanguage ||
+              (saved.context.learningScope.courseId !== null &&
+                saved.context.learningScope.courseId !== context.courseId)
             )
-          )
-            continue;
-          if (
-            input.material &&
-            !saved.content.materials.some(
-              (material) =>
-                material.materialId === input.material?.materialId &&
-                material.revisionId === input.material.revisionId,
+              continue;
+            const expectedRequest =
+              kind === "writing"
+                ? `Create short free-writing exercises for this request: ${input.naturalRequest}`
+                : input.naturalRequest;
+            if (
+              expectedRequest.length > 1000 ||
+              !matchesNinaRequest(saved.content.goal.request, expectedRequest) ||
+              saved.content.payload.exercises.length > 12 ||
+              (input.minutes !== undefined &&
+                saved.content.payload.exercises.length !== ninaExerciseCount(input.minutes)) ||
+              saved.content.payload.exercises.some(
+                (exercise) =>
+                  exercise.cefrBand !==
+                  generationLevel[settings.profile.levelEstimate.currentLevel],
+              )
             )
-          )
-            continue;
-          if (input.minutes === undefined)
-            generationRequest.estimatedMinutes = Math.max(
-              5,
-              saved.content.payload.exercises.length * 2,
-            );
-          prepared = {
-            activityId: candidate.activityId,
-            title: candidate.title,
-            content: { contentId: saved.content.contentId, revisionId: saved.content.revisionId },
-          };
-          break;
-        }
+              continue;
+            if (
+              input.material &&
+              !saved.content.materials.some(
+                (material) =>
+                  material.materialId === input.material?.materialId &&
+                  material.revisionId === input.material.revisionId,
+              )
+            )
+              continue;
+            if (input.minutes === undefined)
+              generationRequest.estimatedMinutes = Math.max(
+                5,
+                saved.content.payload.exercises.length * 2,
+              );
+            prepared = {
+              activityId: candidate.activityId,
+              title: candidate.title,
+              content: { contentId: saved.content.contentId, revisionId: saved.content.revisionId },
+            };
+            break;
+          }
+        } while (!prepared && cursor);
         return this.#success(request, { status: "ready", request: generationRequest, prepared });
       }
       if (request.channel === "dashboard/read") {
@@ -2219,10 +2226,11 @@ export class DesktopBackend {
       }
       if (request.channel === "activity/resolve") {
         const resolved = await (await this.#activities(request.requestId)).resolve(request.payload);
-        await this.#repository?.recordActivityUse(
-          resolved.activity.activityId,
-          resolved.rootGeneration,
-        );
+        if (request.payload.recordUse)
+          await this.#repository?.recordActivityUse(
+            resolved.activity.activityId,
+            resolved.rootGeneration,
+          );
         return this.#success(request, resolved);
       }
       if (
