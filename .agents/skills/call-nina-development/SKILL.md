@@ -32,11 +32,13 @@ Paths below are relative to the repository root. Follow imports and callers rath
 
 ## Task history
 
-Use `task/<issue>-<short-kebab-description>` and an ownership suffix for separate worker branches. Commit with a Conventional Commit header and a real `Refs: #<task>` footer; do not lint or rewrite old history. The pure contract owner is `scripts/agents/lib/task-metadata.mjs`; GitHub publication and merge boundaries are in `scripts/agents/github.mjs`. Preserve both `!` and complete multiline `BREAKING CHANGE:` / `BREAKING-CHANGE:` signals. Copy every distinct source breaking footer into the PR body; a source `!` needs either a PR-title `!` or an explicitly authored breaking footer. Do not invent migration explanations.
+Use `task/<issue>-<short-kebab-description>` and an ownership suffix for separate worker branches. Commit with a Conventional Commit header and a real `Refs: #<task>` footer; do not lint or rewrite old history. The pure contract owner is `scripts/agents/lib/task-metadata.mjs`; GitHub publication and merge boundaries are in `scripts/agents/github.mjs`. Preserve both `!` and complete multiline `BREAKING CHANGE:` / `BREAKING-CHANGE:` signals. Copy every distinct source breaking footer into the PR body; a source `!` needs either a PR-title `!` or an explicitly authored breaking footer. Do not invent migration explanations. Product tasks require a native open parent; explicitly approved standalone internal workflow tasks use the exact `internal-workflow` label, while existing defects use `bug`. Neither classification replaces Ready/claim authorization.
 
 ## Work and verify
 
 Do not create, enable or expand CI/CD workflows, hosted checks, deployment pipelines or release automation without explicit user authorization. All code reviews are local only; preserve independent exact-head local review and passing local `make check` under the repository policy.
+
+Consolidate related implementation fixes before final delivery gates; avoid speculative intermediate reviews unless a concrete decision needs one. Reuse source evidence until its revision or external state changes, and report compact relevant results. Follow the orchestration assignment policy: routine implementation uses Sol medium, bounded documentation uses Luna low/medium, and complex runtime/persistence/security/launch-authority changes retain Astra high. Escalate with evidence through the coordinator; never change an active worker’s model.
 
 Use `make help` and inspect its target implementation for command details. Inspect relevant redacted logs before bug fixes (`make logs-once`); resolve lifecycle ownership before stopping a process. Add only bounded diagnostics when evidence is missing.
 

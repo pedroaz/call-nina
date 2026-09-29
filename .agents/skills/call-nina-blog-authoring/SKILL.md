@@ -7,6 +7,8 @@ description: Draft English Call Nina development articles from a selected date o
 
 Use only when explicitly invoked. Default to an unpublished draft for editorial review; invocation alone does not authorize committing an article or adding it to the published collection. Explicit maintainer approval to create and publish a specific article authorizes that article without another editorial approval step. Approval for one post does not grant standing authority: future articles still require maintainer approval before publication. Deployment requires its own authorization; article approval does not authorize scheduling or services. Follow the repository worktree and ownership policy.
 
+For a dispatched bounded writing assignment, use Luna low or medium according to complexity under the orchestration assignment policy. Return inconclusive evidence for coordinator escalation rather than retrying blindly; model routing does not change editorial/publication authorization.
+
 ## Establish the interval and evidence
 
 Accept the user's date range (including timezone) or Git revisions. If absent or ambiguous, resolve the interval with the requester. Record exact boundary commits and whether endpoints are included; `base..head` excludes base and includes head. For dates, select by merge time on the agreed integration branch, not author dates; record timezone and resolved commits. Keep later work outside the account.
