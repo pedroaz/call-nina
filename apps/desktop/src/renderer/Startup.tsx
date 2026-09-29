@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import { Component, useState } from "react";
+import { type ReactNode, Component, useState } from "react";
 import { type DesktopIpcResponse, type CallNinaError } from "@call-nina/contracts";
 import { Languages, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";

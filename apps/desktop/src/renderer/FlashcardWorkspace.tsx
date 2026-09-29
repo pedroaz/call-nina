@@ -1,7 +1,11 @@
-import { vocabularyLemma } from "@call-nina/contracts";
+import {
+  vocabularyLemma,
+  type ActivityId,
+  type FlashcardDeck,
+  type CallNinaError,
+} from "@call-nina/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { ActivityId, FlashcardDeck, CallNinaError } from "@call-nina/contracts";
 import { Button, Card, ConfirmDialog, Feedback, LoadingState } from "./components/ui/index.js";
 import { Page, ActionGroup } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";

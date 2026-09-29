@@ -18,7 +18,35 @@ import {
   parseScopedActivityContext,
   assertLocalLearningScope,
 } from "./learning-context.js";
-import { resolveLearningContext, supportedCourse, validateCourseEvidence } from "@call-nina/domain";
+import {
+  resolveLearningContext,
+  supportedCourse,
+  validateCourseEvidence,
+  aiProvenanceSchema,
+  attemptFeedbackSchema,
+  correctionVocabularyCandidateSchema,
+  defaultModelPreferences,
+  exerciseAnswerSchema,
+  evaluateExerciseAnswer,
+  materializeContentExercises,
+  learnerProfileSchema,
+  mistakeCategorySchema,
+  modelPreferencesSchema,
+  modelWorkloads,
+  objectiveEvaluationSchema,
+  scheduleVocabularyReview,
+  vocabularyEntrySchema,
+  vocabularyExampleSchema,
+  vocabularyLessonSetRequestSchema,
+  type VocabularyLessonSetRequest,
+  voiceSummarySchema,
+  startedExerciseSnapshotSchema,
+  type MistakeCategory,
+  type LearnerProfile,
+  type ModelPreferences,
+  type VocabularyEntry,
+  type VoiceSummary,
+} from "@call-nina/domain";
 import { readLearningPathState, updateLearningPath, saveCourseEvidence } from "./learning-path.js";
 import { readPersonalDataInventory, clearPersonalData } from "./personal-data.js";
 import { createHash, randomUUID } from "node:crypto";
@@ -69,32 +97,6 @@ import {
   z,
   type AttemptId,
 } from "@call-nina/contracts";
-import {
-  aiProvenanceSchema,
-  attemptFeedbackSchema,
-  correctionVocabularyCandidateSchema,
-  defaultModelPreferences,
-  exerciseAnswerSchema,
-  evaluateExerciseAnswer,
-  materializeContentExercises,
-  learnerProfileSchema,
-  mistakeCategorySchema,
-  modelPreferencesSchema,
-  modelWorkloads,
-  objectiveEvaluationSchema,
-  scheduleVocabularyReview,
-  vocabularyEntrySchema,
-  vocabularyExampleSchema,
-  vocabularyLessonSetRequestSchema,
-  type VocabularyLessonSetRequest,
-  voiceSummarySchema,
-  startedExerciseSnapshotSchema,
-  type MistakeCategory,
-  type LearnerProfile,
-  type ModelPreferences,
-  type VocabularyEntry,
-  type VoiceSummary,
-} from "@call-nina/domain";
 
 import { type CallNinaDatabase, withLeasedConnection, withLeasedTransaction } from "./sqlite.js";
 import { claimIdempotentWrite, type IdempotentWriteResult } from "./idempotency.js";

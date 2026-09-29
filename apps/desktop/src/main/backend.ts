@@ -9,6 +9,17 @@ import {
   saveFlashcardVocabulary,
   prepareCourseTeaching,
   addCourseVocabulary,
+  readLearningCourse,
+  initializeCallNinaDataRoot,
+  inspectDataRootChoice,
+  CallNinaRepository,
+  openCallNinaDatabase,
+  readBootstrapPointer,
+  recoverCallNinaDataRoot,
+  resolveDataRootLayout,
+  switchCallNinaDataRoot,
+  type CallNinaDatabase,
+  type LearnerSettingsRecord,
 } from "@call-nina/persistence";
 import { readPersonalDataLocations } from "./personal-data.js";
 import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
@@ -49,19 +60,6 @@ import {
 } from "@call-nina/domain";
 import { discoverCodex, type AppServerLogRecord } from "@call-nina/codex-client";
 import { readPluginIntegrationState, runPluginIntegrationAction } from "./plugin-integration.js";
-import {
-  readLearningCourse,
-  initializeCallNinaDataRoot,
-  inspectDataRootChoice,
-  CallNinaRepository,
-  openCallNinaDatabase,
-  readBootstrapPointer,
-  recoverCallNinaDataRoot,
-  resolveDataRootLayout,
-  switchCallNinaDataRoot,
-  type CallNinaDatabase,
-  type LearnerSettingsRecord,
-} from "@call-nina/persistence";
 
 import {
   diagnosticErrorCode,

@@ -1,6 +1,11 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
-import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from "lucide-react";
+import {
+  type LucideIcon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+} from "lucide-react";
 
 import { IconButton, Tooltip } from "../ui/Button.js";
 import styles from "./AppShell.module.css";

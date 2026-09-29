@@ -1,12 +1,13 @@
-import type {
-  ProviderOperation,
-  DesktopIpcRequest,
-  DesktopIpcResponse,
-  CallNinaError,
+import {
+  type ProviderOperation,
+  type DesktopIpcRequest,
+  type DesktopIpcResponse,
+  type CallNinaError,
+  calendarDateSchema,
+  curriculumTopicIdSchema,
 } from "@call-nina/contracts";
 import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
-import { calendarDateSchema, curriculumTopicIdSchema } from "@call-nina/contracts";
 import { History, Repeat2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
