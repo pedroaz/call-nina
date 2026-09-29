@@ -6,14 +6,25 @@ import { landingSections, siteLinks } from "./extensions";
 import "@call-nina/design-system/tokens.css";
 import "./styles.css";
 
-function initialLocale(): Locale {
+function localeFromUrl(): Locale {
   const requested = new URLSearchParams(window.location.search).get("lang");
   return languages.find(({ code }) => code === requested)?.code ?? "en";
 }
 
 function App() {
-  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [locale, setLocale] = useState<Locale>(localeFromUrl);
   const t = copy[locale];
+
+  useEffect(() => {
+    function syncLocale() {
+      setLocale(localeFromUrl());
+    }
+
+    window.addEventListener("popstate", syncLocale);
+    return () => {
+      window.removeEventListener("popstate", syncLocale);
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = locale;
