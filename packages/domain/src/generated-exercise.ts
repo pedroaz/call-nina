@@ -1,5 +1,8 @@
+import { supportedLanguagePolicy } from "./language-policy.js";
 import {
   activityIdSchema,
+  parsePortableExerciseContent,
+  type PortableExerciseContent,
   exerciseGenerationCandidateSchema,
   exerciseIdSchema,
   generatedExerciseInstructions,
@@ -19,7 +22,7 @@ import {
 type Candidate = z.infer<typeof exerciseGenerationCandidateSchema>["exercises"][number];
 
 function normalized(value: string): string {
-  return value.normalize("NFKC").trim().replaceAll(/\s+/gu, " ").toLocaleLowerCase("de-DE");
+  return supportedLanguagePolicy("de").normalize(value);
 }
 
 function containsCompleteAnswer(text: string, answer: string): boolean {
@@ -261,4 +264,29 @@ export function materializeGeneratedLesson(
     ],
     exercises,
   });
+}
+
+/** Materialize a stored revision, preserving its identity across practice attempts. */
+export function materializeContentExercises(
+  contentValue: PortableExerciseContent,
+  options: Parameters<typeof materializeGeneratedExerciseSet>[1],
+): readonly ExerciseDefinition[] {
+  const content = parsePortableExerciseContent(contentValue);
+  return materializeGeneratedExerciseSet(content.payload, {
+    ...options,
+    curriculumTopicIds: content.goal.curriculumTopicIds,
+  }).map((exercise, position) =>
+    exerciseDefinitionSchema.parse({
+      ...exercise,
+      contentReference: {
+        contentId: content.contentId,
+        revisionId: content.revisionId,
+        exercise: content.exercises[position],
+        materials: content.materials.map(({ materialId, revisionId }) => ({
+          materialId,
+          revisionId,
+        })),
+      },
+    }),
+  );
 }

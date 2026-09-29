@@ -1,6 +1,11 @@
+import type {
+  ProviderOperation,
+  DesktopIpcRequest,
+  DesktopIpcResponse,
+  CallNinaError,
+} from "@call-nina/contracts";
 import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
-import type { DesktopIpcRequest, DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import { calendarDateSchema, curriculumTopicIdSchema } from "@call-nina/contracts";
 import { History, Repeat2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -80,7 +85,7 @@ export function HistoryPage({
 }: {
   onPracticeAgain: (seed: HistoryPracticeSeed) => void;
   initialHistoryEntryIds?: NonNullable<HistoryPayload["historyEntryIds"]>;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
 }) {
   const { i18n, t } = useTranslation();
   const progress = useOperationProgress();
@@ -211,7 +216,7 @@ export function HistoryPage({
   };
 
   const createTargetedPractice = async (pattern: Snapshot["mistakePatterns"][number]) => {
-    if (!(await requestAiAccess())) return;
+    if (!(await requestAiAccess("exercise-generation"))) return;
     const patternKey = `${pattern.category.kind}:${pattern.category.categoryKey}`;
     const submissionId = createDesktopSubmissionId();
     practiceSubmissionId.current = submissionId;
@@ -220,6 +225,7 @@ export function HistoryPage({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
+        routeId: "codex",
         submissionId,
         input: {
           kind: "exercise-generation",
@@ -238,7 +244,7 @@ export function HistoryPage({
     if (entry.detail.kind !== "voice-summary") return;
     const nextStep = entry.detail.nextSteps[0];
     if (!nextStep) return;
-    if (!(await requestAiAccess())) return;
+    if (!(await requestAiAccess("exercise-generation"))) return;
     const patternKey = `voice:${entry.historyEntryId}`;
     const submissionId = createDesktopSubmissionId();
     practiceSubmissionId.current = submissionId;
@@ -247,6 +253,7 @@ export function HistoryPage({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
+        routeId: "codex",
         submissionId,
         input: {
           kind: "exercise-generation",
@@ -496,6 +503,9 @@ export function HistoryPage({
                 {dateFormatter.format(new Date(entry.occurredAt))}
               </time>
             </header>
+            {entry.evidence && (
+              <Muted as="p">{t(`history.evidenceBasis.${entry.evidence.basis}`)}</Muted>
+            )}
             <Disclosure label={t("ui.details")}>
               {entry.curriculumTopicIds.length > 0 && (
                 <Muted as="p">
@@ -507,7 +517,26 @@ export function HistoryPage({
                   {t("history.mistakes")}: {entry.mistakeCategories.join(", ")}
                 </Muted>
               )}
-              {entry.detail.kind === "writing-correction" ? (
+              {entry.detail.kind === "attempt-feedback" ? (
+                <div className={styles.historyDetail}>
+                  <h3>{t(entry.detail.later ? "history.laterFeedback" : "history.feedback")}</h3>
+                  <p>{entry.detail.feedback.summary}</p>
+                  <ItemList>
+                    {entry.detail.feedback.evidence.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ItemList>
+                  <ConfirmDialog
+                    body={t("history.deleteBody")}
+                    cancel={t("actions.cancel")}
+                    confirm={t("actions.delete")}
+                    onConfirm={() => deleteEntry(entry)}
+                    title={t("history.deleteTitle")}
+                    triggerVariant="quiet"
+                    trigger={t("history.delete")}
+                  />
+                </div>
+              ) : entry.detail.kind === "writing-correction" ? (
                 <div className={styles.historyDetail}>
                   <div className={styles.correctionGrid}>
                     <section className={styles.correctionPane}>

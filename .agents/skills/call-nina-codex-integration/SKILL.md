@@ -8,7 +8,8 @@ description: Maintain Call Nina's Codex App Server adapter, model selection, plu
 Inspect the current implementation and runtime capabilities before diagnosing compatibility. Repository-relative starting points:
 
 - Runtime discovery and transport: `packages/codex-client/src/desktop-runtime.ts`, `discovery.ts`, `process-manager.ts`, `adapter.ts`.
-- Workload isolation, output validation and cancellation: `packages/codex-client/src/workload.ts`, `output-validation.ts`, `operation-controller.ts`; wire policy: `packages/contracts/src/app-server.ts`.
+- Codex workload isolation and cancellation: `packages/codex-client/src/workload.ts`, `operation-controller.ts`; wire policy and Codex integration capabilities: `packages/contracts/src/app-server.ts`.
+- Portable context, teaching prompts, output validation, quality and the single deadline-bound repair live in `packages/learning-workflows/src/`; app-owned requests, results, states, capabilities and provenance live in `packages/contracts/src/generation.ts` and `generation-provenance.ts`. This boundary must not import provider transport, credentials, Node or Electron.
 - Model catalog and saved/effective choices: `packages/codex-client/src/catalog.ts`, `packages/domain/src/model-preference.ts` and their renderer callers.
 - Scoped installation and payload staging: `packages/codex-client/src/plugin.ts`, `plugin-source.ts`, `apps/desktop/src/main/plugin-integration.ts`, `plugins/call-nina/.codex-plugin/plugin.json`, `.mcp.json`, and `Makefile`.
 - MCP tools: `packages/contracts/src/mcp.ts`, `apps/mcp-server/src/index.ts`; teaching workflows: `plugins/call-nina/skills/`.
@@ -17,6 +18,7 @@ Inspect the current implementation and runtime capabilities before diagnosing co
 ## Decisions to preserve
 
 - Main owns App Server over local STDIO; MCP is independently launched STDIO and keeps stdout protocol-only. Renderer receives neither raw protocols nor generic execution capabilities.
+- Bind saved model/effort choices and operation access to the selected implemented route. Recheck account, model and operation capabilities before dispatch; retries retain their original model/effort. Codex Voice handoff checks its own integration capabilities and plugin, independently of structured generation model settings. Provider connection failures must not block local setup or prepared practice.
 - Keep desktop workloads bounded by the owning sandbox, tool, deadline and output contracts. Read the installed runtime's model catalog; a CLI version, registration or resource probe is not evidence of a working learner action.
 - Before changing host/API, manifest or installation assumptions, consult current official OpenAI documentation. Do not create a local copy of that documentation. Do not weaken validation to accommodate unsupported behavior.
 - Scope plugin operations to Call Nina and preserve unrelated configuration. Inspect Make targets and lifecycle code; do not reinstall merely because a skill changed. Report when an installed copy still needs a refresh.

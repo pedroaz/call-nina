@@ -1,20 +1,26 @@
+import { historyAttemptEvidence } from "./attempt-evidence.js";
+import {
+  parseScopedActivityContext,
+  assertLocalLearningScope,
+  requireLocalLearningScope,
+} from "./learning-context.js";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import {
+  germanNounGender,
   courseEvidenceSchema,
   courseMissionSchema,
   courseTeachingContextSchema,
-  learningCourseSchema,
   learningPathStateSchema,
   learningPathUpdateSchema,
-  preparedActivitySchema,
   type CourseEvidence,
   type CourseReference,
   type LearningCourse,
 } from "@call-nina/contracts";
 import {
+  parseSupportedLearningCourse,
   resolveCourseReference,
   validateCourseEvidence,
   vocabularyEntrySchema,
@@ -30,7 +36,7 @@ export async function readLearningCourse(curriculumRoot: string): Promise<Learni
     throw new Error("OD_COURSE_UNAVAILABLE");
   }
   if (source.length > 2_000_000) throw new Error("OD_COURSE_INVALID");
-  return learningCourseSchema.parse(JSON.parse(source));
+  return parseSupportedLearningCourse(JSON.parse(source));
 }
 
 export function saveCourseEvidence(
@@ -47,19 +53,22 @@ export function saveCourseEvidence(
     .prepare("SELECT context_json FROM prepared_activities WHERE activity_id = ?")
     .get(input.activityId) as { context_json: string } | undefined;
   if (!activity) throw new Error("OD_COURSE_ACTIVITY_MISSING");
-  const context = preparedActivitySchema.shape.context.parse(JSON.parse(activity.context_json));
+  const context = parseScopedActivityContext(connection, JSON.parse(activity.context_json));
   const reference = context.learningPath;
   if (!reference || !context.courseTeaching) return;
   const priorResults = connection
     .prepare(
-      `SELECT a.context_json, r.evidence_json FROM course_results r JOIN prepared_activities a ON a.activity_id = r.activity_id WHERE json_extract(a.context_json, '$.learningPath.version') = ? AND json_extract(a.context_json, '$.learningPath.unitId') = ? AND r.occurred_at < ? ORDER BY r.occurred_at DESC LIMIT 2000`,
+      `SELECT a.context_json, r.evidence_json, r.history_entry_id FROM course_results r JOIN prepared_activities a ON a.activity_id = r.activity_id WHERE json_extract(a.context_json, '$.learningPath.version') = ? AND json_extract(a.context_json, '$.learningPath.unitId') = ? AND r.occurred_at < ? ORDER BY r.occurred_at DESC LIMIT 2000`,
     )
     .all(reference.version, reference.unitId, input.occurredAt) as {
     context_json: string;
+    history_entry_id: string;
     evidence_json: string;
   }[];
   const priorIndependent = priorResults.flatMap((row) => {
-    const previous = preparedActivitySchema.shape.context.parse(JSON.parse(row.context_json));
+    if (historyAttemptEvidence(connection, row.history_entry_id)?.basis !== "independent")
+      return [];
+    const previous = parseScopedActivityContext(connection, JSON.parse(row.context_json));
     if (previous.courseTeaching?.mission.variantId === context.courseTeaching?.mission.variantId)
       return [];
     return courseEvidenceSchema
@@ -152,6 +161,7 @@ export async function prepareCourseTeaching(
 ) {
   const { unit, activity } = resolveCourseReference(course, reference);
   return withLeasedTransaction(database, (connection) => {
+    assertCourseScope(connection, course);
     const row =
       reference.mode === "course"
         ? connection
@@ -269,7 +279,7 @@ export async function readLearningPathState(database: CallNinaDatabase) {
         updatedAt: m.updated_at,
       })),
       activities: activities.map((a) => {
-        const context = preparedActivitySchema.shape.context.parse(JSON.parse(a.context_json));
+        const context = parseScopedActivityContext(connection, JSON.parse(a.context_json));
         const results = connection
           .prepare(
             "SELECT history_entry_id, occurred_at, evidence_json FROM course_results WHERE activity_id = ? ORDER BY occurred_at, history_entry_id",
@@ -287,13 +297,21 @@ export async function readLearningPathState(database: CallNinaDatabase) {
           preparedAt: a.prepared_at,
           completed: a.status === "completed" && a.result_count === (a.expected_count ?? 1),
           historyEntryIds: results.map((r) => r.history_entry_id),
-          evidence: results.flatMap((r) =>
-            (JSON.parse(r.evidence_json) as CourseEvidence[]).map((e) => ({
+          evidence: results.flatMap((r) => {
+            const attemptEvidence = historyAttemptEvidence(connection, r.history_entry_id);
+            return (JSON.parse(r.evidence_json) as CourseEvidence[]).map((e) => ({
               ...e,
+              // Participation and self-ratings never establish independent proficiency.
+              outcome:
+                ["independent", "transfer"].includes(e.outcome) &&
+                attemptEvidence?.basis !== "independent"
+                  ? "supported"
+                  : e.outcome,
               occurredAt: r.occurred_at,
               historyEntryId: r.history_entry_id,
-            })),
-          ),
+              attemptEvidence,
+            }));
+          }),
         };
       }),
     });
@@ -312,6 +330,7 @@ export async function updateLearningPath(
   if (input.action === "complete-explanation" && activity.delivery !== "explanation")
     throw new Error("OD_COURSE_COMPLETION_INVALID");
   await withLeasedTransaction(database, (connection) => {
+    assertCourseScope(connection, course);
     connection
       .prepare(
         `INSERT INTO course_selection (singleton, selected_stage, current_json) VALUES (1, ?, ?) ON CONFLICT(singleton) DO UPDATE SET selected_stage = excluded.selected_stage, current_json = excluded.current_json`,
@@ -351,6 +370,7 @@ export async function addCourseVocabulary(
 ) {
   const { unit } = resolveCourseReference(course, reference);
   return withLeasedTransaction(database, (connection) => {
+    assertCourseScope(connection, course);
     let added = 0;
     const now = new Date().toISOString();
     for (const target of course.targets.filter(
@@ -379,12 +399,7 @@ export async function addCourseVocabulary(
                   partOfSpeech: "noun",
                   nounForm: {
                     article: target.article,
-                    gender:
-                      target.article === "der"
-                        ? "masculine"
-                        : target.article === "die"
-                          ? "feminine"
-                          : "neuter",
+                    gender: germanNounGender(target.article),
                   },
                   plural: target.plural
                     ? { status: "form", form: target.plural }
@@ -432,5 +447,14 @@ export async function addCourseVocabulary(
         .run(target.id, id);
     }
     return added;
+  });
+}
+
+function assertCourseScope(connection: DatabaseSync, course: LearningCourse) {
+  const scope = requireLocalLearningScope(connection);
+  assertLocalLearningScope(connection, {
+    ...scope,
+    courseId: course.courseId,
+    targetLanguage: course.targetLanguage,
   });
 }

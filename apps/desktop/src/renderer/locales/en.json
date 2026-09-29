@@ -650,6 +650,13 @@
     "keepEditing": "Keep editing"
   },
   "history": {
+    "evidenceBasis": {
+      "independent": "Answered independently · evaluation recorded",
+      "supported": "Supported practice · not independent proficiency evidence",
+      "self-assessment": "Self-assessment · used to schedule review",
+      "participation": "Participation · no independent answer evidence",
+      "unknown": "Independence not recorded"
+    },
     "eyebrow": "Learning record",
     "title": "History",
     "intro": "Review saved attempts and feedback, then choose what to practise again.",
@@ -759,7 +766,8 @@
         "cancelled": "Targeted practice was cancelled. Your evidence was not changed.",
         "failed": "Targeted practice could not be created. Your evidence was not changed."
       }
-    }
+    },
+    "laterFeedback": "Later feedback"
   },
   "pages": {
     "writing": "Writing",
@@ -789,7 +797,7 @@
     "missing": "Codex is not installed. Local learning tools remain available.",
     "unsupported": "This Codex version is unsupported. Upgrade Codex to use AI features.",
     "unavailable": "Codex App Server is unavailable. Local learning tools remain available.",
-    "signedOut": "Connect your Codex account to use AI features.",
+    "signedOut": "AI actions need a connected Codex account. Local learning and prepared practice remain available.",
     "available": "Codex integration is available."
   },
   "folder": {
@@ -814,7 +822,7 @@
     "title": "Your learning preferences",
     "intro": "Choose a few defaults now. You can change them later, and the app language remains a separate choice.",
     "accountTitle": "Codex connection",
-    "accountConnected": "Account connected · Plan: {{plan}}",
+    "accountConnected": "Codex account connected · provider plan: {{plan}}",
     "accountSignedOut": "Sign in to your Codex account using one of the options below.",
     "accountExpired": "Your sign-in has expired. Sign in again below to reconnect.",
     "accountUnsupported": "Your current sign-in method is not supported. Use the browser or device-code option below.",
@@ -858,14 +866,13 @@
     "finish": "Finish setup and start learning",
     "progress": "Step {{current}} of {{total}}",
     "steps": {
-      "connection": "Connect Codex",
+      "connection": "Optional AI connection",
       "goal": "Your level and goal",
       "defaults": "Teaching and languages",
       "review": "Review your setup"
     },
     "selectedFolder": "Your learning data is saved locally in: {{folder}}",
     "folderSettings": "Return to Settings to change the data folder.",
-    "connectionRequired": "Connect Codex before finishing setup. You can choose your learning preferences in the meantime.",
     "pluginOptional": "This plugin lets you access your learning activities from the Codex app. You can finish setup without it.",
     "pluginReady": "Plugin updated. Start a new task in Codex to use Call Nina there.",
     "interfaceLanguage": "Interface language",
@@ -884,7 +891,7 @@
     "checkConnection": "Check connection",
     "checking": "Checking connection…",
     "checkComplete": "Connection check complete.",
-    "checkFailed": "The connection check failed. Check again or see the error details below.",
+    "checkFailed": "The optional Codex connection check failed. You can continue local setup and check again later.",
     "returnConnection": "Go to connection setup",
     "pluginTitle": "Use Call Nina in Codex (optional)",
     "plugin": {
@@ -897,7 +904,7 @@
       "refresh": "Update plugin"
     },
     "guidance": {
-      "connection": "Check your Codex connection, then set up how you want to learn.",
+      "connection": "Set up local learning now. You can connect Codex here or later in Settings.",
       "goal": "Tell us where you are starting and what you want to do in German.",
       "defaults": "Choose how you want feedback and which languages to use. You can change these in Settings.",
       "review": "Review your choices below. Use Back to make changes, or finish setup to start learning."
@@ -908,7 +915,8 @@
       "missing": "Codex could not be found. Install the Codex desktop app, then check the connection again.",
       "unsupported-version": "Your installed Codex version is not supported. Update Codex, then check the connection again.",
       "app-server-unavailable": "Call Nina could not connect to Codex. Restart Codex, then check the connection again."
-    }
+    },
+    "connectionOptional": "You can finish setup and practise prepared activities without connecting Codex. Connect later for AI generation and feedback."
   },
   "settings": {
     "eyebrow": "Preferences",
@@ -1394,5 +1402,20 @@
     "vocabularyDeck": "My vocabulary flashcards",
     "study": "Study flashcards",
     "selectRange": "Select 3–30 words to create a deck."
+  },
+  "providerAccess": {
+    "selectedRoute": "AI route: Codex",
+    "preferences": "These model and reasoning choices apply only to Codex. Unavailable saved choices are retained.",
+    "identityBoundary": "Your learner profile is local. Connecting Codex uses your provider account; its plan is not a Call Nina subscription. No Call Nina account is required.",
+    "localAvailable": "Your local learning data and supported prepared practice remain available. Free writing and answers outside prepared answer sets need AI feedback.",
+    "dismiss": "Dismiss",
+    "reasons": {
+      "runtime-unavailable": "This AI action needs Codex on this device. Check the Codex connection in Settings, then retry.",
+      "account-required": "This AI action needs a signed-in Codex account. Connect or renew your connection in Settings, then retry.",
+      "account-unavailable": "Codex account access could not be confirmed. Check the connection in Settings, then retry.",
+      "capability-unavailable": "The Codex route on this device does not support this action. No other route will be selected automatically.",
+      "model-unavailable": "No usable Codex model and reasoning setting is available for this action. Check the saved model choice and connection in Settings, then retry.",
+      "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry."
+    }
   }
 }

@@ -46,6 +46,7 @@ Read the skill relevant to the task, then inspect the owning code and its caller
 - [call-nina-development](.agents/skills/call-nina-development/SKILL.md): repository workflow, structural boundaries, persistence, diagnosis, and code entry points.
 - [call-nina-orchestration](.agents/skills/call-nina-orchestration/SKILL.md): bounded autonomous development with Orca tasks and specialized Codex workers.
 - [call-nina-self-evaluation](.agents/skills/call-nina-self-evaluation/SKILL.md): manually requested, interview-led evaluation of development evidence and approved improvement proposals.
+- [call-nina-blog-authoring](.agents/skills/call-nina-blog-authoring/SKILL.md): explicitly invoked English development-blog drafts grounded in public Git/GitHub evidence; no automatic publication.
 - [call-nina-desktop-ui](.agents/skills/call-nina-desktop-ui/SKILL.md): renderer controls, layout, localization, accessibility, and visual review.
 - [call-nina-codex-integration](.agents/skills/call-nina-codex-integration/SKILL.md): App Server, models, plugin/MCP boundaries, and learner-facing skill maintenance.
 - [call-nina-electron-verification](.agents/skills/call-nina-electron-verification/SKILL.md): operate the real app interactively during development; no test suite.

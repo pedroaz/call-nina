@@ -1,6 +1,6 @@
 import { sessionIdSchema, strictBoundaryObject, z } from "@call-nina/contracts";
 
-import { teachingLanguageSchema, type LearnerProfile } from "./learner-profile.js";
+import { explanationLanguageSchema, type LearnerProfile } from "./learner-profile.js";
 
 export const teachingProfileIds = ["conversation-partner", "strict-corrector"] as const;
 export const teachingProfileIdSchema = z.enum(teachingProfileIds);
@@ -78,15 +78,15 @@ export type TeachingActivityKind = z.infer<typeof teachingActivityKindSchema>;
 export type TeachingProfileDefinition = z.infer<typeof teachingProfileDefinitionSchema>;
 export type SessionTeachingProfileSelection = z.infer<typeof sessionTeachingProfileSelectionSchema>;
 export type EffectiveTeachingProfile = TeachingProfileDefinition & {
-  readonly explanationLanguage: LearnerProfile["teachingLanguage"];
+  readonly explanationLanguage: LearnerProfile["explanationLanguage"];
   readonly englishSupport: "none" | "when-useful";
 };
 
 export function resolveTeachingProfile(
   selection: SessionTeachingProfileSelection,
-  teachingLanguage: LearnerProfile["teachingLanguage"],
+  explanationLanguage: LearnerProfile["explanationLanguage"],
 ): EffectiveTeachingProfile {
-  const validatedLanguage = teachingLanguageSchema.parse(teachingLanguage);
+  const validatedLanguage = explanationLanguageSchema.parse(explanationLanguage);
   const profile = teachingProfileDefinitionSchema.parse(
     teachingProfiles[
       selection.overrideProfileId ?? defaultTeachingProfileForActivity(selection.activity)

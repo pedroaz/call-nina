@@ -1,10 +1,21 @@
 import { assertNoLinks, assertOwnedPath, syncDirectory } from "@call-nina/platform";
 import { randomUUID } from "node:crypto";
-import { lstat, mkdir, open, readFile, realpath, rename, stat, unlink } from "node:fs/promises";
+import {
+  link,
+  lstat,
+  mkdir,
+  open,
+  readFile,
+  realpath,
+  rename,
+  stat,
+  unlink,
+} from "node:fs/promises";
 import path from "node:path";
 
 import {
   dataRootGenerationSchema,
+  originatingDeviceIdSchema,
   strictBoundaryObject,
   utcInstantSchema,
   z,
@@ -260,5 +271,50 @@ export async function assertCurrentDataRootLease(options: {
     state.rootGeneration !== options.rootGeneration
   ) {
     throw new Error("OD_DATA_ROOT_STALE");
+  }
+}
+
+/** Installation identity stays beside the bootstrap pointer, never in a portable learner root. */
+export async function readOrCreateOriginatingDeviceId(bootstrapFile: string): Promise<string> {
+  const directory = await assertPrivateBootstrapDirectory(bootstrapFile, true);
+  const destination = path.join(directory, "originating-device.json");
+  const schema = z.strictObject({
+    schemaVersion: z.literal(1),
+    deviceId: originatingDeviceIdSchema,
+  });
+  const read = async () => {
+    await assertOwnedPath(destination);
+    return schema.parse(JSON.parse(await readBoundedRegularFile(destination))).deviceId;
+  };
+  try {
+    return await read();
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT")
+      throw new Error("OD_ATTEMPT_DEVICE_INVALID");
+  }
+  const temporary = path.join(directory, `.originating-device-${randomUUID()}.tmp`);
+  const file = await open(temporary, "wx", 0o600);
+  try {
+    try {
+      await file.writeFile(
+        JSON.stringify({
+          schemaVersion: 1,
+          deviceId: `device_${randomUUID().replaceAll("-", "")}`,
+        }),
+      );
+      await file.sync();
+    } finally {
+      await file.close();
+    }
+    // Publish a fully written file without replacing a concurrent desktop/MCP winner.
+    try {
+      await link(temporary, destination);
+      await syncDirectory(directory);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    }
+    return await read();
+  } finally {
+    await unlink(temporary);
   }
 }

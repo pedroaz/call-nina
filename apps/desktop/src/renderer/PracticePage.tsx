@@ -1,3 +1,9 @@
+import {
+  type ProviderOperation,
+  exerciseFeedbackCandidateSchema,
+  type DesktopIpcResponse,
+  type CallNinaError,
+} from "@call-nina/contracts";
 import { PracticeCount, validPracticeCount } from "./PracticeCount.js";
 import { FlashcardWorkspace } from "./FlashcardWorkspace.js";
 import { OperationProgress } from "./OperationProgress.js";
@@ -10,12 +16,7 @@ import { useActivityLibrary } from "./useActivityLibrary.js";
 import { generatePracticeActivity } from "./generatePracticeActivity.js";
 import { OperationError } from "./Startup.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  exerciseFeedbackCandidateSchema,
-  type DesktopIpcResponse,
-  type CallNinaError,
-} from "@call-nina/contracts";
-import { materializeGeneratedExerciseSet } from "@call-nina/domain";
+import { materializeContentExercises } from "@call-nina/domain";
 import {
   BookOpen,
   ChevronRight,
@@ -74,7 +75,7 @@ export function PracticePage({
   parentLabel?: string;
   initialPreparation?: Extract<PracticeLaunch, { destination: "preparation" }>;
   activityId?: PreparedActivityId;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenActivity: (activityId: PreparedActivityId) => void;
   onCloseActivity: () => void;
   onVocabulary?: () => void;
@@ -152,7 +153,9 @@ export function PracticePage({
   const [libraryMutationError, setLibraryMutationError] = useState<CallNinaError>();
   const libraryError = libraryMutationError ?? library.error;
   const [prepared, setPrepared] =
-    useState<Extract<DesktopIpcResponse, { status: "ok"; channel: "activity/read" }>["result"]>();
+    useState<
+      Extract<DesktopIpcResponse, { status: "ok"; channel: "activity/resolve" }>["result"]
+    >();
 
   const generated = prepared?.activity.activityId === activityId ? generatedResult : undefined;
   useEffect(() => {
@@ -179,11 +182,11 @@ export function PracticePage({
       setError(undefined);
       if (!activityId) return;
       window.scrollTo(0, 0);
-      void invokeDesktop("activity/read", { activityId })
+      void invokeDesktop("activity/resolve", { action: "open-activity", activityId })
         .then(async (result) => {
           if (!current) return;
           setPrepared(result);
-          if (result.generated && result.activity.activityType !== "flashcards") {
+          if (result.destination === "generated-exercises") {
             const loaded = await invokeDesktop("prepared-activity/read", { activityId });
             if (isCurrent()) setGenerated(loaded);
           }
@@ -200,8 +203,8 @@ export function PracticePage({
   const exercises = useMemo(
     () =>
       generated
-        ? materializeGeneratedExerciseSet(generated.output, {
-            exerciseIds: generated.output.exercises.map(
+        ? materializeContentExercises(generated.content, {
+            exerciseIds: generated.content.payload.exercises.map(
               (_, position) => `exercise_${String(position).padStart(16, "0")}`,
             ),
             aiProvenance: {
@@ -233,7 +236,7 @@ export function PracticePage({
   if (
     activityId &&
     prepared?.activity.activityId === activityId &&
-    prepared.activity.activityType === "flashcards"
+    prepared.destination === "flashcards"
   ) {
     return (
       <FlashcardWorkspace
@@ -248,7 +251,7 @@ export function PracticePage({
     activityId &&
     prepared &&
     prepared.activity.activityId === activityId &&
-    !prepared.generated
+    prepared.destination === "prepared"
   ) {
     return (
       <PreparedActivityWorkspace
@@ -284,7 +287,7 @@ export function PracticePage({
           ? {
               description: [
                 t("practice.session.exerciseCount", { count: exercises.length }),
-                generated.output.lesson ? t("practice.session.lessonIncluded") : "",
+                generated.content.payload.lesson ? t("practice.session.lessonIncluded") : "",
               ]
                 .filter(Boolean)
                 .join(" · "),
@@ -310,36 +313,38 @@ export function PracticePage({
         }
       >
         {error && <OperationError error={error} />}
-        {generated?.output.readingMaterial && (
+        {generated?.content.payload.readingMaterial && (
           <Card as="article">
-            <h2>{generated.output.readingMaterial.title}</h2>
-            <p className={styles.readingPassage}>{generated.output.readingMaterial.passage}</p>
+            <h2>{generated.content.payload.readingMaterial.title}</h2>
+            <p className={styles.readingPassage}>
+              {generated.content.payload.readingMaterial.passage}
+            </p>
           </Card>
         )}
-        {generated?.output.lesson && !generated.missionFacts && (
+        {generated?.content.payload.lesson && !generated.missionFacts && (
           <details className={styles.practiceLessonDisclosure}>
             <summary>
               <span>
                 <BookOpen aria-hidden="true" />
                 <span>
-                  <strong>{generated.output.lesson.title}</strong>
+                  <strong>{generated.content.payload.lesson.title}</strong>
                   <small>{t("practice.session.lessonHint")}</small>
                 </span>
               </span>
             </summary>
             <div className={styles.practiceLessonBody}>
-              <p>{generated.output.lesson.explanation}</p>
-              {generated.output.lesson.sections.map((section) => (
+              <p>{generated.content.payload.lesson.explanation}</p>
+              {generated.content.payload.lesson.sections.map((section) => (
                 <section key={section.heading}>
                   <h3>{section.heading}</h3>
                   <p>{section.content}</p>
                 </section>
               ))}
-              {generated.output.lesson.vocabularyFoundations.length > 0 && (
+              {generated.content.payload.lesson.vocabularyFoundations.length > 0 && (
                 <section>
                   <h3>{t("exercises.custom.vocabulary")}</h3>
                   <ItemList>
-                    {generated.output.lesson.vocabularyFoundations.map((item) => (
+                    {generated.content.payload.lesson.vocabularyFoundations.map((item) => (
                       <li key={`${item.german}:${item.example}`}>
                         <strong>{item.german}</strong> — {item.explanation}
                         <Muted as="span">{item.example}</Muted>
@@ -360,6 +365,7 @@ export function PracticePage({
               </Card>
             )}
             <ExerciseEngine
+              targetLanguage={generated.learningScope.targetLanguage}
               {...(feedback.busy ? { onCancelAiEvaluation: feedback.cancel } : {})}
               key={activityId}
               exercises={exercises}
@@ -376,7 +382,8 @@ export function PracticePage({
                 setStartedAttemptIds(started.attemptIds);
               }}
               onAiEvaluationRequested={async (evaluation, exercisePosition) => {
-                if (!(await requestAiAccess())) throw new Error("OD_AI_DISCLOSURE_REQUIRED");
+                if (!(await requestAiAccess("exercise-feedback")))
+                  throw new Error("OD_AI_DISCLOSURE_REQUIRED");
                 const attemptId = startedAttemptIds?.[exercisePosition];
                 if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
                 if (
@@ -422,7 +429,12 @@ export function PracticePage({
     requestedLesson: string,
     source: "natural-request" | "grammar",
   ) => {
-    if (!quizCountValid || !requestedLesson.trim() || !(await requestAiAccess())) return;
+    if (
+      !quizCountValid ||
+      !requestedLesson.trim() ||
+      !(await requestAiAccess("exercise-generation"))
+    )
+      return;
     setGenerationError(undefined);
     try {
       const createdId = await generatePracticeActivity(
@@ -459,7 +471,11 @@ export function PracticePage({
     />
   );
   const generateFlashcards = async () => {
-    if (!validPracticeCount(cardCount) || !flashcardTopic.trim() || !(await requestAiAccess()))
+    if (
+      !validPracticeCount(cardCount) ||
+      !flashcardTopic.trim() ||
+      !(await requestAiAccess("flashcard-generation"))
+    )
       return;
     setGenerationError(undefined);
     try {

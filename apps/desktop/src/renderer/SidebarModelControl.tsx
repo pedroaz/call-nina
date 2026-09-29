@@ -41,14 +41,12 @@ export function SidebarModelControl({ initialWorkload }: { initialWorkload: Mode
 
   const load = useCallback(async () => {
     try {
-      const [nextSettings, nextCatalog] = await Promise.all([
-        desktopSettingsAdapter.read(),
-        invokeDesktop("codex/models/read", {}),
-      ]);
+      const nextSettings = await desktopSettingsAdapter.read();
       setSettings(nextSettings);
-      setCatalog(nextCatalog);
+      setCatalog(await invokeDesktop("codex/models/read", {}));
       setError(undefined);
     } catch (cause) {
+      setCatalog(undefined);
       setError(normalizeDesktopError(cause).detail);
     }
   }, []);
@@ -58,7 +56,7 @@ export function SidebarModelControl({ initialWorkload }: { initialWorkload: Mode
     const unsubscribe = subscribeDesktop((event) => {
       if (
         event.event === "state-invalidated" &&
-        (event.scope === "settings" || event.scope === "models")
+        (event.scope === "settings" || event.scope === "models" || event.scope === "account")
       ) {
         void load();
       }
@@ -177,6 +175,7 @@ export function SidebarModelControl({ initialWorkload }: { initialWorkload: Mode
             </Button>
           ))}
         </div>
+        <p className={styles.navModelStatus}>{t("providerAccess.selectedRoute")}</p>
         {!preference ? (
           <p className={styles.navModelStatus}>{t("modelControl.loading")}</p>
         ) : (
@@ -235,6 +234,9 @@ export function SidebarModelControl({ initialWorkload }: { initialWorkload: Mode
           </>
         )}
       </Disclosure>
+      {resolution?.resolution.status === "unavailable" && (
+        <p className={styles.navModelStatus}>{t("providerAccess.reasons.model-unavailable")}</p>
+      )}
       {resolution?.resolution.status === "fallback" && (
         <p className={styles.navModelStatus}>{t("settings.savedModelFallback")}</p>
       )}

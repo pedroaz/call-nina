@@ -1,4 +1,12 @@
 export {
+  activityActionSchema,
+  activityDestinationSchema,
+  openActivityActionSchema,
+  type ActivityAction,
+  type ActivityDestination,
+} from "./activity-action.js";
+
+export {
   boundarySurfaceSchema,
   boundarySurfaces,
   boundaryUnion,
@@ -149,49 +157,58 @@ export {
 } from "./mcp.js";
 
 export {
-  appServerCandidateOutputJsonSchemas,
-  appServerOutputJsonSchemaForInput,
-  appServerCandidateOutputSchemas,
   appServerCommandNameSchema,
   appServerCommands,
   appServerCommandSchema,
   appServerEventSchema,
   appServerLifecycleStateSchema,
-  appServerOperationStartSchema,
-  appServerOperationStateSchema,
-  appServerOutputSchemaIds,
-  appServerOutputSchemaIdSchema,
   appServerSnapshotSchema,
-  appServerWorkloadInputSchema,
-  appServerWorkloadKindSchema,
-  appServerWorkloadKinds,
   appServerWorkloadPolicies,
   appServerWorkloadPolicySchema,
   codexExecutableStateSchema,
-  contextualHelpCandidateSchema,
-  exerciseFeedbackCandidateSchema,
-  exerciseGenerationCandidateSchema,
-  generatedExerciseInstructions,
+  codexIntegrationCapabilitiesSchema,
   supportedCodexVersionSchema,
-  writingCorrectionCandidateSchema,
-  writingPromptCandidateSchema,
-  voiceActivityDraftCandidateSchema,
-  type AppServerCandidateOutputMap,
   type AppServerCommand,
   type AppServerCommandName,
   type AppServerEvent,
   type AppServerLifecycleState,
-  type AppServerOperationStart,
-  type AppServerOperationState,
-  type AppServerOperationFor,
-  type AppServerOutputMap,
   type AppServerSnapshot,
-  type AppServerValidatedOperationResult,
-  type AppServerWorkloadInput,
-  type AppServerWorkloadKind,
   type CallNinaAppServerAdapter,
   type SupportedCodexVersion,
 } from "./app-server.js";
+export {
+  generationCandidateOutputJsonSchemas,
+  generationOutputJsonSchemaForInput,
+  generationCandidateOutputSchemas,
+  generationOperationStartSchema,
+  generationOperationStateSchema,
+  generationOutputSchemaIds,
+  generationOutputSchemaIdSchema,
+  generationInputSchema,
+  generationKindSchema,
+  generationKinds,
+  contextualHelpCandidateSchema,
+  exerciseFeedbackCandidateSchema,
+  exerciseGenerationCandidateSchema,
+  generatedExerciseInstructions,
+  writingCorrectionCandidateSchema,
+  writingPromptCandidateSchema,
+  voiceActivityDraftCandidateSchema,
+  type GenerationCandidateOutputMap,
+  type GenerationOperationStart,
+  type GenerationOperationState,
+  type GenerationOperationFor,
+  type GenerationOutputMap,
+  type GenerationResult,
+  type GenerationInput,
+  type GenerationKind,
+  generationEventSchema,
+  generationCapabilitiesSchema,
+  generationDeadlineMilliseconds,
+  type GenerationService,
+  type GenerationEvent,
+  type GenerationCapabilities,
+} from "./generation.js";
 
 export {
   activityTypeSchema,
@@ -231,3 +248,24 @@ export * from "./learning-path.js";
 
 export * from "./vocabulary-content.js";
 export * from "./flashcards.js";
+
+export * from "./learning-context.js";
+
+export * from "./german-language.js";
+export * from "./material.js";
+export * from "./content.js";
+
+export * from "./content-reference.js";
+export * from "./content-limits.js";
+
+export { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
+export * from "./attempt-evidence.js";
+
+export {
+  providerRouteIdSchema,
+  providerOperationSchema,
+  providerAccessSchema,
+  providerAccessReasonSchema,
+  type ProviderOperation,
+  type ProviderAccess,
+} from "./provider-access.js";

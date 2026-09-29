@@ -1,4 +1,10 @@
 import {
+  externalAttemptFeedbackSchema,
+  attemptEventIdSchema,
+  attemptEvidenceSchema,
+} from "./attempt-evidence.js";
+import { learningContextSchema } from "./learning-context.js";
+import {
   courseReferenceSchema,
   courseTeachingContextSchema,
   courseEvidenceSchema,
@@ -9,7 +15,6 @@ import {
   curriculumTopicIdSchema,
   dataRootGenerationSchema,
   historyEntryIdSchema,
-  learnerIdSchema,
   mistakeIdSchema,
   utcInstantSchema,
   vocabularyIdSchema,
@@ -60,12 +65,13 @@ export const learnerContextReadInputSchema = strictBoundaryObject({
     .min(1)
     .max(3),
 });
+const mcpLearningContextSchema = learningContextSchema.omit({ goal: true }).extend({
+  goal: learningContextSchema.shape.goal.optional(),
+});
 const learnerContextDataSchema = z.strictObject({
-  learnerId: learnerIdSchema,
-  approximateLevel: z.enum(["A1", "A2", "B1", "B2"]),
-  everydayLifeGoal: text(500),
-  explanationLanguage: z.enum(["en", "de"]),
-  teachingProfile: z.enum(["conversation-partner", "strict-corrector"]),
+  learningContext: mcpLearningContextSchema,
+  approximateLevel: z.enum(["A1", "A2", "B1", "B2"]).optional(),
+  teachingProfile: z.enum(["conversation-partner", "strict-corrector"]).optional(),
 });
 
 export const practiceContextReadInputSchema = strictBoundaryObject({
@@ -74,6 +80,8 @@ export const practiceContextReadInputSchema = strictBoundaryObject({
   maximumItemsPerSection: z.int().min(1).max(20).default(5),
 });
 const practiceContextDataSchema = z.strictObject({
+  recentAttempts: z.array(attemptEvidenceSchema).max(20),
+  learningContext: mcpLearningContextSchema,
   learningPath: z
     .strictObject({ reference: courseReferenceSchema, title: text(300), objective: text(1000) })
     .nullable(),
@@ -118,6 +126,7 @@ export const preparedVoiceActivityReadInputSchema = strictBoundaryObject({
   ]),
 });
 const preparedVoiceActivityDataSchema = z.strictObject({
+  learningContext: mcpLearningContextSchema,
   activityId: activityIdSchema,
   title: text(160),
   preparedAt: utcInstantSchema,
@@ -189,14 +198,11 @@ export const attemptFeedbackSaveInputSchema = strictBoundaryObject({
   ...writeInput,
   activityId: activityIdSchema,
   expectedActivityRevision: revisionSchema,
-  feedback: z.strictObject({
-    outcome: z.enum(["completed", "partially-completed", "abandoned"]),
-    summary: text(1_000),
-    objectiveResults: z.array(z.enum(["met", "partially-met", "not-met", "not-evaluated"])).max(20),
-    evidence: z.array(text(500)).max(20),
-  }),
+  targetAttemptId: attemptIdSchema.nullable(),
+  feedback: externalAttemptFeedbackSchema,
 });
 const attemptFeedbackDataSchema = z.strictObject({
+  eventId: attemptEventIdSchema,
   attemptId: attemptIdSchema,
   activityId: activityIdSchema,
   replayed: z.boolean(),
@@ -322,7 +328,7 @@ export const mcpToolContracts = {
   open_deutsch_save_attempt_feedback: {
     title: "Save attempt feedback",
     description:
-      "Save bounded feedback for one existing Call Nina activity with revision conflict detection.",
+      "Save bounded activity participation (targetAttemptId null) or later feedback linked to an existing attempt, without replacing its answer or evaluation.",
     annotations: additiveWriteAnnotations,
     confirmationPolicy: "none",
     inputSchema: attemptFeedbackSaveInputSchema,

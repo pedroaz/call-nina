@@ -1,4 +1,5 @@
 import {
+  explanationLanguageSchema,
   calendarDateSchema,
   curriculumTopicIdSchema,
   learnerIdSchema,
@@ -11,7 +12,7 @@ export const cefrBands = ["a1", "a2", "b1", "b2"] as const;
 export const cefrBandSchema = z.enum(cefrBands);
 export const levelBasisSchema = z.enum(["self-reported", "diagnostic", "inferred"]);
 export const uiLocaleSchema = z.enum(["en", "de"]);
-export const teachingLanguageSchema = z.enum(["en", "de"]);
+export { explanationLanguageSchema } from "@call-nina/contracts";
 export const defaultTeachingProfileIdSchema = z.enum(["conversation-partner", "strict-corrector"]);
 export const onboardingStateSchema = z.enum(["not-started", "in-progress", "complete"]);
 export const correctionTimingSchema = z.enum(["immediate", "end-of-activity", "adaptive"]);
@@ -64,7 +65,7 @@ export const learnerProfileSchema = strictBoundaryObject({
   schemaVersion: z.literal(1),
   learnerId: learnerIdSchema,
   levelEstimate: levelEstimateSchema,
-  everydayGermanyGoal: z.string().trim().min(1).max(500),
+  everydayLifeGoal: z.string().trim().min(1).max(500),
   motivation: z.string().trim().min(1).max(500),
   interests: z.array(z.string().trim().min(1).max(80)).max(20),
   preferredTopics: z.array(z.string().trim().min(1).max(120)).max(20),
@@ -73,7 +74,7 @@ export const learnerProfileSchema = strictBoundaryObject({
   inferredStrengths: z.array(profileInsightSchema).max(50),
   inferredWeaknesses: z.array(profileInsightSchema).max(50),
   uiLocale: uiLocaleSchema,
-  teachingLanguage: teachingLanguageSchema,
+  explanationLanguage: explanationLanguageSchema,
   defaultTeachingProfileId: defaultTeachingProfileIdSchema,
   createdAt: utcInstantSchema,
   updatedAt: utcInstantSchema,

@@ -1,4 +1,6 @@
 import {
+  germanArticleSchema,
+  germanNounGender,
   vocabularyLexemeSchema,
   vocabularyExampleSchema,
   activityIdSchema,
@@ -53,7 +55,7 @@ export const vocabularyCandidateOriginSchema = z.enum([
 export const vocabularyCandidateSchema = strictBoundaryObject({
   lemma: text(160),
   meaning: text(500),
-  article: z.enum(["der", "die", "das"]).optional(),
+  article: germanArticleSchema.optional(),
   plural: text(160).optional(),
   example: text(500),
   sourceContext: text(500),
@@ -90,12 +92,7 @@ export function vocabularyEntryFromCandidate(input: {
     ? {
         partOfSpeech: "noun" as const,
         nounForm: {
-          gender:
-            candidate.article === "der"
-              ? ("masculine" as const)
-              : candidate.article === "die"
-                ? ("feminine" as const)
-                : ("neuter" as const),
+          gender: germanNounGender(candidate.article),
           article: candidate.article,
         },
         plural: candidate.plural

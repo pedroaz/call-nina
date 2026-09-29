@@ -108,6 +108,7 @@ export {
 export {
   materializeGeneratedExercise,
   materializeGeneratedExerciseSet,
+  materializeContentExercises,
   materializeGeneratedLesson,
 } from "./generated-exercise.js";
 export {
@@ -124,7 +125,7 @@ export {
   levelBasisSchema,
   onboardingStateSchema,
   profileInsightSchema,
-  teachingLanguageSchema,
+  explanationLanguageSchema,
   uiLocaleSchema,
   type CefrBand,
   type CorrectionPreferences,
@@ -230,4 +231,10 @@ export {
 } from "./voice-summary.js";
 
 export { buildPracticeSuggestions, isCurrentStudyWeek } from "./practice-suggestions.js";
+export { resolveActivityDestination } from "./activity-routing.js";
 export * from "./learning-path.js";
+
+export * from "./learning-context.js";
+
+export * from "./language-policy.js";
+export { attemptEvidenceBasis } from "./attempt-evidence.js";

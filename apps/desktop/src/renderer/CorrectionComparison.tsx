@@ -1,4 +1,4 @@
-import type { AppServerCandidateOutputMap } from "@call-nina/contracts";
+import type { GenerationCandidateOutputMap } from "@call-nina/contracts";
 import { alignCorrectionTexts } from "@call-nina/domain";
 import { useMemo, useState } from "react";
 import { ArrowRight, CircleAlert, Minus, Plus } from "lucide-react";
@@ -7,7 +7,7 @@ import { Button, DiffView, Disclosure, Muted, ItemList } from "./components/ui/i
 
 import styles from "./CorrectionComparison.module.css";
 
-type CorrectionOutput = AppServerCandidateOutputMap["writing-correction"];
+type CorrectionOutput = GenerationCandidateOutputMap["writing-correction"];
 type ChangedSegment = Exclude<
   ReturnType<typeof alignCorrectionTexts>[number],
   { readonly kind: "unchanged" }

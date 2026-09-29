@@ -1,8 +1,8 @@
+import type { ProviderOperation, ActivityId, CallNinaError } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { ActivityId, CallNinaError } from "@call-nina/contracts";
 import { Button, Card, Disclosure, FieldGroup } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { OperationError } from "./Startup.js";
@@ -21,7 +21,7 @@ export function ReadingPractice({
   countValid: boolean;
   targetLevel: "a1" | "a2" | "b1" | "b2";
   onBusyChange: (busy: boolean) => void;
-  requestAiAccess: () => Promise<boolean>;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onOpenActivity: (activityId: ActivityId) => void;
 }) {
   const { t } = useTranslation();
@@ -32,7 +32,7 @@ export function ReadingPractice({
   const [source, setSource] = useState<"topic" | "passage">("topic");
   const [error, setError] = useState<CallNinaError>();
   const generate = async (usePassage: boolean) => {
-    if (!countValid || !(await requestAiAccess())) return;
+    if (!countValid || !(await requestAiAccess("exercise-generation"))) return;
     onBusyChange(true);
     setSource(usePassage ? "passage" : "topic");
     setError(undefined);

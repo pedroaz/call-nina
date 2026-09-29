@@ -1,5 +1,9 @@
 import type { DesktopIpcResponse } from "@call-nina/contracts";
-import { modelPreferencesSchema, type ModelPreferences } from "@call-nina/domain";
+import {
+  modelPreferencesSchema,
+  type ModelPreferences,
+  type ModelWorkload,
+} from "@call-nina/domain";
 
 import { invokeDesktop } from "./ipc.js";
 
@@ -24,7 +28,7 @@ export const desktopSettingsAdapter: DesktopSettingsAdapter = {
 
 export function replaceWorkloadPreference(
   preferences: ModelPreferences,
-  workload: keyof Omit<ModelPreferences, "schemaVersion">,
+  workload: ModelWorkload,
   next: ModelPreferences[typeof workload],
 ): ModelPreferences {
   return modelPreferencesSchema.parse({ ...preferences, [workload]: next });

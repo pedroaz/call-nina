@@ -1,6 +1,11 @@
 import {
+  codexIntegrationCapabilitiesSchema,
+  generationKinds,
+  generationCapabilitiesSchema,
+  generationOperationStartSchema,
+  type GenerationEvent,
   appServerEventSchema,
-  appServerOutputSchemaIds,
+  generationOutputSchemaIds,
   appServerSnapshotSchema,
   correlationIdSchema,
   errorDefinitions,
@@ -9,12 +14,12 @@ import {
   supportedCodexVersionSchema,
   utcInstantSchema,
   type AppServerEvent,
-  type AppServerOperationFor,
-  type AppServerOperationStart,
-  type AppServerOutputMap,
+  type GenerationOperationFor,
+  type GenerationOperationStart,
+  type GenerationOutputMap,
   type AppServerSnapshot,
-  type AppServerValidatedOperationResult,
-  type AppServerWorkloadKind,
+  type GenerationResult,
+  type GenerationKind,
   type CallNinaAppServerAdapter,
   type CallNinaError,
   type ErrorKind,
@@ -46,7 +51,7 @@ const emptyCatalog: ModelCatalog = {
 };
 const unavailableLimits: RateLimitState = { status: "unavailable", reason: "runtime-not-ready" };
 
-type AnyResult = BoundedWorkloadResult<AppServerWorkloadKind>;
+type AnyResult = BoundedWorkloadResult<GenerationKind>;
 
 export type CallNinaAppServerClientOptions = Readonly<{
   process?: AppServerProcessManager;
@@ -60,7 +65,11 @@ export type CallNinaAppServerClientOptions = Readonly<{
 
 function operationErrorKind(code: string): ErrorKind {
   if (code.startsWith("OD_APP_SERVER_POLICY_VIOLATION")) return "ai-policy";
-  if (code === "OD_APP_SERVER_OPERATION_TIMEOUT" || code === "APP_SERVER_REQUEST_TIMEOUT") {
+  if (
+    code === "OD_GENERATION_TIMEOUT" ||
+    code === "OD_APP_SERVER_OPERATION_TIMEOUT" ||
+    code === "APP_SERVER_REQUEST_TIMEOUT"
+  ) {
     return "ai-timeout";
   }
   if (
@@ -70,7 +79,7 @@ function operationErrorKind(code: string): ErrorKind {
   ) {
     return "model-unavailable";
   }
-  if (code.startsWith("OD_APP_SERVER_OUTPUT_") || code.startsWith("OD_APP_SERVER_FINAL_OUTPUT_")) {
+  if (code.startsWith("OD_GENERATION_OUTPUT_") || code.startsWith("OD_APP_SERVER_FINAL_OUTPUT_")) {
     return "model-output";
   }
   if (code.startsWith("OD_APP_SERVER_TURN_FAILED_UNAUTHORIZED")) return "authentication";
@@ -93,7 +102,7 @@ function safeError(operationId: string, kind: ErrorKind): CallNinaError {
 }
 
 function selectRuntimeModel(
-  operation: AppServerOperationStart,
+  operation: GenerationOperationStart,
   catalog: ModelCatalog,
 ): Readonly<{ model: string; effort: string }> {
   const modelId =
@@ -135,6 +144,18 @@ function projectedRateLimitFailure(state: RateLimitState): Readonly<{
 }
 
 export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
+  readonly generationCapabilities = generationCapabilitiesSchema.parse({
+    providerId: "codex",
+    operations: [...generationKinds],
+    structuredOutput: true,
+    cancellation: true,
+  });
+  readonly codexCapabilities = codexIntegrationCapabilitiesSchema.parse({
+    voiceHandoff: true,
+    externalConversation: true,
+    localMcp: true,
+    plugin: true,
+  });
   readonly #process: AppServerProcessManager;
   readonly #authentication: ManagedAuthenticationClient;
   readonly #catalog: ModelCatalogClient;
@@ -142,14 +163,14 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
   readonly #forbiddenRoots: readonly string[];
   readonly #codexSource: "desktop-bundled" | "configured-absolute-path";
   readonly #listeners = new Set<(event: AppServerEvent) => void>();
-  readonly #operations = new OperationController<AppServerOperationStart, AnyResult>({
+  readonly #operations = new OperationController<GenerationOperationStart, AnyResult>({
     onForgot: (operationId) => {
       this.#operationInputs.delete(operationId);
       this.#operationStartedAt.delete(operationId);
       this.#operationAttempts.delete(operationId);
     },
   });
-  readonly #operationInputs = new Map<string, AppServerOperationStart>();
+  readonly #operationInputs = new Map<string, GenerationOperationStart>();
   readonly #operationStartedAt = new Map<string, number>();
   readonly #operationAttempts = new Map<string, 1 | 2>();
   readonly #log: AppServerProcessManagerOptions["log"];
@@ -294,10 +315,10 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
     return this.#limits.refresh();
   }
 
-  async runOperation<Kind extends AppServerWorkloadKind>(
-    operation: AppServerOperationFor<Kind>,
-  ): Promise<AppServerValidatedOperationResult<Kind, AppServerOutputMap>> {
-    const validated = operation as AppServerOperationStart;
+  async runOperation<Kind extends GenerationKind>(
+    operation: GenerationOperationFor<Kind>,
+  ): Promise<GenerationResult<Kind, GenerationOutputMap>> {
+    const validated = generationOperationStartSchema.parse(operation);
     const accepted = this.#operations.start({
       submissionId: validated.submissionId,
       operationId: validated.operationId,
@@ -323,20 +344,20 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
       this.#operationInputs.delete(validated.operationId);
     }
     if (outcome.status === "rate-limited") await this.refreshRateLimits();
-    const result = this.#operationResult(validated, outcome) as AppServerValidatedOperationResult<
+    const result = this.#operationResult(validated, outcome) as GenerationResult<
       Kind,
-      AppServerOutputMap
+      GenerationOutputMap
     >;
     this.#operationStartedAt.delete(validated.operationId);
     this.#operationAttempts.delete(validated.operationId);
     return result;
   }
 
-  async retryOperation<Kind extends AppServerWorkloadKind>(options: {
+  async retryOperation<Kind extends GenerationKind>(options: {
     previousOperationId: Parameters<CallNinaAppServerAdapter["cancelOperation"]>[0];
     operationId: Parameters<CallNinaAppServerAdapter["cancelOperation"]>[0];
     submissionId: Parameters<CallNinaAppServerAdapter["cancelOperation"]>[0];
-  }): Promise<AppServerValidatedOperationResult<Kind, AppServerOutputMap>> {
+  }): Promise<GenerationResult<Kind, GenerationOutputMap>> {
     const previous = this.#operationInputs.get(options.previousOperationId);
     if (!previous) throw new Error("OD_OPERATION_RETRY_UNAVAILABLE");
     const operation = {
@@ -378,9 +399,9 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
       this.#operationInputs.delete(effective.operationId);
     }
     if (outcome.status === "rate-limited") await this.refreshRateLimits();
-    const result = this.#operationResult(effective, outcome) as AppServerValidatedOperationResult<
+    const result = this.#operationResult(effective, outcome) as GenerationResult<
       Kind,
-      AppServerOutputMap
+      GenerationOutputMap
     >;
     this.#operationStartedAt.delete(effective.operationId);
     return result;
@@ -411,7 +432,18 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
     return () => this.#listeners.delete(listener);
   }
 
-  #execute(retained: AppServerOperationStart, context: ExecuteContext): Promise<AnyResult> {
+  subscribeGeneration(listener: (event: GenerationEvent) => void): () => void {
+    return this.subscribe((event) => {
+      if (
+        event.event === "operation-state-changed" ||
+        event.event === "operation-progress" ||
+        event.event === "operation-finished"
+      )
+        listener(event);
+    });
+  }
+
+  #execute(retained: GenerationOperationStart, context: ExecuteContext): Promise<AnyResult> {
     const selection = selectRuntimeModel(retained, this.#models);
     return runBoundedWorkload(this.#process, {
       input: retained.input,
@@ -541,7 +573,7 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
   }
 
   #progress(
-    operation: AppServerOperationStart,
+    operation: GenerationOperationStart,
     stage: "queued" | "starting" | "running" | "validating" | "cancelling",
     attempt: 1 | 2 = this.#operationAttempts.get(operation.operationId) ?? 1,
   ): void {
@@ -556,7 +588,7 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
     });
   }
 
-  #state(operation: AppServerOperationStart, status: "accepted"): void {
+  #state(operation: GenerationOperationStart, status: "accepted"): void {
     this.#emit({
       event: "operation-state-changed",
       state: {
@@ -570,9 +602,9 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
   }
 
   #operationResult(
-    operation: AppServerOperationStart,
+    operation: GenerationOperationStart,
     outcome: OperationOutcome<AnyResult>,
-  ): AppServerValidatedOperationResult<AppServerWorkloadKind, AppServerOutputMap> {
+  ): GenerationResult<GenerationKind, GenerationOutputMap> {
     if (outcome.status === "succeeded") {
       this.#operationLog(
         "info",
@@ -587,9 +619,10 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
         submissionId: operation.submissionId,
         kind: operation.input.kind,
         modelRequestId: modelRequestIdSchema.parse(outcome.output.modelRequestId),
-        outputSchemaId: appServerOutputSchemaIds[operation.input.kind],
+        outputSchemaId: generationOutputSchemaIds[operation.input.kind],
+        provenance: outcome.output.provenance,
         output: outcome.output.output,
-      } as AppServerValidatedOperationResult<AppServerWorkloadKind, AppServerOutputMap>;
+      } as GenerationResult<GenerationKind, GenerationOutputMap>;
       this.#emit({
         event: "operation-state-changed",
         state: { ...result, submission: "retained", status: "validated" },
@@ -691,7 +724,7 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
   #operationLog(
     severity: AppServerLogRecord["severity"],
     code: string,
-    operation: AppServerOperationStart,
+    operation: GenerationOperationStart,
     message: string,
     errorCode?: string,
     fields: Readonly<{

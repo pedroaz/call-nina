@@ -10,6 +10,13 @@ const nodeBuiltins = new Set(
 
 const boundaries = [
   {
+    id: "learning-workflows",
+    prefix: "packages/learning-workflows/",
+    packages: ["contracts"],
+    node: false,
+    electron: false,
+  },
+  {
     id: "desktop-renderer",
     prefix: "apps/desktop/src/renderer/",
     packages: ["contracts", "design-system", "domain"],
@@ -26,7 +33,7 @@ const boundaries = [
   {
     id: "desktop-main",
     prefix: "apps/desktop/src/main/",
-    packages: ["codex-client", "contracts", "domain", "persistence"],
+    packages: ["codex-client", "contracts", "domain", "persistence", "learning-workflows"],
     node: true,
     electron: true,
   },
@@ -68,7 +75,7 @@ const boundaries = [
   {
     id: "codex-client",
     prefix: "packages/codex-client/",
-    packages: ["contracts", "platform"],
+    packages: ["contracts", "platform", "learning-workflows"],
     node: true,
     electron: false,
   },
@@ -82,6 +89,7 @@ const boundaries = [
 ];
 
 const packagePrefixes = new Map([
+  ["@call-nina/learning-workflows", "learning-workflows"],
   ["@call-nina/design-system", "design-system"],
   ["@call-nina/contracts", "contracts"],
   ["@call-nina/domain", "domain"],

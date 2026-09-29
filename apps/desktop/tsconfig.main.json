@@ -19,6 +19,9 @@
     },
     {
       "path": "../../packages/codex-client"
+    },
+    {
+      "path": "../../packages/learning-workflows"
     }
   ]
 }

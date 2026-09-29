@@ -1,4 +1,8 @@
-import { activityIdSchema, dataRootGenerationSchema } from "@call-nina/contracts";
+import {
+  activityIdSchema,
+  dataRootGenerationSchema,
+  openActivityActionSchema,
+} from "@call-nina/contracts";
 import { callNinaMarketplaceName, callNinaPluginName } from "@call-nina/codex-client";
 
 export function createCodexVoiceActivityUrl(activityIdValue: string, generationValue: number) {
@@ -43,7 +47,7 @@ export function parseCallNinaActivityUrl(value: string) {
     throw new Error("OD_HANDOFF_URL_INVALID");
   }
   try {
-    return { route: "activity" as const, activityId: activityIdSchema.parse(activityId) };
+    return openActivityActionSchema.parse({ action: "open-activity", activityId });
   } catch {
     throw new Error("OD_HANDOFF_URL_INVALID");
   }

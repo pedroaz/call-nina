@@ -98,6 +98,9 @@ importers:
       '@call-nina/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@call-nina/learning-workflows':
+        specifier: workspace:*
+        version: link:../../packages/learning-workflows
       '@call-nina/persistence':
         specifier: workspace:*
         version: link:../../packages/persistence
@@ -248,6 +251,9 @@ importers:
       '@call-nina/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@call-nina/learning-workflows':
+        specifier: workspace:*
+        version: link:../learning-workflows
       '@call-nina/platform':
         specifier: workspace:*
         version: link:../platform
@@ -271,6 +277,12 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.4.3
+
+  packages/learning-workflows:
+    dependencies:
+      '@call-nina/contracts':
+        specifier: workspace:*
+        version: link:../contracts
 
   packages/persistence:
     dependencies:

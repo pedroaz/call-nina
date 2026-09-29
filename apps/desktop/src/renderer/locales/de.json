@@ -650,6 +650,13 @@
     "keepEditing": "Weiter bearbeiten"
   },
   "history": {
+    "evidenceBasis": {
+      "independent": "Selbstständig beantwortet · Auswertung gespeichert",
+      "supported": "Unterstützte Übung · kein selbstständiger Kompetenznachweis",
+      "self-assessment": "Selbsteinschätzung · bestimmt die Wiederholung",
+      "participation": "Teilnahme · kein selbstständiger Antwortnachweis",
+      "unknown": "Selbstständigkeit nicht erfasst"
+    },
     "eyebrow": "Lernnachweis",
     "title": "Verlauf",
     "intro": "Sieh dir gespeicherte Versuche und Rückmeldungen an und wähle, was du erneut üben möchtest.",
@@ -759,7 +766,8 @@
         "cancelled": "Die gezielte Übung wurde abgebrochen. Deine Belege wurden nicht verändert.",
         "failed": "Die gezielte Übung konnte nicht erstellt werden. Deine Belege wurden nicht verändert."
       }
-    }
+    },
+    "laterFeedback": "Späteres Feedback"
   },
   "pages": {
     "writing": "Schreiben",
@@ -789,7 +797,7 @@
     "missing": "Codex ist nicht installiert. Lokale Lernwerkzeuge bleiben verfügbar.",
     "unsupported": "Diese Codex-Version wird nicht unterstützt. Aktualisiere Codex für KI-Funktionen.",
     "unavailable": "Codex App Server ist nicht verfügbar. Lokale Lernwerkzeuge bleiben verfügbar.",
-    "signedOut": "Verbinde dein Codex-Konto für KI-Funktionen.",
+    "signedOut": "KI-Aktionen benötigen ein verbundenes Codex-Konto. Lokales Lernen und vorbereitete Übungen bleiben verfügbar.",
     "available": "Die Codex-Integration ist verfügbar."
   },
   "folder": {
@@ -814,7 +822,7 @@
     "title": "Deine Lernpräferenzen",
     "intro": "Wähle jetzt einige Vorgaben. Du kannst sie später ändern; die App-Sprache bleibt davon unabhängig.",
     "accountTitle": "Codex-Verbindung",
-    "accountConnected": "Konto verbunden · Tarif: {{plan}}",
+    "accountConnected": "Codex-Konto verbunden · Anbietertarif: {{plan}}",
     "accountSignedOut": "Melde dich mit einer der Optionen unten bei deinem Codex-Konto an.",
     "accountExpired": "Deine Anmeldung ist abgelaufen. Melde dich unten erneut an.",
     "accountUnsupported": "Deine aktuelle Anmeldemethode wird nicht unterstützt. Nutze unten den Browser oder einen Gerätecode.",
@@ -858,14 +866,13 @@
     "finish": "Einrichtung abschließen und lernen",
     "progress": "Schritt {{current}} von {{total}}",
     "steps": {
-      "connection": "Codex verbinden",
+      "connection": "Optionale KI-Verbindung",
       "goal": "Dein Niveau und Ziel",
       "defaults": "Lernstil und Sprachen",
       "review": "Einrichtung prüfen"
     },
     "selectedFolder": "Deine Lerndaten werden lokal gespeichert in: {{folder}}",
     "folderSettings": "Du kannst den Datenordner in den Einstellungen ändern.",
-    "connectionRequired": "Verbinde Codex, bevor du die Einrichtung abschließt. Deine Lernvorlieben kannst du schon auswählen.",
     "pluginOptional": "Mit diesem Plugin kannst du in der Codex-App auf deine Lernaktivitäten zugreifen. Du kannst die Einrichtung auch ohne Plugin abschließen.",
     "pluginReady": "Plugin aktualisiert. Starte eine neue Aufgabe in Codex, um Call Nina dort zu nutzen.",
     "interfaceLanguage": "Sprache der Oberfläche",
@@ -884,7 +891,7 @@
     "checkConnection": "Verbindung prüfen",
     "checking": "Verbindung wird geprüft…",
     "checkComplete": "Verbindungsprüfung abgeschlossen.",
-    "checkFailed": "Die Verbindungsprüfung ist fehlgeschlagen. Prüfe erneut oder lies die Fehlerdetails unten.",
+    "checkFailed": "Die optionale Codex-Verbindungsprüfung ist fehlgeschlagen. Du kannst die lokale Einrichtung fortsetzen und später erneut prüfen.",
     "returnConnection": "Zur Codex-Verbindung",
     "pluginTitle": "Call Nina in Codex nutzen (optional)",
     "plugin": {
@@ -897,7 +904,7 @@
       "refresh": "Plugin aktualisieren"
     },
     "guidance": {
-      "connection": "Prüfe deine Codex-Verbindung und lege danach fest, wie du lernen möchtest.",
+      "connection": "Richte jetzt dein lokales Lernen ein. Codex kannst du hier oder später in den Einstellungen verbinden.",
       "goal": "Sag uns, wo du stehst und was du auf Deutsch machen möchtest.",
       "defaults": "Wähle deinen Korrekturstil und deine Sprachen. Du kannst sie später in den Einstellungen ändern.",
       "review": "Prüfe deine Auswahl. Mit Zurück kannst du sie ändern. Schließe die Einrichtung ab, um mit dem Lernen zu beginnen."
@@ -908,7 +915,8 @@
       "missing": "Codex wurde nicht gefunden. Installiere die Codex-Desktop-App und prüfe die Verbindung erneut.",
       "unsupported-version": "Deine installierte Codex-Version wird nicht unterstützt. Aktualisiere Codex und prüfe die Verbindung erneut.",
       "app-server-unavailable": "Call Nina konnte keine Verbindung zu Codex herstellen. Starte Codex neu und prüfe die Verbindung erneut."
-    }
+    },
+    "connectionOptional": "Du kannst die Einrichtung abschließen und vorbereitete Aktivitäten ohne Codex üben. Verbinde Codex später für KI-Erstellung und Feedback."
   },
   "settings": {
     "eyebrow": "Vorgaben",
@@ -1394,5 +1402,20 @@
     "vocabularyDeck": "Meine Wortschatzkarten",
     "study": "Mit Lernkarten lernen",
     "selectRange": "Wähle 3–30 Wörter für einen Kartensatz."
+  },
+  "providerAccess": {
+    "selectedRoute": "KI-Zugang: Codex",
+    "preferences": "Diese Modell- und Denkleistungseinstellungen gelten nur für Codex. Nicht verfügbare gespeicherte Einstellungen bleiben erhalten.",
+    "identityBoundary": "Dein Lernprofil ist lokal. Codex verwendet dein Anbieterkonto; dessen Tarif ist kein Call-Nina-Abonnement. Du brauchst kein Call-Nina-Konto.",
+    "localAvailable": "Deine lokalen Lerndaten und unterstützte vorbereitete Übungen bleiben verfügbar. Freies Schreiben und Antworten außerhalb vorbereiteter Antwortlisten benötigen KI-Feedback.",
+    "dismiss": "Schließen",
+    "reasons": {
+      "runtime-unavailable": "Diese KI-Aktion benötigt Codex auf diesem Gerät. Prüfe die Codex-Verbindung in den Einstellungen und versuche es erneut.",
+      "account-required": "Diese KI-Aktion benötigt ein angemeldetes Codex-Konto. Verbinde dein Konto oder erneuere die Anmeldung in den Einstellungen und versuche es erneut.",
+      "account-unavailable": "Der Codex-Kontozugriff konnte nicht bestätigt werden. Prüfe die Verbindung in den Einstellungen und versuche es erneut.",
+      "capability-unavailable": "Der Codex-Zugang auf diesem Gerät unterstützt diese Aktion nicht. Es wird kein anderer Zugang automatisch ausgewählt.",
+      "model-unavailable": "Für diese Aktion ist kein nutzbares Codex-Modell mit passender Denkleistung verfügbar. Prüfe die gespeicherte Modellauswahl und Verbindung in den Einstellungen und versuche es erneut.",
+      "plugin-required": "Zum Öffnen dieser Voice-Aktivität in Codex wird das Call-Nina-Plugin benötigt. Installiere oder aktualisiere es in den Einstellungen und versuche es erneut."
+    }
   }
 }

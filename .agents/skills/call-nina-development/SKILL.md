@@ -15,7 +15,7 @@ Paths below are relative to the repository root. Follow imports and callers rath
 - Incremental builds: application TypeScript output and build metadata live under each app’s `build/`; Vite owns runtime bundles under `dist/`. Shared packages emit to their own `dist/`. Keep these owners separate and reserve cache removal for `make clean`, rather than forcing recompilation on ordinary starts.
 - Desktop wiring: `apps/desktop/src/main/backend.ts`, `apps/desktop/src/preload/`, `apps/desktop/src/renderer/App.tsx` and the affected renderer component.
 - Shared design primitives: `packages/design-system/src/index.ts`; regenerate its explicit browser CSS resource with `make design-tokens`. Keep the root dependency-free and platform-neutral; browser CSS is a separate export, and desktop-specific styles stay in the renderer.
-- Wire contracts: `packages/contracts/src/`; deterministic learner rules and runtime validation: `packages/domain/src/`.
+- Shared contracts: `packages/contracts/src/`; portable generation context, prompts, validation and bounded repair: `packages/learning-workflows/src/`; deterministic learner rules and runtime validation: `packages/domain/src/`.
 - Storage: `packages/persistence/src/repository.ts`, `migrations.ts`, `sqlite.ts`, `data-root-layout.ts`, `data-root-selection.ts`, and the feature's persistence module.
 - Course format and loading: `packages/contracts/src/learning-path.ts`, `packages/persistence/src/learning-path.ts`; curriculum inventory and validation: `content/curriculum/` and `packages/domain/src/curriculum.ts`.
 - Per-user install/update/removal: `install/`; platform filesystem ownership: `packages/platform/src/`. Keep install ownership separate from learner-root ownership.
@@ -26,6 +26,7 @@ Paths below are relative to the repository root. Follow imports and callers rath
 - Electron main owns filesystem, processes, SQLite and App Server; renderer stays browser-only behind narrow validated preload/IPC. Desktop and independently launched STDIO MCP reuse shared contracts, domain and persistence.
 - SQLite owns mutable private learner state. Reusable curriculum is repository product data packaged read-only. Keep learner files, credentials and research scratch material out of Git. The selected data root is portable; no automatic backups or folder-copy workflow. Repository installs update only through the explicit installer command; there is no background updater.
 - Runtime-validate AI, IPC, MCP and persisted inputs. Preserve data-root generations, leases, idempotency and transactional migrations. Use one current contract; follow the root development-reset policy for incompatible learning formats.
+- Local onboarding and supported prepared practice depend on the learner data root, not provider authentication. Keep local learner identity, provider accounts/credentials and device capabilities separate; a provider plan confers no Nina entitlement.
 - Keep learning activities self-paced and distinguish participation from skill evidence. Voice stays in Codex; Call Nina stores bounded structured results, not audio or transcripts. Model capabilities come from the connected runtime.
 
 ## Task history

@@ -1,5 +1,7 @@
 {
   "schemaVersion": 2,
+  "courseId": "german-foundations",
+  "targetLanguage": "de",
   "version": "a1-missions-2026-09",
   "sources": [
     {

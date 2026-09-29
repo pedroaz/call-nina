@@ -1,4 +1,16 @@
 import {
+  providerRouteIdSchema,
+  providerOperationSchema,
+  providerAccessSchema,
+} from "./provider-access.js";
+import { generationProvenanceSchema } from "./generation-provenance.js";
+import { attemptEvidenceSchema, externalAttemptFeedbackSchema } from "./attempt-evidence.js";
+import { materialReferenceSchema, materialSourceSchema } from "./material.js";
+import { portableExerciseContentSchema } from "./content.js";
+import { maximumExerciseHistoryPromptCharacters } from "./content-limits.js";
+import { learningContextSchema, learningScopeSchema } from "./learning-context.js";
+import { openActivityActionSchema, activityDestinationSchema } from "./activity-action.js";
+import {
   flashcardCreateRequestSchema,
   flashcardReadRequestSchema,
   flashcardProgressRequestSchema,
@@ -49,7 +61,7 @@ import {
   modelCatalogSchema,
   rateLimitStateSchema,
 } from "./app-server-state.js";
-import { appServerCandidateOutputSchemas } from "./app-server.js";
+import { generationCandidateOutputSchemas } from "./generation.js";
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 
@@ -57,6 +69,7 @@ const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
   "app/readiness",
+  "provider/access/read",
   "data-root/read",
   "data-root/choose",
   "data-root/confirm",
@@ -82,7 +95,7 @@ export const desktopIpcChannels = [
   "learning-path/prepare-voice",
   "dashboard/read",
   "activity/list",
-  "activity/read",
+  "activity/resolve",
   "flashcards/create",
   "flashcards/read",
   "flashcards/progress",
@@ -138,6 +151,14 @@ const request = <
     payload,
   });
 
+const providerAccessReadRequest = request(
+  "provider/access/read",
+  z.strictObject({
+    routeId: providerRouteIdSchema,
+    operation: providerOperationSchema,
+    previousOperationId: correlationIdSchema.optional(),
+  }),
+);
 const appReadinessRequest = request("app/readiness", emptyPayload);
 const dataRootReadRequest = request("data-root/read", emptyPayload);
 const dataRootChooseRequest = request(
@@ -158,7 +179,7 @@ const onboardingProfileInputSchema = z.strictObject({
   expectedGeneration: dataRootGenerationSchema,
   uiLocale: z.enum(["en", "de"]),
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
-  everydayGermanyGoal: text(500),
+  everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
   explanationLanguage: z.enum(["en", "de"]),
   placement: z.strictObject({ status: z.literal("skipped") }),
@@ -186,6 +207,7 @@ const modelPreferenceSchema = z.strictObject({
   ]),
 });
 const persistedModelPreferencesSchema = z.strictObject({
+  routeId: providerRouteIdSchema,
   schemaVersion: z.literal(1),
   correction: modelPreferenceSchema,
   generation: modelPreferenceSchema,
@@ -194,7 +216,7 @@ const persistedModelPreferencesSchema = z.strictObject({
 });
 const editableLearnerSettingsSchema = z.strictObject({
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
-  everydayGermanyGoal: text(500),
+  everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
   explanationLanguage: z.enum(["en", "de"]),
   uiLocale: z.enum(["en", "de"]),
@@ -259,10 +281,7 @@ const diagnosticsReadRequest = request("diagnostics/read", emptyPayload);
 const diagnosticsExportRequest = request("diagnostics/export", emptyPayload);
 const logsClearRequest = request("logs/clear", emptyPayload);
 const activityListRequest = request("activity/list", activityLibraryFilterSchema);
-const activityReadRequest = request(
-  "activity/read",
-  z.strictObject({ activityId: activityIdSchema }),
-);
+const activityResolveRequest = request("activity/resolve", openActivityActionSchema);
 const dashboardReadRequest = request(
   "dashboard/read",
   z.strictObject({ locale: z.enum(["en", "de"]).optional() }),
@@ -547,22 +566,34 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
       }),
       z.strictObject({
         source: z.literal("natural-request"),
+        materialTitle: text(160).optional(),
+        materialSource: materialSourceSchema.optional(),
         naturalRequest: text(2_000),
         exerciseCount: z.int().min(3).max(30).optional(),
         targetLevel: z.enum(["a1", "a2", "b1", "b2"]).optional(),
       }),
       z.strictObject({
         source: z.literal("grammar"),
+        materialTitle: text(160).optional(),
+        materialSource: materialSourceSchema.optional(),
         naturalRequest: text(2_000),
         exerciseCount: z.int().min(3).max(30).optional(),
         targetLevel: z.enum(["a1", "a2", "b1", "b2"]),
       }),
       z.strictObject({
         source: z.literal("reading"),
+        materialTitle: text(160).optional(),
+        materialSource: materialSourceSchema.optional(),
         naturalRequest: text(2_000),
         passage: text(12_000).optional(),
         exerciseCount: z.int().min(3).max(30).optional(),
         targetLevel: z.enum(["a1", "a2", "b1", "b2"]).optional(),
+      }),
+      z.strictObject({
+        source: z.literal("saved-material"),
+        expectedGeneration: dataRootGenerationSchema,
+        material: materialReferenceSchema,
+        exerciseCount: z.int().min(3).max(30).optional(),
       }),
       z.strictObject({
         source: z.literal("prepared-activity"),
@@ -600,7 +631,11 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
 
 const learningOperationStartRequest = request(
   "learning-operation/start",
-  z.strictObject({ submissionId: correlationIdSchema, input: learningOperationInputSchema }),
+  z.strictObject({
+    routeId: providerRouteIdSchema,
+    submissionId: correlationIdSchema,
+    input: learningOperationInputSchema,
+  }),
 );
 const learningOperationCancelRequest = request(
   "learning-operation/cancel",
@@ -609,6 +644,7 @@ const learningOperationCancelRequest = request(
 const learningOperationRetryRequest = request(
   "learning-operation/retry",
   z.strictObject({
+    routeId: providerRouteIdSchema,
     previousOperationId: correlationIdSchema,
     submissionId: correlationIdSchema,
   }),
@@ -616,6 +652,7 @@ const learningOperationRetryRequest = request(
 
 export const desktopIpcRequestSchema = boundaryUnion([
   appReadinessRequest,
+  providerAccessReadRequest,
   dataRootReadRequest,
   dataRootChooseRequest,
   dataRootConfirmRequest,
@@ -636,7 +673,7 @@ export const desktopIpcRequestSchema = boundaryUnion([
   diagnosticsExportRequest,
   logsClearRequest,
   activityListRequest,
-  activityReadRequest,
+  activityResolveRequest,
   learningPathReadRequest,
   learningPathUpdateRequest,
   learningPathVocabularyRequest,
@@ -740,6 +777,7 @@ const response = <
     result,
   });
 
+const providerAccessReadResponse = response("provider/access/read", providerAccessSchema);
 const appReadinessResponse = response(
   "app/readiness",
   z.strictObject({
@@ -781,10 +819,10 @@ const privacyDisclosureAcknowledgeResponse = response(
   z.strictObject({ acknowledged: z.literal(true) }),
 );
 const learnerProfileSummarySchema = z.strictObject({
+  learningContext: learningContextSchema,
   onboardingState: z.enum(["not-started", "in-progress", "complete"]),
-  learnerId: z.string().regex(/^learner_[0-9A-Za-z]{16,64}$/u),
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
-  everydayGermanyGoal: text(500),
+  everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
   explanationLanguage: z.enum(["en", "de"]),
   uiLocale: z.enum(["en", "de"]),
@@ -881,11 +919,12 @@ const activityListResponse = response(
     nextCursor: activityLibraryCursorSchema.nullable(),
   }),
 );
-const activityReadResponse = response(
-  "activity/read",
+const activityResolveResponse = response(
+  "activity/resolve",
   z.strictObject({
     activity: preparedActivitySchema,
-    generated: z.boolean(),
+    rootGeneration: dataRootGenerationSchema,
+    destination: activityDestinationSchema,
     deletionStatus: z.enum(["available", "cascade", "retained-data"]),
   }),
 );
@@ -1149,6 +1188,7 @@ const generatedActivityProvenanceSchema = z.strictObject({
 const preparedActivityReadResponse = response(
   "prepared-activity/read",
   z.strictObject({
+    learningScope: learningScopeSchema,
     activityId: activityIdSchema,
     title: text(160),
     curriculumTopicIds: z.array(curriculumTopicIdSchema).max(20),
@@ -1162,7 +1202,7 @@ const preparedActivityReadResponse = response(
       .default(null),
     missionFacts: text(4000).optional(),
     provenance: generatedActivityProvenanceSchema,
-    output: appServerCandidateOutputSchemas["exercise-generation"],
+    content: portableExerciseContentSchema,
   }),
 );
 const voiceActivityReadResponse = response(
@@ -1216,8 +1256,13 @@ const exerciseSetAbandonResponse = response(
 const historyDetailSchema = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("reference") }),
   z.strictObject({
+    kind: z.literal("attempt-feedback"),
+    feedback: externalAttemptFeedbackSchema,
+    later: z.boolean(),
+  }),
+  z.strictObject({
     kind: z.literal("exercise-attempt"),
-    readingMaterial: appServerCandidateOutputSchemas["exercise-generation"].shape.readingMaterial,
+    readingMaterial: generationCandidateOutputSchemas["exercise-generation"].shape.readingMaterial,
     activityId: activityIdSchema,
     exerciseKind: z.enum([
       "free-writing",
@@ -1228,7 +1273,7 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
       "vocabulary-recall",
     ]),
     instructions: text(4_000),
-    prompt: text(12_000),
+    prompt: text(maximumExerciseHistoryPromptCharacters),
     answer: exerciseSessionAnswerSchema,
     objectiveEvaluations: z
       .array(
@@ -1424,6 +1469,7 @@ const historyReadResponse = response(
       .array(
         z.strictObject({
           historyEntryId: historyEntryIdSchema,
+          evidence: attemptEvidenceSchema.nullable(),
           entityKind: z.enum([
             "attempt",
             "correction",
@@ -1518,6 +1564,7 @@ const errorResponse = strictBoundaryObject({
 
 export const desktopIpcResponseSchema = boundaryUnion([
   appReadinessResponse,
+  providerAccessReadResponse,
   dataRootReadResponse,
   dataRootChooseResponse,
   dataRootConfirmResponse,
@@ -1538,7 +1585,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
   diagnosticsExportResponse,
   logsClearResponse,
   activityListResponse,
-  activityReadResponse,
+  activityResolveResponse,
   learningPathReadResponse,
   learningPathUpdateResponse,
   learningPathVocabularyResponse,
@@ -1614,7 +1661,8 @@ export const desktopIpcEventSchema = boundaryUnion([
         z.strictObject({
           status: z.literal("validated"),
           modelRequestId: modelRequestIdSchema,
-          output: appServerCandidateOutputSchemas[kind],
+          provenance: generationProvenanceSchema,
+          output: generationCandidateOutputSchemas[kind],
           activityId: activityIdSchema.optional(),
         }),
         z.strictObject({ status: z.literal("cancelled") }),

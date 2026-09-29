@@ -44,6 +44,7 @@ async function readInstalledPackages() {
   const runtimeRoots = new Set([
     "@modelcontextprotocol/server",
     "@call-nina/codex-client",
+    "@call-nina/learning-workflows",
     "@call-nina/contracts",
     "@call-nina/domain",
     "@call-nina/persistence",

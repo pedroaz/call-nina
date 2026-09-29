@@ -1,15 +1,15 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import {
+  type GenerationProvenance,
   correlationIdSchema,
   errorDefinitions,
-  learnerIdSchema,
   callNinaErrorSchema,
   utcInstantSchema,
   type writingCorrectionCandidateSchema,
   type DesktopIpcRequest,
   type ErrorKind,
-  type CallNinaAppServerAdapter,
+  type GenerationService,
 } from "@call-nina/contracts";
 import { type ModelWorkload, type VocabularyCandidate } from "@call-nina/domain";
 import {
@@ -29,13 +29,14 @@ export type AcceptedOperation = Readonly<{
   inputFingerprint: string;
   attempt?: 1 | 2;
   dataRootGeneration: number;
-  operation: Parameters<CallNinaAppServerAdapter["runOperation"]>[0];
+  operation: Parameters<GenerationService["runOperation"]>[0];
   startedAt: string;
   helperSessionId?: string;
   exerciseFeedback?: Readonly<{ activityId: string; attemptId: string }>;
 }>;
 
 export type ValidatedWritingState = Readonly<{
+  provenance: GenerationProvenance;
   operationId: string;
   submissionId: string;
   modelRequestId: string;
@@ -43,7 +44,6 @@ export type ValidatedWritingState = Readonly<{
 }>;
 
 export const maximumRetainedSubmissions = 256;
-export const activeLearnerId = learnerIdSchema.parse("learner_0123456789abcdefgh");
 
 export function diagnosticErrorCode(error: unknown): string {
   return error instanceof Error && /^(?:OD|APP_SERVER)_[A-Z0-9_]{3,100}$/u.test(error.message)
@@ -76,6 +76,7 @@ export function selectionId() {
 
 export function opaqueId(
   prefix:
+    | "learner"
     | "activity"
     | "attempt"
     | "correction"
@@ -175,8 +176,6 @@ export const operationModelWorkload = {
   "exercise-generation": "generation",
   "exercise-feedback": "correction",
 } as const satisfies Record<string, ModelWorkload>;
-
-export const appServerLevel = { a1: "A1", a2: "A2", b1: "B1", b2: "B2" } as const;
 
 export function exerciseHistoryPrompt(
   exercise: Extract<

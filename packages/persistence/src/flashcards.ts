@@ -1,7 +1,18 @@
+import {
+  contentIdentity,
+  saveMaterialInTransaction,
+  linkPortableContent,
+  assertStoredContentRevision,
+} from "./materials.js";
+import { requireLocalLearningScope, assertLocalLearningScope } from "./learning-context.js";
 import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
+  generationProvenanceSchema,
   activityIdSchema,
+  portableFlashcardContentSchema,
+  type PortableFlashcardContent,
+  type learningGoalSchema,
   flashcardSchema,
   flashcardDeckSchema,
   flashcardCreateRequestSchema,
@@ -41,7 +52,7 @@ function read(
     rootGeneration: database.rootGeneration,
     title: row["title"],
     source: row["source"],
-    cards: JSON.parse(String(row["cards_json"])) as unknown,
+    content: readFlashcardContent(row["content_json"]),
     progress: {
       position: row["position"],
       completed: row["completed"] === 1,
@@ -49,9 +60,12 @@ function read(
     },
     vocabulary,
   });
+  assertStoredContentRevision(connection, activityId, deck.content);
+  if ((deck.source === "generated") !== "modelId" in deck.content.provenance)
+    throw new Error("OD_CONTENT_PROVENANCE_INVALID");
   if (
-    deck.progress.position >= deck.cards.length ||
-    (deck.progress.completed && deck.progress.position !== deck.cards.length - 1)
+    deck.progress.position >= deck.content.cards.length ||
+    (deck.progress.completed && deck.progress.position !== deck.content.cards.length - 1)
   )
     throw new Error("OD_FLASHCARD_PROGRESS_INVALID");
   return deck;
@@ -67,19 +81,29 @@ function insert(
   cardsValue: unknown,
   provenance: unknown,
   key: string,
+  contentGoal: { learnerGoal: z.infer<typeof learningGoalSchema> | null; topic: string },
   idempotencyRequest?: unknown,
 ) {
   const activity = preparedActivitySchema.parse(activityValue);
+  assertLocalLearningScope(connection, activity.context.learningScope);
   if (activity.activityType !== "flashcards") throw new Error("OD_FLASHCARD_ACTIVITY_INVALID");
   const cards = z.array(flashcardSchema).min(3).max(30).parse(cardsValue);
   const claim = claimIdempotentWrite(connection, {
     operation: "prepared-activity",
     idempotencyKey: key,
-    request: idempotencyRequest ?? { activity, cards, source, provenance },
+    request: idempotencyRequest ?? { activity, cards, source, provenance, contentGoal },
     entityId: activity.activityId,
     recordedAt: activity.preparedAt,
   });
   if (!claim.replayed) {
+    const content = prepareFlashcardContent(
+      connection,
+      activity,
+      source,
+      cards,
+      provenance,
+      contentGoal,
+    );
     connection
       .prepare(
         `INSERT INTO prepared_activities(activity_id, activity_type, title, origin_surface, context_json, prepared_at, root_generation) VALUES (?, 'flashcards', ?, ?, ?, ?, ?)`,
@@ -93,15 +117,9 @@ function insert(
         database.rootGeneration,
       );
     connection
-      .prepare(
-        `INSERT INTO flashcard_decks(activity_id, source, cards_json, provenance_json) VALUES (?, ?, ?, ?)`,
-      )
-      .run(
-        activity.activityId,
-        source,
-        JSON.stringify(cards),
-        provenance === null ? null : JSON.stringify(aiProvenanceSchema.parse(provenance)),
-      );
+      .prepare(`INSERT INTO flashcard_decks(activity_id, source, content_json) VALUES (?, ?, ?)`)
+      .run(activity.activityId, source, JSON.stringify(content));
+    linkPortableContent(connection, activity.activityId, content);
   }
   return activity.activityId;
 }
@@ -110,10 +128,11 @@ export async function saveGeneratedFlashcards(
   activity: unknown,
   cards: unknown,
   provenance: unknown,
+  contentGoal: { learnerGoal: z.infer<typeof learningGoalSchema>; topic: string },
   key: string,
 ) {
   return withLeasedTransaction(database, (connection) =>
-    insert(connection, database, activity, "generated", cards, provenance, key),
+    insert(connection, database, activity, "generated", cards, provenance, key, contentGoal),
   );
 }
 export async function readFlashcards(database: CallNinaDatabase, value: unknown) {
@@ -172,6 +191,7 @@ export async function createVocabularyFlashcards(
         originSurface: "desktop",
         preparedAt: new Date().toISOString(),
         context: {
+          learningScope: requireLocalLearningScope(connection),
           naturalRequest: request.title,
           curriculumTopicIds: [],
           mistakeIds: [],
@@ -182,6 +202,7 @@ export async function createVocabularyFlashcards(
       cards,
       null,
       key,
+      { learnerGoal: null, topic: request.title },
       request,
     );
     request.entries.forEach((entry, position) =>
@@ -198,8 +219,8 @@ export async function updateFlashcardProgress(database: CallNinaDatabase, value:
   return withLeasedTransaction(database, (connection) => {
     const deck = read(connection, database, request.activityId);
     if (
-      request.position >= deck.cards.length ||
-      (request.completed && request.position !== deck.cards.length - 1)
+      request.position >= deck.content.cards.length ||
+      (request.completed && request.position !== deck.content.cards.length - 1)
     )
       throw new Error("OD_FLASHCARD_PROGRESS_INVALID");
     if (
@@ -253,7 +274,7 @@ export async function saveFlashcardVocabulary(
       if (!identities.has(identity)) identities.set(identity, row.vocabulary_id);
     }
     for (const position of request.positions) {
-      const card = deck.cards[position];
+      const card = deck.content.cards[position];
       if (!card) throw new Error("OD_FLASHCARD_POSITION_INVALID");
       const linked = deck.vocabulary.find((entry) => entry.position === position);
       let vocabularyId = linked?.vocabularyId ?? identities.get(vocabularyIdentity(card));
@@ -289,4 +310,130 @@ export async function saveFlashcardVocabulary(
     }
     return read(connection, database, request.activityId);
   });
+}
+
+function readFlashcardContent(value: unknown): PortableFlashcardContent {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(String(value)) as unknown;
+  } catch {
+    throw new Error("OD_CONTENT_INVALID");
+  }
+  if (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "schemaVersion" in parsed &&
+    parsed.schemaVersion !== 1
+  )
+    throw new Error("OD_CONTENT_VERSION_UNSUPPORTED");
+  const result = portableFlashcardContentSchema.safeParse(parsed);
+  if (!result.success) throw new Error("OD_CONTENT_INVALID");
+  return result.data;
+}
+
+function prepareFlashcardContent(
+  connection: DatabaseSync,
+  activity: z.infer<typeof preparedActivitySchema>,
+  source: "generated" | "vocabulary",
+  cards: Flashcard[],
+  provenanceValue: unknown,
+  goal: { learnerGoal: z.infer<typeof learningGoalSchema> | null; topic: string },
+): PortableFlashcardContent {
+  const ai = provenanceValue === null ? null : generationProvenanceSchema.parse(provenanceValue);
+  if ((source === "generated" && ai === null) || (source === "vocabulary" && ai !== null))
+    throw new Error("OD_CONTENT_PROVENANCE_INVALID");
+  const material = saveMaterialInTransaction(
+    connection,
+    {
+      kind: "topic",
+      title: activity.title,
+      language: activity.context.learningScope.targetLanguage,
+      text: goal.topic,
+    },
+    activity.preparedAt,
+  );
+  return portableFlashcardContentSchema.parse({
+    schemaVersion: 1,
+    kind: "flashcard-deck",
+    contentId: contentIdentity("content"),
+    revisionId: contentIdentity("content-revision"),
+    title: activity.title,
+    language: activity.context.learningScope.targetLanguage,
+    createdAt: activity.preparedAt,
+    goal: {
+      learnerGoal: goal.learnerGoal,
+      courseId: activity.context.learningScope.courseId,
+      request: activity.context.naturalRequest,
+      curriculumTopicIds: activity.context.curriculumTopicIds,
+    },
+    materials: [material],
+    assets: [],
+    provenance: ai ?? { producer: "local-vocabulary" },
+    evaluation: "self-assessment",
+    cardRevisions: cards.map(() => ({
+      cardId: contentIdentity("content-card"),
+      revisionId: contentIdentity("card-revision"),
+    })),
+    cards,
+  });
+}
+
+/** Migration 25 only: preserve immutable cards and all mutable progress/link rows. */
+export function migrateFlashcardContent(connection: DatabaseSync) {
+  const rows = connection
+    .prepare(
+      `SELECT d.*, p.title, p.origin_surface, p.context_json, p.prepared_at
+    FROM flashcard_decks d JOIN prepared_activities p USING(activity_id)`,
+    )
+    .all();
+  for (const row of rows) {
+    const activity = preparedActivitySchema.parse({
+      activityId: row["activity_id"],
+      activityType: "flashcards",
+      title: row["title"],
+      originSurface: row["origin_surface"],
+      context: JSON.parse(String(row["context_json"])) as unknown,
+      preparedAt: row["prepared_at"],
+    });
+    assertLocalLearningScope(connection, activity.context.learningScope);
+    const cards = z
+      .array(flashcardSchema)
+      .min(3)
+      .max(30)
+      .parse(JSON.parse(String(row["content_json"])));
+    const position = z
+      .int()
+      .min(0)
+      .max(cards.length - 1)
+      .parse(row["position"]);
+    if (row["completed"] === 1 && position !== cards.length - 1)
+      throw new Error("OD_FLASHCARD_PROGRESS_INVALID");
+    const legacyProvenance =
+      row["provenance_json"] === null
+        ? null
+        : aiProvenanceSchema.parse(JSON.parse(String(row["provenance_json"])) as unknown);
+    if (legacyProvenance && legacyProvenance.modelSelection.availability !== "reported")
+      throw new Error("OD_CONTENT_PROVENANCE_INVALID");
+    const content = prepareFlashcardContent(
+      connection,
+      activity,
+      z.enum(["generated", "vocabulary"]).parse(row["source"]),
+      cards,
+      legacyProvenance?.modelSelection.availability === "reported"
+        ? {
+            producer: "codex",
+            modelId: legacyProvenance.modelSelection.modelId,
+            effortId: legacyProvenance.modelSelection.effortId,
+          }
+        : null,
+      { learnerGoal: null, topic: activity.context.naturalRequest },
+    );
+    connection
+      .prepare("UPDATE flashcard_decks SET content_json = ? WHERE activity_id = ?")
+      .run(JSON.stringify(content), activity.activityId);
+    linkPortableContent(connection, activity.activityId, content);
+  }
+  connection.exec(`ALTER TABLE flashcard_decks DROP COLUMN provenance_json;
+    CREATE TRIGGER flashcard_content_immutable BEFORE UPDATE OF activity_id, source, content_json ON flashcard_decks
+    BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;`);
 }

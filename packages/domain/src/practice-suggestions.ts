@@ -1,4 +1,7 @@
+import { supportedLanguagePolicy } from "./language-policy.js";
 import {
+  learningContextSchema,
+  type LearningContext,
   practiceSuggestionSchema,
   type practiceSuggestionContextSchema,
   type PracticeSuggestion,
@@ -19,8 +22,7 @@ export function buildPracticeSuggestions(input: {
   today: string;
   locale: "en" | "de";
   level: string;
-  interests: readonly string[];
-  preferredTopics: readonly string[];
+  learningContext: LearningContext;
   dueVocabulary: readonly { vocabularyId: string; lemma: string }[];
   recurringMistakes: readonly {
     mistakeId: string;
@@ -28,6 +30,8 @@ export function buildPracticeSuggestions(input: {
     occurrenceCount: number;
   }[];
 }): PracticeSuggestion[] {
+  const context = learningContextSchema.parse(input.learningContext);
+  const policy = supportedLanguagePolicy(context.targetLanguage);
   const de = input.locale === "de";
   const make = (
     id: string,
@@ -76,9 +80,7 @@ export function buildPracticeSuggestions(input: {
         "mistake",
         mistake.category.kind === "grammar" ? "grammar" : "custom-lesson",
         de ? `Übe: ${topic}` : `Practise: ${topic}`,
-        de
-          ? `Gib mir sechs kurze Übungen zu „${topic}“ auf Niveau ${input.level.toUpperCase()}.`
-          : `Give me six short German exercises on “${topic}” at ${input.level.toUpperCase()} level.`,
+        policy.practiceRequest("mistake", context.explanationLanguage, topic, input.level),
         de
           ? `Dieses Muster kam ${String(mistake.occurrenceCount)} Mal vor.`
           : `This pattern appeared ${String(mistake.occurrenceCount)} times.`,
@@ -88,9 +90,7 @@ export function buildPracticeSuggestions(input: {
     );
   }
   const topic =
-    input.preferredTopics[0] ??
-    input.interests[0] ??
-    (de ? "Alltag in Deutschland" : "everyday life in Germany");
+    context.goal.preferredTopics[0] ?? context.goal.interests[0] ?? context.goal.description;
   const reason = de
     ? `Passend zu deinem Niveau ${input.level.toUpperCase()}.`
     : `Matched to your ${input.level.toUpperCase()} level.`;
@@ -100,9 +100,7 @@ export function buildPracticeSuggestions(input: {
       "starter",
       "writing",
       de ? "Eine kurze Nachricht schreiben" : "Write a short message",
-      de
-        ? `Schreibe auf Deutsch 4–6 Sätze zum Thema „${topic}“. Bitte um eine Information und schlage einen nächsten Schritt vor.`
-        : `Write 4–6 German sentences about ${topic}. Ask for information and suggest a next step.`,
+      policy.practiceRequest("writing", context.explanationLanguage, topic, input.level),
       reason,
     ),
     make(
@@ -110,9 +108,7 @@ export function buildPracticeSuggestions(input: {
       "starter",
       "reading",
       de ? "Lesen und verstehen" : "Read and understand",
-      de
-        ? `Erstelle einen kurzen deutschen Text über „${topic}“ mit sechs Verständnisfragen.`
-        : `Create a short German text about ${topic} with six comprehension questions.`,
+      policy.practiceRequest("reading", context.explanationLanguage, topic, input.level),
       reason,
     ),
     make(
@@ -120,9 +116,7 @@ export function buildPracticeSuggestions(input: {
       "starter",
       "voice-speaking",
       de ? "Einen Termin vereinbaren" : "Arrange an appointment",
-      de
-        ? "Übe ein Gespräch: Vereinbare einen Termin, frage nach der Uhrzeit und bitte bei Bedarf um Wiederholung."
-        : "Practise a German conversation: arrange an appointment, check the time, and ask for repetition when needed.",
+      policy.practiceRequest("speaking", context.explanationLanguage, topic, input.level),
       reason,
     ),
     make(
@@ -130,9 +124,7 @@ export function buildPracticeSuggestions(input: {
       "starter",
       "grammar",
       de ? "Sicherere Sätze bilden" : "Build clearer sentences",
-      de
-        ? `Übe die deutsche Satzstellung mit sechs kurzen Aufgaben zum Thema „${topic}“.`
-        : `Practise German word order with six short tasks about ${topic}.`,
+      policy.practiceRequest("grammar", context.explanationLanguage, topic, input.level),
       reason,
     ),
     make(
@@ -140,9 +132,7 @@ export function buildPracticeSuggestions(input: {
       "starter",
       "codex-listening",
       de ? "Eine Alltagssituation hören" : "Listen to an everyday situation",
-      de
-        ? `Übe Hörverstehen mit einem kurzen deutschen Gespräch zum Thema „${topic}“.`
-        : `Practise listening with a short German conversation about ${topic}.`,
+      policy.practiceRequest("listening", context.explanationLanguage, topic, input.level),
       reason,
     ),
     make(
@@ -150,9 +140,7 @@ export function buildPracticeSuggestions(input: {
       "starter",
       "custom-lesson",
       de ? "Wörter im Alltag verwenden" : "Use words in everyday life",
-      de
-        ? `Hilf mir, deutsche Wörter zum Thema „${topic}“ in sechs kurzen Übungen anzuwenden.`
-        : `Help me use German vocabulary about ${topic} in six short exercises.`,
+      policy.practiceRequest("lesson", context.explanationLanguage, topic, input.level),
       reason,
     ),
   ];

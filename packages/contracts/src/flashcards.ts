@@ -1,3 +1,7 @@
+import { generationProvenanceSchema } from "./generation-provenance.js";
+import { portableContentShape } from "./content-reference.js";
+import { contentJsonByteLength, maximumFlashcardContentBytes } from "./content-limits.js";
+import { germanVocabularyLemma, normalizeGermanVocabularyIdentity } from "./german-language.js";
 import { z, strictBoundaryObject } from "./schema-system.js";
 import { activityIdSchema, dataRootGenerationSchema, vocabularyIdSchema } from "./common.js";
 import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
@@ -34,12 +38,43 @@ export const flashcardProgressSchema = z.strictObject({
   completed: z.boolean(),
   revision: z.int().nonnegative(),
 });
+export const portableFlashcardContentSchema = z
+  .strictObject({
+    ...portableContentShape,
+    kind: z.literal("flashcard-deck"),
+    provenance: z.union([
+      generationProvenanceSchema,
+      z.strictObject({ producer: z.literal("local-vocabulary") }),
+    ]),
+    evaluation: z.literal("self-assessment"),
+    cardRevisions: z
+      .array(
+        z.strictObject({
+          cardId: z.string().regex(/^content-card_[0-9a-z]{16,64}$/u),
+          revisionId: z.string().regex(/^card-revision_[0-9a-z]{16,64}$/u),
+        }),
+      )
+      .min(3)
+      .max(30),
+    cards: z.array(flashcardSchema).min(3).max(30),
+  })
+  .superRefine((content, ctx) => {
+    if (
+      contentJsonByteLength(content) > maximumFlashcardContentBytes ||
+      content.cards.length !== content.cardRevisions.length ||
+      new Set(content.cardRevisions.map((card) => card.cardId)).size !== content.cards.length ||
+      new Set(content.cardRevisions.map((card) => card.revisionId)).size !== content.cards.length
+    )
+      ctx.addIssue({ code: "custom", message: "OD_CONTENT_INVALID" });
+  });
+export type PortableFlashcardContent = z.infer<typeof portableFlashcardContentSchema>;
+
 export const flashcardDeckSchema = z.strictObject({
   activityId: activityIdSchema,
   rootGeneration: dataRootGenerationSchema,
   title: text(160),
   source: z.enum(["generated", "vocabulary"]),
-  cards: z.array(flashcardSchema).min(3).max(30),
+  content: portableFlashcardContentSchema,
   progress: flashcardProgressSchema,
   vocabulary: z
     .array(
@@ -79,16 +114,13 @@ export const flashcardSaveRequestSchema = flashcardReadRequestSchema.extend({
 export type Flashcard = z.infer<typeof flashcardSchema>;
 export type FlashcardDeck = z.infer<typeof flashcardDeckSchema>;
 export function vocabularyLemma(card: Pick<Flashcard, "lemma" | "lexeme">): string {
-  const lemma = card.lemma.trim();
-  if (card.lexeme.partOfSpeech !== "noun") return lemma;
-  const prefix = `${card.lexeme.nounForm.article} `;
-  return lemma.toLocaleLowerCase("de").startsWith(prefix)
-    ? lemma.slice(prefix.length).trim() || lemma
-    : lemma;
+  return germanVocabularyLemma(
+    card.lemma,
+    card.lexeme.partOfSpeech === "noun" ? card.lexeme.nounForm.article : undefined,
+  );
 }
 export function vocabularyIdentity(card: Pick<Flashcard, "lemma" | "meaning" | "lexeme">): string {
-  const normalize = (value: string) =>
-    value.normalize("NFC").trim().replace(/\s+/gu, " ").toLocaleLowerCase("de");
+  const normalize = normalizeGermanVocabularyIdentity;
   return JSON.stringify([
     normalize(vocabularyLemma(card)),
     card.lexeme.partOfSpeech,

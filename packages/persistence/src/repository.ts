@@ -1,10 +1,39 @@
-import { validateCourseEvidence } from "@call-nina/domain";
+import {
+  captureExerciseAttempt,
+  captureVocabularyReview,
+  captureActivityAttempt,
+  historyAttemptEvidence,
+  readAttemptEvidence,
+} from "./attempt-evidence.js";
+import { linkPortableContent } from "./materials.js";
+import {
+  contentMaterialInputSchema,
+  preparePortableContent,
+  readStoredExerciseContent,
+} from "./content.js";
+import {
+  vocabularySearchPolicy,
+  readLocalLearningScope,
+  requireLocalLearningScope,
+  parseScopedActivityContext,
+  assertLocalLearningScope,
+} from "./learning-context.js";
+import { resolveLearningContext, supportedCourse, validateCourseEvidence } from "@call-nina/domain";
 import { readLearningPathState, updateLearningPath, saveCourseEvidence } from "./learning-path.js";
 import { readPersonalDataInventory, clearPersonalData } from "./personal-data.js";
 import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 
 import {
+  generationProvenanceSchema,
+  learningContextSchema,
+  learningGoalSchema,
+  portableExerciseContentSchema,
+  maximumExerciseContentBytes,
+  maximumMaterializedExerciseBytes,
+  maximumExerciseSnapshotBytes,
+  maximumExerciseFeedbackBytes,
+  maximumExerciseHistoryBytes,
   type LearningCourse,
   type CourseEvidence,
   vocabularyLibraryFilterSchema,
@@ -12,9 +41,10 @@ import {
   vocabularySummarySchema,
   vocabularyCountsSchema,
   practiceSuggestionContextSchema,
+  type AttemptEvidence,
   activityIdSchema,
   attemptIdSchema,
-  type attemptFeedbackSaveInputSchema,
+  attemptFeedbackSaveInputSchema,
   calendarDateSchema,
   correctionIdSchema,
   curriculumTopicIdSchema,
@@ -46,8 +76,7 @@ import {
   defaultModelPreferences,
   exerciseAnswerSchema,
   evaluateExerciseAnswer,
-  materializeGeneratedExerciseSet,
-  materializeGeneratedLesson,
+  materializeContentExercises,
   learnerProfileSchema,
   mistakeCategorySchema,
   modelPreferencesSchema,
@@ -58,14 +87,12 @@ import {
   vocabularyExampleSchema,
   vocabularyLessonSetRequestSchema,
   type VocabularyLessonSetRequest,
-  vocabularyReviewSchema,
   voiceSummarySchema,
   startedExerciseSnapshotSchema,
   type MistakeCategory,
   type LearnerProfile,
   type ModelPreferences,
   type VocabularyEntry,
-  type VocabularyReview,
   type VoiceSummary,
 } from "@call-nina/domain";
 
@@ -108,6 +135,7 @@ export type PreparedActivityRecord = z.infer<typeof preparedActivitySchema>;
 export type HistoryFilter = z.input<typeof historyFilterSchema>;
 export type HistoryEntryRecord = Readonly<{
   historyEntryId: string;
+  evidence: AttemptEvidence | null;
   entityKind: "attempt" | "correction" | "vocabulary-review" | "voice-summary" | "placement";
   entityId: string;
   skill: "writing" | "reading" | "listening" | "speaking";
@@ -154,13 +182,21 @@ export type HistoryEntryRecord = Readonly<{
       }>
     | Readonly<PlacementResult & { kind: "placement" }>
     | Readonly<ListeningResult & { kind: "listening" }>
+    | Readonly<{
+        kind: "attempt-feedback";
+        feedback: z.infer<typeof attemptFeedbackSaveInputSchema>["feedback"];
+        later: boolean;
+      }>
     | Readonly<{ kind: "reference" }>;
   rootGeneration: number;
 }>;
 
-export const learnerSettingsRecordSchema = strictBoundaryObject({
+const learnerSettingsInputSchema = strictBoundaryObject({
   profile: learnerProfileSchema,
   modelPreferences: modelPreferencesSchema,
+});
+export const learnerSettingsRecordSchema = learnerSettingsInputSchema.extend({
+  learningContext: learningContextSchema,
 });
 export const learnerSettingsUpdateSchema = strictBoundaryObject({
   expectedUpdatedAt: utcInstantSchema,
@@ -237,16 +273,22 @@ export type MistakePatternRecord = Readonly<{
 }>;
 
 export const targetedPracticeActivitySchema = strictBoundaryObject({
+  material: contentMaterialInputSchema,
+  learnerGoal: learningGoalSchema,
   activity: preparedActivitySchema,
   category: mistakeCategorySchema,
   aiProvenance: aiProvenanceSchema,
+  generationProvenance: generationProvenanceSchema,
   output: exerciseGenerationCandidateSchema,
   vocabularyEntries: z.array(vocabularyEntrySchema).max(50).default([]),
 });
 export type TargetedPracticeActivity = z.infer<typeof targetedPracticeActivitySchema>;
 export const generatedPracticeActivitySchema = strictBoundaryObject({
+  material: contentMaterialInputSchema,
+  learnerGoal: learningGoalSchema,
   activity: preparedActivitySchema,
   aiProvenance: aiProvenanceSchema,
+  generationProvenance: generationProvenanceSchema,
   output: exerciseGenerationCandidateSchema,
   vocabularyEntries: z.array(vocabularyEntrySchema).max(50).default([]),
 });
@@ -257,7 +299,7 @@ export const generatedActivityReadSchema = strictBoundaryObject({
   title: z.string().min(1).max(160),
   context: preparedActivitySchema.shape.context,
   aiProvenance: aiProvenanceSchema,
-  output: exerciseGenerationCandidateSchema,
+  content: portableExerciseContentSchema,
 });
 export const generatedExerciseSetStartSchema = strictBoundaryObject({
   activityId: activityIdSchema,
@@ -409,8 +451,12 @@ function insertActivityVocabularyCandidates(
   }
 }
 
-function parseJson(value: unknown): unknown {
-  return JSON.parse(String(value)) as unknown;
+function parseJson(value: unknown, maximumBytes?: number): unknown {
+  const serialized = String(value);
+  if (maximumBytes !== undefined && Buffer.byteLength(serialized, "utf8") > maximumBytes) {
+    throw new Error("OD_REPOSITORY_JSON_TOO_LARGE");
+  }
+  return JSON.parse(serialized) as unknown;
 }
 
 function booleanFromSqlite(value: unknown): boolean {
@@ -435,12 +481,14 @@ function writeModelPreferences(
   preferences: ModelPreferences,
   updatedAt: string,
 ) {
-  connection.prepare(`DELETE FROM model_preference_overrides WHERE learner_id = ?`).run(learnerId);
+  connection
+    .prepare(`DELETE FROM model_preference_overrides WHERE learner_id = ? AND route_id = ?`)
+    .run(learnerId, preferences.routeId);
   const insert = connection.prepare(
     `INSERT INTO model_preference_overrides (
-      learner_id, workload, model_mode, model_id, effort_mode,
+      learner_id, route_id, workload, model_mode, model_id, effort_mode,
       semantic_effort, effort_id, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const workload of modelWorkloads) {
     const preference = preferences[workload];
@@ -448,6 +496,7 @@ function writeModelPreferences(
     const columns = modelPreferenceColumns(preference);
     insert.run(
       learnerId,
+      preferences.routeId,
       workload,
       columns.modelMode,
       columns.modelId,
@@ -465,7 +514,7 @@ function readLearnerSettingsFromConnection(
 ): LearnerSettingsRecord | undefined {
   const row = connection
     .prepare(
-      `SELECT p.*, s.ui_locale, s.teaching_language, s.teaching_profile_id,
+      `SELECT p.*, s.ui_locale, s.explanation_language, s.teaching_profile_id,
         s.correction_timing, s.correction_coverage, s.show_concise_explanation,
         s.show_natural_alternative
        FROM learner_profiles p
@@ -511,7 +560,7 @@ function readLearnerSettingsFromConnection(
     schemaVersion: row["schema_version"],
     learnerId: row["learner_id"],
     levelEstimate,
-    everydayGermanyGoal: row["everyday_germany_goal"],
+    everydayLifeGoal: row["everyday_life_goal"],
     motivation: row["motivation"],
     interests: strings("learner_interests"),
     preferredTopics: strings("learner_preferred_topics"),
@@ -525,7 +574,7 @@ function readLearnerSettingsFromConnection(
     inferredStrengths: insights("strength"),
     inferredWeaknesses: insights("weakness"),
     uiLocale: row["ui_locale"],
-    teachingLanguage: row["teaching_language"],
+    explanationLanguage: row["explanation_language"],
     defaultTeachingProfileId: row["teaching_profile_id"],
     createdAt: row["created_at"],
     updatedAt: row["updated_at"],
@@ -533,7 +582,7 @@ function readLearnerSettingsFromConnection(
 
   const preferenceRows = connection
     .prepare(
-      `SELECT d.workload,
+      `SELECT d.route_id, d.workload,
         COALESCE(o.model_mode, d.model_mode) AS model_mode,
         COALESCE(o.model_id, d.model_id) AS model_id,
         COALESCE(o.effort_mode, d.effort_mode) AS effort_mode,
@@ -541,7 +590,8 @@ function readLearnerSettingsFromConnection(
         COALESCE(o.effort_id, d.effort_id) AS effort_id
        FROM model_preference_defaults d
        LEFT JOIN model_preference_overrides o
-         ON o.workload = d.workload AND o.learner_id = ?
+         ON o.workload = d.workload AND o.route_id = d.route_id AND o.learner_id = ?
+       WHERE d.route_id = 'codex'
        ORDER BY d.workload`,
     )
     .all(learnerId);
@@ -560,9 +610,16 @@ function readLearnerSettingsFromConnection(
   ]);
   const modelPreferences = modelPreferencesSchema.parse({
     schemaVersion: 1,
+    routeId: preferenceRows[0]?.["route_id"],
     ...Object.fromEntries(preferenceEntries),
   });
-  return learnerSettingsRecordSchema.parse({ profile, modelPreferences });
+  const scope = requireLocalLearningScope(connection);
+  if (scope.learnerId !== learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+  return learnerSettingsRecordSchema.parse({
+    profile,
+    modelPreferences,
+    learningContext: resolveLearningContext(scope, profile),
+  });
 }
 
 function insertOrderedStrings(
@@ -612,6 +669,30 @@ export class CallNinaRepository {
     this.#database = database;
   }
 
+  async readRecentAttemptEvidence(maximum = 5) {
+    const limit = z.int().min(1).max(20).parse(maximum);
+    return withLeasedConnection(this.#database, (connection) =>
+      connection
+        .prepare("SELECT attempt_id FROM learning_attempts ORDER BY rowid DESC LIMIT ?")
+        .all(limit)
+        .map((row) => {
+          const evidence = readAttemptEvidence(connection, String(row["attempt_id"]));
+          if (!evidence) throw new Error("OD_ATTEMPT_NOT_FOUND");
+          return evidence;
+        }),
+    );
+  }
+
+  async requireLearningScope() {
+    return withLeasedConnection(this.#database, requireLocalLearningScope);
+  }
+
+  async requireLearningContext() {
+    const settings = await this.readCurrentLearnerSettings();
+    if (!settings) throw new Error("OD_LEARNING_CONTEXT_REQUIRED");
+    return settings.learningContext;
+  }
+
   async readLearningPathState() {
     return readLearningPathState(this.#database);
   }
@@ -654,38 +735,24 @@ export class CallNinaRepository {
     });
   }
 
-  async readLearnerSettings(learnerIdValue: string): Promise<LearnerSettingsRecord | undefined> {
-    const learnerId = learnerIdSchema.parse(learnerIdValue);
-    return withLeasedConnection(this.#database, (connection) =>
-      readLearnerSettingsFromConnection(connection, learnerId),
-    );
-  }
-
   async readCurrentLearnerSettings(): Promise<LearnerSettingsRecord | undefined> {
     return withLeasedConnection(this.#database, (connection) => {
-      const row = connection
-        .prepare(
-          `SELECT learner_id FROM learner_profiles
-           ORDER BY created_at ASC, learner_id ASC LIMIT 1`,
-        )
-        .get() as { learner_id: string } | undefined;
-      return row
-        ? readLearnerSettingsFromConnection(connection, learnerIdSchema.parse(row.learner_id))
-        : undefined;
+      const scope = readLocalLearningScope(connection);
+      return scope ? readLearnerSettingsFromConnection(connection, scope.learnerId) : undefined;
     });
   }
 
   async createLearnerSettings(
-    settingsValue: LearnerSettingsRecord,
+    settingsValue: z.infer<typeof learnerSettingsInputSchema>,
   ): Promise<LearnerSettingsRecord> {
-    const settings = learnerSettingsRecordSchema.parse(settingsValue);
+    const settings = learnerSettingsInputSchema.parse(settingsValue);
     const profile = settings.profile;
     return withLeasedTransaction(this.#database, (connection) => {
       connection
         .prepare(
           `INSERT INTO learner_profiles (
             learner_id, schema_version, current_level, target_level, level_basis,
-            optional_diagnostic_completed_on, level_updated_at, everyday_germany_goal,
+            optional_diagnostic_completed_on, level_updated_at, everyday_life_goal,
             motivation, onboarding_state, created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
@@ -697,7 +764,7 @@ export class CallNinaRepository {
           profile.levelEstimate.basis,
           profile.levelEstimate.optionalDiagnosticCompletedOn ?? null,
           profile.levelEstimate.updatedAt,
-          profile.everydayGermanyGoal,
+          profile.everydayLifeGoal,
           profile.motivation,
           profile.onboardingState,
           profile.createdAt,
@@ -706,7 +773,7 @@ export class CallNinaRepository {
       connection
         .prepare(
           `INSERT INTO learner_settings (
-            learner_id, ui_locale, teaching_language, teaching_profile_id,
+            learner_id, ui_locale, explanation_language, teaching_profile_id,
             correction_timing, correction_coverage, show_concise_explanation,
             show_natural_alternative, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -714,7 +781,7 @@ export class CallNinaRepository {
         .run(
           profile.learnerId,
           profile.uiLocale,
-          profile.teachingLanguage,
+          profile.explanationLanguage,
           profile.defaultTeachingProfileId,
           profile.correctionPreferences.timing,
           profile.correctionPreferences.coverage,
@@ -737,6 +804,12 @@ export class CallNinaRepository {
         settings.modelPreferences,
         profile.updatedAt,
       );
+      connection
+        .prepare(
+          `INSERT INTO local_learning_scope
+        (singleton, learner_id, course_id, target_language) VALUES (1, ?, ?, ?)`,
+        )
+        .run(profile.learnerId, supportedCourse.courseId, supportedCourse.targetLanguage);
       const stored = readLearnerSettingsFromConnection(connection, profile.learnerId);
       if (!stored) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
       return stored;
@@ -750,12 +823,15 @@ export class CallNinaRepository {
       throw new Error("OD_LEARNER_SETTINGS_TIMESTAMP_NOT_ADVANCING");
     }
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, update.settings.learningContext);
+      if (profile.learnerId !== update.settings.learningContext.learnerId)
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
       const result = connection
         .prepare(
           `UPDATE learner_profiles SET
             current_level = ?, target_level = ?, level_basis = ?,
             optional_diagnostic_completed_on = ?, level_updated_at = ?,
-            everyday_germany_goal = ?, motivation = ?,
+            everyday_life_goal = ?, motivation = ?,
             onboarding_state = ?, updated_at = ?
            WHERE learner_id = ? AND created_at = ? AND updated_at = ?`,
         )
@@ -765,7 +841,7 @@ export class CallNinaRepository {
           profile.levelEstimate.basis,
           profile.levelEstimate.optionalDiagnosticCompletedOn ?? null,
           profile.levelEstimate.updatedAt,
-          profile.everydayGermanyGoal,
+          profile.everydayLifeGoal,
           profile.motivation,
           profile.onboardingState,
           profile.updatedAt,
@@ -776,14 +852,14 @@ export class CallNinaRepository {
       if (result.changes !== 1) throw new Error("OD_LEARNER_SETTINGS_CONFLICT");
       const settingsResult = connection
         .prepare(
-          `UPDATE learner_settings SET ui_locale = ?, teaching_language = ?,
+          `UPDATE learner_settings SET ui_locale = ?, explanation_language = ?,
             teaching_profile_id = ?, correction_timing = ?, correction_coverage = ?,
             show_concise_explanation = ?, show_natural_alternative = ?, updated_at = ?
            WHERE learner_id = ?`,
         )
         .run(
           profile.uiLocale,
-          profile.teachingLanguage,
+          profile.explanationLanguage,
           profile.defaultTeachingProfileId,
           profile.correctionPreferences.timing,
           profile.correctionPreferences.coverage,
@@ -984,56 +1060,148 @@ export class CallNinaRepository {
   }
 
   async reviewVocabularyCard(
-    input: Readonly<{
+    inputValue: Readonly<{
       vocabularyId: string;
-      grade: VocabularyReview["transition"]["result"]["grade"];
+      grade: "again" | "hard" | "good" | "easy";
       retrieval: "recognition" | "recall" | "use";
       reviewedAt: string;
-      reviewId: string;
-      historyEntryId?: string;
       expectedRevision?: number;
       expectedUpdatedAt?: string;
       idempotencyKey: string;
     }>,
   ): Promise<IdempotentWriteResult & { dueOn: string }> {
-    const vocabularyId = vocabularyIdSchema.parse(input.vocabularyId);
-    const reviewedAt = utcInstantSchema.parse(input.reviewedAt);
-    const reviewId = reviewIdSchema.parse(input.reviewId);
-    const entry = await withLeasedConnection(this.#database, (connection) => {
-      const row = connection
-        .prepare(`SELECT * FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'`)
-        .get(vocabularyId) as Record<string, unknown> | undefined;
-      if (!row) throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
+    const input = z
+      .strictObject({
+        vocabularyId: vocabularyIdSchema,
+        grade: z.enum(["again", "hard", "good", "easy"]),
+        retrieval: z.enum(["recognition", "recall", "use"]),
+        reviewedAt: utcInstantSchema,
+        expectedRevision: z.int().nonnegative().optional(),
+        expectedUpdatedAt: utcInstantSchema.optional(),
+        idempotencyKey: z.string().min(8).max(128),
+      })
+      .parse(inputValue);
+    const reviewId = reviewIdSchema.parse(
+      `review_${createHash("sha256").update(input.idempotencyKey).digest("hex")}`,
+    );
+    const historyEntryId = historyEntryIdSchema.parse(
+      `history-entry_${reviewId.slice("review_".length)}`,
+    );
+    const { reviewedAt, idempotencyKey, ...command } = input;
+    const retrieval = input.retrieval;
+    return withLeasedTransaction(this.#database, (connection) => {
+      const claim = claimIdempotentWrite(connection, {
+        operation: "vocabulary-review",
+        idempotencyKey,
+        request: command,
+        entityId: reviewId,
+        recordedAt: reviewedAt,
+      });
+      if (claim.replayed) {
+        const saved = connection
+          .prepare("SELECT next_due_on FROM vocabulary_reviews WHERE review_id = ?")
+          .get(reviewId);
+        if (!saved) throw new Error("OD_VOCABULARY_REVIEW_NOT_FOUND");
+        return { ...claim, dueOn: calendarDateSchema.parse(saved["next_due_on"]) };
+      }
+      const entryRow = connection
+        .prepare("SELECT * FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'")
+        .get(input.vocabularyId);
       if (
-        input.expectedRevision !== undefined &&
-        (row["revision"] !== z.int().nonnegative().parse(input.expectedRevision) ||
-          row["updated_at"] !== utcInstantSchema.parse(input.expectedUpdatedAt) ||
-          String(row["due_on"]) > reviewedAt.slice(0, 10))
+        !entryRow ||
+        (input.expectedRevision !== undefined &&
+          (entryRow["revision"] !== input.expectedRevision ||
+            entryRow["updated_at"] !== input.expectedUpdatedAt))
       )
         throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
-      return vocabularyEntryFromRow(row);
+      const entry = vocabularyEntryFromRow(entryRow);
+      if (entry.state.status !== "active") throw new Error("OD_VOCABULARY_NOT_ACTIVE");
+      const schedule = connection
+        .prepare(
+          "SELECT next_due_on, next_stage FROM vocabulary_reviews WHERE vocabulary_id = ? AND retrieval = ? ORDER BY expected_revision DESC LIMIT 1",
+        )
+        .get(input.vocabularyId, retrieval);
+      if (
+        String(schedule?.["next_due_on"] ?? entry.state.confirmedAt.slice(0, 10)) >
+        reviewedAt.slice(0, 10)
+      )
+        throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
+      const review = scheduleVocabularyReview({
+        vocabularyId: input.vocabularyId,
+        expectedActiveState: entry.state,
+        reviewId,
+        reviewedAt,
+        grade: input.grade,
+        retrievalStage: z
+          .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
+          .parse(schedule?.["next_stage"] ?? 1),
+      });
+      const expected = review.transition.expectedActiveState;
+      const row = connection
+        .prepare(
+          `SELECT revision, confirmed_at, due_on, stage, last_review_id
+           FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'`,
+        )
+        .get(review.vocabularyId) as Record<string, unknown> | undefined;
+      const expectedLastReviewId =
+        expected.schedule.status === "reviewed" ? expected.schedule.lastReview.reviewId : null;
+      if (
+        row === undefined ||
+        (input.expectedRevision !== undefined && row["revision"] !== input.expectedRevision) ||
+        row["confirmed_at"] !== expected.confirmedAt ||
+        row["due_on"] !== expected.schedule.dueOn ||
+        row["stage"] !== expected.schedule.stage ||
+        row["last_review_id"] !== expectedLastReviewId ||
+        !Number.isSafeInteger(row["revision"])
+      ) {
+        throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
+      }
+      const revision = row["revision"] as number;
+      const result = review.transition.result;
+      connection
+        .prepare(
+          `INSERT INTO vocabulary_reviews (
+            review_id, vocabulary_id, expected_revision, reviewed_at, grade, next_due_on, next_stage, retrieval
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          result.reviewId,
+          review.vocabularyId,
+          revision,
+          result.reviewedAt,
+          result.grade,
+          result.nextSchedule.dueOn,
+          result.nextSchedule.stage,
+          retrieval,
+        );
+      captureVocabularyReview(connection, result.reviewId);
+      const titleRow = connection
+        .prepare(`SELECT lemma FROM vocabulary_entries WHERE vocabulary_id = ?`)
+        .get(review.vocabularyId) as { lemma: string } | undefined;
+      if (!titleRow) throw new Error("OD_VOCABULARY_NOT_FOUND");
+      connection
+        .prepare(
+          `INSERT INTO history_entries (
+              history_entry_id, entity_kind, entity_id, skill, activity_type, title,
+              occurred_at, reconstruction_json, root_generation
+            ) VALUES (?, 'vocabulary-review', ?, 'reading', 'vocabulary-review', ?, ?, ?, ?)`,
+        )
+        .run(
+          historyEntryId,
+          result.reviewId,
+          titleRow.lemma,
+          result.reviewedAt,
+          stringifyBounded({
+            vocabularyId: review.vocabularyId,
+            grade: result.grade,
+            nextDueOn: result.nextSchedule.dueOn,
+            nextStage: result.nextSchedule.stage,
+          }),
+          this.#database.rootGeneration,
+        );
+
+      return { ...claim, dueOn: review.transition.result.nextSchedule.dueOn };
     });
-    if (entry.state.status !== "active") throw new Error("OD_VOCABULARY_NOT_ACTIVE");
-    const schedules = await this.readVocabularyRetrievalSchedules(vocabularyId);
-    const schedule = schedules.find((s) => s.retrieval === input.retrieval);
-    if (!schedule || schedule.dueOn > reviewedAt.slice(0, 10))
-      throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
-    const review = scheduleVocabularyReview({
-      vocabularyId,
-      expectedActiveState: entry.state,
-      reviewId,
-      reviewedAt,
-      grade: input.grade,
-      retrievalStage: schedule.stage,
-    });
-    const saved = await this.applyVocabularyReview(
-      review,
-      input.idempotencyKey,
-      input.retrieval,
-      input.historyEntryId,
-      input.expectedRevision,
-    );
-    return { ...saved, dueOn: review.transition.result.nextSchedule.dueOn };
   }
 
   async confirmVocabulary(
@@ -1075,10 +1243,8 @@ export class CallNinaRepository {
     const filter = vocabularyLibraryFilterSchema.parse(input);
     const today = calendarDateSchema.parse(todayValue);
     return withLeasedConnection(this.#database, (connection) => {
-      // SQLite lower() is ASCII-only; fold German uppercase letters explicitly.
-      const fold = (column: "lemma" | "meaning") =>
-        `lower(replace(replace(replace(replace(${column}, 'Ä', 'ä'), 'Ö', 'ö'), 'Ü', 'ü'), 'ẞ', 'ß'))`;
-      const search = filter.search.trim().toLocaleLowerCase("de");
+      const { fold, normalize } = vocabularySearchPolicy(connection);
+      const search = normalize(filter.search);
       const where = `(? = '' OR instr(${fold("lemma")}, ?) > 0 OR instr(${fold("meaning")}, ?) > 0)
         AND (? = 'all' OR status = ? OR (? = 'due' AND status = 'active' AND due_on <= ?))`;
       const parameters = [
@@ -1444,92 +1610,6 @@ export class CallNinaRepository {
         )
         .run(learnerId, insightGroup, position);
       if (result.changes !== 1) throw new Error("OD_PROFILE_INSIGHT_NOT_FOUND");
-    });
-  }
-
-  async applyVocabularyReview(
-    reviewValue: VocabularyReview,
-    idempotencyKey: string,
-    retrieval: "recognition" | "recall" | "use",
-    historyEntryIdValue?: string,
-    expectedRevision?: number,
-  ): Promise<IdempotentWriteResult> {
-    const review = vocabularyReviewSchema.parse(reviewValue);
-    return withLeasedTransaction(this.#database, (connection) => {
-      const claim = claimIdempotentWrite(connection, {
-        operation: "vocabulary-review",
-        idempotencyKey,
-        request: { review, retrieval },
-        entityId: review.transition.result.reviewId,
-        recordedAt: review.transition.result.reviewedAt,
-      });
-      if (claim.replayed) return claim;
-      const expected = review.transition.expectedActiveState;
-      const row = connection
-        .prepare(
-          `SELECT revision, confirmed_at, due_on, stage, last_review_id
-           FROM vocabulary_entries WHERE vocabulary_id = ? AND status = 'active'`,
-        )
-        .get(review.vocabularyId) as Record<string, unknown> | undefined;
-      const expectedLastReviewId =
-        expected.schedule.status === "reviewed" ? expected.schedule.lastReview.reviewId : null;
-      if (
-        row === undefined ||
-        (expectedRevision !== undefined && row["revision"] !== expectedRevision) ||
-        row["confirmed_at"] !== expected.confirmedAt ||
-        row["due_on"] !== expected.schedule.dueOn ||
-        row["stage"] !== expected.schedule.stage ||
-        row["last_review_id"] !== expectedLastReviewId ||
-        !Number.isSafeInteger(row["revision"])
-      ) {
-        throw new Error("OD_VOCABULARY_REVIEW_STATE_CONFLICT");
-      }
-      const revision = row["revision"] as number;
-      const result = review.transition.result;
-      connection
-        .prepare(
-          `INSERT INTO vocabulary_reviews (
-            review_id, vocabulary_id, expected_revision, reviewed_at, grade, next_due_on, next_stage, retrieval
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .run(
-          result.reviewId,
-          review.vocabularyId,
-          revision,
-          result.reviewedAt,
-          result.grade,
-          result.nextSchedule.dueOn,
-          result.nextSchedule.stage,
-          retrieval,
-        );
-      if (historyEntryIdValue !== undefined) {
-        const historyEntryId = historyEntryIdSchema.parse(historyEntryIdValue);
-        const entryRow = connection
-          .prepare(`SELECT lemma FROM vocabulary_entries WHERE vocabulary_id = ?`)
-          .get(review.vocabularyId) as { lemma: string } | undefined;
-        if (!entryRow) throw new Error("OD_VOCABULARY_NOT_FOUND");
-        connection
-          .prepare(
-            `INSERT INTO history_entries (
-              history_entry_id, entity_kind, entity_id, skill, activity_type, title,
-              occurred_at, reconstruction_json, root_generation
-            ) VALUES (?, 'vocabulary-review', ?, 'reading', 'vocabulary-review', ?, ?, ?, ?)`,
-          )
-          .run(
-            historyEntryId,
-            result.reviewId,
-            entryRow.lemma,
-            result.reviewedAt,
-            stringifyBounded({
-              vocabularyId: review.vocabularyId,
-              grade: result.grade,
-              nextDueOn: result.nextSchedule.dueOn,
-              nextStage: result.nextSchedule.stage,
-            }),
-            this.#database.rootGeneration,
-          );
-      }
-      return claim;
     });
   }
 
@@ -1937,7 +2017,7 @@ export class CallNinaRepository {
             .get(summary.activity.activityId) as { context_json: string } | undefined)
         : undefined;
       const linkedContext = linked
-        ? preparedActivitySchema.shape.context.parse(parseJson(linked.context_json))
+        ? parseScopedActivityContext(connection, parseJson(linked.context_json))
         : undefined;
       if (summary.activity) {
         if (!linkedContext?.learningPath || !linkedContext.courseTeaching)
@@ -2055,6 +2135,7 @@ export class CallNinaRepository {
   ): Promise<IdempotentWriteResult> {
     const activity = preparedActivitySchema.parse(activityValue);
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, activity.context.learningScope);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2099,7 +2180,7 @@ export class CallNinaRepository {
         activityType: row["activity_type"],
         title: row["title"],
         originSurface: row["origin_surface"],
-        context: parseJson(row["context_json"]),
+        context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
         preparedAt: row["prepared_at"],
       });
     });
@@ -2183,7 +2264,7 @@ export class CallNinaRepository {
         activityType: row["activity_type"],
         title: row["title"],
         originSurface: row["origin_surface"],
-        context: parseJson(row["context_json"]),
+        context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
         preparedAt: row["prepared_at"],
       });
     });
@@ -2197,7 +2278,8 @@ export class CallNinaRepository {
         .prepare(`SELECT status, context_json FROM prepared_activities WHERE activity_id = ?`)
         .get(activityId) as { status: string; context_json: string } | undefined;
       if (!activity) throw new Error("OD_PREPARED_ACTIVITY_NOT_FOUND");
-      const courseMissionId = preparedActivitySchema.shape.context.parse(
+      const courseMissionId = parseScopedActivityContext(
+        connection,
         parseJson(activity.context_json),
       ).courseTeaching?.mission.id;
       if (activity.status !== "prepared" && !courseMissionId) {
@@ -2305,26 +2387,29 @@ export class CallNinaRepository {
     const record = strictBoundaryObject({
       attemptId: attemptIdSchema,
       activityId: activityIdSchema,
+      targetAttemptId: attemptIdSchema.nullable(),
       expectedActivityRevision: z.int().positive(),
-      feedback: z.strictObject({
-        outcome: z.enum(["completed", "partially-completed", "abandoned"]),
-        summary: z.string().min(1).max(1_000).regex(/\S/u),
-        objectiveResults: z
-          .array(z.enum(["met", "partially-met", "not-met", "not-evaluated"]))
-          .max(20),
-        evidence: z.array(z.string().min(1).max(500).regex(/\S/u)).max(20),
-      }),
+      feedback: attemptFeedbackSaveInputSchema.shape.feedback,
       savedAt: utcInstantSchema,
       idempotencyKey: z.string().min(16).max(128),
     }).parse(value);
     return withLeasedTransaction(this.#database, (connection) => {
-      const activity = connection
+      let activity = connection
         .prepare(
           `SELECT title, activity_type, status FROM prepared_activities
            WHERE activity_id = ?`,
         )
         .get(record.activityId) as
         { title: string; activity_type: string; status: "prepared" | "completed" } | undefined;
+      if (!activity && record.targetAttemptId) {
+        activity = connection
+          .prepare(
+            `SELECT h.title, h.activity_type, 'completed' AS status FROM attempts a
+          JOIN exercises e USING(exercise_id) JOIN history_entries h ON h.entity_id = a.attempt_id AND h.entity_kind = 'attempt'
+          WHERE a.attempt_id = ? AND e.activity_id = ? AND a.status = 'completed'`,
+          )
+          .get(record.targetAttemptId, record.activityId) as typeof activity;
+      }
       if (!activity) throw new Error("OD_MCP_ACTIVITY_NOT_FOUND");
       const claim = claimIdempotentWrite(connection, {
         operation: "attempt-completion",
@@ -2334,20 +2419,31 @@ export class CallNinaRepository {
           activityId: record.activityId,
           expectedActivityRevision: record.expectedActivityRevision,
           feedback: record.feedback,
+          targetAttemptId: record.targetAttemptId,
         },
         entityId: record.attemptId,
         recordedAt: record.savedAt,
       });
       if (claim.replayed) return claim;
-      if (record.expectedActivityRevision !== 1 || activity.status === "completed") {
+      if (
+        record.expectedActivityRevision !== 1 ||
+        (!record.targetAttemptId && activity.status === "completed")
+      ) {
         throw new Error("OD_MCP_ACTIVITY_REVISION_CONFLICT");
       }
+      captureActivityAttempt(connection, {
+        attemptId: record.attemptId,
+        activityId: record.activityId,
+        occurredAt: record.savedAt,
+        sourceKind: "external",
+        targetAttemptId: record.targetAttemptId,
+      });
       connection
         .prepare(
           `INSERT INTO mcp_attempt_feedback (
             attempt_id, activity_id, expected_activity_revision, feedback_json,
-            saved_at, root_generation
-          ) VALUES (?, ?, ?, ?, ?, ?)`,
+            saved_at, root_generation, target_attempt_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           record.attemptId,
@@ -2356,6 +2452,7 @@ export class CallNinaRepository {
           stringifyBounded(record.feedback),
           record.savedAt,
           this.#database.rootGeneration,
+          record.targetAttemptId,
         );
       const historyEntryId = historyEntryIdSchema.parse(
         `history-entry_${randomUUID().replaceAll("-", "")}`,
@@ -2386,7 +2483,7 @@ export class CallNinaRepository {
           stringifyBounded({ kind: "reference" }),
           this.#database.rootGeneration,
         );
-      if (record.feedback.outcome === "completed") {
+      if (!record.targetAttemptId && record.feedback.outcome === "completed") {
         connection
           .prepare(
             `UPDATE prepared_activities SET status = 'completed', completed_at = ?
@@ -2428,6 +2525,7 @@ export class CallNinaRepository {
       ) {
         throw new Error("OD_TARGETED_PRACTICE_PATTERN_STALE");
       }
+      assertLocalLearningScope(connection, record.activity.context.learningScope);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2436,6 +2534,7 @@ export class CallNinaRepository {
         recordedAt: record.activity.preparedAt,
       });
       if (claim.replayed) return claim;
+      const content = preparePortableContent(connection, record);
       connection
         .prepare(
           `INSERT INTO prepared_activities (
@@ -2464,8 +2563,9 @@ export class CallNinaRepository {
           modelSelection.modelId,
           modelSelection.effortId,
           record.aiProvenance.generatedAt,
-          stringifyBounded(record.output),
+          stringifyBounded(content, maximumExerciseContentBytes),
         );
+      linkPortableContent(connection, record.activity.activityId, content);
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
          VALUES (?, ?, ?)`,
@@ -2506,6 +2606,7 @@ export class CallNinaRepository {
     }
     const modelSelection = record.aiProvenance.modelSelection;
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, record.activity.context.learningScope);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2514,6 +2615,7 @@ export class CallNinaRepository {
         recordedAt: record.activity.preparedAt,
       });
       if (claim.replayed) return claim;
+      const content = preparePortableContent(connection, record);
       connection
         .prepare(
           `INSERT INTO prepared_activities (
@@ -2542,8 +2644,9 @@ export class CallNinaRepository {
           modelSelection.modelId,
           modelSelection.effortId,
           record.aiProvenance.generatedAt,
-          stringifyBounded(record.output),
+          stringifyBounded(content, maximumExerciseContentBytes),
         );
+      linkPortableContent(connection, record.activity.activityId, content);
       const insertReference = connection.prepare(
         `INSERT INTO activity_context_references (activity_id, reference_kind, reference_id)
          VALUES (?, ?, ?)`,
@@ -2583,7 +2686,7 @@ export class CallNinaRepository {
       return generatedActivityReadSchema.parse({
         activityId: row["activity_id"],
         title: row["title"],
-        context: parseJson(row["context_json"]),
+        context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
         aiProvenance: {
           source: "ai",
           producer: "desktop-app-server",
@@ -2595,7 +2698,11 @@ export class CallNinaRepository {
             effortId: row["effort_id"],
           },
         },
-        output: parseJson(row["output_json"]),
+        content: readStoredExerciseContent(
+          connection,
+          activityId,
+          parseJson(row["output_json"], maximumExerciseContentBytes),
+        ),
       });
     });
   }
@@ -2676,7 +2783,7 @@ export class CallNinaRepository {
         )
         .get(record.activityId);
       if (activeAttempt !== undefined) throw new Error("OD_EXERCISE_ATTEMPT_SET_ACTIVE");
-      const context = preparedActivitySchema.shape.context.parse(parseJson(row["context_json"]));
+      const context = parseScopedActivityContext(connection, parseJson(row["context_json"]));
       const provenance = aiProvenanceSchema.parse({
         source: "ai",
         producer: "desktop-app-server",
@@ -2688,19 +2795,17 @@ export class CallNinaRepository {
           effortId: row["effort_id"],
         },
       });
-      const output = exerciseGenerationCandidateSchema.parse(parseJson(row["output_json"]));
+      const content = readStoredExerciseContent(
+        connection,
+        record.activityId,
+        parseJson(row["output_json"], maximumExerciseContentBytes),
+      );
       const materializeOptions = {
         exerciseIds: record.exercises.map(({ snapshot }) => snapshot.exercise.exerciseId),
         aiProvenance: provenance,
         curriculumTopicIds: context.curriculumTopicIds,
       };
-      const lesson = materializeGeneratedLesson(output, {
-        ...materializeOptions,
-        activityId: record.activityId,
-        naturalRequest: context.naturalRequest,
-      });
-      const expected =
-        lesson?.exercises ?? materializeGeneratedExerciseSet(output, materializeOptions);
+      const expected = materializeContentExercises(content, materializeOptions);
       for (const [position, exercise] of expected.entries()) {
         const started = record.exercises[position];
         if (
@@ -2727,10 +2832,10 @@ export class CallNinaRepository {
             stringifyBounded(exercise.objectives),
             exercise.instructions,
             exercise.explanation ?? null,
-            stringifyBounded(exercise.content),
-            stringifyBounded(exercise.answerContract),
+            stringifyBounded(exercise.content, maximumMaterializedExerciseBytes),
+            stringifyBounded(exercise.answerContract, maximumMaterializedExerciseBytes),
             stringifyBounded(exercise.aiProvenance),
-            stringifyBounded(started.snapshot),
+            stringifyBounded(started.snapshot, maximumExerciseSnapshotBytes),
           );
         connection
           .prepare(
@@ -2742,8 +2847,14 @@ export class CallNinaRepository {
             started.attemptId,
             exercise.exerciseId,
             record.startedAt,
-            stringifyBounded(started.snapshot),
+            stringifyBounded(started.snapshot, maximumExerciseSnapshotBytes),
           );
+        connection
+          .prepare(
+            "INSERT INTO attempt_content_revisions(attempt_id, content_revision_id) VALUES (?, ?)",
+          )
+          .run(started.attemptId, content.revisionId);
+        captureExerciseAttempt(connection, started.attemptId);
       }
     });
   }
@@ -2762,9 +2873,13 @@ export class CallNinaRepository {
         .get(record.attemptId, record.activityId) as Record<string, unknown> | undefined;
       if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
       const snapshot = startedExerciseSnapshotSchema.parse(
-        parseJson(row["exercise_snapshot_json"]),
+        parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
       );
-      const evaluation = evaluateExerciseAnswer(snapshot.exercise, record.answer);
+      const evaluation = evaluateExerciseAnswer(
+        snapshot.exercise,
+        record.answer,
+        requireLocalLearningScope(connection).targetLanguage,
+      );
       if (evaluation.status !== "requires-ai") {
         throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
       }
@@ -2791,6 +2906,7 @@ export class CallNinaRepository {
           )
           .run(record.attemptId, elapsed, stringifyBounded(record.answer));
       }
+      captureExerciseAttempt(connection, record.attemptId);
       return snapshot;
     });
   }
@@ -2802,7 +2918,7 @@ export class CallNinaRepository {
           `INSERT INTO exercise_support (attempt_id, hints_used, helper_used, translation_used)
         SELECT a.attempt_id, 0, 1, ? FROM attempts a JOIN exercises e ON e.exercise_id = a.exercise_id
         JOIN prepared_activities p ON p.activity_id = e.activity_id
-        WHERE a.status = 'in-progress' AND json_type(p.context_json, '$.learningPath') = 'object'
+        WHERE a.status = 'in-progress'
         ON CONFLICT(attempt_id) DO UPDATE SET helper_used = 1, translation_used = max(translation_used, excluded.translation_used)`,
         )
         .run(intent === "translate" ? 1 : 0);
@@ -2815,6 +2931,10 @@ export class CallNinaRepository {
         ON CONFLICT(activity_id) DO UPDATE SET helper_used = 1, translation_used = max(translation_used, excluded.translation_used)`,
         )
         .run(intent === "translate" ? 1 : 0);
+      for (const row of connection
+        .prepare("SELECT attempt_id FROM attempts WHERE status = 'in-progress'")
+        .all())
+        captureExerciseAttempt(connection, String(row["attempt_id"]));
     });
   }
 
@@ -2838,6 +2958,7 @@ export class CallNinaRepository {
         ON CONFLICT(activity_id) DO UPDATE SET hints_used = 1`,
         )
         .run(activityId);
+      captureExerciseAttempt(connection, attemptId);
     });
   }
 
@@ -2847,6 +2968,20 @@ export class CallNinaRepository {
       throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
     }
     await withLeasedTransaction(this.#database, (connection) => {
+      const completionKey = [...record.answers.map((answer) => answer.attemptId)].sort().join(":");
+      const claim = claimIdempotentWrite(connection, {
+        operation: "attempt-completion",
+        idempotencyKey: createHash("sha256").update(completionKey).digest("hex"),
+        request: {
+          activityId: record.activityId,
+          answers: record.answers
+            .map(({ attemptId, answer }) => ({ attemptId, answer }))
+            .sort((left, right) => left.attemptId.localeCompare(right.attemptId)),
+        },
+        entityId: record.activityId,
+        recordedAt: record.completedAt,
+      });
+      if (claim.replayed) return;
       const activity = connection
         .prepare(
           `SELECT title, activity_type, context_json FROM prepared_activities
@@ -2856,16 +2991,19 @@ export class CallNinaRepository {
       if (!activity) throw new Error("OD_GENERATED_ACTIVITY_NOT_FOUND");
       const activityTitle = z.string().min(1).max(160).parse(activity["title"]);
       const activityType = historyActivityTypeSchema.parse(activity["activity_type"]);
-      const activityContext = preparedActivitySchema.shape.context.parse(
+      const activityContext = parseScopedActivityContext(
+        connection,
         parseJson(activity["context_json"]),
       );
       const payload = connection
         .prepare("SELECT output_json FROM generated_activity_payloads WHERE activity_id = ?")
         .get(record.activityId) as { output_json: string } | undefined;
       if (!payload) throw new Error("OD_GENERATED_ACTIVITY_NOT_FOUND");
-      const readingMaterial = exerciseGenerationCandidateSchema.parse(
-        parseJson(payload.output_json),
-      ).readingMaterial;
+      const readingMaterial = readStoredExerciseContent(
+        connection,
+        record.activityId,
+        parseJson(payload.output_json, maximumExerciseContentBytes),
+      ).payload.readingMaterial;
       const expectedCount = (
         connection
           .prepare(
@@ -2888,9 +3026,13 @@ export class CallNinaRepository {
           .get(item.attemptId, record.activityId) as Record<string, unknown> | undefined;
         if (!row) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
         const snapshot = startedExerciseSnapshotSchema.parse(
-          parseJson(row["exercise_snapshot_json"]),
+          parseJson(row["exercise_snapshot_json"], maximumExerciseSnapshotBytes),
         );
-        const evaluation = evaluateExerciseAnswer(snapshot.exercise, item.answer);
+        const evaluation = evaluateExerciseAnswer(
+          snapshot.exercise,
+          item.answer,
+          requireLocalLearningScope(connection).targetLanguage,
+        );
         if (evaluation.status === "requires-ai" && item.aiFeedback === undefined) {
           throw new Error("OD_EXERCISE_AI_FEEDBACK_REQUIRED");
         }
@@ -2988,7 +3130,7 @@ export class CallNinaRepository {
           .run(
             elapsed,
             stringifyBounded(objectiveEvaluations),
-            stringifyBounded(feedback),
+            stringifyBounded(feedback, maximumExerciseFeedbackBytes),
             item.attemptId,
           );
         const reconstruction = generatedExerciseHistorySchema.parse({
@@ -3025,9 +3167,10 @@ export class CallNinaRepository {
             activityType,
             activityTitle,
             record.completedAt,
-            stringifyBounded(reconstruction),
+            stringifyBounded(reconstruction, maximumExerciseHistoryBytes),
             this.#database.rootGeneration,
           );
+        captureExerciseAttempt(connection, item.attemptId);
         if (activityContext.learningPath) {
           const teaching = activityContext.courseTeaching;
           const repeatedAttempt = !!connection
@@ -3052,6 +3195,7 @@ export class CallNinaRepository {
                   hints > 0 ||
                   repeatedAttempt ||
                   assistance?.helper_used === 1 ||
+                  assistance?.translation_used === 1 ||
                   teaching.priorFeedback ||
                   teaching.purpose === "practice";
                 return [
@@ -3148,7 +3292,9 @@ export class CallNinaRepository {
     return withLeasedConnection(this.#database, (connection) => {
       const totals = { writing: 0, reading: 0, listening: 0, speaking: 0 };
       for (const row of connection
-        .prepare("SELECT skill, COUNT(*) AS count FROM history_entries GROUP BY skill")
+        .prepare(
+          "SELECT skill, COUNT(*) AS count FROM history_entries h WHERE NOT EXISTS (SELECT 1 FROM mcp_attempt_feedback f WHERE f.attempt_id = h.entity_id AND f.target_attempt_id IS NOT NULL) GROUP BY skill",
+        )
         .all()) {
         const skill = z.enum(["writing", "reading", "listening", "speaking"]).parse(row["skill"]);
         totals[skill] = z.int().nonnegative().parse(row["count"]);
@@ -3223,7 +3369,20 @@ export class CallNinaRepository {
             .all(historyEntryId)
             .map((entry) => z.string().min(1).max(120).parse(entry["category"]));
           let detail: HistoryEntryRecord["detail"] = { kind: "reference" };
-          if (record["entity_kind"] === "attempt" && record["activity_type"] === "writing") {
+          const external = connection
+            .prepare(
+              "SELECT feedback_json, target_attempt_id FROM mcp_attempt_feedback WHERE attempt_id = ?",
+            )
+            .get(String(record["entity_id"]));
+          if (external)
+            detail = {
+              kind: "attempt-feedback",
+              feedback: attemptFeedbackSaveInputSchema.shape.feedback.parse(
+                parseJson(external["feedback_json"]),
+              ),
+              later: external["target_attempt_id"] !== null,
+            };
+          else if (record["entity_kind"] === "attempt" && record["activity_type"] === "writing") {
             const entityId = attemptIdSchema.parse(record["entity_id"]);
             const writing = connection
               .prepare(
@@ -3288,10 +3447,11 @@ export class CallNinaRepository {
               kind: "listening" as const,
               ...listeningResultSchema.parse(parseJson(record["reconstruction_json"])),
             });
-          } else if (record["entity_kind"] === "attempt") {
+          }
+          if (detail.kind === "reference" && record["entity_kind"] === "attempt") {
             const attemptId = attemptIdSchema.parse(record["entity_id"]);
             const reconstructed = generatedExerciseHistorySchema.safeParse(
-              parseJson(record["reconstruction_json"]),
+              parseJson(record["reconstruction_json"], maximumExerciseHistoryBytes),
             );
             const source = connection
               .prepare(
@@ -3309,6 +3469,7 @@ export class CallNinaRepository {
           }
           return Object.freeze({
             historyEntryId,
+            evidence: historyAttemptEvidence(connection, historyEntryId),
             entityKind: z
               .enum(["attempt", "correction", "vocabulary-review", "voice-summary", "placement"])
               .parse(record["entity_kind"]),
@@ -3359,6 +3520,17 @@ export class CallNinaRepository {
           .prepare(`DELETE FROM history_entries WHERE history_entry_id = ?`)
           .run(historyEntryId);
         if (result.changes !== 1) throw new Error("OD_HISTORY_NOT_FOUND");
+        return;
+      }
+      if (
+        entry.entity_kind === "attempt" &&
+        connection
+          .prepare("SELECT 1 FROM mcp_attempt_feedback WHERE attempt_id = ?")
+          .get(entry.entity_id)
+      ) {
+        connection
+          .prepare("DELETE FROM mcp_attempt_feedback WHERE attempt_id = ?")
+          .run(entry.entity_id);
         return;
       }
       if (entry.entity_kind === "attempt" && entry.activity_type === "codex-listening") {
@@ -3446,6 +3618,12 @@ export class CallNinaRepository {
            WHERE activity_id = ? AND status = 'prepared'`,
         )
         .run(record.occurredAt, record.activityId);
+      captureActivityAttempt(connection, {
+        attemptId: record.attemptId,
+        activityId: record.activityId,
+        occurredAt: record.occurredAt,
+        sourceKind: "listening",
+      });
       return { historyEntryId, replayed: false };
     });
   }

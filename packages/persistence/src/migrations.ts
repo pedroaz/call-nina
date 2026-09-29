@@ -1,3 +1,5 @@
+import { migrateAttemptEvidence } from "./attempt-evidence.js";
+import { migrateVersionedContent } from "./content.js";
 import type { DataRootGeneration } from "@call-nina/contracts";
 
 import { openDataRootDatabase, type DatabaseMigration } from "./sqlite.js";
@@ -1320,6 +1322,206 @@ export const callNinaMigrations = [
         vocabulary_id TEXT NOT NULL REFERENCES vocabulary_entries(vocabulary_id) ON DELETE CASCADE,
         PRIMARY KEY(activity_id, position)
       ) STRICT;
+    `,
+  },
+  {
+    version: 24,
+    name: "explicit-local-learning-context",
+    sql: `
+      -- No identity guessing, resets or deletes: ambiguous/orphaned roots roll back this migration.
+      CREATE TEMP TABLE learning_owner_guard (valid INTEGER NOT NULL CHECK(valid = 1));
+      INSERT INTO learning_owner_guard SELECT CASE WHEN
+        (SELECT count(*) FROM learner_profiles) > 1 OR
+        ((SELECT count(*) FROM learner_profiles) = 0 AND (EXISTS (SELECT 1 FROM lessons) OR EXISTS (SELECT 1 FROM exercises) OR EXISTS (SELECT 1 FROM mistakes) OR EXISTS (SELECT 1 FROM vocabulary_entries) OR EXISTS (SELECT 1 FROM voice_summaries) OR EXISTS (SELECT 1 FROM prepared_activities) OR EXISTS (SELECT 1 FROM history_entries) OR EXISTS (SELECT 1 FROM vocabulary_lesson_sets) OR EXISTS (SELECT 1 FROM course_selection) OR EXISTS (SELECT 1 FROM course_marks) OR EXISTS (SELECT 1 FROM course_missions)))
+        THEN 0 ELSE 1 END;
+      DROP TABLE learning_owner_guard;
+      ALTER TABLE learner_profiles RENAME COLUMN everyday_germany_goal TO everyday_life_goal;
+      ALTER TABLE learner_settings RENAME COLUMN teaching_language TO explanation_language;
+      CREATE TABLE local_learning_scope (
+        singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+        learner_id TEXT NOT NULL UNIQUE REFERENCES learner_profiles(learner_id) ON DELETE RESTRICT,
+        course_id TEXT NOT NULL CHECK(course_id = 'german-foundations'),
+        target_language TEXT NOT NULL CHECK(target_language = 'de')
+      ) STRICT;
+      INSERT INTO local_learning_scope SELECT 1, learner_id, 'german-foundations', 'de' FROM learner_profiles;
+      CREATE TRIGGER local_learning_scope_immutable_update BEFORE UPDATE ON local_learning_scope
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_SCOPE_IMMUTABLE'); END;
+      CREATE TRIGGER local_learning_scope_immutable_delete BEFORE DELETE ON local_learning_scope
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_SCOPE_IMMUTABLE'); END;
+      CREATE TRIGGER single_local_learner BEFORE INSERT ON learner_profiles
+        WHEN EXISTS (SELECT 1 FROM learner_profiles)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_SCOPE_ALREADY_EXISTS'); END;
+      UPDATE prepared_activities SET context_json = json_set(context_json, '$.learningScope',
+        json((SELECT json_object('learnerId', learner_id, 'courseId', course_id, 'targetLanguage', target_language) FROM local_learning_scope)));
+
+      CREATE TRIGGER prepared_activity_scope_insert BEFORE INSERT ON prepared_activities
+        WHEN json_extract(NEW.context_json, '$.learningScope.learnerId') IS NOT (SELECT learner_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.courseId') IS NOT (SELECT course_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.targetLanguage') IS NOT (SELECT target_language FROM local_learning_scope WHERE singleton = 1)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_MISMATCH'); END;
+      CREATE TRIGGER prepared_activity_scope_update BEFORE UPDATE OF context_json ON prepared_activities
+        WHEN json_extract(NEW.context_json, '$.learningScope.learnerId') IS NOT (SELECT learner_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.courseId') IS NOT (SELECT course_id FROM local_learning_scope WHERE singleton = 1)
+          OR json_extract(NEW.context_json, '$.learningScope.targetLanguage') IS NOT (SELECT target_language FROM local_learning_scope WHERE singleton = 1)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_MISMATCH'); END;
+      ALTER TABLE lessons ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER lessons_requires_learning_scope BEFORE INSERT ON lessons
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE exercises ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER exercises_requires_learning_scope BEFORE INSERT ON exercises
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE mistakes ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER mistakes_requires_learning_scope BEFORE INSERT ON mistakes
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE vocabulary_entries ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER vocabulary_entries_requires_learning_scope BEFORE INSERT ON vocabulary_entries
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE voice_summaries ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER voice_summaries_requires_learning_scope BEFORE INSERT ON voice_summaries
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE prepared_activities ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER prepared_activities_requires_learning_scope BEFORE INSERT ON prepared_activities
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE history_entries ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER history_entries_requires_learning_scope BEFORE INSERT ON history_entries
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE vocabulary_lesson_sets ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER vocabulary_lesson_sets_requires_learning_scope BEFORE INSERT ON vocabulary_lesson_sets
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE course_selection ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER course_selection_requires_learning_scope BEFORE INSERT ON course_selection
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE course_marks ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER course_marks_requires_learning_scope BEFORE INSERT ON course_marks
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+
+      ALTER TABLE course_missions ADD COLUMN learning_scope_id INTEGER NOT NULL DEFAULT 1 CHECK(learning_scope_id = 1);
+      CREATE TRIGGER course_missions_requires_learning_scope BEFORE INSERT ON course_missions
+        WHEN NOT EXISTS (SELECT 1 FROM local_learning_scope WHERE singleton = NEW.learning_scope_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_REQUIRED'); END;
+    `,
+  },
+  {
+    version: 25,
+    name: "versioned-materials-portable-content",
+    sql: `
+      CREATE TABLE material_revisions (
+        material_id TEXT NOT NULL,
+        revision_id TEXT PRIMARY KEY,
+        revision INTEGER NOT NULL CHECK(revision > 0),
+        revision_json TEXT NOT NULL CHECK(json_valid(revision_json)),
+        learning_scope_id INTEGER NOT NULL DEFAULT 1 REFERENCES local_learning_scope(singleton),
+        UNIQUE(material_id, revision)
+      ) STRICT;
+      CREATE TRIGGER material_revision_immutable BEFORE UPDATE ON material_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_MATERIAL_REVISION_IMMUTABLE'); END;
+      CREATE TABLE activity_content_revisions (
+        activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+        revision_id TEXT NOT NULL UNIQUE,
+        material_revision_id TEXT NOT NULL REFERENCES material_revisions(revision_id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE TRIGGER activity_content_revision_immutable BEFORE UPDATE ON activity_content_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;
+      CREATE TABLE attempt_content_revisions (
+        attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id) ON DELETE CASCADE,
+        content_revision_id TEXT NOT NULL REFERENCES activity_content_revisions(revision_id) ON DELETE RESTRICT
+      ) STRICT;
+      CREATE TRIGGER attempt_content_revision_immutable BEFORE UPDATE ON attempt_content_revisions
+        BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;
+      DROP TRIGGER generated_activity_payload_immutable;
+      ALTER TABLE flashcard_decks RENAME COLUMN cards_json TO content_json;
+    `,
+    migrate: migrateVersionedContent,
+  },
+  {
+    version: 26,
+    name: "attempt-ownership-and-evidence-events",
+    sql: `
+      CREATE TABLE learning_attempts (
+        attempt_id TEXT PRIMARY KEY, source_kind TEXT NOT NULL CHECK(source_kind IN ('exercise', 'vocabulary-review', 'external', 'listening')), source_id TEXT NOT NULL,
+        ownership_json TEXT NOT NULL CHECK(json_valid(ownership_json) AND json_extract(ownership_json, '$.attemptId') = attempt_id),
+        UNIQUE(source_kind, source_id)
+      ) STRICT;
+      CREATE TABLE learning_attempt_events (
+        event_id TEXT PRIMARY KEY,
+        attempt_id TEXT NOT NULL REFERENCES learning_attempts(attempt_id) ON DELETE CASCADE,
+        event_json TEXT NOT NULL CHECK(json_valid(event_json) AND json_extract(event_json, '$.attemptId') = attempt_id AND json_extract(event_json, '$.eventId') = event_id)
+      ) STRICT;
+      CREATE INDEX learning_attempt_events_by_attempt ON learning_attempt_events(attempt_id);
+      CREATE TRIGGER learning_attempt_immutable BEFORE UPDATE ON learning_attempts
+        BEGIN SELECT RAISE(ABORT, 'OD_ATTEMPT_OWNERSHIP_IMMUTABLE'); END;
+      CREATE TRIGGER learning_attempt_event_immutable BEFORE UPDATE ON learning_attempt_events
+        BEGIN SELECT RAISE(ABORT, 'OD_ATTEMPT_EVENT_IMMUTABLE'); END;
+      ALTER TABLE mcp_attempt_feedback RENAME TO previous_attempt_feedback;
+      DROP TRIGGER mcp_attempt_feedback_immutable_update;
+      DROP INDEX mcp_attempt_feedback_by_activity;
+      CREATE TABLE mcp_attempt_feedback (
+        attempt_id TEXT PRIMARY KEY,
+        activity_id TEXT NOT NULL,
+        expected_activity_revision INTEGER NOT NULL CHECK(expected_activity_revision = 1),
+        feedback_json TEXT NOT NULL CHECK(json_valid(feedback_json)),
+        saved_at TEXT NOT NULL CHECK(saved_at GLOB '????-??-??T??:??:??.???Z'),
+        root_generation INTEGER NOT NULL CHECK(root_generation > 0),
+        target_attempt_id TEXT REFERENCES learning_attempts(attempt_id) ON DELETE CASCADE
+      ) STRICT;
+      INSERT INTO mcp_attempt_feedback SELECT *, NULL FROM previous_attempt_feedback;
+      DROP TABLE previous_attempt_feedback;
+      CREATE INDEX mcp_attempt_feedback_by_activity ON mcp_attempt_feedback(activity_id, saved_at DESC);
+      CREATE TRIGGER mcp_attempt_feedback_immutable_update BEFORE UPDATE ON mcp_attempt_feedback
+        BEGIN SELECT RAISE(ABORT, 'OD_MCP_ATTEMPT_FEEDBACK_IMMUTABLE'); END;
+      CREATE TRIGGER mcp_feedback_requires_owner BEFORE INSERT ON mcp_attempt_feedback
+        WHEN NOT EXISTS (SELECT 1 FROM prepared_activities WHERE activity_id = NEW.activity_id)
+          AND NOT EXISTS (SELECT 1 FROM learning_attempts WHERE attempt_id = NEW.target_attempt_id
+            AND json_extract(ownership_json, '$.source.activityId') = NEW.activity_id)
+        BEGIN SELECT RAISE(ABORT, 'OD_ATTEMPT_REVISION_MISMATCH'); END;
+      CREATE TRIGGER activity_feedback_delete AFTER DELETE ON prepared_activities BEGIN
+        DELETE FROM mcp_attempt_feedback WHERE activity_id = OLD.activity_id;
+      END;
+      CREATE TRIGGER exercise_attempt_evidence_delete AFTER DELETE ON attempts BEGIN
+        DELETE FROM learning_attempts WHERE source_kind = 'exercise' AND source_id = OLD.attempt_id;
+      END;
+      CREATE TRIGGER vocabulary_attempt_evidence_delete AFTER DELETE ON vocabulary_reviews BEGIN
+        DELETE FROM learning_attempts WHERE source_kind = 'vocabulary-review' AND source_id = OLD.review_id;
+      END;
+      CREATE TRIGGER external_attempt_evidence_delete AFTER DELETE ON mcp_attempt_feedback BEGIN
+        DELETE FROM learning_attempt_events WHERE json_extract(event_json, '$.detail.kind') = 'feedback'
+          AND json_extract(event_json, '$.detail.recordId') = OLD.attempt_id;
+        DELETE FROM learning_attempts WHERE source_kind = 'external' AND source_id = OLD.attempt_id;
+        DELETE FROM history_entries WHERE entity_id = OLD.attempt_id;
+      END;
+      CREATE TRIGGER listening_attempt_evidence_delete AFTER DELETE ON history_entries BEGIN
+        DELETE FROM learning_attempts WHERE source_kind = 'listening' AND source_id = OLD.entity_id;
+      END;
+    `,
+    migrate: migrateAttemptEvidence,
+  },
+  {
+    version: 27,
+    name: "codex-route-model-preferences",
+    sql: `
+      ALTER TABLE model_preference_defaults
+        ADD COLUMN route_id TEXT NOT NULL DEFAULT 'codex' CHECK(route_id = 'codex');
+      ALTER TABLE model_preference_overrides
+        ADD COLUMN route_id TEXT NOT NULL DEFAULT 'codex' CHECK(route_id = 'codex');
     `,
   },
 ] as const satisfies readonly DatabaseMigration[];
