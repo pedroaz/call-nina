@@ -4,7 +4,7 @@ This inventory covers the 36 package versions bundled into, or providing the Ele
 
 ## Application and assets
 
-- Call Nina application code, original teaching content, and the `call-nina` N mark are maintained by Call Nina contributors and distributed under the repository MIT license.
+- The authored [licensing and attribution policy](licensing.md) and repository [LICENSE](../LICENSE) define original-material permissions, preserved MIT grants and branding rights. This generated dependency inventory does not set or replace that policy.
 - The curriculum snapshot is original or source-attributed content. Authoritative source links and freshness fields are maintained in `content/curriculum/sources.yaml`.
 - Researched curriculum is educational material, not formal CEFR certification, legal advice, immigration advice, or an official public-service determination.
 - Curriculum attribution: [Council of Europe CEFR Companion Volume](https://www.coe.int/en/web/common-european-framework-reference-languages/cefr-companion-volume-and-its-language-versions), [Bundesportal](https://verwaltung.bund.de/leistungsverzeichnis/DE/leistung/99115005104001/herausgeber/HH-S1000020010000000079/region/020000000000), and [Bundesmeldegesetz §17](https://www.gesetze-im-internet.de/bmg/__17.html), as listed in the source registry.

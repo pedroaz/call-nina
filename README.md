@@ -114,7 +114,9 @@ Installers use platform-default locations. For manual app verification, use an e
 
 ## License
 
-Repository-original code and content are [MIT licensed](LICENSE). Third-party dependencies and cited external material retain their own terms; see [licensing and attribution](docs/licensing.md) and [third-party notices](docs/third-party-notices.md).
+New original material is source available under the [Call Nina Personal Learning Source License 1.0](LICENSE), offered by Pedro Azevedo Minutetnag: independent personal self-study is free; professional teaching, institution-operated learning and other organizational use of that material require separate written permission. Free redistribution and personal modifications are permitted under the stated conditions. These are source-available terms, not an open-source license.
+
+**Previously MIT-licensed material remains MIT-licensed**, including the code and content at `6d83af64512bb0853b007a89f9f71b16f16d5143`; its commercial and institutional permissions remain intact. The exact historic Open Deutsch MIT notice is retained in `LICENSE`. Third-party dependencies and cited external material retain their own terms. See [licensing, provenance and contribution terms](docs/licensing.md) and [third-party notices](docs/third-party-notices.md).
 
 ## Autonomous development
 

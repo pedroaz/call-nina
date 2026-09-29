@@ -38,6 +38,7 @@ type Copy = {
   platforms: string;
   source: string;
   license: string;
+  licenseLink: string;
   footer: string;
 };
 
@@ -107,7 +108,9 @@ export const copy: Record<Locale, Copy> = {
       "We’re still building Call Nina. Public installers aren’t available yet, so there’s nothing to download here today.",
     platforms: "Planned desktop downloads: Linux, macOS and Windows",
     source: "View source on GitHub",
-    license: "Source code is available under the MIT license.",
+    license:
+      "Source available. New original material: free personal study; professional and organizational use requires permission. Prior MIT grants remain intact.",
+    licenseLink: "License and attribution",
     footer: "Made for small steps forward.",
   },
   de: {
@@ -176,7 +179,9 @@ export const copy: Record<Locale, Copy> = {
       "Wir entwickeln Call Nina noch. Öffentliche Installationspakete sind noch nicht verfügbar. Deshalb gibt es hier heute noch keinen Download.",
     platforms: "Geplante Desktop-Downloads: Linux, macOS und Windows",
     source: "Quellcode auf GitHub ansehen",
-    license: "Der Quellcode ist unter der MIT-Lizenz verfügbar.",
+    license:
+      "Quellcode einsehbar. Neues eigenes Material: persönliches Lernen kostenlos; professionelle und organisatorische Nutzung mit Erlaubnis. Bisherige MIT-Rechte bleiben erhalten.",
+    licenseLink: "Lizenz und Quellenangaben",
     footer: "Für kleine Schritte nach vorn.",
   },
 };

@@ -74,7 +74,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
     funding:
       "No Nina fee does not mean free AI usage. With personal BYOK or Codex access, provider charges, subscription requirements and usage limits remain separate and are your responsibility. No managed allowance or unlimited use is available or promised here.",
     license:
-      "These product and service plans do not change the current MIT license for the source code. The tier descriptions are not new restrictions on using that source.",
+      "New original material is covered by the Call Nina Personal Learning Source License 1.0: independent personal study is free; professional teaching and institutional or other organizational use require separate permission. Previously MIT-licensed material keeps its MIT permissions, including commercial use. Product plans do not replace these terms.",
     faq: [
       {
         question: "Can I download Call Nina now?",
@@ -102,9 +102,9 @@ export const planCopy: Record<Locale, PlanCopy> = {
           "No. Learning records are stored on your device, but current AI features send relevant learning content through Codex and need provider access. Optional local desktop models, mobile offline practice and desktop-to-phone transfer are planned work, not available integrations.",
       },
       {
-        question: "Do the planned tiers change the source license?",
+        question: "Which license applies, and who can use Call Nina for free?",
         answer:
-          "No. The current source code remains under the MIT license. Planned product and service tiers do not impose new source-license restrictions.",
+          "Pedro Azevedo Minutetnag offers new original material under the Call Nina Personal Learning Source License 1.0. Independent personal self-study is free, including personal modifications and free sharing under its conditions. Professional teaching, schools and other organizations need separate written permission for that material, even without a fee. Previously MIT-licensed code and content remain under MIT; third-party rights also remain intact. The full terms are linked in the footer.",
       },
     ],
     contact: {
@@ -179,7 +179,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
     funding:
       "Keine Nina-Gebühr bedeutet nicht kostenlose KI-Nutzung. Bei persönlichem BYOK- oder Codex-Zugang bleiben Anbieterkosten, Abonnementanforderungen und Nutzungslimits separat und liegen in deiner Verantwortung. Hier wird weder ein verfügbares Nina-Kontingent noch unbegrenzte Nutzung zugesagt.",
     license:
-      "Diese Produkt- und Dienstleistungspläne ändern die aktuelle MIT-Lizenz des Quellcodes nicht. Die Angebotsbeschreibungen sind keine neuen Einschränkungen für dessen Nutzung.",
+      "Für neues eigenes Material gilt die Call Nina Personal Learning Source License 1.0: Eigenständiges persönliches Lernen ist kostenlos; professioneller Unterricht sowie institutionelle oder sonstige organisatorische Nutzung erfordern eine gesonderte Erlaubnis. Bereits unter MIT veröffentlichtes Material behält seine MIT-Rechte, auch für kommerzielle Nutzung. Die Produktangebote ersetzen diese Bedingungen nicht.",
     faq: [
       {
         question: "Kann ich Call Nina schon herunterladen?",
@@ -207,9 +207,9 @@ export const planCopy: Record<Locale, PlanCopy> = {
           "Nein. Lerndaten liegen auf deinem Gerät, aber aktuelle KI-Funktionen übermitteln relevante Lerninhalte über Codex und benötigen einen Anbieterzugang. Optionale lokale Desktop-Modelle, mobile Offline-Übungen und die Übertragung vom Desktop aufs Handy sind geplant und noch keine verfügbaren Integrationen.",
       },
       {
-        question: "Ändern die geplanten Angebote die Quellcode-Lizenz?",
+        question: "Welche Lizenz gilt, und wer kann Call Nina kostenlos nutzen?",
         answer:
-          "Nein. Der aktuelle Quellcode bleibt unter der MIT-Lizenz verfügbar. Die geplanten Produkt- und Dienstleistungsangebote führen keine neuen Einschränkungen der Quellcode-Lizenz ein.",
+          "Pedro Azevedo Minutetnag bietet neues eigenes Material unter der Call Nina Personal Learning Source License 1.0 an. Eigenständiges persönliches Lernen ist kostenlos, einschließlich persönlicher Anpassungen und kostenloser Weitergabe nach den Lizenzbedingungen. Professioneller Unterricht, Schulen und andere Organisationen brauchen für dieses Material eine gesonderte schriftliche Erlaubnis, auch ohne Gebühren. Bereits unter MIT veröffentlichter Code und Inhalt bleiben unter MIT; Rechte Dritter bleiben ebenfalls erhalten. Die vollständigen Bedingungen sind in der Fußzeile verlinkt.",
       },
     ],
     contact: {
