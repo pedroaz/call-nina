@@ -62,7 +62,9 @@ function promptEnvelope(
               ...(location === undefined
                 ? {}
                 : {
-                    exerciseNumber: location.exerciseIndex + 1,
+                    ...(location.exerciseIndex === undefined
+                      ? {}
+                      : { exerciseNumber: location.exerciseIndex + 1 }),
                     field: location.field,
                     ...(location.fieldIndex === undefined
                       ? {}
@@ -151,7 +153,9 @@ export async function runLearningWorkflow<Kind extends GenerationKind>(
         code: error.message,
         ...(error.location
           ? {
-              exerciseIndex: error.location.exerciseIndex + 1,
+              ...(error.location.exerciseIndex === undefined
+                ? {}
+                : { exerciseIndex: error.location.exerciseIndex + 1 }),
               validationField: error.location.field,
               ...(error.location.answerLength === undefined
                 ? {}

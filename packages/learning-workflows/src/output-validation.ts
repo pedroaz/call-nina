@@ -14,12 +14,12 @@ import {
 } from "@call-nina/contracts";
 
 const maximumIssues = 12;
-type ReportIssue = (code: string, location?: ExerciseValidationLocation) => void;
+type ReportIssue = (code: string, location?: OutputValidationLocation) => void;
 
 export type SafeOutputValidationIssue = Readonly<{
   code: string;
   path: readonly (number | "<field>")[];
-  location?: ExerciseValidationLocation;
+  location?: OutputValidationLocation;
 }>;
 
 export type ExerciseValidationLocation = Readonly<{
@@ -41,14 +41,23 @@ export type ExerciseValidationLocation = Readonly<{
   fieldIndex?: number;
 }>;
 
+type OutputValidationLocation =
+  | ExerciseValidationLocation
+  | Readonly<{
+      field: "readingMaterial" | "readingMaterial.passage" | "exercises";
+      exerciseIndex?: never;
+      fieldIndex?: never;
+      answerLength?: never;
+    }>;
+
 export class GenerationOutputValidationError extends Error {
   readonly issues: readonly SafeOutputValidationIssue[];
-  readonly location: ExerciseValidationLocation | undefined;
+  readonly location: OutputValidationLocation | undefined;
 
   constructor(
     code: string,
     issues: readonly SafeOutputValidationIssue[] = [],
-    location?: ExerciseValidationLocation,
+    location?: OutputValidationLocation,
   ) {
     super(code);
     this.name = "GenerationOutputValidationError";
@@ -152,17 +161,22 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
       report("OD_GENERATION_EXERCISE_CONSTRAINT_INVALID");
     }
     if (workloadInput.kind === "exercise-generation" && workloadInput.reading) {
-      if (
-        !output.readingMaterial ||
-        (workloadInput.reading.passage !== null &&
-          output.readingMaterial.passage !== workloadInput.reading.passage) ||
-        (workloadInput.practiceType !== "vocabulary-review" &&
-          !output.exercises.some((exercise) => exercise.kind === "free-writing"))
+      if (!output.readingMaterial) {
+        report("OD_READING_MATERIAL_MISSING", { field: "readingMaterial" });
+      } else if (
+        workloadInput.reading.passage !== null &&
+        output.readingMaterial.passage !== workloadInput.reading.passage
       ) {
-        report("OD_READING_MATERIAL_INVALID");
+        report("OD_READING_PASSAGE_MISMATCH", { field: "readingMaterial.passage" });
+      }
+      if (
+        workloadInput.practiceType !== "vocabulary-review" &&
+        !output.exercises.some((exercise) => exercise.kind === "free-writing")
+      ) {
+        report("OD_READING_SUMMARY_MISSING", { field: "exercises" });
       }
     } else if (output.readingMaterial) {
-      report("OD_READING_MATERIAL_UNEXPECTED");
+      report("OD_READING_MATERIAL_UNEXPECTED", { field: "readingMaterial" });
     }
     if (
       workloadInput.kind === "exercise-generation" &&
