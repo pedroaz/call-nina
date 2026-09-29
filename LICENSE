@@ -1,3 +1,135 @@
+Call Nina Personal Learning Source License 1.0
+Adopted 2026-09-29
+Licensor: Pedro Azevedo Minutetnag
+Copyright (c) 2026 Pedro Azevedo Minutetnag, to the extent copyright subsists
+and the licensor holds the relevant rights.
+
+PART A — TERMS FOR NEW COVERED MATERIAL
+
+1. Scope and existing rights
+
+These terms cover only new copyrightable Call Nina material first distributed
+under this license that the licensor is entitled to license (the "Covered
+Material"). This includes original software, documentation, teaching content
+and artwork, but only the new protectable contributions, not the underlying
+material excluded below. A later version of this license does not replace the
+terms for a copy you already received unless you choose that later version.
+
+Material already distributed under MIT, including the repository at commit
+6d83af64512bb0853b007a89f9f71b16f16d5143 and its ancestors, remains available
+under MIT. Part B preserves the historic notice and permission text. The same
+applies to any other material previously distributed under MIT, including on
+parallel branches. Incorporating or modifying such material does not withdraw
+its MIT permissions or apply Part A to the pre-existing portions. Those
+permissions include commercial and institutional use, modification and resale.
+
+Third-party components and attributed external material remain under their own
+terms. These terms neither replace those terms nor claim rights in unprotected
+material, learner records, user-supplied content or generated learner output.
+No copyrightability or exclusive ownership of AI-generated elements is asserted.
+Nothing here restricts rights under applicable law, including copyright
+exceptions, or any independently obtained license. Part A restrictions and
+termination apply only to permissions granted by Part A.
+
+2. Free personal learning permission
+
+Subject to these terms, the licensor grants each individual a worldwide,
+nonexclusive, royalty-free copyright license to download, install, run, copy,
+study and modify the Covered Material for independent personal self-study.
+You may create adaptations for that purpose. Personal study may improve your
+career prospects; that alone does not make it professional use. Being a student,
+teacher or employee does not by itself disqualify your independent self-study.
+
+Independent personal self-study means learning for yourself, on your own behalf,
+outside a course, service, deployment or training program operated, administered
+or assigned by a professional teacher or organization. No Nina license fee is
+required for this permission, including when using your own API key (BYOK) or
+eligible personal Codex access. Provider fees and provider terms remain separate;
+this license supplies no account, subscription, service allowance or feature.
+
+3. Uses requiring separate written permission
+
+Except as expressly allowed in sections 4 and 5, this license does not permit
+professional teaching or tutoring, provision of learning services to others,
+or use by or on behalf of a school, university, employer, business, government,
+charity or other organization. This includes classroom use, assigned coursework,
+institution-operated learning, employee training, managed deployments and hosted
+access. There is no blanket educational, charitable or nonprofit exception:
+these uses require separate written permission even if no fee is charged.
+Selling, renting, licensing for payment or commercially exploiting the Covered
+Material also requires separate written permission from the relevant rightsholder.
+Contact Pedro Azevedo Minutetnag at pedro.azvm@gmail.com to request permission;
+a request, product plan description or provider subscription is not permission.
+
+4. Inspection and public information
+
+Anyone may read and inspect the published source and documentation, copy them
+as needed for that inspection, and report problems or propose changes. Anyone
+may view and share links to the public website, including in professional or
+organizational contexts. These permissions do not authorize deploying the
+learning application or using its teaching content for the uses in section 3.
+
+5. Free redistribution and modifications
+
+Anyone may redistribute unmodified or modified Covered Material, in source or
+binary form, without charge, for recipients to exercise the permissions in
+this license. This includes public source forks and free download mirrors,
+but not hosted access to the learning application, paid bundles, or provision
+as part of a professional or organizational learning service.
+
+You must include this entire LICENSE, preserve copyright, attribution and
+third-party notices, identify your modifications prominently, and supply the
+corresponding source for any Covered Material you distribute in binary form,
+including your modifications, without an additional fee. You must license your
+modifications to Covered Material to recipients under Part A of this license.
+Do not impose additional restrictions on recipients' permissions under this
+license. Recipients receive their permission for the licensor's Covered
+Material directly from the licensor; you cannot grant broader rights to it.
+These conditions apply only to Covered Material and adaptations of it, not to
+separate works, excluded MIT material or third-party components.
+
+6. Contributions
+
+Contributors retain ownership of their contributions. Sharing a fork or opening
+an issue does not assign copyright or authorize commercial relicensing. Before
+an external contribution is incorporated, the contributor and maintainer must
+expressly agree in writing on the applicable license and any additional rights
+needed for the maintainer to offer separate professional/organizational licenses.
+No such additional grant is inferred from submission alone. Identify third-party
+material and preserve its terms; do not contribute rights you cannot grant.
+
+7. Names, brands and other rights
+
+This license grants no trademark rights beyond truthful identification and
+attribution. Do not imply that a modified version is official or endorsed by
+Call Nina or the licensor. Copyright permissions already granted for the
+historic N mark remain intact; no registered trademark status is asserted.
+No patent license is granted by Part A. Rights not expressly granted are reserved.
+
+8. Duration and breach
+
+Permissions under Part A continue for the duration of the applicable copyright
+while you comply. If you breach Part A, its permissions terminate unless you
+remedy the breach within 30 days after receiving written notice from the
+licensor. Termination does not affect permissions of compliant downstream
+recipients, prior MIT permissions, third-party licenses or statutory rights.
+
+9. Warranty and liability
+
+To the extent permitted by applicable law, Covered Material is provided as is,
+without warranties, including merchantability, fitness for a particular purpose
+or noninfringement. To that same extent the licensor is not liable for damages
+arising from its use or these terms. This does not exclude or limit liability
+that cannot lawfully be excluded or limited, or mandatory consumer rights.
+
+PART B — PRESERVED MIT LICENSE FOR PREVIOUSLY LICENSED MATERIAL
+
+The following is the exact MIT notice and text present at the baseline above.
+It remains operative for the material described in section 1; it is not merely
+a historical acknowledgment. Part A imposes no additional conditions on it.
+The earlier repository notice is also preserved here:
+Copyright (c) 2026 Call Nina contributors
+
 MIT License
 
 Copyright (c) 2026 Open Deutsch contributors

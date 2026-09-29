@@ -207,6 +207,7 @@ function App() {
             {t.source} <span aria-hidden="true">↗</span>
           </a>
           <p>{t.license}</p>
+          <a href="https://github.com/pedroaz/call-nina/blob/main/LICENSE">{t.licenseLink}</a>
         </div>
       </footer>
     </>
