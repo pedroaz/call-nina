@@ -1,0 +1,39 @@
+---
+name: call-nina-android-verification
+description: Operate and inspect the real Call Nina Expo app on an Android emulator or device during development, with environment discovery and exact session ownership. Use for interactive Android verification, not automated tests, Electron, or iOS verification.
+---
+
+# Call Nina Android verification
+
+Read root `AGENTS.md` and [development guidance](../call-nina-development/SKILL.md). Verify a fixed app commit in a checkout reserved against edits for the session. Inspect its `Makefile`, `apps/mobile/package.json`, Expo configuration and affected native UI source; commands or features absent from that checkout are unavailable. Do not copy a past device inventory or journey into this skill.
+
+## Reserve ownership and discover the host
+
+The coordinator assigns one Android operator and explicitly hands off the target, app revision, checkout and any existing Metro/helper sessions before interaction. Keep ownership and evidence in the existing Run/Task, including resources borrowed from another owner. The current generic verifier role and `verify-*` Make targets are Electron-specific: use coordinator-owned Android verification (or its explicit operator handoff), not that role or a bypass of the desktop barrier. A future platform role must be supported before use.
+
+- Resolve Android Studio's configured SDK, `ANDROID_HOME` / `ANDROID_SDK_ROOT`, and executables on `PATH`; check per-OS SDK defaults only as candidates (`~/Android/Sdk`, `~/Library/Android/sdk`, `%LOCALAPPDATA%\Android\Sdk`). Validate the chosen tools with their installed help/version output. If paths disagree, resolve which SDK owns the tools before launch; do not rewrite host configuration or install services to make discovery pass.
+- Read `adb devices -l` using the resolved adb. Match the requested online target to its AVD/model and Android/API version; a transient serial alone is not durable identity. Record the selected serial for this session and use `adb -s <serial>` for every device operation. Offline/unauthorized or ambiguous targets require resolution before input; never take the first device silently.
+- If Orca is available, resolve its installed CLI and read `orca skills get orca-emulator-android`, `orca emulator --help` and the relevant verb help. Use `orca emulator devices --json` for inventory; pass the selected `--device` and exact `--worktree` on device operations. Attaching an AVD can boot it and changes the worktree's active device: reuse the agreed running target. Use `--worktree all` only for listing. If Orca is unavailable, use discovered adb directly; no Orca helper is required for native inspection.
+- Before launch, account for the foreground app, pre-existing app installation/data, Metro owner/port, helpers, reverse mappings (`adb -s <serial> reverse --list`) and any settings you intend to change. Reuse the user's emulator without wiping, cold-resetting or shutting it down. A missing SDK/target is a concrete prerequisite blocker, not permission to provision a replacement.
+
+## Launch the implemented route
+
+Use supported Node/pnpm versions and `make setup` in the owned app checkout when preparation is needed. Read `make help` and installed Expo help, for example `pnpm --filter @call-nina/mobile exec expo start --help`. Confirm available flags instead of assuming a selector supported by one Expo command works on another.
+
+For Expo Go, `make dev-mobile-android ARGS="--localhost --port <owned-port>"` starts foreground Metro and requests Android opening. Use it only when its selected target is unambiguous. With multiple targets, start `make dev-mobile ARGS="--localhost --port <owned-port>"` and open the emitted Expo URL on the explicitly selected device using the installed tools. For a localhost connection, inspect existing reverse mappings before adding a required mapping with `adb -s <serial> reverse --no-rebind tcp:<device-port> tcp:<host-port>`; never replace someone else's mapping. Do not start a duplicate server when Metro is handed over: confirm its checkout/revision and use that session. Record the terminal/process owner and actual port, including any interactive port change.
+
+Expo may download/install a compatible Expo Go host. Account for that separately from Call Nina's configured Android package; preserve pre-existing host apps and their data. Native rendering inside Expo Go is valid evidence for supported UI, but `make build-mobile` only exports JavaScript bundles. `make run-mobile-android` generates/builds/installs a native debug app and is a separate verification route with its own SDK/build prerequisites and installation effects. Neither route proves signing, distribution, or iOS behavior.
+
+## Observe, act, observe
+
+Inspect the live screen and accessibility tree, choose one bounded action from what is visible, then inspect again. Derive the interaction from the requested change and current UI; do not invent absent learner workflows or replay stored journeys. No automated application tests, fixtures, mocks or test harnesses.
+
+Use Orca's live device pane and `emulator ax` when available. Orca tap coordinates are normalized 0..1; adb `shell input` coordinates are device pixels. With adb alone, inspect a private `exec-out screencap -p` capture and, when needed, a `shell uiautomator dump` at a unique owned temporary path; invoke `shell input` without arguments for its installed usage before input. Refresh screen/tree evidence after each action. Treat screenshots and accessibility output as private session content; remove owned captures/dumps after inspection and publish only redacted findings.
+
+Inspect bounded diagnostics scoped to the actual running app/Expo host PID and relevant tags using installed `adb logcat --help`; refresh the PID after restart. Metro output and logcat are not inherently redacted. Never persist or publish learner text, credentials, model output, raw protocols or private paths, and never clear shared device logs. Bundle success or empty error logs alone does not prove visible native behavior. If the implemented route includes AI, follow the root real-connection/Luna/default-effort policy and restore prior settings; do not infer desktop integration exists on mobile.
+
+## Restore and hand back
+
+Restore only settings changed by this session and remove only session-created learner records through the UI. Stop owned foreground Metro with Ctrl-C in its recorded terminal; never use broad process matching or desktop `make kill` for mobile cleanup. Stop an Orca helper only if owned, using the exact device/worktree; `emulator kill` leaves the device running, whereas `shutdown` must not be used for a borrowed emulator. Remove only reverse ports created by this session, individually, after checking they still match; never use `--remove-all` or kill the shared adb server. Preserve pre-existing apps/data; any removal of a session-installed app requires proven exclusive ownership. Return borrowed Metro/helpers/app sessions to their owner for cleanup rather than stopping them.
+
+Record the skill/app commits, target model/API, route (Expo Go or native binary), observed rendering/action results, bounded diagnostic findings, cleanup and retained ownership in the existing Run/Task. State unverified native-build and iOS behavior explicitly. Keep a blocked session's exact owner and next action rather than guessing completion or retrying concurrently. Independent local review and `make check` remain delivery gates; report their actual commits separately from interactive app evidence.
