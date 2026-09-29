@@ -2363,13 +2363,16 @@ export class DesktopBackend {
         return this.#failure(request, "app-server");
       }
       if (request.channel === "codex/models/read") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) return this.#success(request, await appServer.refreshModels());
-        return this.#success(request, {
-          models: [],
-          runtimeDefaultModelId: null,
-          missingReasoningMetadata: [],
-        });
+        let appServer: CallNinaAppServerAdapter | undefined;
+        try {
+          appServer = await this.#ensureAppServer();
+        } catch {
+          return this.#failure(request, "app-server");
+        }
+        if (!appServer || (await appServer.snapshot()).lifecycle.status !== "ready") {
+          return this.#failure(request, "app-server");
+        }
+        return this.#success(request, await appServer.refreshModels());
       }
       if (request.channel === "codex/rate-limits/read") {
         const appServer = await this.#ensureAppServer();
