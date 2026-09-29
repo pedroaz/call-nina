@@ -2756,7 +2756,9 @@ export class CallNinaRepository {
         !["reading", "vocabulary-review"].includes(source.activityType)
       )
         throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
-      const { learningPath, courseTeaching, ...context } = source.context;
+      // Teaching facts and criteria belong to the reused exercise; only the
+      // learning-path reference authorizes course attribution and progress.
+      const { learningPath, ...context } = source.context;
       const activity = preparedActivitySchema.parse({
         ...source,
         activityId,
@@ -2765,7 +2767,7 @@ export class CallNinaRepository {
         context: {
           ...context,
           entry: action.context,
-          ...(action.context.origin === "learning-path" ? { learningPath, courseTeaching } : {}),
+          ...(action.context.origin === "learning-path" ? { learningPath } : {}),
         },
       });
       assertLocalLearningScope(connection, activity.context.learningScope);

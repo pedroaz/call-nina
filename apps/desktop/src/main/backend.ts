@@ -2446,6 +2446,12 @@ export class DesktopBackend {
             "learner-settings-missing",
           );
         }
+        // Persist and validate submitted answers before provider availability can
+        // reject feedback. Other workloads enrich only once access is available.
+        const feedbackInput =
+          request.payload.input.kind === "exercise-feedback"
+            ? await this.#enrichedOperationInput(request.payload.input, learnerSettings)
+            : undefined;
         const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (!access.modelSelection || !this.#generation)
@@ -2461,7 +2467,8 @@ export class DesktopBackend {
             effort: { selection: "exact", effortId: access.modelSelection.effortId },
           },
           input: {
-            ...(await this.#enrichedOperationInput(request.payload.input, learnerSettings)),
+            ...(feedbackInput ??
+              (await this.#enrichedOperationInput(request.payload.input, learnerSettings))),
             learningContext: learnerSettings.learningContext,
           },
         });

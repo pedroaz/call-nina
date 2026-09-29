@@ -39,6 +39,8 @@ export const preparedActivitySchema = z
       vocabularyIds: z.array(vocabularyIdSchema).max(24),
       voiceContext: voiceActivityContextSchema.optional(),
       learningPath: courseReferenceSchema.optional(),
+      // Instructional/evaluation context survives reuse outside its originating course.
+      // Course credit requires learningPath, independently of this context.
       courseTeaching: courseTeachingContextSchema.optional(),
     }),
     preparedAt: utcInstantSchema,

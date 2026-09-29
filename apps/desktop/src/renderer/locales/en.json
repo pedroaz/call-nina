@@ -371,7 +371,9 @@
     },
     "aiFeedback": {
       "evaluating": "Reviewing your answer…",
-      "failed": "Your answer was saved, but feedback is unavailable. Submit again to retry without losing your response.",
+      "failed": "Your answer was saved, but feedback is unavailable. Retry feedback without changing your saved response.",
+      "pending": "Your answer is saved. AI feedback is still pending.",
+      "retry": "Retry feedback",
       "strengths": "What worked",
       "improvements": "What to improve",
       "suggestedAnswer": "Suggested answer:"

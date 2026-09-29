@@ -371,7 +371,9 @@
     },
     "aiFeedback": {
       "evaluating": "Deine Antwort wird geprüft…",
-      "failed": "Deine Antwort wurde gespeichert, aber die Rückmeldung ist nicht verfügbar. Sende sie erneut, ohne deine Antwort zu verlieren.",
+      "failed": "Deine Antwort wurde gespeichert, aber die Rückmeldung ist nicht verfügbar. Fordere die Rückmeldung für deine gespeicherte Antwort erneut an.",
+      "pending": "Deine Antwort ist gespeichert. Die KI-Rückmeldung steht noch aus.",
+      "retry": "Rückmeldung erneut anfordern",
       "strengths": "Was gut funktioniert",
       "improvements": "Was du verbessern kannst",
       "suggestedAnswer": "Vorschlag:"
