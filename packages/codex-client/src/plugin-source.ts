@@ -102,7 +102,13 @@ export async function stagePluginSource(options: SourceOptions) {
       "packages/persistence/dist",
       "packages/platform/dist",
     ]) {
-      await hashTree(path.join(options.runtime.repositoryRoot, relative), hash);
+      try {
+        await hashTree(path.join(options.runtime.repositoryRoot, relative), hash);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT")
+          throw new Error("OD_PLUGIN_RUNTIME_BUILD_REQUIRED");
+        throw error;
+      }
     }
     hash.update(options.runtime.repositoryRoot);
   }

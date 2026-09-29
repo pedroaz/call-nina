@@ -256,12 +256,26 @@ async function serve(resume = false) {
           records: session.journal.records,
           notes: session.journal.notes,
         };
-      case "windows":
-        return Promise.all(
-          session.application
-            .windows()
-            .map(async (window, index) => ({ index, title: await window.title() })),
-        );
+      case "windows": {
+        let timeout;
+        try {
+          // Page.title has no timeout option. Only this read-only query may
+          // finish locally while its browser response remains outstanding.
+          result = await Promise.race([
+            Promise.all(
+              session.application
+                .windows()
+                .map(async (window, index) => ({ index, title: await window.title() })),
+            ),
+            new Promise((_, reject) => {
+              timeout = setTimeout(() => reject(failure("VERIFY_WINDOWS_TIMEOUT")), 15000);
+            }),
+          ]);
+        } finally {
+          clearTimeout(timeout);
+        }
+        break;
+      }
       case "window": {
         const selected = session.application.windows()[request.index];
         if (!selected) throw failure("VERIFY_WINDOW_UNAVAILABLE");
