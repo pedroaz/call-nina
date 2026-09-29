@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { developmentConfig, root } from "../lib/config.mjs";
@@ -13,7 +13,14 @@ import {
   metadataDigest,
   squashMessageMatches,
 } from "./lib/task-metadata.mjs";
-import { assertCoordinator, locked, stateRoot, load, tasks } from "./lib/orchestration.mjs";
+import {
+  assertCoordinator,
+  locked,
+  stateRoot,
+  load,
+  replace,
+  tasks,
+} from "./lib/orchestration.mjs";
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: Object.fromEntries(
@@ -21,6 +28,7 @@ const { positionals, values } = parseArgs({
       "issue",
       "branch",
       "baseline",
+      "head",
       "title-file",
       "body-file",
       "pr",
@@ -158,12 +166,14 @@ function pr(number) {
       query ($owner: String!, $name: String!, $number: Int!) {
         repository(owner: $owner, name: $name) {
           pullRequest(number: $number) {
+            id
             number
             state
             isDraft
             headRefOid
             headRefName
             headRepository {
+              id
               nameWithOwner
             }
             baseRefName
@@ -282,12 +292,14 @@ function status(head, state, description) {
   });
 }
 function checkedMetadata(current) {
+  assertPublishedHead(current.pull);
   const head = current.pull.headRefOid;
   status(head, "pending", "Validating current task metadata");
   try {
     const result = validateMetadata(current);
     if (metadataDigest(snapshot(current.pull.number)) !== result.digest)
       throw new Error("PR_METADATA_CHANGED");
+    assertPublishedHead(current.pull);
     status(head, "success", `Validated snapshot ${result.digest.slice(0, 32)}`);
     return result;
   } catch (error) {
@@ -322,6 +334,10 @@ function metadataFiles() {
 }
 function editPull(number) {
   const current = snapshot(number);
+  assertPublishedHead(current.pull);
+  const retained = publication(current.pull.headRefName);
+  if (retained?.creation && !retained.creation.settled)
+    throw new Error(`PR_CREATION_RECONCILIATION_REQUIRED: ${resumePublication(retained)}`);
   const proposed = { ...current, pull: { ...current.pull, ...metadataFiles() } };
   validateMetadata(proposed, { candidate: true });
   status(current.pull.headRefOid, "pending", "PR metadata edit in progress");
@@ -361,7 +377,7 @@ function matchingLink(state, branch) {
       ref.target.oid === state.ref?.target.oid,
   );
 }
-function branchPulls(branch) {
+function branchPulls(branch, state = "open") {
   const found = gh([
     "pr",
     "list",
@@ -370,7 +386,7 @@ function branchPulls(branch) {
     "--head",
     branch,
     "--state",
-    "open",
+    state,
     "--limit",
     "100",
     "--json",
@@ -396,12 +412,19 @@ function remoteCommits(head) {
 function createPull() {
   const branch = values.branch;
   const task = taskBranch(branch);
+  const retained = publication(branch);
+  if (!retained || retained.run !== values.run) throw new Error("EXACT_PUBLICATION_RUN_REQUIRED");
+  if (retained.creation || retained.pr)
+    throw new Error(`PR_CREATION_ALREADY_RECORDED: ${resumePublication(retained)}`);
   const issue = readIssue(task);
   taskIssue(issue, repo, task);
   const state = branchState(branch, task);
+  assertPublicationSettled(branch, state.ref?.target.oid);
+  if (state.repositoryId !== retained.repositoryId)
+    throw new Error("PUBLICATION_REPOSITORY_CHANGED");
   if (!state.ref || !matchingLink(state, branch))
     throw new Error("PUBLISHED_TASK_LINKED_BRANCH_REQUIRED");
-  if (branchPulls(branch).length) throw new Error("PR_ALREADY_EXISTS: use edit");
+  if (branchPulls(branch, "all").length) throw new Error("PR_ALREADY_EXISTS: use edit");
   const proposed = {
     repo,
     issue,
@@ -421,21 +444,37 @@ function createPull() {
   try {
     if (metadataDigest(branchState(branch, task)) !== metadataDigest(state))
       throw new Error("BRANCH_CHANGED");
+    if (branchPulls(branch, "all").length) throw new Error("PR_ALREADY_EXISTS: use edit");
+    // Persist the exact authored request before POST. Even a lost response or
+    // process exit must leave enough evidence to adopt only this intended PR.
+    retained.creation = {
+      issueId: issue.id,
+      base: proposed.pull.baseRefName,
+      title: proposed.pull.title,
+      body: proposed.pull.body,
+      acknowledgement: "unconfirmed",
+      settled: false,
+    };
+    recordPublication(retained, "pr-create-unconfirmed");
     const created = api("pulls", "POST", {
       head: branch,
       base: "main",
       title: proposed.pull.title,
       body: proposed.pull.body,
     });
-    const actual = snapshot(String(created.number));
     if (
-      actual.pull.headRefOid !== proposed.pull.headRefOid ||
-      actual.pull.title !== proposed.pull.title ||
-      actual.pull.body !== proposed.pull.body
+      !Number.isSafeInteger(created.number) ||
+      created.number < 1 ||
+      typeof created.node_id !== "string"
     )
-      throw new Error("PR_CREATE_READBACK_MISMATCH");
-    return { pr: created.html_url, ...checkedMetadata(actual) };
+      throw new Error("PR_CREATE_ACKNOWLEDGEMENT_INVALID");
+    retained.creation.acknowledgement = "succeeded";
+    retained.pr = { number: created.number, id: created.node_id, previousHead: retained.head };
+    recordPublication(retained, "pr-created");
+    return reconcilePublication(retained);
   } catch (error) {
+    if (retained.creation)
+      return blockedPublication(retained, "pr-create-acknowledgement-or-readback-unconfirmed");
     status(proposed.pull.headRefOid, "failure", "PR creation requires metadata reconciliation");
     throw error;
   }
@@ -447,9 +486,377 @@ function localGit(args) {
     maxBuffer: 16 * 1024 * 1024,
   }).trim();
 }
+// One retained receipt per task branch, shared by all repository worktrees. Every
+// observation is appended atomically; a completed attempt is archived before the
+// next push. No receipt, status-write failure or interrupted read authorizes retry.
+function publicationFile(branch) {
+  taskBranch(branch);
+  return path.join(stateRoot, "publications", `${metadataDigest({ repo, branch })}.json`);
+}
+function publication(branch) {
+  const file = publicationFile(branch);
+  if (!existsSync(file)) return null;
+  const receipt = load(file);
+  if (
+    receipt.version !== 1 ||
+    receipt.repo !== repo ||
+    receipt.branch !== branch ||
+    receipt.issue !== taskBranch(branch) ||
+    !/^[a-f0-9]{40}$/.test(receipt.head ?? "") ||
+    typeof receipt.repositoryId !== "string" ||
+    !/^run_[a-zA-Z0-9_-]+$/.test(receipt.run ?? "") ||
+    !["unattempted", "unconfirmed", "succeeded"].includes(receipt.push) ||
+    ![
+      "push-unattempted",
+      "push-unconfirmed",
+      "pushed",
+      "pr-create-unconfirmed",
+      "pr-created",
+      "pending-propagation",
+      "blocked",
+      "ready",
+    ].includes(receipt.outcome) ||
+    (receipt.pr !== null &&
+      (!Number.isSafeInteger(receipt.pr?.number) ||
+        receipt.pr.number < 1 ||
+        typeof receipt.pr.id !== "string" ||
+        !/^[a-f0-9]{40}$/.test(receipt.pr.previousHead ?? ""))) ||
+    (receipt.push === "unattempted" &&
+      (!/^[a-f0-9]{40}$/.test(receipt.baseline ?? "") ||
+        !/^[a-f0-9]{40}$/.test(receipt.previousBranchHead ?? "") ||
+        !path.isAbsolute(receipt.preparation?.checkout ?? "") ||
+        typeof receipt.preparation?.coordinator !== "string" ||
+        !Number.isSafeInteger(receipt.preparation?.generation) ||
+        !/^[a-f0-9]{64}$/.test(receipt.preparation?.issueDigest ?? "") ||
+        (receipt.pr
+          ? !/^[a-f0-9]{64}$/.test(receipt.preparation?.prDigest ?? "")
+          : receipt.preparation?.prDigest !== null))) ||
+    (receipt.creation !== undefined &&
+      (receipt.push === "unattempted" ||
+        typeof receipt.creation?.issueId !== "string" ||
+        receipt.creation.base !== "main" ||
+        typeof receipt.creation.title !== "string" ||
+        typeof receipt.creation.body !== "string" ||
+        !["unconfirmed", "succeeded"].includes(receipt.creation.acknowledgement) ||
+        typeof receipt.creation.settled !== "boolean" ||
+        (receipt.creation.settled && !receipt.pr))) ||
+    !Array.isArray(receipt.observations)
+  )
+    throw new Error("PUBLICATION_RECEIPT_INVALID: retain and investigate the receipt");
+  return receipt;
+}
+function recordPublication(receipt, outcome, details = {}) {
+  receipt.outcome = outcome;
+  receipt.observations.push({ at: new Date().toISOString(), outcome, ...details });
+  replace(publicationFile(receipt.branch), receipt);
+}
+function resumePublication(receipt) {
+  if (receipt.push === "unattempted")
+    return `make github ARGS='publish --run ${receipt.run} --issue ${receipt.issue} --branch ${receipt.branch} --baseline ${receipt.baseline} --head ${receipt.head}'`;
+  return `make github ARGS='reconcile-publication --run ${receipt.run} --issue ${receipt.issue} --branch ${receipt.branch} --head ${receipt.head}'`;
+}
+function assertPublicationSettled(branch, head) {
+  const receipt = publication(branch);
+  if (receipt && (receipt.outcome !== "ready" || receipt.head !== head))
+    throw new Error(`PUBLICATION_RECONCILIATION_REQUIRED: ${resumePublication(receipt)}`);
+}
+function assertPublishedHead(pull) {
+  if (pull.headRepository?.nameWithOwner !== repo) throw new Error("SAME_REPOSITORY_PR_REQUIRED");
+  const receipt = publication(pull.headRefName);
+  if (
+    receipt &&
+    (receipt.head !== pull.headRefOid ||
+      receipt.repositoryId !== pull.headRepository.id ||
+      !receipt.pr ||
+      receipt.pr.number !== pull.number ||
+      receipt.pr.id !== pull.id)
+  )
+    throw new Error(`PUBLICATION_HEAD_OR_OWNERSHIP_MISMATCH: ${resumePublication(receipt)}`);
+  const ref = gh(["api", `repos/${repo}/git/ref/heads/${pull.headRefName}`]);
+  if (ref.object.sha !== pull.headRefOid)
+    throw new Error(
+      "PR_BRANCH_HEAD_MISMATCH: reconcile publication before attaching metadata or evidence",
+    );
+}
+function publicationResult(receipt) {
+  const ready = receipt.outcome === "ready";
+  if (!ready) process.exitCode = 1;
+  return {
+    repository: receipt.repo,
+    branch: receipt.branch,
+    head: receipt.head,
+    pr: receipt.pr?.number ?? null,
+    push: receipt.push,
+    ...(receipt.creation ? { create: receipt.creation.acknowledgement } : {}),
+    publication: receipt.outcome,
+    deliveryBlocked: !ready,
+    observation: receipt.observations.at(-1),
+    next: ready
+      ? receipt.pr
+        ? "record exact-head local gates before merge"
+        : "create task PR"
+      : receipt.outcome === "blocked"
+        ? `Investigate the retained observation and restore exact ownership/readback; then ${resumePublication(receipt)}`
+        : resumePublication(receipt),
+  };
+}
+function reconcilePublication(receipt) {
+  if (receipt.run !== values.run) throw new Error("EXACT_PUBLICATION_RUN_REQUIRED");
+  if (receipt.push === "unattempted")
+    return blockedPublication(receipt, "push-provably-unattempted-use-publish", {}, false);
+  // A single bounded pass per explicit invocation: no retry loop or background
+  // monitor. Failed/unknown push calls are reconciled by readback, never repushed.
+  let repositoryConfirmed = false;
+  try {
+    const state = branchState(receipt.branch, receipt.issue);
+    const observed = { branchHead: state.ref?.target.oid ?? null };
+    if (state.repositoryId !== receipt.repositoryId)
+      return blockedPublication(receipt, "repository-changed", observed, false);
+    repositoryConfirmed = true;
+    if (observed.branchHead !== receipt.head)
+      return blockedPublication(receipt, "branch-head-changed-or-unconfirmed", observed);
+    status(receipt.head, "pending", "Reconciling retained publication; delivery blocked");
+    const pulls = branchPulls(
+      receipt.branch,
+      receipt.creation && !receipt.creation.settled ? "all" : "open",
+    );
+    const issue = readIssue(receipt.issue);
+    taskIssue(issue, repo, receipt.issue);
+    if (receipt.creation && !receipt.creation.settled) {
+      if (pulls.length !== 1 || issue.id !== receipt.creation.issueId)
+        return blockedPublication(receipt, "intended-pr-absent-or-ownership-changed", observed);
+      const intended = snapshot(String(pulls[0].number));
+      const pull = intended.pull;
+      if (
+        pull.state !== "OPEN" ||
+        pull.isDraft ||
+        pull.baseRefName !== receipt.creation.base ||
+        pull.headRefName !== receipt.branch ||
+        pull.headRefOid !== receipt.head ||
+        pull.headRepository?.nameWithOwner !== receipt.repo ||
+        pull.headRepository?.id !== receipt.repositoryId ||
+        pull.title !== receipt.creation.title ||
+        pull.body !== receipt.creation.body ||
+        intended.issue.id !== receipt.creation.issueId ||
+        (receipt.pr && (receipt.pr.number !== pull.number || receipt.pr.id !== pull.id))
+      )
+        return blockedPublication(receipt, "intended-pr-readback-mismatch", observed);
+      validateMetadata(intended);
+      // Adoption is durable before subsequent status writes/validation. Keep
+      // the original POST acknowledgement classification, including uncertainty.
+      receipt.pr = { number: pull.number, id: pull.id, previousHead: receipt.head };
+      recordPublication(receipt, "pr-created", { adopted: true });
+    }
+    if (receipt.pr) {
+      if (pulls.length !== 1 || pulls[0].number !== receipt.pr.number)
+        return blockedPublication(receipt, "pr-ownership-changed", observed);
+      const pull = pr(String(receipt.pr.number));
+      observed.prHead = pull.headRefOid;
+      if (
+        pull.id !== receipt.pr.id ||
+        pull.state !== "OPEN" ||
+        pull.baseRefName !== "main" ||
+        pull.headRefName !== receipt.branch ||
+        pull.headRepository?.nameWithOwner !== repo ||
+        pull.headRepository?.id !== receipt.repositoryId
+      )
+        return blockedPublication(receipt, "pr-ownership-changed", observed);
+      // Only the exact previously validated PR head is recognized as propagation
+      // lag. An arbitrary ancestor or another head is a contradiction.
+      if (pull.headRefOid !== receipt.head) {
+        if (pull.headRefOid !== receipt.pr.previousHead)
+          return blockedPublication(receipt, "unexpected-pr-head", observed);
+        recordPublication(receipt, "pending-propagation", observed);
+        return publicationResult(receipt);
+      }
+      const current = snapshot(String(receipt.pr.number));
+      if (current.pull.headRefOid !== receipt.head || current.pull.id !== receipt.pr.id)
+        return blockedPublication(receipt, "pr-changed-during-read", observed);
+      if (
+        receipt.creation &&
+        !receipt.creation.settled &&
+        (current.pull.title !== receipt.creation.title ||
+          current.pull.body !== receipt.creation.body ||
+          current.issue.id !== receipt.creation.issueId)
+      )
+        return blockedPublication(receipt, "intended-pr-metadata-changed", observed);
+      const metadata = checkedMetadata(current);
+      if (receipt.creation) receipt.creation.settled = true;
+      recordPublication(receipt, "ready", { ...observed, metadata: metadata.digest });
+      return { ...metadata, ...publicationResult(receipt) };
+    }
+    if (pulls.length || !matchingLink(state, receipt.branch))
+      return blockedPublication(receipt, "linked-branch-ownership-changed", observed);
+    const commits = remoteCommits(receipt.head);
+    if (!commits.length) throw new Error("TASK_COMMITS_REQUIRED");
+    for (const commit of commits) validateCommit(commit.message, receipt.issue);
+    const after = branchState(receipt.branch, receipt.issue);
+    if (
+      after.repositoryId !== receipt.repositoryId ||
+      after.ref?.target.oid !== receipt.head ||
+      !matchingLink(after, receipt.branch) ||
+      branchPulls(receipt.branch).length
+    )
+      return blockedPublication(receipt, "linked-branch-changed-during-read", observed);
+    recordPublication(receipt, "ready", observed);
+    return { ...publicationResult(receipt), linked: true, status: "pending" };
+  } catch (error) {
+    // Do not retain raw provider stderr, credentials or private paths. The CLI
+    // failure remains uncertainty, distinct from a positively observed conflict.
+    const code = /^([A-Z][A-Z_]+)(?=:|$)/.exec(error.message)?.[1];
+    return blockedPublication(
+      receipt,
+      "readback-or-validation-unconfirmed",
+      code ? { code } : {},
+      repositoryConfirmed,
+    );
+  }
+}
+function blockedPublication(receipt, reason, observed = {}, invalidate = true) {
+  recordPublication(receipt, "blocked", { reason, ...observed });
+  // Never write status into an unconfirmed repository, and never let a failed
+  // invalidation hide the durable outcome. Local delivery gates remain blocked.
+  if (!invalidate) return publicationResult(receipt);
+  try {
+    status(receipt.head, "failure", "Publication blocked; reconcile retained exact-head receipt");
+  } catch {
+    recordPublication(receipt, "blocked", { reason, ...observed, metadataStatus: "unconfirmed" });
+  }
+  return publicationResult(receipt);
+}
+function assertPreparedCheckout(receipt) {
+  if (
+    realpathSync(root) !== receipt.preparation.checkout ||
+    localGit(["branch", "--show-current"]) !== receipt.branch ||
+    localGit(["rev-parse", "HEAD"]) !== receipt.head ||
+    localGit(["status", "--porcelain"])
+  )
+    throw new Error("EXACT_CLEAN_PUBLICATION_CHECKOUT_REQUIRED");
+}
+function predecessorPrDigest(pull) {
+  // main may advance independently. Retain the PR's base branch and authored
+  // metadata, not its moving baseRefOid, while requiring the exact task head.
+  return metadataDigest({
+    id: pull.id,
+    number: pull.number,
+    state: pull.state,
+    isDraft: pull.isDraft,
+    headRefOid: pull.headRefOid,
+    headRefName: pull.headRefName,
+    headRepository: pull.headRepository,
+    baseRefName: pull.baseRefName,
+    title: pull.title,
+    body: pull.body,
+  });
+}
+function validateUnattemptedPush(receipt) {
+  assertPreparedCheckout(receipt);
+  const issue = readIssue(receipt.issue);
+  taskIssue(issue, repo, receipt.issue);
+  if (metadataDigest(issue) !== receipt.preparation.issueDigest)
+    throw new Error("PUBLICATION_ISSUE_CHANGED");
+  const main = gh(["api", `repos/${repo}/git/ref/heads/main`]).object.sha;
+  localGit(["merge-base", "--is-ancestor", receipt.baseline, main]);
+  localGit(["merge-base", "--is-ancestor", receipt.baseline, receipt.head]);
+  localGit(["merge-base", "--is-ancestor", receipt.previousBranchHead, receipt.head]);
+  const commits = localGit(["rev-list", "--reverse", `${main}..${receipt.head}`])
+    .split("\n")
+    .filter(Boolean)
+    .map((oid) => ({ oid, message: localGit(["show", "-s", "--format=%B", oid]) }));
+  if (!commits.length) throw new Error("TASK_COMMITS_REQUIRED");
+  for (const commit of commits) validateCommit(commit.message, receipt.issue);
+  const pulls = branchPulls(receipt.branch);
+  if (receipt.pr) {
+    if (pulls.length !== 1 || pulls[0].number !== receipt.pr.number)
+      throw new Error("PUBLICATION_PREDECESSOR_PR_CHANGED");
+    const current = snapshot(String(receipt.pr.number));
+    if (
+      current.pull.id !== receipt.pr.id ||
+      current.pull.headRefOid !== receipt.previousBranchHead ||
+      current.pull.headRefName !== receipt.branch ||
+      current.pull.headRepository?.id !== receipt.repositoryId ||
+      predecessorPrDigest(current.pull) !== receipt.preparation.prDigest ||
+      metadataDigest(current.issue) !== receipt.preparation.issueDigest
+    )
+      throw new Error("PUBLICATION_PREDECESSOR_METADATA_CHANGED");
+    validateMetadata(current);
+    validateMetadata(
+      { ...current, commits, pull: { ...current.pull, headRefOid: receipt.head } },
+      { candidate: true },
+    );
+  } else if (pulls.length) throw new Error("PUBLICATION_PREDECESSOR_PR_CHANGED");
+  const state = branchState(receipt.branch, receipt.issue);
+  if (
+    state.repositoryId !== receipt.repositoryId ||
+    state.ref?.target.oid !== receipt.previousBranchHead ||
+    (!receipt.pr && !matchingLink(state, receipt.branch))
+  )
+    throw new Error("PUBLICATION_PREDECESSOR_BRANCH_CHANGED");
+  const binding = assertCoordinator(receipt.run);
+  if (
+    binding.coordinator !== receipt.preparation.coordinator ||
+    binding.generation !== receipt.preparation.generation
+  )
+    throw new Error("EXACT_PUBLICATION_COORDINATOR_REQUIRED");
+  assertPreparedCheckout(receipt);
+}
+function pushUnattempted(receipt) {
+  if (receipt.push !== "unattempted" || receipt.run !== values.run)
+    throw new Error("EXACT_UNATTEMPTED_PUBLICATION_REQUIRED");
+  try {
+    const state = branchState(receipt.branch, receipt.issue);
+    if (state.repositoryId !== receipt.repositoryId)
+      return blockedPublication(receipt, "repository-changed", {}, false);
+    // Status failure here proves no push was attempted. Resume only from the
+    // original clean checkout after freshly checking all retained evidence.
+    if (receipt.pr && receipt.pr.previousHead !== receipt.head)
+      status(receipt.pr.previousHead, "pending", "Task branch publication in progress");
+    validateUnattemptedPush(receipt);
+  } catch (error) {
+    const code = /^([A-Z][A-Z_]+)(?=:|$)/.exec(error.message)?.[1];
+    return blockedPublication(
+      receipt,
+      "pre-push-validation-or-status-unconfirmed",
+      code ? { code } : {},
+      false,
+    );
+  }
+  // This durable transition is immediately before the effect. Never downgrade
+  // uncertainty to unattempted, including process loss before push returns.
+  receipt.push = "unconfirmed";
+  recordPublication(receipt, "push-unconfirmed");
+  try {
+    localGit([
+      "push",
+      `https://github.com/${repo}.git`,
+      `${receipt.head}:refs/heads/${receipt.branch}`,
+    ]);
+  } catch {
+    return blockedPublication(receipt, "push-acknowledgement-unconfirmed");
+  }
+  receipt.push = "succeeded";
+  recordPublication(receipt, "pushed");
+  return reconcilePublication(receipt);
+}
 function publish() {
   const branch = values.branch;
   const number = taskBranch(branch, numeric(values.issue));
+  const retained = publication(branch);
+  if (
+    values.head &&
+    (!retained ||
+      retained.run !== values.run ||
+      retained.head !== values.head ||
+      retained.baseline !== values.baseline)
+  )
+    throw new Error("EXACT_PUBLICATION_RECEIPT_REQUIRED");
+  if (retained?.push === "unattempted") {
+    if (!values.head)
+      throw new Error(`EXACT_UNATTEMPTED_PUBLICATION_REQUIRED: ${resumePublication(retained)}`);
+    return pushUnattempted(retained);
+  }
+  if (retained && retained.outcome !== "ready")
+    throw new Error(`PUBLICATION_RECONCILIATION_REQUIRED: ${resumePublication(retained)}`);
   const issue = readIssue(number);
   taskIssue(issue, repo, number);
   if (!/^[a-f0-9]{40}$/.test(values.baseline ?? ""))
@@ -458,6 +865,8 @@ function publish() {
     throw new Error("INTEGRATION_BRANCH_CHECKOUT_REQUIRED");
   if (localGit(["status", "--porcelain"])) throw new Error("CLEAN_INTEGRATION_CHECKOUT_REQUIRED");
   const head = localGit(["rev-parse", "HEAD"]);
+  if (values.head && values.head !== head) throw new Error("EXACT_PUBLICATION_HEAD_REQUIRED");
+  if (retained?.head === head) return reconcilePublication(retained);
   localGit(["merge-base", "--is-ancestor", values.baseline, head]);
   const main = gh(["api", `repos/${repo}/git/ref/heads/main`]).object.sha;
   localGit(["merge-base", "--is-ancestor", values.baseline, main]);
@@ -469,14 +878,21 @@ function publish() {
   for (const commit of commits) validateCommit(commit.message, number);
   const state = branchState(branch, number);
   const pulls = branchPulls(branch);
+  let previous;
   if (pulls.length) {
     const current = snapshot(String(pulls[0].number));
+    assertPublishedHead(current.pull);
     validateMetadata(current);
     validateMetadata(
       { ...current, commits, pull: { ...current.pull, headRefOid: head } },
       { candidate: true },
     );
-    if (current.pull.headRefName !== branch) throw new Error("BRANCH_PR_MISMATCH");
+    if (
+      current.pull.headRefName !== branch ||
+      current.pull.headRepository.id !== state.repositoryId
+    )
+      throw new Error("BRANCH_PR_MISMATCH");
+    previous = current.pull;
   } else if (state.ref && !matchingLink(state, branch))
     throw new Error("UNLINKED_REMOTE_BRANCH_CONFLICT");
   if (!state.ref) {
@@ -502,37 +918,35 @@ function publish() {
   }
   const beforePush = branchState(branch, number);
   localGit(["merge-base", "--is-ancestor", beforePush.ref.target.oid, head]);
-  if (pulls.length)
-    status(beforePush.ref.target.oid, "pending", "Task branch publication in progress");
-  let pushed = false;
-  try {
-    // Explicit repository and refspec; never force, delete, or trust a configured push remote.
-    localGit(["push", `https://github.com/${repo}.git`, `${head}:refs/heads/${branch}`]);
-    pushed = true;
-    status(head, "pending", "Validating published task branch");
-    const after = branchState(branch, number);
-    if (after.ref?.target.oid !== head || (!pulls.length && !matchingLink(after, branch)))
-      throw new Error("PUBLISHED_BRANCH_READBACK_MISMATCH");
-    taskIssue(readIssue(number), repo, number);
-    const published = remoteCommits(head);
-    if (!published.length) throw new Error("TASK_COMMITS_REQUIRED");
-    for (const commit of published) validateCommit(commit.message, number);
-    if (pulls.length) {
-      const current = snapshot(String(pulls[0].number));
-      if (current.pull.headRefOid !== head) throw new Error("PUBLISHED_PR_HEAD_MISMATCH");
-      return checkedMetadata(current);
-    }
-    // Full PR metadata becomes required as soon as the PR exists.
-    return { branch, head, linked: true, status: "pending", next: "create task PR" };
-  } catch (error) {
-    if (pushed || pulls.length)
-      status(
-        pushed ? head : beforePush.ref.target.oid,
-        "failure",
-        "Published task metadata requires reconciliation",
-      );
-    throw error;
-  }
+  if (previous && beforePush.ref.target.oid !== previous.headRefOid)
+    throw new Error("BRANCH_CHANGED_BEFORE_PUSH");
+  const binding = assertCoordinator(values.run);
+  const receipt = {
+    version: 1,
+    repo,
+    repositoryId: state.repositoryId,
+    run: values.run,
+    issue: number,
+    branch,
+    head,
+    baseline: values.baseline,
+    previousBranchHead: beforePush.ref.target.oid,
+    pr: previous
+      ? { number: previous.number, id: previous.id, previousHead: previous.headRefOid }
+      : null,
+    preparation: {
+      checkout: realpathSync(root),
+      coordinator: binding.coordinator,
+      generation: binding.generation,
+      issueDigest: metadataDigest(issue),
+      prDigest: previous ? predecessorPrDigest(previous) : null,
+    },
+    push: "unattempted",
+    observations: [],
+  };
+  if (retained) replace(`${publicationFile(branch)}.${retained.head}.json`, retained);
+  recordPublication(receipt, "push-unattempted");
+  return pushUnattempted(receipt);
 }
 
 function main() {
@@ -543,8 +957,10 @@ function main() {
   status --issue N --status 'Ready'   Product Owner only for new scope
   claim --issue N --run RUN          Bound coordinator only
   evidence --pr N --run RUN --review-task TASK --verification-commit SHA --static-check-commit SHA --verification 'observed details or deferred reason'
-  publish --run RUN --issue N --branch task/N-description --baseline SHA
-                                    Create/verify native issue-linked branch, then fast-forward push local HEAD
+  publish --run RUN --issue N --branch task/N-description --baseline SHA [--head SHA]
+                                    Publish local HEAD; --head required to resume a proven unattempted push
+  reconcile-publication --run RUN --issue N --branch task/N-description --head SHA
+                                    One retained-publication readback pass; never pushes or creates a PR
   validate --pr N                   Read-only current metadata validation
   validate --pr N --run RUN         Also refresh the required metadata status
   create --run RUN --branch task/N-description --title-file PATH --body-file PATH
@@ -651,7 +1067,9 @@ Settings: development.json. Recurring intake remains disabled until activation.`
   }
   if (command === "status") return setStatus(numeric(values.issue), values.status);
   if (
-    ["claim", "publish", "create", "edit", "merge", "evidence"].includes(command) ||
+    ["claim", "publish", "reconcile-publication", "create", "edit", "merge", "evidence"].includes(
+      command,
+    ) ||
     (command === "validate" && values.run)
   )
     assertCoordinator(values.run);
@@ -673,10 +1091,21 @@ Settings: development.json. Recurring intake remains disabled until activation.`
     return setStatus(number, "In progress");
   }
   if (command === "publish") return publish();
+  if (command === "reconcile-publication") {
+    taskBranch(values.branch, numeric(values.issue));
+    const receipt = publication(values.branch);
+    if (!receipt || receipt.run !== values.run || receipt.head !== values.head)
+      throw new Error("EXACT_PUBLICATION_RECEIPT_REQUIRED");
+    return reconcilePublication(receipt);
+  }
   if (command === "create") return createPull();
   const number = numeric(values.pr);
-  if (command === "validate")
-    return values.run ? refreshMetadata(number) : validateMetadata(snapshot(number));
+  if (command === "validate") {
+    if (values.run) return refreshMetadata(number);
+    const current = snapshot(number);
+    assertPublishedHead(current.pull);
+    return validateMetadata(current);
+  }
   if (command === "edit") return editPull(number);
   const pull = pr(number);
   if (
@@ -686,6 +1115,8 @@ Settings: development.json. Recurring intake remains disabled until activation.`
     pull.headRepository?.nameWithOwner !== repo
   )
     throw new Error("ELIGIBLE_MAIN_PR_REQUIRED");
+  assertPublishedHead(pull);
+  assertPublicationSettled(pull.headRefName, pull.headRefOid);
   if (command === "evidence") {
     const review = tasks(values.run).find((task) => task.id === values["review-task"]);
     const spec = /^NINA_ASSIGNMENT=([^\n]+)/.exec(review?.spec ?? "");
@@ -707,6 +1138,9 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       values["static-check-commit"] !== reviewed
     )
       throw new Error("REVIEW_VERIFICATION_AND_STATIC_COMMIT_MISMATCH");
+    assertPublishedHead(pull);
+    if (metadataDigest(pr(number)) !== metadataDigest(pull))
+      throw new Error("PR_CHANGED_DURING_READ");
     if (!evidence(number, pull.headRefOid))
       post(
         number,
@@ -759,6 +1193,7 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       status(current.pull.headRefOid, "failure", "Metadata changed during merge preparation");
       throw new Error("PR_METADATA_CHANGED: restart merge checks");
     }
+    assertPublishedHead(reread.pull);
     // --match-head-commit protects the code; title/body have no atomic GitHub CAS.
     gh(
       [
@@ -811,6 +1246,7 @@ try {
       "claim",
       "evidence",
       "publish",
+      "reconcile-publication",
       "validate",
       "create",
       "edit",
