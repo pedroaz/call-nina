@@ -250,7 +250,15 @@ export function SidebarModelControl({ initialWorkload }: { initialWorkload: Mode
             })}
           </p>
         )}
-      {error && <p className={styles.navModelError}>{t(error.messageKey)}</p>}
+      {error && (
+        <p className={styles.navModelError}>
+          {t(
+            error.kind === "app-server"
+              ? "providerAccess.reasons.runtime-unavailable"
+              : error.messageKey,
+          )}
+        </p>
+      )}
       {busy && <p className={styles.navModelStatus}>{t("modelControl.saving")}</p>}
     </section>
   );

@@ -58,7 +58,12 @@ import {
   evaluateExerciseAnswer,
   resolveModelPreference,
 } from "@call-nina/domain";
-import { discoverCodex, type AppServerLogRecord } from "@call-nina/codex-client";
+import {
+  AppServerTransportError,
+  AppServerUnavailableError,
+  discoverCodex,
+  type AppServerLogRecord,
+} from "@call-nina/codex-client";
 import { readPluginIntegrationState, runPluginIntegrationAction } from "./plugin-integration.js";
 
 import {
@@ -2363,13 +2368,21 @@ export class DesktopBackend {
         return this.#failure(request, "app-server");
       }
       if (request.channel === "codex/models/read") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) return this.#success(request, await appServer.refreshModels());
-        return this.#success(request, {
-          models: [],
-          runtimeDefaultModelId: null,
-          missingReasoningMetadata: [],
-        });
+        try {
+          const appServer = await this.#ensureAppServer();
+          if (!appServer || (await appServer.snapshot()).lifecycle.status !== "ready") {
+            return this.#failure(request, "app-server");
+          }
+          return this.#success(request, await appServer.refreshModels());
+        } catch (error) {
+          if (
+            error instanceof AppServerUnavailableError ||
+            error instanceof AppServerTransportError
+          ) {
+            return this.#failure(request, "app-server");
+          }
+          throw error;
+        }
       }
       if (request.channel === "codex/rate-limits/read") {
         const appServer = await this.#ensureAppServer();
