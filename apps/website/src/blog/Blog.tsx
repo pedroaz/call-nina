@@ -1,5 +1,12 @@
 import type { Locale } from "../locales";
-import { articles, articleHref, blogDescription, blogTitle, type Article } from "./articles";
+import {
+  articles,
+  articleHref,
+  blogDescription,
+  blogTitle,
+  validateArticles,
+  type Article,
+} from "./articles";
 
 // This format illustration is removed from production builds and is never indexed.
 const example: Article | undefined = import.meta.env.DEV
@@ -17,7 +24,7 @@ const example: Article | undefined = import.meta.env.DEV
         { type: "heading", text: "A section heading" },
         {
           type: "paragraph",
-          text: "Articles use plain-text paragraphs, section headings and lists. The shared template supplies the title, summary, author and publication date.",
+          text: "Articles use plain-text paragraphs, section headings and lists. The shared template supplies the title, summary, author, publication date and optional source links.",
         },
         {
           type: "list",
@@ -27,8 +34,11 @@ const example: Article | undefined = import.meta.env.DEV
           ],
         },
       ],
+      sources: [{ label: "Example domain — placeholder source link", url: "https://example.com/" }],
     }
   : undefined;
+
+if (example) validateArticles([example]);
 
 export function resolveBlog(pathname: string) {
   const path = pathname.replace(/\/index\.html$/, "/").replace(/\/$/, "");
@@ -90,6 +100,18 @@ export function Blog({ page, locale }: { page: ReturnType<typeof resolveBlog>; l
                 );
               return <p key={index}>{block.text}</p>;
             })}
+            {Boolean(article.sources?.length) && (
+              <section className="article-body" aria-labelledby="article-sources">
+                <h2 id="article-sources">Sources</h2>
+                <ul>
+                  {article.sources?.map((source, index) => (
+                    <li key={index}>
+                      <a href={source.url}>{source.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
           <a href={blogHref}>← All articles</a>
         </article>

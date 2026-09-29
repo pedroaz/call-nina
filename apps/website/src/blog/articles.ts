@@ -1,5 +1,9 @@
 // Add reviewed English articles here. A published entry creates /blog/<slug>/ at build time.
 // Keep slugs stable: they are public URLs. Dates use YYYY-MM-DD; body text is plain text.
+// Optional sources render after the body. Use a descriptive publication/title label and a
+// public HTTPS URL, without credentials or private access tokens. Review destinations
+// before publication; URL validation does not establish evidence quality or public access.
+// Do not put HTML or Markdown links in body text or labels.
 export type ArticleBlock =
   | { type: "paragraph"; text: string }
   | { type: "heading"; text: string }
@@ -12,6 +16,7 @@ export interface Article {
   author: string;
   publishedOn: string;
   body: readonly ArticleBlock[];
+  sources?: readonly { label: string; url: string }[];
 }
 
 // Editorial publication is separate from the blog foundation.
@@ -50,6 +55,25 @@ export function validateArticles(entries: readonly Article[]) {
       const texts = block.type === "list" ? block.items : [block.text];
       if (!texts.length || !texts.every((text) => text.trim()))
         throw new Error(`Empty article block: ${article.slug}`);
+    }
+    for (const source of article.sources ?? []) {
+      let url: URL;
+      try {
+        url = new URL(source.url);
+      } catch {
+        throw new Error(`Invalid article source URL: ${article.slug}`);
+      }
+      if (
+        !source.label.trim() ||
+        !/^https:\/\//i.test(source.url) ||
+        /[\s\\]/.test(source.url) ||
+        url.protocol !== "https:" ||
+        !url.hostname ||
+        url.username ||
+        url.password
+      ) {
+        throw new Error(`Invalid article source: ${article.slug}`);
+      }
     }
   }
 }
