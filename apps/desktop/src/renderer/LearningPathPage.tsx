@@ -61,7 +61,7 @@ export function LearningPathPage({
   const pending = useRef(false);
   const [error, setError] = useState<CallNinaError>();
   const snapshot = learning.snapshot;
-  const locale = snapshot?.explanationLanguage ?? "en";
+  const locale = snapshot?.learningContext.explanationLanguage ?? "en";
   const course = snapshot?.course;
   const state = snapshot?.state;
   const reference = (

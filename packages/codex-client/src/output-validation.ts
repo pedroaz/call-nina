@@ -1,4 +1,4 @@
-import { vocabularyIdentity, vocabularyLemma } from "@call-nina/contracts";
+import { normalizeGermanAnswer, vocabularyIdentity, vocabularyLemma } from "@call-nina/contracts";
 import {
   appServerCandidateOutputSchemas,
   generatedExerciseInstructions,
@@ -189,7 +189,7 @@ export function parseAppServerCandidateOutput<Kind extends AppServerWorkloadKind
 }
 
 function normalized(value: string): string {
-  return value.normalize("NFKC").trim().replaceAll(/\s+/gu, " ").toLocaleLowerCase("de-DE");
+  return normalizeGermanAnswer(value);
 }
 
 function containsCompleteAnswer(text: string, answer: string): boolean {

@@ -1,3 +1,4 @@
+import { learningScopeSchema } from "./learning-context.js";
 import { courseReferenceSchema, courseTeachingContextSchema } from "./learning-path.js";
 import {
   activityIdSchema,
@@ -28,6 +29,7 @@ export const preparedActivitySchema = z
     title: z.string().min(1).max(160),
     originSurface: z.enum(["desktop", "codex"]),
     context: z.strictObject({
+      learningScope: learningScopeSchema,
       naturalRequest: z.string().min(1).max(1_000),
       instructions: z.string().min(1).max(2_000).optional(),
       curriculumTopicIds: z.array(curriculumTopicIdSchema).max(12),

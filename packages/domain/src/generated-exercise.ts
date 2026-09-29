@@ -1,3 +1,4 @@
+import { supportedLanguagePolicy } from "./language-policy.js";
 import {
   activityIdSchema,
   exerciseGenerationCandidateSchema,
@@ -19,7 +20,7 @@ import {
 type Candidate = z.infer<typeof exerciseGenerationCandidateSchema>["exercises"][number];
 
 function normalized(value: string): string {
-  return value.normalize("NFKC").trim().replaceAll(/\s+/gu, " ").toLocaleLowerCase("de-DE");
+  return supportedLanguagePolicy("de").normalize(value);
 }
 
 function containsCompleteAnswer(text: string, answer: string): boolean {

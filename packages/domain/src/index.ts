@@ -124,7 +124,7 @@ export {
   levelBasisSchema,
   onboardingStateSchema,
   profileInsightSchema,
-  teachingLanguageSchema,
+  explanationLanguageSchema,
   uiLocaleSchema,
   type CefrBand,
   type CorrectionPreferences,
@@ -232,3 +232,7 @@ export {
 export { buildPracticeSuggestions, isCurrentStudyWeek } from "./practice-suggestions.js";
 export { resolveActivityDestination } from "./activity-routing.js";
 export * from "./learning-path.js";
+
+export * from "./learning-context.js";
+
+export * from "./language-policy.js";

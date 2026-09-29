@@ -39,7 +39,7 @@ function answerFor(definition: ExerciseDefinition, values: readonly string[]): E
   return { kind: definition.kind, text: values[0] ?? "" };
 }
 
-function incompleteSentenceFrame(answer: string): string {
+function incompleteSentenceFrame(answer: string, targetLanguage: "de"): string {
   const answerWords = answer.match(/[\p{L}\p{N}]+/gu) ?? [];
   const fallbackMaskPosition = Math.max(0, answerWords.length - 1);
   let wordPosition = 0;
@@ -49,7 +49,7 @@ function incompleteSentenceFrame(answer: string): string {
     const mask = word.length > 3 || currentPosition === fallbackMaskPosition;
     if (!mask) return word;
     const characters = Array.from(
-      new Intl.Segmenter("de", { granularity: "grapheme" }).segment(word),
+      new Intl.Segmenter(targetLanguage, { granularity: "grapheme" }).segment(word),
       (part) => part.segment,
     );
     const [first = ""] = characters;
@@ -253,6 +253,7 @@ function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
 }
 
 export function ExerciseEngine({
+  targetLanguage,
   exercises,
   restart = false,
   onStarted,
@@ -263,6 +264,7 @@ export function ExerciseEngine({
   onSupportUsed,
   evaluationProgress,
 }: {
+  targetLanguage: "de";
   exercises: readonly ExerciseDefinition[];
   restart?: boolean;
   evaluationProgress?: ReactNode;
@@ -340,7 +342,10 @@ export function ExerciseEngine({
           ...definition.hints,
           {
             text: t("exercises.answerFrameHint", {
-              frame: incompleteSentenceFrame(definition.answerContract.acceptedAnswers[0] ?? ""),
+              frame: incompleteSentenceFrame(
+                definition.answerContract.acceptedAnswers[0] ?? "",
+                targetLanguage,
+              ),
             }),
           },
         ]
@@ -410,7 +415,11 @@ export function ExerciseEngine({
   const submit = async () => {
     let evaluation: ExerciseEvaluation;
     try {
-      evaluation = evaluateExerciseAnswer(definition, answerFor(definition, values));
+      evaluation = evaluateExerciseAnswer(
+        definition,
+        answerFor(definition, values),
+        targetLanguage,
+      );
       setAnswerInvalid(false);
     } catch {
       setAnswerInvalid(true);

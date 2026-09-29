@@ -1,10 +1,18 @@
-import { validateCourseEvidence } from "@call-nina/domain";
+import {
+  vocabularySearchPolicy,
+  readLocalLearningScope,
+  requireLocalLearningScope,
+  parseScopedActivityContext,
+  assertLocalLearningScope,
+} from "./learning-context.js";
+import { resolveLearningContext, supportedCourse, validateCourseEvidence } from "@call-nina/domain";
 import { readLearningPathState, updateLearningPath, saveCourseEvidence } from "./learning-path.js";
 import { readPersonalDataInventory, clearPersonalData } from "./personal-data.js";
 import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 
 import {
+  learningContextSchema,
   type LearningCourse,
   type CourseEvidence,
   vocabularyLibraryFilterSchema,
@@ -158,9 +166,12 @@ export type HistoryEntryRecord = Readonly<{
   rootGeneration: number;
 }>;
 
-export const learnerSettingsRecordSchema = strictBoundaryObject({
+const learnerSettingsInputSchema = strictBoundaryObject({
   profile: learnerProfileSchema,
   modelPreferences: modelPreferencesSchema,
+});
+export const learnerSettingsRecordSchema = learnerSettingsInputSchema.extend({
+  learningContext: learningContextSchema,
 });
 export const learnerSettingsUpdateSchema = strictBoundaryObject({
   expectedUpdatedAt: utcInstantSchema,
@@ -465,7 +476,7 @@ function readLearnerSettingsFromConnection(
 ): LearnerSettingsRecord | undefined {
   const row = connection
     .prepare(
-      `SELECT p.*, s.ui_locale, s.teaching_language, s.teaching_profile_id,
+      `SELECT p.*, s.ui_locale, s.explanation_language, s.teaching_profile_id,
         s.correction_timing, s.correction_coverage, s.show_concise_explanation,
         s.show_natural_alternative
        FROM learner_profiles p
@@ -511,7 +522,7 @@ function readLearnerSettingsFromConnection(
     schemaVersion: row["schema_version"],
     learnerId: row["learner_id"],
     levelEstimate,
-    everydayGermanyGoal: row["everyday_germany_goal"],
+    everydayLifeGoal: row["everyday_life_goal"],
     motivation: row["motivation"],
     interests: strings("learner_interests"),
     preferredTopics: strings("learner_preferred_topics"),
@@ -525,7 +536,7 @@ function readLearnerSettingsFromConnection(
     inferredStrengths: insights("strength"),
     inferredWeaknesses: insights("weakness"),
     uiLocale: row["ui_locale"],
-    teachingLanguage: row["teaching_language"],
+    explanationLanguage: row["explanation_language"],
     defaultTeachingProfileId: row["teaching_profile_id"],
     createdAt: row["created_at"],
     updatedAt: row["updated_at"],
@@ -562,7 +573,13 @@ function readLearnerSettingsFromConnection(
     schemaVersion: 1,
     ...Object.fromEntries(preferenceEntries),
   });
-  return learnerSettingsRecordSchema.parse({ profile, modelPreferences });
+  const scope = requireLocalLearningScope(connection);
+  if (scope.learnerId !== learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+  return learnerSettingsRecordSchema.parse({
+    profile,
+    modelPreferences,
+    learningContext: resolveLearningContext(scope, profile),
+  });
 }
 
 function insertOrderedStrings(
@@ -612,6 +629,16 @@ export class CallNinaRepository {
     this.#database = database;
   }
 
+  async requireLearningScope() {
+    return withLeasedConnection(this.#database, requireLocalLearningScope);
+  }
+
+  async requireLearningContext() {
+    const settings = await this.readCurrentLearnerSettings();
+    if (!settings) throw new Error("OD_LEARNING_CONTEXT_REQUIRED");
+    return settings.learningContext;
+  }
+
   async readLearningPathState() {
     return readLearningPathState(this.#database);
   }
@@ -654,38 +681,24 @@ export class CallNinaRepository {
     });
   }
 
-  async readLearnerSettings(learnerIdValue: string): Promise<LearnerSettingsRecord | undefined> {
-    const learnerId = learnerIdSchema.parse(learnerIdValue);
-    return withLeasedConnection(this.#database, (connection) =>
-      readLearnerSettingsFromConnection(connection, learnerId),
-    );
-  }
-
   async readCurrentLearnerSettings(): Promise<LearnerSettingsRecord | undefined> {
     return withLeasedConnection(this.#database, (connection) => {
-      const row = connection
-        .prepare(
-          `SELECT learner_id FROM learner_profiles
-           ORDER BY created_at ASC, learner_id ASC LIMIT 1`,
-        )
-        .get() as { learner_id: string } | undefined;
-      return row
-        ? readLearnerSettingsFromConnection(connection, learnerIdSchema.parse(row.learner_id))
-        : undefined;
+      const scope = readLocalLearningScope(connection);
+      return scope ? readLearnerSettingsFromConnection(connection, scope.learnerId) : undefined;
     });
   }
 
   async createLearnerSettings(
-    settingsValue: LearnerSettingsRecord,
+    settingsValue: z.infer<typeof learnerSettingsInputSchema>,
   ): Promise<LearnerSettingsRecord> {
-    const settings = learnerSettingsRecordSchema.parse(settingsValue);
+    const settings = learnerSettingsInputSchema.parse(settingsValue);
     const profile = settings.profile;
     return withLeasedTransaction(this.#database, (connection) => {
       connection
         .prepare(
           `INSERT INTO learner_profiles (
             learner_id, schema_version, current_level, target_level, level_basis,
-            optional_diagnostic_completed_on, level_updated_at, everyday_germany_goal,
+            optional_diagnostic_completed_on, level_updated_at, everyday_life_goal,
             motivation, onboarding_state, created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
@@ -697,7 +710,7 @@ export class CallNinaRepository {
           profile.levelEstimate.basis,
           profile.levelEstimate.optionalDiagnosticCompletedOn ?? null,
           profile.levelEstimate.updatedAt,
-          profile.everydayGermanyGoal,
+          profile.everydayLifeGoal,
           profile.motivation,
           profile.onboardingState,
           profile.createdAt,
@@ -706,7 +719,7 @@ export class CallNinaRepository {
       connection
         .prepare(
           `INSERT INTO learner_settings (
-            learner_id, ui_locale, teaching_language, teaching_profile_id,
+            learner_id, ui_locale, explanation_language, teaching_profile_id,
             correction_timing, correction_coverage, show_concise_explanation,
             show_natural_alternative, updated_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -714,7 +727,7 @@ export class CallNinaRepository {
         .run(
           profile.learnerId,
           profile.uiLocale,
-          profile.teachingLanguage,
+          profile.explanationLanguage,
           profile.defaultTeachingProfileId,
           profile.correctionPreferences.timing,
           profile.correctionPreferences.coverage,
@@ -737,6 +750,12 @@ export class CallNinaRepository {
         settings.modelPreferences,
         profile.updatedAt,
       );
+      connection
+        .prepare(
+          `INSERT INTO local_learning_scope
+        (singleton, learner_id, course_id, target_language) VALUES (1, ?, ?, ?)`,
+        )
+        .run(profile.learnerId, supportedCourse.courseId, supportedCourse.targetLanguage);
       const stored = readLearnerSettingsFromConnection(connection, profile.learnerId);
       if (!stored) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
       return stored;
@@ -750,12 +769,15 @@ export class CallNinaRepository {
       throw new Error("OD_LEARNER_SETTINGS_TIMESTAMP_NOT_ADVANCING");
     }
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, update.settings.learningContext);
+      if (profile.learnerId !== update.settings.learningContext.learnerId)
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
       const result = connection
         .prepare(
           `UPDATE learner_profiles SET
             current_level = ?, target_level = ?, level_basis = ?,
             optional_diagnostic_completed_on = ?, level_updated_at = ?,
-            everyday_germany_goal = ?, motivation = ?,
+            everyday_life_goal = ?, motivation = ?,
             onboarding_state = ?, updated_at = ?
            WHERE learner_id = ? AND created_at = ? AND updated_at = ?`,
         )
@@ -765,7 +787,7 @@ export class CallNinaRepository {
           profile.levelEstimate.basis,
           profile.levelEstimate.optionalDiagnosticCompletedOn ?? null,
           profile.levelEstimate.updatedAt,
-          profile.everydayGermanyGoal,
+          profile.everydayLifeGoal,
           profile.motivation,
           profile.onboardingState,
           profile.updatedAt,
@@ -776,14 +798,14 @@ export class CallNinaRepository {
       if (result.changes !== 1) throw new Error("OD_LEARNER_SETTINGS_CONFLICT");
       const settingsResult = connection
         .prepare(
-          `UPDATE learner_settings SET ui_locale = ?, teaching_language = ?,
+          `UPDATE learner_settings SET ui_locale = ?, explanation_language = ?,
             teaching_profile_id = ?, correction_timing = ?, correction_coverage = ?,
             show_concise_explanation = ?, show_natural_alternative = ?, updated_at = ?
            WHERE learner_id = ?`,
         )
         .run(
           profile.uiLocale,
-          profile.teachingLanguage,
+          profile.explanationLanguage,
           profile.defaultTeachingProfileId,
           profile.correctionPreferences.timing,
           profile.correctionPreferences.coverage,
@@ -1075,10 +1097,8 @@ export class CallNinaRepository {
     const filter = vocabularyLibraryFilterSchema.parse(input);
     const today = calendarDateSchema.parse(todayValue);
     return withLeasedConnection(this.#database, (connection) => {
-      // SQLite lower() is ASCII-only; fold German uppercase letters explicitly.
-      const fold = (column: "lemma" | "meaning") =>
-        `lower(replace(replace(replace(replace(${column}, 'Ä', 'ä'), 'Ö', 'ö'), 'Ü', 'ü'), 'ẞ', 'ß'))`;
-      const search = filter.search.trim().toLocaleLowerCase("de");
+      const { fold, normalize } = vocabularySearchPolicy(connection);
+      const search = normalize(filter.search);
       const where = `(? = '' OR instr(${fold("lemma")}, ?) > 0 OR instr(${fold("meaning")}, ?) > 0)
         AND (? = 'all' OR status = ? OR (? = 'due' AND status = 'active' AND due_on <= ?))`;
       const parameters = [
@@ -1937,7 +1957,7 @@ export class CallNinaRepository {
             .get(summary.activity.activityId) as { context_json: string } | undefined)
         : undefined;
       const linkedContext = linked
-        ? preparedActivitySchema.shape.context.parse(parseJson(linked.context_json))
+        ? parseScopedActivityContext(connection, parseJson(linked.context_json))
         : undefined;
       if (summary.activity) {
         if (!linkedContext?.learningPath || !linkedContext.courseTeaching)
@@ -2055,6 +2075,7 @@ export class CallNinaRepository {
   ): Promise<IdempotentWriteResult> {
     const activity = preparedActivitySchema.parse(activityValue);
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, activity.context.learningScope);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2099,7 +2120,7 @@ export class CallNinaRepository {
         activityType: row["activity_type"],
         title: row["title"],
         originSurface: row["origin_surface"],
-        context: parseJson(row["context_json"]),
+        context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
         preparedAt: row["prepared_at"],
       });
     });
@@ -2183,7 +2204,7 @@ export class CallNinaRepository {
         activityType: row["activity_type"],
         title: row["title"],
         originSurface: row["origin_surface"],
-        context: parseJson(row["context_json"]),
+        context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
         preparedAt: row["prepared_at"],
       });
     });
@@ -2197,7 +2218,8 @@ export class CallNinaRepository {
         .prepare(`SELECT status, context_json FROM prepared_activities WHERE activity_id = ?`)
         .get(activityId) as { status: string; context_json: string } | undefined;
       if (!activity) throw new Error("OD_PREPARED_ACTIVITY_NOT_FOUND");
-      const courseMissionId = preparedActivitySchema.shape.context.parse(
+      const courseMissionId = parseScopedActivityContext(
+        connection,
         parseJson(activity.context_json),
       ).courseTeaching?.mission.id;
       if (activity.status !== "prepared" && !courseMissionId) {
@@ -2428,6 +2450,7 @@ export class CallNinaRepository {
       ) {
         throw new Error("OD_TARGETED_PRACTICE_PATTERN_STALE");
       }
+      assertLocalLearningScope(connection, record.activity.context.learningScope);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2506,6 +2529,7 @@ export class CallNinaRepository {
     }
     const modelSelection = record.aiProvenance.modelSelection;
     return withLeasedTransaction(this.#database, (connection) => {
+      assertLocalLearningScope(connection, record.activity.context.learningScope);
       const claim = claimIdempotentWrite(connection, {
         operation: "prepared-activity",
         idempotencyKey,
@@ -2583,7 +2607,7 @@ export class CallNinaRepository {
       return generatedActivityReadSchema.parse({
         activityId: row["activity_id"],
         title: row["title"],
-        context: parseJson(row["context_json"]),
+        context: parseScopedActivityContext(connection, parseJson(row["context_json"])),
         aiProvenance: {
           source: "ai",
           producer: "desktop-app-server",
@@ -2676,7 +2700,7 @@ export class CallNinaRepository {
         )
         .get(record.activityId);
       if (activeAttempt !== undefined) throw new Error("OD_EXERCISE_ATTEMPT_SET_ACTIVE");
-      const context = preparedActivitySchema.shape.context.parse(parseJson(row["context_json"]));
+      const context = parseScopedActivityContext(connection, parseJson(row["context_json"]));
       const provenance = aiProvenanceSchema.parse({
         source: "ai",
         producer: "desktop-app-server",
@@ -2764,7 +2788,11 @@ export class CallNinaRepository {
       const snapshot = startedExerciseSnapshotSchema.parse(
         parseJson(row["exercise_snapshot_json"]),
       );
-      const evaluation = evaluateExerciseAnswer(snapshot.exercise, record.answer);
+      const evaluation = evaluateExerciseAnswer(
+        snapshot.exercise,
+        record.answer,
+        requireLocalLearningScope(connection).targetLanguage,
+      );
       if (evaluation.status !== "requires-ai") {
         throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
       }
@@ -2856,7 +2884,8 @@ export class CallNinaRepository {
       if (!activity) throw new Error("OD_GENERATED_ACTIVITY_NOT_FOUND");
       const activityTitle = z.string().min(1).max(160).parse(activity["title"]);
       const activityType = historyActivityTypeSchema.parse(activity["activity_type"]);
-      const activityContext = preparedActivitySchema.shape.context.parse(
+      const activityContext = parseScopedActivityContext(
+        connection,
         parseJson(activity["context_json"]),
       );
       const payload = connection
@@ -2890,7 +2919,11 @@ export class CallNinaRepository {
         const snapshot = startedExerciseSnapshotSchema.parse(
           parseJson(row["exercise_snapshot_json"]),
         );
-        const evaluation = evaluateExerciseAnswer(snapshot.exercise, item.answer);
+        const evaluation = evaluateExerciseAnswer(
+          snapshot.exercise,
+          item.answer,
+          requireLocalLearningScope(connection).targetLanguage,
+        );
         if (evaluation.status === "requires-ai" && item.aiFeedback === undefined) {
           throw new Error("OD_EXERCISE_AI_FEEDBACK_REQUIRED");
         }

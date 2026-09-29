@@ -1,3 +1,5 @@
+import { germanArticleSchema } from "./german-language.js";
+import { learningContextSchema, targetLanguageSchema } from "./learning-context.js";
 import {
   activityIdSchema,
   curriculumTopicIdSchema,
@@ -10,7 +12,7 @@ import { z } from "./schema-system.js";
 const text = (max: number) => z.string().trim().min(1).max(max);
 const key = z.string().regex(/^[a-z][a-z0-9-]{0,79}$/u);
 const localized = z.strictObject({ en: text(8000), de: text(8000) });
-export const courseStageSchema = z.enum(["a1-1", "a1-2"]);
+export const courseStageSchema = key;
 export const courseSkillSchema = z.enum(["reading", "writing", "listening", "speaking"]);
 export const coursePurposeSchema = z.enum([
   "input",
@@ -45,7 +47,7 @@ export const courseTargetSchema = z.strictObject({
   meaning: localized,
   example: text(500),
   exampleMeaning: localized.optional(),
-  article: z.enum(["der", "die", "das"]).optional(),
+  article: germanArticleSchema.optional(),
   plural: text(160).optional(),
   pattern: text(160).optional(),
   function: text(160).optional(),
@@ -76,21 +78,23 @@ export const courseUnitSchema = z.strictObject({
   explanation: localized,
   examples: z
     .array(z.strictObject({ german: text(500), meaning: localized }))
-    .min(3)
+    .min(1)
     .max(20),
-  objectives: z.array(courseObjectiveSchema).min(3).max(5),
+  objectives: z.array(courseObjectiveSchema).min(1).max(5),
   targetIds: z.array(key).min(1).max(60),
   reviewTargetIds: z.array(key).max(60),
-  activities: z.array(courseActivitySchema).min(3).max(16),
+  activities: z.array(courseActivitySchema).min(1).max(16),
   variants: z
     .array(z.strictObject({ id: key, facts: localized }))
-    .min(3)
+    .min(1)
     .max(8),
   sourceIds: z.array(key).min(1).max(10),
 });
 export const learningCourseSchema = z
   .strictObject({
     schemaVersion: z.literal(2),
+    courseId: key,
+    targetLanguage: targetLanguageSchema,
     version: text(40),
     sources: z
       .array(
@@ -106,7 +110,7 @@ export const learningCourseSchema = z
       .min(1)
       .max(20),
     targets: z.array(courseTargetSchema).min(1).max(1000),
-    units: z.array(courseUnitSchema).length(15),
+    units: z.array(courseUnitSchema).min(1).max(200),
   })
   .superRefine((course, ctx) => {
     const issue = (message: string) => {
@@ -123,8 +127,6 @@ export const learningCourseSchema = z
       if (ids.has(unit.id) || unit.prerequisites.some((id) => !ids.has(id)))
         issue("Invalid unit order or identity");
       ids.add(unit.id);
-      if (new Set(unit.objectives.flatMap((o) => o.skills)).size !== 4)
-        issue("Four-skill coverage required");
       for (const objective of unit.objectives) {
         if (objectives.has(objective.id)) issue("Duplicate objective");
         objectives.add(objective.id);
@@ -151,7 +153,6 @@ export const learningCourseSchema = z
         if (activity.delivery === "listening" && (!activity.input || !activity.questions.length))
           issue("Listening input required");
       }
-      if (!unit.activities.some((a) => a.purpose === "capstone")) issue("Capstone required");
       if (unit.objectives.some((o) => !unit.activities.some((a) => a.objectiveIds.includes(o.id))))
         issue("Unassessed objective");
       if (new Set(unit.variants.map((v) => v.id)).size !== unit.variants.length)
@@ -159,14 +160,6 @@ export const learningCourseSchema = z
       if (unit.sourceIds.some((id) => !course.sources.some((s) => s.id === id)))
         issue("Unknown course source");
     }
-    for (const stage of courseStageSchema.options)
-      if (course.units.filter((u) => u.stage === stage && u.kind === "module").length !== 6)
-        issue("Six modules per stage required");
-    if (
-      course.units.filter((u) => u.kind === "launchpad").length !== 1 ||
-      course.units.filter((u) => u.kind === "checkpoint").length !== 2
-    )
-      issue("Launchpad and checkpoints required");
   });
 export const courseSupportSchema = z.enum([
   "hint",
@@ -228,7 +221,7 @@ export const learningPathStateSchema = z.strictObject({
   activities: z.array(courseActivityResultSchema).max(2000),
 });
 export const learningPathSnapshotSchema = z.strictObject({
-  explanationLanguage: z.enum(["en", "de"]),
+  learningContext: learningContextSchema,
   rootGeneration: dataRootGenerationSchema,
   course: learningCourseSchema.nullable(),
   state: learningPathStateSchema,

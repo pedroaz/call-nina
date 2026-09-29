@@ -1,3 +1,4 @@
+import { requireLocalLearningScope, assertLocalLearningScope } from "./learning-context.js";
 import { createHash, randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
@@ -70,6 +71,7 @@ function insert(
   idempotencyRequest?: unknown,
 ) {
   const activity = preparedActivitySchema.parse(activityValue);
+  assertLocalLearningScope(connection, activity.context.learningScope);
   if (activity.activityType !== "flashcards") throw new Error("OD_FLASHCARD_ACTIVITY_INVALID");
   const cards = z.array(flashcardSchema).min(3).max(30).parse(cardsValue);
   const claim = claimIdempotentWrite(connection, {
@@ -172,6 +174,7 @@ export async function createVocabularyFlashcards(
         originSurface: "desktop",
         preparedAt: new Date().toISOString(),
         context: {
+          learningScope: requireLocalLearningScope(connection),
           naturalRequest: request.title,
           curriculumTopicIds: [],
           mistakeIds: [],

@@ -30,7 +30,7 @@ type LoginId = Extract<
 type Choices = Pick<
   DesktopSettingsValue,
   | "approximateLevel"
-  | "everydayGermanyGoal"
+  | "everydayLifeGoal"
   | "defaultTeachingProfileId"
   | "explanationLanguage"
   | "uiLocale"
@@ -52,7 +52,7 @@ export function ProfileOnboarding({
   const [persisted, setPersisted] = useState<DesktopSettingsResult>();
   const [choices, setChoices] = useState<Choices>({
     approximateLevel: "a2",
-    everydayGermanyGoal: "",
+    everydayLifeGoal: "",
     defaultTeachingProfileId: "conversation-partner",
     explanationLanguage: "en",
     uiLocale: i18n.resolvedLanguage === "de" ? "de" : "en",
@@ -155,12 +155,12 @@ export function ProfileOnboarding({
     setChoices((current) => ({ ...current, [key]: value }));
   };
   const save = async (): Promise<DesktopSettingsResult | undefined> => {
-    if (!generation || !choices.everydayGermanyGoal.trim()) return persisted;
+    if (!generation || !choices.everydayLifeGoal.trim()) return persisted;
     let current = persisted;
     if (!current) {
       await invokeDesktop("learner-profile/start-onboarding", {
         ...choices,
-        everydayGermanyGoal: choices.everydayGermanyGoal.trim(),
+        everydayLifeGoal: choices.everydayLifeGoal.trim(),
         expectedGeneration: generation,
         placement: { status: "skipped" },
       });
@@ -176,7 +176,7 @@ export function ProfileOnboarding({
         settings: {
           ...current.settings,
           ...choices,
-          everydayGermanyGoal: choices.everydayGermanyGoal.trim(),
+          everydayLifeGoal: choices.everydayLifeGoal.trim(),
         },
       });
     }
@@ -186,7 +186,7 @@ export function ProfileOnboarding({
   };
   const move = (destination: number) =>
     void attempt(async () => {
-      if (step === 1 && !choices.everydayGermanyGoal.trim()) {
+      if (step === 1 && !choices.everydayLifeGoal.trim()) {
         if (destination > step) return;
         setNotice(t("onboarding.unsavedGoal"));
       } else await save();
@@ -194,7 +194,7 @@ export function ProfileOnboarding({
     });
   const exit = () =>
     void attempt(async () => {
-      if (choices.everydayGermanyGoal.trim()) await save();
+      if (choices.everydayLifeGoal.trim()) await save();
       onExit?.();
     });
   const finish = () =>
@@ -422,14 +422,14 @@ export function ProfileOnboarding({
                       required
                       maxLength={500}
                       rows={4}
-                      value={choices.everydayGermanyGoal}
+                      value={choices.everydayLifeGoal}
                       onChange={(event) => {
-                        change("everydayGermanyGoal", event.currentTarget.value);
+                        change("everydayLifeGoal", event.currentTarget.value);
                       }}
                     />
                     <small>{t("onboarding.goalHint")}</small>
                   </FieldGroup>
-                  {!choices.everydayGermanyGoal.trim() && <p>{t("onboarding.goalRequired")}</p>}
+                  {!choices.everydayLifeGoal.trim() && <p>{t("onboarding.goalRequired")}</p>}
                 </fieldset>
               )}
               {step === 2 && (
@@ -502,7 +502,7 @@ export function ProfileOnboarding({
                   </p>
                   <p>
                     <strong>{t("onboarding.goal")}: </strong>
-                    {choices.everydayGermanyGoal}
+                    {choices.everydayLifeGoal}
                   </p>
                   <p>{t(`onboarding.profiles.${choices.defaultTeachingProfileId}.title`)}</p>
                   <p>
@@ -539,7 +539,7 @@ export function ProfileOnboarding({
                 {step < 3 ? (
                   <Button
                     variant="primary"
-                    isDisabled={busy || (step === 1 && !choices.everydayGermanyGoal.trim())}
+                    isDisabled={busy || (step === 1 && !choices.everydayLifeGoal.trim())}
                     onPress={() => {
                       move(step + 1);
                     }}

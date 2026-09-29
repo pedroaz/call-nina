@@ -1,3 +1,4 @@
+import { learningContextSchema } from "./learning-context.js";
 import {
   courseReferenceSchema,
   courseTeachingContextSchema,
@@ -9,7 +10,6 @@ import {
   curriculumTopicIdSchema,
   dataRootGenerationSchema,
   historyEntryIdSchema,
-  learnerIdSchema,
   mistakeIdSchema,
   utcInstantSchema,
   vocabularyIdSchema,
@@ -60,12 +60,13 @@ export const learnerContextReadInputSchema = strictBoundaryObject({
     .min(1)
     .max(3),
 });
+const mcpLearningContextSchema = learningContextSchema.omit({ goal: true }).extend({
+  goal: learningContextSchema.shape.goal.optional(),
+});
 const learnerContextDataSchema = z.strictObject({
-  learnerId: learnerIdSchema,
-  approximateLevel: z.enum(["A1", "A2", "B1", "B2"]),
-  everydayLifeGoal: text(500),
-  explanationLanguage: z.enum(["en", "de"]),
-  teachingProfile: z.enum(["conversation-partner", "strict-corrector"]),
+  learningContext: mcpLearningContextSchema,
+  approximateLevel: z.enum(["A1", "A2", "B1", "B2"]).optional(),
+  teachingProfile: z.enum(["conversation-partner", "strict-corrector"]).optional(),
 });
 
 export const practiceContextReadInputSchema = strictBoundaryObject({
@@ -74,6 +75,7 @@ export const practiceContextReadInputSchema = strictBoundaryObject({
   maximumItemsPerSection: z.int().min(1).max(20).default(5),
 });
 const practiceContextDataSchema = z.strictObject({
+  learningContext: mcpLearningContextSchema,
   learningPath: z
     .strictObject({ reference: courseReferenceSchema, title: text(300), objective: text(1000) })
     .nullable(),
@@ -118,6 +120,7 @@ export const preparedVoiceActivityReadInputSchema = strictBoundaryObject({
   ]),
 });
 const preparedVoiceActivityDataSchema = z.strictObject({
+  learningContext: mcpLearningContextSchema,
   activityId: activityIdSchema,
   title: text(160),
   preparedAt: utcInstantSchema,

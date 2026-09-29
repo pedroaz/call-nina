@@ -26,6 +26,7 @@ import {
   preparedVoiceActivityReadResultSchema,
   voiceSummarySaveInputSchema,
   voiceSummarySaveResultSchema,
+  type LearningContext,
   type ErrorKind,
   utcInstantSchema,
 } from "@call-nina/contracts";
@@ -280,6 +281,16 @@ function activityType(
   return kind;
 }
 
+function learningContextProjection(context: LearningContext, includeGoal: boolean) {
+  return {
+    learnerId: context.learnerId,
+    courseId: context.courseId,
+    targetLanguage: context.targetLanguage,
+    explanationLanguage: context.explanationLanguage,
+    ...(includeGoal ? { goal: context.goal } : {}),
+  };
+}
+
 export function createProductionServer(runtime: Runtime) {
   let writeQueue = Promise.resolve();
   const serializeWrite = <T>(operation: () => Promise<T>) => {
@@ -310,17 +321,22 @@ export function createProductionServer(runtime: Runtime) {
           const settings = await runtime.repository.readCurrentLearnerSettings();
           if (!settings) return failureResult("not-found", "No learner profile is configured yet.");
           const data = {
-            learnerId: settings.profile.learnerId,
-            approximateLevel: settings.profile.levelEstimate.currentLevel.toUpperCase() as
-              "A1" | "A2" | "B1" | "B2",
-            everydayLifeGoal: settings.profile.everydayGermanyGoal,
-            explanationLanguage: settings.profile.teachingLanguage,
-            teachingProfile:
-              settings.profile.defaultTeachingProfileId === "strict-corrector"
-                ? ("strict-corrector" as const)
-                : ("conversation-partner" as const),
+            learningContext: learningContextProjection(
+              settings.learningContext,
+              input.sections.includes("goals"),
+            ),
+            ...(input.sections.includes("profile")
+              ? {
+                  approximateLevel: settings.profile.levelEstimate.currentLevel.toUpperCase() as
+                    "A1" | "A2" | "B1" | "B2",
+                }
+              : {}),
+            ...(input.sections.includes("teaching-defaults")
+              ? {
+                  teachingProfile: settings.profile.defaultTeachingProfileId,
+                }
+              : {}),
           };
-          void input;
           return successResult("Learner context is ready.", data);
         });
       } catch (error) {
@@ -361,15 +377,18 @@ export function createProductionServer(runtime: Runtime) {
           const include = (
             section: "recommendation" | "mistakes" | "vocabulary" | "learning-path",
           ) => input.focus === "all" || input.focus === section;
+          const learningContext = await runtime.repository.requireLearningContext();
           const data = {
+            learningContext: learningContextProjection(learningContext, include("recommendation")),
             learningPath:
               (include("learning-path") || include("recommendation")) && next && nextUnit
                 ? {
                     reference: next,
-                    title: nextUnit.title.en,
+                    title: nextUnit.title[learningContext.explanationLanguage],
                     objective: (
-                      nextUnit.activities.find((a) => a.id === next.activityKey)?.instructions.en ??
-                      nextUnit.scenario.en
+                      nextUnit.activities.find((a) => a.id === next.activityKey)?.instructions[
+                        learningContext.explanationLanguage
+                      ] ?? nextUnit.scenario[learningContext.explanationLanguage]
                     ).slice(0, 1000),
                   }
                 : null,
@@ -389,7 +408,11 @@ export function createProductionServer(runtime: Runtime) {
             recommendation:
               include("recommendation") && nextUnit
                 ? {
-                    primary: `Continue: ${nextUnit.title.en}`.slice(0, 500),
+                    primary:
+                      `Continue: ${nextUnit.title[learningContext.explanationLanguage]}`.slice(
+                        0,
+                        500,
+                      ),
                     alternatives: snapshot.dueVocabulary.length ? ["Review due vocabulary"] : [],
                   }
                 : null,
@@ -494,6 +517,7 @@ export function createProductionServer(runtime: Runtime) {
           return successResult("Prepared Voice activity is ready.", {
             activityId: activity.activityId,
             title: activity.title,
+            learningContext: learningContextProjection(settings.learningContext, false),
             preparedAt: activity.preparedAt,
             context: activity.context.voiceContext,
             ...(activity.context.learningPath
@@ -503,7 +527,7 @@ export function createProductionServer(runtime: Runtime) {
               ? { courseTeaching: activity.context.courseTeaching }
               : {}),
             teachingDefaults: {
-              explanationLanguage: settings.profile.teachingLanguage,
+              explanationLanguage: settings.profile.explanationLanguage,
               teachingProfile:
                 settings.profile.defaultTeachingProfileId === "strict-corrector"
                   ? "strict-corrector"
@@ -549,6 +573,7 @@ export function createProductionServer(runtime: Runtime) {
                 title: input.activity.title,
                 originSurface: "codex",
                 context: {
+                  learningScope: await runtime.repository.requireLearningScope(),
                   naturalRequest,
                   instructions: input.activity.instructions,
                   curriculumTopicIds: input.activity.curriculumTopicIds,

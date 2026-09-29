@@ -1,3 +1,4 @@
+import { germanVocabularyLemma, normalizeGermanVocabularyIdentity } from "./german-language.js";
 import { z, strictBoundaryObject } from "./schema-system.js";
 import { activityIdSchema, dataRootGenerationSchema, vocabularyIdSchema } from "./common.js";
 import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
@@ -79,16 +80,13 @@ export const flashcardSaveRequestSchema = flashcardReadRequestSchema.extend({
 export type Flashcard = z.infer<typeof flashcardSchema>;
 export type FlashcardDeck = z.infer<typeof flashcardDeckSchema>;
 export function vocabularyLemma(card: Pick<Flashcard, "lemma" | "lexeme">): string {
-  const lemma = card.lemma.trim();
-  if (card.lexeme.partOfSpeech !== "noun") return lemma;
-  const prefix = `${card.lexeme.nounForm.article} `;
-  return lemma.toLocaleLowerCase("de").startsWith(prefix)
-    ? lemma.slice(prefix.length).trim() || lemma
-    : lemma;
+  return germanVocabularyLemma(
+    card.lemma,
+    card.lexeme.partOfSpeech === "noun" ? card.lexeme.nounForm.article : undefined,
+  );
 }
 export function vocabularyIdentity(card: Pick<Flashcard, "lemma" | "meaning" | "lexeme">): string {
-  const normalize = (value: string) =>
-    value.normalize("NFC").trim().replace(/\s+/gu, " ").toLocaleLowerCase("de");
+  const normalize = normalizeGermanVocabularyIdentity;
   return JSON.stringify([
     normalize(vocabularyLemma(card)),
     card.lexeme.partOfSpeech,

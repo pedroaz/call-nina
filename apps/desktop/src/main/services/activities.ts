@@ -107,6 +107,7 @@ export class ActivityService {
       throw new Error("OD_ACTIVITY_NOT_FOUND");
     const activeSet = await this.#repository.readActiveGeneratedExerciseSet(generated.activityId);
     return {
+      learningScope: generated.context.learningScope,
       activityId: generated.activityId,
       title: generated.title,
       curriculumTopicIds: generated.context.curriculumTopicIds,
@@ -251,6 +252,7 @@ export class ActivityService {
         title: action.title,
         originSurface: "desktop",
         context: {
+          learningScope: await this.#repository.requireLearningScope(),
           naturalRequest: context.scenario,
           instructions: `Prepared ${context.kind} context for ${context.scenario}.`,
           curriculumTopicIds: [],
@@ -288,6 +290,7 @@ export class ActivityService {
         title: `${unit.title[locale]} · ${activity.title[locale]}`.slice(0, 160),
         originSurface: "desktop",
         context: {
+          learningScope: await this.#repository.requireLearningScope(),
           naturalRequest: activity.instructions[locale].slice(0, 1000),
           curriculumTopicIds: unit.curriculumTopicIds,
           mistakeIds: [],

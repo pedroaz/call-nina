@@ -1,3 +1,4 @@
+import { learningContextSchema, learningScopeSchema } from "./learning-context.js";
 import { openActivityActionSchema, activityDestinationSchema } from "./activity-action.js";
 import {
   flashcardCreateRequestSchema,
@@ -159,7 +160,7 @@ const onboardingProfileInputSchema = z.strictObject({
   expectedGeneration: dataRootGenerationSchema,
   uiLocale: z.enum(["en", "de"]),
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
-  everydayGermanyGoal: text(500),
+  everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
   explanationLanguage: z.enum(["en", "de"]),
   placement: z.strictObject({ status: z.literal("skipped") }),
@@ -195,7 +196,7 @@ const persistedModelPreferencesSchema = z.strictObject({
 });
 const editableLearnerSettingsSchema = z.strictObject({
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
-  everydayGermanyGoal: text(500),
+  everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
   explanationLanguage: z.enum(["en", "de"]),
   uiLocale: z.enum(["en", "de"]),
@@ -779,10 +780,10 @@ const privacyDisclosureAcknowledgeResponse = response(
   z.strictObject({ acknowledged: z.literal(true) }),
 );
 const learnerProfileSummarySchema = z.strictObject({
+  learningContext: learningContextSchema,
   onboardingState: z.enum(["not-started", "in-progress", "complete"]),
-  learnerId: z.string().regex(/^learner_[0-9A-Za-z]{16,64}$/u),
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
-  everydayGermanyGoal: text(500),
+  everydayLifeGoal: text(500),
   defaultTeachingProfileId: z.enum(["conversation-partner", "strict-corrector"]),
   explanationLanguage: z.enum(["en", "de"]),
   uiLocale: z.enum(["en", "de"]),
@@ -1148,6 +1149,7 @@ const generatedActivityProvenanceSchema = z.strictObject({
 const preparedActivityReadResponse = response(
   "prepared-activity/read",
   z.strictObject({
+    learningScope: learningScopeSchema,
     activityId: activityIdSchema,
     title: text(160),
     curriculumTopicIds: z.array(curriculumTopicIdSchema).max(20),

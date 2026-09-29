@@ -1,12 +1,7 @@
+import { germanNounFormSchema } from "./german-language.js";
 import { z } from "./schema-system.js";
 
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
-const nounFormSchema = z.discriminatedUnion("gender", [
-  z.strictObject({ gender: z.literal("masculine"), article: z.literal("der") }),
-  z.strictObject({ gender: z.literal("feminine"), article: z.literal("die") }),
-  z.strictObject({ gender: z.literal("neuter"), article: z.literal("das") }),
-]);
-
 const pluralSchema = z.discriminatedUnion("status", [
   z.strictObject({ status: z.literal("form"), form: text(160) }),
   z.strictObject({ status: z.literal("unchanged") }),
@@ -17,7 +12,7 @@ const pluralSchema = z.discriminatedUnion("status", [
 export const vocabularyLexemeSchema = z.discriminatedUnion("partOfSpeech", [
   z.strictObject({
     partOfSpeech: z.literal("noun"),
-    nounForm: nounFormSchema,
+    nounForm: germanNounFormSchema,
     plural: pluralSchema,
   }),
   z.strictObject({ partOfSpeech: z.literal("verb"), pattern: text(160).optional() }),

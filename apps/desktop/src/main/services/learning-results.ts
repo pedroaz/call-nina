@@ -273,6 +273,7 @@ export class LearningResultService {
         originSurface: "desktop",
         preparedAt,
         context: {
+          learningScope: await this.#repository.requireLearningScope(),
           naturalRequest: input.topic.slice(0, 1_000),
           curriculumTopicIds: [],
           mistakeIds: [],
@@ -338,6 +339,7 @@ export class LearningResultService {
         (operation.input.targetedMistakePattern ? "Targeted practice" : "Quiz"),
       originSurface: "desktop" as const,
       context: {
+        learningScope: await this.#repository.requireLearningScope(),
         ...(operation.input.learningPath ? { learningPath: operation.input.learningPath } : {}),
         ...(operation.input.courseTeaching
           ? { courseTeaching: operation.input.courseTeaching }
