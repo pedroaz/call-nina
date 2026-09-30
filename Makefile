@@ -227,3 +227,8 @@ pipeline-policy: ## Show additive GitHub settings diff; ARGS="apply --plan-diges
 .PHONY: stage-codex-runtime
 stage-codex-runtime: ## Stage and integrity-check the pinned standalone Codex and notices for this host.
 	@node scripts/build/stage-codex-runtime.mjs
+
+.PHONY: offline-artifacts
+offline-artifacts: ## Explicit offline artifact inspect/install/remove; ARGS includes the device --config-dir. Never runs inference.
+	@pnpm --filter @call-nina/offline-runtime run build
+	@node scripts/dev/offline-artifacts.mjs $(ARGS)

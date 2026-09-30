@@ -35,6 +35,7 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "@call-nina/learning-workflows": "workspace:*",
-    "@call-nina/direct-api": "workspace:*"
+    "@call-nina/direct-api": "workspace:*",
+    "@call-nina/offline-runtime": "workspace:*"
   }
 }

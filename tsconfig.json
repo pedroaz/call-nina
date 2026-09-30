@@ -36,6 +36,9 @@
       "path": "./packages/learning-workflows"
     },
     {
+      "path": "./packages/offline-runtime"
+    },
+    {
       "path": "./packages/direct-api"
     }
   ]
