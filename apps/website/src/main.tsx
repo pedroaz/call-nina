@@ -3,8 +3,10 @@ import { createRoot } from "react-dom/client";
 import { copy, languages, type Locale } from "./locales";
 import { Blog, resolveBlog } from "./blog/Blog";
 import { landingSections, siteLinks } from "./extensions";
+import ninaPhone from "@call-nina/design-system/brand/nina-phone.png";
 
 import "@call-nina/design-system/tokens.css";
+import "@call-nina/design-system/fonts.css";
 import "./styles.css";
 
 function localeFromUrl(): Locale {
@@ -53,9 +55,7 @@ function App() {
       </a>
       <header className="site-header wrap">
         <a className="wordmark" href={`${home}#main`}>
-          <span className="brand-mark" aria-hidden="true">
-            n.
-          </span>
+          <img className="brand-mark" src={ninaPhone} alt="" />
           Call Nina
         </a>
         <nav aria-label={t.navigation}>

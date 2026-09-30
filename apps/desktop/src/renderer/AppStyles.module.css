@@ -1,24 +1,24 @@
 .startupCard {
   align-content: start;
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
-  box-shadow: var(--od-shadow-raised);
+  box-shadow: var(--od-shadow-card);
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   max-width: var(--od-dialog-max);
-  padding: var(--od-space-10);
+  padding: var(--od-space-9);
   width: 100%;
 }
 
 .startupCard h1 {
   font-size: var(--od-font-size-xl);
   line-height: var(--od-line-tight);
-  margin: 0 0 var(--od-space-3);
+  margin: 0 0 var(--od-space-4);
 }
 
 .practiceSecondary {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }

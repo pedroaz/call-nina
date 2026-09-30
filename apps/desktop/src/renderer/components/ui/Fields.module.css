@@ -3,7 +3,7 @@
   flex-direction: column;
   font-size: var(--od-font-size-sm);
   font-weight: var(--od-weight-medium);
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   min-width: 0;
 }
 
@@ -11,14 +11,14 @@
 .field input,
 .field select,
 .field textarea {
-  background: var(--od-color-surface-raised);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
-  color: var(--od-color-text);
+  color: var(--od-color-text-strong);
   font-weight: normal;
   min-height: var(--od-control-min);
   min-width: 0;
-  padding: var(--od-space-2) var(--od-space-3);
+  padding: var(--od-space-3) var(--od-space-4);
   width: 100%;
 }
 
@@ -28,7 +28,7 @@ textarea.control,
 }
 
 .invalid {
-  border-color: var(--od-color-error);
+  border-color: var(--od-color-state-wrong);
 }
 
 .description {
@@ -38,7 +38,7 @@ textarea.control,
 }
 
 .error {
-  color: var(--od-color-error);
+  color: var(--od-color-state-wrong);
   font-size: var(--od-font-size-sm);
   font-weight: normal;
 }
@@ -46,40 +46,40 @@ textarea.control,
 .checkbox {
   align-items: flex-start;
   display: flex;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .checkbox input {
-  accent-color: var(--od-color-primary);
+  accent-color: var(--od-color-brand-ink);
   height: var(--od-icon-md);
-  margin-top: var(--od-space-1);
+  margin-top: var(--od-space-2);
   width: var(--od-icon-md);
 }
 
 .optionGrid {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .toggleGroup {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
 }
 
 .optionCard {
   align-items: flex-start;
-  border: var(--od-border-thin) solid var(--od-color-border);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   cursor: pointer;
   display: flex;
-  gap: var(--od-space-3);
-  padding: var(--od-space-3);
+  gap: var(--od-space-4);
+  padding: var(--od-space-4);
 }
 
 .optionCard:has(input:checked) {
-  background: var(--od-color-primary-soft);
-  border-color: var(--od-color-primary);
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-brand-ink);
 }
 
 .optionCard:has(input:disabled) {

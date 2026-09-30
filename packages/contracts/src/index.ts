@@ -282,3 +282,5 @@ export * from "./language-policy.js";
 export * from "./nina.js";
 export * from "./translation.js";
 export * from "./ai-connections.js";
+
+export * from "./offline-model.js";

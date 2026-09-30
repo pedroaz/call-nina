@@ -1,6 +1,6 @@
 .page {
   display: grid;
-  gap: var(--od-space-6);
+  gap: var(--od-space-7);
   min-width: 0;
   width: 100%;
   max-width: var(--od-content-max);
@@ -13,13 +13,13 @@
 .header {
   align-items: center;
   display: flex;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   justify-content: space-between;
 }
 
 .heading {
   display: grid;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
 }
 
 .heading > * {
@@ -27,7 +27,7 @@
 }
 
 .eyebrow {
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
   letter-spacing: var(--od-letter-wide);
@@ -35,7 +35,7 @@
 }
 
 .title {
-  font-family: var(--od-font-reading);
+  font-family: var(--od-font-family-body);
   font-size: var(--od-font-size-xl);
   line-height: var(--od-line-tight);
 }
@@ -48,22 +48,22 @@
 
 .stack {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
 }
 
 .stackCompact {
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .section {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 
 .sectionHeading {
   align-items: center;
   display: flex;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   justify-content: space-between;
 }
 
@@ -76,13 +76,13 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .grid {
   display: grid;
   align-items: start;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 
 .twoColumns {
@@ -95,12 +95,12 @@
 
 .filterBar {
   align-items: end;
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
   display: grid;
-  gap: var(--od-space-3);
-  padding: var(--od-space-4);
+  gap: var(--od-space-4);
+  padding: var(--od-space-5);
 }
 
 .filterBar[data-columns="1"] {
@@ -151,7 +151,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--od-space-1);
+  gap: var(--od-space-2);
   list-style: none;
   padding: 0;
   margin: 0;
@@ -161,7 +161,7 @@
 .breadcrumbs li {
   display: flex;
   align-items: center;
-  gap: var(--od-space-1);
+  gap: var(--od-space-2);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -171,10 +171,10 @@
 }
 
 :global([data-exercise-mode="true"]) .page {
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 :global([data-exercise-mode="true"]) .heading {
-  gap: var(--od-space-1);
+  gap: var(--od-space-2);
 }
 :global([data-exercise-mode="true"]) .title {
   font-size: var(--od-font-size-lg);

@@ -44,7 +44,21 @@ External contributors retain their rights. Submission alone is not a copyright a
 
 ## Dependencies, teaching sources and packaging
 
-The inspected installed runtime inventory contains 36 package versions with declared MIT, Apache-2.0, BSD-2-Clause, ISC and 0BSD terms. Those declarations are evidence from package metadata, not a full transitive source audit or a substitute for required license texts. The generator retains the dependency inventory and curriculum attribution and links to this authored policy; regenerating notices does not author or overwrite licensing policy. No dependency or source attribution was removed by adoption.
+The shared design package bundles unmodified Fredoka, Figtree, JetBrains Mono and Noto Sans Mono variable font binaries from the [Google Fonts source repository](https://github.com/google/fonts/tree/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl). Each is distributed under SIL Open Font License 1.1; its full `OFL-*.txt` license accompanies the binary in `packages/design-system/assets/fonts/`. The four inspected OFL headers declare no Reserved Font Names. Noto Sans Mono supplies IPA glyphs absent from JetBrains Mono. The design package's `nina-phone.png` was extracted from page 4 of the maintainer-supplied *Call Nina Design System* PDF, preserving its embedded color image and transparency mask. The existing installed desktop icon remains the repository's prior N mark until a later branding/package-icon migration.
+
+The native app bundles these **modified static derivatives** of those pinned variable binaries. They were generated with FontTools 4.60.1 `fontTools.varLib.instancer.instantiateVariableFont`, fixing every axis (including non-weight axes at the source default). SHA-256 identifies each source and resulting file:
+
+| Source variable font SHA-256 | Native static derivative SHA-256 | Fixed axes |
+| --- | --- | --- |
+| Fredoka `2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8` | `Fredoka-700.ttf` `810d2c684bf5dd9ba8d104095696f83024791674625e679b5a519b51cebcd080` | `wght=700`, `wdth=100` (default) |
+| Figtree `26ad3db9b31ff7dde67a91ff515d022d2f495cd506590699cf264f0bfe6fb714` | `Figtree-400.ttf` `a059b3c948f1f87b65fb708f0e40401896866a805b74c12c0fc2fbb00d36089e` | `wght=400` |
+| Figtree `26ad3db9b31ff7dde67a91ff515d022d2f495cd506590699cf264f0bfe6fb714` | `Figtree-700.ttf` `ba9c813a463b11ba2b941c163e654d7d7f9ff86799b7cae217456bb80a52cb52` | `wght=700` |
+| JetBrains Mono `48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda` | `JetBrainsMono-400.ttf` `055b6ae4449b5274591c1aa5aacbc8dee4b1c8b87a8bd9fbb7dee485ab337c2d` | `wght=400` (default) |
+| Noto Sans Mono `2cb2adb378a8f574213e23df697050b83c54c27df465a2015552740b2769a081` | `NotoSansMono-400.ttf` `a860d73c8eb7162ac1beb3da33a5183f3880aa9327b56f055048fc50a6c80fe7` | `wght=400` (default), `wdth=100` (default) |
+
+The original variable binaries and complete OFL notices remain alongside the derivatives. `make design-tokens` generates `font-notices.json` directly from those four notice files, and the mobile Font licenses disclosure presents their complete text. The design package build checks the generated notice against its sources.
+
+The generated runtime inventory records the installed package versions and their declared licenses. Those declarations are evidence from package metadata, not a full transitive source audit or a substitute for required license texts. The generator retains the dependency inventory and curriculum attribution and links to this authored policy; regenerating notices does not author or overwrite licensing policy. No dependency or source attribution was removed by adoption.
 
 The desktop packager already copies the complete root `LICENSE` and the authored/generated notices into its notices directory, so the operative historic MIT grant travels in the same file as the new terms. This inspection covers the existing desktop/MCP inventory; it does not claim that inventory is a complete mobile SDK, website, build-tool or externally installed Codex notice inventory. A new source license does not replace any distributor's obligation to carry the licenses/notices for the components they actually distribute.
 

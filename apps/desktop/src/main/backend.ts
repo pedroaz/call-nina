@@ -1,5 +1,11 @@
 import { ManagedGenerationService, managedCatalog } from "@call-nina/managed-generation/service";
 import {
+  OfflineGenerationService,
+  type OfflineRuntime,
+  offlineCatalog,
+  offlineSelection,
+} from "@call-nina/offline-runtime";
+import {
   DirectApiGenerationService,
   directApiCatalog,
   directApiCatalogs,
@@ -144,6 +150,9 @@ export class DesktopBackend {
   readonly #operationServices = new Map<string, GenerationService>();
   readonly #managedServices = new Set<ManagedGenerationService>();
   readonly #directServices = new Set<DirectApiGenerationService>();
+  readonly #offlineServices = new Set<OfflineGenerationService>();
+  readonly #offline: OfflineRuntime;
+  #offlineEpoch = 0;
   readonly #projectGenerationEvent: (event: AppServerEvent) => void;
   readonly #appServer: CallNinaAppServerAdapter | undefined;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
@@ -202,6 +211,7 @@ export class DesktopBackend {
     curriculumRoot: string;
     bootstrapFile: string;
     secrets: ConnectionSecretStorage;
+    offlineRuntime: OfflineRuntime;
     chooseDirectory: () => Promise<string | undefined>;
     knownInstallRoots: readonly string[];
     appServer?: CallNinaAppServerAdapter;
@@ -213,6 +223,7 @@ export class DesktopBackend {
     ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>;
   }) {
     this.#secrets = options.secrets;
+    this.#offline = options.offlineRuntime;
     this.#curriculumRoot = options.curriculumRoot;
     this.#bootstrapFile = options.bootstrapFile;
     this.#chooseDirectory = options.chooseDirectory;
@@ -263,6 +274,10 @@ export class DesktopBackend {
   }
 
   close(): void {
+    this.#offlineEpoch++;
+    for (const service of this.#offlineServices) void service.shutdown();
+    this.#offlineServices.clear();
+    void this.#offline.stop().catch(() => undefined);
     for (const job of this.#translationJobs.values()) {
       job.cancelled = true;
       if (job.providerOperationId)
@@ -301,6 +316,7 @@ export class DesktopBackend {
     await this.#enqueue(() => {
       this.close();
     });
+    await this.#offline.stop();
     await this.#appServer?.shutdown();
     this.#operationLog(
       "info",
@@ -364,6 +380,8 @@ export class DesktopBackend {
   }
 
   async #stopConnectionRuntime(): Promise<void> {
+    this.#offlineEpoch++;
+    await this.#offline.stop();
     if (this.#pendingLoginId && this.#appServer) {
       await this.#appServer.cancelManagedLogin(this.#pendingLoginId);
       this.#pendingLoginId = undefined;
@@ -1438,6 +1456,36 @@ export class DesktopBackend {
       this.#managedServices.add(service);
       return service;
     }
+    if (connection.routeId === "local" && this.#database) {
+      const database = this.#database;
+      const captured = structuredClone(connection);
+      const service = new OfflineGenerationService({
+        connectionId: captured.id,
+        rootGeneration: database.rootGeneration,
+        runtime: this.#offline,
+        captureActive: () => {
+          const epoch = this.#offlineEpoch;
+          return () =>
+            !this.#closing &&
+            database === this.#database &&
+            !database.closed &&
+            epoch === this.#offlineEpoch;
+        },
+        assertActive: async (request) => {
+          const access = await this.#providerAccess(
+            request.input.kind,
+            request.operationId,
+            request.modelSelection,
+            captured,
+          );
+          if (access.status !== "available" || access.routeId !== "local")
+            throw new Error("OD_OFFLINE_INACTIVE");
+        },
+      });
+      service.subscribeGeneration(this.#projectGenerationEvent);
+      this.#offlineServices.add(service);
+      return service;
+    }
     if (!isDirectApiRoute(connection.routeId) || !this.#database) return undefined;
     const database = this.#database;
     const captured = structuredClone(connection);
@@ -1479,6 +1527,13 @@ export class DesktopBackend {
       ![...this.#operationServices.values()].includes(service)
     ) {
       this.#managedServices.delete(service);
+      void service.shutdown();
+    }
+    if (
+      service instanceof OfflineGenerationService &&
+      ![...this.#operationServices.values()].includes(service)
+    ) {
+      this.#offlineServices.delete(service);
       void service.shutdown();
     }
     if (
@@ -1558,6 +1613,23 @@ export class DesktopBackend {
                   ? "model-unavailable"
                   : "configured";
       }
+      if (connection.routeId === "local") {
+        const catalog = offlineCatalog();
+        const snapshot = await this.#offline.inspect();
+        entry.models = catalog.models;
+        entry.operations = catalog.operations;
+        entry.languages = catalog.languages;
+        entry.status =
+          connection.id !== settings.activeConnectionId
+            ? "inactive"
+            : snapshot.state !== "installed" ||
+                !snapshot.preflight?.platformSupported ||
+                !snapshot.preflight.memorySufficient
+              ? "runtime-unavailable"
+              : resolveModelPreference(connection.preference, catalog.models).status !== "available"
+                ? "model-unavailable"
+                : "configured";
+      }
       if (connection.routeId === "managed") {
         const catalog = managedCatalog();
         if (catalog) {
@@ -1579,6 +1651,7 @@ export class DesktopBackend {
       settings,
       secureStorage: this.#secrets.state(),
       directApiCatalogs: directApiCatalogs(),
+      offlineModel: { catalog: offlineCatalog(), snapshot: await this.#offline.inspect() },
       availability,
     });
   }
@@ -1634,6 +1707,40 @@ export class DesktopBackend {
           operation,
           status: "available",
           modelSelection: resolution,
+        };
+      } catch {
+        return unavailable("model-unavailable");
+      }
+    }
+    if (connection.routeId === "local") {
+      const catalog = offlineCatalog();
+      if (operation !== "writing-prompt" && operation !== "contextual-help")
+        return unavailable("capability-unavailable");
+      const snapshot = await this.#offline.inspect();
+      if (
+        snapshot.state !== "installed" ||
+        !snapshot.preflight?.platformSupported ||
+        !snapshot.preflight.memorySufficient
+      )
+        return unavailable("runtime-unavailable");
+      try {
+        if (retainedSelection)
+          return {
+            routeId: "local",
+            operation,
+            status: "available",
+            modelSelection: offlineSelection(retainedSelection),
+          };
+        const resolution = resolveModelPreference(connection.preference, catalog.models);
+        if (resolution.status !== "available") return unavailable("model-unavailable");
+        return {
+          routeId: "local",
+          operation,
+          status: "available",
+          modelSelection: {
+            modelId: resolution.effectiveModelId,
+            effortId: resolution.effectiveEffortId,
+          },
         };
       } catch {
         return unavailable("model-unavailable");
@@ -2043,6 +2150,23 @@ export class DesktopBackend {
       ) {
         return this.#failure(request, "stale-data-root");
       }
+      if (request.channel === "offline-model/read" || request.channel === "offline-model/manage") {
+        if (request.channel === "offline-model/manage") {
+          if (
+            request.payload.action !== "cancel" &&
+            (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+          )
+            return this.#failure(request, "conflict");
+          if (request.payload.action === "install") this.#offline.install();
+          else if (request.payload.action === "cancel") await this.#offline.cancelDownload();
+          else await this.#offline.remove();
+          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+        }
+        return this.#success(request, {
+          catalog: offlineCatalog(),
+          snapshot: await this.#offline.inspect(),
+        });
+      }
       if (
         request.channel === "ai-connections/read" ||
         request.channel === "ai-connections/update"
@@ -2053,6 +2177,7 @@ export class DesktopBackend {
         if (request.channel === "ai-connections/update") {
           if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
             return this.#failure(request, "conflict");
+          this.#offlineEpoch++;
           await mutateConnections(
             this.#database,
             this.#secrets,

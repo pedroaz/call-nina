@@ -28,7 +28,7 @@ import { useTranslation } from "react-i18next";
 import { Button, Card, Feedback, LoadingState, ModalDialog } from "./components/ui/index.js";
 import { ActionGroup, AppShell as ApplicationShell, Page } from "./components/layout/index.js";
 
-import callNinaLogo from "../../assets/call-nina.svg";
+import callNinaLogo from "@call-nina/design-system/brand/nina-phone.png";
 import styles from "./AppStyles.module.css";
 import { NinaHome, emptyNinaHomeDraft, type NinaHomeDraft } from "./Dashboard.js";
 import { useHelperSelection } from "./useHelperSelection.js";

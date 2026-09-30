@@ -1,12 +1,12 @@
 .card {
   align-content: start;
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
   min-width: 0;
   display: grid;
-  gap: var(--od-space-4);
-  padding: var(--od-space-5);
+  gap: var(--od-space-5);
+  padding: var(--od-space-6);
 }
 
 .card > :where(h1, h2, h3, h4, p, ul, ol, dl, blockquote) {
@@ -14,13 +14,13 @@
 }
 
 .card > svg {
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   height: var(--od-icon-md);
   width: var(--od-icon-md);
 }
 
 .muted {
-  background: var(--od-color-surface-muted);
+  background: var(--od-color-surface-sunken);
 }
 
 .empty {
@@ -39,9 +39,9 @@
 
 .itemList {
   display: grid;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   margin-block: 0;
-  padding-inline-start: var(--od-space-5);
+  padding-inline-start: var(--od-space-6);
 }
 
 .card > button {

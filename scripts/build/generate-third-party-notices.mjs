@@ -45,6 +45,7 @@ async function readInstalledPackages() {
     "@modelcontextprotocol/server",
     "@call-nina/codex-client",
     "@call-nina/direct-api",
+    "@call-nina/offline-runtime",
     "@call-nina/learning-workflows",
     "@call-nina/contracts",
     "@call-nina/domain",

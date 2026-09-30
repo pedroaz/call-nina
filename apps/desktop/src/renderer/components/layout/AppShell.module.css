@@ -13,25 +13,25 @@
   grid-template-columns: var(--od-nav-collapsed-width) minmax(0, 1fr);
 }
 .nav {
-  background: var(--od-color-surface);
-  border-right: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border-right: var(--od-border-thin) solid var(--od-color-border-default);
   min-width: 0;
 }
 .navInner {
   display: flex;
   flex-direction: column;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   height: 100dvh;
   min-width: 0;
   overflow-y: auto;
-  padding: var(--od-space-3);
+  padding: var(--od-space-4);
   position: sticky;
   top: 0;
 }
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   min-height: var(--od-control-min);
 }
 .brandMark {
@@ -52,7 +52,7 @@
 .navList {
   display: flex;
   flex-direction: column;
-  gap: var(--od-space-1);
+  gap: var(--od-space-2);
   list-style: none;
   margin: 0;
   min-width: 0;
@@ -66,20 +66,20 @@
   color: var(--od-color-text-muted);
   cursor: pointer;
   display: flex;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   min-height: var(--od-control-min);
-  padding: var(--od-space-2) var(--od-space-3);
+  padding: var(--od-space-3) var(--od-space-4);
   text-align: left;
   width: 100%;
   font-size: var(--od-font-size-sm);
 }
 .navButton:hover {
-  background: var(--od-color-surface-muted);
-  color: var(--od-color-text);
+  background: var(--od-color-surface-sunken);
+  color: var(--od-color-text-strong);
 }
 .navButton[aria-current="page"] {
-  background: var(--od-color-primary-soft);
-  color: var(--od-color-primary);
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
   font-weight: var(--od-weight-strong);
 }
 .navButton svg {
@@ -105,13 +105,13 @@
 }
 .workspace {
   min-width: 0;
-  padding: var(--od-space-4) var(--od-space-8) var(--od-space-8);
+  padding: var(--od-space-5) var(--od-space-8) var(--od-space-8);
   container: workspace / inline-size;
 }
 .workspaceInner {
   display: flex;
   flex-direction: column;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   margin: 0 auto;
   max-width: var(--od-content-max);
   min-width: 0;
@@ -123,12 +123,12 @@
   align-items: center;
   display: flex;
   justify-content: space-between;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   min-height: var(--od-control-small);
 }
 .helper {
-  background: var(--od-color-surface);
-  border-left: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border-left: var(--od-border-thin) solid var(--od-color-border-default);
   min-width: 0;
 }
 .helper[hidden] {
@@ -136,17 +136,17 @@
 }
 .helperInner {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
-  padding: var(--od-space-4);
+  padding: var(--od-space-5);
   position: sticky;
   top: 0;
 }
 .helperHeader {
   align-items: center;
   display: flex;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   justify-content: space-between;
 }
 .helperHeader h2 {
@@ -174,7 +174,7 @@
     z-index: 5;
   }
   .workspace {
-    padding-inline: var(--od-space-5);
+    padding-inline: var(--od-space-6);
   }
 }
 @media (max-width: 52rem) {
@@ -186,17 +186,17 @@
   }
   .nav {
     border-right: 0;
-    border-bottom: var(--od-border-thin) solid var(--od-color-border);
+    border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
   }
   .navInner {
     height: auto;
     position: static;
-    gap: var(--od-space-2);
+    gap: var(--od-space-3);
   }
   .navList {
     flex-direction: row;
     overflow-x: auto;
-    padding: var(--od-space-1);
+    padding: var(--od-space-2);
   }
   .navList li {
     flex: none;
@@ -211,16 +211,16 @@
     margin: 0;
   }
   .workspace {
-    padding: var(--od-space-4);
+    padding: var(--od-space-5);
   }
 }
 @media (max-height: 48rem) and (min-width: 52.01rem) {
   .navInner {
-    gap: var(--od-space-2);
+    gap: var(--od-space-3);
   }
   .navButton {
     min-height: var(--od-control-small);
-    padding-block: var(--od-space-1);
+    padding-block: var(--od-space-2);
   }
 }
 
@@ -228,16 +228,16 @@
   position: sticky;
   top: 0;
   z-index: 3;
-  background: var(--od-color-canvas);
-  padding-block: var(--od-space-2);
-  border-bottom: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-bg-app);
+  padding-block: var(--od-space-3);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .location {
   align-items: center;
   color: var(--od-color-text-muted);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   font-size: var(--od-font-size-sm);
 }
 .parentLink {
@@ -245,14 +245,14 @@
   background: transparent;
   border: 0;
   border-radius: var(--od-radius-md);
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   cursor: pointer;
   display: inline-flex;
-  gap: var(--od-space-1);
-  padding: var(--od-space-1);
+  gap: var(--od-space-2);
+  padding: var(--od-space-2);
 }
 .parentLink:hover {
-  background: var(--od-color-primary-soft);
+  background: var(--od-color-surface-brand);
 }
 .parentLink svg {
   height: var(--od-icon-sm);
@@ -260,7 +260,7 @@
 }
 .navFooter {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .helperToggle {

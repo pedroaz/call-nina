@@ -1,3 +1,4 @@
+import { offlineModelActionSchema, offlineModelViewSchema } from "./offline-model.js";
 import { aiConnectionMutationSchema, aiConnectionsViewSchema } from "./ai-connections.js";
 import {
   ninaRequestSchema,
@@ -92,6 +93,8 @@ import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "offline-model/read",
+  "offline-model/manage",
   "ai-connections/read",
   "ai-connections/update",
   "translation/read",
@@ -722,6 +725,8 @@ const learningOperationRetryRequest = request(
 );
 
 export const desktopIpcRequestSchema = boundaryUnion([
+  request("offline-model/read", emptyPayload),
+  request("offline-model/manage", offlineModelActionSchema),
   request("ai-connections/read", emptyPayload),
   request("ai-connections/update", aiConnectionMutationSchema),
   request("translation/read", translationRequestSchema),
@@ -1700,6 +1705,8 @@ const errorResponse = strictBoundaryObject({
 });
 
 export const desktopIpcResponseSchema = boundaryUnion([
+  response("offline-model/read", offlineModelViewSchema),
+  response("offline-model/manage", offlineModelViewSchema),
   response("ai-connections/read", aiConnectionsViewSchema),
   response("ai-connections/update", aiConnectionsViewSchema),
   response("translation/read", translationReadSchema),

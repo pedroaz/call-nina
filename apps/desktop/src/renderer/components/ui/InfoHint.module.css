@@ -1,14 +1,14 @@
 .trigger {
-  padding: var(--od-space-1);
+  padding: var(--od-space-2);
   min-height: var(--od-control-compact);
   width: var(--od-control-compact);
   vertical-align: middle;
 }
 .popover {
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
-  box-shadow: var(--od-shadow-raised);
+  box-shadow: var(--od-shadow-card);
   max-width: min(var(--od-dialog-max), calc(100vw - var(--od-space-8)));
   width: var(--od-info-width);
   max-height: calc(100dvh - var(--od-space-8));
@@ -16,12 +16,12 @@
   z-index: 20;
 }
 .dialog {
-  padding: var(--od-space-4);
+  padding: var(--od-space-5);
   font-size: var(--od-font-size-sm);
 }
 .dialog h2 {
   font-size: var(--od-font-size-sm);
-  margin: 0 0 var(--od-space-2);
+  margin: 0 0 var(--od-space-3);
 }
 .dialog p {
   margin: 0;

@@ -11,9 +11,9 @@ body,
 }
 
 body {
-  background: var(--od-color-canvas);
-  color: var(--od-color-text);
-  font-family: var(--od-font-sans);
+  background: var(--od-color-bg-app);
+  color: var(--od-color-text-strong);
+  font-family: var(--od-font-family-body);
   font-size: var(--od-font-size-md);
   line-height: var(--od-line-normal);
 }
@@ -30,7 +30,7 @@ a,
 input,
 select,
 textarea {
-  transition-duration: var(--od-motion-fast);
+  transition-duration: var(--od-motion-duration-press);
   transition-property: background-color, border-color, box-shadow, color, opacity;
 }
 
@@ -52,11 +52,11 @@ h1,
 h2,
 h3,
 h4 {
+  font-family: var(--od-font-family-display);
   line-height: var(--od-line-tight);
   overflow-wrap: anywhere;
 }
 h1 {
-  font-family: var(--od-font-reading);
   font-size: var(--od-font-size-xl);
 }
 h2 {
@@ -82,8 +82,8 @@ textarea {
   line-height: var(--od-line-normal);
 }
 :focus-visible {
-  outline: var(--od-border-strong) solid var(--od-color-focus);
-  outline-offset: var(--od-space-1);
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: var(--od-space-2);
 }
 
 [hidden] {

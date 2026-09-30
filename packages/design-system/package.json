@@ -9,7 +9,19 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./tokens.css": "./styles/tokens.css"
+    "./tokens.css": "./styles/tokens.css",
+    "./fonts.css": "./styles/fonts.css",
+    "./font-notices.json": "./assets/fonts/font-notices.json",
+    "./fonts/Fredoka-700.ttf": "./assets/fonts/Fredoka-700.ttf",
+    "./fonts/Figtree-400.ttf": "./assets/fonts/Figtree-400.ttf",
+    "./fonts/Figtree-700.ttf": "./assets/fonts/Figtree-700.ttf",
+    "./fonts/JetBrainsMono-400.ttf": "./assets/fonts/JetBrainsMono-400.ttf",
+    "./fonts/NotoSansMono-400.ttf": "./assets/fonts/NotoSansMono-400.ttf",
+    "./fonts/Fredoka-variable.ttf": "./assets/fonts/Fredoka-variable.ttf",
+    "./fonts/Figtree-variable.ttf": "./assets/fonts/Figtree-variable.ttf",
+    "./fonts/JetBrainsMono-variable.ttf": "./assets/fonts/JetBrainsMono-variable.ttf",
+    "./brand/nina-phone.png": "./assets/brand/nina-phone.png",
+    "./fonts/NotoSansMono-variable.ttf": "./assets/fonts/NotoSansMono-variable.ttf"
   },
   "scripts": {
     "build": "node ../../scripts/build/generate-design-tokens.mjs --check && tsc -b"

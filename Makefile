@@ -232,3 +232,8 @@ stage-codex-runtime: ## Stage and integrity-check the pinned standalone Codex an
 managed-service-plan: ## Build and print the disabled starter service plan; no remote actions or inference.
 	@pnpm --filter @call-nina/managed-service run build
 	@node apps/managed-service/build/plan.js
+
+.PHONY: offline-artifacts
+offline-artifacts: ## Explicit offline artifact inspect/install/remove; ARGS includes the device --config-dir. Never runs inference.
+	@pnpm --filter @call-nina/offline-runtime run build
+	@node scripts/dev/offline-artifacts.mjs $(ARGS)

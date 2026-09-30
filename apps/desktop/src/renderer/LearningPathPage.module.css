@@ -1,12 +1,12 @@
 .page,
 .unit {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   min-width: 0;
 }
 .outline {
   display: grid;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
 }
 .outline button {
   justify-content: flex-start;
@@ -20,7 +20,7 @@
 .words {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 .words dt {
   font-weight: 600;

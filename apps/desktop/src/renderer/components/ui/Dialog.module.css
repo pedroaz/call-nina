@@ -4,20 +4,20 @@
   display: flex;
   inset: 0;
   justify-content: center;
-  padding: var(--od-space-5);
+  padding: var(--od-space-6);
   position: fixed;
   z-index: 10;
 }
 
 .dialog {
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
   box-shadow: var(--od-shadow-dialog);
   max-width: var(--od-dialog-max);
-  max-height: calc(100dvh - var(--od-space-10));
+  max-height: calc(100dvh - var(--od-space-9));
   overflow-y: auto;
-  padding: var(--od-space-6);
+  padding: var(--od-space-7);
   width: 100%;
 }
 
@@ -27,13 +27,13 @@
 
 .body {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   justify-content: flex-end;
-  margin-top: var(--od-space-5);
+  margin-top: var(--od-space-6);
 }
