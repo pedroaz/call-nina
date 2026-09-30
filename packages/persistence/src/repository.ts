@@ -221,6 +221,7 @@ export type HistoryEntryRecord = Readonly<{
         answer: ReturnType<typeof exerciseAnswerSchema.parse>;
         objectiveEvaluations: readonly ReturnType<typeof objectiveEvaluationSchema.parse>[];
         feedback: ReturnType<typeof attemptFeedbackSchema.parse>;
+        feedbackProvenance: z.infer<typeof generationProvenanceSchema> | null;
         suggestedAnswer: string | null;
         readingMaterial: ReturnType<
           typeof exerciseGenerationCandidateSchema.parse
@@ -371,6 +372,23 @@ const storedExerciseFeedbackSchema = z.strictObject({
   modelRequestId: modelRequestIdSchema,
   output: exerciseFeedbackCandidateSchema,
 });
+const generatedExerciseFeedbackSaveSchema = storedExerciseFeedbackSchema.extend({
+  provenance: generationProvenanceSchema.required({ connectionId: true }),
+});
+
+function readStoredExerciseFeedback(row: Record<string, unknown>) {
+  if (row["feedback_json"] === null || row["feedback_json"] === undefined) return null;
+  return {
+    ...storedExerciseFeedbackSchema.parse(
+      parseJson(row["feedback_json"], maximumExerciseFeedbackBytes),
+    ),
+    // NULL is an honest historical unknown, never the activity's or active connection's model.
+    provenance:
+      row["provenance_json"] === null
+        ? null
+        : generationProvenanceSchema.parse(parseJson(row["provenance_json"])),
+  };
+}
 
 function readGeneratedExerciseAttempt(
   connection: DatabaseSync,
@@ -381,7 +399,7 @@ function readGeneratedExerciseAttempt(
     .prepare(
       `SELECT a.exercise_snapshot_json, p.activity_type, p.title,
         p.origin_surface, p.prepared_at, p.context_json, g.output_json,
-        r.content_revision_id, ans.answer_json, f.feedback_json
+        r.content_revision_id, ans.answer_json, f.feedback_json, f.provenance_json
        FROM attempts a JOIN exercises e USING(exercise_id)
        JOIN prepared_activities p ON p.activity_id = e.activity_id
        JOIN generated_activity_payloads g ON g.activity_id = p.activity_id
@@ -413,11 +431,7 @@ function readGeneratedExerciseAttempt(
   const answer = row["answer_json"]
     ? exerciseAnswerSchema.parse(parseJson(row["answer_json"]))
     : null;
-  const feedback = row["feedback_json"]
-    ? storedExerciseFeedbackSchema.parse(
-        parseJson(row["feedback_json"], maximumExerciseFeedbackBytes),
-      )
-    : null;
+  const feedback = readStoredExerciseFeedback(row);
   if (
     feedback &&
     (!answer ||
@@ -454,6 +468,7 @@ export const activeGeneratedExerciseSetSchema = strictBoundaryObject({
       z.strictObject({
         answer: exerciseAnswerSchema.nullable(),
         feedback: exerciseFeedbackCandidateSchema.nullable(),
+        feedbackProvenance: generationProvenanceSchema.nullable(),
         hintsUsed: z.int().nonnegative(),
       }),
     )
@@ -2943,7 +2958,7 @@ export class CallNinaRepository {
   ) {
     const activityId = activityIdSchema.parse(activityIdValue);
     const attemptId = attemptIdSchema.parse(attemptIdValue);
-    const feedback = storedExerciseFeedbackSchema.parse(value);
+    const feedback = generatedExerciseFeedbackSaveSchema.parse(value);
     await withLeasedTransaction(this.#database, (connection) => {
       const {
         snapshot,
@@ -2967,8 +2982,17 @@ export class CallNinaRepository {
         return;
       }
       connection
-        .prepare("INSERT INTO exercise_attempt_feedback(attempt_id, feedback_json) VALUES (?, ?)")
-        .run(attemptId, stringifyBounded(feedback, maximumExerciseFeedbackBytes));
+        .prepare(
+          "INSERT INTO exercise_attempt_feedback(attempt_id, feedback_json, provenance_json) VALUES (?, ?, ?)",
+        )
+        .run(
+          attemptId,
+          stringifyBounded(
+            { modelRequestId: feedback.modelRequestId, output: feedback.output },
+            maximumExerciseFeedbackBytes,
+          ),
+          stringifyBounded(feedback.provenance),
+        );
     });
   }
 
@@ -3056,7 +3080,7 @@ export class CallNinaRepository {
     return withLeasedConnection(this.#database, (connection) => {
       const rows = connection
         .prepare(
-          `SELECT a.attempt_id, a.started_at, ans.answer_json, f.feedback_json, coalesce(s.hints_used, 0) AS hints_used FROM attempts a
+          `SELECT a.attempt_id, a.started_at, ans.answer_json, f.feedback_json, f.provenance_json, coalesce(s.hints_used, 0) AS hints_used FROM attempts a
            JOIN exercises e ON e.exercise_id = a.exercise_id
            LEFT JOIN answers ans ON ans.attempt_id = a.attempt_id AND ans.position = 0
            LEFT JOIN exercise_attempt_feedback f ON f.attempt_id = a.attempt_id
@@ -3073,17 +3097,17 @@ export class CallNinaRepository {
       return activeGeneratedExerciseSetSchema.parse({
         startedAt,
         attemptIds: rows.map((row) => attemptIdSchema.parse(row["attempt_id"])),
-        progress: rows.map((row) => ({
-          answer: row["answer_json"]
-            ? exerciseAnswerSchema.parse(parseJson(row["answer_json"]))
-            : null,
-          feedback: row["feedback_json"]
-            ? storedExerciseFeedbackSchema.parse(
-                parseJson(row["feedback_json"], maximumExerciseFeedbackBytes),
-              ).output
-            : null,
-          hintsUsed: row["hints_used"],
-        })),
+        progress: rows.map((row) => {
+          const feedback = readStoredExerciseFeedback(row);
+          return {
+            answer: row["answer_json"]
+              ? exerciseAnswerSchema.parse(parseJson(row["answer_json"]))
+              : null,
+            feedback: feedback?.output ?? null,
+            feedbackProvenance: feedback?.provenance ?? null,
+            hintsUsed: row["hints_used"],
+          };
+        }),
       });
     });
   }
@@ -3391,14 +3415,12 @@ export class CallNinaRepository {
           activityLearningScope(connection, record.activityId).targetLanguage,
         );
         const feedbackRow = connection
-          .prepare("SELECT feedback_json FROM exercise_attempt_feedback WHERE attempt_id = ?")
+          .prepare(
+            "SELECT feedback_json, provenance_json FROM exercise_attempt_feedback WHERE attempt_id = ?",
+          )
           .get(item.attemptId);
-        const retainedFeedback = feedbackRow
-          ? storedExerciseFeedbackSchema.parse(
-              parseJson(feedbackRow["feedback_json"], maximumExerciseFeedbackBytes),
-            )
-          : undefined;
-        if (evaluation.status === "requires-ai" && retainedFeedback === undefined) {
+        const retainedFeedback = feedbackRow ? readStoredExerciseFeedback(feedbackRow) : undefined;
+        if (evaluation.status === "requires-ai" && !retainedFeedback) {
           throw new Error("OD_EXERCISE_AI_FEEDBACK_REQUIRED");
         }
         const elapsed = Math.max(
@@ -3820,8 +3842,9 @@ export class CallNinaRepository {
             );
             const source = connection
               .prepare(
-                `SELECT e.activity_id FROM attempts a
+                `SELECT e.activity_id, f.feedback_json, f.provenance_json FROM attempts a
                  JOIN exercises e ON e.exercise_id = a.exercise_id
+                 LEFT JOIN exercise_attempt_feedback f ON f.attempt_id = a.attempt_id
                  WHERE a.attempt_id = ?`,
               )
               .get(attemptId) as Record<string, unknown> | undefined;
@@ -3907,6 +3930,7 @@ export class CallNinaRepository {
               detail = Object.freeze({
                 ...reconstructed.data,
                 activityId,
+                feedbackProvenance: readStoredExerciseFeedback(source)?.provenance ?? null,
                 ...(translation ? { translation } : {}),
               });
             }

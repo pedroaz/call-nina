@@ -34,6 +34,7 @@
     "react-i18next": "17.0.11",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "@call-nina/learning-workflows": "workspace:*"
+    "@call-nina/learning-workflows": "workspace:*",
+    "@call-nina/direct-api": "workspace:*"
   }
 }

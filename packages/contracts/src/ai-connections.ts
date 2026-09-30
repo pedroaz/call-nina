@@ -112,16 +112,31 @@ export const secureStorageStateSchema = z.discriminatedUnion("status", [
   }),
   z.strictObject({ status: z.literal("unavailable") }),
 ]);
+export const directApiRouteSchema = z.enum(["openai", "anthropic", "google"]);
+// Shipped support policy, not account discovery or evidence of live access.
+export const directApiCatalogSchema = z.strictObject({
+  routeId: directApiRouteSchema,
+  billing: z.literal("personal-api"),
+  validation: z.literal("not-checked"),
+  models: modelCatalogSchema,
+  operations: z.array(generationKindSchema),
+  languages: z.array(languageSchema),
+});
+export type DirectApiRoute = z.infer<typeof directApiRouteSchema>;
+export type DirectApiCatalog = z.infer<typeof directApiCatalogSchema>;
 export const aiConnectionsViewSchema = z.strictObject({
   expectedGeneration: dataRootGenerationSchema,
   settings: aiConnectionsSchema,
   secureStorage: secureStorageStateSchema,
+  directApiCatalogs: z.array(directApiCatalogSchema).max(3),
   availability: z
     .array(
       z.strictObject({
         connectionId: aiConnectionIdSchema,
         status: z.enum([
           "available",
+          // Local prerequisites only; no key validation or provider contact.
+          "configured",
           "inactive",
           "adapter-unavailable",
           "runtime-unavailable",
