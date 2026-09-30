@@ -19,6 +19,8 @@ export type StandaloneRuntimeOptions = Readonly<{ resourceRoot: string; deviceRo
 // These overrides apply before startup tasks, not merely after a thread has loaded extensions.
 export const standaloneConfig = {
   model_provider: "openai",
+  // config/read includes this packaged default in Codex 0.159.2; pin its exact destination.
+  chatgpt_base_url: "https://chatgpt.com/backend-api/",
   forced_login_method: "chatgpt",
   cli_auth_credentials_store: "file",
   approval_policy: "never",
@@ -229,7 +231,11 @@ export function assertStandaloneConfiguration(value: unknown): void {
       ? (entry as Record<string, unknown>)
       : undefined;
   const config = object(object(value)?.["config"]);
-  if (!config || config["model_provider"] !== "openai")
+  if (
+    !config ||
+    config["model_provider"] !== "openai" ||
+    config["chatgpt_base_url"] !== standaloneConfig.chatgpt_base_url
+  )
     throw new Error("CODEX_RUNTIME_CONFIGURATION_UNSAFE");
   const features = object(config["features"]);
   if (
@@ -254,7 +260,6 @@ export function assertStandaloneConfiguration(value: unknown): void {
   }
   if (
     config["openai_base_url"] ||
-    config["chatgpt_base_url"] ||
     config["notify"] ||
     config["model_instructions_file"] ||
     config["experimental_instructions_file"]

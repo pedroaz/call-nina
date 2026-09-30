@@ -216,6 +216,7 @@ export class AppServerProcessManager {
     });
     this.#transport = transport;
     this.#setState("initializing");
+    let startupStage = "initialize";
     try {
       const initializeResult = await transport.request(
         "initialize",
@@ -233,22 +234,26 @@ export class AppServerProcessManager {
         throw new AppServerUnavailableError("initialize-invalid");
       }
       transport.notify("initialized");
-      assertStandaloneConfiguration(
-        await transport.request(
-          "config/read",
-          {
-            includeLayers: false,
-            cwd: runtime.cwd,
-          },
-          { timeoutMilliseconds: this.#options.initializeTimeoutMilliseconds ?? 10_000 },
-        ),
+      startupStage = "configuration-read";
+      const configuration = await transport.request(
+        "config/read",
+        {
+          includeLayers: false,
+          cwd: runtime.cwd,
+        },
+        { timeoutMilliseconds: this.#options.initializeTimeoutMilliseconds ?? 10_000 },
       );
+      startupStage = "configuration-validate";
+      assertStandaloneConfiguration(configuration);
       this.#codexVersion = codexRuntimeVersion;
       this.#setState("ready");
       this.#log("info", "APP_SERVER_READY", "Codex App Server initialized.", {
         version: codexRuntimeVersion,
       });
     } catch (error) {
+      this.#log("error", "APP_SERVER_STARTUP_FAILED", "Codex App Server startup failed.", {
+        stage: startupStage,
+      });
       await this.#shutdownOwnedProcess();
       this.#setState("failed");
       throw error;
