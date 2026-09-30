@@ -1,3 +1,4 @@
+import { offlineModelViewSchema } from "./offline-model.js";
 import { dataRootGenerationSchema } from "./common.js";
 import { modelCatalogSchema } from "./app-server-state.js";
 import { generationKindSchema } from "./generation.js";
@@ -129,6 +130,7 @@ export const aiConnectionsViewSchema = z.strictObject({
   settings: aiConnectionsSchema,
   secureStorage: secureStorageStateSchema,
   directApiCatalogs: z.array(directApiCatalogSchema).max(3),
+  offlineModel: offlineModelViewSchema,
   availability: z
     .array(
       z.strictObject({

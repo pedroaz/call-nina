@@ -1,0 +1,22 @@
+{
+  "name": "@call-nina/offline-runtime",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional pinned offline artifacts and owned local inference transport.",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@call-nina/learning-workflows": "workspace:*",
+    "zod": "catalog:",
+    "@call-nina/contracts": "workspace:*"
+  }
+}

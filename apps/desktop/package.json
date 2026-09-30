@@ -36,6 +36,8 @@
     "vite": "catalog:",
     "@call-nina/learning-workflows": "workspace:*",
     "@call-nina/direct-api": "workspace:*",
-    "@call-nina/browser-ui": "workspace:*"
+    "@call-nina/browser-ui": "workspace:*",
+    "@call-nina/offline-runtime": "workspace:*",
+    "@call-nina/managed-generation": "workspace:*"
   }
 }

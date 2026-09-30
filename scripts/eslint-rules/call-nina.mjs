@@ -10,6 +10,20 @@ const nodeBuiltins = new Set(
 
 const boundaries = [
   {
+    id: "managed-generation",
+    prefix: "packages/managed-generation/",
+    packages: ["contracts", "learning-workflows"],
+    node: true,
+    electron: false,
+  },
+  {
+    id: "managed-service",
+    prefix: "apps/managed-service/",
+    packages: ["contracts", "managed-generation"],
+    node: true,
+    electron: false,
+  },
+  {
     id: "learning-workflows",
     prefix: "packages/learning-workflows/",
     packages: ["contracts"],
@@ -36,6 +50,8 @@ const boundaries = [
     packages: [
       "codex-client",
       "direct-api",
+      "offline-runtime",
+      "managed-generation",
       "contracts",
       "domain",
       "persistence",
@@ -80,6 +96,13 @@ const boundaries = [
     electron: false,
   },
   {
+    id: "offline-runtime",
+    prefix: "packages/offline-runtime/",
+    packages: ["learning-workflows", "contracts"],
+    node: true,
+    electron: false,
+  },
+  {
     id: "direct-api",
     prefix: "packages/direct-api/",
     packages: ["contracts", "learning-workflows"],
@@ -103,12 +126,14 @@ const boundaries = [
 ];
 
 const packagePrefixes = new Map([
+  ["@call-nina/managed-generation", "managed-generation"],
   ["@call-nina/learning-workflows", "learning-workflows"],
   ["@call-nina/design-system", "design-system"],
   ["@call-nina/contracts", "contracts"],
   ["@call-nina/domain", "domain"],
   ["@call-nina/persistence", "persistence"],
   ["@call-nina/codex-client", "codex-client"],
+  ["@call-nina/offline-runtime", "offline-runtime"],
   ["@call-nina/direct-api", "direct-api"],
   ["@call-nina/platform", "platform"],
   ["@call-nina/desktop", "desktop"],
