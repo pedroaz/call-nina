@@ -1,5 +1,5 @@
 import net from "node:net";
-import { lstat, readFile, writeFile, rename, rm } from "node:fs/promises";
+import { lstat, readFile, rename, rm, mkdir, open } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import path from "node:path";
@@ -90,13 +90,30 @@ async function send(request, timeoutMs, targetRoot) {
   });
 }
 
-const ownershipPath = path.join(verificationRoot, "processes.json");
+function ownershipPath(targetRoot) {
+  return path.join(targetRoot, ".runtime/verification/processes.json");
+}
+async function syncDirectory(directory) {
+  const handle = await open(directory, "r");
+  try {
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
 export async function writePrivateJson(filename, value) {
   const temporary = `${filename}.${randomUUID()}.tmp`;
-  await writeFile(temporary, JSON.stringify(value), { mode: 0o600, flag: "wx" });
+  const handle = await open(temporary, "wx", 0o600);
+  try {
+    await handle.writeFile(JSON.stringify(value));
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
   await rename(temporary, filename);
+  await syncDirectory(path.dirname(filename));
 }
-async function privateText(filename) {
+export async function privateText(filename) {
   const info = await lstat(filename);
   if (!info.isFile() || info.uid !== process.getuid() || info.mode & 0o077)
     throw new Error("VERIFY_OWNERSHIP_UNSAFE");
@@ -147,7 +164,10 @@ export async function refreshVerificationProcesses(record) {
   return owned;
 }
 
-export async function recordVerificationController(state) {
+export async function recordVerificationController(
+  state,
+  context = { targetRoot: repositoryRoot },
+) {
   const launcher = await processIdentity(state.pid);
   const controller = await processIdentity(process.pid);
   if (!launcher || launcher.startTicks !== state.startTicks || !controller)
@@ -155,6 +175,7 @@ export async function recordVerificationController(state) {
   const record = {
     schemaVersion: 1,
     runId: state.runId,
+    ...(context.provenance ? { provenance: context.provenance } : {}),
     controller,
     app: null,
     processes: [launcher],
@@ -162,19 +183,22 @@ export async function recordVerificationController(state) {
   const owned = await refreshVerificationProcesses(record);
   if (!owned.some((item) => sameProcess(controller, item)))
     throw new Error("VERIFY_CONTROLLER_UNPROVEN");
-  await writePrivateJson(ownershipPath, record);
+  await writePrivateJson(ownershipPath(context.targetRoot), record);
   return record;
 }
-export async function recordVerificationApp(record, pid) {
+export async function recordVerificationApp(record, pid, context = { targetRoot: repositoryRoot }) {
   const app = await processIdentity(pid);
   const owned = await refreshVerificationProcesses(record);
   if (!app || !owned.some((item) => sameProcess(app, item))) throw new Error("VERIFY_APP_UNPROVEN");
   record.app = app;
-  await writePrivateJson(ownershipPath, record);
+  await writePrivateJson(ownershipPath(context.targetRoot), record);
 }
-export async function persistVerificationProcesses(record) {
+export async function persistVerificationProcesses(
+  record,
+  context = { targetRoot: repositoryRoot },
+) {
   await refreshVerificationProcesses(record);
-  await writePrivateJson(ownershipPath, record);
+  await writePrivateJson(ownershipPath(context.targetRoot), record);
 }
 
 async function signalExact(identity, signal) {
@@ -211,7 +235,52 @@ async function stoppedArtifact(targetRoot, relative) {
   if (!info.isFile()) throw new Error("VERIFY_OWNERSHIP_UNSAFE");
   return { relative, kind: "file", sha256: journalFingerprint(await readFile(filename)) };
 }
-async function finalizeStoppedVerification(targetRoot, barrier, proof) {
+// Each lifecycle attempt owns one immutable terminal proof. The latest file is
+// only a convenience copy; retaining it must never destroy the preceding attempt.
+async function archiveStoppedProof(targetRoot, original) {
+  const proof = JSON.parse(original);
+  if (!/^[a-f0-9-]{36}$/.test(proof.lifecycleRunId ?? ""))
+    throw new Error("VERIFY_STOP_PROOF_REQUIRED");
+  const directory = path.join(targetRoot, ".runtime/verification/stopped");
+  await mkdir(directory, { mode: 0o700 }).catch((error) => {
+    if (error.code !== "EEXIST") throw error;
+  });
+  const info = await lstat(directory);
+  if (!info.isDirectory() || info.uid !== process.getuid() || info.mode & 0o077)
+    throw new Error("VERIFY_DIRECTORY_UNSAFE");
+  const filename = path.join(directory, `${proof.lifecycleRunId}.json`);
+  let handle;
+  try {
+    handle = await open(filename, "wx", 0o600);
+    await handle.writeFile(original);
+    await handle.sync();
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    if ((await privateText(filename)) !== original) throw new Error("VERIFY_STOP_ARCHIVE_CONFLICT");
+  } finally {
+    await handle?.close();
+  }
+  await syncDirectory(directory);
+  await syncDirectory(path.dirname(directory));
+  return { lifecycleRunId: proof.lifecycleRunId, sha256: journalFingerprint(original) };
+}
+
+async function publishStoppedProof(targetRoot, proof, previous) {
+  const filename = path.join(targetRoot, ".runtime/verification/stopped.json");
+  if (previous !== undefined) {
+    const predecessor = await archiveStoppedProof(targetRoot, previous);
+    if (JSON.stringify(proof.predecessor) !== JSON.stringify(predecessor))
+      throw new Error("VERIFY_STOP_PREDECESSOR_CHANGED");
+  }
+  await archiveStoppedProof(targetRoot, JSON.stringify(proof));
+  const current = await privateText(filename).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if (current !== previous) throw new Error("VERIFY_STOP_PREDECESSOR_CHANGED");
+  await writePrivateJson(filename, proof);
+}
+
+async function finalizeStoppedVerification(targetRoot, barrier, proof, unpublishedPredecessor) {
   const bootId = (await processIdentity(process.pid)).bootId;
   if (
     proof.schemaVersion !== 1 ||
@@ -251,6 +320,15 @@ async function finalizeStoppedVerification(targetRoot, barrier, proof) {
     )
       throw new Error("VERIFY_SHUTDOWN_OWNER_CHANGED");
   }
+  if (unpublishedPredecessor) {
+    await publishStoppedProof(targetRoot, proof, unpublishedPredecessor.bytes);
+  }
+  const terminalBytes = await privateText(
+    path.join(targetRoot, ".runtime/verification/stopped.json"),
+  );
+  if (JSON.stringify(JSON.parse(terminalBytes)) !== JSON.stringify(proof))
+    throw new Error("VERIFY_STOP_PREDECESSOR_CHANGED");
+  await archiveStoppedProof(targetRoot, terminalBytes);
   for (const relative of stoppedArtifacts) {
     const observed = await stoppedArtifact(targetRoot, relative);
     if (!observed) continue;
@@ -305,11 +383,13 @@ export async function stopVerification({
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
-  const stoppedProof = await privateJson(path.join(verificationRoot, "stopped.json")).catch(
+  const previousProofBytes = await privateText(path.join(verificationRoot, "stopped.json")).catch(
     (error) => {
       if (error.code !== "ENOENT") throw error;
     },
   );
+  const stoppedProof =
+    previousProofBytes === undefined ? undefined : JSON.parse(previousProofBytes);
   if (
     stoppedProof &&
     (!state || state.runId === stoppedProof.lifecycleRunId) &&
@@ -318,7 +398,12 @@ export async function stopVerification({
     const remaining = await Promise.all(
       stoppedArtifacts.map((relative) => stoppedArtifact(targetRoot, relative)),
     );
-    if (remaining.some(Boolean))
+    if (
+      remaining.some(Boolean) ||
+      (stoppedProof.provenance &&
+        stoppedProof.run === barrier?.run &&
+        stoppedProof.head === barrier?.head)
+    )
       return finalizeStoppedVerification(targetRoot, barrier, stoppedProof);
   }
   if (state && state.mode !== "verify") throw new Error("VERIFY_OWNERSHIP_INVALID");
@@ -334,6 +419,28 @@ export async function stopVerification({
       !record.processes.some((item) => sameProcess(item, record.controller)))
   )
     throw new Error("VERIFY_OWNERSHIP_INVALID");
+  if (record?.provenance && JSON.stringify(record.provenance) !== JSON.stringify(state.provenance))
+    throw new Error("VERIFY_RECOVERY_ATTEMPT_CHANGED");
+  // A crash after archiving but before publishing latest retains an exact proof.
+  // Validate its own survivors/journal before publishing or removing anything.
+  if (record && /^[a-f0-9-]{36}$/.test(record.runId)) {
+    const archived = await privateJson(
+      path.join(verificationRoot, "stopped", `${record.runId}.json`),
+    ).catch((error) => {
+      if (error.code !== "ENOENT") throw error;
+    });
+    if (archived) {
+      if (
+        archived.lifecycleRunId !== record.runId ||
+        !sameProcess(archived.controller, record.controller) ||
+        JSON.stringify(archived.provenance) !== JSON.stringify(record.provenance)
+      )
+        throw new Error("VERIFY_STOP_ARCHIVE_CONFLICT");
+      return finalizeStoppedVerification(targetRoot, barrier, archived, {
+        bytes: previousProofBytes,
+      });
+    }
+  }
   const recoveryFile = path.join(verificationRoot, "shutdown.json");
   if (record) {
     const bootId = (await processIdentity(process.pid)).bootId;
@@ -387,6 +494,8 @@ export async function stopVerification({
   const latest = await privateJson(ownershipPath);
   if (latest.runId !== record.runId || !sameProcess(latest.controller, record.controller))
     throw new Error("VERIFY_SHUTDOWN_OWNER_CHANGED");
+  if (JSON.stringify(latest.provenance) !== JSON.stringify(record.provenance))
+    throw new Error("VERIFY_RECOVERY_ATTEMPT_CHANGED");
   record.app = latest.app;
   if (record.app && !latest.processes.some((item) => sameProcess(item, record.app)))
     throw new Error("VERIFY_APP_OWNERSHIP_REQUIRED");
@@ -439,13 +548,24 @@ export async function stopVerification({
     head: barrier?.head ?? null,
     worktree: targetRoot,
     lifecycleRunId: record.runId,
+    ...(record.provenance ? { provenance: record.provenance } : {}),
+    ...(previousProofBytes === undefined
+      ? {}
+      : {
+          predecessor: {
+            lifecycleRunId: stoppedProof.lifecycleRunId,
+            sha256: journalFingerprint(previousProofBytes),
+          },
+        }),
     controller: record.controller,
     app: record.app,
     processes: record.processes,
     stoppedAt: new Date().toISOString(),
     status: "exact-processes-stopped",
     disposition: suspend && cleanup?.status === "suspended" && !escalated ? "suspended" : "stopped",
-    journalFingerprint: journal ? journalFingerprint(JSON.stringify(journal)) : null,
+    journalFingerprint: journal
+      ? journalFingerprint(await privateText(path.join(verificationRoot, "recovery.json")))
+      : null,
   };
   proof.escalated = escalated;
   proof.failures = [
@@ -455,7 +575,7 @@ export async function stopVerification({
   proof.finalization = (
     await Promise.all(stoppedArtifacts.map((relative) => stoppedArtifact(targetRoot, relative)))
   ).filter(Boolean);
-  await writePrivateJson(path.join(verificationRoot, "stopped.json"), proof);
+  await publishStoppedProof(targetRoot, proof, previousProofBytes);
   return finalizeStoppedVerification(targetRoot, barrier, proof);
 }
 

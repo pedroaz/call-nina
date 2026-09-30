@@ -49,6 +49,107 @@ export function validateVerificationPreferences(preference, initialRoot) {
     throw failure("VERIFY_RECOVERY_INVALID");
   return preference;
 }
+export const mutatingActions = [
+  "click",
+  "double-click",
+  "fill",
+  "select",
+  "press",
+  "prepare-ai",
+  "cleanup",
+  "restore",
+  "stop",
+];
+export function validateVerificationJournal(previous) {
+  if (
+    !previous ||
+    typeof previous !== "object" ||
+    Array.isArray(previous) ||
+    previous.schemaVersion !== 1
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  validateVerificationPreferences(previous.preferences, previous.initialRoot);
+  const needsRecovery = Boolean(
+    previous.suspended ||
+    previous.initialTarget ||
+    Object.keys(previous.learningPreferences ?? {}).length ||
+    previous.records?.length ||
+    Object.keys(previous.preferences ?? {}).length ||
+    previous.notes?.length ||
+    previous.pendingAction ||
+    previous.interruptedActions?.length,
+  );
+  if (
+    !Array.isArray(previous.records) ||
+    !Array.isArray(previous.notes) ||
+    !previous.preferences ||
+    (previous.receipts !== undefined && !Array.isArray(previous.receipts)) ||
+    (previous.locale !== undefined && !["en", ...Object.keys(locales)].includes(previous.locale)) ||
+    (previous.locale === undefined && Object.keys(previous.preferences).length)
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (
+    previous.records.some(
+      (r) =>
+        !(r.kind === "material" ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/).test(
+          r.id,
+        ) || !["practice", "speaking", "listening", "material"].includes(r.kind),
+    )
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (previous.initialRoot !== undefined && !/^[1-9][0-9]*$/.test(previous.initialRoot))
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (previous.initialTarget !== undefined && !locales[previous.initialTarget])
+    throw failure("VERIFY_RECOVERY_INVALID");
+  for (const [language, preference] of Object.entries(previous.learningPreferences ?? {})) {
+    if (
+      !locales[language] ||
+      preference.language !== language ||
+      !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
+      !["a1", "a2", "b1", "b2"].includes(preference.level) ||
+      typeof preference.goal !== "string" ||
+      preference.goal.length > 500 ||
+      !locales[preference.explanation] ||
+      !["conversation-partner", "strict-corrector"].includes(preference.teaching) ||
+      (language === "de" && typeof preference.enrolled !== "boolean")
+    )
+      throw failure("VERIFY_RECOVERY_INVALID");
+  }
+  if (
+    previous.notes.some(
+      (note) => typeof note !== "string" || !/^[A-Z][A-Z0-9_]{0,100}$/.test(note),
+    ) ||
+    (previous.interruptedActions !== undefined && !Array.isArray(previous.interruptedActions))
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  for (const entry of [
+    ...(previous.interruptedActions ?? []),
+    ...(previous.pendingAction ? [previous.pendingAction] : []),
+  ]) {
+    if (
+      !entry ||
+      !mutatingActions.includes(entry.action) ||
+      typeof entry.startedAt !== "string" ||
+      !Number.isFinite(Date.parse(entry.startedAt))
+    )
+      throw failure("VERIFY_RECOVERY_INVALID");
+  }
+  if (
+    previous.baseline &&
+    (!Array.isArray(previous.baseline.ids) ||
+      !["practice", "speaking", "listening", "material"].includes(previous.baseline.kind) ||
+      previous.baseline.ids.some(
+        (id) =>
+          !(
+            previous.baseline.kind === "material"
+              ? /^material_[0-9a-z]{16,64}$/
+              : /^activity_[0-9a-z]{16,64}$/
+          ).test(id),
+      ))
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  return { journal: previous, needsRecovery };
+}
 export function safeCode(error, fallback = "VERIFY_ACTION_FAILED") {
   return /^VERIFY_[A-Z0-9_:]+$/.test(error?.message ?? "") ? error.message : fallback;
 }
@@ -80,7 +181,8 @@ export function productionEnvironment() {
   return environment;
 }
 export class VerificationSession {
-  constructor(directory, recovery, options = {}, ownership) {
+  constructor(directory, recovery, options = {}, ownership, context = { targetRoot: root }) {
+    this.context = context;
     this.options = options;
     this.directory = directory;
     this.ownership = ownership;
@@ -94,26 +196,34 @@ export class VerificationSession {
   }
   async launch() {
     const packagedExecutable = this.options.executable;
+    if (this.context.provenance && Object.keys(this.options).length)
+      throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
     if (packagedExecutable && !path.isAbsolute(packagedExecutable))
       throw failure("VERIFY_EXECUTABLE_INVALID");
     this.application = await electron
       .launch({
-        ...(packagedExecutable ? { executablePath: packagedExecutable } : {}),
+        ...(this.context.electronExecutable
+          ? { executablePath: this.context.electronExecutable }
+          : packagedExecutable
+            ? { executablePath: packagedExecutable }
+            : {}),
         args: [
           ...(process.platform === "linux" ? ["--ozone-platform=x11"] : []),
-          ...(packagedExecutable ? [] : [path.join(root, "apps/desktop/dist/main/index.js")]),
+          ...(packagedExecutable
+            ? []
+            : [path.join(this.context.targetRoot, "apps/desktop/dist/main/index.js")]),
           ...["config-dir", "codex-executable"]
             .filter((key) => this.options[key])
             .map((key) => `--${key}=${this.options[key]}`),
         ],
-        cwd: root,
+        cwd: this.context.targetRoot,
         env: productionEnvironment(),
         timeout: 30000,
       })
       .catch(() => {
         throw failure("VERIFY_ELECTRON_LAUNCH_FAILED_OR_APP_ALREADY_RUNNING");
       });
-    await recordVerificationApp(this.ownership, this.application.process().pid);
+    await recordVerificationApp(this.ownership, this.application.process().pid, this.context);
     this.page = await this.application.firstWindow({ timeout: 15000 });
     this.mainPage = this.page;
     this.page.setDefaultTimeout(15000);
@@ -154,7 +264,10 @@ export class VerificationSession {
     if (!locale) throw failure("VERIFY_LOCALE_UNSUPPORTED");
     this.catalogs ??= {};
     this.catalogs[locale] ??= JSON.parse(
-      await readFile(path.join(root, `apps/desktop/src/renderer/locales/${locale}.json`), "utf8"),
+      await readFile(
+        path.join(this.context.targetRoot, `apps/desktop/src/renderer/locales/${locale}.json`),
+        "utf8",
+      ),
     );
     const label = key.split(".").reduce((value, part) => value?.[part], this.catalogs[locale]);
     if (typeof label !== "string") throw failure("VERIFY_LABEL_UNAVAILABLE");
@@ -683,6 +796,12 @@ export class VerificationSession {
   async cleanupActivity(id) {
     const record = this.journal.records.find((record) => record.id === id);
     if (!record) throw failure("VERIFY_RECORD_NOT_OWNED");
+    if (
+      this.context.provenance &&
+      record.kind === "material" &&
+      this.journal.records.some((entry) => entry.kind !== "material")
+    )
+      throw failure("VERIFY_ACTIVITY_CLEANUP_REQUIRED");
     await this.selectLanguage(record.language);
     if (record.kind === "material") {
       const workspace = await this.materialLibrary();
@@ -766,7 +885,10 @@ export class VerificationSession {
     const labels = [];
     for (const locale of Object.values(locales)) {
       const catalog = JSON.parse(
-        await readFile(path.join(root, `apps/desktop/src/renderer/locales/${locale}.json`), "utf8"),
+        await readFile(
+          path.join(this.context.targetRoot, `apps/desktop/src/renderer/locales/${locale}.json`),
+          "utf8",
+        ),
       );
       labels.push(catalog.onboarding.targetLanguage);
     }
