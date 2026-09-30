@@ -1028,6 +1028,7 @@ const exerciseSetAnswerResponse = response(
   z.strictObject({
     saved: z.literal(true),
     feedback: generationCandidateOutputSchemas["exercise-feedback"].nullable(),
+    feedbackProvenance: generationProvenanceSchema.nullable(),
   }),
 );
 const learningPathReadResponse = response("learning-path/read", learningPathSnapshotSchema);
@@ -1310,6 +1311,7 @@ const preparedActivityReadResponse = response(
             z.strictObject({
               answer: exerciseSessionAnswerSchema.nullable(),
               feedback: generationCandidateOutputSchemas["exercise-feedback"].nullable(),
+              feedbackProvenance: generationProvenanceSchema.nullable(),
               hintsUsed: z.int().nonnegative(),
             }),
           )
@@ -1421,6 +1423,7 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
       nextStep: text(1_000).optional(),
     }),
     acceptedAnswerReveal: z.array(text(500)).max(20),
+    feedbackProvenance: generationProvenanceSchema.nullable(),
     suggestedAnswer: text(12_000).nullable(),
   }),
   z.strictObject({
@@ -1670,6 +1673,7 @@ const learningOperationAcceptanceSchema = z.discriminatedUnion("status", [
     status: z.literal("retained-feedback"),
     submission: z.literal("retained"),
     modelRequestId: modelRequestIdSchema,
+    provenance: generationProvenanceSchema.nullable(),
     output: generationCandidateOutputSchemas["exercise-feedback"],
   }),
 ]);

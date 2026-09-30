@@ -1,3 +1,10 @@
+import {
+  DirectApiGenerationService,
+  directApiCatalog,
+  directApiCatalogs,
+  directApiSelection,
+  isDirectApiRoute,
+} from "@call-nina/direct-api";
 import { type ConnectionSecretStorage } from "./secret-storage.js";
 import {
   mutateConnections,
@@ -55,10 +62,12 @@ import {
   contextualHelpCandidateSchema,
   historyEntryIdSchema,
   generationOperationStartSchema,
+  generationProvenanceSchema,
   dataRootGenerationSchema,
   modelRequestIdSchema,
   utcInstantSchema,
   desktopIpcResponseSchema,
+  desktopIpcEventSchema,
   exerciseGenerationCandidateSchema,
   exerciseFeedbackCandidateSchema,
   writingCorrectionCandidateSchema,
@@ -131,7 +140,9 @@ export class DesktopBackend {
   readonly #bootstrapFile: string;
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
-  readonly #generation: GenerationService | undefined;
+  readonly #operationServices = new Map<string, GenerationService>();
+  readonly #directServices = new Set<DirectApiGenerationService>();
+  readonly #projectGenerationEvent: (event: AppServerEvent) => void;
   readonly #appServer: CallNinaAppServerAdapter | undefined;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
   readonly #emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
@@ -178,7 +189,7 @@ export class DesktopBackend {
         operation.operationId === protectedOperationId
       )
         continue;
-      this.#generation?.releaseOperation(correlationIdSchema.parse(operation.operationId));
+      this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
       this.#operationsBySubmission.delete(submissionId);
       this.#retryableOperations.delete(operation.operationId);
     }
@@ -205,7 +216,6 @@ export class DesktopBackend {
     this.#chooseDirectory = options.chooseDirectory;
     this.#knownInstallRoots = options.knownInstallRoots;
     this.#appServer = options.appServer;
-    this.#generation = options.appServer;
     this.#log = options.log;
     this.#emitEvent = options.emitEvent;
     this.#openExternal = options.openExternal;
@@ -246,15 +256,22 @@ export class DesktopBackend {
       )
         projectEvent(event);
     });
-    this.#generation?.subscribeGeneration(projectEvent);
+    this.#projectGenerationEvent = projectEvent;
+    this.#appServer?.subscribeGeneration(projectEvent);
   }
 
   close(): void {
     for (const job of this.#translationJobs.values()) {
       job.cancelled = true;
       if (job.providerOperationId)
-        void this.#generation?.cancelOperation(job.providerOperationId).catch(() => undefined);
+        void this.#operationServices
+          .get(job.providerOperationId)
+          ?.cancelOperation(job.providerOperationId)
+          .catch(() => undefined);
     }
+    for (const service of this.#directServices) void service.shutdown();
+    this.#directServices.clear();
+    this.#operationServices.clear();
     this.#translationReveals.clear();
     this.#database?.close();
     this.#database = undefined;
@@ -292,8 +309,25 @@ export class DesktopBackend {
     );
   }
 
-  async #rejectUnsettledOperation(operation: AcceptedOperation["operation"]): Promise<void> {
+  async #rejectUnsettledOperation(
+    operation: AcceptedOperation["operation"],
+    error?: unknown,
+  ): Promise<void> {
     await this.#enqueue(() => {
+      if (
+        !this.#closing &&
+        error !== undefined &&
+        this.#operationServices.get(operation.operationId) instanceof DirectApiGenerationService
+      )
+        this.#operationLog(
+          "warn",
+          "DESKTOP_DIRECT_API_OPERATION_FAILED",
+          operation.operationId,
+          operation.input.kind,
+          diagnosticErrorCode(error),
+          "Personal API generation did not complete.",
+          { phase: "failed", outcome: "error" },
+        );
       if (!this.#activeOperations.delete(operation.operationId) || this.#closing) return;
       this.#emitEvent?.({
         event: "learning-operation-finished",
@@ -350,11 +384,16 @@ export class DesktopBackend {
       this.#emitEvent?.({ event: "state-invalidated", scope: "account" });
     } else if (event.event === "operation-progress") {
       const accepted = this.#operationsBySubmission.get(event.submissionId);
-      if (accepted)
-        this.#operationsBySubmission.set(event.submissionId, {
-          ...accepted,
-          attempt: event.attempt,
-        });
+      if (
+        !accepted ||
+        accepted.operationId !== event.operationId ||
+        !this.#activeOperations.has(event.operationId)
+      )
+        return;
+      this.#operationsBySubmission.set(event.submissionId, {
+        ...accepted,
+        attempt: event.attempt,
+      });
       this.#emitEvent?.({
         event: "learning-operation-progress",
         operationId: event.operationId,
@@ -366,6 +405,13 @@ export class DesktopBackend {
       });
     } else if (event.event === "operation-state-changed") {
       const state = event.state;
+      const owned = this.#operationsBySubmission.get(state.submissionId);
+      if (
+        !owned ||
+        owned.operationId !== state.operationId ||
+        !this.#activeOperations.has(state.operationId)
+      )
+        return;
       if (state.status === "validated") {
         const projectionStartedAt = performance.now();
         let savedActivityId: ReturnType<typeof activityIdSchema.parse> | undefined;
@@ -511,12 +557,23 @@ export class DesktopBackend {
           if (!accepted?.exerciseFeedback) {
             throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
           }
+          const selection = accepted.operation.modelSelection;
+          const provenance = generationProvenanceSchema.parse(state.provenance);
+          if (
+            selection.model.selection !== "exact" ||
+            selection.effort.selection !== "exact" ||
+            provenance.producer !== accepted.connection.routeId ||
+            provenance.modelId !== selection.model.modelId ||
+            provenance.effortId !== selection.effort.effortId
+          )
+            throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
           if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
           await this.#repository.saveGeneratedExerciseFeedback(
             accepted.exerciseFeedback.activityId,
             accepted.exerciseFeedback.attemptId,
             {
               modelRequestId: modelRequestIdSchema.parse(state.modelRequestId),
+              provenance,
               output: exerciseFeedbackCandidateSchema.parse(state.output),
             },
           );
@@ -542,25 +599,27 @@ export class DesktopBackend {
             ...acceptedOperation,
             validatedVoiceModelRequestId: state.modelRequestId,
           });
-        this.#emitEvent?.({
-          event: "learning-operation-finished",
-          operationId: state.operationId,
-          submissionId: state.submissionId,
-          kind: state.kind,
-          submission: "retained",
-          outcome: {
-            status: "validated",
-            modelRequestId: state.modelRequestId,
-            provenance: state.provenance,
-            output: state.output,
-            learningScope: {
-              learnerId: acceptedOperation.operation.input.learningContext.learnerId,
-              courseId: acceptedOperation.operation.input.learningContext.courseId,
-              targetLanguage: acceptedOperation.operation.input.learningContext.targetLanguage,
+        this.#emitEvent?.(
+          desktopIpcEventSchema.parse({
+            event: "learning-operation-finished",
+            operationId: state.operationId,
+            submissionId: state.submissionId,
+            kind: state.kind,
+            submission: "retained",
+            outcome: {
+              status: "validated",
+              modelRequestId: state.modelRequestId,
+              provenance: state.provenance,
+              output: state.output,
+              learningScope: {
+                learnerId: acceptedOperation.operation.input.learningContext.learnerId,
+                courseId: acceptedOperation.operation.input.learningContext.courseId,
+                targetLanguage: acceptedOperation.operation.input.learningContext.targetLanguage,
+              },
+              ...(savedActivityId ? { activityId: savedActivityId } : {}),
             },
-            ...(savedActivityId ? { activityId: savedActivityId } : {}),
-          },
-        });
+          }),
+        );
       } else if (
         state.status === "cancelled" ||
         state.status === "rate-limited" ||
@@ -1352,6 +1411,53 @@ export class DesktopBackend {
     return settings.connections.find((entry) => entry.id === settings.activeConnectionId);
   }
 
+  #generationForConnection(connection: AiConnection): GenerationService | undefined {
+    if (connection.routeId === "codex") return this.#appServer;
+    if (!isDirectApiRoute(connection.routeId) || !this.#database) return undefined;
+    const database = this.#database;
+    const captured = structuredClone(connection);
+    const assertActive = async () => {
+      if (this.#closing || database !== this.#database || database.closed)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const current = await this.#requireActiveConnection();
+      if (
+        current.id !== captured.id ||
+        current.routeId !== captured.routeId ||
+        current.secretRef !== captured.secretRef ||
+        !captured.secretRef
+      )
+        throw new Error("OD_CONNECTION_CONFLICT");
+    };
+    const service = new DirectApiGenerationService({
+      route: connection.routeId,
+      connectionId: connection.id,
+      rootGeneration: database.rootGeneration,
+      readActiveCredential: async () => {
+        await assertActive();
+        if (!captured.secretRef) throw new Error("OD_CONNECTION_CREDENTIAL_UNAVAILABLE");
+        const secret = await this.#secrets.read(captured.secretRef);
+        await assertActive();
+        return secret;
+      },
+    });
+    service.subscribeGeneration(this.#projectGenerationEvent);
+    this.#directServices.add(service);
+    return service;
+  }
+
+  #releaseOperation(operationId: CorrelationId): void {
+    const service = this.#operationServices.get(operationId);
+    service?.releaseOperation(operationId);
+    this.#operationServices.delete(operationId);
+    if (
+      service instanceof DirectApiGenerationService &&
+      ![...this.#operationServices.values()].includes(service)
+    ) {
+      this.#directServices.delete(service);
+      void service.shutdown();
+    }
+  }
+
   async #requireActiveConnection(): Promise<AiConnection> {
     const connection = await this.#activeConnection();
     if (!connection) throw new Error("OD_CONNECTION_NOT_FOUND");
@@ -1403,12 +1509,30 @@ export class DesktopBackend {
           }
         }
       }
+      if (isDirectApiRoute(connection.routeId)) {
+        const catalog = directApiCatalog(connection.routeId);
+        entry.models = catalog.models;
+        entry.operations = catalog.operations;
+        entry.languages = catalog.languages;
+        entry.status =
+          connection.id !== settings.activeConnectionId
+            ? "inactive"
+            : this.#secrets.state().status !== "available"
+              ? "secure-storage-unavailable"
+              : !connection.secretRef
+                ? "credential-required"
+                : resolveModelPreference(connection.preference, catalog.models).status !==
+                    "available"
+                  ? "model-unavailable"
+                  : "configured";
+      }
       availability.push(entry);
     }
     return aiConnectionsViewSchema.parse({
       expectedGeneration: this.#database.rootGeneration,
       settings,
       secureStorage: this.#secrets.state(),
+      directApiCatalogs: directApiCatalogs(),
       availability,
     });
   }
@@ -1429,7 +1553,6 @@ export class DesktopBackend {
       reason,
     });
     if (!connection) return unavailable("connection-required");
-    if (connection.routeId !== "codex") return unavailable("capability-unavailable");
     if (
       retainedConnection &&
       (connection.id !== retainedConnection.id ||
@@ -1437,6 +1560,40 @@ export class DesktopBackend {
         connection.secretRef !== retainedConnection.secretRef)
     )
       return unavailable("capability-unavailable");
+    if (isDirectApiRoute(connection.routeId)) {
+      const catalog = directApiCatalog(connection.routeId);
+      if (operation === "voice-handoff" || !catalog.operations.includes(operation))
+        return unavailable("capability-unavailable");
+      if (this.#secrets.state().status !== "available")
+        return unavailable("secure-storage-unavailable");
+      if (!connection.secretRef) return unavailable("credential-required");
+      try {
+        const resolution = retainedSelection
+          ? directApiSelection(connection.routeId, retainedSelection)
+          : resolveModelPreference(connection.preference, catalog.models);
+        if ("status" in resolution) {
+          if (resolution.status !== "available") return unavailable("model-unavailable");
+          return {
+            routeId: connection.routeId,
+            operation,
+            status: "available",
+            modelSelection: {
+              modelId: resolution.effectiveModelId,
+              effortId: resolution.effectiveEffortId,
+            },
+          };
+        }
+        return {
+          routeId: connection.routeId,
+          operation,
+          status: "available",
+          modelSelection: resolution,
+        };
+      } catch {
+        return unavailable("model-unavailable");
+      }
+    }
+    if (connection.routeId !== "codex") return unavailable("capability-unavailable");
     if (operation === "voice-handoff") {
       const capabilities = this.#appServer?.codexCapabilities;
       if (
@@ -1465,7 +1622,7 @@ export class DesktopBackend {
     } catch {
       return unavailable("runtime-unavailable");
     }
-    const capabilities = this.#generation?.generationCapabilities;
+    const capabilities = this.#appServer?.generationCapabilities;
     if (
       !capabilities ||
       capabilities.providerId !== connection.routeId ||
@@ -1520,7 +1677,10 @@ export class DesktopBackend {
     access: Extract<ProviderAccess, { status: "unavailable" }>,
   ) {
     const kind: ErrorKind =
-      access.reason === "account-required" || access.reason === "account-unavailable"
+      access.reason === "account-required" ||
+      access.reason === "account-unavailable" ||
+      access.reason === "credential-required" ||
+      access.reason === "secure-storage-unavailable"
         ? "authentication"
         : access.reason === "model-unavailable"
           ? "model-unavailable"
@@ -1712,11 +1872,6 @@ export class DesktopBackend {
       content: job.request.content,
       field: job.request.field,
     });
-    const generation = this.#generation;
-    if (!generation) {
-      this.#finishTranslation(job, "failed");
-      return;
-    }
     const assertActive = () => {
       if (job.cancelled || this.#closing) throw new Error("OD_TRANSLATION_CANCELLED");
     };
@@ -1740,7 +1895,10 @@ export class DesktopBackend {
           await readSavedTranslations(database, request, this.#translationReveal(job.request));
         });
         assertActive();
+        const generation = this.#generationForConnection(connection);
+        if (!generation) throw new Error("OD_OPERATION_UNSUPPORTED");
         const operationId = selectionId();
+        this.#operationServices.set(operationId, generation);
         job.providerOperationId = operationId;
         this.#translationProviderOperations.add(operationId);
         try {
@@ -1755,7 +1913,7 @@ export class DesktopBackend {
           provenance = { ...result.provenance, connectionId: connection.id };
         } finally {
           this.#translationProviderOperations.delete(operationId);
-          generation.releaseOperation(operationId);
+          this.#releaseOperation(operationId);
           job.providerOperationId = undefined;
         }
       }
@@ -1887,8 +2045,9 @@ export class DesktopBackend {
         const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
         const access = await this.#providerAccess("contextual-help", request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (!this.#generation || !access.modelSelection)
-          return this.#failure(request, "unsupported-operation");
+        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+          return this.#failure(request, "conflict");
+        if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
         const job: TranslationJob = {
           request: request.payload,
           cancelled: false,
@@ -1919,7 +2078,9 @@ export class DesktopBackend {
         if (job) {
           job.cancelled = true;
           if (job.providerOperationId)
-            await this.#generation?.cancelOperation(job.providerOperationId);
+            await this.#operationServices
+              .get(job.providerOperationId)
+              ?.cancelOperation(job.providerOperationId);
         }
         return this.#success(request, { status: job ? "cancelling" : "already-finished" });
       }
@@ -2036,7 +2197,7 @@ export class DesktopBackend {
         }
         this.#repository = new CallNinaRepository(this.#database);
         for (const operation of this.#operationsBySubmission.values()) {
-          this.#generation?.releaseOperation(correlationIdSchema.parse(operation.operationId));
+          this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
         }
         this.#operationsBySubmission.clear();
         this.#retryableOperations.clear();
@@ -2318,7 +2479,7 @@ export class DesktopBackend {
         const result = await this.#repository.clearPersonalData(request.payload);
         if (result.status === "cleared") {
           for (const operation of this.#operationsBySubmission.values()) {
-            this.#generation?.releaseOperation(correlationIdSchema.parse(operation.operationId));
+            this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
           }
           this.#operationsBySubmission.clear();
           this.#retryableOperations.clear();
@@ -2960,7 +3121,11 @@ export class DesktopBackend {
           answer: request.payload.answer,
           submittedAt: utcInstantSchema.parse(new Date().toISOString()),
         });
-        return this.#success(request, { saved: true, feedback: saved.feedback?.output ?? null });
+        return this.#success(request, {
+          saved: true,
+          feedback: saved.feedback?.output ?? null,
+          feedbackProvenance: saved.feedback?.provenance ?? null,
+        });
       }
       if (request.channel === "exercise-set/start") {
         return this.#success(
@@ -3052,6 +3217,7 @@ export class DesktopBackend {
                           ? { nextStep: entry.detail.feedback.nextStep }
                           : {}),
                       },
+                      feedbackProvenance: entry.detail.feedbackProvenance,
                       acceptedAnswerReveal: evaluateExerciseAnswer(
                         entry.detail.snapshot.exercise,
                         entry.detail.answer,
@@ -3300,9 +3466,10 @@ export class DesktopBackend {
         );
         const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (!access.modelSelection || !this.#generation)
-          return this.#failure(request, "unsupported-operation");
-        const generation = this.#generation;
+        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+          return this.#failure(request, "conflict");
+        if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
+        const connection = await this.#requireActiveConnection();
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
           operationId,
@@ -3321,8 +3488,10 @@ export class DesktopBackend {
             )),
           },
         });
+        const generation = this.#generationForConnection(connection);
+        if (!generation) return this.#failure(request, "unsupported-operation");
         this.#operationsBySubmission.set(request.payload.submissionId, {
-          connection: await this.#requireActiveConnection(),
+          connection,
           operationId,
           inputFingerprint,
           dataRootGeneration: dataRoot.generation,
@@ -3339,10 +3508,11 @@ export class DesktopBackend {
               }
             : {}),
         });
+        this.#operationServices.set(operationId, generation);
         this.#activeOperations.add(operationId);
-        void generation
-          .runOperation(operation)
-          .catch(() => this.#rejectUnsettledOperation(operation));
+        void Promise.resolve()
+          .then(() => generation.runOperation(operation))
+          .catch((error: unknown) => this.#rejectUnsettledOperation(operation, error));
         return this.#success(request, {
           operationId,
           submissionId: request.payload.submissionId,
@@ -3404,8 +3574,10 @@ export class DesktopBackend {
           prior.connection,
         );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (!this.#generation) return this.#failure(request, "unsupported-operation");
-        const generation = this.#generation;
+        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+          return this.#failure(request, "conflict");
+        const generation = this.#operationServices.get(prior.operationId);
+        if (!generation) return this.#failure(request, "unsupported-operation");
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
           ...prior.operation,
@@ -3423,14 +3595,17 @@ export class DesktopBackend {
           ...(prior.helperSessionId ? { helperSessionId: prior.helperSessionId } : {}),
           ...(prior.exerciseFeedback ? { exerciseFeedback: prior.exerciseFeedback } : {}),
         });
+        this.#operationServices.set(operationId, generation);
         this.#activeOperations.add(operationId);
-        void generation
-          .retryOperation({
-            previousOperationId: correlationIdSchema.parse(request.payload.previousOperationId),
-            operationId,
-            submissionId: request.payload.submissionId,
-          })
-          .catch(() => this.#rejectUnsettledOperation(operation));
+        void Promise.resolve()
+          .then(() =>
+            generation.retryOperation({
+              previousOperationId: correlationIdSchema.parse(request.payload.previousOperationId),
+              operationId,
+              submissionId: request.payload.submissionId,
+            }),
+          )
+          .catch((error: unknown) => this.#rejectUnsettledOperation(operation, error));
         return this.#success(request, {
           operationId,
           submissionId: request.payload.submissionId,
@@ -3440,8 +3615,9 @@ export class DesktopBackend {
       }
       const active = this.#activeOperations.has(request.payload.operationId);
       if (active) {
-        await this.#ensureAppServer();
-        await this.#generation?.cancelOperation(request.payload.operationId);
+        await this.#operationServices
+          .get(request.payload.operationId)
+          ?.cancelOperation(request.payload.operationId);
       }
       const status = active ? "cancelling" : "already-finished";
       return this.#success(request, { operationId: request.payload.operationId, status });
