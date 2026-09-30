@@ -112,3 +112,4 @@ export {
   saveSupportingTranslation,
   validateTranslationReveal,
 } from "./translation.js";
+export * from "./ai-connections.js";

@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import {
+  type AiConnection,
   type GenerationProvenance,
   correlationIdSchema,
   errorDefinitions,
@@ -11,7 +12,7 @@ import {
   type ErrorKind,
   type GenerationService,
 } from "@call-nina/contracts";
-import { type ModelWorkload, type VocabularyCandidate } from "@call-nina/domain";
+import { type VocabularyCandidate } from "@call-nina/domain";
 import {
   type DataRootSelectionPlan,
   type HistoryEntryRecord,
@@ -26,6 +27,7 @@ export type PendingSelection = Readonly<{
 
 export type AcceptedOperation = Readonly<{
   validatedVoiceModelRequestId?: string;
+  connection: AiConnection;
   operationId: string;
   inputFingerprint: string;
   attempt?: 1 | 2;
@@ -169,16 +171,6 @@ export function freshTimestampAfter(previous: string) {
   const previousMilliseconds = Date.parse(previous);
   return utcInstantSchema.parse(new Date(Math.max(now, previousMilliseconds + 1)).toISOString());
 }
-
-export const operationModelWorkload = {
-  "writing-prompt": "generation",
-  "voice-activity-draft": "generation",
-  "writing-correction": "correction",
-  "contextual-help": "helper",
-  "flashcard-generation": "generation",
-  "exercise-generation": "generation",
-  "exercise-feedback": "correction",
-} as const satisfies Record<string, ModelWorkload>;
 
 export function exerciseHistoryPrompt(
   exercise: Extract<

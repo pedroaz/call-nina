@@ -1,3 +1,4 @@
+import { ConnectionSecretStorage } from "./secret-storage.js";
 import { desktopPathOption } from "./options.js";
 import { writeFile } from "node:fs/promises";
 import { mkdirSync, lstatSync } from "node:fs";
@@ -243,6 +244,7 @@ if (!app.requestSingleInstanceLock()) {
         ? path.join(process.resourcesPath, "curriculum")
         : fileURLToPath(new URL("../../../../content/curriculum/", import.meta.url)),
       bootstrapFile,
+      secrets: new ConnectionSecretStorage(userData),
       knownInstallRoots,
       appServer,
       openExternal: openValidatedExternalUrl,

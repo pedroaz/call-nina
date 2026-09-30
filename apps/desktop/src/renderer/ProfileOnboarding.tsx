@@ -19,6 +19,7 @@ import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js
 import type { DesktopSettingsResult, DesktopSettingsValue } from "./settings-adapter.js";
 import i18n from "./i18n.js";
 import styles from "./ProfileOnboarding.module.css";
+import { SidebarModelControl } from "./SidebarModelControl.js";
 import { LanguageSelect } from "./LanguageSelect.js";
 
 type Readiness = Extract<DesktopIpcResponse, { status: "ok"; channel: "app/readiness" }>["result"];
@@ -143,7 +144,7 @@ export function ProfileOnboarding({
           window.location.reload();
           return;
         }
-        if (event.event === "state-invalidated" && event.scope === "account")
+        if (event.event === "state-invalidated" && ["account", "settings"].includes(event.scope))
           void refreshConnection().catch((cause: unknown) => {
             setError(normalizeDesktopError(cause).detail);
           });
@@ -347,6 +348,7 @@ export function ProfileOnboarding({
                 <fieldset disabled={busy} className={styles.onboardingSection}>
                   <legend>{t("onboarding.accountTitle")}</legend>
                   <p>{t("providerAccess.identityBoundary")}</p>
+                  <SidebarModelControl />
                   {connectionStatus}
                   {loginStatus && <p role="status">{t(`onboarding.login.${loginStatus}`)}</p>}
                   <ActionGroup>

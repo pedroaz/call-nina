@@ -36,14 +36,11 @@ import {
   aiProvenanceSchema,
   attemptFeedbackSchema,
   correctionVocabularyCandidateSchema,
-  defaultModelPreferences,
   exerciseAnswerSchema,
   evaluateExerciseAnswer,
   materializeContentExercises,
   learnerProfileSchema,
   mistakeCategorySchema,
-  modelPreferencesSchema,
-  modelWorkloads,
   objectiveEvaluationSchema,
   scheduleVocabularyReview,
   vocabularyEntrySchema,
@@ -53,7 +50,6 @@ import {
   voiceSummarySchema,
   startedExerciseSnapshotSchema,
   type MistakeCategory,
-  type ModelPreferences,
   type VocabularyEntry,
   type VoiceSummary,
 } from "@call-nina/domain";
@@ -262,7 +258,6 @@ export type HistoryEntryRecord = Readonly<{
 
 const learnerSettingsInputSchema = strictBoundaryObject({
   profile: learnerProfileSchema,
-  modelPreferences: modelPreferencesSchema,
 });
 export const learnerSettingsRecordSchema = learnerSettingsInputSchema.extend({
   learningContext: learningContextSchema,
@@ -601,49 +596,6 @@ function parseJson(value: unknown, maximumBytes?: number): unknown {
   return JSON.parse(serialized) as unknown;
 }
 
-function modelPreferenceColumns(preference: ModelPreferences[(typeof modelWorkloads)[number]]) {
-  return {
-    modelMode: preference.model.mode,
-    modelId: preference.model.mode === "exact" ? preference.model.modelId : null,
-    effortMode: preference.effort.mode,
-    semanticEffort: preference.effort.mode === "semantic" ? preference.effort.effort : null,
-    effortId: preference.effort.mode === "exact" ? preference.effort.effortId : null,
-  };
-}
-
-function writeModelPreferences(
-  connection: DatabaseSync,
-  learnerId: string,
-  preferences: ModelPreferences,
-  updatedAt: string,
-) {
-  connection
-    .prepare(`DELETE FROM model_preference_overrides WHERE learner_id = ? AND route_id = ?`)
-    .run(learnerId, preferences.routeId);
-  const insert = connection.prepare(
-    `INSERT INTO model_preference_overrides (
-      learner_id, route_id, workload, model_mode, model_id, effort_mode,
-      semantic_effort, effort_id, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  );
-  for (const workload of modelWorkloads) {
-    const preference = preferences[workload];
-    if (JSON.stringify(preference) === JSON.stringify(defaultModelPreferences[workload])) continue;
-    const columns = modelPreferenceColumns(preference);
-    insert.run(
-      learnerId,
-      preferences.routeId,
-      workload,
-      columns.modelMode,
-      columns.modelId,
-      columns.effortMode,
-      columns.semanticEffort,
-      columns.effortId,
-      updatedAt,
-    );
-  }
-}
-
 function readLearnerSettingsFromConnection(
   connection: DatabaseSync,
   learnerId: string,
@@ -672,43 +624,9 @@ function readLearnerSettingsFromConnection(
     uiLocale: row["ui_locale"],
   });
 
-  const preferenceRows = connection
-    .prepare(
-      `SELECT d.route_id, d.workload,
-        COALESCE(o.model_mode, d.model_mode) AS model_mode,
-        COALESCE(o.model_id, d.model_id) AS model_id,
-        COALESCE(o.effort_mode, d.effort_mode) AS effort_mode,
-        COALESCE(o.semantic_effort, d.semantic_effort) AS semantic_effort,
-        COALESCE(o.effort_id, d.effort_id) AS effort_id
-       FROM model_preference_defaults d
-       LEFT JOIN model_preference_overrides o
-         ON o.workload = d.workload AND o.route_id = d.route_id AND o.learner_id = ?
-       WHERE d.route_id = 'codex'
-       ORDER BY d.workload`,
-    )
-    .all(learnerId);
-  const preferenceEntries = preferenceRows.map((entry) => [
-    entry["workload"],
-    {
-      model:
-        entry["model_mode"] === "automatic"
-          ? { mode: "automatic" }
-          : { mode: "exact", modelId: entry["model_id"] },
-      effort:
-        entry["effort_mode"] === "semantic"
-          ? { mode: "semantic", effort: entry["semantic_effort"] }
-          : { mode: "exact", effortId: entry["effort_id"] },
-    },
-  ]);
-  const modelPreferences = modelPreferencesSchema.parse({
-    schemaVersion: 1,
-    routeId: preferenceRows[0]?.["route_id"],
-    ...Object.fromEntries(preferenceEntries),
-  });
   if (scope.learnerId !== learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
   return learnerSettingsRecordSchema.parse({
     profile,
-    modelPreferences,
     learningContext: resolveLearningContext(scope, profile),
   });
 }
@@ -864,12 +782,6 @@ export class CallNinaRepository {
       connection
         .prepare("INSERT INTO learner_settings(learner_id, ui_locale, updated_at) VALUES (?, ?, ?)")
         .run(profile.learnerId, profile.uiLocale, profile.updatedAt);
-      writeModelPreferences(
-        connection,
-        profile.learnerId,
-        settings.modelPreferences,
-        profile.updatedAt,
-      );
       connection
         .prepare(
           `INSERT INTO local_learning_scope
@@ -963,12 +875,6 @@ export class CallNinaRepository {
       connection
         .prepare("UPDATE local_learning_scope SET course_id = ? WHERE target_language = ?")
         .run(update.settings.learningContext.courseId, profile.targetLanguage);
-      writeModelPreferences(
-        connection,
-        profile.learnerId,
-        update.settings.modelPreferences,
-        profile.updatedAt,
-      );
       const stored = readLearnerSettingsFromConnection(connection, profile.learnerId);
       if (!stored) throw new Error("OD_LEARNER_SETTINGS_NOT_FOUND");
       return stored;

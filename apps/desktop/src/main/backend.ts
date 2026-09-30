@@ -1,7 +1,11 @@
-import { ActivityService } from "./services/activities.js";
-import { LearningResultService } from "./services/learning-results.js";
-import { desktopPathOption } from "./options.js";
+import { type ConnectionSecretStorage } from "./secret-storage.js";
 import {
+  mutateConnections,
+  cleanupConnectionSecrets,
+  type ConnectionView,
+} from "./connection-settings.js";
+import {
+  readAiConnections,
   readSavedTranslations,
   saveSupportingTranslation,
   validateTranslationReveal,
@@ -27,11 +31,9 @@ import {
   type CallNinaDatabase,
   type LearnerSettingsRecord,
 } from "@call-nina/persistence";
-import { readPersonalDataLocations } from "./personal-data.js";
-import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
-import path from "node:path";
-
 import {
+  aiConnectionsViewSchema,
+  type AiConnection,
   ninaGenerationRequestSchema,
   type NinaPlan,
   translationRequestSchema,
@@ -68,12 +70,18 @@ import {
   type ActivityAction,
   type CallNinaAppServerAdapter,
 } from "@call-nina/contracts";
+import { ActivityService } from "./services/activities.js";
+import { LearningResultService } from "./services/learning-results.js";
+import { desktopPathOption } from "./options.js";
+import { readPersonalDataLocations } from "./personal-data.js";
+import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
+import path from "node:path";
+
 import {
   buildPracticeSuggestions,
   assertExerciseGenerationContext,
   resolveCourseReference,
   createInitialLearnerProfile,
-  defaultModelPreferences,
   evaluateExerciseAnswer,
   resolveModelPreference,
 } from "@call-nina/domain";
@@ -92,7 +100,6 @@ import {
   maximumRetainedSubmissions,
   opaqueId,
   operationInputFingerprint,
-  operationModelWorkload,
   safeError,
   selectionId,
   semanticAction,
@@ -118,6 +125,8 @@ type TranslationJob = {
 };
 
 export class DesktopBackend {
+  #pendingLoginId: ReturnType<typeof correlationIdSchema.parse> | undefined;
+  readonly #secrets: ConnectionSecretStorage;
   readonly #curriculumRoot: string;
   readonly #bootstrapFile: string;
   readonly #chooseDirectory: () => Promise<string | undefined>;
@@ -179,6 +188,7 @@ export class DesktopBackend {
   constructor(options: {
     curriculumRoot: string;
     bootstrapFile: string;
+    secrets: ConnectionSecretStorage;
     chooseDirectory: () => Promise<string | undefined>;
     knownInstallRoots: readonly string[];
     appServer?: CallNinaAppServerAdapter;
@@ -189,6 +199,7 @@ export class DesktopBackend {
       content: string,
     ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>;
   }) {
+    this.#secrets = options.secrets;
     this.#curriculumRoot = options.curriculumRoot;
     this.#bootstrapFile = options.bootstrapFile;
     this.#chooseDirectory = options.chooseDirectory;
@@ -296,7 +307,7 @@ export class DesktopBackend {
   }
 
   async #ensureAppServer(): Promise<CallNinaAppServerAdapter | undefined> {
-    if (!this.#appServer) return undefined;
+    if (!this.#appServer || (await this.#activeConnection())?.routeId !== "codex") return undefined;
     if (this.#appServerStart) {
       await this.#appServerStart;
       const { lifecycle } = await this.#appServer.snapshot();
@@ -314,8 +325,22 @@ export class DesktopBackend {
     return this.#appServer;
   }
 
+  async #stopConnectionRuntime(): Promise<void> {
+    if (this.#pendingLoginId && this.#appServer) {
+      await this.#appServer.cancelManagedLogin(this.#pendingLoginId);
+      this.#pendingLoginId = undefined;
+    }
+    await this.#appServer?.shutdown();
+    this.#appServerStart = undefined;
+  }
+
   async #projectAppServerEvent(event: AppServerEvent): Promise<void> {
     if (event.event === "account-login-changed") {
+      if (
+        ["complete", "cancelled", "failed"].includes(event.state.status) &&
+        this.#pendingLoginId === event.loginId
+      )
+        this.#pendingLoginId = undefined;
       this.#emitEvent?.({ event: "account-login", loginId: event.loginId, state: event.state });
     } else if (event.event === "models-changed") {
       this.#emitEvent?.({ event: "state-invalidated", scope: "models" });
@@ -345,6 +370,8 @@ export class DesktopBackend {
         const projectionStartedAt = performance.now();
         let savedActivityId: ReturnType<typeof activityIdSchema.parse> | undefined;
         const acceptedOperation = this.#operationsBySubmission.get(state.submissionId);
+        if (acceptedOperation)
+          state.provenance = { ...state.provenance, connectionId: acceptedOperation.connection.id };
         const root = await this.#dataRootState(state.operationId);
         if (
           !acceptedOperation ||
@@ -685,7 +712,6 @@ export class DesktopBackend {
         explanationLanguage: profile.explanationLanguage,
         uiLocale: profile.uiLocale,
         correctionPreferences: profile.correctionPreferences,
-        modelPreferences: settings.modelPreferences,
       },
       updatedAt: profile.updatedAt,
     } as const;
@@ -1320,14 +1346,94 @@ export class DesktopBackend {
     };
   }
 
+  async #activeConnection(): Promise<AiConnection | undefined> {
+    if (!this.#database) return undefined;
+    const settings = await readAiConnections(this.#database);
+    return settings.connections.find((entry) => entry.id === settings.activeConnectionId);
+  }
+
+  async #requireActiveConnection(): Promise<AiConnection> {
+    const connection = await this.#activeConnection();
+    if (!connection) throw new Error("OD_CONNECTION_NOT_FOUND");
+    return connection;
+  }
+
+  async #connectionsView(): Promise<ConnectionView> {
+    if (!this.#database) throw new Error("OD_DATA_ROOT_STALE");
+    const settings = await cleanupConnectionSecrets(
+      this.#database,
+      this.#secrets,
+      await readAiConnections(this.#database),
+    );
+    const availability: ConnectionView["availability"] = [];
+    for (const connection of settings.connections) {
+      const entry: ConnectionView["availability"][number] = {
+        connectionId: connection.id,
+        status: "adapter-unavailable",
+        operations: [],
+        languages: [],
+        models: null,
+      };
+      if (connection.routeId === "codex") {
+        entry.status = "inactive";
+        // Reading settings never starts an inactive runtime or probes credentials.
+        if (connection.id === settings.activeConnectionId) {
+          try {
+            const runtime = await this.#ensureAppServer();
+            if (runtime) {
+              const snapshot = await runtime.snapshot();
+              if (snapshot.lifecycle.status === "ready") {
+                entry.models = await runtime.refreshModels();
+                entry.operations = [...runtime.generationCapabilities.operations];
+                entry.languages = ["en-US", "pt-BR", "es", "de"];
+                entry.status =
+                  snapshot.account.status !== "signed-in"
+                    ? "account-required"
+                    : resolveModelPreference(connection.preference, entry.models).status ===
+                        "available"
+                      ? "available"
+                      : "model-unavailable";
+              }
+            }
+          } catch {
+            entry.status = "runtime-unavailable";
+          }
+        }
+      }
+      availability.push(entry);
+    }
+    return aiConnectionsViewSchema.parse({
+      expectedGeneration: this.#database.rootGeneration,
+      settings,
+      secureStorage: this.#secrets.state(),
+      availability,
+    });
+  }
+
   async #providerAccess(
     operation: ProviderOperation,
     correlationId: string,
     retainedSelection?: AcceptedOperation["operation"]["modelSelection"],
+    retainedConnection?: AiConnection,
   ): Promise<ProviderAccess> {
+    const connection = await this.#activeConnection();
     const unavailable = (
       reason: Extract<ProviderAccess, { status: "unavailable" }>["reason"],
-    ): ProviderAccess => ({ routeId: "codex", operation, status: "unavailable", reason });
+    ): ProviderAccess => ({
+      routeId: connection?.routeId ?? null,
+      operation,
+      status: "unavailable",
+      reason,
+    });
+    if (!connection) return unavailable("connection-required");
+    if (connection.routeId !== "codex") return unavailable("capability-unavailable");
+    if (
+      retainedConnection &&
+      (connection.id !== retainedConnection.id ||
+        connection.routeId !== retainedConnection.routeId ||
+        connection.secretRef !== retainedConnection.secretRef)
+    )
+      return unavailable("capability-unavailable");
     let appServer: CallNinaAppServerAdapter | undefined;
     try {
       appServer = await this.#ensureAppServer();
@@ -1355,12 +1461,10 @@ export class DesktopBackend {
       if (integration.plugin !== "installed") return unavailable("plugin-required");
       return { routeId: "codex", operation, status: "available", modelSelection: null };
     }
-    const settings = await this.#readActiveLearnerSettings();
     const capabilities = this.#generation?.generationCapabilities;
     if (
-      !settings ||
       !capabilities ||
-      capabilities.providerId !== settings.modelPreferences.routeId ||
+      capabilities.providerId !== connection.routeId ||
       !capabilities.operations.includes(operation)
     )
       return unavailable("capability-unavailable");
@@ -1379,18 +1483,13 @@ export class DesktopBackend {
         )
           return unavailable("model-unavailable");
         return {
-          routeId: settings.modelPreferences.routeId,
+          routeId: connection.routeId,
           operation,
           status: "available",
           modelSelection: { modelId: model.modelId, effortId: effort.effortId },
         };
       }
-      const workload = operationModelWorkload[operation];
-      const resolution = resolveModelPreference(
-        workload,
-        settings.modelPreferences[workload],
-        catalog,
-      ).resolution;
+      const resolution = resolveModelPreference(connection.preference, catalog);
       if (
         resolution.status === "unavailable" ||
         !catalog.models
@@ -1399,7 +1498,7 @@ export class DesktopBackend {
       )
         return unavailable("model-unavailable");
       return {
-        routeId: settings.modelPreferences.routeId,
+        routeId: connection.routeId,
         operation,
         status: "available",
         modelSelection: {
@@ -1421,7 +1520,7 @@ export class DesktopBackend {
         ? "authentication"
         : access.reason === "model-unavailable"
           ? "model-unavailable"
-          : access.reason === "capability-unavailable"
+          : access.reason === "capability-unavailable" || access.reason === "connection-required"
             ? "unsupported-operation"
             : access.reason === "plugin-required"
               ? "mcp"
@@ -1601,6 +1700,7 @@ export class DesktopBackend {
     source: Awaited<ReturnType<typeof readSavedTranslations>>,
     context: LearningContext,
     modelSelection: GenerationOperationStart["modelSelection"],
+    connection: AiConnection,
   ) {
     const request = translationRequestSchema.parse({
       rootGeneration: job.request.rootGeneration,
@@ -1629,6 +1729,7 @@ export class DesktopBackend {
             "contextual-help",
             job.request.operationId,
             modelSelection,
+            connection,
           );
           if (access.status === "unavailable")
             throw new Error("OD_TRANSLATION_PROVIDER_UNAVAILABLE");
@@ -1647,7 +1748,7 @@ export class DesktopBackend {
             input: savedTranslationInput(job.request, part, context),
           });
           translated.push(contextualHelpCandidateSchema.parse(result.output).answer);
-          provenance = result.provenance;
+          provenance = { ...result.provenance, connectionId: connection.id };
         } finally {
           this.#translationProviderOperations.delete(operationId);
           generation.releaseOperation(operationId);
@@ -1702,6 +1803,28 @@ export class DesktopBackend {
         this.#database?.rootGeneration !== request.payload.rootGeneration
       ) {
         return this.#failure(request, "stale-data-root");
+      }
+      if (
+        request.channel === "ai-connections/read" ||
+        request.channel === "ai-connections/update"
+      ) {
+        const root = await this.#dataRootState(request.requestId);
+        if (root.status !== "ready" || !this.#database)
+          return this.#failure(request, "stale-data-root");
+        if (request.channel === "ai-connections/update") {
+          if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+            return this.#failure(request, "conflict");
+          const current = await this.#activeConnection();
+          const action = request.payload.action;
+          if (
+            (action.kind === "activate" && action.connectionId !== current?.id) ||
+            (action.kind === "remove" && action.connectionId === current?.id)
+          )
+            await this.#stopConnectionRuntime();
+          await mutateConnections(this.#database, this.#secrets, request.payload);
+          this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
+        }
+        return this.#success(request, await this.#connectionsView());
       }
       if (request.channel === "translation/flashcard-visibility") {
         const root = await this.#dataRootState(request.requestId);
@@ -1765,10 +1888,17 @@ export class DesktopBackend {
         };
         this.#translationJobs.set(request.payload.operationId, job);
         this.#activeOperations.add(request.payload.operationId);
-        void this.#runTranslation(job, database, source, settings.learningContext, {
-          model: { selection: "exact", modelId: access.modelSelection.modelId },
-          effort: { selection: "exact", effortId: access.modelSelection.effortId },
-        });
+        void this.#runTranslation(
+          job,
+          database,
+          source,
+          settings.learningContext,
+          {
+            model: { selection: "exact", modelId: access.modelSelection.modelId },
+            effort: { selection: "exact", effortId: access.modelSelection.effortId },
+          },
+          await this.#requireActiveConnection(),
+        );
         return this.#success(request, {
           operationId: request.payload.operationId,
           status: "accepted",
@@ -1802,6 +1932,7 @@ export class DesktopBackend {
       }
       if (request.channel === "provider/access/read") {
         let retainedSelection: AcceptedOperation["operation"]["modelSelection"] | undefined;
+        let retainedConnection: AiConnection | undefined;
         if (request.payload.previousOperationId) {
           const dataRoot = await this.#dataRootState(request.requestId);
           if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
@@ -1818,6 +1949,7 @@ export class DesktopBackend {
             return this.#failure(request, "conflict");
           // Resolve retry access from main-owned state, never the current sidebar preference.
           retainedSelection = prior.operation.modelSelection;
+          retainedConnection = prior.connection;
         }
         return this.#success(
           request,
@@ -1825,6 +1957,7 @@ export class DesktopBackend {
             request.payload.operation,
             request.requestId,
             retainedSelection,
+            retainedConnection,
           ),
         );
       }
@@ -1863,6 +1996,7 @@ export class DesktopBackend {
         if (this.#activeOperations.size > 0) return this.#failure(request, "data-root-busy");
         const pending = this.#pending.get(request.payload.selectionId);
         if (!pending) return this.#failure(request, "conflict");
+        await this.#stopConnectionRuntime();
         this.#pending.delete(request.payload.selectionId);
         const timestamp = new Date().toISOString();
         if (pending.mode === "initialize") {
@@ -1981,7 +2115,6 @@ export class DesktopBackend {
         if (!this.#repository) return this.#failure(request, "stale-data-root");
         const settings = {
           profile: { ...profile, uiLocale: request.payload.uiLocale },
-          modelPreferences: defaultModelPreferences,
         };
         const stored = await this.#repository.createLearnerSettings(settings);
         this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
@@ -2145,7 +2278,6 @@ export class DesktopBackend {
             correctionPreferences: editable.correctionPreferences,
             updatedAt: timestamp,
           },
-          modelPreferences: editable.modelPreferences,
         };
         if (!this.#repository) return this.#failure(request, "stale-data-root");
         let stored: LearnerSettingsRecord;
@@ -3034,6 +3166,7 @@ export class DesktopBackend {
         const appServer = await this.#ensureAppServer();
         if (appServer) {
           const loginId = await appServer.startManagedLogin(request.payload.method);
+          this.#pendingLoginId = loginId;
           return this.#success(request, { loginId, status: "started" });
         }
         return this.#failure(request, "app-server");
@@ -3043,6 +3176,7 @@ export class DesktopBackend {
         if (appServer) {
           try {
             await appServer.cancelManagedLogin(request.payload.loginId);
+            if (this.#pendingLoginId === request.payload.loginId) this.#pendingLoginId = undefined;
             return this.#success(request, {
               loginId: request.payload.loginId,
               status: "cancelled",
@@ -3054,11 +3188,6 @@ export class DesktopBackend {
             });
           }
         }
-        return this.#failure(request, "app-server");
-      }
-      if (request.channel === "codex/account/logout") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) return this.#success(request, await appServer.logout());
         return this.#failure(request, "app-server");
       }
       if (request.channel === "codex/models/read") {
@@ -3176,6 +3305,7 @@ export class DesktopBackend {
           },
         });
         this.#operationsBySubmission.set(request.payload.submissionId, {
+          connection: await this.#requireActiveConnection(),
           operationId,
           inputFingerprint,
           dataRootGeneration: dataRoot.generation,
@@ -3254,6 +3384,7 @@ export class DesktopBackend {
           prior.operation.input.kind,
           request.requestId,
           prior.operation.modelSelection,
+          prior.connection,
         );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (!this.#generation) return this.#failure(request, "unsupported-operation");
@@ -3266,6 +3397,7 @@ export class DesktopBackend {
           dataRootGeneration: dataRoot.generation,
         });
         this.#operationsBySubmission.set(request.payload.submissionId, {
+          connection: prior.connection,
           operationId,
           inputFingerprint: prior.inputFingerprint,
           dataRootGeneration: dataRoot.generation,

@@ -129,7 +129,6 @@ export function ContextualHelper({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
-        routeId: "codex",
         submissionId: nextSubmissionId,
         input: {
           kind: "contextual-help",

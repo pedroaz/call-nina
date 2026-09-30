@@ -1423,9 +1423,10 @@
       "runtime-unavailable": "This AI action needs Codex on this device. Check the Codex connection in Settings, then retry.",
       "account-required": "This AI action needs a signed-in Codex account. Connect or renew your connection in Settings, then retry.",
       "account-unavailable": "Codex account access could not be confirmed. Check the connection in Settings, then retry.",
-      "capability-unavailable": "The Codex route on this device does not support this action. No other route will be selected automatically.",
+      "capability-unavailable": "The selected AI connection does not support this action. No other connection will be selected automatically.",
       "model-unavailable": "No usable Codex model and reasoning setting is available for this action. Check the saved model choice and connection in Settings, then retry.",
-      "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry."
+      "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry.",
+      "connection-required": "Choose an AI connection in Settings before using this action. Prepared practice remains available."
     }
   },
   "languages": {
@@ -1541,5 +1542,20 @@
     "nina": "See Nina’s recommendations",
     "return": "Back to {{origin}}",
     "selfAssessment": "Card review is saved with this activity. Self-ratings guide vocabulary review; they do not establish independent proficiency."
+  },
+  "connections": {
+    "title": "AI connection",
+    "single": "One connection and model apply to all AI actions. Changes wait until running actions finish.",
+    "active": "Active connection",
+    "runtimeDefault": "Runtime default",
+    "unavailable": "This connection or model is unavailable. Check its settings.",
+    "disconnect": "Disconnect Nina",
+    "none": "No AI connection is configured. Prepared practice remains available.",
+    "connectCodex": "Connect Codex",
+    "migrated": "Your previous model choices were saved as selectable connections. The former generation choice is active.",
+    "dismiss": "Dismiss",
+    "cleanupPending": "Credential removal is pending. Reopen these settings to retry.",
+    "wait": "Wait for running AI actions to finish, then retry.",
+    "officialAuth": "Authentication belongs to Codex. Sign out in Codex; disconnect Nina here without changing its credentials."
   }
 }

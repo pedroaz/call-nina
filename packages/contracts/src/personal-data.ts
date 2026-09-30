@@ -8,8 +8,7 @@ export const personalDataGroups = {
     "learner_settings",
     "language_profiles",
     "local_learning_scope",
-    "model_preference_defaults",
-    "model_preference_overrides",
+    "ai_connections",
   ],
   practice: [
     "course_selection",

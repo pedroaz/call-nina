@@ -1,3 +1,4 @@
+import { migrateAiConnections } from "./ai-connection-migration.js";
 import { migrateMultilingualTeaching } from "./teaching-migration.js";
 import { migrateLanguageProfiles } from "./language-migration.js";
 import { migrateAttemptEvidence } from "./attempt-evidence.js";
@@ -1791,6 +1792,12 @@ export const callNinaMigrations = [
     ) STRICT;
     CREATE TRIGGER captured_activity_context_immutable BEFORE UPDATE ON captured_activity_contexts
       BEGIN SELECT RAISE(ABORT, 'OD_ACTIVITY_CONTEXT_IMMUTABLE'); END;`,
+  },
+  {
+    version: 35,
+    name: "root-ai-connections",
+    sql: `CREATE TABLE ai_connections (singleton INTEGER PRIMARY KEY CHECK(singleton = 1), settings_json TEXT NOT NULL CHECK(json_valid(settings_json))) STRICT;`,
+    migrate: migrateAiConnections,
   },
 ] as const satisfies readonly DatabaseMigration[];
 

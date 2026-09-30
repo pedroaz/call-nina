@@ -150,31 +150,7 @@ export {
   type TeachingProfileDefinition,
   type TeachingProfileId,
 } from "./teaching-profile.js";
-export {
-  defaultModelPreferences,
-  effortChoiceSchema,
-  modelChoiceSchema,
-  modelPreferenceResolutionSchema,
-  modelPreferencesSchema,
-  modelWorkloadSchema,
-  modelWorkloads,
-  resolveModelPreference,
-  runtimeEffortIdSchema,
-  runtimeModelIdSchema,
-  semanticEffortSchema,
-  semanticEffortSemantics,
-  semanticEfforts,
-  unavailableRuntimeCapabilitySchema,
-  unavailableSavedChoiceSchema,
-  workloadModelPreferenceSchema,
-  type EffortChoice,
-  type ModelChoice,
-  type ModelPreferenceResolution,
-  type ModelPreferences,
-  type ModelWorkload,
-  type SemanticEffort,
-  type WorkloadModelPreference,
-} from "./model-preference.js";
+export { resolveModelPreference, type ModelPreferenceResolution } from "./model-preference.js";
 export {
   deleteMistakeCommandSchema,
   effectiveMistakeCategory,

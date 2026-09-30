@@ -16,7 +16,6 @@ export const languageNames = {
   es: "Español",
   de: "Deutsch",
 };
-export const workloads = ["correction", "generation", "helper", "research"];
 export function failure(code) {
   return new Error(code);
 }
@@ -257,18 +256,41 @@ export class VerificationSession {
     await this.page
       .getByRole("tab", { name: await this.t("settings.tabs.models"), exact: true })
       .click();
-    await this.page.locator('[data-workload="generation"] select').first().waitFor();
+    const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
+    await panel.waitFor();
+    if ((await panel.locator("details").getAttribute("open")) === null)
+      await panel.locator("summary").click();
+    await panel
+      .getByRole("combobox", { name: await this.t("connections.active"), exact: true })
+      .waitFor();
+    return panel;
   }
   async preferences() {
-    const result = {};
-    for (const workload of workloads) {
-      const row = this.page.locator(`[data-workload="${workload}"]`);
-      result[workload] = {
-        model: await row.locator("select").nth(0).inputValue(),
-        effort: await row.locator("select").nth(1).inputValue(),
-      };
-    }
-    return result;
+    const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
+    return {
+      connectionId: await panel.getAttribute("data-ai-connection"),
+      route: await panel.getAttribute("data-route"),
+      rootGeneration: await panel.getAttribute("data-root-generation"),
+      model: await panel
+        .getByRole("combobox", { name: await this.t("modelControl.model"), exact: true })
+        .inputValue(),
+      effort: await panel
+        .getByRole("combobox", { name: await this.t("settings.effort"), exact: true })
+        .inputValue(),
+    };
+  }
+  async selectAiPreference(panel, key, value) {
+    const control = panel.getByRole("combobox", { name: await this.t(key), exact: true });
+    if ((await control.inputValue()) === value) return;
+    const revision = await panel.getAttribute("data-connection-revision");
+    await control.selectOption(value);
+    await until(
+      async () =>
+        (await panel.getAttribute("aria-busy")) === "false" &&
+        (await panel.getAttribute("data-connection-revision")) !== revision &&
+        (await control.inputValue()) === value,
+      "VERIFY_SETTINGS_SAVE_FAILED",
+    );
   }
   async saveSettings() {
     const save = await this.button("settings.save");
@@ -283,46 +305,42 @@ export class VerificationSession {
   }
   async prepareAI() {
     this.phase = "select-luna";
-    await this.settings();
-    for (const workload of workloads) {
-      const row = this.page.locator(`[data-workload="${workload}"]`);
-      if (
-        (await row
-          .locator("select")
-          .first()
-          .locator('option[value="exact:gpt-6-luna"]')
-          .count()) !== 1
-      )
-        throw failure("VERIFY_LUNA_UNAVAILABLE");
-    }
+    const panel = await this.settings();
+    const current = await this.preferences();
+    if (current.route !== "codex") throw failure("VERIFY_CODEX_CONNECTION_REQUIRED");
+    // Refuse to mutate an unavailable saved selection that cannot be restored
+    // through the current advertised controls; keep the original journal intact.
+    if (!(await panel.getAttribute("data-effective-model")))
+      throw failure("VERIFY_SETTINGS_UNRESTORABLE");
+    if ((await panel.locator('option[value="gpt-6-luna"]').count()) !== 1)
+      throw failure("VERIFY_LUNA_UNAVAILABLE");
     if (Object.keys(this.journal.preferences).length === 0) {
-      this.journal.preferences = await this.preferences();
+      this.journal.preferences = current;
       await this.persist();
+    } else if (
+      this.journal.preferences.connectionId !== current.connectionId ||
+      this.journal.preferences.rootGeneration !== current.rootGeneration
+    ) {
+      throw failure("VERIFY_SETTINGS_SCOPE_CHANGED");
     }
-    for (const workload of workloads) {
-      const row = this.page.locator(`[data-workload="${workload}"]`);
-      await row.locator("select").nth(0).selectOption("exact:gpt-6-luna");
-      await row.locator("select").nth(1).selectOption("semantic:balanced");
-      await until(async () => {
-        const defaultEffort = await row.getAttribute("data-default-effort");
-        return (
-          defaultEffort &&
-          (await row.getAttribute("data-effective-model")) === "gpt-6-luna" &&
-          (await row.getAttribute("data-effective-effort")) === defaultEffort
-        );
-      }, "VERIFY_LUNA_DEFAULT_UNAVAILABLE");
-    }
-    await this.saveSettings();
-    // Reopen from persisted settings, not just the unsaved draft.
+    await this.selectAiPreference(panel, "modelControl.model", "gpt-6-luna");
+    await this.selectAiPreference(panel, "settings.effort", "semantic:balanced");
+    await until(async () => {
+      const defaultEffort = await panel.getAttribute("data-default-effort");
+      return (
+        defaultEffort &&
+        (await panel.getAttribute("data-effective-model")) === "gpt-6-luna" &&
+        (await panel.getAttribute("data-effective-effort")) === defaultEffort
+      );
+    }, "VERIFY_LUNA_DEFAULT_UNAVAILABLE");
     await this.navigate(await this.t("nav.nina"));
     await this.settings();
     const observed = await this.preferences();
     if (
-      workloads.some(
-        (workload) =>
-          observed[workload].model !== "exact:gpt-6-luna" ||
-          observed[workload].effort !== "semantic:balanced",
-      )
+      observed.connectionId !== current.connectionId ||
+      observed.rootGeneration !== current.rootGeneration ||
+      observed.model !== "gpt-6-luna" ||
+      observed.effort !== "semantic:balanced"
     )
       throw failure("VERIFY_LUNA_SELECTION_FAILED");
     this.aiPrepared = true;
@@ -800,16 +818,21 @@ export class VerificationSession {
         };
       }
       if (Object.keys(this.journal.preferences).length) {
-        await this.settings();
-        for (const [workload, preference] of Object.entries(this.journal.preferences)) {
-          const row = this.page.locator(`[data-workload="${workload}"]`);
-          await row.locator("select").nth(0).selectOption(preference.model);
-          await row.locator("select").nth(1).selectOption(preference.effort);
-        }
-        await this.saveSettings();
+        const panel = await this.settings();
+        const preference = this.journal.preferences;
+        const current = await this.preferences();
+        if (
+          !preference.connectionId ||
+          preference.connectionId !== current.connectionId ||
+          preference.rootGeneration !== current.rootGeneration ||
+          preference.route !== current.route
+        )
+          throw failure("VERIFY_SETTINGS_SCOPE_CHANGED");
+        await this.selectAiPreference(panel, "modelControl.model", preference.model);
+        await this.selectAiPreference(panel, "settings.effort", preference.effort);
         await this.navigate(await this.t("nav.nina"));
         await this.settings();
-        if (JSON.stringify(await this.preferences()) !== JSON.stringify(this.journal.preferences))
+        if (JSON.stringify(await this.preferences()) !== JSON.stringify(preference))
           throw failure("VERIFY_SETTINGS_RESTORE_FAILED");
         this.journal.preferences = {};
       }

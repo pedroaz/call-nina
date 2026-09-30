@@ -1,265 +1,271 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
-import {
-  modelWorkloads,
-  resolveModelPreference,
-  type ModelWorkload,
-  type WorkloadModelPreference,
-} from "@call-nina/domain";
-import { Bot } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import type {
+  DesktopIpcResponse,
+  DesktopIpcRequest,
+  AiModelPreference,
+  CallNinaError,
+} from "@call-nina/contracts";
+import { resolveModelPreference } from "@call-nina/domain";
 import { useTranslation } from "react-i18next";
-import { Button, Disclosure, InfoHint } from "./components/ui/index.js";
-
+import { Button, Disclosure } from "./components/ui/index.js";
 import styles from "./SidebarModelControl.module.css";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
-import {
-  desktopSettingsAdapter,
-  replaceWorkloadPreference,
-  type DesktopSettingsResult,
-} from "./settings-adapter.js";
 
-type Catalog = Extract<
-  DesktopIpcResponse,
-  { status: "ok"; channel: "codex/models/read" }
->["result"];
+type View = Extract<DesktopIpcResponse, { status: "ok"; channel: "ai-connections/read" }>["result"];
+type Action = Extract<DesktopIpcRequest, { channel: "ai-connections/update" }>["payload"]["action"];
 
-function modelValue(preference: WorkloadModelPreference): string {
-  return preference.model.mode === "automatic" ? "automatic" : preference.model.modelId;
-}
-
-export function SidebarModelControl({ initialWorkload }: { initialWorkload: ModelWorkload }) {
+// Shared minimal current selector. Full connection authoring/onboarding belongs
+// to the settings tasks; no control stores a per-activity route or model.
+export function SidebarModelControl() {
   const { t } = useTranslation();
-  const [choice, setChoice] = useState({ initial: initialWorkload, selected: initialWorkload });
-  const workload = choice.initial === initialWorkload ? choice.selected : initialWorkload;
-  const setWorkload = (selected: ModelWorkload) => {
-    setChoice({ initial: initialWorkload, selected });
-  };
-  const [settings, setSettings] = useState<DesktopSettingsResult>();
-  const [catalog, setCatalog] = useState<Catalog>();
+  const [view, setView] = useState<View>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
-
   const load = useCallback(async () => {
     try {
-      const nextSettings = await desktopSettingsAdapter.read();
-      setSettings(nextSettings);
-      setCatalog(await invokeDesktop("codex/models/read", {}));
-      setError(undefined);
+      setView(await invokeDesktop("ai-connections/read", {}));
     } catch (cause) {
-      setCatalog(undefined);
       setError(normalizeDesktopError(cause).detail);
     }
   }, []);
-
   useEffect(() => {
-    const initial = window.setTimeout(() => void load(), 0);
+    const timer = window.setTimeout(() => void load(), 0);
     const unsubscribe = subscribeDesktop((event) => {
       if (
-        event.event === "state-invalidated" &&
-        (event.scope === "settings" || event.scope === "models" || event.scope === "account")
-      ) {
+        event.event === "data-root-changed" ||
+        (event.event === "state-invalidated" && ["settings", "account"].includes(event.scope))
+      )
         void load();
-      }
     });
     return () => {
-      window.clearTimeout(initial);
+      window.clearTimeout(timer);
       unsubscribe();
     };
   }, [load]);
-
-  const preference = settings?.settings.modelPreferences[workload];
-  const savedModelId = preference?.model.mode === "exact" ? preference.model.modelId : undefined;
-  const resolution = useMemo(
-    () =>
-      preference && catalog ? resolveModelPreference(workload, preference, catalog) : undefined,
-    [catalog, preference, workload],
+  const active = view?.settings.connections.find(
+    (entry) => entry.id === view.settings.activeConnectionId,
   );
-  const automaticResolution =
-    preference && catalog
-      ? resolveModelPreference(workload, { ...preference, model: { mode: "automatic" } }, catalog)
-          .resolution
-      : undefined;
-  const automaticModel =
-    automaticResolution && automaticResolution.status !== "unavailable"
-      ? catalog?.models.find(({ id }) => id === automaticResolution.effectiveModelId)
-      : undefined;
-  const effectiveResolution = resolution?.resolution as
-    { status: string; effectiveModelId?: string; effectiveEffortId?: string } | undefined;
-  const selectedModel = useMemo(() => {
-    if (!catalog || !effectiveResolution?.effectiveModelId) {
-      return undefined;
-    }
-    return catalog.models.find(({ id }) => id === effectiveResolution.effectiveModelId);
-  }, [catalog, effectiveResolution]);
-  const effectiveEffort = effectiveResolution?.effectiveEffortId;
-
-  const savePreference = async (nextPreference: WorkloadModelPreference) => {
-    if (!settings) return;
+  const availability = view?.availability.find((entry) => entry.connectionId === active?.id);
+  const catalog = availability?.models;
+  const resolution =
+    active && catalog ? resolveModelPreference(active.preference, catalog) : undefined;
+  const model = catalog?.models.find(
+    (entry) =>
+      entry.id ===
+      (active?.preference.model.mode === "exact"
+        ? active.preference.model.modelId
+        : catalog.runtimeDefaultModelId),
+  );
+  const mutate = async (action: Action) => {
+    if (!view) return;
     setBusy(true);
     setError(undefined);
     try {
-      const modelPreferences = replaceWorkloadPreference(
-        settings.settings.modelPreferences,
-        workload,
-        nextPreference,
+      setView(
+        await invokeDesktop("ai-connections/update", {
+          expectedGeneration: view.expectedGeneration,
+          expectedRevision: view.settings.revision,
+          action,
+        }),
       );
-      const next = await desktopSettingsAdapter.update(settings.updatedAt, {
-        ...settings.settings,
-        modelPreferences,
-      });
-      setSettings(next);
     } catch (cause) {
-      const detail = normalizeDesktopError(cause).detail;
+      setError(normalizeDesktopError(cause).detail);
       await load();
-      setError(detail);
     } finally {
       setBusy(false);
     }
   };
-
-  const selectModel = (modelId: string) => {
-    if (!preference) return;
-    const model =
-      modelId === "automatic"
-        ? ({ mode: "automatic" } as const)
-        : ({ mode: "exact", modelId } as const);
-    const nextModel =
-      modelId === "automatic" ? automaticModel : catalog?.models.find(({ id }) => id === modelId);
-    const fallbackEffort =
-      nextModel?.defaultReasoningEffort ?? nextModel?.supportedReasoningEfforts[0];
-    const effort =
-      preference.effort.mode === "exact" &&
-      !nextModel?.supportedReasoningEfforts.includes(preference.effort.effortId) &&
-      fallbackEffort
-        ? ({ mode: "exact", effortId: fallbackEffort } as const)
-        : preference.effort;
-    void savePreference({ model, effort });
+  const save = (preference: AiModelPreference) => {
+    if (!active) return;
+    const connection = {
+      id: active.id,
+      label: active.label,
+      routeId: active.routeId,
+      preference: active.preference,
+    };
+    void mutate({
+      kind: "save",
+      connection: { ...connection, preference },
+      credential: { action: "keep" },
+    });
   };
-
-  const selectEffort = (effortId: string) => {
-    if (!preference) return;
-    const effort = { mode: "exact", effortId } as const;
-    void savePreference({ ...preference, effort });
-  };
-
   return (
-    <section className={styles.navModelPanel} aria-busy={busy} aria-label={t("modelControl.title")}>
-      <Disclosure
-        label={
-          <span className={styles.navModelHeading}>
-            <Bot aria-hidden="true" />
-            <span>
-              {t(`modelControl.workloads.${workload}`)}
-              <small>{selectedModel?.displayName ?? t("modelControl.title")}</small>
-            </span>
-          </span>
-        }
-      >
-        <div
-          aria-label={t("modelControl.activity")}
-          className={styles.navModelWorkloads}
-          role="group"
-        >
-          {modelWorkloads.map((availableWorkload) => (
-            <Button
-              className={styles.navModelWorkloadButton}
-              aria-pressed={availableWorkload === workload}
-              data-selected={availableWorkload === workload || undefined}
-              isDisabled={busy}
-              key={availableWorkload}
-              onPress={() => {
-                setWorkload(availableWorkload);
-              }}
-            >
-              {t(`modelControl.workloads.${availableWorkload}`)}
-            </Button>
-          ))}
-        </div>
-        <p className={styles.navModelStatus}>{t("providerAccess.selectedRoute")}</p>
-        {!preference ? (
-          <p className={styles.navModelStatus}>{t("modelControl.loading")}</p>
-        ) : (
+    <section
+      className={styles.navModelPanel}
+      aria-busy={busy}
+      aria-label={t("connections.title")}
+      data-ai-connection={active?.id ?? ""}
+      data-route={active?.routeId ?? ""}
+      data-root-generation={view?.expectedGeneration}
+      data-connection-revision={view?.settings.revision}
+      data-effective-model={resolution?.status === "available" ? resolution.effectiveModelId : ""}
+      data-effective-effort={resolution?.status === "available" ? resolution.effectiveEffortId : ""}
+      data-default-effort={model?.defaultReasoningEffort ?? ""}
+    >
+      <Disclosure label={model?.displayName ?? active?.label ?? t("connections.title")}>
+        <p className={styles.navModelStatus}>{t("connections.single")}</p>
+        {view && (
           <>
-            <label className={styles.navModelField}>
-              <span>{t("modelControl.model")}</span>
-              <select
-                disabled={busy}
-                value={modelValue(preference)}
-                onChange={(event) => {
-                  selectModel(event.currentTarget.value);
-                }}
-              >
-                <option value="automatic">
-                  {t("modelControl.automatic", {
-                    model: automaticModel?.displayName ?? t("settings.automatic"),
-                  })}
-                </option>
-                {preference.model.mode === "exact" &&
-                !catalog?.models.some(({ id }) => id === savedModelId) ? (
-                  <option value={preference.model.modelId}>
-                    {t("settings.unavailableSavedModel", { model: preference.model.modelId })}
-                  </option>
-                ) : null}
-                {catalog?.models.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.displayName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <fieldset className={styles.navModelReasoning}>
-              <legend>
-                {t("modelControl.reasoning")}{" "}
-                <InfoHint label={t("modelControl.reasoning")}>
-                  {t("modelControl.reasoningHint")}
-                </InfoHint>
-              </legend>
-              <div className={styles.navModelEffortGrid}>
-                {selectedModel?.supportedReasoningEfforts.map((effort) => (
-                  <Button
-                    className={styles.navModelEffortButton}
-                    aria-pressed={effectiveEffort === effort}
-                    data-selected={effectiveEffort === effort ? true : undefined}
-                    isDisabled={busy}
-                    key={effort}
-                    onPress={() => {
-                      selectEffort(effort);
+            {active ? (
+              <>
+                <label className={styles.navModelField}>
+                  <span>{t("connections.active")}</span>
+                  <select
+                    disabled={busy}
+                    value={active.id}
+                    onChange={(event) =>
+                      void mutate({ kind: "activate", connectionId: event.currentTarget.value })
+                    }
+                  >
+                    {view.settings.connections.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.navModelField}>
+                  <span>{t("modelControl.model")}</span>
+                  <select
+                    disabled={busy || !catalog}
+                    value={
+                      active.preference.model.mode === "automatic"
+                        ? "automatic"
+                        : active.preference.model.modelId
+                    }
+                    onChange={(event) => {
+                      save({
+                        ...active.preference,
+                        model:
+                          event.currentTarget.value === "automatic"
+                            ? { mode: "automatic" }
+                            : { mode: "exact", modelId: event.currentTarget.value },
+                      });
                     }}
                   >
-                    {t(`settings.exactEfforts.${effort}`, { defaultValue: effort })}
+                    <option value="automatic">{t("connections.runtimeDefault")}</option>
+                    {active.preference.model.mode === "exact" &&
+                      !catalog?.models.some(
+                        (entry) =>
+                          entry.id ===
+                          (active.preference.model.mode === "exact"
+                            ? active.preference.model.modelId
+                            : ""),
+                      ) && (
+                        <option value={active.preference.model.modelId}>
+                          {active.preference.model.modelId}
+                        </option>
+                      )}
+                    {catalog?.models.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.navModelField}>
+                  <span>{t("settings.effort")}</span>
+                  <select
+                    disabled={busy || !model}
+                    value={
+                      active.preference.effort.mode === "semantic"
+                        ? `semantic:${active.preference.effort.effort}`
+                        : active.preference.effort.effortId
+                    }
+                    onChange={(event) => {
+                      save({
+                        ...active.preference,
+                        effort: event.currentTarget.value.startsWith("semantic:")
+                          ? {
+                              mode: "semantic",
+                              effort: event.currentTarget.value.slice(9) as
+                                "fast" | "balanced" | "deep",
+                            }
+                          : { mode: "exact", effortId: event.currentTarget.value },
+                      });
+                    }}
+                  >
+                    {(["fast", "balanced", "deep"] as const).map((effort) => (
+                      <option key={effort} value={`semantic:${effort}`}>
+                        {t(`settings.semanticEfforts.${effort}`)}
+                      </option>
+                    ))}
+                    {active.preference.effort.mode === "exact" &&
+                      !model?.supportedReasoningEfforts.includes(
+                        active.preference.effort.effortId,
+                      ) && (
+                        <option value={active.preference.effort.effortId}>
+                          {active.preference.effort.effortId}
+                        </option>
+                      )}
+                    {model?.supportedReasoningEfforts.map((effort) => (
+                      <option key={effort} value={effort}>
+                        {effort}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {availability?.status !== "available" && <p>{t("connections.unavailable")}</p>}
+                {view.settings.connections.length === 1 && (
+                  <Button
+                    isDisabled={busy}
+                    onPress={() =>
+                      void mutate({
+                        kind: "remove",
+                        connectionId: active.id,
+                        nextActiveConnectionId: null,
+                      })
+                    }
+                  >
+                    {t("connections.disconnect")}
                   </Button>
-                ))}
-              </div>
-            </fieldset>
+                )}
+              </>
+            ) : (
+              <>
+                <p>{t("connections.none")}</p>
+                <Button
+                  isDisabled={busy}
+                  onPress={() =>
+                    void mutate({
+                      kind: "save",
+                      connection: {
+                        id: crypto.randomUUID(),
+                        label: "Codex",
+                        routeId: "codex",
+                        preference: {
+                          model: { mode: "automatic" },
+                          effort: { mode: "semantic", effort: "balanced" },
+                        },
+                      },
+                      credential: { action: "keep" },
+                    })
+                  }
+                >
+                  {t("connections.connectCodex")}
+                </Button>
+              </>
+            )}
+            {view.settings.migrationNotice && (
+              <>
+                <p>{t("connections.migrated")}</p>
+                <Button
+                  isDisabled={busy}
+                  onPress={() => void mutate({ kind: "dismiss-migration" })}
+                >
+                  {t("connections.dismiss")}
+                </Button>
+              </>
+            )}
+            {view.settings.retiredSecretRefs.length > 0 && <p>{t("connections.cleanupPending")}</p>}
           </>
         )}
       </Disclosure>
-      {resolution?.resolution.status === "unavailable" && (
-        <p className={styles.navModelStatus}>{t("providerAccess.reasons.model-unavailable")}</p>
-      )}
-      {resolution?.resolution.status === "fallback" && (
-        <p className={styles.navModelStatus}>{t("settings.savedModelFallback")}</p>
-      )}
-      {resolution &&
-        resolution.resolution.status !== "unavailable" &&
-        resolution.resolution.unavailableAutomaticModelId && (
-          <p className={styles.navModelStatus}>
-            {t("settings.automaticFallback", {
-              model: resolution.resolution.unavailableAutomaticModelId,
-              effective: selectedModel?.displayName,
-            })}
-          </p>
-        )}
       {error && (
-        <p className={styles.navModelError}>
-          {t(
-            error.kind === "app-server"
-              ? "providerAccess.reasons.runtime-unavailable"
-              : error.messageKey,
-          )}
+        <p role="alert" className={styles.navModelError}>
+          {t(error.kind === "conflict" ? "connections.wait" : error.messageKey)}
         </p>
       )}
-      {busy && <p className={styles.navModelStatus}>{t("modelControl.saving")}</p>}
     </section>
   );
 }

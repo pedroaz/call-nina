@@ -183,7 +183,6 @@ export function WritingWorkspace({
     setPromptStage("queued");
     try {
       const result = await invokeDesktop("learning-operation/start", {
-        routeId: "codex",
         submissionId: nextSubmissionId,
         input: {
           kind: "writing-prompt",
@@ -227,7 +226,6 @@ export function WritingWorkspace({
     setCorrection(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
-        routeId: "codex",
         submissionId: nextSubmissionId,
         input: {
           kind: "writing-correction",
@@ -277,7 +275,6 @@ export function WritingWorkspace({
     setCorrectionOutcome(undefined);
     try {
       const result = await invokeDesktop("learning-operation/retry", {
-        routeId: "codex",
         previousOperationId: previousCorrectionOperationId,
         submissionId: nextSubmissionId,
       });

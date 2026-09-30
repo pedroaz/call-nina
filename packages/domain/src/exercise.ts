@@ -1,4 +1,5 @@
 import {
+  aiModelPreferenceSchema,
   activityIdSchema,
   contentReferenceSchema,
   contentExerciseRevisionSchema,
@@ -13,7 +14,6 @@ import {
 } from "@call-nina/contracts";
 
 import { cefrBandSchema } from "./learner-profile.js";
-import { runtimeEffortIdSchema, runtimeModelIdSchema } from "./model-preference.js";
 
 function boundedNonblankString(maximumLength: number) {
   return z.string().min(1).max(maximumLength).regex(/\S/u);
@@ -46,14 +46,15 @@ export const lessonKindSchema = z.enum(lessonKinds);
 
 const reportedModelSelectionSchema = z.strictObject({
   availability: z.literal("reported"),
-  modelId: runtimeModelIdSchema,
-  effortId: runtimeEffortIdSchema,
+  modelId: aiModelPreferenceSchema.shape.model.options[1].shape.modelId,
+  effortId: aiModelPreferenceSchema.shape.effort.options[1].shape.effortId,
 });
 
 export const aiProvenanceSchema = z.discriminatedUnion("producer", [
   z.strictObject({
     source: z.literal("ai"),
     producer: z.literal("desktop-app-server"),
+    connectionId: z.uuid().optional(),
     modelRequestId: modelRequestIdSchema,
     generatedAt: utcInstantSchema,
     modelSelection: reportedModelSelectionSchema,

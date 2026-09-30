@@ -1423,9 +1423,10 @@
       "runtime-unavailable": "Esta ação de IA precisa do Codex neste dispositivo. Confira a conexão com o Codex nas Configurações e tente novamente.",
       "account-required": "Esta ação de IA precisa de uma conta Codex conectada. Conecte a conta ou renove a conexão nas Configurações e tente novamente.",
       "account-unavailable": "Não foi possível confirmar o acesso à conta Codex. Confira a conexão nas Configurações e tente novamente.",
-      "capability-unavailable": "A rota do Codex neste dispositivo não oferece suporte a esta ação. Nenhuma outra rota será selecionada automaticamente.",
+      "capability-unavailable": "A conexão de IA selecionada não oferece suporte a esta ação. Nenhuma outra conexão será selecionada automaticamente.",
       "model-unavailable": "Não há um modelo Codex e uma configuração de raciocínio utilizáveis para esta ação. Confira a escolha de modelo salva e a conexão nas Configurações e tente novamente.",
-      "plugin-required": "Para abrir esta atividade do Voice no Codex, é necessário o plugin do Call Nina. Instale ou atualize o plugin nas Configurações e tente novamente."
+      "plugin-required": "Para abrir esta atividade do Voice no Codex, é necessário o plugin do Call Nina. Instale ou atualize o plugin nas Configurações e tente novamente.",
+      "connection-required": "Escolha uma conexão de IA nas configurações para usar esta ação. As atividades preparadas continuam disponíveis."
     }
   },
   "languages": {
@@ -1541,5 +1542,20 @@
     "nina": "Ver as recomendações da Nina",
     "return": "Voltar para {{origin}}",
     "selfAssessment": "A revisão dos cartões fica salva nesta atividade. As autoavaliações orientam a revisão do vocabulário; elas não comprovam proficiência independente."
+  },
+  "connections": {
+    "title": "Conexão de IA",
+    "single": "Uma conexão e um modelo são usados em todas as ações de IA. As alterações aguardam o término das ações em andamento.",
+    "active": "Conexão ativa",
+    "runtimeDefault": "Padrão do ambiente",
+    "unavailable": "Esta conexão ou modelo não está disponível. Confira as configurações.",
+    "disconnect": "Desconectar Nina",
+    "none": "Nenhuma conexão de IA configurada. A prática preparada continua disponível.",
+    "connectCodex": "Conectar Codex",
+    "migrated": "Suas escolhas anteriores de modelo foram salvas como conexões selecionáveis. A antiga escolha de geração está ativa.",
+    "dismiss": "Dispensar",
+    "cleanupPending": "A remoção da credencial está pendente. Reabra estas configurações para tentar novamente.",
+    "wait": "Aguarde o término das ações de IA e tente novamente.",
+    "officialAuth": "A autenticação pertence ao Codex. Saia da conta no Codex; desconecte Nina aqui sem alterar suas credenciais."
   }
 }

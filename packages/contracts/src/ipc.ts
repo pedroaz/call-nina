@@ -1,3 +1,4 @@
+import { aiConnectionMutationSchema, aiConnectionsViewSchema } from "./ai-connections.js";
 import {
   ninaRequestSchema,
   ninaPlanSchema,
@@ -14,11 +15,7 @@ import {
 } from "./translation.js";
 import { vocabularyLexemeSchema, vocabularyExampleSchema } from "./vocabulary-content.js";
 import { exerciseEntryContextSchema, reuseExerciseActionSchema } from "./exercise-launch.js";
-import {
-  providerRouteIdSchema,
-  providerOperationSchema,
-  providerAccessSchema,
-} from "./provider-access.js";
+import { providerOperationSchema, providerAccessSchema } from "./provider-access.js";
 import { generationProvenanceSchema } from "./generation-provenance.js";
 import { attemptEvidenceSchema, externalAttemptFeedbackSchema } from "./attempt-evidence.js";
 import {
@@ -95,6 +92,8 @@ import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "ai-connections/read",
+  "ai-connections/update",
   "translation/read",
   "translation/start",
   "translation/cancel",
@@ -168,7 +167,6 @@ export const desktopIpcChannels = [
   "codex/account/read",
   "codex/account/login/start",
   "codex/account/login/cancel",
-  "codex/account/logout",
   "codex/models/read",
   "codex/rate-limits/read",
   "learning-operation/start",
@@ -194,7 +192,6 @@ const request = <
 const providerAccessReadRequest = request(
   "provider/access/read",
   z.strictObject({
-    routeId: providerRouteIdSchema,
     operation: providerOperationSchema,
     previousOperationId: correlationIdSchema.optional(),
   }),
@@ -236,25 +233,6 @@ const learnerProfileFinishOnboardingRequest = request(
     expectedUpdatedAt: utcInstantSchema,
   }),
 );
-const runtimeSelectionIdSchema = text(128).regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/u);
-const modelPreferenceSchema = z.strictObject({
-  model: z.discriminatedUnion("mode", [
-    z.strictObject({ mode: z.literal("automatic") }),
-    z.strictObject({ mode: z.literal("exact"), modelId: runtimeSelectionIdSchema }),
-  ]),
-  effort: z.discriminatedUnion("mode", [
-    z.strictObject({ mode: z.literal("semantic"), effort: z.enum(["fast", "balanced", "deep"]) }),
-    z.strictObject({ mode: z.literal("exact"), effortId: runtimeSelectionIdSchema }),
-  ]),
-});
-const persistedModelPreferencesSchema = z.strictObject({
-  routeId: providerRouteIdSchema,
-  schemaVersion: z.literal(1),
-  correction: modelPreferenceSchema,
-  generation: modelPreferenceSchema,
-  helper: modelPreferenceSchema,
-  research: modelPreferenceSchema,
-});
 const editableLearnerSettingsSchema = z.strictObject({
   learningScope: learningScopeSchema,
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
@@ -268,7 +246,6 @@ const editableLearnerSettingsSchema = z.strictObject({
     showConciseExplanation: z.boolean(),
     showNaturalAlternative: z.boolean(),
   }),
-  modelPreferences: persistedModelPreferencesSchema,
 });
 const learnerLanguageSelectRequest = request(
   "learner-settings/select-language",
@@ -589,7 +566,6 @@ const accountLoginCancelRequest = request(
   "codex/account/login/cancel",
   z.strictObject({ loginId: correlationIdSchema }),
 );
-const accountLogoutRequest = request("codex/account/logout", emptyPayload);
 const modelsReadRequest = request("codex/models/read", emptyPayload);
 const rateLimitsReadRequest = request("codex/rate-limits/read", emptyPayload);
 
@@ -727,7 +703,6 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
 const learningOperationStartRequest = request(
   "learning-operation/start",
   z.strictObject({
-    routeId: providerRouteIdSchema,
     submissionId: correlationIdSchema,
     input: learningOperationInputSchema,
   }),
@@ -739,13 +714,14 @@ const learningOperationCancelRequest = request(
 const learningOperationRetryRequest = request(
   "learning-operation/retry",
   z.strictObject({
-    routeId: providerRouteIdSchema,
     previousOperationId: correlationIdSchema,
     submissionId: correlationIdSchema,
   }),
 );
 
 export const desktopIpcRequestSchema = boundaryUnion([
+  request("ai-connections/read", emptyPayload),
+  request("ai-connections/update", aiConnectionMutationSchema),
   request("translation/read", translationRequestSchema),
   request("translation/start", translationStartSchema),
   request("translation/cancel", translationCancelSchema),
@@ -819,7 +795,6 @@ export const desktopIpcRequestSchema = boundaryUnion([
   accountReadRequest,
   accountLoginRequest,
   accountLoginCancelRequest,
-  accountLogoutRequest,
   modelsReadRequest,
   rateLimitsReadRequest,
   learningOperationStartRequest,
@@ -1676,10 +1651,6 @@ const accountLoginCancelResponse = response(
     status: z.enum(["cancelled", "already-finished"]),
   }),
 );
-const accountLogoutResponse = response(
-  "codex/account/logout",
-  z.strictObject({ status: z.literal("signed-out") }),
-);
 const modelsReadResponse = response("codex/models/read", modelCatalogSchema);
 const rateLimitsReadResponse = response("codex/rate-limits/read", rateLimitStateSchema);
 const learningOperationAcceptanceSchema = z.discriminatedUnion("status", [
@@ -1721,6 +1692,8 @@ const errorResponse = strictBoundaryObject({
 });
 
 export const desktopIpcResponseSchema = boundaryUnion([
+  response("ai-connections/read", aiConnectionsViewSchema),
+  response("ai-connections/update", aiConnectionsViewSchema),
   response("translation/read", translationReadSchema),
   response(
     "translation/start",
@@ -1800,7 +1773,6 @@ export const desktopIpcResponseSchema = boundaryUnion([
   accountReadResponse,
   accountLoginResponse,
   accountLoginCancelResponse,
-  accountLogoutResponse,
   modelsReadResponse,
   rateLimitsReadResponse,
   learningOperationStartResponse,
