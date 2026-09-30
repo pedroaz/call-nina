@@ -1,3 +1,4 @@
+import { OfflineRuntime } from "@call-nina/offline-runtime";
 import { ConnectionSecretStorage } from "./secret-storage.js";
 import { desktopPathOption } from "./options.js";
 import { writeFile } from "node:fs/promises";
@@ -249,6 +250,7 @@ if (!app.requestSingleInstanceLock()) {
         : fileURLToPath(new URL("../../../../content/curriculum/", import.meta.url)),
       bootstrapFile,
       secrets: new ConnectionSecretStorage(userData),
+      offlineRuntime: new OfflineRuntime({ artifactRoot: path.join(userData, "offline") }),
       knownInstallRoots,
       appServer,
       openExternal: openValidatedExternalUrl,

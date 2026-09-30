@@ -36,6 +36,7 @@ const boundaries = [
     packages: [
       "codex-client",
       "direct-api",
+      "offline-runtime",
       "contracts",
       "domain",
       "persistence",
@@ -80,6 +81,13 @@ const boundaries = [
     electron: false,
   },
   {
+    id: "offline-runtime",
+    prefix: "packages/offline-runtime/",
+    packages: ["learning-workflows", "contracts"],
+    node: true,
+    electron: false,
+  },
+  {
     id: "direct-api",
     prefix: "packages/direct-api/",
     packages: ["contracts", "learning-workflows"],
@@ -109,6 +117,7 @@ const packagePrefixes = new Map([
   ["@call-nina/domain", "domain"],
   ["@call-nina/persistence", "persistence"],
   ["@call-nina/codex-client", "codex-client"],
+  ["@call-nina/offline-runtime", "offline-runtime"],
   ["@call-nina/direct-api", "direct-api"],
   ["@call-nina/platform", "platform"],
   ["@call-nina/desktop", "desktop"],

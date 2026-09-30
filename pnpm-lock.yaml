@@ -104,6 +104,9 @@ importers:
       '@call-nina/learning-workflows':
         specifier: workspace:*
         version: link:../../packages/learning-workflows
+      '@call-nina/offline-runtime':
+        specifier: workspace:*
+        version: link:../../packages/offline-runtime
       '@call-nina/persistence':
         specifier: workspace:*
         version: link:../../packages/persistence
@@ -310,6 +313,18 @@ importers:
       '@call-nina/contracts':
         specifier: workspace:*
         version: link:../contracts
+
+  packages/offline-runtime:
+    dependencies:
+      '@call-nina/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@call-nina/learning-workflows':
+        specifier: workspace:*
+        version: link:../learning-workflows
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
 
   packages/persistence:
     dependencies:

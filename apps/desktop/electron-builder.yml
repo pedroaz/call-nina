@@ -23,6 +23,12 @@ files:
   - dist/preload/index.cjs
   - dist/renderer/**
 extraResources:
+  - from: ../../docs/offline-artifact-notices.md
+    to: notices/offline-artifact-notices.md
+  - from: ../../docs/offline-model-license.txt
+    to: notices/offline-model-license.txt
+  - from: ../../docs/offline-runtime-license.txt
+    to: notices/offline-runtime-license.txt
   - from: ../../release/codex-runtime
     to: codex-runtime
     filter:

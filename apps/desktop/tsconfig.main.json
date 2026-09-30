@@ -25,6 +25,9 @@
     },
     {
       "path": "../../packages/direct-api"
+    },
+    {
+      "path": "../../packages/offline-runtime"
     }
   ]
 }
