@@ -101,7 +101,7 @@ export const designTokens = {
 
 export type DesignTokens = typeof designTokens;
 
-/** React Native consumes the same values, with registered local family names. */
+/** Native faces are registered by these exact aliases; weight is part of the face. */
 export const nativeDesignTokens = {
   palette: designTokens.palette,
   colors: designTokens.colors,
@@ -109,12 +109,13 @@ export const nativeDesignTokens = {
   radii: designTokens.radii,
   borders: designTokens.borders,
   typography: {
-    ...designTokens.typography,
+    styles: designTokens.typography.styles,
     families: {
-      display: "Fredoka",
-      body: "Figtree",
-      phonetic: "JetBrainsMono",
-      phoneticIpa: "NotoSansMono",
+      displayBold: "Fredoka700",
+      bodyRegular: "Figtree400",
+      bodyBold: "Figtree700",
+      phoneticRegular: "JetBrainsMono400",
+      phoneticIpaRegular: "NotoSansMono400",
     },
   },
   shadows: Object.fromEntries(

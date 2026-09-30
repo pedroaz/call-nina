@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import prettier from "prettier";
 
 import { designTokens } from "../../packages/design-system/src/index.ts";
 
@@ -11,6 +12,16 @@ if (args.length > 1 || (args.length === 1 && args[0] !== "--check")) {
 
 const directory = new URL("../../packages/design-system/styles/", import.meta.url);
 const target = new URL("tokens.css", directory);
+const noticesTarget = new URL("../assets/fonts/font-notices.json", directory);
+const fontsDirectory = new URL("../assets/fonts/", directory);
+const noticeNames = ["Fredoka", "Figtree", "JetBrainsMono", "NotoSansMono"];
+const notices = await Promise.all(
+  noticeNames.map(async (name) => ({
+    name: name.replace("JetBrainsMono", "JetBrains Mono").replace("NotoSansMono", "Noto Sans Mono"),
+    text: await readFile(new URL(`OFL-${name}.txt`, fontsDirectory), "utf8"),
+  })),
+);
+const noticesJson = await prettier.format(JSON.stringify(notices), { parser: "json" });
 const declarations = [];
 const rem = (value) => `${value / 16}rem`;
 const kebab = (value) => value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
@@ -70,8 +81,19 @@ if (args[0] === "--check") {
   } else {
     process.stdout.write("[PASS] DESIGN_TOKENS_CURRENT\n");
   }
+  const currentNotices = await readFile(noticesTarget, "utf8").catch((error) => {
+    if (error.code === "ENOENT") return undefined;
+    throw error;
+  });
+  if (currentNotices !== noticesJson) {
+    process.stderr.write("[FAIL] FONT_NOTICES_STALE: run make design-tokens\n");
+    process.exitCode = 1;
+  } else {
+    process.stdout.write("[PASS] FONT_NOTICES_CURRENT\n");
+  }
 } else {
   await mkdir(directory, { recursive: true });
   await writeFile(target, css);
+  await writeFile(noticesTarget, noticesJson);
   process.stdout.write("[PASS] DESIGN_TOKENS_GENERATED\n");
 }
