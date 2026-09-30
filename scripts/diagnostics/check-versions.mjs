@@ -16,6 +16,7 @@ const manifests = [
   "packages/learning-workflows/package.json",
   "packages/contracts/package.json",
   "packages/design-system/package.json",
+  "packages/browser-ui/package.json",
   "packages/domain/package.json",
   "packages/persistence/package.json",
   "packages/platform/package.json",

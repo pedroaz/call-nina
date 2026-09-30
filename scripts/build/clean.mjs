@@ -22,6 +22,7 @@ const generated = [
   "packages/learning-workflows/dist",
   "packages/contracts/dist",
   "packages/design-system/dist",
+  "packages/browser-ui/dist",
   "packages/domain/dist",
   "packages/persistence/dist",
   "packages/platform/dist",
