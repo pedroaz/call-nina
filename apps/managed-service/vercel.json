@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "pnpm --filter @call-nina/managed-service run build",
+  "functions": { "api/generate.ts": { "maxDuration": 150 } },
+  "git": { "deploymentEnabled": false }
+}

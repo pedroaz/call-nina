@@ -6,6 +6,8 @@ import path from "node:path";
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 const manifests = [
   "package.json",
+  "packages/managed-generation/package.json",
+  "apps/managed-service/package.json",
   "apps/desktop/package.json",
   "apps/mcp-server/package.json",
   "packages/codex-client/package.json",

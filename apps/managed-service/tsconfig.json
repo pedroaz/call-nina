@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.node.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "build",
+    "skipLibCheck": true
+  },
+  "include": ["api/**/*.ts", "deployment.ts", "desired.json", "plan.ts"],
+  "references": [
+    {
+      "path": "../../packages/managed-generation"
+    },
+    {
+      "path": "../../packages/contracts"
+    }
+  ]
+}
