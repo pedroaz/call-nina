@@ -125,7 +125,8 @@ export default tseslint.config(
               message: "Mobile cannot use desktop runtimes.",
             },
             {
-              group: ["@call-nina/**", "!@call-nina/design-system"],
+              regex:
+                "^@call-nina/(?!design-system(?:$|/font-notices\\.json$|/fonts/[^/]+\\.ttf$|/brand/[^/]+\\.png$)).+",
               message: "Mobile currently consumes only the portable design foundation.",
             },
             {

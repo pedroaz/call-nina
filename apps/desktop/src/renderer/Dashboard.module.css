@@ -1,18 +1,18 @@
 .summary {
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 .suggestions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--od-suggestion-min)), 1fr));
-  gap: var(--od-space-4);
-  margin-top: var(--od-space-3);
+  gap: var(--od-space-5);
+  margin-top: var(--od-space-4);
 }
 .suggestion {
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow-wrap: anywhere;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 .suggestion > * {
   margin-block: 0;
@@ -25,7 +25,7 @@
 .request {
   display: flex;
   flex-direction: column;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -36,6 +36,6 @@
 .options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   align-items: start;
 }

@@ -1,13 +1,13 @@
 .workspace {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   min-width: 0;
 }
 
 .source {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-family: var(--od-font-reading);
+  font-family: var(--od-font-family-body);
   line-height: var(--od-line-normal);
 }
 

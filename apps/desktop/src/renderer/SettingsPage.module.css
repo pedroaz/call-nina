@@ -1,42 +1,42 @@
 .settingsPage {
-  padding-bottom: var(--od-space-12);
+  padding-bottom: var(--od-space-10);
 }
 
 .switchConfirmation {
-  background: var(--od-color-warning-soft);
-  border: var(--od-border-thin) solid var(--od-color-warning);
+  background: var(--od-color-state-streak-soft);
+  border: var(--od-border-thin) solid var(--od-color-state-streak);
   border-radius: var(--od-radius-md);
   display: grid;
-  gap: var(--od-space-3);
-  margin-top: var(--od-space-4);
+  gap: var(--od-space-4);
+  margin-top: var(--od-space-5);
   overflow-wrap: anywhere;
-  padding: var(--od-space-4);
+  padding: var(--od-space-5);
 }
 
 .settingsControls {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .settingsControls input {
-  background: var(--od-color-surface-raised);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
-  color: var(--od-color-text);
+  color: var(--od-color-text-strong);
   font: inherit;
   min-height: var(--od-control-min);
-  padding: var(--od-space-2) var(--od-space-3);
+  padding: var(--od-space-3) var(--od-space-4);
 }
 
 .detailList {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .detailList div {
   display: flex;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   justify-content: space-between;
 }
 
@@ -53,25 +53,25 @@
 }
 
 .modelRow {
-  border: var(--od-border-thin) solid var(--od-color-border);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: var(--od-space-4);
-  padding: var(--od-space-4);
+  margin-bottom: var(--od-space-5);
+  padding: var(--od-space-5);
 }
 
 .modelRow legend {
   font-weight: var(--od-weight-strong);
-  padding: 0 var(--od-space-2);
+  padding: 0 var(--od-space-3);
 }
 
 .settingsActions {
-  bottom: var(--od-space-3);
+  bottom: var(--od-space-4);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   justify-content: flex-end;
   position: sticky;
 }
@@ -84,10 +84,10 @@
 }
 
 .settingsActions {
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
-  padding: var(--od-space-3);
+  padding: var(--od-space-4);
   z-index: 1;
 }
 @container workspace (max-width: 42rem) {

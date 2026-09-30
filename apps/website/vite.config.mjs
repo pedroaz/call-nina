@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import {
@@ -18,6 +19,23 @@ const escapeHtml = (text) =>
 export default defineConfig({
   plugins: [
     react(),
+    {
+      name: "bundled-font-notices",
+      generateBundle() {
+        for (const family of ["Fredoka", "Figtree", "JetBrainsMono", "NotoSansMono"]) {
+          this.emitFile({
+            type: "asset",
+            fileName: `notices/fonts/OFL-${family}.txt`,
+            source: readFileSync(
+              new URL(
+                `../../packages/design-system/assets/fonts/OFL-${family}.txt`,
+                import.meta.url,
+              ),
+            ),
+          });
+        }
+      },
+    },
     {
       name: "static-blog-pages",
       enforce: "post",

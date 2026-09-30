@@ -1,18 +1,18 @@
 .inline del {
-  background: var(--od-color-error-soft);
-  color: var(--od-color-error);
-  text-decoration-thickness: var(--od-border-strong);
+  background: var(--od-color-state-wrong-soft);
+  color: var(--od-color-state-wrong);
+  text-decoration-thickness: var(--od-border-outlined);
 }
 
 .inline ins {
-  background: var(--od-color-success-soft);
-  color: var(--od-color-success);
+  background: var(--od-color-state-correct-soft);
+  color: var(--od-color-state-correct);
   text-decoration: none;
 }
 
 .grid {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 

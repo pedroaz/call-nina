@@ -5,45 +5,46 @@
   cursor: pointer;
   display: inline-flex;
   font-weight: var(--od-weight-medium);
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   justify-content: center;
   min-height: var(--od-control-small);
   min-width: 0;
   max-width: 100%;
   font-size: var(--od-font-size-sm);
-  padding: var(--od-space-2) var(--od-space-4);
+  padding: var(--od-space-3) var(--od-space-5);
 }
 
 .primary {
-  background: var(--od-color-primary);
-  color: var(--od-color-surface-raised);
+  background: var(--od-color-brand);
+  color: var(--od-color-on-brand);
 }
 
 .primary:hover,
 .primary[data-pressed] {
-  background: var(--od-color-primary-hover);
+  background: var(--od-color-brand-hover);
+  color: var(--od-color-on-dark);
 }
 
 .secondary {
-  background: var(--od-color-surface);
-  border-color: var(--od-color-border);
-  color: var(--od-color-text);
+  background: var(--od-color-surface-card);
+  border-color: var(--od-color-border-default);
+  color: var(--od-color-text-strong);
 }
 
 .secondary:hover,
 .secondary[data-pressed] {
-  background: var(--od-color-primary-soft);
-  border-color: var(--od-color-primary);
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-brand-ink);
 }
 
 .danger {
-  background: var(--od-color-error);
-  color: var(--od-color-surface-raised);
+  background: var(--od-color-state-wrong);
+  color: var(--od-color-on-dark);
 }
 
 .danger:hover,
 .danger[data-pressed] {
-  background: var(--od-color-error-hover);
+  background: var(--od-color-state-wrong-hover);
 }
 
 .button[data-disabled],
@@ -57,7 +58,7 @@
 }
 
 .spinner {
-  animation: spin var(--od-motion-normal) linear infinite;
+  animation: spin var(--od-motion-duration-ui) linear infinite;
   height: var(--od-icon-sm);
   width: var(--od-icon-sm);
 }
@@ -75,12 +76,12 @@
 }
 
 .tooltip {
-  background: var(--od-color-text);
+  background: var(--od-color-text-strong);
   border-radius: var(--od-radius-sm);
-  color: var(--od-color-surface-raised);
+  color: var(--od-color-on-dark);
   font-size: var(--od-font-size-xs);
   max-width: var(--od-field-max);
-  padding: var(--od-space-1) var(--od-space-2);
+  padding: var(--od-space-2) var(--od-space-3);
 }
 
 .visuallyHidden {
@@ -115,15 +116,15 @@
 }
 .quiet {
   background: transparent;
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
 }
 .quiet:hover,
 .quiet[data-pressed],
 .quiet[aria-pressed="true"] {
-  background: var(--od-color-primary-soft);
+  background: var(--od-color-surface-brand);
 }
 .button[aria-pressed="true"] {
-  background: var(--od-color-primary-soft);
-  border-color: var(--od-color-primary);
-  color: var(--od-color-primary);
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-brand-ink);
+  color: var(--od-color-brand-ink);
 }
