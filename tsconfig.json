@@ -34,6 +34,9 @@
     },
     {
       "path": "./packages/learning-workflows"
+    },
+    {
+      "path": "./packages/direct-api"
     }
   ]
 }

@@ -33,7 +33,14 @@ const boundaries = [
   {
     id: "desktop-main",
     prefix: "apps/desktop/src/main/",
-    packages: ["codex-client", "contracts", "domain", "persistence", "learning-workflows"],
+    packages: [
+      "codex-client",
+      "direct-api",
+      "contracts",
+      "domain",
+      "persistence",
+      "learning-workflows",
+    ],
     node: true,
     electron: true,
   },
@@ -73,6 +80,13 @@ const boundaries = [
     electron: false,
   },
   {
+    id: "direct-api",
+    prefix: "packages/direct-api/",
+    packages: ["contracts", "learning-workflows"],
+    node: true,
+    electron: false,
+  },
+  {
     id: "codex-client",
     prefix: "packages/codex-client/",
     packages: ["contracts", "platform", "learning-workflows"],
@@ -95,6 +109,7 @@ const packagePrefixes = new Map([
   ["@call-nina/domain", "domain"],
   ["@call-nina/persistence", "persistence"],
   ["@call-nina/codex-client", "codex-client"],
+  ["@call-nina/direct-api", "direct-api"],
   ["@call-nina/platform", "platform"],
   ["@call-nina/desktop", "desktop"],
   ["@call-nina/mcp-server", "mcp-server"],

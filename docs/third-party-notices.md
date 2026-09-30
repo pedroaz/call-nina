@@ -1,6 +1,6 @@
 # Call Nina third-party notices
 
-This inventory covers the 36 package versions bundled into, or providing the Electron runtime for, the local application from the pinned pnpm lockfile. Build-only quality and packaging tools are excluded. Each dependency remains under its own license; consult the package metadata and upstream repository for the complete license text. This file is regenerated with `pnpm run generate:third-party-notices`.
+This inventory covers the 48 package versions bundled into, or providing the Electron runtime for, the local application from the pinned pnpm lockfile. Build-only quality and packaging tools are excluded. Each dependency remains under its own license; consult the package metadata and upstream repository for the complete license text. This file is regenerated with `pnpm run generate:third-party-notices`.
 
 ## Application and assets
 
@@ -13,6 +13,12 @@ This inventory covers the 36 package versions bundled into, or providing the Ele
 
 | Package | Version | Declared license | Homepage |
 | --- | --- | --- | --- |
+| `@ai-sdk/anthropic` | `4.0.69` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
+| `@ai-sdk/gateway` | `4.0.101` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
+| `@ai-sdk/google` | `4.0.86` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
+| `@ai-sdk/openai` | `4.0.82` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
+| `@ai-sdk/provider-utils` | `5.0.52` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
+| `@ai-sdk/provider` | `4.0.20` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
 | `@babel/runtime` | `7.29.7` | MIT | [upstream](https://babel.dev/docs/en/next/babel-runtime) |
 | `@electron-internal/extract-zip` | `1.0.5` | BSD-2-Clause | — |
 | `@electron/get` | `5.1.0` | MIT | — |
@@ -22,16 +28,22 @@ This inventory covers the 36 package versions bundled into, or providing the Ele
 | `@modelcontextprotocol/core` | `2.0.0` | MIT | [upstream](https://modelcontextprotocol.io) |
 | `@modelcontextprotocol/server` | `2.0.0` | MIT | [upstream](https://modelcontextprotocol.io) |
 | `@react-types/shared` | `3.36.1` | Apache-2.0 | — |
+| `@standard-schema/spec` | `1.1.0` | MIT | [upstream](https://standardschema.dev) |
 | `@swc/helpers` | `0.5.23` | Apache-2.0 | [upstream](https://swc.rs) |
+| `@vercel/oidc` | `3.2.0` | Apache-2.0 | [upstream](https://vercel.com) |
+| `@workflow/serde` | `4.1.0` | Apache-2.0 | — |
+| `ai` | `7.0.123` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
 | `aria-hidden` | `1.2.6` | MIT | [upstream](https://github.com/theKashey/aria-hidden#readme) |
 | `client-only` | `0.0.1` | MIT | [upstream](https://reactjs.org/) |
 | `clsx` | `2.1.1` | MIT | — |
 | `debug` | `4.4.3` | MIT | — |
 | `electron` | `42.7.1` | MIT | — |
 | `env-paths` | `3.0.0` | MIT | — |
+| `eventsource-parser` | `3.1.1` | MIT | [upstream](https://github.com/rexxars/eventsource-parser#readme) |
 | `graceful-fs` | `4.2.11` | ISC | — |
 | `html-parse-stringify` | `4.0.1` | MIT | [upstream](https://github.com/i18next/html-parse-stringify) |
 | `i18next` | `26.3.6` | MIT | [upstream](https://www.i18next.com) |
+| `json-schema` | `0.4.0` | (AFL-2.1 OR BSD-3-Clause) | — |
 | `lucide-react` | `1.33.0` | ISC | [upstream](https://lucide.dev) |
 | `ms` | `2.1.3` | MIT | — |
 | `progress` | `2.0.3` | MIT | — |

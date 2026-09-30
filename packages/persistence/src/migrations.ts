@@ -1799,6 +1799,14 @@ export const callNinaMigrations = [
     sql: `CREATE TABLE ai_connections (singleton INTEGER PRIMARY KEY CHECK(singleton = 1), settings_json TEXT NOT NULL CHECK(json_valid(settings_json))) STRICT;`,
     migrate: migrateAiConnections,
   },
+  {
+    version: 36,
+    name: "exercise-feedback-provenance",
+    // Unknown historical attribution stays NULL; never rewrite immutable feedback bodies.
+    // The existing BEFORE UPDATE trigger also protects this additive column.
+    sql: `ALTER TABLE exercise_attempt_feedback ADD COLUMN provenance_json TEXT
+      CHECK(provenance_json IS NULL OR json_valid(provenance_json));`,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

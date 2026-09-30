@@ -11,6 +11,8 @@ export const providerAccessReasonSchema = z.enum([
   "runtime-unavailable",
   "account-required",
   "account-unavailable",
+  "credential-required",
+  "secure-storage-unavailable",
   "capability-unavailable",
   "model-unavailable",
   "plugin-required",

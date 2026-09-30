@@ -1,0 +1,25 @@
+{
+  "name": "@call-nina/direct-api",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Explicit personal API generation through bounded AI SDK adapters.",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@call-nina/contracts": "workspace:*",
+    "@call-nina/learning-workflows": "workspace:*",
+    "ai": "7.0.123",
+    "@ai-sdk/openai": "4.0.82",
+    "@ai-sdk/anthropic": "4.0.69",
+    "@ai-sdk/google": "4.0.86"
+  }
+}
