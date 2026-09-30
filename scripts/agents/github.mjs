@@ -113,17 +113,19 @@ function items() {
     .filter((item) => item.content?.repository?.nameWithOwner === repo);
 }
 function issueItem(number) {
-  const item = items().find((item) => item.content.number === Number(number));
-  if (!item) throw new Error("ISSUE_NOT_IN_PROJECT");
-  return item;
+  const matches = items().filter((item) => item.content.number === Number(number));
+  if (!matches.length) throw new Error(`ISSUE_NOT_IN_PROJECT: #${number}`);
+  if (matches.length !== 1) throw new Error(`AMBIGUOUS_PROJECT_MEMBERSHIP: #${number}`);
+  return matches[0];
 }
-function setStatus(number, status) {
+function setProjectStatus(number, status) {
   if (!states.includes(status)) throw new Error("STATUS_INVALID");
+  const item = issueItem(number);
+  if (item.status === status) return { issue: Number(number), status, updated: false };
   const p = project();
   const field = fields().find((field) => field.name === "Status");
   const option = field?.options?.find((option) => option.name === status);
   if (!option) throw new Error("PROJECT_STATUS_MISSING");
-  const item = issueItem(number);
   gh(
     [
       "project",
@@ -139,7 +141,9 @@ function setStatus(number, status) {
     ],
     false,
   );
-  return { issue: Number(number), status };
+  if (issueItem(number).status !== status)
+    throw new Error(`PROJECT_STATUS_READBACK_MISMATCH: #${number} expected ${status}`);
+  return { issue: Number(number), status, updated: true };
 }
 function comments(number) {
   return gh([
@@ -262,6 +266,38 @@ function readIssue(number) {
   if (data.data.repository.issue.labels.pageInfo.hasNextPage)
     throw new Error("INCOMPLETE_ISSUE_LABEL_READ");
   return data.data.repository.issue;
+}
+function activeTask(number) {
+  const issue = readIssue(Number(number));
+  if (issue.parent?.state === "CLOSED")
+    throw new Error(`CLOSED_PARENT_EPIC: #${issue.parent.number} for #${number}`);
+  taskIssue(issue, repo, Number(number));
+  return issue;
+}
+function reconcileEpic(number) {
+  const child = issueItem(number);
+  if (child.status !== "In progress")
+    throw new Error(`CHILD_NOT_IN_PROGRESS: #${number} is ${child.status ?? "unset"}`);
+  const parent = activeTask(number).parent;
+  if (!parent) return { issue: Number(number), epic: null, status: child.status };
+  const result = setProjectStatus(parent.number, "In progress");
+  const reread = readIssue(Number(number));
+  if (reread.parent?.number !== parent.number)
+    throw new Error(`NATIVE_PARENT_CHANGED_DURING_RECONCILIATION: #${number}`);
+  if (reread.parent.state !== "OPEN")
+    throw new Error(`CLOSED_PARENT_EPIC: #${parent.number} for #${number}`);
+  return {
+    issue: Number(number),
+    epic: parent.number,
+    status: result.status,
+    updated: result.updated,
+  };
+}
+function setStatus(number, status) {
+  if (status !== "In progress") return setProjectStatus(number, status);
+  activeTask(number);
+  const child = setProjectStatus(number, status);
+  return { ...child, parent: reconcileEpic(number) };
 }
 function connection(number, field, selection) {
   const query = `query($owner:String!,$name:String!,$number:Int!,$endCursor:String){repository(owner:$owner,name:$name){pullRequest(number:$number){${field}(first:100,after:$endCursor){totalCount nodes{${selection}} pageInfo{hasNextPage endCursor}}}}}`;
@@ -955,7 +991,9 @@ function main() {
       help: `GitHub operations use the existing gh login; no token configuration.
   config | project-setup | queue
   status --issue N --status 'Ready'   Product Owner only for new scope
+  status --issue N --status 'In progress' --run RUN   Bound coordinator; also reconciles native parent
   claim --issue N --run RUN          Bound coordinator only
+  reconcile-epic --issue N --run RUN Bound coordinator: repair an In progress child's open native parent
   evidence --pr N --run RUN --review-task TASK --verification-commit SHA --static-check-commit SHA --verification 'observed details or deferred reason'
   publish --run RUN --issue N --branch task/N-description --baseline SHA [--head SHA]
                                     Publish local HEAD; --head required to resume a proven unattempted push
@@ -1065,14 +1103,25 @@ Settings: development.json. Recurring intake remains disabled until activation.`
         .sort((a, b) => (a.priority ?? "P2").localeCompare(b.priority ?? "P2")),
     };
   }
-  if (command === "status") return setStatus(numeric(values.issue), values.status);
+  if (command === "status") {
+    if (values.status === "In progress") assertCoordinator(values.run);
+    return setStatus(numeric(values.issue), values.status);
+  }
   if (
-    ["claim", "publish", "reconcile-publication", "create", "edit", "merge", "evidence"].includes(
-      command,
-    ) ||
+    [
+      "claim",
+      "reconcile-epic",
+      "publish",
+      "reconcile-publication",
+      "create",
+      "edit",
+      "merge",
+      "evidence",
+    ].includes(command) ||
     (command === "validate" && values.run)
   )
     assertCoordinator(values.run);
+  if (command === "reconcile-epic") return reconcileEpic(numeric(values.issue));
   if (command === "claim") {
     const number = numeric(values.issue);
     const item = issueItem(number);
@@ -1084,7 +1133,12 @@ Settings: development.json. Recurring intake remains disabled until activation.`
       throw new Error("ISSUE_ALREADY_CLAIMED: reconcile its existing Run");
     if (item.content.state !== "OPEN") throw new Error("ISSUE_CLOSED");
     if (claims.length && item.status !== "Ready")
-      return { issue: Number(number), status: item.status, resumed: true };
+      return {
+        issue: Number(number),
+        status: item.status,
+        resumed: true,
+        ...(item.status === "In progress" ? { parent: reconcileEpic(number) } : {}),
+      };
     if (!claims.length && item.status !== "Ready") throw new Error("ISSUE_NOT_READY");
     if (!claims.length)
       post(number, `${marker}\nDevelopment claimed by Orca Run \`${values.run}\`.`);
@@ -1244,6 +1298,7 @@ try {
       "queue",
       "status",
       "claim",
+      "reconcile-epic",
       "evidence",
       "publish",
       "reconcile-publication",
