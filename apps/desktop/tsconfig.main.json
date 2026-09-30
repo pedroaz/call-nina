@@ -28,6 +28,9 @@
     },
     {
       "path": "../../packages/offline-runtime"
+    },
+    {
+      "path": "../../packages/managed-generation"
     }
   ]
 }

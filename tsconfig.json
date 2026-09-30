@@ -40,6 +40,12 @@
     },
     {
       "path": "./packages/direct-api"
+    },
+    {
+      "path": "./packages/managed-generation"
+    },
+    {
+      "path": "./apps/managed-service"
     }
   ]
 }

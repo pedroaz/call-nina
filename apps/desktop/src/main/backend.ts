@@ -1,3 +1,4 @@
+import { ManagedGenerationService, managedCatalog } from "@call-nina/managed-generation/service";
 import {
   OfflineGenerationService,
   type OfflineRuntime,
@@ -147,6 +148,7 @@ export class DesktopBackend {
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
   readonly #operationServices = new Map<string, GenerationService>();
+  readonly #managedServices = new Set<ManagedGenerationService>();
   readonly #directServices = new Set<DirectApiGenerationService>();
   readonly #offlineServices = new Set<OfflineGenerationService>();
   readonly #offline: OfflineRuntime;
@@ -284,6 +286,8 @@ export class DesktopBackend {
           ?.cancelOperation(job.providerOperationId)
           .catch(() => undefined);
     }
+    for (const service of this.#managedServices) void service.shutdown();
+    this.#managedServices.clear();
     for (const service of this.#directServices) void service.shutdown();
     this.#directServices.clear();
     this.#operationServices.clear();
@@ -577,12 +581,18 @@ export class DesktopBackend {
           }
           const selection = accepted.operation.modelSelection;
           const provenance = generationProvenanceSchema.parse(state.provenance);
+          const capturedEffort =
+            selection.effort.selection === "exact"
+              ? selection.effort.effortId
+              : accepted.connection.routeId === "managed"
+                ? "runtime-default"
+                : undefined;
           if (
             selection.model.selection !== "exact" ||
-            selection.effort.selection !== "exact" ||
+            capturedEffort === undefined ||
             provenance.producer !== accepted.connection.routeId ||
             provenance.modelId !== selection.model.modelId ||
-            provenance.effortId !== selection.effort.effortId
+            provenance.effortId !== capturedEffort
           )
             throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
           if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
@@ -1431,6 +1441,21 @@ export class DesktopBackend {
 
   #generationForConnection(connection: AiConnection): GenerationService | undefined {
     if (connection.routeId === "codex") return this.#appServer;
+    if (connection.routeId === "managed" && this.#database) {
+      const database = this.#database;
+      const service = new ManagedGenerationService({
+        connectionId: connection.id,
+        rootGeneration: database.rootGeneration,
+        // Connection mutations wait for settlement; root changes invalidate the lease.
+        assertActive: () => {
+          if (this.#closing || database !== this.#database || database.closed)
+            throw new Error("OD_DATA_ROOT_STALE");
+        },
+      });
+      service.subscribeGeneration(this.#projectGenerationEvent);
+      this.#managedServices.add(service);
+      return service;
+    }
     if (connection.routeId === "local" && this.#database) {
       const database = this.#database;
       const captured = structuredClone(connection);
@@ -1497,6 +1522,13 @@ export class DesktopBackend {
     const service = this.#operationServices.get(operationId);
     service?.releaseOperation(operationId);
     this.#operationServices.delete(operationId);
+    if (
+      service instanceof ManagedGenerationService &&
+      ![...this.#operationServices.values()].includes(service)
+    ) {
+      this.#managedServices.delete(service);
+      void service.shutdown();
+    }
     if (
       service instanceof OfflineGenerationService &&
       ![...this.#operationServices.values()].includes(service)
@@ -1597,6 +1629,20 @@ export class DesktopBackend {
               : resolveModelPreference(connection.preference, catalog.models).status !== "available"
                 ? "model-unavailable"
                 : "configured";
+      }
+      if (connection.routeId === "managed") {
+        const catalog = managedCatalog();
+        if (catalog) {
+          entry.models = catalog.models;
+          entry.operations = catalog.operations;
+          entry.languages = [...catalog.languages];
+          entry.status =
+            connection.id !== settings.activeConnectionId
+              ? "inactive"
+              : resolveModelPreference(connection.preference, catalog.models).status === "available"
+                ? "configured"
+                : "model-unavailable";
+        }
       }
       availability.push(entry);
     }
@@ -1699,6 +1745,37 @@ export class DesktopBackend {
       } catch {
         return unavailable("model-unavailable");
       }
+    }
+    if (connection.routeId === "managed") {
+      const catalog = managedCatalog();
+      if (!catalog) return unavailable("runtime-unavailable");
+      if (operation === "voice-handoff" || !catalog.operations.includes(operation))
+        return unavailable("capability-unavailable");
+      if (retainedSelection) {
+        if (
+          retainedSelection.model.selection !== "exact" ||
+          retainedSelection.model.modelId !== catalog.models.runtimeDefaultModelId ||
+          retainedSelection.effort.selection !== "runtime-default"
+        )
+          return unavailable("model-unavailable");
+        return {
+          routeId: "managed",
+          operation,
+          status: "available",
+          modelSelection: { modelId: retainedSelection.model.modelId, effortId: "runtime-default" },
+        };
+      }
+      const resolution = resolveModelPreference(connection.preference, catalog.models);
+      if (resolution.status !== "available") return unavailable("model-unavailable");
+      return {
+        routeId: "managed",
+        operation,
+        status: "available",
+        modelSelection: {
+          modelId: resolution.effectiveModelId,
+          effortId: resolution.effectiveEffortId,
+        },
+      };
     }
     if (connection.routeId !== "codex") return unavailable("capability-unavailable");
     if (operation === "voice-handoff") {
@@ -2170,7 +2247,10 @@ export class DesktopBackend {
         const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
         const access = await this.#providerAccess("contextual-help", request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+        if (
+          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+          this.#activeOperations.size >= 4
+        )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
         const job: TranslationJob = {
@@ -2187,7 +2267,10 @@ export class DesktopBackend {
           settings.learningContext,
           {
             model: { selection: "exact", modelId: access.modelSelection.modelId },
-            effort: { selection: "exact", effortId: access.modelSelection.effortId },
+            effort:
+              access.routeId === "managed"
+                ? { selection: "runtime-default" }
+                : { selection: "exact", effortId: access.modelSelection.effortId },
           },
           await this.#requireActiveConnection(),
         );
@@ -3591,7 +3674,10 @@ export class DesktopBackend {
         );
         const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+        if (
+          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+          this.#activeOperations.size >= 4
+        )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
         const connection = await this.#requireActiveConnection();
@@ -3602,7 +3688,10 @@ export class DesktopBackend {
           dataRootGeneration: dataRoot.generation,
           modelSelection: {
             model: { selection: "exact", modelId: access.modelSelection.modelId },
-            effort: { selection: "exact", effortId: access.modelSelection.effortId },
+            effort:
+              access.routeId === "managed"
+                ? { selection: "runtime-default" }
+                : { selection: "exact", effortId: access.modelSelection.effortId },
           },
           input: {
             learningContext: learnerSettings.learningContext,
@@ -3699,7 +3788,10 @@ export class DesktopBackend {
           prior.connection,
         );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+        if (
+          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+          this.#activeOperations.size >= 4
+        )
           return this.#failure(request, "conflict");
         const generation = this.#operationServices.get(prior.operationId);
         if (!generation) return this.#failure(request, "unsupported-operation");

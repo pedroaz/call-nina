@@ -1,0 +1,4 @@
+{
+  "preview": { "enabled": false },
+  "production": { "enabled": false }
+}
