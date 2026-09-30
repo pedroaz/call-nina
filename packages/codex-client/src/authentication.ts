@@ -65,6 +65,18 @@ export function projectAccountState(value: unknown): AccountState {
   });
 }
 
+function isOfficialAuthenticationUrl(value: string): boolean {
+  if (!isHttpsUrl(value)) return false;
+  const url = new URL(value);
+  return (
+    ["auth.openai.com", "chatgpt.com"].includes(url.hostname) &&
+    !url.port &&
+    !url.username &&
+    !url.password &&
+    !url.hash
+  );
+}
+
 function loginParameters(method: string): Record<string, unknown> {
   if (method === "device-code") return { type: "chatgptDeviceCode" };
   if (method === "browser") {
@@ -112,7 +124,8 @@ export class ManagedAuthenticationClient {
   }
 
   async startManagedLogin(method: ManagedLoginMethod): Promise<CorrelationId> {
-    if (this.#pending) throw new AppServerProjectionError("APP_SERVER_LOGIN_ALREADY_PENDING");
+    if (this.#pending || this.#startingLogin)
+      throw new AppServerProjectionError("APP_SERVER_LOGIN_ALREADY_PENDING");
     this.#startingLogin = true;
     let result: unknown;
     try {
@@ -146,7 +159,8 @@ export class ManagedAuthenticationClient {
       if (method === "browser") {
         if (result["type"] !== "chatgpt") throw new Error("type");
         const authUrl = requiredNonblankString(result["authUrl"], 2_000);
-        if (!isHttpsUrl(authUrl) || !this.#options.openExternal) throw new Error("browser");
+        if (!isOfficialAuthenticationUrl(authUrl) || !this.#options.openExternal)
+          throw new Error("browser");
         this.#emitLogin(publicId, { status: "opening-browser" });
         await this.#options.openExternal(authUrl);
         this.#emitLogin(publicId, { status: "waiting" });
@@ -154,7 +168,7 @@ export class ManagedAuthenticationClient {
         if (result["type"] !== "chatgptDeviceCode") throw new Error("type");
         const verificationUrl = requiredNonblankString(result["verificationUrl"], 2_000);
         const userCode = requiredNonblankString(result["userCode"], 32);
-        if (!isHttpsUrl(verificationUrl) || !/^[A-Z0-9-]{4,32}$/u.test(userCode)) {
+        if (!isOfficialAuthenticationUrl(verificationUrl) || !/^[A-Z0-9-]{4,32}$/u.test(userCode)) {
           throw new Error("device");
         }
         if (!this.#options.presentDeviceCode) throw new Error("device-presenter");

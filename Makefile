@@ -223,3 +223,7 @@ github: ## GitHub project, linked task publication, metadata and PR operations v
 .PHONY: pipeline-policy
 pipeline-policy: ## Show additive GitHub settings diff; ARGS="apply --plan-digest SHA" applies the reviewed plan.
 	@node scripts/agents/pipeline-policy.mjs $(ARGS)
+
+.PHONY: stage-codex-runtime
+stage-codex-runtime: ## Stage and integrity-check the pinned standalone Codex and notices for this host.
+	@node scripts/build/stage-codex-runtime.mjs

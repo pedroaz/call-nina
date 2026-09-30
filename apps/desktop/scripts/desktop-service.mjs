@@ -144,6 +144,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 try {
   let rendererUrl;
   if (mode === "dev") {
+    await run("node", ["scripts/build/stage-codex-runtime.mjs"], "stage-codex-runtime");
     await run("tsc", ["-b", "../mcp-server"], "compile-plugin-runtime");
     await run(
       "vite",

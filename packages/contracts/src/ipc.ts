@@ -165,6 +165,7 @@ export const desktopIpcChannels = [
   "codex/integration/read",
   "codex/integration/action",
   "codex/account/read",
+  "codex/account/logout",
   "codex/account/login/start",
   "codex/account/login/cancel",
   "codex/models/read",
@@ -558,6 +559,7 @@ const integrationActionRequest = request(
   z.strictObject({ action: z.enum(["install", "refresh", "uninstall"]) }),
 );
 const accountReadRequest = request("codex/account/read", emptyPayload);
+const accountLogoutRequest = request("codex/account/logout", emptyPayload);
 const accountLoginRequest = request(
   "codex/account/login/start",
   z.strictObject({ method: z.enum(["browser", "device-code"]) }),
@@ -793,6 +795,7 @@ export const desktopIpcRequestSchema = boundaryUnion([
   integrationReadRequest,
   integrationActionRequest,
   accountReadRequest,
+  accountLogoutRequest,
   accountLoginRequest,
   accountLoginCancelRequest,
   modelsReadRequest,
@@ -1640,6 +1643,7 @@ const integrationActionResponse = response(
   }),
 );
 const accountReadResponse = response("codex/account/read", accountStateSchema);
+const accountLogoutResponse = response("codex/account/logout", accountStateSchema);
 const accountLoginResponse = response(
   "codex/account/login/start",
   z.strictObject({ loginId: correlationIdSchema, status: z.literal("started") }),
@@ -1771,6 +1775,7 @@ export const desktopIpcResponseSchema = boundaryUnion([
   integrationReadResponse,
   integrationActionResponse,
   accountReadResponse,
+  accountLogoutResponse,
   accountLoginResponse,
   accountLoginCancelResponse,
   modelsReadResponse,

@@ -11,6 +11,7 @@ import {
   type LearningAttempt,
   type LearningWorkflowTiming,
 } from "@call-nina/learning-workflows";
+import { standaloneConfig } from "./standalone-runtime.js";
 import { OperationRateLimitedError } from "./operation-controller.js";
 import { assertOwnedSandboxPolicy, createOwnedTurnSandbox } from "./sandbox.js";
 
@@ -99,6 +100,8 @@ class EventQueue {
         settled = true;
         clearTimeout(timer);
         signal?.removeEventListener("abort", abort);
+        const index = this.#waiters.indexOf(waiter);
+        if (index !== -1) this.#waiters.splice(index, 1);
         action();
       };
       const waiter = (event: Observed) => {
@@ -294,9 +297,14 @@ async function runAttempt(
   });
   let activeThread: string | undefined;
   let activeTurn: string | undefined;
+  let startingThread = false;
+  let startingTurn = false;
+  let sandboxSettled = true;
   try {
     const policy = assertOwnedSandboxPolicy(sandbox.policy);
     options.onProgress?.("starting", attempt);
+    startingThread = true;
+    sandboxSettled = false;
     const startedThread = await measured("thread-start", () =>
       options.client.request(
         "thread/start",
@@ -310,8 +318,7 @@ async function runAttempt(
           baseInstructions: options.instructions,
           developerInstructions: options.teachingInstructions,
           config: {
-            web_search: "disabled",
-            features: { shell_tool: false, hooks: false },
+            ...standaloneConfig,
             mcp_servers: {},
           },
         },
@@ -321,14 +328,17 @@ async function runAttempt(
         },
       ),
     );
+    startingThread = false;
     activeThread = threadId(startedThread);
     if (!activeThread || options.signal?.aborted) {
       await options.client.shutdown();
+      sandboxSettled = true;
       throw new Error("OD_APP_SERVER_THREAD_START_INVALID");
     }
 
     const generationStartedAt = performance.now();
     let firstResponse = false;
+    startingTurn = true;
     const startedTurn = await measured("turn-start", () =>
       options.client.request(
         "turn/start",
@@ -353,9 +363,11 @@ async function runAttempt(
         },
       ),
     );
+    startingTurn = false;
     activeTurn = turnId(startedTurn);
     if (!activeTurn || options.signal?.aborted) {
       await options.client.shutdown();
+      sandboxSettled = true;
       throw new Error("OD_APP_SERVER_TURN_START_INVALID");
     }
     options.onProgress?.("running", attempt);
@@ -396,6 +408,7 @@ async function runAttempt(
         const turn = object(params["turn"]);
         if (turn?.["id"] !== activeTurn) continue;
         activeTurn = undefined;
+        sandboxSettled = true;
         timing("generation", generationStartedAt, turn["status"] === "completed" ? "ok" : "error");
         if (turn["status"] !== "completed") throw new Error(turnFailureCode(turn));
         if (completedItems.length !== 1) throw new Error("OD_APP_SERVER_FINAL_OUTPUT_MISSING");
@@ -407,16 +420,36 @@ async function runAttempt(
   } catch (error) {
     if (activeThread && activeTurn) {
       try {
-        await interrupt(options.client, activeThread, activeTurn, options.deadline);
+        const settlementDeadline = Math.min(options.deadline, Date.now() + 2_000);
+        await interrupt(options.client, activeThread, activeTurn, settlementDeadline);
+        // An interrupt acknowledgement is not termination. Keep the disposable
+        // workspace owned until the exact turn completes or the process stops.
+        for (;;) {
+          const event = await queue.next(settlementDeadline);
+          const params = object(event.params);
+          if (
+            event.method === "turn/completed" &&
+            params?.["threadId"] === activeThread &&
+            object(params["turn"])?.["id"] === activeTurn
+          ) {
+            sandboxSettled = true;
+            break;
+          }
+        }
       } catch {
         await options.client.shutdown();
+        sandboxSettled = true;
       }
+    } else if (startingThread || startingTurn) {
+      // A cancelled RPC may still create a thread/turn whose ID was never delivered.
+      await options.client.shutdown();
+      sandboxSettled = true;
     }
     throw error;
   } finally {
     unsubscribeRequest();
     unsubscribeNotification();
-    await sandbox.cleanup();
+    if (sandboxSettled) await sandbox.cleanup();
   }
 }
 

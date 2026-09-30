@@ -63,6 +63,8 @@ export async function runPluginIntegrationAction(
       stage = "uninstall";
       status = await integration.uninstall();
     } else {
+      stage = "external-account";
+      await integration.requireLogin();
       stage = "stage-source";
       const staged = await stagePluginSource({
         pluginRoot: pluginRoot(),

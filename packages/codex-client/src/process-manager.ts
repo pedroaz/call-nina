@@ -6,7 +6,13 @@ import {
 
 import type { OperationalLogRecord } from "@call-nina/contracts";
 
-import { discoverCodex, resolveCodexExecutable, type CodexDiscovery } from "./discovery.js";
+import {
+  prepareStandaloneRuntime,
+  standaloneArguments,
+  assertStandaloneConfiguration,
+  type StandaloneRuntimeOptions,
+} from "./standalone-runtime.js";
+import { codexRuntimeVersion } from "./runtime-release.js";
 import { scrubCodexEnvironment } from "./environment.js";
 import { AppServerTransportError, JsonRpcTransport, type JsonRpcHistoryEntry } from "./json-rpc.js";
 
@@ -16,9 +22,7 @@ export type AppServerLifecycleState =
 export type AppServerLogRecord = OperationalLogRecord;
 
 export type AppServerProcessManagerOptions = Readonly<{
-  executable?: string;
-  environment?: NodeJS.ProcessEnv;
-  cwd?: string;
+  standalone?: StandaloneRuntimeOptions;
   initializeTimeoutMilliseconds?: number;
   requestTimeoutMilliseconds?: number;
   shutdownGraceMilliseconds?: number;
@@ -30,10 +34,6 @@ export type AppServerProcessManagerOptions = Readonly<{
   log?: (record: AppServerLogRecord) => void;
   onNotification?: (method: string, params: unknown) => void;
   onServerRequest?: (method: string, params: unknown) => void;
-  discover?: (options: {
-    executable?: string;
-    environment: NodeJS.ProcessEnv;
-  }) => Promise<CodexDiscovery>;
   spawn?: (
     executable: string,
     arguments_: readonly string[],
@@ -157,24 +157,20 @@ export class AppServerProcessManager {
   async #startOwnedProcess(): Promise<void> {
     if (this.#child) await this.#shutdownOwnedProcess();
     this.#setState("discovering");
-    const environment = scrubCodexEnvironment(this.#options.environment ?? process.env);
-    const discover = this.#options.discover ?? ((options) => discoverCodex(options));
-    const discovery = await discover({
-      ...(this.#options.executable === undefined ? {} : { executable: this.#options.executable }),
-      environment,
-    });
-    if (discovery.status !== "available") {
+    let runtime: Awaited<ReturnType<typeof prepareStandaloneRuntime>>;
+    try {
+      if (!this.#options.standalone) throw new Error("CODEX_RUNTIME_MISSING");
+      runtime = await prepareStandaloneRuntime(this.#options.standalone);
+    } catch {
       this.#setState("failed");
-      this.#log("error", "CODEX_DISCOVERY_FAILED", "Compatible Codex is unavailable.", {
-        reason: discovery.reason,
-      });
-      throw new AppServerUnavailableError(discovery.reason);
+      this.#log(
+        "error",
+        "CODEX_STANDALONE_UNAVAILABLE",
+        "The app-owned Codex runtime could not be prepared.",
+      );
+      throw new AppServerUnavailableError("standalone-unavailable");
     }
-    const executable = await resolveCodexExecutable(this.#options.executable, environment);
-    if (!executable && !this.#options.spawn) {
-      this.#setState("failed");
-      throw new AppServerUnavailableError("missing");
-    }
+    const environment = scrubCodexEnvironment(runtime.environment);
     this.#setState("starting");
     this.#expectedExit = false;
     this.#stderrBytes = 0;
@@ -183,8 +179,8 @@ export class AppServerProcessManager {
       this.#options.spawn ??
       ((command, arguments_, options) =>
         spawnChild(command, arguments_, { ...options, stdio: ["pipe", "pipe", "pipe"] }));
-    const child = spawn(executable ?? "codex", ["app-server", "--listen", "stdio://"], {
-      ...(this.#options.cwd === undefined ? {} : { cwd: this.#options.cwd }),
+    const child = spawn(runtime.executable, standaloneArguments, {
+      cwd: runtime.cwd,
       env: environment,
       windowsHide: true,
     });
@@ -193,10 +189,10 @@ export class AppServerProcessManager {
       this.#collectStderr(chunk);
     });
     child.once("error", () => {
-      this.#ownedProcessFailed("APP_SERVER_PROCESS_ERROR");
+      if (this.#child === child) this.#ownedProcessFailed("APP_SERVER_PROCESS_ERROR");
     });
     child.once("close", (code, signal) => {
-      this.#ownedProcessClosed(code, signal);
+      if (this.#child === child) this.#ownedProcessClosed(code, signal);
     });
     const transport = new JsonRpcTransport({
       input: child.stdin,
@@ -205,15 +201,17 @@ export class AppServerProcessManager {
       maximumLineBytes: this.#options.maximumProtocolLineBytes ?? 1024 * 1024,
       maximumHistoryEntries: this.#options.maximumHistoryEntries ?? 256,
       onNotification: (method, params) => {
+        if (this.#child !== child) return;
         this.#options.onNotification?.(method, params);
         for (const listener of this.#notificationListeners) listener(method, params);
       },
       onServerRequest: (method, params) => {
+        if (this.#child !== child) return;
         this.#options.onServerRequest?.(method, params);
         for (const listener of this.#serverRequestListeners) listener(method, params);
       },
       onFatalError: (error) => {
-        this.#transportFailed(error);
+        if (this.#child === child) this.#transportFailed(error);
       },
     });
     this.#transport = transport;
@@ -235,10 +233,20 @@ export class AppServerProcessManager {
         throw new AppServerUnavailableError("initialize-invalid");
       }
       transport.notify("initialized");
-      this.#codexVersion = discovery.version;
+      assertStandaloneConfiguration(
+        await transport.request(
+          "config/read",
+          {
+            includeLayers: false,
+            cwd: runtime.cwd,
+          },
+          { timeoutMilliseconds: this.#options.initializeTimeoutMilliseconds ?? 10_000 },
+        ),
+      );
+      this.#codexVersion = codexRuntimeVersion;
       this.#setState("ready");
       this.#log("info", "APP_SERVER_READY", "Codex App Server initialized.", {
-        version: discovery.version,
+        version: codexRuntimeVersion,
       });
     } catch (error) {
       await this.#shutdownOwnedProcess();
