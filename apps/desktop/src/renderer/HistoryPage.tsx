@@ -323,6 +323,8 @@ export function HistoryPage({
 
       title={t("history.title")}
       aria-busy={busy}
+      data-history-ready={Boolean(snapshot && !busy && !error)}
+      data-root-generation={snapshot?.rootGeneration}
     >
       {entryIds && (
         <Button
@@ -525,7 +527,20 @@ export function HistoryPage({
 
       <div className={styles.historyList}>
         {snapshot?.entries.map((entry) => (
-          <Card as="article" key={entry.historyEntryId}>
+          <Card
+            as="article"
+            key={entry.historyEntryId}
+            data-history-entry-id={entry.historyEntryId}
+            data-history-activity-id={
+              entry.detail.kind === "exercise-attempt" &&
+              entry.evidence?.ownership.source.kind === "exercise" &&
+              entry.evidence.ownership.source.activityId === entry.detail.activityId
+                ? entry.detail.activityId
+                : undefined
+            }
+            data-learning-language={entry.evidence?.ownership.learningScope.targetLanguage}
+            data-root-generation={snapshot.rootGeneration}
+          >
             <header className={styles.historyEntryHeader}>
               <div>
                 <p className={styles.eyebrow}>

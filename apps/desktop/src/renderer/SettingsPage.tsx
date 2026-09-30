@@ -415,6 +415,9 @@ export function SettingsPage({
   return (
     <Page
       className={styles.settingsPage}
+      data-settings-root={persisted?.dataRoot.generation}
+      data-settings-language={persisted?.settings.learningScope.targetLanguage}
+      data-settings-ready={Boolean(persisted) && !loading && !busy && !dirty}
 
       title={t("settings.title")}
       refresh={{ onRefresh: load, busy: loading || busy, disabled: dirty }}

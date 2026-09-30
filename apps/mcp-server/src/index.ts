@@ -526,13 +526,13 @@ export function createProductionServer(runtime: Runtime) {
           if (!activity?.context.voiceContext) {
             return failureResult("not-found", "No matching prepared Voice activity was found.");
           }
-          const settings = await runtime.repository.readLearnerSettingsForScope(
-            activity.context.learningScope,
+          const captured = await runtime.repository.readPreparedActivityContext(
+            activity.activityId,
           );
           return successResult("Prepared Voice activity is ready.", {
             activityId: activity.activityId,
             title: activity.title,
-            learningContext: learningContextProjection(settings.learningContext, false),
+            learningContext: learningContextProjection(captured.learningContext, true),
             preparedAt: activity.preparedAt,
             context: activity.context.voiceContext,
             ...(activity.context.learningPath
@@ -542,15 +542,17 @@ export function createProductionServer(runtime: Runtime) {
               ? { courseTeaching: activity.context.courseTeaching }
               : {}),
             teachingDefaults: {
-              explanationLanguage: settings.profile.explanationLanguage,
-              teachingProfile:
-                settings.profile.defaultTeachingProfileId === "strict-corrector"
-                  ? "strict-corrector"
-                  : "conversation-partner",
+              explanationLanguage: captured.learningContext.explanationLanguage,
+              teachingProfile: captured.calibration.teachingProfile,
             },
           });
         });
       } catch (error) {
+        if (error instanceof Error && error.message === "OD_EXERCISE_CONTEXT_MISSING")
+          return failureResult(
+            "exercise-context-missing",
+            "The original teaching context was not saved. Create fresh practice; the saved activity and history are unchanged.",
+          );
         return failureResult(
           error instanceof Error && error.message.includes("STALE")
             ? "stale-data-root"
@@ -601,6 +603,7 @@ export function createProductionServer(runtime: Runtime) {
                 preparedAt: utcInstantSchema.parse(now()),
               },
               input.idempotencyKey,
+              { source: "current-settings" },
             );
             return successResult(
               result.replayed

@@ -11,6 +11,7 @@ import {
   languageCapabilities,
   type LearningScope,
   type Language,
+  type DataRootGeneration,
 } from "@call-nina/contracts";
 import type { ModelWorkload } from "@call-nina/domain";
 import {
@@ -408,6 +409,27 @@ function DesktopWorkspace({
     if (mode === "return") returnTo(destination);
     else applyNavigation(destination);
   };
+  const openCompletionPage = async (
+    destination: "history" | "nina",
+    language: Language,
+    rootGeneration: DataRootGeneration,
+  ) => {
+    try {
+      const current = await invokeDesktop("learner-settings/read", {});
+      if (current.dataRoot.generation !== rootGeneration) throw new Error("OD_DATA_ROOT_STALE");
+      if (current.settings.learningScope.targetLanguage !== language) {
+        const next = await invokeDesktop("learner-settings/select-language", {
+          expectedGeneration: rootGeneration,
+          targetLanguage: language,
+        });
+        setLearningScope(next.settings.learningScope);
+      }
+      setHistoryEntryIds(undefined);
+      navigate(destination);
+    } catch (cause) {
+      setOperationError(normalizeDesktopError(cause).detail);
+    }
+  };
   const parent =
     page === "writing"
       ? {
@@ -513,6 +535,12 @@ function DesktopWorkspace({
                   </div>
                 )}
                 <PracticePage
+                  onHistory={(language, rootGeneration) =>
+                    void openCompletionPage("history", language, rootGeneration)
+                  }
+                  onNina={(language, rootGeneration) =>
+                    void openCompletionPage("nina", language, rootGeneration)
+                  }
                   targetLanguage={learningScope?.targetLanguage}
                   {...(activityOrigin ? { parentLabel: t(`nav.${activityOrigin}`) } : {})}
                   onVocabulary={() => {
@@ -572,6 +600,9 @@ function DesktopWorkspace({
             learningScope.courseId ===
               languageDefinitions[learningScope.targetLanguage].structuredCourseId ? (
               <LearningPathPage
+                onNina={() => {
+                  navigate("nina");
+                }}
                 requestAiAccess={openAi}
                 onOpenHistory={(ids) => {
                   setHistoryEntryIds(ids);
@@ -683,6 +714,14 @@ function DesktopWorkspace({
           <>
             {learningScope && (
               <>
+                <span
+                  hidden
+                  data-learning-root={
+                    readiness.dataRoot.status === "ready"
+                      ? readiness.dataRoot.generation
+                      : undefined
+                  }
+                />
                 <LanguageSelect
                   label={t("onboarding.targetLanguage")}
                   value={learningScope.targetLanguage}

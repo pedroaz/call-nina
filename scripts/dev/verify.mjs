@@ -26,6 +26,7 @@ import {
 } from "./lib/verification-client.mjs";
 import {
   VerificationSession,
+  locales,
   root,
   runtimeRoot,
   failure,
@@ -108,7 +109,7 @@ function validateRequest(request) {
     track: ["id"],
     cleanup: ["id"],
     note: ["code"],
-    restore: [],
+    restore: ["languageSelection"],
     stop: [],
     suspend: [],
   };
@@ -205,6 +206,8 @@ async function serve(resume = false) {
     );
     const needsRecovery = Boolean(
       previous.suspended ||
+      previous.initialTarget ||
+      Object.keys(previous.learningPreferences ?? {}).length ||
       previous.records?.length ||
       Object.keys(previous.preferences ?? {}).length ||
       previous.notes?.length ||
@@ -221,18 +224,38 @@ async function serve(resume = false) {
         !Array.isArray(previous.notes) ||
         !previous.preferences ||
         (previous.receipts !== undefined && !Array.isArray(previous.receipts)) ||
-        (previous.locale !== undefined && !["en", "de"].includes(previous.locale)) ||
+        (previous.locale !== undefined &&
+          !["en", ...Object.keys(locales)].includes(previous.locale)) ||
         (previous.locale === undefined && Object.keys(previous.preferences).length)
       )
         throw failure("VERIFY_RECOVERY_INVALID");
       if (
         previous.records.some(
           (r) =>
-            !/^activity_[0-9a-z]{16,64}$/.test(r.id) ||
-            !["practice", "speaking", "listening"].includes(r.kind),
+            !(
+              r.kind === "material" ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/
+            ).test(r.id) || !["practice", "speaking", "listening", "material"].includes(r.kind),
         )
       )
         throw failure("VERIFY_RECOVERY_INVALID");
+      if (previous.initialRoot !== undefined && !/^[1-9][0-9]*$/.test(previous.initialRoot))
+        throw failure("VERIFY_RECOVERY_INVALID");
+      if (previous.initialTarget !== undefined && !locales[previous.initialTarget])
+        throw failure("VERIFY_RECOVERY_INVALID");
+      for (const [language, preference] of Object.entries(previous.learningPreferences ?? {})) {
+        if (
+          !locales[language] ||
+          preference.language !== language ||
+          !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
+          !["a1", "a2", "b1", "b2"].includes(preference.level) ||
+          typeof preference.goal !== "string" ||
+          preference.goal.length > 500 ||
+          !locales[preference.explanation] ||
+          !["conversation-partner", "strict-corrector"].includes(preference.teaching) ||
+          (language === "de" && typeof preference.enrolled !== "boolean")
+        )
+          throw failure("VERIFY_RECOVERY_INVALID");
+      }
       for (const [workload, preference] of Object.entries(previous.preferences)) {
         if (
           !["correction", "generation", "helper", "research"].includes(workload) ||
@@ -263,8 +286,15 @@ async function serve(resume = false) {
       if (
         previous.baseline &&
         (!Array.isArray(previous.baseline.ids) ||
-          !["practice", "speaking", "listening"].includes(previous.baseline.kind) ||
-          previous.baseline.ids.some((id) => !/^activity_[0-9a-z]{16,64}$/.test(id)))
+          !["practice", "speaking", "listening", "material"].includes(previous.baseline.kind) ||
+          previous.baseline.ids.some(
+            (id) =>
+              !(
+                previous.baseline.kind === "material"
+                  ? /^material_[0-9a-z]{16,64}$/
+                  : /^activity_[0-9a-z]{16,64}$/
+              ).test(id),
+          ))
       )
         throw failure("VERIFY_RECOVERY_INVALID");
       recovery = needsRecovery
@@ -326,6 +356,8 @@ async function serve(resume = false) {
     identity.requestFingerprint = journalFingerprint(JSON.stringify(request));
     let target;
     try {
+      if (action === "restore" && request.languageSelection !== undefined)
+        await session.historicalLanguageSelection(request.languageSelection);
       if (["click", "double-click", "fill", "select", "press"].includes(action)) {
         if (["fill", "select"].includes(action) && typeof request.value !== "string")
           throw failure("VERIFY_REQUEST_INVALID");
@@ -336,10 +368,15 @@ async function serve(resume = false) {
           throw failure("VERIFY_TARGET_INVALID");
         });
         if (count !== 1) throw failure(count ? "VERIFY_TARGET_AMBIGUOUS" : "VERIFY_TARGET_MISSING");
+        await session.rememberSettings();
+        if (action === "select") {
+          const selection = await session.languageSelectionOwnership(target, request.value);
+          if (selection) identity.learningLanguageSelection = selection;
+        }
       }
       if (
         action === "cleanup" &&
-        (!/^activity_[0-9a-z]{16,64}$/.test(request.id ?? "") ||
+        (!/^(activity|material)_[0-9a-z]{16,64}$/.test(request.id ?? "") ||
           !session.journal.records.some((entry) => entry.id === request.id))
       )
         throw failure("VERIFY_RECORD_NOT_OWNED");
@@ -446,6 +483,11 @@ async function serve(resume = false) {
               request.target ? locate(page, request.target) : page.locator("body")
             ).ariaSnapshot({ timeout: 15000 })
           ).slice(0, 48000),
+          openedMaterialId: await page
+            .locator("[data-material-id]")
+            .first()
+            .getAttribute("data-material-id", { timeout: 500 })
+            .catch(() => null),
           openedActivityId: await page
             .locator("[data-activity-id]")
             .first()
@@ -527,7 +569,7 @@ async function serve(resume = false) {
         await session.persist();
         break;
       case "restore":
-        result = await session.restore();
+        result = await session.restore(request.languageSelection);
         break;
       case "stop":
       case "suspend":

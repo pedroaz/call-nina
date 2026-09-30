@@ -1025,6 +1025,7 @@
     "finishBeforeSwitch": "Termina esta actividad o sal de ella antes de cambiar el idioma de aprendizaje."
   },
   "errors": {
+    "exerciseContextMissing": "Esta actividad no guardó sus ajustes de aprendizaje originales. Crea una práctica nueva para recibir nuevos comentarios o ayuda de la IA. Tu actividad, respuestas y comentarios guardados no cambian.",
     "boundaryTitle": "No se pudo mostrar esta vista",
     "boundaryBody": "Se produjo un error inesperado en esta vista. Intenta abrirla de nuevo. Tal vez tengas que volver a escribir lo que no se haya guardado.",
     "validation": "Algunos datos son inválidos o están incompletos. Revisa los campos obligatorios e inténtalo de nuevo.",
@@ -1461,7 +1462,10 @@
     "noRelated": "Todavía no hay prácticas preparadas para esta revisión.",
     "open": "Practicar: {{title}}",
     "refresh": "Actualizar prácticas preparadas",
-    "more": "Mostrar más"
+    "more": "Mostrar más",
+    "remove": "Eliminar material",
+    "removeBody": "¿Eliminar este material y todas sus revisiones? Se conserva el material vinculado a cualquier actividad o intento. No se eliminarán actividades ni intentos.",
+    "removeConfirm": "Eliminar este material"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1529,5 +1533,13 @@
     "loadFailed": "No se pudieron abrir las traducciones guardadas. El original sigue disponible.",
     "saved": "Traducción guardada. Puedes volver a abrirla sin IA.",
     "retryRead": "Volver a cargar las traducciones guardadas"
+  },
+  "completion": {
+    "next": "Qué hacer después",
+    "evidence": "Tus respuestas y comentarios están guardados en el historial. Las pistas, las respuestas repetidas y las autoevaluaciones se distinguen de los resultados independientes.",
+    "nextHint": "Vuelve a Nina para elegir un repaso o una práctica nueva. Las actividades preparadas siguen disponibles sin IA.",
+    "nina": "Ver las recomendaciones de Nina",
+    "return": "Volver a {{origin}}",
+    "selfAssessment": "El repaso de tarjetas se guarda con esta actividad. Las autoevaluaciones orientan el repaso de vocabulario; no demuestran un dominio independiente."
   }
 }

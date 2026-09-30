@@ -1,3 +1,4 @@
+import { CompletionActions } from "./CompletionActions.js";
 import { SavedTranslation } from "./SavedTranslation.js";
 import {
   MaterialPractice,
@@ -10,6 +11,7 @@ import {
   type DesktopIpcResponse,
   type CallNinaError,
   type Language,
+  type DataRootGeneration,
 } from "@call-nina/contracts";
 import { practiceStarterExamples } from "./practiceStarterExamples.js";
 import { PracticeCount, validPracticeCount } from "./PracticeCount.js";
@@ -80,6 +82,8 @@ export function PracticePage({
   onOpenActivity,
   onCloseActivity,
   onVocabulary,
+  onHistory,
+  onNina,
 }: {
   targetLanguage?: Language | undefined;
   parentLabel?: string;
@@ -89,6 +93,8 @@ export function PracticePage({
   onOpenActivity: (activityId: PreparedActivityId) => void;
   onCloseActivity: () => void;
   onVocabulary?: () => void;
+  onHistory: (language: Language, rootGeneration: DataRootGeneration) => void;
+  onNina: (language: Language, rootGeneration: DataRootGeneration) => void;
 }) {
   const { t } = useTranslation();
   const [generatedResult, setGenerated] =
@@ -318,6 +324,16 @@ export function PracticePage({
       <FlashcardWorkspace
         key={activityId}
         activityId={activityId}
+        parentLabel={parentLabel ?? t("practice.title")}
+        onHistory={() => {
+          onHistory(
+            prepared.activity.context.learningScope.targetLanguage,
+            prepared.rootGeneration,
+          );
+        }}
+        onNina={() => {
+          onNina(prepared.activity.context.learningScope.targetLanguage, prepared.rootGeneration);
+        }}
         onClose={onCloseActivity}
         onVocabulary={onVocabulary ?? onCloseActivity}
         requestAiAccess={requestAiAccess}
@@ -372,6 +388,10 @@ export function PracticePage({
       <Page
         className={styles.practiceSession}
         data-activity-id={activityId}
+        data-activity-material-id={generated?.content.materials[0]?.materialId}
+        data-activity-material-revision={generated?.content.materials[0]?.revisionId}
+        data-root-generation={prepared?.rootGeneration}
+        data-learning-language={prepared?.activity.context.learningScope.targetLanguage}
         title={generated?.title ?? t("exercises.loading")}
         eyebrow={t("practice.session.eyebrow")}
         breadcrumbs={[{ label: parentLabel ?? t("practice.title"), onPress: onCloseActivity }]}
@@ -460,6 +480,22 @@ export function PracticePage({
               </Card>
             )}
             <ExerciseEngine
+              completionActions={
+                prepared && (
+                  <CompletionActions
+                    targetLanguage={generated.learningScope.targetLanguage}
+                    rootGeneration={prepared.rootGeneration}
+                    parentLabel={parentLabel ?? t("practice.title")}
+                    onReturn={onCloseActivity}
+                    onHistory={() => {
+                      onHistory(generated.learningScope.targetLanguage, prepared.rootGeneration);
+                    }}
+                    onNina={() => {
+                      onNina(generated.learningScope.targetLanguage, prepared.rootGeneration);
+                    }}
+                  />
+                )
+              }
               targetLanguage={generated.learningScope.targetLanguage}
               {...(prepared
                 ? {
@@ -867,6 +903,8 @@ export function PracticePage({
               <section
                 className={styles.generatedLibrary}
                 aria-busy={libraryBusy}
+                data-root-generation={library.rootGeneration}
+                data-learning-language={library.learningScope?.targetLanguage}
                 data-library-ready={library.loaded && !libraryBusy && !libraryError}
               >
                 <div className={styles.practiceSectionHeader}>

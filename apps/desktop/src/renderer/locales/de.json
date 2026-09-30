@@ -1025,6 +1025,7 @@
     "finishBeforeSwitch": "Schließe die Aktivität ab oder verlasse sie, bevor du die Lernsprache wechselst."
   },
   "errors": {
+    "exerciseContextMissing": "Für diese Aktivität wurden die ursprünglichen Lerneinstellungen nicht gespeichert. Erstelle eine neue Übung für neues KI-Feedback oder weitere KI-Begleitung. Deine gespeicherte Aktivität, Antworten und Rückmeldungen bleiben unverändert.",
     "boundaryTitle": "Diese Ansicht konnte nicht angezeigt werden",
     "boundaryBody": "In dieser Ansicht ist ein unerwarteter Fehler aufgetreten. Öffne sie erneut. Nicht gespeicherte Eingaben musst du eventuell erneut eingeben.",
     "validation": "Einige Angaben sind ungültig oder unvollständig. Prüfe die Pflichtfelder und versuche es erneut.",
@@ -1461,7 +1462,10 @@
     "noRelated": "Noch keine vorbereiteten Übungen für diese Version.",
     "open": "Üben: {{title}}",
     "refresh": "Vorbereitete Übungen aktualisieren",
-    "more": "Mehr anzeigen"
+    "more": "Mehr anzeigen",
+    "remove": "Material entfernen",
+    "removeBody": "Dieses Material und alle Versionen entfernen? Material, auf das Aktivitäten oder Versuche verweisen, bleibt erhalten. Aktivitäten und Versuche werden nicht gelöscht.",
+    "removeConfirm": "Dieses Material entfernen"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1529,5 +1533,13 @@
     "loadFailed": "Gespeicherte Übersetzungen konnten nicht geöffnet werden. Das Original bleibt verfügbar.",
     "saved": "Übersetzung gespeichert. Sie kann ohne KI wieder geöffnet werden.",
     "retryRead": "Gespeicherte Übersetzungen neu laden"
+  },
+  "completion": {
+    "next": "Wie geht es weiter?",
+    "evidence": "Deine Antworten und Rückmeldungen sind im Verlauf gespeichert. Hinweise, wiederholte Antworten und Selbsteinschätzungen bleiben von selbstständigen Leistungen getrennt.",
+    "nextHint": "Wähle bei Nina eine passende Wiederholung oder neue Übung. Vorbereitete Aktivitäten bleiben ohne KI verfügbar.",
+    "nina": "Ninas Empfehlungen ansehen",
+    "return": "Zurück zu {{origin}}",
+    "selfAssessment": "Die Kartenwiederholung ist bei dieser Aktivität gespeichert. Selbsteinschätzungen steuern die Vokabelwiederholung; sie belegen keine selbstständige Sprachkompetenz."
   }
 }

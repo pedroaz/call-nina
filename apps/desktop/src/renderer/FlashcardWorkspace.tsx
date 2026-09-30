@@ -1,3 +1,4 @@
+import { CompletionActions } from "./CompletionActions.js";
 import { SavedTranslation, type TranslationAccess } from "./SavedTranslation.js";
 import {
   translationRevealSchema,
@@ -17,13 +18,19 @@ import styles from "./FlashcardWorkspace.module.css";
 
 export function FlashcardWorkspace({
   activityId,
+  parentLabel,
   onClose,
   onVocabulary,
+  onHistory,
+  onNina,
   requestAiAccess,
 }: {
   activityId: ActivityId;
+  parentLabel: string;
   onClose: () => void;
   onVocabulary: () => void;
+  onHistory: () => void;
+  onNina: () => void;
   requestAiAccess: TranslationAccess;
 }) {
   const { t } = useTranslation();
@@ -175,8 +182,12 @@ export function FlashcardWorkspace({
   return (
     <Page
       data-activity-id={activityId}
+      data-activity-material-id={deck?.content.materials[0]?.materialId}
+      data-activity-material-revision={deck?.content.materials[0]?.revisionId}
+      data-root-generation={deck?.rootGeneration}
+      data-learning-language={deck?.content.language}
       title={deck?.title ?? t("flashcards.title")}
-      breadcrumbs={[{ label: t("practice.title"), onPress: onClose }]}
+      breadcrumbs={[{ label: parentLabel, onPress: onClose }]}
     >
       {error && (
         <>
@@ -195,6 +206,15 @@ export function FlashcardWorkspace({
                 {t("flashcards.complete")}
               </h2>
               <p>{t("flashcards.completeBody", { count: deck.content.cards.length })}</p>
+              <CompletionActions
+                targetLanguage={deck.content.language}
+                rootGeneration={deck.rootGeneration}
+                evidence="self-assessment"
+                parentLabel={parentLabel}
+                onReturn={onClose}
+                onHistory={onHistory}
+                onNina={onNina}
+              />
               <ActionGroup>
                 <Button
                   isDisabled={busy}
@@ -204,7 +224,6 @@ export function FlashcardWorkspace({
                 >
                   {t("flashcards.restart")}
                 </Button>
-                <Button onPress={onClose}>{t("flashcards.back")}</Button>
               </ActionGroup>
             </>
           ) : (

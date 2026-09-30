@@ -25,6 +25,7 @@ export type PendingSelection = Readonly<{
 }>;
 
 export type AcceptedOperation = Readonly<{
+  validatedVoiceModelRequestId?: string;
   operationId: string;
   inputFingerprint: string;
   attempt?: 1 | 2;

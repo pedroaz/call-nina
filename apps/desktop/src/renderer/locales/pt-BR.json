@@ -1025,6 +1025,7 @@
     "finishBeforeSwitch": "Conclua ou saia desta atividade antes de mudar o idioma de aprendizagem."
   },
   "errors": {
+    "exerciseContextMissing": "Esta atividade não salvou suas configurações de aprendizagem originais. Crie uma nova prática para receber novos comentários ou orientação da IA. Sua atividade, respostas e comentários salvos permanecem inalterados.",
     "boundaryTitle": "Não foi possível exibir esta tela",
     "boundaryBody": "Ocorreu um erro inesperado nesta tela. Tente abri-la novamente. Talvez seja necessário digitar de novo o que ainda não foi salvo.",
     "validation": "Algumas informações são inválidas ou estão incompletas. Confira os campos obrigatórios e tente novamente.",
@@ -1461,7 +1462,10 @@
     "noRelated": "Ainda não há práticas preparadas para esta revisão.",
     "open": "Praticar: {{title}}",
     "refresh": "Atualizar práticas preparadas",
-    "more": "Mostrar mais"
+    "more": "Mostrar mais",
+    "remove": "Remover material",
+    "removeBody": "Remover este material e todas as suas revisões? Materiais vinculados a atividades ou tentativas serão mantidos. Nenhuma atividade ou tentativa será excluída.",
+    "removeConfirm": "Remover este material"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1529,5 +1533,13 @@
     "loadFailed": "Não foi possível abrir as traduções salvas. O original continua disponível.",
     "saved": "Tradução salva. Você pode reabri-la sem IA.",
     "retryRead": "Recarregar traduções salvas"
+  },
+  "completion": {
+    "next": "Próximos passos",
+    "evidence": "Suas respostas e o feedback estão salvos no histórico. Dicas, respostas repetidas e autoavaliações são diferenciadas dos resultados independentes.",
+    "nextHint": "Volte à Nina para escolher uma revisão ou uma nova prática. As atividades preparadas continuam disponíveis sem IA.",
+    "nina": "Ver as recomendações da Nina",
+    "return": "Voltar para {{origin}}",
+    "selfAssessment": "A revisão dos cartões fica salva nesta atividade. As autoavaliações orientam a revisão do vocabulário; elas não comprovam proficiência independente."
   }
 }

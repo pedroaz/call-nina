@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
+  attemptOwnershipSchema,
+  learningScopeSchema,
+  type LearningScope,
   materialDraftSchema,
   materialReferenceSchema,
   materialRevisionSchema,
@@ -246,4 +249,69 @@ export function assertStoredContentRevision(
       )
   )
     throw new Error("OD_CONTENT_REVISION_INVALID");
+}
+
+/** Explicitly remove one selected source, never its surviving activities or evidence. */
+export async function deleteMaterial(
+  database: CallNinaDatabase,
+  reference: MaterialReference,
+  expectedScope: LearningScope,
+) {
+  return withLeasedTransaction(database, (connection) => {
+    const scope = requireLocalLearningScope(connection);
+    const expected = learningScopeSchema.parse(expectedScope);
+    if (
+      scope.learnerId !== expected.learnerId ||
+      scope.targetLanguage !== expected.targetLanguage ||
+      scope.courseId !== expected.courseId
+    )
+      throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+    const material = readMaterialRevisionInTransaction(connection, reference);
+    if (material.language !== scope.targetLanguage) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+    if (
+      connection
+        .prepare("SELECT 1 FROM material_revisions WHERE material_id = ? AND revision > ?")
+        .get(material.materialId, material.revision)
+    )
+      throw new Error("OD_MATERIAL_REVISION_STALE");
+    const referenced = connection
+      .prepare(
+        `SELECT 1 FROM activity_content_revisions c JOIN material_revisions m ON m.revision_id = c.material_revision_id WHERE m.material_id = ?
+      UNION ALL SELECT 1 FROM activity_owned_materials o JOIN material_revisions m ON m.revision_id = o.material_revision_id WHERE m.material_id = ?
+      UNION ALL SELECT 1 FROM learning_attempts a, json_each(a.ownership_json, '$.source.materials') m WHERE json_extract(m.value, '$.materialId') = ? LIMIT 1`,
+      )
+      .get(material.materialId, material.materialId, material.materialId);
+    if (referenced) throw new Error("OD_MATERIAL_REFERENCED");
+    // A schema we cannot understand cannot prove the absence of source ownership.
+    for (const row of connection
+      .prepare("SELECT ownership_json FROM learning_attempts")
+      .iterate()) {
+      const ownership = attemptOwnershipSchema.safeParse(JSON.parse(String(row["ownership_json"])));
+      if (!ownership.success) throw new Error("OD_MATERIAL_OWNERSHIP_INVALID");
+      if (
+        "materials" in ownership.data.source &&
+        ownership.data.source.materials.some((source) => source.materialId === material.materialId)
+      )
+        throw new Error("OD_MATERIAL_REFERENCED");
+    }
+    // Unknown or corrupt historical revisions are not a deletion authorization.
+    for (const row of connection
+      .prepare(
+        "SELECT material_id, revision_id, revision, target_language, revision_json FROM material_revisions WHERE material_id = ?",
+      )
+      .all(material.materialId)) {
+      const revision = parseStoredMaterial(row["revision_json"]);
+      if (
+        revision.materialId !== material.materialId ||
+        revision.revisionId !== row["revision_id"] ||
+        revision.revision !== row["revision"] ||
+        revision.language !== scope.targetLanguage ||
+        row["target_language"] !== scope.targetLanguage
+      )
+        throw new Error("OD_MATERIAL_INVALID");
+    }
+    connection
+      .prepare("DELETE FROM material_revisions WHERE material_id = ?")
+      .run(material.materialId);
+  });
 }

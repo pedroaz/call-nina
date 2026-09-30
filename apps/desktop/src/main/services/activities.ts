@@ -8,6 +8,7 @@ import {
   correlationIdSchema,
   utcInstantSchema,
   type ActivityAction,
+  type CapturedTeachingContext,
   type DesktopIpcEvent,
   type DesktopIpcRequest,
 } from "@call-nina/contracts";
@@ -238,6 +239,7 @@ export class ActivityService {
       activityId: activityIdSchema.parse(activityId),
       expectedGeneration: this.generation,
     });
+    await this.#repository.readPreparedActivityContext(activity.activityId);
     if (!(await ports.isCodexVoiceAvailable())) return { status: "setup-required" as const };
     if (!ports.openExternal) throw new Error("OD_ACTIVITY_HANDOFF_FAILED");
     // Capability discovery can await a runtime: recheck current state before the side effect.
@@ -277,6 +279,7 @@ export class ActivityService {
   async prepareVoice(
     value: Extract<ActivityAction, { action: "prepare-voice" }>,
     requestIdValue: string,
+    capturedContext: CapturedTeachingContext,
   ) {
     const action = await this.#validate(value);
     if (action.action !== "prepare-voice") throw new Error("OD_ACTIVITY_ACTION_INVALID");
@@ -302,6 +305,7 @@ export class ActivityService {
         preparedAt: utcInstantSchema.parse(new Date().toISOString()),
       },
       requestId,
+      { source: "captured", context: capturedContext },
     );
     this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
     return { status: "prepared" as const, activityId };
@@ -361,6 +365,7 @@ export class ActivityService {
         preparedAt: utcInstantSchema.parse(new Date().toISOString()),
       },
       requestId,
+      { source: "current-settings" },
     );
     this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
     return { activityId };

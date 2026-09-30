@@ -90,7 +90,12 @@ export function PreparedActivityWorkspace({
   };
   return (
     <Page title={activity.title} breadcrumbs={[{ label: parentLabel, onPress: onClose }]}>
-      <Card as="article" data-activity-id={activity.activityId}>
+      <Card
+        as="article"
+        data-activity-id={activity.activityId}
+        data-root-generation={prepared.rootGeneration}
+        data-learning-language={activity.context.learningScope.targetLanguage}
+      >
         <OperationProgress progress={generation.progress} />
         <p>{activity.context.instructions ?? activity.context.naturalRequest}</p>
         {voice ? (
@@ -127,7 +132,7 @@ export function PreparedActivityWorkspace({
             </ItemList>
             {voice.script && (
               <Disclosure label={t("learningPath.steps.listening")}>
-                <p lang="de">{voice.script}</p>
+                <p lang={activity.context.learningScope.targetLanguage}>{voice.script}</p>
               </Disclosure>
             )}
             <h3>{t(`${base}.questions`)}</h3>
