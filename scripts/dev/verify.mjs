@@ -31,6 +31,7 @@ import {
   runtimeRoot,
   failure,
   safeCode,
+  validateVerificationPreferences,
 } from "./lib/verification-session.mjs";
 
 const { positionals, values: launchOptions } = parseArgs({
@@ -204,6 +205,14 @@ async function serve(resume = false) {
     const previous = JSON.parse(
       await readFile(path.join(verificationRoot, "recovery.json"), "utf8"),
     );
+    if (
+      !previous ||
+      typeof previous !== "object" ||
+      Array.isArray(previous) ||
+      previous.schemaVersion !== 1
+    )
+      throw failure("VERIFY_RECOVERY_INVALID");
+    validateVerificationPreferences(previous.preferences, previous.initialRoot);
     const needsRecovery = Boolean(
       previous.suspended ||
       previous.initialTarget ||
@@ -219,7 +228,6 @@ async function serve(resume = false) {
     }
     {
       if (
-        previous.schemaVersion !== 1 ||
         !Array.isArray(previous.records) ||
         !Array.isArray(previous.notes) ||
         !previous.preferences ||
@@ -253,14 +261,6 @@ async function serve(resume = false) {
           !locales[preference.explanation] ||
           !["conversation-partner", "strict-corrector"].includes(preference.teaching) ||
           (language === "de" && typeof preference.enrolled !== "boolean")
-        )
-          throw failure("VERIFY_RECOVERY_INVALID");
-      }
-      for (const [workload, preference] of Object.entries(previous.preferences)) {
-        if (
-          !["correction", "generation", "helper", "research"].includes(workload) ||
-          typeof preference.model !== "string" ||
-          typeof preference.effort !== "string"
         )
           throw failure("VERIFY_RECOVERY_INVALID");
       }
@@ -315,6 +315,7 @@ async function serve(resume = false) {
       }
     }
   } catch (error) {
+    if (error instanceof SyntaxError) throw failure("VERIFY_RECOVERY_INVALID");
     if (error.code !== "ENOENT") throw error;
   }
   await rm(socketPath, { force: true });

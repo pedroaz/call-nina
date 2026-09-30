@@ -19,6 +19,36 @@ export const languageNames = {
 export function failure(code) {
   return new Error(code);
 }
+// This is the current Settings UI serialization, shared by capture and resume.
+// Keep schemaVersion 1: already-retained connection journals use this envelope.
+// Historical workload maps and unknown fields cannot prove restoration ownership.
+export function validateVerificationPreferences(preference, initialRoot) {
+  if (!preference || typeof preference !== "object" || Array.isArray(preference))
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (Object.keys(preference).length === 0) return preference;
+  const selectionId = (value) =>
+    typeof value === "string" &&
+    value.length <= 128 &&
+    /^[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(value);
+  if (
+    Object.keys(preference).sort().join(",") !== "connectionId,effort,model,rootGeneration,route" ||
+    typeof preference.connectionId !== "string" ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      preference.connectionId,
+    ) ||
+    preference.route !== "codex" ||
+    typeof preference.rootGeneration !== "string" ||
+    !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
+    !Number.isSafeInteger(Number(preference.rootGeneration)) ||
+    (initialRoot !== undefined && preference.rootGeneration !== initialRoot) ||
+    !selectionId(preference.model) ||
+    !selectionId(preference.effort) ||
+    (preference.effort.startsWith("semantic:") &&
+      !["semantic:fast", "semantic:balanced", "semantic:deep"].includes(preference.effort))
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  return preference;
+}
 export function safeCode(error, fallback = "VERIFY_ACTION_FAILED") {
   return /^VERIFY_[A-Z0-9_:]+$/.test(error?.message ?? "") ? error.message : fallback;
 }
@@ -59,6 +89,7 @@ export class VerificationSession {
     this.phase = "launch";
   }
   async persist() {
+    validateVerificationPreferences(this.journal.preferences, this.journal.initialRoot);
     await writePrivateJson(path.join(this.directory, "recovery.json"), this.journal);
   }
   async launch() {
@@ -267,7 +298,7 @@ export class VerificationSession {
   }
   async preferences() {
     const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
-    return {
+    const preference = {
       connectionId: await panel.getAttribute("data-ai-connection"),
       route: await panel.getAttribute("data-route"),
       rootGeneration: await panel.getAttribute("data-root-generation"),
@@ -278,6 +309,7 @@ export class VerificationSession {
         .getByRole("combobox", { name: await this.t("settings.effort"), exact: true })
         .inputValue(),
     };
+    return validateVerificationPreferences(preference, this.journal.initialRoot);
   }
   async selectAiPreference(panel, key, value) {
     const control = panel.getByRole("combobox", { name: await this.t(key), exact: true });
@@ -319,7 +351,8 @@ export class VerificationSession {
       await this.persist();
     } else if (
       this.journal.preferences.connectionId !== current.connectionId ||
-      this.journal.preferences.rootGeneration !== current.rootGeneration
+      this.journal.preferences.rootGeneration !== current.rootGeneration ||
+      this.journal.preferences.route !== current.route
     ) {
       throw failure("VERIFY_SETTINGS_SCOPE_CHANGED");
     }
@@ -339,6 +372,7 @@ export class VerificationSession {
     if (
       observed.connectionId !== current.connectionId ||
       observed.rootGeneration !== current.rootGeneration ||
+      observed.route !== current.route ||
       observed.model !== "gpt-6-luna" ||
       observed.effort !== "semantic:balanced"
     )
@@ -832,7 +866,8 @@ export class VerificationSession {
         await this.selectAiPreference(panel, "settings.effort", preference.effort);
         await this.navigate(await this.t("nav.nina"));
         await this.settings();
-        if (JSON.stringify(await this.preferences()) !== JSON.stringify(preference))
+        const restored = await this.preferences();
+        if (Object.entries(preference).some(([key, value]) => restored[key] !== value))
           throw failure("VERIFY_SETTINGS_RESTORE_FAILED");
         this.journal.preferences = {};
       }
