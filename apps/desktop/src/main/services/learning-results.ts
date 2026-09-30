@@ -74,6 +74,7 @@ export class LearningResultService {
     const provenance = {
       source: "ai" as const,
       producer: "desktop-app-server" as const,
+      connectionId: accepted.connection.id,
       modelRequestId: state.modelRequestId,
       generatedAt: completedAt,
       modelSelection: {
@@ -349,6 +350,7 @@ export class LearningResultService {
     const aiProvenance = {
       source: "ai",
       producer: "desktop-app-server",
+      connectionId: accepted.connection.id,
       modelRequestId: modelRequestIdSchema.parse(state.modelRequestId),
       generatedAt: preparedAt,
       modelSelection: {

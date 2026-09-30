@@ -1,3 +1,4 @@
+import { SidebarModelControl } from "./SidebarModelControl.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   languageDefinitions,
@@ -5,14 +6,7 @@ import {
   type DesktopIpcResponse,
   type CallNinaError,
 } from "@call-nina/contracts";
-import {
-  defaultModelPreferences,
-  modelWorkloads,
-  resolveModelPreference,
-  type ModelPreferences,
-  type ModelWorkload,
-} from "@call-nina/domain";
-import { RotateCcw, Save, UserRound } from "lucide-react";
+import { Save, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -34,7 +28,6 @@ import { LanguageSelect } from "./LanguageSelect.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import {
   desktopSettingsAdapter,
-  replaceWorkloadPreference,
   type DesktopSettingsAdapter,
   type DesktopSettingsResult,
   type DesktopSettingsValue,
@@ -48,10 +41,6 @@ type Integration = Extract<
 type Account = Extract<
   DesktopIpcResponse,
   { status: "ok"; channel: "codex/account/read" }
->["result"];
-type Catalog = Extract<
-  DesktopIpcResponse,
-  { status: "ok"; channel: "codex/models/read" }
 >["result"];
 type Limits = Extract<
   DesktopIpcResponse,
@@ -91,10 +80,6 @@ function SettingsError({ error }: { error: CallNinaError }) {
   );
 }
 
-function modelValue(preference: ModelPreferences[ModelWorkload]): string {
-  return preference.model.mode === "automatic" ? "automatic" : `exact:${preference.model.modelId}`;
-}
-
 export function SettingsPage({
   readiness,
   onRunSetup,
@@ -118,7 +103,6 @@ export function SettingsPage({
 }) {
   const { t } = useTranslation();
   const [account, setAccount] = useState<Account>();
-  const [catalog, setCatalog] = useState<Catalog>();
   const [limits, setLimits] = useState<Limits>();
   const [persisted, setPersisted] = useState<DesktopSettingsResult>();
   const [draft, setDraft] = useState<DesktopSettingsValue>();
@@ -147,9 +131,8 @@ export function SettingsPage({
   }, []);
 
   const refreshRuntime = useCallback(async () => {
-    const [accountResult, catalogResult, limitsResult] = await Promise.allSettled([
+    const [accountResult, limitsResult] = await Promise.allSettled([
       invokeDesktop("codex/account/read", {}),
-      invokeDesktop("codex/models/read", {}),
       invokeDesktop("codex/rate-limits/read", {}),
     ]);
     setAccount(
@@ -157,15 +140,12 @@ export function SettingsPage({
         ? accountResult.value
         : { status: "unavailable", reason: "runtime-not-ready" },
     );
-    setCatalog(catalogResult.status === "fulfilled" ? catalogResult.value : undefined);
     setLimits(
       limitsResult.status === "fulfilled"
         ? limitsResult.value
         : { status: "unavailable", reason: "runtime-not-ready" },
     );
-    const failure = [accountResult, catalogResult, limitsResult].find(
-      (result) => result.status === "rejected",
-    );
+    const failure = [accountResult, limitsResult].find((result) => result.status === "rejected");
     if (failure?.status === "rejected") setError(normalizeDesktopError(failure.reason).detail);
   }, []);
 
@@ -198,8 +178,9 @@ export function SettingsPage({
         void refreshRuntime();
       } else if (
         event.event === "state-invalidated" &&
-        ["account", "models", "rate-limits"].includes(event.scope)
+        ["account", "models", "rate-limits", "ai-connections"].includes(event.scope)
       ) {
+        // Immediate connection saves must not reload the independent profile draft.
         void refreshRuntime();
       } else if (event.event === "state-invalidated" && event.scope === "settings") {
         void load();
@@ -267,19 +248,6 @@ export function SettingsPage({
     try {
       await invokeDesktop("codex/account/login/start", { method: "browser" });
       setNotice(t("settings.loginStarted"));
-    } catch (cause) {
-      setError(normalizeDesktopError(cause).detail);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const logout = async () => {
-    setBusy(true);
-    try {
-      setAccount(await invokeDesktop("codex/account/logout", {}));
-      setLimits(undefined);
-      setNotice(t("settings.loggedOut"));
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -384,32 +352,6 @@ export function SettingsPage({
     value: DesktopSettingsValue[Key],
   ) => {
     setDraft((current) => (current ? { ...current, [key]: value } : current));
-  };
-
-  const setModel = (workload: ModelWorkload, value: string) => {
-    if (!draft) return;
-    const current = draft.modelPreferences[workload];
-    const model =
-      value === "automatic"
-        ? { mode: "automatic" as const }
-        : { mode: "exact" as const, modelId: value.slice(6) };
-    setProfile(
-      "modelPreferences",
-      replaceWorkloadPreference(draft.modelPreferences, workload, { ...current, model }),
-    );
-  };
-
-  const setEffort = (workload: ModelWorkload, value: string) => {
-    if (!draft) return;
-    const current = draft.modelPreferences[workload];
-    const effort =
-      value === "semantic:fast" || value === "semantic:balanced" || value === "semantic:deep"
-        ? { mode: "semantic" as const, effort: value.slice(9) as "fast" | "balanced" | "deep" }
-        : { mode: "exact" as const, effortId: value };
-    setProfile(
-      "modelPreferences",
-      replaceWorkloadPreference(draft.modelPreferences, workload, { ...current, effort }),
-    );
   };
 
   return (
@@ -576,140 +518,7 @@ export function SettingsPage({
               <>
                 <Card as="section" aria-labelledby="settings-models-title">
                   <h2 id="settings-models-title">{t("settings.modelsTitle")}</h2>
-                  <p>{t("providerAccess.selectedRoute")}</p>
-                  <p>{t("providerAccess.preferences")}</p>
-                  {!draft ? (
-                    <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
-                  ) : (
-                    modelWorkloads.map((workload) => {
-                      const preference = draft.modelPreferences[workload];
-                      const savedModelId =
-                        preference.model.mode === "exact" ? preference.model.modelId : undefined;
-                      const modelResolution = catalog
-                        ? resolveModelPreference(workload, preference, catalog)
-                        : undefined;
-                      const effectiveModelId =
-                        modelResolution && modelResolution.resolution.status !== "unavailable"
-                          ? modelResolution.resolution.effectiveModelId
-                          : undefined;
-                      const automaticResolution = catalog
-                        ? resolveModelPreference(
-                            workload,
-                            { ...preference, model: { mode: "automatic" } },
-                            catalog,
-                          ).resolution
-                        : undefined;
-                      const automaticModel =
-                        automaticResolution && automaticResolution.status !== "unavailable"
-                          ? catalog?.models.find(
-                              ({ id }) => id === automaticResolution.effectiveModelId,
-                            )
-                          : undefined;
-                      const selectedModel = effectiveModelId
-                        ? catalog?.models.find(({ id }) => id === effectiveModelId)
-                        : undefined;
-                      const efforts = selectedModel?.supportedReasoningEfforts ?? [];
-                      const resolvedEffortId =
-                        modelResolution && modelResolution.resolution.status !== "unavailable"
-                          ? modelResolution.resolution.effectiveEffortId
-                          : undefined;
-                      const unavailableModelId =
-                        savedModelId && !catalog?.models.some(({ id }) => id === savedModelId)
-                          ? savedModelId
-                          : undefined;
-                      const savedEffortId =
-                        preference.effort.mode === "exact" ? preference.effort.effortId : undefined;
-                      const unavailableEffortId =
-                        savedEffortId && (!selectedModel || !efforts.includes(savedEffortId))
-                          ? savedEffortId
-                          : undefined;
-                      return (
-                        <fieldset
-                          className={styles.modelRow}
-                          key={workload}
-                          data-workload={workload}
-                          data-effective-model={effectiveModelId}
-                          data-effective-effort={resolvedEffortId}
-                          data-default-effort={selectedModel?.defaultReasoningEffort}
-                        >
-                          <legend>{t(`settings.workloads.${workload}`)}</legend>
-                          <FieldGroup>
-                            <span>{t("settings.model")}</span>
-                            <select
-                              value={modelValue(preference)}
-                              onChange={(event) => {
-                                setModel(workload, event.currentTarget.value);
-                              }}
-                            >
-                              <option value="automatic">
-                                {t("modelControl.automatic", {
-                                  model: automaticModel?.displayName ?? t("settings.notReported"),
-                                })}
-                              </option>
-                              {unavailableModelId ? (
-                                <option value={`exact:${unavailableModelId}`}>
-                                  {t("settings.unavailableSavedModel", {
-                                    model: unavailableModelId,
-                                  })}
-                                </option>
-                              ) : null}
-                              {catalog?.models.map((model) => (
-                                <option key={model.id} value={`exact:${model.id}`}>
-                                  {model.displayName}
-                                </option>
-                              ))}
-                            </select>
-                          </FieldGroup>
-                          <FieldGroup>
-                            <span>{t("settings.effort")}</span>
-                            <select
-                              value={
-                                preference.effort.mode === "semantic"
-                                  ? `semantic:${preference.effort.effort}`
-                                  : preference.effort.effortId
-                              }
-                              onChange={(event) => {
-                                setEffort(workload, event.currentTarget.value);
-                              }}
-                            >
-                              {(["fast", "balanced", "deep"] as const).map((effort) => (
-                                <option key={effort} value={`semantic:${effort}`}>
-                                  {t(`settings.semanticEfforts.${effort}`)}
-                                </option>
-                              ))}
-                              {unavailableEffortId && (
-                                <option value={unavailableEffortId}>
-                                  {t("settings.unavailableSavedEffort", {
-                                    effort: unavailableEffortId,
-                                  })}
-                                </option>
-                              )}
-                              {efforts.map((effort) => (
-                                <option key={effort} value={effort}>
-                                  {t(`settings.exactEfforts.${effort}`, { defaultValue: effort })}
-                                </option>
-                              ))}
-                            </select>
-                          </FieldGroup>
-                          {modelResolution &&
-                            modelResolution.resolution.status !== "unavailable" &&
-                            modelResolution.resolution.unavailableAutomaticModelId && (
-                              <Feedback live="off" tone="warning">
-                                {t("settings.automaticFallback", {
-                                  model: modelResolution.resolution.unavailableAutomaticModelId,
-                                  effective: selectedModel?.displayName,
-                                })}
-                              </Feedback>
-                            )}
-                          {unavailableModelId || unavailableEffortId ? (
-                            <Feedback live="off" tone="warning">
-                              {t("settings.savedModelFallback")}
-                            </Feedback>
-                          ) : null}
-                        </fieldset>
-                      );
-                    })
-                  )}
+                  <SidebarModelControl />
                 </Card>
               </>
             ),
@@ -731,9 +540,7 @@ export function SettingsPage({
                   )}
                   <ActionGroup>
                     {account?.status === "signed-in" ? (
-                      <Button isDisabled={busy} onPress={() => void logout()}>
-                        {t("settings.logout")}
-                      </Button>
+                      <p>{t("connections.officialAuth")}</p>
                     ) : (
                       <Button
                         variant="primary"
@@ -927,17 +734,6 @@ export function SettingsPage({
 
       {draft && (selectedTab === "profile" || selectedTab === "models" || dirty) && (
         <div className={styles.settingsActions}>
-          {selectedTab === "models" && (
-            <Button
-              isDisabled={busy}
-              onPress={() => {
-                setProfile("modelPreferences", defaultModelPreferences);
-              }}
-            >
-              <RotateCcw aria-hidden="true" />
-              {t("settings.restoreModels")}
-            </Button>
-          )}
           <Button
             isDisabled={busy || !persisted || !dirty}
             onPress={() => {

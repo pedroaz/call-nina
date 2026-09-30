@@ -17,7 +17,6 @@ import { inspectOwnedProcess, lifecyclePaths, startMode, statusMode } from "./li
 import {
   requestVerification,
   verificationRoot,
-  socketPath,
   recordVerificationController,
   persistVerificationProcesses,
   stopVerification,
@@ -26,39 +25,46 @@ import {
 } from "./lib/verification-client.mjs";
 import {
   VerificationSession,
-  locales,
   root,
   runtimeRoot,
   failure,
   safeCode,
+  validateVerificationJournal,
+  mutatingActions,
 } from "./lib/verification-session.mjs";
+
+import {
+  prepareControllerRecovery,
+  recoveryContext,
+  childRecoveryContext,
+  validateRecoveryContext,
+  recordRecoveryIntent,
+  reconcileControllerRecovery,
+  existingControllerRecovery,
+  assertRecoveryAction,
+} from "./lib/verification-recovery.mjs";
 
 const { positionals, values: launchOptions } = parseArgs({
   allowPositionals: true,
   options: {
     run: { type: "string" },
+    attempt: { type: "string" },
     "expected-head": { type: "string" },
     executable: { type: "string" },
     "config-dir": { type: "string" },
     "codex-executable": { type: "string" },
   },
 });
-const { run: recoveryRun, "expected-head": expectedHead, ...appOptions } = launchOptions;
+const {
+  run: recoveryRun,
+  "expected-head": expectedHead,
+  attempt: recoveryAttempt,
+  ...appOptions
+} = launchOptions;
 for (const value of Object.values(appOptions))
   if (!path.isAbsolute(value)) throw failure("VERIFY_OPTION_PATH_INVALID");
 const forwardedOptions = Object.entries(appOptions).flatMap(([key, value]) => [`--${key}`, value]);
 const maxRequest = 64 * 1024;
-const mutatingActions = [
-  "click",
-  "double-click",
-  "fill",
-  "select",
-  "press",
-  "prepare-ai",
-  "cleanup",
-  "restore",
-  "stop",
-];
 async function run(command, args) {
   const child = spawn(command, args, { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
   const lines = [];
@@ -170,8 +176,16 @@ function locate(page, target) {
   }
   return locator;
 }
-async function serve(resume = false) {
-  const barrier = assertVerificationBarrier();
+async function serve(resume = false, recovering = false) {
+  if (recovering && Object.keys(appOptions).length)
+    throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
+  const context = recovering
+    ? await childRecoveryContext(recoveryRun, expectedHead, recoveryAttempt)
+    : { targetRoot: root, barrier: assertVerificationBarrier() };
+  const barrier = context.barrier;
+  const runtimeRoot = path.join(context.targetRoot, ".runtime");
+  const verificationRoot = path.join(runtimeRoot, "verification");
+  const socketPath = path.join(verificationRoot, "control.sock");
   const lifecycle = lifecyclePaths(runtimeRoot, "verify");
   if (!process.env.CALL_NINA_RUN_ID || process.env.CALL_NINA_READY_FILE !== lifecycle.ready)
     throw failure("VERIFY_LIFECYCLE_OWNER_REQUIRED");
@@ -199,104 +213,14 @@ async function serve(resume = false) {
   const info = await lstat(verificationRoot);
   if (!info.isDirectory() || info.uid !== process.getuid() || info.mode & 0o077)
     throw failure("VERIFY_DIRECTORY_UNSAFE");
-  const ownership = await recordVerificationController(lifecycleState);
+  const ownership = await recordVerificationController(lifecycleState, context);
   try {
     const previous = JSON.parse(
       await readFile(path.join(verificationRoot, "recovery.json"), "utf8"),
     );
-    const needsRecovery = Boolean(
-      previous.suspended ||
-      previous.initialTarget ||
-      Object.keys(previous.learningPreferences ?? {}).length ||
-      previous.records?.length ||
-      Object.keys(previous.preferences ?? {}).length ||
-      previous.notes?.length ||
-      previous.pendingAction ||
-      previous.interruptedActions?.length,
-    );
-    if (needsRecovery) {
-      if (!resume) throw failure("VERIFY_RECOVERY_REQUIRED");
-    }
+    const { needsRecovery } = validateVerificationJournal(previous);
+    if (needsRecovery && !resume) throw failure("VERIFY_RECOVERY_REQUIRED");
     {
-      if (
-        previous.schemaVersion !== 1 ||
-        !Array.isArray(previous.records) ||
-        !Array.isArray(previous.notes) ||
-        !previous.preferences ||
-        (previous.receipts !== undefined && !Array.isArray(previous.receipts)) ||
-        (previous.locale !== undefined &&
-          !["en", ...Object.keys(locales)].includes(previous.locale)) ||
-        (previous.locale === undefined && Object.keys(previous.preferences).length)
-      )
-        throw failure("VERIFY_RECOVERY_INVALID");
-      if (
-        previous.records.some(
-          (r) =>
-            !(
-              r.kind === "material" ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/
-            ).test(r.id) || !["practice", "speaking", "listening", "material"].includes(r.kind),
-        )
-      )
-        throw failure("VERIFY_RECOVERY_INVALID");
-      if (previous.initialRoot !== undefined && !/^[1-9][0-9]*$/.test(previous.initialRoot))
-        throw failure("VERIFY_RECOVERY_INVALID");
-      if (previous.initialTarget !== undefined && !locales[previous.initialTarget])
-        throw failure("VERIFY_RECOVERY_INVALID");
-      for (const [language, preference] of Object.entries(previous.learningPreferences ?? {})) {
-        if (
-          !locales[language] ||
-          preference.language !== language ||
-          !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
-          !["a1", "a2", "b1", "b2"].includes(preference.level) ||
-          typeof preference.goal !== "string" ||
-          preference.goal.length > 500 ||
-          !locales[preference.explanation] ||
-          !["conversation-partner", "strict-corrector"].includes(preference.teaching) ||
-          (language === "de" && typeof preference.enrolled !== "boolean")
-        )
-          throw failure("VERIFY_RECOVERY_INVALID");
-      }
-      for (const [workload, preference] of Object.entries(previous.preferences)) {
-        if (
-          !["correction", "generation", "helper", "research"].includes(workload) ||
-          typeof preference.model !== "string" ||
-          typeof preference.effort !== "string"
-        )
-          throw failure("VERIFY_RECOVERY_INVALID");
-      }
-      if (
-        previous.notes.some(
-          (note) => typeof note !== "string" || !/^[A-Z][A-Z0-9_]{0,100}$/.test(note),
-        ) ||
-        (previous.interruptedActions !== undefined && !Array.isArray(previous.interruptedActions))
-      )
-        throw failure("VERIFY_RECOVERY_INVALID");
-      for (const entry of [
-        ...(previous.interruptedActions ?? []),
-        ...(previous.pendingAction ? [previous.pendingAction] : []),
-      ]) {
-        if (
-          !entry ||
-          !mutatingActions.includes(entry.action) ||
-          typeof entry.startedAt !== "string" ||
-          !Number.isFinite(Date.parse(entry.startedAt))
-        )
-          throw failure("VERIFY_RECOVERY_INVALID");
-      }
-      if (
-        previous.baseline &&
-        (!Array.isArray(previous.baseline.ids) ||
-          !["practice", "speaking", "listening", "material"].includes(previous.baseline.kind) ||
-          previous.baseline.ids.some(
-            (id) =>
-              !(
-                previous.baseline.kind === "material"
-                  ? /^material_[0-9a-z]{16,64}$/
-                  : /^activity_[0-9a-z]{16,64}$/
-              ).test(id),
-          ))
-      )
-        throw failure("VERIFY_RECOVERY_INVALID");
       recovery = needsRecovery
         ? previous
         : {
@@ -315,17 +239,25 @@ async function serve(resume = false) {
       }
     }
   } catch (error) {
+    if (error instanceof SyntaxError) throw failure("VERIFY_RECOVERY_INVALID");
     if (error.code !== "ENOENT") throw error;
   }
   await rm(socketPath, { force: true });
   await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
-  await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
-  const session = new VerificationSession(verificationRoot, recovery, appOptions, ownership);
+  if (!recovering) await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
+  if (recovering) await validateRecoveryContext(context, { beforeLaunch: true });
+  const session = new VerificationSession(
+    verificationRoot,
+    recovery,
+    appOptions,
+    ownership,
+    context,
+  );
   await session.persist();
   let recording;
   const ownershipTimer = setInterval(() => {
     if (recording) return;
-    recording = persistVerificationProcesses(ownership)
+    recording = persistVerificationProcesses(ownership, context)
       .catch(() => {
         // Retain the last proof; recovery revalidates every identity before acting.
       })
@@ -345,12 +277,19 @@ async function serve(resume = false) {
   }
   async function journaled(request, operation) {
     const { action } = request;
+    if (recovering) {
+      assertRecoveryAction(request);
+      await validateRecoveryContext(context);
+    }
     if (!mutatingActions.includes(action)) return operation();
     const identity = {
       actionId: randomUUID(),
       action,
       startedAt: new Date().toISOString(),
       sourceHead: barrier.head,
+      ...(recovering
+        ? { controllerHead: context.provenance.controllerHead, recoveryReceipt: context.receipt.id }
+        : {}),
     };
     // Only the digest is retained; selectors, labels, keys and fill text stay ephemeral.
     identity.requestFingerprint = journalFingerprint(JSON.stringify(request));
@@ -399,6 +338,7 @@ async function serve(resume = false) {
     session.journal.pendingAction = { ...identity, phase: "dispatch-may-have-started" };
     await session.persist();
     const result = await operation(target);
+    if (recovering) await validateRecoveryContext(context);
     delete session.journal.pendingAction;
     await session.persist();
     return result;
@@ -601,6 +541,7 @@ async function serve(resume = false) {
         let request;
         try {
           request = validateRequest(JSON.parse(buffer.slice(0, buffer.indexOf("\n"))));
+          if (recovering) assertRecoveryAction(request);
         } catch {
           connection.end(JSON.stringify({ ok: false, code: "VERIFY_REQUEST_INVALID" }) + "\n");
           return;
@@ -692,15 +633,26 @@ async function stopLocal(suspend) {
 try {
   const action = positionals[0];
   let result;
-  if (action === "serve" || action === "serve-resume") await serve(action === "serve-resume");
+  if (action === "serve-recovery") await serve(true, true);
+  else if (action === "serve" || action === "serve-resume") await serve(action === "serve-resume");
   else if (action === "start" || action === "resume") {
     result = await locked(async () => {
-      assertVerificationBarrier();
+      const barrier = assertVerificationBarrier();
+      // Fail before spawning whenever the retained journal already violates the
+      // current contract. The child still revalidates after ownership is recorded.
+      try {
+        validateVerificationJournal(
+          JSON.parse(await readFile(path.join(verificationRoot, "recovery.json"), "utf8")),
+        );
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
       process.stderr.write(
         "Live verification uses your selected learner data and connected Codex account. AI actions consume usage; use prepare-ai before generation.\n",
       );
       return await startMode({
         mode: "verify",
+        verificationContext: { targetRoot: root, barrier },
         runtimeRoot,
         cwd: root,
         command: process.env.DISPLAY
@@ -722,6 +674,63 @@ try {
       });
     });
     result = { status: result.status, pid: result.pid };
+  } else if (
+    ["recovery-inventory", "recovery-resume", "recovery-reconcile", "recovery-do"].includes(action)
+  ) {
+    if (Object.keys(appOptions).length || recoveryAttempt)
+      throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
+    let input = "";
+    if (action !== "recovery-reconcile") {
+      for await (const chunk of process.stdin) {
+        input += chunk;
+        if (Buffer.byteLength(input) > maxRequest) throw failure("VERIFY_REQUEST_LIMIT");
+      }
+    }
+    result = await locked(async () => {
+      if (["recovery-do", "recovery-reconcile"].includes(action)) {
+        const context = await existingControllerRecovery(recoveryRun, expectedHead);
+        if (action === "recovery-reconcile") return reconcileControllerRecovery(context);
+        const request = validateRequest(JSON.parse(input));
+        assertRecoveryAction(request);
+        if (request.action === "stop") return stopVerification(context);
+        return requestVerification(request, 300000, context.targetRoot);
+      }
+      const prepared = await prepareControllerRecovery(
+        JSON.parse(input),
+        action === "recovery-inventory",
+      );
+      if (action === "recovery-inventory") return prepared;
+      const context = recoveryContext(prepared.receipt, prepared.filename);
+      if (prepared.existing) return reconcileControllerRecovery(context);
+      const command = [
+        process.execPath,
+        path.join(root, "scripts/dev/verify.mjs"),
+        "serve-recovery",
+        "--run",
+        context.receipt.run,
+        "--expected-head",
+        context.receipt.appHead,
+        "--attempt",
+        context.receipt.id,
+      ];
+      const state = await startMode({
+        mode: "verify",
+        runtimeRoot: path.join(context.targetRoot, ".runtime"),
+        cwd: root,
+        command: process.env.DISPLAY ? command : ["xvfb-run", "-a", ...command],
+        verificationContext: context,
+        beforeSpawn: () => recordRecoveryIntent(context),
+        timeoutMs: 180000,
+      });
+      await validateRecoveryContext(context);
+      return {
+        status: state.status,
+        receipt: context.receipt.id,
+        lifecycleRunId: state.runId,
+        appHead: context.receipt.appHead,
+        controllerHead: context.receipt.controllerHead,
+      };
+    });
   } else if (action === "status") result = await statusMode({ mode: "verify", runtimeRoot });
   else if (action === "do") {
     let input = "";

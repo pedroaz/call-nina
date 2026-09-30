@@ -164,7 +164,7 @@ uninstall-plugin: ## Uninstall only the scoped Call Nina Codex plugin.
 	@echo "+ pnpm run plugin:uninstall"
 	@pnpm run plugin:uninstall
 
-.PHONY: verify-start verify-resume verify-status verify-inspect verify-do verify-shot verify-stop verify-suspend verify-recovery-stop verify-recovery-advance verify-reconcile-disclosure verify-reconcile-plugin-refresh logs-once
+.PHONY: verify-recovery-inventory verify-recovery-resume verify-recovery-reconcile verify-recovery-do verify-start verify-resume verify-status verify-inspect verify-do verify-shot verify-stop verify-suspend verify-recovery-stop verify-recovery-advance verify-reconcile-disclosure verify-reconcile-plugin-refresh logs-once
 verify-start: ## Build once and launch an interactive real Electron verification session.
 	@node scripts/dev/verify.mjs start $(ARGS)
 verify-resume: ## Rebuild and reopen a stopped verification session while retaining its recovery journal.
@@ -179,6 +179,14 @@ verify-shot: ## Capture a private screenshot deleted when the session stops.
 	@node scripts/dev/verify.mjs screenshot
 verify-suspend: ## Stop exact-owned processes without UI cleanup; preserve records/preferences for verify-resume.
 	@node scripts/dev/verify.mjs suspend
+verify-recovery-inventory: ## Coordinator: inspect current artifacts for no-build controller recovery using one stdin request.
+	@node scripts/dev/verify.mjs recovery-inventory
+verify-recovery-resume: ## Coordinator: resume cleanup with reviewed controller and unchanged target app from a digest-bound stdin request.
+	@node scripts/dev/verify.mjs recovery-resume
+verify-recovery-reconcile: ## Coordinator: reconcile the retained recovery attempt; never spawn another app.
+	@node scripts/dev/verify.mjs recovery-reconcile $(ARGS)
+verify-recovery-do: ## Coordinator: inspect, restore or clean exact-owned records in the retained recovery app.
+	@node scripts/dev/verify.mjs recovery-do $(ARGS)
 verify-recovery-stop: ## Coordinator: stop only the existing Run barrier target and retain terminal identity proof.
 	@node scripts/dev/verify.mjs recovery-stop $(ARGS)
 verify-recovery-advance: ## Coordinator: advance the stopped reserved checkout to a reviewed descendant, preserving its journal.

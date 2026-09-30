@@ -254,11 +254,11 @@ function retainedStaleReason(state, identity) {
 
 async function terminateStartedProcess(
   state,
-  { graceMs = 1_000, requireLeaderIdentity = true } = {},
+  { graceMs = 1_000, requireLeaderIdentity = true, verificationContext } = {},
 ) {
   if (state.mode === "verify") {
     const { stopVerification } = await import("./verification-client.mjs");
-    const result = await stopVerification();
+    const result = await stopVerification(verificationContext);
     if (!["stopped", "already-stopped"].includes(result.status))
       throw new Error("VERIFY_SHUTDOWN_INCOMPLETE");
     return true;
@@ -385,6 +385,8 @@ async function startModeUnlocked({
   timeoutMs = 60_000,
   environment = process.env,
   detached = true,
+  verificationContext,
+  beforeSpawn,
 }) {
   assertMode(mode);
   if (!Array.isArray(command) || command.length === 0)
@@ -416,8 +418,9 @@ async function startModeUnlocked({
     0o600,
   );
   await chmod(paths.log, 0o600);
-  const runId = randomUUID();
+  const runId = verificationContext?.receipt?.lifecycleRunId ?? randomUUID();
   await lifecycleLog(paths.log, "INFO", "LIFECYCLE_STARTING", runId, `Starting ${mode} service.`);
+  await beforeSpawn?.();
   const [executable, ...args] = command;
   const child = spawn(executable, args, {
     cwd,
@@ -447,6 +450,7 @@ async function startModeUnlocked({
     pid: child.pid,
     startTicks,
     runId,
+    ...(verificationContext?.provenance ? { provenance: verificationContext.provenance } : {}),
     startedAt: new Date().toISOString(),
     command,
     processGroupId: detached ? child.pid : undefined,
@@ -457,7 +461,7 @@ async function startModeUnlocked({
   while (Date.now() < deadline) {
     const identity = await inspectOwnedProcess(state);
     if (!identity.owned) {
-      await terminateStartedProcess(state, { requireLeaderIdentity: false });
+      await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
       await rm(paths.state, { force: true });
       await lifecycleLog(
         paths.log,
@@ -473,13 +477,13 @@ async function startModeUnlocked({
       try {
         ready = await readReadinessJson(paths.ready);
       } catch (error) {
-        await terminateStartedProcess(state, { requireLeaderIdentity: false });
+        await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
         await rm(paths.state, { force: true });
         await rm(paths.ready, { force: true });
         throw new Error(`${mode} emitted malformed readiness: ${error.message}`);
       }
       if (ready.status !== "ready" || ready.runId !== runId) {
-        await terminateStartedProcess(state, { requireLeaderIdentity: false });
+        await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
         await rm(paths.state, { force: true });
         await rm(paths.ready, { force: true });
         throw new Error(`${mode} emitted an invalid or stale readiness signal.`);
@@ -492,7 +496,7 @@ async function startModeUnlocked({
     await delay(50);
   }
 
-  await terminateStartedProcess(state, { requireLeaderIdentity: false });
+  await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
   await rm(paths.state, { force: true });
   await rm(paths.ready, { force: true });
   await lifecycleLog(
@@ -528,11 +532,23 @@ export async function statusMode({ mode, runtimeRoot }) {
   };
 }
 
-export async function killMode({ mode, runtimeRoot, graceMs = 5_000 }) {
+export async function killMode({ mode, runtimeRoot, graceMs = 5_000, verificationContext }) {
   if (mode === "verify") {
     const { stopVerification } = await import("./verification-client.mjs");
-    const { locked } = await import("../../agents/lib/orchestration.mjs");
-    return locked(() => stopVerification());
+    const { locked, assertVerificationBarrier } =
+      await import("../../agents/lib/orchestration.mjs");
+    return locked(() => {
+      const targetRoot = path.dirname(path.resolve(runtimeRoot));
+      let barrier;
+      if (!verificationContext) {
+        try {
+          barrier = assertVerificationBarrier();
+        } catch {
+          /* Retain exact process-only recovery. */
+        }
+      }
+      return stopVerification(verificationContext ?? { targetRoot, barrier });
+    });
   }
   const paths = lifecyclePaths(runtimeRoot, mode);
   const state = await readState(paths);

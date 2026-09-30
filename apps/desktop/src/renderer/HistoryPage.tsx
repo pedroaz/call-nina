@@ -227,7 +227,6 @@ export function HistoryPage({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
-        routeId: "codex",
         submissionId,
         input: {
           kind: "exercise-generation",
@@ -256,7 +255,6 @@ export function HistoryPage({
     setError(undefined);
     try {
       const result = await invokeDesktop("learning-operation/start", {
-        routeId: "codex",
         submissionId,
         input: {
           kind: "exercise-generation",

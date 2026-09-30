@@ -1423,9 +1423,10 @@
       "runtime-unavailable": "Diese KI-Aktion benötigt Codex auf diesem Gerät. Prüfe die Codex-Verbindung in den Einstellungen und versuche es erneut.",
       "account-required": "Diese KI-Aktion benötigt ein angemeldetes Codex-Konto. Verbinde dein Konto oder erneuere die Anmeldung in den Einstellungen und versuche es erneut.",
       "account-unavailable": "Der Codex-Kontozugriff konnte nicht bestätigt werden. Prüfe die Verbindung in den Einstellungen und versuche es erneut.",
-      "capability-unavailable": "Der Codex-Zugang auf diesem Gerät unterstützt diese Aktion nicht. Es wird kein anderer Zugang automatisch ausgewählt.",
+      "capability-unavailable": "Die ausgewählte KI-Verbindung unterstützt diese Aktion nicht. Es wird keine andere Verbindung automatisch ausgewählt.",
       "model-unavailable": "Für diese Aktion ist kein nutzbares Codex-Modell mit passender Denkleistung verfügbar. Prüfe die gespeicherte Modellauswahl und Verbindung in den Einstellungen und versuche es erneut.",
-      "plugin-required": "Zum Öffnen dieser Voice-Aktivität in Codex wird das Call-Nina-Plugin benötigt. Installiere oder aktualisiere es in den Einstellungen und versuche es erneut."
+      "plugin-required": "Zum Öffnen dieser Voice-Aktivität in Codex wird das Call-Nina-Plugin benötigt. Installiere oder aktualisiere es in den Einstellungen und versuche es erneut.",
+      "connection-required": "Wähle in den Einstellungen eine KI-Verbindung für diese Aktion. Vorbereitete Übungen bleiben verfügbar."
     }
   },
   "languages": {
@@ -1541,5 +1542,20 @@
     "nina": "Ninas Empfehlungen ansehen",
     "return": "Zurück zu {{origin}}",
     "selfAssessment": "Die Kartenwiederholung ist bei dieser Aktivität gespeichert. Selbsteinschätzungen steuern die Vokabelwiederholung; sie belegen keine selbstständige Sprachkompetenz."
+  },
+  "connections": {
+    "title": "KI-Verbindung",
+    "single": "Eine Verbindung und ein Modell gelten für alle KI-Aktionen. Änderungen warten, bis laufende Aktionen abgeschlossen sind.",
+    "active": "Aktive Verbindung",
+    "runtimeDefault": "Laufzeitstandard",
+    "unavailable": "Diese Verbindung oder dieses Modell ist nicht verfügbar. Prüfe die Einstellungen.",
+    "disconnect": "Nina trennen",
+    "none": "Keine KI-Verbindung eingerichtet. Vorbereitete Übungen bleiben verfügbar.",
+    "connectCodex": "Codex verbinden",
+    "migrated": "Deine bisherigen Modellwahlen wurden als auswählbare Verbindungen gespeichert. Die bisherige Wahl für die Generierung ist aktiv.",
+    "dismiss": "Ausblenden",
+    "cleanupPending": "Das Entfernen der Zugangsdaten steht noch aus. Öffne diese Einstellungen erneut, um es noch einmal zu versuchen.",
+    "wait": "Warte, bis laufende KI-Aktionen abgeschlossen sind, und versuche es erneut.",
+    "officialAuth": "Die Anmeldung gehört zu Codex. Melde dich in Codex ab; trenne Nina hier, ohne dessen Zugangsdaten zu ändern."
   }
 }

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
@@ -8,6 +8,7 @@ import {
   writeFileSync,
   renameSync,
   realpathSync,
+  lstatSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -338,5 +339,120 @@ export async function advanceVerificationBarrier(request) {
     receiptId: receipt.id,
     journalFingerprint: expectedJournalFingerprint,
     recovery: "retained-resume-required",
+  };
+}
+
+// Caller holds the shared operation lock. Recovery never advances the barrier.
+export function controllerRecoveryAuthority(run, expectedHead, controllerHead, reviewTask) {
+  const privateLoad = (filename) => {
+    const info = lstatSync(filename);
+    if (!info.isFile() || info.uid !== process.getuid() || info.mode & 0o077)
+      throw new Error("VERIFY_RECOVERY_RECEIPT_UNSAFE");
+    return load(filename);
+  };
+  const binding = assertCoordinator(run);
+  const gate = coordinatorVerificationBarrier(run, expectedHead);
+  if (
+    !/^[a-f0-9]{40}$/.test(controllerHead ?? "") ||
+    !/^task_[\w-]+$/.test(reviewTask ?? "") ||
+    realpathSync(root) !== root ||
+    realpathSync(gate.worktree) !== gate.worktree ||
+    root === gate.worktree ||
+    git(["status", "--porcelain"]).trim() ||
+    git(["rev-parse", "HEAD"]).trim() !== controllerHead
+  )
+    throw new Error("VERIFY_CLEAN_REVIEWED_SOURCE_REQUIRED");
+  git(["merge-base", "--is-ancestor", expectedHead, controllerHead]);
+  const all = tasks(run);
+  const workers = [];
+  const cursors = new Set();
+  let cursor;
+  do {
+    const page = orca([
+      "orchestration",
+      "worker-list",
+      "--run",
+      run,
+      "--include-remote",
+      ...(cursor ? ["--cursor", cursor] : []),
+    ]);
+    if (
+      !Array.isArray(page.workers) ||
+      page.scope?.run !== run ||
+      typeof page.page?.hasMore !== "boolean"
+    )
+      throw new Error("VERIFY_WORKERS_UNKNOWN");
+    workers.push(...page.workers);
+    if (!page.page.hasMore) break;
+    cursor = page.page.nextCursor;
+    if (typeof cursor !== "string" || !cursor || cursors.has(cursor))
+      throw new Error("VERIFY_WORKERS_UNKNOWN");
+    cursors.add(cursor);
+  } while (cursor);
+  if (
+    workers.some((worker) => worker.runId !== run || !all.some((task) => task.id === worker.taskId))
+  )
+    throw new Error("VERIFY_WORKERS_UNKNOWN");
+  for (const task of all) {
+    const owners = workers.filter((worker) => worker.taskId === task.id);
+    if (
+      task.status === "dispatched" &&
+      (!owners.length || owners.every((owner) => owner.terminalState === "released"))
+    )
+      throw new Error("VERIFY_WORKERS_UNKNOWN");
+    if (
+      !owners.some(
+        (worker) =>
+          worker.terminalState !== "released" || worker.resource?.releaseState !== "released",
+      )
+    )
+      continue;
+    const file = path.join(stateRoot, "launches", `${task.id}.json`);
+    if (!existsSync(file)) throw new Error("VERIFY_WORKERS_UNKNOWN");
+    const launch = privateLoad(file);
+    if (launch.run !== run || launch.task !== task.id || typeof launch.target !== "string")
+      throw new Error("VERIFY_WORKERS_UNKNOWN");
+    if (realpathSync(launch.target) === gate.worktree)
+      throw new Error("VERIFY_WORKER_STILL_OWNS_CHECKOUT");
+  }
+  const task = all.find((item) => item.id === reviewTask);
+  const match = /^NINA_ASSIGNMENT=([^\n]+)/.exec(task?.spec ?? "");
+  const spec = match ? JSON.parse(match[1]) : null;
+  const launch = privateLoad(path.join(stateRoot, "launches", `${reviewTask}.json`));
+  const receipt = privateLoad(path.join(stateRoot, "launches", `${reviewTask}.json.receipt`));
+  const completed = workers.filter((worker) => worker.taskId === reviewTask);
+  if (
+    task?.status !== "completed" ||
+    spec?.role !== "reviewer" ||
+    spec.commit !== controllerHead ||
+    launch.run !== run ||
+    launch.task !== reviewTask ||
+    launch.baseline !== controllerHead ||
+    launch.role !== "reviewer" ||
+    [root, gate.worktree].includes(realpathSync(launch.target)) ||
+    receipt.taskId !== reviewTask ||
+    completed.length !== 1 ||
+    completed[0].dispatchId !== receipt.dispatchId ||
+    completed[0].dispatchStatus !== "completed" ||
+    completed[0].projection?.outcome !== "succeeded" ||
+    completed[0].terminalState !== "released" ||
+    completed[0].resource?.releaseState !== "released" ||
+    receipt.launch?.effective?.model !== spec.execution?.model ||
+    receipt.launch?.effective?.effort !== spec.execution?.effort
+  )
+    throw new Error("VERIFY_EXACT_REVIEW_REQUIRED");
+  return {
+    binding,
+    gate,
+    review: {
+      task: reviewTask,
+      dispatch: receipt.dispatchId,
+      controllerHead,
+      target: launch.target,
+      model: receipt.launch.effective.model,
+      effort: receipt.launch.effective.effort,
+      launchDigest: createHash("sha256").update(JSON.stringify(launch)).digest("hex"),
+      receiptDigest: createHash("sha256").update(JSON.stringify(receipt)).digest("hex"),
+    },
   };
 }

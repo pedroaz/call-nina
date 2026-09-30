@@ -16,9 +16,139 @@ export const languageNames = {
   es: "Español",
   de: "Deutsch",
 };
-export const workloads = ["correction", "generation", "helper", "research"];
 export function failure(code) {
   return new Error(code);
+}
+// This is the current Settings UI serialization, shared by capture and resume.
+// Keep schemaVersion 1: already-retained connection journals use this envelope.
+// Historical workload maps and unknown fields cannot prove restoration ownership.
+export function validateVerificationPreferences(preference, initialRoot) {
+  if (!preference || typeof preference !== "object" || Array.isArray(preference))
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (Object.keys(preference).length === 0) return preference;
+  const selectionId = (value) =>
+    typeof value === "string" &&
+    value.length <= 128 &&
+    /^[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(value);
+  if (
+    Object.keys(preference).sort().join(",") !== "connectionId,effort,model,rootGeneration,route" ||
+    typeof preference.connectionId !== "string" ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      preference.connectionId,
+    ) ||
+    preference.route !== "codex" ||
+    typeof preference.rootGeneration !== "string" ||
+    !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
+    !Number.isSafeInteger(Number(preference.rootGeneration)) ||
+    (initialRoot !== undefined && preference.rootGeneration !== initialRoot) ||
+    !selectionId(preference.model) ||
+    !selectionId(preference.effort) ||
+    (preference.effort.startsWith("semantic:") &&
+      !["semantic:fast", "semantic:balanced", "semantic:deep"].includes(preference.effort))
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  return preference;
+}
+export const mutatingActions = [
+  "click",
+  "double-click",
+  "fill",
+  "select",
+  "press",
+  "prepare-ai",
+  "cleanup",
+  "restore",
+  "stop",
+];
+export function validateVerificationJournal(previous) {
+  if (
+    !previous ||
+    typeof previous !== "object" ||
+    Array.isArray(previous) ||
+    previous.schemaVersion !== 1
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  validateVerificationPreferences(previous.preferences, previous.initialRoot);
+  const needsRecovery = Boolean(
+    previous.suspended ||
+    previous.initialTarget ||
+    Object.keys(previous.learningPreferences ?? {}).length ||
+    previous.records?.length ||
+    Object.keys(previous.preferences ?? {}).length ||
+    previous.notes?.length ||
+    previous.pendingAction ||
+    previous.interruptedActions?.length,
+  );
+  if (
+    !Array.isArray(previous.records) ||
+    !Array.isArray(previous.notes) ||
+    !previous.preferences ||
+    (previous.receipts !== undefined && !Array.isArray(previous.receipts)) ||
+    (previous.locale !== undefined && !["en", ...Object.keys(locales)].includes(previous.locale)) ||
+    (previous.locale === undefined && Object.keys(previous.preferences).length)
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (
+    previous.records.some(
+      (r) =>
+        !(r.kind === "material" ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/).test(
+          r.id,
+        ) || !["practice", "speaking", "listening", "material"].includes(r.kind),
+    )
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (previous.initialRoot !== undefined && !/^[1-9][0-9]*$/.test(previous.initialRoot))
+    throw failure("VERIFY_RECOVERY_INVALID");
+  if (previous.initialTarget !== undefined && !locales[previous.initialTarget])
+    throw failure("VERIFY_RECOVERY_INVALID");
+  for (const [language, preference] of Object.entries(previous.learningPreferences ?? {})) {
+    if (
+      !locales[language] ||
+      preference.language !== language ||
+      !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
+      !["a1", "a2", "b1", "b2"].includes(preference.level) ||
+      typeof preference.goal !== "string" ||
+      preference.goal.length > 500 ||
+      !locales[preference.explanation] ||
+      !["conversation-partner", "strict-corrector"].includes(preference.teaching) ||
+      (language === "de" && typeof preference.enrolled !== "boolean")
+    )
+      throw failure("VERIFY_RECOVERY_INVALID");
+  }
+  if (
+    previous.notes.some(
+      (note) => typeof note !== "string" || !/^[A-Z][A-Z0-9_]{0,100}$/.test(note),
+    ) ||
+    (previous.interruptedActions !== undefined && !Array.isArray(previous.interruptedActions))
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  for (const entry of [
+    ...(previous.interruptedActions ?? []),
+    ...(previous.pendingAction ? [previous.pendingAction] : []),
+  ]) {
+    if (
+      !entry ||
+      !mutatingActions.includes(entry.action) ||
+      typeof entry.startedAt !== "string" ||
+      !Number.isFinite(Date.parse(entry.startedAt))
+    )
+      throw failure("VERIFY_RECOVERY_INVALID");
+  }
+  if (
+    previous.baseline &&
+    (!Array.isArray(previous.baseline.ids) ||
+      !["practice", "speaking", "listening", "material"].includes(previous.baseline.kind) ||
+      previous.baseline.ids.some(
+        (id) =>
+          !(
+            previous.baseline.kind === "material"
+              ? /^material_[0-9a-z]{16,64}$/
+              : /^activity_[0-9a-z]{16,64}$/
+          ).test(id),
+      ))
+  )
+    throw failure("VERIFY_RECOVERY_INVALID");
+  return { journal: previous, needsRecovery };
 }
 export function safeCode(error, fallback = "VERIFY_ACTION_FAILED") {
   return /^VERIFY_[A-Z0-9_:]+$/.test(error?.message ?? "") ? error.message : fallback;
@@ -51,7 +181,8 @@ export function productionEnvironment() {
   return environment;
 }
 export class VerificationSession {
-  constructor(directory, recovery, options = {}, ownership) {
+  constructor(directory, recovery, options = {}, ownership, context = { targetRoot: root }) {
+    this.context = context;
     this.options = options;
     this.directory = directory;
     this.ownership = ownership;
@@ -60,30 +191,39 @@ export class VerificationSession {
     this.phase = "launch";
   }
   async persist() {
+    validateVerificationPreferences(this.journal.preferences, this.journal.initialRoot);
     await writePrivateJson(path.join(this.directory, "recovery.json"), this.journal);
   }
   async launch() {
     const packagedExecutable = this.options.executable;
+    if (this.context.provenance && Object.keys(this.options).length)
+      throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
     if (packagedExecutable && !path.isAbsolute(packagedExecutable))
       throw failure("VERIFY_EXECUTABLE_INVALID");
     this.application = await electron
       .launch({
-        ...(packagedExecutable ? { executablePath: packagedExecutable } : {}),
+        ...(this.context.electronExecutable
+          ? { executablePath: this.context.electronExecutable }
+          : packagedExecutable
+            ? { executablePath: packagedExecutable }
+            : {}),
         args: [
           ...(process.platform === "linux" ? ["--ozone-platform=x11"] : []),
-          ...(packagedExecutable ? [] : [path.join(root, "apps/desktop/dist/main/index.js")]),
+          ...(packagedExecutable
+            ? []
+            : [path.join(this.context.targetRoot, "apps/desktop/dist/main/index.js")]),
           ...["config-dir", "codex-executable"]
             .filter((key) => this.options[key])
             .map((key) => `--${key}=${this.options[key]}`),
         ],
-        cwd: root,
+        cwd: this.context.targetRoot,
         env: productionEnvironment(),
         timeout: 30000,
       })
       .catch(() => {
         throw failure("VERIFY_ELECTRON_LAUNCH_FAILED_OR_APP_ALREADY_RUNNING");
       });
-    await recordVerificationApp(this.ownership, this.application.process().pid);
+    await recordVerificationApp(this.ownership, this.application.process().pid, this.context);
     this.page = await this.application.firstWindow({ timeout: 15000 });
     this.mainPage = this.page;
     this.page.setDefaultTimeout(15000);
@@ -124,7 +264,10 @@ export class VerificationSession {
     if (!locale) throw failure("VERIFY_LOCALE_UNSUPPORTED");
     this.catalogs ??= {};
     this.catalogs[locale] ??= JSON.parse(
-      await readFile(path.join(root, `apps/desktop/src/renderer/locales/${locale}.json`), "utf8"),
+      await readFile(
+        path.join(this.context.targetRoot, `apps/desktop/src/renderer/locales/${locale}.json`),
+        "utf8",
+      ),
     );
     const label = key.split(".").reduce((value, part) => value?.[part], this.catalogs[locale]);
     if (typeof label !== "string") throw failure("VERIFY_LABEL_UNAVAILABLE");
@@ -257,18 +400,42 @@ export class VerificationSession {
     await this.page
       .getByRole("tab", { name: await this.t("settings.tabs.models"), exact: true })
       .click();
-    await this.page.locator('[data-workload="generation"] select').first().waitFor();
+    const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
+    await panel.waitFor();
+    if ((await panel.locator("details").getAttribute("open")) === null)
+      await panel.locator("summary").click();
+    await panel
+      .getByRole("combobox", { name: await this.t("connections.active"), exact: true })
+      .waitFor();
+    return panel;
   }
   async preferences() {
-    const result = {};
-    for (const workload of workloads) {
-      const row = this.page.locator(`[data-workload="${workload}"]`);
-      result[workload] = {
-        model: await row.locator("select").nth(0).inputValue(),
-        effort: await row.locator("select").nth(1).inputValue(),
-      };
-    }
-    return result;
+    const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
+    const preference = {
+      connectionId: await panel.getAttribute("data-ai-connection"),
+      route: await panel.getAttribute("data-route"),
+      rootGeneration: await panel.getAttribute("data-root-generation"),
+      model: await panel
+        .getByRole("combobox", { name: await this.t("modelControl.model"), exact: true })
+        .inputValue(),
+      effort: await panel
+        .getByRole("combobox", { name: await this.t("settings.effort"), exact: true })
+        .inputValue(),
+    };
+    return validateVerificationPreferences(preference, this.journal.initialRoot);
+  }
+  async selectAiPreference(panel, key, value) {
+    const control = panel.getByRole("combobox", { name: await this.t(key), exact: true });
+    if ((await control.inputValue()) === value) return;
+    const revision = await panel.getAttribute("data-connection-revision");
+    await control.selectOption(value);
+    await until(
+      async () =>
+        (await panel.getAttribute("aria-busy")) === "false" &&
+        (await panel.getAttribute("data-connection-revision")) !== revision &&
+        (await control.inputValue()) === value,
+      "VERIFY_SETTINGS_SAVE_FAILED",
+    );
   }
   async saveSettings() {
     const save = await this.button("settings.save");
@@ -283,46 +450,44 @@ export class VerificationSession {
   }
   async prepareAI() {
     this.phase = "select-luna";
-    await this.settings();
-    for (const workload of workloads) {
-      const row = this.page.locator(`[data-workload="${workload}"]`);
-      if (
-        (await row
-          .locator("select")
-          .first()
-          .locator('option[value="exact:gpt-6-luna"]')
-          .count()) !== 1
-      )
-        throw failure("VERIFY_LUNA_UNAVAILABLE");
-    }
+    const panel = await this.settings();
+    const current = await this.preferences();
+    if (current.route !== "codex") throw failure("VERIFY_CODEX_CONNECTION_REQUIRED");
+    // Refuse to mutate an unavailable saved selection that cannot be restored
+    // through the current advertised controls; keep the original journal intact.
+    if (!(await panel.getAttribute("data-effective-model")))
+      throw failure("VERIFY_SETTINGS_UNRESTORABLE");
+    if ((await panel.locator('option[value="gpt-6-luna"]').count()) !== 1)
+      throw failure("VERIFY_LUNA_UNAVAILABLE");
     if (Object.keys(this.journal.preferences).length === 0) {
-      this.journal.preferences = await this.preferences();
+      this.journal.preferences = current;
       await this.persist();
+    } else if (
+      this.journal.preferences.connectionId !== current.connectionId ||
+      this.journal.preferences.rootGeneration !== current.rootGeneration ||
+      this.journal.preferences.route !== current.route
+    ) {
+      throw failure("VERIFY_SETTINGS_SCOPE_CHANGED");
     }
-    for (const workload of workloads) {
-      const row = this.page.locator(`[data-workload="${workload}"]`);
-      await row.locator("select").nth(0).selectOption("exact:gpt-6-luna");
-      await row.locator("select").nth(1).selectOption("semantic:balanced");
-      await until(async () => {
-        const defaultEffort = await row.getAttribute("data-default-effort");
-        return (
-          defaultEffort &&
-          (await row.getAttribute("data-effective-model")) === "gpt-6-luna" &&
-          (await row.getAttribute("data-effective-effort")) === defaultEffort
-        );
-      }, "VERIFY_LUNA_DEFAULT_UNAVAILABLE");
-    }
-    await this.saveSettings();
-    // Reopen from persisted settings, not just the unsaved draft.
+    await this.selectAiPreference(panel, "modelControl.model", "gpt-6-luna");
+    await this.selectAiPreference(panel, "settings.effort", "semantic:balanced");
+    await until(async () => {
+      const defaultEffort = await panel.getAttribute("data-default-effort");
+      return (
+        defaultEffort &&
+        (await panel.getAttribute("data-effective-model")) === "gpt-6-luna" &&
+        (await panel.getAttribute("data-effective-effort")) === defaultEffort
+      );
+    }, "VERIFY_LUNA_DEFAULT_UNAVAILABLE");
     await this.navigate(await this.t("nav.nina"));
     await this.settings();
     const observed = await this.preferences();
     if (
-      workloads.some(
-        (workload) =>
-          observed[workload].model !== "exact:gpt-6-luna" ||
-          observed[workload].effort !== "semantic:balanced",
-      )
+      observed.connectionId !== current.connectionId ||
+      observed.rootGeneration !== current.rootGeneration ||
+      observed.route !== current.route ||
+      observed.model !== "gpt-6-luna" ||
+      observed.effort !== "semantic:balanced"
     )
       throw failure("VERIFY_LUNA_SELECTION_FAILED");
     this.aiPrepared = true;
@@ -631,6 +796,12 @@ export class VerificationSession {
   async cleanupActivity(id) {
     const record = this.journal.records.find((record) => record.id === id);
     if (!record) throw failure("VERIFY_RECORD_NOT_OWNED");
+    if (
+      this.context.provenance &&
+      record.kind === "material" &&
+      this.journal.records.some((entry) => entry.kind !== "material")
+    )
+      throw failure("VERIFY_ACTIVITY_CLEANUP_REQUIRED");
     await this.selectLanguage(record.language);
     if (record.kind === "material") {
       const workspace = await this.materialLibrary();
@@ -714,7 +885,10 @@ export class VerificationSession {
     const labels = [];
     for (const locale of Object.values(locales)) {
       const catalog = JSON.parse(
-        await readFile(path.join(root, `apps/desktop/src/renderer/locales/${locale}.json`), "utf8"),
+        await readFile(
+          path.join(this.context.targetRoot, `apps/desktop/src/renderer/locales/${locale}.json`),
+          "utf8",
+        ),
       );
       labels.push(catalog.onboarding.targetLanguage);
     }
@@ -800,16 +974,22 @@ export class VerificationSession {
         };
       }
       if (Object.keys(this.journal.preferences).length) {
-        await this.settings();
-        for (const [workload, preference] of Object.entries(this.journal.preferences)) {
-          const row = this.page.locator(`[data-workload="${workload}"]`);
-          await row.locator("select").nth(0).selectOption(preference.model);
-          await row.locator("select").nth(1).selectOption(preference.effort);
-        }
-        await this.saveSettings();
+        const panel = await this.settings();
+        const preference = this.journal.preferences;
+        const current = await this.preferences();
+        if (
+          !preference.connectionId ||
+          preference.connectionId !== current.connectionId ||
+          preference.rootGeneration !== current.rootGeneration ||
+          preference.route !== current.route
+        )
+          throw failure("VERIFY_SETTINGS_SCOPE_CHANGED");
+        await this.selectAiPreference(panel, "modelControl.model", preference.model);
+        await this.selectAiPreference(panel, "settings.effort", preference.effort);
         await this.navigate(await this.t("nav.nina"));
         await this.settings();
-        if (JSON.stringify(await this.preferences()) !== JSON.stringify(this.journal.preferences))
+        const restored = await this.preferences();
+        if (Object.entries(preference).some(([key, value]) => restored[key] !== value))
           throw failure("VERIFY_SETTINGS_RESTORE_FAILED");
         this.journal.preferences = {};
       }

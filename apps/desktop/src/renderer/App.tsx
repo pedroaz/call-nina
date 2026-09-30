@@ -13,7 +13,6 @@ import {
   type Language,
   type DataRootGeneration,
 } from "@call-nina/contracts";
-import type { ModelWorkload } from "@call-nina/domain";
 import {
   FilePenLine,
   Gauge,
@@ -330,7 +329,7 @@ function DesktopWorkspace({
       }
       if (
         event.event === "state-invalidated" &&
-        (event.scope === "account" || event.scope === "settings")
+        ["account", "settings", "ai-connections"].includes(event.scope)
       )
         void reload();
       if (event.event === "state-invalidated" && event.scope === "settings")
@@ -353,7 +352,6 @@ function DesktopWorkspace({
     setProviderUnavailable(undefined);
     try {
       const access = await invokeDesktop("provider/access/read", {
-        routeId: "codex",
         operation,
         ...(previousOperationId ? { previousOperationId } : {}),
       });
@@ -447,7 +445,6 @@ function DesktopWorkspace({
           }
         : undefined;
   const shellPage = page === "writing" ? "practice" : page === "personalData" ? "settings" : page;
-  const modelWorkload: ModelWorkload = page === "writing" ? "correction" : "generation";
 
   return (
     <>
@@ -739,7 +736,7 @@ function DesktopWorkspace({
                 )}
               </>
             )}
-            <SidebarModelControl initialWorkload={modelWorkload} />
+            <SidebarModelControl />
           </>
         }
         navToggleLabel={
