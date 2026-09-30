@@ -1,3 +1,10 @@
+import { ManagedGenerationService, managedCatalog } from "@call-nina/managed-generation/service";
+import {
+  OfflineGenerationService,
+  type OfflineRuntime,
+  offlineCatalog,
+  offlineSelection,
+} from "@call-nina/offline-runtime";
 import {
   DirectApiGenerationService,
   directApiCatalog,
@@ -141,7 +148,11 @@ export class DesktopBackend {
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
   readonly #operationServices = new Map<string, GenerationService>();
+  readonly #managedServices = new Set<ManagedGenerationService>();
   readonly #directServices = new Set<DirectApiGenerationService>();
+  readonly #offlineServices = new Set<OfflineGenerationService>();
+  readonly #offline: OfflineRuntime;
+  #offlineEpoch = 0;
   readonly #projectGenerationEvent: (event: AppServerEvent) => void;
   readonly #appServer: CallNinaAppServerAdapter | undefined;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
@@ -200,6 +211,7 @@ export class DesktopBackend {
     curriculumRoot: string;
     bootstrapFile: string;
     secrets: ConnectionSecretStorage;
+    offlineRuntime: OfflineRuntime;
     chooseDirectory: () => Promise<string | undefined>;
     knownInstallRoots: readonly string[];
     appServer?: CallNinaAppServerAdapter;
@@ -211,6 +223,7 @@ export class DesktopBackend {
     ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>;
   }) {
     this.#secrets = options.secrets;
+    this.#offline = options.offlineRuntime;
     this.#curriculumRoot = options.curriculumRoot;
     this.#bootstrapFile = options.bootstrapFile;
     this.#chooseDirectory = options.chooseDirectory;
@@ -261,6 +274,10 @@ export class DesktopBackend {
   }
 
   close(): void {
+    this.#offlineEpoch++;
+    for (const service of this.#offlineServices) void service.shutdown();
+    this.#offlineServices.clear();
+    void this.#offline.stop().catch(() => undefined);
     for (const job of this.#translationJobs.values()) {
       job.cancelled = true;
       if (job.providerOperationId)
@@ -269,6 +286,8 @@ export class DesktopBackend {
           ?.cancelOperation(job.providerOperationId)
           .catch(() => undefined);
     }
+    for (const service of this.#managedServices) void service.shutdown();
+    this.#managedServices.clear();
     for (const service of this.#directServices) void service.shutdown();
     this.#directServices.clear();
     this.#operationServices.clear();
@@ -297,6 +316,7 @@ export class DesktopBackend {
     await this.#enqueue(() => {
       this.close();
     });
+    await this.#offline.stop();
     await this.#appServer?.shutdown();
     this.#operationLog(
       "info",
@@ -360,6 +380,8 @@ export class DesktopBackend {
   }
 
   async #stopConnectionRuntime(): Promise<void> {
+    this.#offlineEpoch++;
+    await this.#offline.stop();
     if (this.#pendingLoginId && this.#appServer) {
       await this.#appServer.cancelManagedLogin(this.#pendingLoginId);
       this.#pendingLoginId = undefined;
@@ -559,12 +581,18 @@ export class DesktopBackend {
           }
           const selection = accepted.operation.modelSelection;
           const provenance = generationProvenanceSchema.parse(state.provenance);
+          const capturedEffort =
+            selection.effort.selection === "exact"
+              ? selection.effort.effortId
+              : accepted.connection.routeId === "managed"
+                ? "runtime-default"
+                : undefined;
           if (
             selection.model.selection !== "exact" ||
-            selection.effort.selection !== "exact" ||
+            capturedEffort === undefined ||
             provenance.producer !== accepted.connection.routeId ||
             provenance.modelId !== selection.model.modelId ||
-            provenance.effortId !== selection.effort.effortId
+            provenance.effortId !== capturedEffort
           )
             throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
           if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
@@ -1413,6 +1441,51 @@ export class DesktopBackend {
 
   #generationForConnection(connection: AiConnection): GenerationService | undefined {
     if (connection.routeId === "codex") return this.#appServer;
+    if (connection.routeId === "managed" && this.#database) {
+      const database = this.#database;
+      const service = new ManagedGenerationService({
+        connectionId: connection.id,
+        rootGeneration: database.rootGeneration,
+        // Connection mutations wait for settlement; root changes invalidate the lease.
+        assertActive: () => {
+          if (this.#closing || database !== this.#database || database.closed)
+            throw new Error("OD_DATA_ROOT_STALE");
+        },
+      });
+      service.subscribeGeneration(this.#projectGenerationEvent);
+      this.#managedServices.add(service);
+      return service;
+    }
+    if (connection.routeId === "local" && this.#database) {
+      const database = this.#database;
+      const captured = structuredClone(connection);
+      const service = new OfflineGenerationService({
+        connectionId: captured.id,
+        rootGeneration: database.rootGeneration,
+        runtime: this.#offline,
+        captureActive: () => {
+          const epoch = this.#offlineEpoch;
+          return () =>
+            !this.#closing &&
+            database === this.#database &&
+            !database.closed &&
+            epoch === this.#offlineEpoch;
+        },
+        assertActive: async (request) => {
+          const access = await this.#providerAccess(
+            request.input.kind,
+            request.operationId,
+            request.modelSelection,
+            captured,
+          );
+          if (access.status !== "available" || access.routeId !== "local")
+            throw new Error("OD_OFFLINE_INACTIVE");
+        },
+      });
+      service.subscribeGeneration(this.#projectGenerationEvent);
+      this.#offlineServices.add(service);
+      return service;
+    }
     if (!isDirectApiRoute(connection.routeId) || !this.#database) return undefined;
     const database = this.#database;
     const captured = structuredClone(connection);
@@ -1449,6 +1522,20 @@ export class DesktopBackend {
     const service = this.#operationServices.get(operationId);
     service?.releaseOperation(operationId);
     this.#operationServices.delete(operationId);
+    if (
+      service instanceof ManagedGenerationService &&
+      ![...this.#operationServices.values()].includes(service)
+    ) {
+      this.#managedServices.delete(service);
+      void service.shutdown();
+    }
+    if (
+      service instanceof OfflineGenerationService &&
+      ![...this.#operationServices.values()].includes(service)
+    ) {
+      this.#offlineServices.delete(service);
+      void service.shutdown();
+    }
     if (
       service instanceof DirectApiGenerationService &&
       ![...this.#operationServices.values()].includes(service)
@@ -1526,6 +1613,37 @@ export class DesktopBackend {
                   ? "model-unavailable"
                   : "configured";
       }
+      if (connection.routeId === "local") {
+        const catalog = offlineCatalog();
+        const snapshot = await this.#offline.inspect();
+        entry.models = catalog.models;
+        entry.operations = catalog.operations;
+        entry.languages = catalog.languages;
+        entry.status =
+          connection.id !== settings.activeConnectionId
+            ? "inactive"
+            : snapshot.state !== "installed" ||
+                !snapshot.preflight?.platformSupported ||
+                !snapshot.preflight.memorySufficient
+              ? "runtime-unavailable"
+              : resolveModelPreference(connection.preference, catalog.models).status !== "available"
+                ? "model-unavailable"
+                : "configured";
+      }
+      if (connection.routeId === "managed") {
+        const catalog = managedCatalog();
+        if (catalog) {
+          entry.models = catalog.models;
+          entry.operations = catalog.operations;
+          entry.languages = [...catalog.languages];
+          entry.status =
+            connection.id !== settings.activeConnectionId
+              ? "inactive"
+              : resolveModelPreference(connection.preference, catalog.models).status === "available"
+                ? "configured"
+                : "model-unavailable";
+        }
+      }
       availability.push(entry);
     }
     return aiConnectionsViewSchema.parse({
@@ -1533,6 +1651,7 @@ export class DesktopBackend {
       settings,
       secureStorage: this.#secrets.state(),
       directApiCatalogs: directApiCatalogs(),
+      offlineModel: { catalog: offlineCatalog(), snapshot: await this.#offline.inspect() },
       availability,
     });
   }
@@ -1592,6 +1711,71 @@ export class DesktopBackend {
       } catch {
         return unavailable("model-unavailable");
       }
+    }
+    if (connection.routeId === "local") {
+      const catalog = offlineCatalog();
+      if (operation !== "writing-prompt" && operation !== "contextual-help")
+        return unavailable("capability-unavailable");
+      const snapshot = await this.#offline.inspect();
+      if (
+        snapshot.state !== "installed" ||
+        !snapshot.preflight?.platformSupported ||
+        !snapshot.preflight.memorySufficient
+      )
+        return unavailable("runtime-unavailable");
+      try {
+        if (retainedSelection)
+          return {
+            routeId: "local",
+            operation,
+            status: "available",
+            modelSelection: offlineSelection(retainedSelection),
+          };
+        const resolution = resolveModelPreference(connection.preference, catalog.models);
+        if (resolution.status !== "available") return unavailable("model-unavailable");
+        return {
+          routeId: "local",
+          operation,
+          status: "available",
+          modelSelection: {
+            modelId: resolution.effectiveModelId,
+            effortId: resolution.effectiveEffortId,
+          },
+        };
+      } catch {
+        return unavailable("model-unavailable");
+      }
+    }
+    if (connection.routeId === "managed") {
+      const catalog = managedCatalog();
+      if (!catalog) return unavailable("runtime-unavailable");
+      if (operation === "voice-handoff" || !catalog.operations.includes(operation))
+        return unavailable("capability-unavailable");
+      if (retainedSelection) {
+        if (
+          retainedSelection.model.selection !== "exact" ||
+          retainedSelection.model.modelId !== catalog.models.runtimeDefaultModelId ||
+          retainedSelection.effort.selection !== "runtime-default"
+        )
+          return unavailable("model-unavailable");
+        return {
+          routeId: "managed",
+          operation,
+          status: "available",
+          modelSelection: { modelId: retainedSelection.model.modelId, effortId: "runtime-default" },
+        };
+      }
+      const resolution = resolveModelPreference(connection.preference, catalog.models);
+      if (resolution.status !== "available") return unavailable("model-unavailable");
+      return {
+        routeId: "managed",
+        operation,
+        status: "available",
+        modelSelection: {
+          modelId: resolution.effectiveModelId,
+          effortId: resolution.effectiveEffortId,
+        },
+      };
     }
     if (connection.routeId !== "codex") return unavailable("capability-unavailable");
     if (operation === "voice-handoff") {
@@ -1966,6 +2150,23 @@ export class DesktopBackend {
       ) {
         return this.#failure(request, "stale-data-root");
       }
+      if (request.channel === "offline-model/read" || request.channel === "offline-model/manage") {
+        if (request.channel === "offline-model/manage") {
+          if (
+            request.payload.action !== "cancel" &&
+            (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+          )
+            return this.#failure(request, "conflict");
+          if (request.payload.action === "install") this.#offline.install();
+          else if (request.payload.action === "cancel") await this.#offline.cancelDownload();
+          else await this.#offline.remove();
+          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+        }
+        return this.#success(request, {
+          catalog: offlineCatalog(),
+          snapshot: await this.#offline.inspect(),
+        });
+      }
       if (
         request.channel === "ai-connections/read" ||
         request.channel === "ai-connections/update"
@@ -1976,6 +2177,7 @@ export class DesktopBackend {
         if (request.channel === "ai-connections/update") {
           if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
             return this.#failure(request, "conflict");
+          this.#offlineEpoch++;
           await mutateConnections(
             this.#database,
             this.#secrets,
@@ -2045,7 +2247,10 @@ export class DesktopBackend {
         const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
         const access = await this.#providerAccess("contextual-help", request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+        if (
+          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+          this.#activeOperations.size >= 4
+        )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
         const job: TranslationJob = {
@@ -2062,7 +2267,10 @@ export class DesktopBackend {
           settings.learningContext,
           {
             model: { selection: "exact", modelId: access.modelSelection.modelId },
-            effort: { selection: "exact", effortId: access.modelSelection.effortId },
+            effort:
+              access.routeId === "managed"
+                ? { selection: "runtime-default" }
+                : { selection: "exact", effortId: access.modelSelection.effortId },
           },
           await this.#requireActiveConnection(),
         );
@@ -3466,7 +3674,10 @@ export class DesktopBackend {
         );
         const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+        if (
+          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+          this.#activeOperations.size >= 4
+        )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
         const connection = await this.#requireActiveConnection();
@@ -3477,7 +3688,10 @@ export class DesktopBackend {
           dataRootGeneration: dataRoot.generation,
           modelSelection: {
             model: { selection: "exact", modelId: access.modelSelection.modelId },
-            effort: { selection: "exact", effortId: access.modelSelection.effortId },
+            effort:
+              access.routeId === "managed"
+                ? { selection: "runtime-default" }
+                : { selection: "exact", effortId: access.modelSelection.effortId },
           },
           input: {
             learningContext: learnerSettings.learningContext,
@@ -3574,7 +3788,10 @@ export class DesktopBackend {
           prior.connection,
         );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (isDirectApiRoute(access.routeId) && this.#activeOperations.size >= 4)
+        if (
+          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+          this.#activeOperations.size >= 4
+        )
           return this.#failure(request, "conflict");
         const generation = this.#operationServices.get(prior.operationId);
         if (!generation) return this.#failure(request, "unsupported-operation");

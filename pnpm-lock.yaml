@@ -104,6 +104,12 @@ importers:
       '@call-nina/learning-workflows':
         specifier: workspace:*
         version: link:../../packages/learning-workflows
+      '@call-nina/managed-generation':
+        specifier: workspace:*
+        version: link:../../packages/managed-generation
+      '@call-nina/offline-runtime':
+        specifier: workspace:*
+        version: link:../../packages/offline-runtime
       '@call-nina/persistence':
         specifier: workspace:*
         version: link:../../packages/persistence
@@ -152,6 +158,15 @@ importers:
       vite:
         specifier: 'catalog:'
         version: 8.2.1(@types/node@24.13.3)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.0)
+
+  apps/managed-service:
+    dependencies:
+      '@call-nina/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@call-nina/managed-generation':
+        specifier: workspace:*
+        version: link:../../packages/managed-generation
 
   apps/mcp-server:
     dependencies:
@@ -310,6 +325,33 @@ importers:
       '@call-nina/contracts':
         specifier: workspace:*
         version: link:../contracts
+
+  packages/managed-generation:
+    dependencies:
+      '@call-nina/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@call-nina/learning-workflows':
+        specifier: workspace:*
+        version: link:../learning-workflows
+      ai:
+        specifier: 7.0.123
+        version: 7.0.123(zod@4.4.3)
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
+
+  packages/offline-runtime:
+    dependencies:
+      '@call-nina/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@call-nina/learning-workflows':
+        specifier: workspace:*
+        version: link:../learning-workflows
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
 
   packages/persistence:
     dependencies:
@@ -3576,6 +3618,10 @@ packages:
   postcss@8.5.26:
     resolution: {integrity: sha512-u82N74LFzG8ca+dD8puPnplTXoGH4fTPpVGuIbt36G3qvNlkvfD0lEAZSxaly3KX8TS/L1A1gsCEmvKmBcVbkQ==}
     engines: {node: ^10 || ^12 || >=14}
+
+  postgres@3.4.9:
+    resolution: {integrity: sha512-GD3qdB0x1z9xgFI6cdRD6xu2Sp2WCOEoe3mtnyB5Ee0XrrL5Pe+e4CCnJrRMnL1zYtRDZmQQVbvOttLnKDLnaw==}
+    engines: {node: '>=12'}
 
   postject@1.0.0-alpha.6:
     resolution: {integrity: sha512-b9Eb8h2eVqNE8edvKdwqkrY6O7kAwmI8kcnBv1NScolYJbo59XUF0noFq+lxbC1yN20bmC0WBEbDC5H/7ASb0A==}
@@ -8506,6 +8552,8 @@ snapshots:
       nanoid: 3.3.18
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  postgres@3.4.9: {}
 
   postject@1.0.0-alpha.6:
     dependencies:
