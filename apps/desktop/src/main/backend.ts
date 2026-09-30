@@ -1814,15 +1814,19 @@ export class DesktopBackend {
         if (request.channel === "ai-connections/update") {
           if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
             return this.#failure(request, "conflict");
-          const current = await this.#activeConnection();
-          const action = request.payload.action;
-          if (
-            (action.kind === "activate" && action.connectionId !== current?.id) ||
-            (action.kind === "remove" && action.connectionId === current?.id)
-          )
-            await this.#stopConnectionRuntime();
-          await mutateConnections(this.#database, this.#secrets, request.payload);
-          this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
+          await mutateConnections(
+            this.#database,
+            this.#secrets,
+            request.payload,
+            async (current, next) => {
+              if (
+                current.activeConnectionId !== null &&
+                current.activeConnectionId !== next.activeConnectionId
+              )
+                await this.#stopConnectionRuntime();
+            },
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
         }
         return this.#success(request, await this.#connectionsView());
       }

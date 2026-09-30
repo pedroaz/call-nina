@@ -178,8 +178,9 @@ export function SettingsPage({
         void refreshRuntime();
       } else if (
         event.event === "state-invalidated" &&
-        ["account", "models", "rate-limits"].includes(event.scope)
+        ["account", "models", "rate-limits", "ai-connections"].includes(event.scope)
       ) {
+        // Immediate connection saves must not reload the independent profile draft.
         void refreshRuntime();
       } else if (event.event === "state-invalidated" && event.scope === "settings") {
         void load();

@@ -1841,6 +1841,7 @@ export const desktopIpcEventSchema = boundaryUnion([
       "models",
       "rate-limits",
       "settings",
+      "ai-connections",
     ]),
   }),
   strictBoundaryObject({

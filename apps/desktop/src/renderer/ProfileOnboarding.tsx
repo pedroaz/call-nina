@@ -144,7 +144,10 @@ export function ProfileOnboarding({
           window.location.reload();
           return;
         }
-        if (event.event === "state-invalidated" && ["account", "settings"].includes(event.scope))
+        if (
+          event.event === "state-invalidated" &&
+          ["account", "settings", "ai-connections"].includes(event.scope)
+        )
           void refreshConnection().catch((cause: unknown) => {
             setError(normalizeDesktopError(cause).detail);
           });

@@ -50,6 +50,17 @@ export class ConnectionSecretStorage {
       throw new Error("OD_SECRET_STORAGE_UNSAFE");
     return directory;
   }
+  async #syncDirectory(directory: string): Promise<void> {
+    // Node cannot open directories for fsync on Windows; retain its existing
+    // platform-supported filesystem behavior without weakening other platforms.
+    if (process.platform === "win32") return;
+    const handle = await open(directory, "r");
+    try {
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+  }
   // The caller reserves the opaque reference in SQLite before writing bytes, so
   // interrupted replacements remain owned and can be cleaned on restart.
   async save(reference: string, value: string): Promise<void> {
@@ -72,14 +83,7 @@ export class ConnectionSecretStorage {
         await file.close();
       }
       // Persist the directory entry before SQLite can publish its reference.
-      if (process.platform !== "win32") {
-        const directory = await open(path.dirname(filename), "r");
-        try {
-          await directory.sync();
-        } finally {
-          await directory.close();
-        }
-      }
+      await this.#syncDirectory(path.dirname(filename));
     } finally {
       encrypted.fill(0);
     }
@@ -119,10 +123,17 @@ export class ConnectionSecretStorage {
   async remove(reference: string): Promise<void> {
     const ref = aiSecretReferenceSchema.parse(reference);
     try {
-      await unlink(path.join(await this.#directory(), ref));
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT")
-        throw new Error("OD_SECRET_DELETE_FAILED");
+      const directory = await this.#directory();
+      try {
+        await unlink(path.join(directory, ref));
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+      // ENOENT may retry an earlier unlink whose directory sync failed. Only
+      // resolve after syncing so the caller can safely forget cleanup ownership.
+      await this.#syncDirectory(directory);
+    } catch {
+      throw new Error("OD_SECRET_DELETE_FAILED");
     }
   }
 }

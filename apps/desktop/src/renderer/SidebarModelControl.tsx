@@ -33,7 +33,7 @@ export function SidebarModelControl() {
     const unsubscribe = subscribeDesktop((event) => {
       if (
         event.event === "data-root-changed" ||
-        (event.event === "state-invalidated" && ["settings", "account"].includes(event.scope))
+        (event.event === "state-invalidated" && ["ai-connections", "account"].includes(event.scope))
       )
         void load();
     });

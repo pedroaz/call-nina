@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  aiConnectionsSchema,
   type aiConnectionsViewSchema,
   type AiConnections,
   type AiConnection,
@@ -17,6 +18,7 @@ export async function mutateConnections(
   database: CallNinaDatabase,
   secrets: ConnectionSecretStorage,
   input: z.infer<typeof aiConnectionMutationSchema>,
+  beforeCommit: (current: AiConnections, next: AiConnections) => Promise<void>,
 ) {
   if (database.rootGeneration !== input.expectedGeneration) throw new Error("OD_DATA_ROOT_STALE");
   let current = await readAiConnections(database);
@@ -34,13 +36,6 @@ export async function mutateConnections(
         throw new Error("OD_CONNECTION_SECRET_OWNER_INVALID");
       if (secrets.state().status !== "available") throw new Error("OD_SECURE_STORAGE_UNAVAILABLE");
       createdRef = randomUUID();
-      // Reserve cleanup ownership before writing ciphertext. No cross-store
-      // atomic transaction exists; both sides of a crash must remain recoverable.
-      current = await updateAiConnections(database, current.revision, {
-        ...current,
-        retiredSecretRefs: [...current.retiredSecretRefs, createdRef],
-      });
-      await secrets.save(createdRef, action.credential.secret);
       secretRef = createdRef;
     } else if (action.credential.action === "remove") secretRef = null;
     if (prior?.secretRef && prior.secretRef !== secretRef)
@@ -61,8 +56,35 @@ export async function mutateConnections(
     else if (action.nextActiveConnectionId !== next.activeConnectionId)
       throw new Error("OD_CONNECTION_CONFLICT");
   } else next.migrationNotice = false;
+  // Validate both prospective writes before runtime/login or storage effects.
+  // The same schema used by persistence checks targets, successors and limits.
+  const reservation = createdRef
+    ? aiConnectionsSchema.parse({
+        ...current,
+        revision: current.revision + 1,
+        retiredSecretRefs: [...current.retiredSecretRefs, createdRef],
+      })
+    : undefined;
+  const validatedNext = aiConnectionsSchema.parse({
+    ...next,
+    revision: (reservation ?? current).revision + 1,
+  });
+  // The caller holds the serialized IPC queue and operation-settlement barrier
+  // throughout preflight, runtime teardown and commit.
+  await beforeCommit(current, validatedNext);
+  if (
+    reservation &&
+    createdRef &&
+    action.kind === "save" &&
+    action.credential.action === "replace"
+  ) {
+    // Reserve cleanup ownership before writing ciphertext. No cross-store
+    // atomic transaction exists; both sides of a crash must remain recoverable.
+    current = await updateAiConnections(database, current.revision, reservation);
+    await secrets.save(createdRef, action.credential.secret);
+  }
   try {
-    current = await updateAiConnections(database, current.revision, next);
+    current = await updateAiConnections(database, current.revision, validatedNext);
   } catch (error) {
     // The reservation remains durable if cleanup itself fails or the lease moved.
     if (createdRef) await cleanupConnectionSecrets(database, secrets, current);

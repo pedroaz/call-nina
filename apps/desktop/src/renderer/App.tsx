@@ -329,7 +329,7 @@ function DesktopWorkspace({
       }
       if (
         event.event === "state-invalidated" &&
-        (event.scope === "account" || event.scope === "settings")
+        ["account", "settings", "ai-connections"].includes(event.scope)
       )
         void reload();
       if (event.event === "state-invalidated" && event.scope === "settings")
