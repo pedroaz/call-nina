@@ -370,6 +370,15 @@ function qualityPolicy(language: Language, explanationLanguage: Language) {
               ? [[exercise.options[exercise.correctOptionPosition] ?? ""]]
               : [];
       if (exercise.kind === "multiple-choice") {
+        for (const [fieldIndex, option] of exercise.options.entries()) {
+          if (option.normalize("NFKC").trim() === "correctOptionPosition") {
+            report("OD_EXERCISE_OPTION_CONTROL_ARTIFACT", {
+              exerciseIndex,
+              field: "options",
+              fieldIndex,
+            });
+          }
+        }
         collectDuplicates(exercise.options, "OD_EXERCISE_DUPLICATE_OPTION", report, () => ({
           exerciseIndex,
           field: "options",
