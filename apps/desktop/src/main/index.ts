@@ -139,7 +139,6 @@ const defaultUserData = app.isPackaged
   : app.getPath("userData");
 app.setName("Call Nina");
 const configuredUserData = desktopPathOption("config-dir");
-const codexExecutable = desktopPathOption("codex-executable");
 if (configuredUserData) {
   if (!path.isAbsolute(configuredUserData) || configuredUserData.includes("\0"))
     throw new Error("OD_CONFIG_PATH_INVALID");
@@ -233,7 +232,12 @@ if (!app.requestSingleInstanceLock()) {
         });
       },
       processOptions: {
-        ...(codexExecutable === undefined ? {} : { executable: codexExecutable }),
+        standalone: {
+          resourceRoot: app.isPackaged
+            ? path.join(process.resourcesPath, "codex-runtime")
+            : fileURLToPath(new URL("../../../../release/codex-runtime/", import.meta.url)),
+          deviceRoot: userData,
+        },
         log,
         runId,
         sessionId,

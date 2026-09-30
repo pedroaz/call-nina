@@ -161,7 +161,7 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
   readonly #catalog: ModelCatalogClient;
   readonly #limits: RateLimitClient;
   readonly #forbiddenRoots: readonly string[];
-  readonly #codexSource: "desktop-bundled" | "configured-absolute-path";
+  readonly #codexSource = "app-owned-standalone" as const;
   readonly #listeners = new Set<(event: AppServerEvent) => void>();
   readonly #operations = new OperationController<GenerationOperationStart, AnyResult>({
     onForgot: (operationId) => {
@@ -187,10 +187,6 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
   constructor(options: CallNinaAppServerClientOptions) {
     this.#process = options.process ?? new AppServerProcessManager(options.processOptions);
     this.#log = options.processOptions?.log;
-    this.#codexSource =
-      options.processOptions?.executable === undefined
-        ? "desktop-bundled"
-        : "configured-absolute-path";
     this.#forbiddenRoots = Object.freeze([...options.forbiddenRoots]);
     this.#authentication = new ManagedAuthenticationClient({
       requester: this.#process,
@@ -201,6 +197,10 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
       onAccountChanged: (state) => {
         const changed = state.status !== this.#account.status;
         this.#account = state;
+        if (state.status !== "signed-in") {
+          this.#models = emptyCatalog;
+          this.#rateLimits = unavailableLimits;
+        }
         this.#stateLog(
           "APP_SERVER_ACCOUNT_STATE_CHANGED",
           "codex/account",
@@ -218,6 +218,7 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
     this.#catalog = new ModelCatalogClient({
       requester: this.#process,
       onCatalogChanged: (catalog) => {
+        if (this.#account.status !== "signed-in") return;
         const changed = JSON.stringify(catalog) !== JSON.stringify(this.#models);
         this.#models = catalog;
         if (changed) {
@@ -236,6 +237,7 @@ export class CallNinaAppServerClient implements CallNinaAppServerAdapter {
     this.#limits = new RateLimitClient({
       requester: this.#process,
       onRateLimitsChanged: (state) => {
+        if (this.#account.status !== "signed-in") return;
         const previous = this.#rateLimits.status;
         this.#rateLimits = state;
         this.#stateLog(

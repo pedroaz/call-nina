@@ -1378,19 +1378,22 @@ export class DesktopBackend {
         entry.status = "inactive";
         // Reading settings never starts an inactive runtime or probes credentials.
         if (connection.id === settings.activeConnectionId) {
+          entry.status = "runtime-unavailable";
           try {
             const runtime = await this.#ensureAppServer();
             if (runtime) {
               const snapshot = await runtime.snapshot();
               if (snapshot.lifecycle.status === "ready") {
-                entry.models = await runtime.refreshModels();
+                entry.models =
+                  snapshot.account.status === "signed-in" ? await runtime.refreshModels() : null;
                 entry.operations = [...runtime.generationCapabilities.operations];
                 entry.languages = ["en-US", "pt-BR", "es", "de"];
                 entry.status =
                   snapshot.account.status !== "signed-in"
                     ? "account-required"
-                    : resolveModelPreference(connection.preference, entry.models).status ===
-                        "available"
+                    : entry.models &&
+                        resolveModelPreference(connection.preference, entry.models).status ===
+                          "available"
                       ? "available"
                       : "model-unavailable";
               }
@@ -1434,6 +1437,22 @@ export class DesktopBackend {
         connection.secretRef !== retainedConnection.secretRef)
     )
       return unavailable("capability-unavailable");
+    if (operation === "voice-handoff") {
+      const capabilities = this.#appServer?.codexCapabilities;
+      if (
+        !this.#openExternal ||
+        !capabilities?.voiceHandoff ||
+        !capabilities.externalConversation ||
+        !capabilities.localMcp ||
+        !capabilities.plugin
+      )
+        return unavailable("capability-unavailable");
+      const integration = await this.#codexState(correlationId);
+      if (integration.status !== "available") return unavailable("runtime-unavailable");
+      if (integration.plugin !== "installed") return unavailable("plugin-required");
+      return { routeId: "codex", operation, status: "available", modelSelection: null };
+    }
+    if (this.#pendingLoginId) return unavailable("account-unavailable");
     let appServer: CallNinaAppServerAdapter | undefined;
     try {
       appServer = await this.#ensureAppServer();
@@ -1445,21 +1464,6 @@ export class DesktopBackend {
       if (snapshot.account.status !== "signed-in") return unavailable("account-unavailable");
     } catch {
       return unavailable("runtime-unavailable");
-    }
-    if (operation === "voice-handoff") {
-      const capabilities = appServer.codexCapabilities;
-      if (
-        !this.#openExternal ||
-        !capabilities.voiceHandoff ||
-        !capabilities.externalConversation ||
-        !capabilities.localMcp ||
-        !capabilities.plugin
-      )
-        return unavailable("capability-unavailable");
-      const integration = await this.#codexState(correlationId);
-      if (integration.status !== "available") return unavailable("runtime-unavailable");
-      if (integration.plugin !== "installed") return unavailable("plugin-required");
-      return { routeId: "codex", operation, status: "available", modelSelection: null };
     }
     const capabilities = this.#generation?.generationCapabilities;
     if (
@@ -3147,11 +3151,6 @@ export class DesktopBackend {
       if (request.channel === "codex/integration/action") {
         const current = await this.#codexState(request.requestId);
         if (current.status !== "available") return this.#failure(request, "app-server");
-        if (request.payload.action !== "uninstall") {
-          const appServer = await this.#ensureAppServer();
-          if (!appServer || (await appServer.snapshot()).account.status !== "signed-in")
-            return this.#failure(request, "authentication");
-        }
         return this.#success(
           request,
           await runPluginIntegrationAction(request.payload.action, current.codexVersion),
@@ -3166,7 +3165,19 @@ export class DesktopBackend {
         }
         return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
       }
+      if (request.channel === "codex/account/logout") {
+        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+          return this.#failure(request, "conflict");
+        const appServer = await this.#ensureAppServer();
+        if (!appServer) return this.#failure(request, "app-server");
+        const account = await appServer.logout();
+        this.#pendingLoginId = undefined;
+        this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+        return this.#success(request, account);
+      }
       if (request.channel === "codex/account/login/start") {
+        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+          return this.#failure(request, "conflict");
         const appServer = await this.#ensureAppServer();
         if (appServer) {
           const loginId = await appServer.startManagedLogin(request.payload.method);
@@ -3200,6 +3211,8 @@ export class DesktopBackend {
           if (!appServer || (await appServer.snapshot()).lifecycle.status !== "ready") {
             return this.#failure(request, "app-server");
           }
+          if ((await appServer.snapshot()).account.status !== "signed-in")
+            return this.#failure(request, "authentication");
           return this.#success(request, await appServer.refreshModels());
         } catch (error) {
           if (

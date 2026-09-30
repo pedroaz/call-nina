@@ -32,7 +32,7 @@ export const codexExecutableStateSchema = z.discriminatedUnion("status", [
   z.strictObject({
     status: z.literal("compatible"),
     version: supportedCodexVersionSchema,
-    source: z.enum(["desktop-bundled", "configured-absolute-path"]),
+    source: z.literal("app-owned-standalone"),
   }),
 ]);
 

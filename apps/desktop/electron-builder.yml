@@ -23,6 +23,10 @@ files:
   - dist/preload/index.cjs
   - dist/renderer/**
 extraResources:
+  - from: ../../release/codex-runtime
+    to: codex-runtime
+    filter:
+      - "**/*"
   - from: assets/call-nina.png
     to: call-nina.png
   - from: ../../LICENSE

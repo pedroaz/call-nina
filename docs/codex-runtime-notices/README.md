@@ -1,0 +1,17 @@
+# Standalone Codex distribution notices
+
+Call Nina stages unmodified binaries from OpenAI's [Codex `rust-v0.159.2` release](https://github.com/openai/codex/releases/tag/rust-v0.159.2), using the official `codex-app-server-package` layout. Its SHA-256 archive pins and platform selection live in `packages/codex-client/src/runtime-release.ts`. The bundle includes the App Server, code-mode host, ripgrep and the platform's supplied shell/sandbox resources; bundling a resource does not enable it in Nina's learning workflows.
+
+The release and source were inspected on 2026-09-30. The official source package is included as `codex-source.tar.gz` in the installed runtime's notices directory, with digest `e556f4d21b2cff2108d1f3e426d2397e8659b99fd35d8eb4fddac8647264dd4b`. It contains the release's source, vendored bubblewrap source and build scripts, Cargo dependency lockfile and the shell patch. Nina's source, packaging changes and restrictions do not replace the licenses of these independently distributed components.
+
+| Component | Attribution and terms |
+| --- | --- |
+| Codex App Server and OpenAI helpers | Copyright 2025 OpenAI; [Apache License 2.0](CODEX-LICENSE), original [NOTICE](CODEX-NOTICE). Source: [exact release tree](https://github.com/openai/codex/tree/rust-v0.159.2). |
+| Ratatui-derived code named by the upstream NOTICE | Florian Dehau and The Ratatui Developers; [MIT](RATATUI-LICENSE), from the release's Ratatui 0.30.2 dependency. |
+| ripgrep 15.2.0 | Andrew Gallant; upstream [dual-license notice](RIPGREP-COPYING), distributed here under [MIT](RIPGREP-LICENSE-MIT). [Source](https://github.com/BurntSushi/ripgrep/tree/15.2.0). |
+| zsh executable | Zsh Development Group; [LICENCE](ZSH-LICENCE). Upstream package builder uses commit `77045ef899e53b9598bebc5a41db93a548a40ca6` and the Codex source's `codex-rs/shell-escalation/patches/zsh-exec-wrapper.patch`. Only the binary is present, not the separately licensed shell-function distribution. [Packaging source](https://github.com/openai/codex/blob/rust-v0.159.2/.github/scripts/build-zsh-release-artifact.sh). |
+| bubblewrap (Linux resource) | Its contributors; original [GNU Library General Public License version 2](BUBBLEWRAP-LICENSE), with notices and applicable file terms retained in the accompanying vendored source. [Exact vendored source](https://github.com/openai/codex/tree/rust-v0.159.2/codex-rs/vendor/bubblewrap). |
+
+This is a bounded review of the upstream release, its named notices and separately packaged resources, not a complete transitive Rust/native dependency license clearance. A public binary release still needs a complete target-specific redistribution review, native verification and the repository's separate release authorization. In particular, the accompanying Codex source is not represented as a vendor archive of every external Rust or native dependency. No public binary release is produced by staging these resources.
+
+OpenAI's [App Server authentication documentation](https://developers.openai.com/codex/app-server#auth-endpoints) permits continued App Server authentication for local or open-source applications and distinguishes it from commercial/hosted-service access. This integration is a local desktop client with official managed browser/device authentication. It neither imports OAuth tokens nor grants permission for a hosted/commercial service. Provider terms, account eligibility and subscription capabilities remain independent of Nina's license.

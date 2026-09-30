@@ -8,7 +8,7 @@
   "type": "module",
   "main": "dist/main/index.js",
   "scripts": {
-    "build": "pnpm --filter @call-nina/mcp-server... run build && node scripts/generate-css-types.mjs && tsc -b && vite build --config vite.main.config.ts && vite build --config vite.config.ts && vite build --config vite.preload.config.ts",
+    "build": "node ../../scripts/build/stage-codex-runtime.mjs && pnpm --filter @call-nina/mcp-server... run build && node scripts/generate-css-types.mjs && tsc -b && vite build --config vite.main.config.ts && vite build --config vite.config.ts && vite build --config vite.preload.config.ts",
     "service:dev": "node scripts/desktop-service.mjs dev",
     "service:prd": "node scripts/desktop-service.mjs prd",
     "package:appimage": "electron-builder --config electron-builder.yml --linux AppImage --publish never"
