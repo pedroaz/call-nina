@@ -1,6 +1,9 @@
 .overlay {
   align-items: center;
-  background: var(--od-color-overlay);
+  background: var(
+    --od-color-overlay,
+    color-mix(in srgb, var(--od-color-text-strong) 36%, transparent)
+  );
   display: flex;
   inset: 0;
   justify-content: center;
@@ -14,7 +17,7 @@
   border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
   box-shadow: var(--od-shadow-dialog);
-  max-width: var(--od-dialog-max);
+  max-width: var(--od-dialog-max, 34rem);
   max-height: calc(100dvh - var(--od-space-9));
   overflow-y: auto;
   padding: var(--od-space-7);
@@ -36,4 +39,8 @@
   gap: var(--od-space-4);
   justify-content: flex-end;
   margin-top: var(--od-space-6);
+}
+
+.dialog[data-density="compact"] {
+  padding: var(--od-space-5);
 }

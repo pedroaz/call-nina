@@ -86,6 +86,9 @@ importers:
 
   apps/desktop:
     devDependencies:
+      '@call-nina/browser-ui':
+        specifier: workspace:*
+        version: link:../../packages/browser-ui
       '@call-nina/codex-client':
         specifier: workspace:*
         version: link:../../packages/codex-client
@@ -226,6 +229,9 @@ importers:
 
   apps/website:
     dependencies:
+      '@call-nina/browser-ui':
+        specifier: workspace:*
+        version: link:../../packages/browser-ui
       '@call-nina/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
@@ -251,6 +257,25 @@ importers:
       vite:
         specifier: 'catalog:'
         version: 8.2.1(@types/node@24.13.3)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.0)
+
+  packages/browser-ui:
+    dependencies:
+      lucide-react:
+        specifier: 1.33.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      react-aria-components:
+        specifier: 1.20.0
+        version: 1.20.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+    devDependencies:
+      '@types/react':
+        specifier: 19.2.18
+        version: 19.2.18
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
 
   packages/codex-client:
     dependencies:

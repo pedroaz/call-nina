@@ -13,9 +13,9 @@
 .tab {
   cursor: pointer;
   padding: var(--od-space-4) var(--od-space-5);
-  border-bottom: var(--od-border-outlined) solid var(--od-color-transparent);
+  border-bottom: var(--od-border-outlined) solid var(--od-color-transparent, transparent);
   color: var(--od-color-text-muted);
-  font-weight: var(--od-weight-medium);
+  font-weight: var(--od-weight-medium, var(--od-font-weight-semibold));
 }
 .tab[data-selected] {
   color: var(--od-color-brand-ink);
@@ -34,4 +34,12 @@
 
 .panel[data-inert] {
   display: none;
+}
+
+.tabs[data-density="compact"] .tab {
+  padding: var(--od-space-2) var(--od-space-4);
+}
+.tab[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
 }

@@ -19,9 +19,9 @@
 
 .feedback svg {
   flex: none;
-  height: var(--od-icon-md);
+  height: var(--od-icon-md, 1.25rem);
   margin-top: var(--od-space-2);
-  width: var(--od-icon-md);
+  width: var(--od-icon-md, 1.25rem);
 }
 
 .info {
@@ -51,11 +51,11 @@
 .loadingDot {
   animation: pulse var(--od-motion-duration-ui) ease-in-out infinite alternate;
   background: var(--od-color-brand);
-  border-radius: var(--od-radius-full);
+  border-radius: var(--od-radius-full, 50%);
   flex: none;
-  height: var(--od-icon-sm);
+  height: var(--od-icon-sm, 1rem);
   margin-top: var(--od-space-2);
-  width: var(--od-icon-sm);
+  width: var(--od-icon-sm, 1rem);
 }
 
 @keyframes pulse {
@@ -79,8 +79,12 @@
   color: var(--od-color-text-muted);
   display: block;
   font-family: ui-monospace, monospace;
-  font-size: var(--od-font-size-xs);
+  font-size: var(--od-font-size-xs, var(--od-type-caption-size));
   margin-top: var(--od-space-4);
   overflow-wrap: anywhere;
+  padding: var(--od-space-3) var(--od-space-4);
+}
+
+.feedback[data-density="compact"] {
   padding: var(--od-space-3) var(--od-space-4);
 }
