@@ -1,11 +1,11 @@
 .controls,
 .saved {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 .saved {
-  padding: var(--od-space-3);
-  border: 1px solid var(--od-color-border);
+  padding: var(--od-space-4);
+  border: 1px solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   overflow-wrap: anywhere;
 }

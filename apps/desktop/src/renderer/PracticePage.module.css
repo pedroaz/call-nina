@@ -1,6 +1,6 @@
 .voicePreparation {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 
 .voicePreparation h2 {
@@ -10,12 +10,12 @@
 .voiceHeader {
   align-items: center;
   display: flex;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
 }
 
 .voiceSettingsGrid {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -23,7 +23,7 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   justify-content: space-between;
 }
 
@@ -35,9 +35,9 @@
 
 .voiceSetupGrid {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: var(--od-space-5);
+  margin-top: var(--od-space-6);
 }
 
 .voiceScenarioField {
@@ -45,10 +45,10 @@
 }
 
 .voicePreparedPreview {
-  border: var(--od-border-thin) solid var(--od-color-border);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
-  margin: var(--od-space-5) 0;
-  padding: var(--od-space-4);
+  margin: var(--od-space-6) 0;
+  padding: var(--od-space-5);
 }
 
 .voicePreparedPreview h3,
@@ -57,30 +57,30 @@
 }
 
 .voicePreparedPreview h4:not(:first-child) {
-  margin-top: var(--od-space-4);
+  margin-top: var(--od-space-5);
 }
 
 .historyDetail {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 
 .eyebrow {
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
   letter-spacing: var(--od-letter-wide);
-  margin: 0 0 var(--od-space-2);
+  margin: 0 0 var(--od-space-3);
   text-transform: uppercase;
 }
 
 .page {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   min-width: 0;
 }
 .practiceSection {
-  margin-bottom: var(--od-space-5);
+  margin-bottom: var(--od-space-6);
 }
 .generatedLibrary {
   margin-bottom: var(--od-space-8);
@@ -88,15 +88,15 @@
 
 .generatedLibrary {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .practiceSectionHeader {
   align-items: start;
   display: flex;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   justify-content: space-between;
-  margin-bottom: var(--od-space-4);
+  margin-bottom: var(--od-space-5);
 }
 
 .practiceSectionHeader h2,
@@ -106,69 +106,69 @@
 
 .practiceSectionHeader p {
   color: var(--od-color-text-muted);
-  margin-top: var(--od-space-1);
+  margin-top: var(--od-space-2);
 }
 
 .countBadge {
   color: var(--od-color-text-muted);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
-  padding-top: var(--od-space-1);
+  padding-top: var(--od-space-2);
   white-space: nowrap;
 }
 
 .generatedActivityList {
   display: grid;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
 }
 
 .generatedActivity {
   align-items: center;
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   display: flex;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   min-width: 0;
-  padding: var(--od-space-2);
+  padding: var(--od-space-3);
 }
 
 .generatedActivity:focus-within {
-  border-color: var(--od-color-primary);
+  border-color: var(--od-color-brand-ink);
 }
 
 .generatedActivityOpen {
   align-items: center;
   background: var(--od-color-transparent);
   border: 0;
-  color: var(--od-color-text);
+  color: var(--od-color-text-strong);
   cursor: pointer;
   display: flex;
   flex: 1;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   justify-content: space-between;
   min-height: var(--od-control-min);
   min-width: 0;
-  padding: var(--od-space-2) var(--od-space-3);
+  padding: var(--od-space-3) var(--od-space-4);
   text-align: left;
 }
 
 .generatedActivityOpen:hover,
 .generatedActivityOpen[data-pressed] {
-  background: var(--od-color-surface-raised);
+  background: var(--od-color-surface-card);
 }
 
 .generatedActivityOpen:focus-visible,
 .generatedActivityDelete:focus-visible,
 .libraryFilterButton:focus-visible,
 .practiceTypeCard:focus-visible {
-  outline: var(--od-border-strong) solid var(--od-color-primary);
-  outline-offset: calc(var(--od-space-1) * -1);
+  outline: var(--od-border-outlined) solid var(--od-color-brand);
+  outline-offset: calc(var(--od-space-2) * -1);
 }
 
 .generatedActivityCopy {
   display: grid;
-  gap: var(--od-space-1);
+  gap: var(--od-space-2);
   min-width: 0;
 }
 
@@ -178,7 +178,7 @@
 }
 
 .generatedActivityOpen svg {
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   flex: 0 0 auto;
 }
 
@@ -192,7 +192,7 @@
   display: inline-flex;
   justify-content: center;
   min-width: var(--od-control-min);
-  padding: var(--od-space-3);
+  padding: var(--od-space-4);
 }
 
 .generatedActivity > button:last-child {
@@ -201,8 +201,8 @@
 
 .generatedActivityDelete:hover:not([data-disabled]),
 .generatedActivityDelete[data-pressed]:not([data-disabled]) {
-  background: var(--od-color-error-soft);
-  color: var(--od-color-error);
+  background: var(--od-color-state-wrong-soft);
+  color: var(--od-color-state-wrong);
 }
 
 .generatedActivityDelete[data-disabled] {
@@ -218,23 +218,23 @@
 .libraryFilters {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-2);
-  margin-bottom: var(--od-space-4);
+  gap: var(--od-space-3);
+  margin-bottom: var(--od-space-5);
 }
 
 .libraryFilterButton {
   align-items: center;
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-sm);
   color: var(--od-color-text-muted);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
   font-size: var(--od-font-size-sm);
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   min-height: var(--od-control-compact);
-  padding: var(--od-space-1) var(--od-space-3);
+  padding: var(--od-space-2) var(--od-space-4);
 }
 
 .libraryFilterButton > span {
@@ -245,63 +245,63 @@
 .libraryFilterButton:hover,
 .libraryFilterButton[data-pressed],
 .libraryFilterButton[data-selected] {
-  border-color: var(--od-color-primary);
-  color: var(--od-color-primary);
+  border-color: var(--od-color-brand-ink);
+  color: var(--od-color-brand-ink);
 }
 
 .libraryFilterButton[data-selected] {
-  background: var(--od-color-primary-soft);
+  background: var(--od-color-surface-brand);
   font-weight: var(--od-weight-strong);
 }
 
 .practiceTypeGrid {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .practiceTypeCard {
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
-  color: var(--od-color-text);
+  color: var(--od-color-text-strong);
   cursor: pointer;
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   grid-template-columns: auto minmax(0, 1fr);
-  padding: var(--od-space-3);
+  padding: var(--od-space-4);
   align-items: center;
   text-align: left;
 }
 
 .practiceTypeCard:hover,
 .practiceTypeCard[data-pressed] {
-  border-color: var(--od-color-primary);
+  border-color: var(--od-color-brand-ink);
 }
 
 .practiceTypeCard[data-selected] {
-  background: var(--od-color-primary-soft);
-  border-color: var(--od-color-primary);
-  box-shadow: inset 0 0 0 var(--od-border-thin) var(--od-color-primary);
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-brand-ink);
+  box-shadow: inset 0 0 0 var(--od-border-thin) var(--od-color-brand);
 }
 
 .practiceTypeIcon {
   align-items: center;
-  background: var(--od-color-surface-muted);
+  background: var(--od-color-surface-sunken);
   border-radius: var(--od-radius-md);
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   display: inline-flex;
   justify-content: center;
-  padding: var(--od-space-2);
+  padding: var(--od-space-3);
 }
 
 .practiceTypeCard[data-selected] .practiceTypeIcon {
-  background: var(--od-color-surface);
+  background: var(--od-color-surface-card);
 }
 
 .practiceTypeCopy {
   display: grid;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   min-width: 0;
 }
 
@@ -322,8 +322,8 @@
   align-items: end;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-4);
-  margin-bottom: var(--od-space-4);
+  gap: var(--od-space-5);
+  margin-bottom: var(--od-space-5);
 }
 
 .practiceControls > * {
@@ -332,12 +332,12 @@
 
 .practiceSession {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
 }
 
 .practiceLessonDisclosure {
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
   margin: 0;
   overflow: hidden;
@@ -347,25 +347,25 @@
 .practiceLessonDisclosure > summary {
   cursor: pointer;
   list-style-position: inside;
-  padding: var(--od-space-4) var(--od-space-5);
+  padding: var(--od-space-5) var(--od-space-6);
 }
 
 .practiceLessonDisclosure > summary > span {
   align-items: center;
   display: inline-flex;
-  gap: var(--od-space-3);
-  margin-left: var(--od-space-2);
+  gap: var(--od-space-4);
+  margin-left: var(--od-space-3);
   vertical-align: middle;
 }
 
 .practiceLessonDisclosure > summary svg {
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   flex: none;
 }
 
 .practiceLessonDisclosure > summary span span {
   display: grid;
-  gap: var(--od-space-1);
+  gap: var(--od-space-2);
 }
 
 .practiceLessonDisclosure > summary small {
@@ -374,43 +374,43 @@
 }
 
 .practiceLessonBody {
-  border-top: var(--od-border-thin) solid var(--od-color-border);
-  padding: var(--od-space-2) var(--od-space-5) var(--od-space-5);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding: var(--od-space-3) var(--od-space-6) var(--od-space-6);
 }
 
 .practiceLessonBody section {
-  border-top: var(--od-border-thin) solid var(--od-color-border);
-  margin-top: var(--od-space-4);
-  padding-top: var(--od-space-3);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  margin-top: var(--od-space-5);
+  padding-top: var(--od-space-4);
 }
 
 .practiceRunner > article {
-  border-color: var(--od-color-primary);
+  border-color: var(--od-color-brand-ink);
 
-  padding: var(--od-space-5);
+  padding: var(--od-space-6);
 }
 
 .practiceRunner > article > .eyebrow {
-  margin-bottom: var(--od-space-3);
+  margin-bottom: var(--od-space-4);
 }
 
 .practiceRunner > article > h2 {
-  margin: 0 0 var(--od-space-3);
+  margin: 0 0 var(--od-space-4);
 }
 
 .practiceRunner > article > p:not(.eyebrow) {
-  margin: 0 0 var(--od-space-4);
+  margin: 0 0 var(--od-space-5);
 }
 
 .practiceRunner fieldset {
   border: 0;
-  margin: var(--od-space-4) 0 0;
+  margin: var(--od-space-5) 0 0;
   padding: 0;
 }
 
 .practiceRunner fieldset legend {
   font-weight: var(--od-weight-medium);
-  margin-bottom: var(--od-space-3);
+  margin-bottom: var(--od-space-4);
   padding: 0;
 }
 
@@ -422,7 +422,7 @@
 
 .quizLength legend {
   font-weight: var(--od-weight-medium);
-  margin-bottom: var(--od-space-2);
+  margin-bottom: var(--od-space-3);
   padding: 0;
 }
 
@@ -430,42 +430,42 @@
   align-items: end;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
 }
 
 .quizLengthButton {
-  background: var(--od-color-surface-raised);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-sm);
   color: var(--od-color-text-muted);
   cursor: pointer;
   font: inherit;
   min-height: var(--od-control-small);
   min-width: var(--od-control-wide);
-  padding: var(--od-space-1) var(--od-space-3);
+  padding: var(--od-space-2) var(--od-space-4);
 }
 
 .quizLengthButton:hover,
 .quizLengthButton[data-pressed],
 .quizLengthButton[data-selected] {
-  border-color: var(--od-color-primary);
-  color: var(--od-color-primary);
+  border-color: var(--od-color-brand-ink);
+  color: var(--od-color-brand-ink);
 }
 
 .quizLengthButton:focus-visible {
-  outline: var(--od-border-strong) solid var(--od-color-primary);
-  outline-offset: var(--od-space-1);
+  outline: var(--od-border-outlined) solid var(--od-color-brand);
+  outline-offset: var(--od-space-2);
 }
 
 .quizLengthButton[data-selected] {
-  background: var(--od-color-primary-soft);
+  background: var(--od-color-surface-brand);
   font-weight: var(--od-weight-strong);
 }
 
 .inlineActions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 @media (max-width: 52rem) {
@@ -484,7 +484,7 @@
 
 .readingPassage {
   white-space: pre-wrap;
-  font-family: var(--od-font-reading);
+  font-family: var(--od-font-family-body);
   font-size: var(--od-font-size-lg);
   line-height: var(--od-line-normal);
   max-width: var(--od-reading-measure);

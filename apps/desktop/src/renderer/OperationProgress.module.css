@@ -1,12 +1,12 @@
 .progress {
   display: flex;
   align-items: flex-start;
-  gap: var(--od-space-3);
-  margin-block: var(--od-space-4);
-  padding: var(--od-space-3) var(--od-space-4);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  gap: var(--od-space-4);
+  margin-block: var(--od-space-5);
+  padding: var(--od-space-4) var(--od-space-5);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
-  background: var(--od-color-surface);
+  background: var(--od-color-surface-card);
 }
 .copy {
   flex: 1;
@@ -27,8 +27,8 @@
 .detail {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--od-space-1) var(--od-space-3);
-  margin-top: var(--od-space-1);
+  gap: var(--od-space-2) var(--od-space-4);
+  margin-top: var(--od-space-2);
 }
 @keyframes turning {
   to {

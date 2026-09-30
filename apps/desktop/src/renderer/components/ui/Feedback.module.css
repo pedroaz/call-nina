@@ -1,10 +1,10 @@
 .feedback {
   align-items: flex-start;
-  border: var(--od-border-thin) solid var(--od-color-border);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   display: flex;
-  gap: var(--od-space-3);
-  padding: var(--od-space-3) var(--od-space-4);
+  gap: var(--od-space-4);
+  padding: var(--od-space-4) var(--od-space-5);
 }
 
 .feedback p:first-child,
@@ -20,41 +20,41 @@
 .feedback svg {
   flex: none;
   height: var(--od-icon-md);
-  margin-top: var(--od-space-1);
+  margin-top: var(--od-space-2);
   width: var(--od-icon-md);
 }
 
 .info {
-  background: var(--od-color-primary-soft);
-  border-color: var(--od-color-primary);
-  color: var(--od-color-text);
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-brand-ink);
+  color: var(--od-color-text-strong);
 }
 
 .success {
-  background: var(--od-color-success-soft);
-  border-color: var(--od-color-success);
-  color: var(--od-color-success);
+  background: var(--od-color-state-correct-soft);
+  border-color: var(--od-color-state-correct);
+  color: var(--od-color-state-correct);
 }
 
 .warning {
-  background: var(--od-color-warning-soft);
-  border-color: var(--od-color-warning);
-  color: var(--od-color-warning);
+  background: var(--od-color-state-streak-soft);
+  border-color: var(--od-color-state-streak);
+  color: var(--od-color-state-streak);
 }
 
 .error {
-  background: var(--od-color-error-soft);
-  border-color: var(--od-color-error);
-  color: var(--od-color-error);
+  background: var(--od-color-state-wrong-soft);
+  border-color: var(--od-color-state-wrong);
+  color: var(--od-color-state-wrong);
 }
 
 .loadingDot {
-  animation: pulse var(--od-motion-normal) ease-in-out infinite alternate;
-  background: var(--od-color-primary);
+  animation: pulse var(--od-motion-duration-ui) ease-in-out infinite alternate;
+  background: var(--od-color-brand);
   border-radius: var(--od-radius-full);
   flex: none;
   height: var(--od-icon-sm);
-  margin-top: var(--od-space-1);
+  margin-top: var(--od-space-2);
   width: var(--od-icon-sm);
 }
 
@@ -74,13 +74,13 @@
 }
 
 .diagnostic {
-  background: var(--od-color-surface-muted);
+  background: var(--od-color-surface-sunken);
   border-radius: var(--od-radius-sm);
   color: var(--od-color-text-muted);
   display: block;
   font-family: ui-monospace, monospace;
   font-size: var(--od-font-size-xs);
-  margin-top: var(--od-space-3);
+  margin-top: var(--od-space-4);
   overflow-wrap: anywhere;
-  padding: var(--od-space-2) var(--od-space-3);
+  padding: var(--od-space-3) var(--od-space-4);
 }

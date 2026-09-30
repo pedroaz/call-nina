@@ -1,14 +1,14 @@
 .historyList,
 .historyDetail {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 
 .historyMistakeGrid {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: var(--od-space-4) 0 var(--od-space-6);
+  margin: var(--od-space-5) 0 var(--od-space-7);
 }
 
 .historyMistakeGrid h3,
@@ -18,29 +18,29 @@
 
 .historyEvidenceList {
   display: grid;
-  gap: var(--od-space-3);
-  padding-inline-start: var(--od-space-5);
+  gap: var(--od-space-4);
+  padding-inline-start: var(--od-space-6);
 }
 
 .historyEvidenceList li {
-  border-top: var(--od-border-thin) solid var(--od-color-border);
-  padding-top: var(--od-space-3);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-4);
 }
 
 .historyEvidenceList blockquote {
-  margin: var(--od-space-2) 0;
+  margin: var(--od-space-3) 0;
 }
 
 .historyEvidenceList mark {
-  background: var(--od-color-warning-soft);
-  color: var(--od-color-text);
+  background: var(--od-color-state-streak-soft);
+  color: var(--od-color-text-strong);
   font-weight: var(--od-weight-strong);
 }
 
 .historyEntryHeader {
   align-items: start;
   display: flex;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   justify-content: space-between;
 }
 
@@ -66,24 +66,24 @@
 
 .correctionGrid {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .correctionPane {
-  background: var(--od-color-surface-raised);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   min-width: 0;
-  padding: var(--od-space-4);
+  padding: var(--od-space-5);
 }
 
 .eyebrow {
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
   letter-spacing: var(--od-letter-wide);
-  margin: 0 0 var(--od-space-2);
+  margin: 0 0 var(--od-space-3);
   text-transform: uppercase;
 }
 
@@ -106,7 +106,7 @@
 }
 .advancedGrid {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .historyEntryHeader time {
@@ -117,7 +117,7 @@
 }
 .historyDetail > section {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   min-width: 0;
 }
 .historyDetail > section > :where(h3, p, ul) {

@@ -51,6 +51,10 @@ extraResources:
     to: notices/THIRD-PARTY-NOTICES.md
   - from: ../../docs/licensing.md
     to: notices/CALL-NINA-LICENSING.md
+  - from: ../../packages/design-system/assets/fonts
+    to: notices/fonts
+    filter:
+      - "OFL-*.txt"
 linux:
   description: A local-first German-learning companion for Codex.
   synopsis: Practice German with Call Nina and Codex.

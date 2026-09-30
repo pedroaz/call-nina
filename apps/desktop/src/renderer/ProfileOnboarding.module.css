@@ -4,28 +4,28 @@
 
 .languageButton {
   align-items: center;
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
-  color: var(--od-color-text);
+  color: var(--od-color-text-strong);
   cursor: pointer;
   display: inline-flex;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
   min-height: var(--od-control-min);
-  padding: var(--od-space-2) var(--od-space-4);
+  padding: var(--od-space-3) var(--od-space-5);
 }
 
 .languageButton:hover,
 .languageButton[data-pressed] {
-  background: var(--od-color-primary-soft);
-  border-color: var(--od-color-primary);
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-brand-ink);
 }
 
 .topActions {
   display: flex;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   justify-content: flex-end;
-  padding: var(--od-space-4) var(--od-space-5);
+  padding: var(--od-space-5) var(--od-space-6);
 }
 
 .startup {
@@ -33,18 +33,18 @@
   display: flex;
   justify-content: center;
   min-height: 80dvh;
-  padding: var(--od-space-5);
+  padding: var(--od-space-6);
 }
 
 .startupCard {
-  background: var(--od-color-surface);
-  border: var(--od-border-thin) solid var(--od-color-border);
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
 
   max-width: var(--od-dialog-max);
   min-width: 0;
   overflow-wrap: anywhere;
-  padding: var(--od-space-6);
+  padding: var(--od-space-7);
   width: 100%;
 }
 
@@ -54,39 +54,39 @@
 
 .onboardingGrid {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: var(--od-space-5);
+  margin-top: var(--od-space-6);
 }
 
 .onboardingSection {
-  border: var(--od-border-thin) solid var(--od-color-border);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
-  margin-top: var(--od-space-5);
+  margin-top: var(--od-space-6);
   min-width: 0;
-  padding: var(--od-space-5);
+  padding: var(--od-space-6);
 }
 
 .onboardingSection legend {
   font-size: var(--od-font-size-lg);
   font-weight: var(--od-weight-strong);
-  padding: 0 var(--od-space-2);
+  padding: 0 var(--od-space-3);
 }
 
 .controlLegend {
   font-weight: var(--od-weight-medium);
-  margin: var(--od-space-5) 0 var(--od-space-2);
+  margin: var(--od-space-6) 0 var(--od-space-3);
 }
 
 .optionGroup {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
 }
 
 .startupCard h1 {
   font-size: var(--od-font-size-xl);
   line-height: var(--od-line-tight);
-  margin: 0 0 var(--od-space-3);
+  margin: 0 0 var(--od-space-4);
 }
 
 .languageButton svg {
@@ -95,11 +95,11 @@
 }
 
 .eyebrow {
-  color: var(--od-color-primary);
+  color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
   letter-spacing: var(--od-letter-wide);
-  margin: 0 0 var(--od-space-2);
+  margin: 0 0 var(--od-space-3);
   text-transform: uppercase;
 }
 
@@ -113,12 +113,12 @@
 }
 .startupCard {
   display: grid;
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 
 .onboardingSection {
   display: grid;
-  gap: var(--od-space-3);
+  gap: var(--od-space-4);
   margin-top: 0;
 }
 .onboardingGrid {
@@ -136,5 +136,5 @@
 
 .connectionStatus > div {
   display: grid;
-  gap: var(--od-space-2);
+  gap: var(--od-space-3);
 }

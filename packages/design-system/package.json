@@ -9,7 +9,13 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./tokens.css": "./styles/tokens.css"
+    "./tokens.css": "./styles/tokens.css",
+    "./fonts.css": "./styles/fonts.css",
+    "./fonts/Fredoka-variable.ttf": "./assets/fonts/Fredoka-variable.ttf",
+    "./fonts/Figtree-variable.ttf": "./assets/fonts/Figtree-variable.ttf",
+    "./fonts/JetBrainsMono-variable.ttf": "./assets/fonts/JetBrainsMono-variable.ttf",
+    "./brand/nina-phone.png": "./assets/brand/nina-phone.png",
+    "./fonts/NotoSansMono-variable.ttf": "./assets/fonts/NotoSansMono-variable.ttf"
   },
   "scripts": {
     "build": "node ../../scripts/build/generate-design-tokens.mjs --check && tsc -b"
