@@ -41,6 +41,7 @@
   width: var(--od-control-small);
 }
 .brandText {
+  font-family: var(--od-font-family-display);
   font-size: var(--od-font-size-sm);
   font-weight: var(--od-weight-strong);
   line-height: var(--od-line-tight);
@@ -59,22 +60,14 @@
   padding: 0;
 }
 .navButton {
-  align-items: center;
-  background: transparent;
-  border: var(--od-border-thin) solid transparent;
-  border-radius: var(--od-radius-md);
   color: var(--od-color-text-muted);
-  cursor: pointer;
-  display: flex;
   gap: var(--od-space-4);
-  min-height: var(--od-control-min);
-  padding: var(--od-space-3) var(--od-space-4);
   text-align: left;
   width: 100%;
   font-size: var(--od-font-size-sm);
+  justify-content: flex-start;
 }
 .navButton:hover {
-  background: var(--od-color-surface-sunken);
   color: var(--od-color-text-strong);
 }
 .navButton[aria-current="page"] {
@@ -241,22 +234,8 @@
   font-size: var(--od-font-size-sm);
 }
 .parentLink {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--od-radius-md);
-  color: var(--od-color-brand-ink);
-  cursor: pointer;
-  display: inline-flex;
   gap: var(--od-space-2);
-  padding: var(--od-space-2);
-}
-.parentLink:hover {
-  background: var(--od-color-surface-brand);
-}
-.parentLink svg {
-  height: var(--od-icon-sm);
-  width: var(--od-icon-sm);
+  min-width: 0;
 }
 .navFooter {
   display: grid;

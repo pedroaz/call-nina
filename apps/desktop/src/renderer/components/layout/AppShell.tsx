@@ -8,7 +8,7 @@ import {
   PanelRightOpen,
 } from "lucide-react";
 
-import { IconButton, Tooltip } from "../ui/Button.js";
+import { Button, IconButton, Tooltip } from "../ui/Button.js";
 import styles from "./AppShell.module.css";
 
 export type ShellNavigationItem<Page extends string> = Readonly<{
@@ -136,20 +136,21 @@ export function AppShell<Page extends string>(props: {
           <ul className={styles.navList}>
             {props.navigation.map(({ page, label, icon: Icon }) => {
               const control = (
-                <button
+                <Button
                   aria-label={label}
-                  aria-current={props.activePage === page ? "page" : undefined}
+                  {...(props.activePage === page ? { "aria-current": "page" as const } : {})}
                   className={styles.navButton}
+                  density="compact"
                   data-nav
-                  onClick={() => {
+                  onPress={() => {
                     props.onNavigate(page);
                   }}
                   onKeyDown={props.onMoveNavFocus}
-                  type="button"
+                  variant="quiet"
                 >
                   <Icon aria-hidden="true" />
                   <span className={styles.navLabel}>{label}</span>
-                </button>
+                </Button>
               );
               return (
                 <li key={page}>
@@ -162,20 +163,21 @@ export function AppShell<Page extends string>(props: {
             {(() => {
               const { page, label, icon: Icon } = props.settingsNavigation;
               const control = (
-                <button
+                <Button
                   aria-label={label}
-                  aria-current={props.activePage === page ? "page" : undefined}
+                  {...(props.activePage === page ? { "aria-current": "page" as const } : {})}
                   className={styles.navButton}
+                  density="compact"
                   data-nav
-                  onClick={() => {
+                  onPress={() => {
                     props.onNavigate(page);
                   }}
                   onKeyDown={props.onMoveNavFocus}
-                  type="button"
+                  variant="quiet"
                 >
                   <Icon aria-hidden="true" />
                   <span className={styles.navLabel}>{label}</span>
-                </button>
+                </Button>
               );
               return (
                 <li>{props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}</li>
@@ -190,10 +192,15 @@ export function AppShell<Page extends string>(props: {
           <header className={styles.workspaceHeader}>
             <div className={styles.location}>
               {props.parent && (
-                <button className={styles.parentLink} onClick={props.parent.onPress} type="button">
+                <Button
+                  className={styles.parentLink}
+                  density="compact"
+                  onPress={props.parent.onPress}
+                  variant="quiet"
+                >
                   <ChevronLeft aria-hidden="true" />
                   {props.parent.label}
-                </button>
+                </Button>
               )}
               {props.parent && <span aria-hidden="true">/</span>}
               <span aria-current="page">{props.locationLabel}</span>

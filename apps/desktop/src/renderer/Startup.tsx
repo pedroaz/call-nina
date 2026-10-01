@@ -7,6 +7,7 @@ import styles from "./Startup.module.css";
 import { ActionGroup } from "./components/layout/index.js";
 import {
   Button,
+  Card,
   CheckboxContainer,
   DiagnosticCode,
   Feedback,
@@ -151,7 +152,7 @@ export function FolderOnboarding({ onReady }: { onReady: () => Promise<void> }) 
 
   return (
     <StartupFrame>
-      <section className={styles.startupCard} aria-labelledby="folder-title">
+      <Card as="section" className={styles.startupCard} aria-labelledby="folder-title">
         <p className={styles.eyebrow}>{t("app.name")}</p>
         <h1 id="folder-title">{t("startup.firstTitle")}</h1>
         <Muted as="p">{t("startup.firstBody")}</Muted>
@@ -222,7 +223,7 @@ export function FolderOnboarding({ onReady }: { onReady: () => Promise<void> }) 
             </ActionGroup>
           </>
         )}
-      </section>
+      </Card>
     </StartupFrame>
   );
 }
@@ -246,7 +247,7 @@ export function StartupError(props: {
   const [title, body] = copy[readiness.dataRoot.reason];
   return (
     <StartupFrame>
-      <section className={styles.startupCard} aria-labelledby="startup-error-title">
+      <Card as="section" className={styles.startupCard} aria-labelledby="startup-error-title">
         <TriangleAlert aria-hidden="true" />
         <h1 id="startup-error-title">{t(title)}</h1>
         <p>{t(body)}</p>
@@ -258,7 +259,7 @@ export function StartupError(props: {
           </Button>
           <Button onPress={props.recover}>{t("actions.chooseAnother")}</Button>
         </ActionGroup>
-      </section>
+      </Card>
     </StartupFrame>
   );
 }

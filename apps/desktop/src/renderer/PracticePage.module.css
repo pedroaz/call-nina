@@ -138,32 +138,11 @@
 }
 
 .generatedActivityOpen {
-  align-items: center;
-  background: var(--od-color-transparent);
-  border: 0;
-  color: var(--od-color-text-strong);
-  cursor: pointer;
-  display: flex;
   flex: 1;
   gap: var(--od-space-5);
   justify-content: space-between;
-  min-height: var(--od-control-min);
   min-width: 0;
-  padding: var(--od-space-3) var(--od-space-4);
   text-align: left;
-}
-
-.generatedActivityOpen:hover,
-.generatedActivityOpen[data-pressed] {
-  background: var(--od-color-surface-card);
-}
-
-.generatedActivityOpen:focus-visible,
-.generatedActivityDelete:focus-visible,
-.libraryFilterButton:focus-visible,
-.practiceTypeCard:focus-visible {
-  outline: var(--od-border-outlined) solid var(--od-color-brand);
-  outline-offset: calc(var(--od-space-2) * -1);
 }
 
 .generatedActivityCopy {
@@ -183,16 +162,8 @@
 }
 
 .generatedActivityDelete {
-  align-items: center;
   align-self: center;
-  background: var(--od-color-transparent);
-  border: 0;
   color: var(--od-color-text-muted);
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center;
-  min-width: var(--od-control-min);
-  padding: var(--od-space-4);
 }
 
 .generatedActivity > button:last-child {
@@ -203,11 +174,6 @@
 .generatedActivityDelete[data-pressed]:not([data-disabled]) {
   background: var(--od-color-state-wrong-soft);
   color: var(--od-color-state-wrong);
-}
-
-.generatedActivityDelete[data-disabled] {
-  cursor: not-allowed;
-  opacity: 0.45;
 }
 
 .generatedActivityDelete svg {
@@ -223,35 +189,13 @@
 }
 
 .libraryFilterButton {
-  align-items: center;
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-sm);
-  color: var(--od-color-text-muted);
-  cursor: pointer;
-  display: inline-flex;
-  font: inherit;
   font-size: var(--od-font-size-sm);
   gap: var(--od-space-3);
-  min-height: var(--od-control-compact);
-  padding: var(--od-space-2) var(--od-space-4);
 }
 
 .libraryFilterButton > span {
   color: inherit;
   font-size: var(--od-font-size-xs);
-}
-
-.libraryFilterButton:hover,
-.libraryFilterButton[data-pressed],
-.libraryFilterButton[data-selected] {
-  border-color: var(--od-color-brand-ink);
-  color: var(--od-color-brand-ink);
-}
-
-.libraryFilterButton[data-selected] {
-  background: var(--od-color-surface-brand);
-  font-weight: var(--od-weight-strong);
 }
 
 .practiceTypeGrid {
@@ -261,22 +205,13 @@
 }
 
 .practiceTypeCard {
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
-  color: var(--od-color-text-strong);
-  cursor: pointer;
   display: grid;
   gap: var(--od-space-4);
   grid-template-columns: auto minmax(0, 1fr);
   padding: var(--od-space-4);
   align-items: center;
   text-align: left;
-}
-
-.practiceTypeCard:hover,
-.practiceTypeCard[data-pressed] {
-  border-color: var(--od-color-brand-ink);
 }
 
 .practiceTypeCard[data-selected] {
@@ -434,32 +369,7 @@
 }
 
 .quizLengthButton {
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-sm);
-  color: var(--od-color-text-muted);
-  cursor: pointer;
-  font: inherit;
-  min-height: var(--od-control-small);
   min-width: var(--od-control-wide);
-  padding: var(--od-space-2) var(--od-space-4);
-}
-
-.quizLengthButton:hover,
-.quizLengthButton[data-pressed],
-.quizLengthButton[data-selected] {
-  border-color: var(--od-color-brand-ink);
-  color: var(--od-color-brand-ink);
-}
-
-.quizLengthButton:focus-visible {
-  outline: var(--od-border-outlined) solid var(--od-color-brand);
-  outline-offset: var(--od-space-2);
-}
-
-.quizLengthButton[data-selected] {
-  background: var(--od-color-surface-brand);
-  font-weight: var(--od-weight-strong);
 }
 
 .inlineActions {

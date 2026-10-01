@@ -14,6 +14,7 @@ import {
   InfoHint,
   DiagnosticCode,
   Button,
+  CheckboxField,
   Feedback,
   FieldGroup,
   LoadingState,
@@ -413,25 +414,23 @@ export function SettingsPage({
                         onChange={(language) => void selectTarget(language)}
                       />
                       {draft.learningScope.targetLanguage === "de" ? (
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={
-                              draft.learningScope.courseId ===
-                              languageDefinitions.de.structuredCourseId
-                            }
-                            disabled={busy}
-                            onChange={(event) => {
-                              setProfile("learningScope", {
-                                ...draft.learningScope,
-                                courseId: event.currentTarget.checked
-                                  ? languageDefinitions.de.structuredCourseId
-                                  : null,
-                              });
-                            }}
-                          />
+                        <CheckboxField
+                          checked={
+                            draft.learningScope.courseId ===
+                            languageDefinitions.de.structuredCourseId
+                          }
+                          disabled={busy}
+                          onChange={(event) => {
+                            setProfile("learningScope", {
+                              ...draft.learningScope,
+                              courseId: event.currentTarget.checked
+                                ? languageDefinitions.de.structuredCourseId
+                                : null,
+                            });
+                          }}
+                        >
                           {t("onboarding.enrollCourse")}
-                        </label>
+                        </CheckboxField>
                       ) : (
                         <p>{t("onboarding.pathUnavailable")}</p>
                       )}

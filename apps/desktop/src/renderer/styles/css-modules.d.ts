@@ -269,7 +269,6 @@ declare module "*ProfileOnboarding.module.css" {
     readonly connectionStatus: string;
     readonly controlLegend: string;
     readonly eyebrow: string;
-    readonly languageButton: string;
     readonly onboardingCard: string;
     readonly onboardingGrid: string;
     readonly onboardingSection: string;
@@ -321,7 +320,6 @@ declare module "*Startup.module.css" {
   const styles: {
     readonly app: string;
     readonly eyebrow: string;
-    readonly languageButton: string;
     readonly privacyGrid: string;
     readonly startup: string;
     readonly startupCard: string;

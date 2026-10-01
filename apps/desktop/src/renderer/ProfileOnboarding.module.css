@@ -2,25 +2,6 @@
   min-height: 100vh;
 }
 
-.languageButton {
-  align-items: center;
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
-  color: var(--od-color-text-strong);
-  cursor: pointer;
-  display: inline-flex;
-  gap: var(--od-space-3);
-  min-height: var(--od-control-min);
-  padding: var(--od-space-3) var(--od-space-5);
-}
-
-.languageButton:hover,
-.languageButton[data-pressed] {
-  background: var(--od-color-surface-brand);
-  border-color: var(--od-color-brand-ink);
-}
-
 .topActions {
   display: flex;
   gap: var(--od-space-4);
@@ -37,12 +18,7 @@
 }
 
 .startupCard {
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-lg);
-
   max-width: var(--od-dialog-max);
-  min-width: 0;
   overflow-wrap: anywhere;
   padding: var(--od-space-7);
   width: 100%;
@@ -89,11 +65,6 @@
   margin: 0 0 var(--od-space-4);
 }
 
-.languageButton svg {
-  height: var(--od-icon-md);
-  width: var(--od-icon-md);
-}
-
 .eyebrow {
   color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
@@ -111,11 +82,6 @@
 .startupCard > :where(h1, h2, p) {
   margin-block: 0;
 }
-.startupCard {
-  display: grid;
-  gap: var(--od-space-5);
-}
-
 .onboardingSection {
   display: grid;
   gap: var(--od-space-4);

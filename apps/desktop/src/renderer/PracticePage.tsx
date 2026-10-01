@@ -937,6 +937,7 @@ export function PracticePage({
                       return (
                         <Button
                           className={styles.libraryFilterButton}
+                          density="compact"
                           aria-pressed={libraryFilter === filter}
                           data-selected={libraryFilter === filter || undefined}
                           key={filter}
@@ -978,6 +979,7 @@ export function PracticePage({
                             id={`activity-open-${activity.activityId}`}
                             aria-label={t("practice.library.open", { title: activity.title })}
                             className={styles.generatedActivityOpen}
+                            variant="quiet"
                             onPress={() => {
                               void openSavedActivity(activity.activityId);
                             }}
@@ -1018,6 +1020,7 @@ export function PracticePage({
                                   className={styles.generatedActivityDelete}
                                   label={deleteLabel}
                                   leadingIcon={<Trash2 aria-hidden="true" />}
+                                  variant="quiet"
                                 />
                               }
                               onConfirm={() => deletePreparedActivity(activity)}
