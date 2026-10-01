@@ -1,4 +1,5 @@
 import type { Locale } from "../locales";
+import { Card } from "@call-nina/browser-ui";
 import {
   articles,
   articleHref,
@@ -87,7 +88,7 @@ export function Blog({ page, locale }: { page: ReturnType<typeof resolveBlog>; l
               </time>
             </p>
           </header>
-          <div className="article-body">
+          <Card className="article-body">
             {article.body.map((block, index) => {
               if (block.type === "heading") return <h2 key={index}>{block.text}</h2>;
               if (block.type === "list")
@@ -112,7 +113,7 @@ export function Blog({ page, locale }: { page: ReturnType<typeof resolveBlog>; l
                 </ul>
               </section>
             )}
-          </div>
+          </Card>
           <a href={blogHref}>← All articles</a>
         </article>
       ) : (
@@ -133,7 +134,7 @@ export function Blog({ page, locale }: { page: ReturnType<typeof resolveBlog>; l
               {[...articles]
                 .sort((a, b) => b.publishedOn.localeCompare(a.publishedOn))
                 .map((entry) => (
-                  <li key={entry.slug}>
+                  <Card as="li" key={entry.slug} className="article-card">
                     <article className="blog-heading">
                       <p className="article-meta">
                         <time dateTime={entry.publishedOn}>{entry.publishedOn}</time> · English
@@ -143,11 +144,13 @@ export function Blog({ page, locale }: { page: ReturnType<typeof resolveBlog>; l
                       </h2>
                       <p>{entry.summary}</p>
                     </article>
-                  </li>
+                  </Card>
                 ))}
             </ul>
           ) : (
-            <p className="blog-empty">No articles have been published yet.</p>
+            <Card as="p" variant="muted" className="blog-empty">
+              No articles have been published yet.
+            </Card>
           )}
         </>
       )}

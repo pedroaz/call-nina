@@ -5,23 +5,24 @@
   margin-top: var(--od-space-7);
 }
 .plans-current {
-  padding: var(--od-space-6);
-  border-left: 3px solid var(--od-color-brand);
-  background: var(--od-color-surface-brand);
+  border-left: var(--od-border-chunky-offset) solid var(--od-color-brand);
 }
 .comparison-hint,
 #contact-hint {
-  font-size: 0.9rem;
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-body-small-size);
 }
 .comparison-scroll {
   max-width: 100%;
   overflow-x: auto;
-  border: 1px solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-lg);
+  background: var(--od-color-surface-card);
+  box-shadow: var(--od-shadow-card);
 }
 .comparison-scroll:focus-visible,
 .faq-list summary:focus-visible {
-  outline: 3px solid var(--od-color-focus);
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
   outline-offset: var(--od-space-2);
 }
 .comparison {
@@ -30,18 +31,20 @@
   border-collapse: collapse;
   table-layout: fixed;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: var(--od-type-body-small-size);
 }
 .comparison caption {
   padding: var(--od-space-6);
   text-align: left;
-  font-weight: 650;
+  font-family: var(--od-font-family-display);
+  font-size: var(--od-type-h3-size);
+  font-weight: var(--od-font-weight-bold);
   background: var(--od-color-surface-card);
 }
 .comparison th,
 .comparison td {
   padding: var(--od-space-6);
-  border-top: 1px solid var(--od-color-border-default);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
   vertical-align: top;
 }
 .comparison thead {
@@ -49,29 +52,49 @@
 }
 .comparison tbody th {
   background: var(--od-color-surface-card);
-  font-weight: 650;
+  font-weight: var(--od-font-weight-semibold);
+}
+.comparison tbody tr:nth-child(even) {
+  background: var(--od-color-bg-app);
 }
 .faq-list {
   margin-top: var(--od-space-7);
-  border-top: 1px solid var(--od-color-border-default);
+  display: grid;
+  gap: var(--od-space-4);
 }
 .faq-list details {
-  border-bottom: 1px solid var(--od-color-border-default);
-  padding: var(--od-space-3) var(--od-space-2);
+  min-width: 0;
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-lg);
+  background: var(--od-color-surface-card);
+  box-shadow: var(--od-shadow-card);
 }
 .faq-list summary {
-  padding: var(--od-space-5);
+  padding: var(--od-space-6) var(--od-space-7);
   cursor: pointer;
-  font-weight: 650;
+  font-weight: var(--od-font-weight-semibold);
+  overflow-wrap: anywhere;
 }
 .faq-list details[open] summary {
   color: var(--od-color-brand-ink);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .faq-list details p {
   max-width: 52rem;
-  padding: var(--od-space-3) var(--od-space-5) var(--od-space-6);
+  padding: var(--od-space-6) var(--od-space-7);
 }
 .contact-content {
   justify-items: start;
   max-width: 42rem;
+}
+@media (max-width: 420px) {
+  .comparison caption,
+  .comparison th,
+  .comparison td {
+    padding: var(--od-space-4);
+  }
+  .faq-list summary,
+  .faq-list details p {
+    padding-inline: var(--od-space-5);
+  }
 }

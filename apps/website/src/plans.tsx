@@ -1,5 +1,6 @@
 import type { Locale } from "./locales";
 import { planCopy } from "./plans-copy";
+import { ActionLink, Card } from "@call-nina/browser-ui";
 import "./plans.css";
 
 export function Plans({ locale }: { locale: Locale }) {
@@ -7,7 +8,9 @@ export function Plans({ locale }: { locale: Locale }) {
   return (
     <div className="plans-content">
       <p className="lead">{t.introduction}</p>
-      <p className="plans-current">{t.current}</p>
+      <Card as="p" variant="muted" className="plans-current">
+        {t.current}
+      </Card>
       <p id="plans-scroll-hint" className="comparison-hint">
         {t.scrollHint}
       </p>
@@ -68,13 +71,13 @@ export function Contact({ locale }: { locale: Locale }) {
   return (
     <div className="contact-content">
       <p className="lead">{t.introduction}</p>
-      <a
+      <ActionLink
         className="primary-link"
         href="mailto:pedro.azvm@gmail.com"
         aria-describedby="contact-hint"
       >
         {t.action}
-      </a>
+      </ActionLink>
       <p>pedro.azvm@gmail.com</p>
       <p id="contact-hint">{t.hint}</p>
     </div>
