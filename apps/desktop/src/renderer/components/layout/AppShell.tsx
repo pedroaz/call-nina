@@ -8,7 +8,7 @@ import {
   PanelRightOpen,
 } from "lucide-react";
 
-import { Button, IconButton, Tooltip } from "../ui/Button.js";
+import { Button, IconButton, Tooltip, type ButtonProps } from "../ui/Button.js";
 import styles from "./AppShell.module.css";
 
 export type ShellNavigationItem<Page extends string> = Readonly<{
@@ -59,6 +59,14 @@ export function AppShell<Page extends string>(props: {
   }, [helperOpen]);
   const macKeyboard = /Mac/u.test(navigator.platform);
   const shortcutModifier = macKeyboard ? "⌘" : "Ctrl+";
+  const handleNavKeyDown: NonNullable<ButtonProps["onKeyDown"]> = (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+      event.continuePropagation();
+      return;
+    }
+    props.onMoveNavFocus(event);
+    if (!event.isDefaultPrevented()) event.continuePropagation();
+  };
   useEffect(() => {
     const handleShortcut = (event: globalThis.KeyboardEvent) => {
       if (
@@ -145,7 +153,7 @@ export function AppShell<Page extends string>(props: {
                   onPress={() => {
                     props.onNavigate(page);
                   }}
-                  onKeyDown={props.onMoveNavFocus}
+                  onKeyDown={handleNavKeyDown}
                   variant="quiet"
                 >
                   <Icon aria-hidden="true" />
@@ -172,7 +180,7 @@ export function AppShell<Page extends string>(props: {
                   onPress={() => {
                     props.onNavigate(page);
                   }}
-                  onKeyDown={props.onMoveNavFocus}
+                  onKeyDown={handleNavKeyDown}
                   variant="quiet"
                 >
                   <Icon aria-hidden="true" />
