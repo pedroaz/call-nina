@@ -5,7 +5,9 @@ description: Develop and maintain Call Nina, including repository workflow, pack
 
 # Call Nina development
 
-Read root and scoped `AGENTS.md`, inspect branch, worktree and `git status --short`, and preserve concurrent work and learner data. Every Codex CLI/Desktop session must inspect read-only, map to an existing approved task or propose missing scope, and create/select its owned isolated task worktree before the first repository edit, including small docs/skills and ad-hoc fixes. Work from that worktree’s repository root; main may host coordination but is not an implementation scratch checkout. Dirty-main transfer is recovery only. Current code, schemas, and runtime observations establish what is implemented; inspect them before changing behavior. Skills hold durable decisions and workflow, not feature inventories or parallel implementation documentation.
+Read root and scoped `AGENTS.md`, inspect branch, worktree and `git status --short`, and preserve concurrent work and learner data. When the user explicitly invokes [Manual](../call-nina-manual/SKILL.md), follow the root Manual exception for authorization, checkout selection, verification scope and delivery. The task history, coordinator/worker, reconciliation and automatic delivery instructions below apply to orchestrated work; using this skill's technical guidance does not switch Manual into Orca. Local Manual edits need focused checks, not mandatory independent review or full `make check`; those gates remain required for PR delivery.
+
+Outside Manual, every Codex CLI/Desktop session must inspect read-only, map to an existing approved task or propose missing scope, and create/select its owned isolated task worktree before the first repository edit, including small docs/skills and ad-hoc fixes. Work from that worktree’s repository root; main may host coordination but is not an implementation scratch checkout. Dirty-main transfer is recovery only. Current code, schemas, and runtime observations establish what is implemented; inspect them before changing behavior. Skills hold durable decisions and workflow, not feature inventories or parallel implementation documentation.
 
 ## Find the owner
 
@@ -32,7 +34,7 @@ Paths below are relative to the repository root. Follow imports and callers rath
 - Keep learning activities self-paced and distinguish participation from skill evidence. Voice stays in Codex; Call Nina stores bounded structured results, not audio or transcripts. Model capabilities come from the connected runtime.
 - Preserve imported material text through renderer, generation and storage boundaries; whitespace validation must not rewrite the source. Attempts retain their exact content/material revisions, while later feedback appends evidence without replacing the original answer or evaluation. Reusable material lifetime is separate from activity lifetime: deletion may remove explicitly owned inline material only when no edited revision or surviving reference needs it. Never infer ownership for existing material or collect unrelated orphans.
 
-## Task history
+## Orchestrated task history
 
 Use `task/<issue>-<short-kebab-description>` and an ownership suffix for separate worker branches. Commit with a Conventional Commit header and a real `Refs: #<task>` footer; do not lint or rewrite old history. The pure contract owner is `scripts/agents/lib/task-metadata.mjs`; GitHub publication and merge boundaries are in `scripts/agents/github.mjs`. Preserve both `!` and complete multiline `BREAKING CHANGE:` / `BREAKING-CHANGE:` signals. Copy every distinct source breaking footer into the PR body; a source `!` needs either a PR-title `!` or an explicitly authored breaking footer. Do not invent migration explanations. Product tasks require a native open parent; explicitly approved standalone internal workflow tasks use the exact `internal-workflow` label, while existing defects use `bug`. Neither classification replaces Ready/claim authorization.
 
