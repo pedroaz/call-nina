@@ -37,23 +37,6 @@ declare module "*AppStyles.module.css" {
   export default styles;
 }
 
-declare module "*Button.module.css" {
-  const styles: {
-    readonly button: string;
-    readonly buttonIcon: string;
-    readonly content: string;
-    readonly danger: string;
-    readonly iconButton: string;
-    readonly primary: string;
-    readonly quiet: string;
-    readonly secondary: string;
-    readonly spinner: string;
-    readonly tooltip: string;
-    readonly visuallyHidden: string;
-  };
-  export default styles;
-}
-
 declare module "*ContextualHelper.module.css" {
   const styles: {
     readonly eyebrow: string;
@@ -96,16 +79,6 @@ declare module "*Dashboard.module.css" {
   export default styles;
 }
 
-declare module "*Dialog.module.css" {
-  const styles: {
-    readonly actions: string;
-    readonly body: string;
-    readonly dialog: string;
-    readonly overlay: string;
-  };
-  export default styles;
-}
-
 declare module "*DiffView.module.css" {
   const styles: {
     readonly grid: string;
@@ -141,34 +114,6 @@ declare module "*ExerciseEngine.module.css" {
     readonly optionGroup: string;
     readonly primaryAction: string;
     readonly questionHeader: string;
-  };
-  export default styles;
-}
-
-declare module "*Feedback.module.css" {
-  const styles: {
-    readonly diagnostic: string;
-    readonly error: string;
-    readonly feedback: string;
-    readonly info: string;
-    readonly loadingDot: string;
-    readonly success: string;
-    readonly warning: string;
-  };
-  export default styles;
-}
-
-declare module "*Fields.module.css" {
-  const styles: {
-    readonly checkbox: string;
-    readonly control: string;
-    readonly description: string;
-    readonly error: string;
-    readonly field: string;
-    readonly invalid: string;
-    readonly optionCard: string;
-    readonly optionGrid: string;
-    readonly toggleGroup: string;
   };
   export default styles;
 }
@@ -382,27 +327,6 @@ declare module "*Startup.module.css" {
     readonly startupCard: string;
     readonly topActions: string;
     readonly warningList: string;
-  };
-  export default styles;
-}
-
-declare module "*Surface.module.css" {
-  const styles: {
-    readonly card: string;
-    readonly empty: string;
-    readonly itemList: string;
-    readonly muted: string;
-    readonly mutedText: string;
-  };
-  export default styles;
-}
-
-declare module "*Tabs.module.css" {
-  const styles: {
-    readonly list: string;
-    readonly panel: string;
-    readonly tab: string;
-    readonly tabs: string;
   };
   export default styles;
 }

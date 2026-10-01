@@ -4,6 +4,7 @@ import { copy, languages, type Locale } from "./locales";
 import { Blog, resolveBlog } from "./blog/Blog";
 import { landingSections, siteLinks } from "./extensions";
 import ninaPhone from "@call-nina/design-system/brand/nina-phone.png";
+import { ActionLink, Button, Card } from "@call-nina/browser-ui";
 
 import "@call-nina/design-system/tokens.css";
 import "@call-nina/design-system/fonts.css";
@@ -79,17 +80,18 @@ function App() {
         </nav>
         <div className="language-switch" role="group" aria-label={t.language}>
           {languages.map(({ code, label }) => (
-            <button
+            <Button
               key={code}
-              type="button"
+              density="compact"
+              variant="quiet"
               lang={code}
               aria-pressed={locale === code}
-              onClick={() => {
+              onPress={() => {
                 changeLanguage(code);
               }}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       </header>
@@ -104,16 +106,16 @@ function App() {
                 <h1 id="hero-title">{t.headline}</h1>
                 <p className="lead">{t.introduction}</p>
                 <div className="hero-actions">
-                  <a className="primary-link" href={`${home}#practice`}>
+                  <ActionLink className="primary-link" href={`${home}#practice`}>
                     {t.explore}
                     <span aria-hidden="true">↗</span>
-                  </a>
+                  </ActionLink>
                   <span className="availability">
                     {t.nav.downloads} · {t.downloadStatus}
                   </span>
                 </div>
               </div>
-              <figure className="language-card">
+              <Card as="figure" className="language-card">
                 <div className="card-top">
                   <span>{t.previewLabel}</span>
                   <span aria-hidden="true">DE / 01</span>
@@ -129,7 +131,7 @@ function App() {
                 </p>
                 <p>{t.previewTranslation}</p>
                 <figcaption>{t.previewNote}</figcaption>
-              </figure>
+              </Card>
             </section>
             <section className="section wrap" id="practice" aria-labelledby="practice-title">
               <div className="section-heading">

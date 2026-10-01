@@ -1,8 +1,8 @@
 .field {
   display: flex;
   flex-direction: column;
-  font-size: var(--od-font-size-sm);
-  font-weight: var(--od-weight-medium);
+  font-size: var(--od-font-size-sm, var(--od-type-body-small-size));
+  font-weight: var(--od-weight-medium, var(--od-font-weight-semibold));
   gap: var(--od-space-3);
   min-width: 0;
 }
@@ -16,7 +16,7 @@
   border-radius: var(--od-radius-md);
   color: var(--od-color-text-strong);
   font-weight: normal;
-  min-height: var(--od-control-min);
+  min-height: var(--od-control-min, 2.75rem);
   min-width: 0;
   padding: var(--od-space-3) var(--od-space-4);
   width: 100%;
@@ -33,13 +33,13 @@ textarea.control,
 
 .description {
   color: var(--od-color-text-muted);
-  font-size: var(--od-font-size-sm);
+  font-size: var(--od-font-size-sm, var(--od-type-body-small-size));
   font-weight: normal;
 }
 
 .error {
   color: var(--od-color-state-wrong);
-  font-size: var(--od-font-size-sm);
+  font-size: var(--od-font-size-sm, var(--od-type-body-small-size));
   font-weight: normal;
 }
 
@@ -51,9 +51,9 @@ textarea.control,
 
 .checkbox input {
   accent-color: var(--od-color-brand-ink);
-  height: var(--od-icon-md);
+  height: var(--od-icon-md, 1.25rem);
   margin-top: var(--od-space-2);
-  width: var(--od-icon-md);
+  width: var(--od-icon-md, 1.25rem);
 }
 
 .optionGrid {
@@ -90,8 +90,26 @@ textarea.control,
 .field input,
 .field select,
 .field textarea {
-  font-size: var(--od-font-size-md);
+  font-size: var(--od-font-size-md, var(--od-type-body-size));
 }
 .toggleGroup button {
   flex: 0 1 auto;
+}
+
+.field[data-density="compact"] .control {
+  min-height: var(--od-control-small, 2.25rem);
+  padding: var(--od-space-2) var(--od-space-3);
+}
+.control:focus-visible,
+.checkbox input:focus-visible,
+.optionCard:focus-within {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: var(--od-space-2);
+}
+.control[aria-invalid="true"] {
+  border-color: var(--od-color-state-wrong);
+}
+.control:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }

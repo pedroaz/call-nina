@@ -4,7 +4,16 @@
     "rootDir": "src",
     "types": ["vite/client"],
     "outDir": "build/types",
-    "tsBuildInfoFile": "build/tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "build/tsconfig.tsbuildinfo",
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "references": [
+    {
+      "path": "../../packages/design-system"
+    },
+    {
+      "path": "../../packages/browser-ui"
+    }
+  ]
 }

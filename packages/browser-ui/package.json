@@ -1,0 +1,25 @@
+{
+  "name": "@call-nina/browser-ui",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Browser-only shared Call Nina controls.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/generate-css-types.mjs && tsc -b"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-aria-components": "1.20.0",
+    "lucide-react": "1.33.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "typescript": "catalog:"
+  }
+}
