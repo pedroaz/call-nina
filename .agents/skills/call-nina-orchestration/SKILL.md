@@ -5,6 +5,8 @@ description: Develop approved Call Nina GitHub issues through Orca workers, isol
 
 # Autonomous development
 
+This workflow applies to orchestrated delivery. If the user explicitly invokes [Manual](../call-nina-manual/SKILL.md), follow the root Manual exception instead: do not start or require this workflow, its reconciliation, issue claims, Runs, workers or automatic publication for that work. Later explicit Manual commit/PR requests do not switch modes; retain the local PR review/static gates without starting Orca. Existing Run/Dispatch obligations and checkout/session ownership remain intact. Reading or creating Manual is not invocation.
+
 GitHub owns product scope, Orca owns execution, and Git owns integration. Read root/scoped rules and relevant development skills. All GitHub operations use authenticated `gh`; use `gh api` for gaps. Settings are explicit in `development.json`. Never use separate token configuration, a GitHub SDK or connector.
 
 ## Pick up and coordinate
