@@ -141,22 +141,22 @@ function App() {
               </div>
               <ol className="steps">
                 {t.steps.map((step, index) => (
-                  <li key={index}>
+                  <Card as="li" key={index} className="step-card">
                     <span className="step-number" aria-hidden="true">
                       0{index + 1}
                     </span>
                     <h3>{step.title}</h3>
                     <p>{step.text}</p>
-                  </li>
+                  </Card>
                 ))}
               </ol>
-              <aside className="local-note" aria-labelledby="local-title">
+              <Card as="aside" className="local-note" aria-labelledby="local-title">
                 <h3 id="local-title">{t.localTitle}</h3>
                 <div>
                   <p>{t.localText}</p>
                   <p>{t.aiText}</p>
                 </div>
-              </aside>
+              </Card>
             </section>
             <section className="future-band" id="future" aria-labelledby="future-title">
               <div className="section wrap">
@@ -167,13 +167,13 @@ function App() {
                 </div>
                 <div className="future-grid">
                   {t.futureItems.map((item, index) => (
-                    <article key={index}>
+                    <Card as="article" key={index} className="future-card">
                       <span className="future-symbol" aria-hidden="true">
                         {["↗", "↔", "+"][index]}
                       </span>
                       <h3>{item.title}</h3>
                       <p>{item.text}</p>
-                    </article>
+                    </Card>
                   ))}
                 </div>
               </div>
