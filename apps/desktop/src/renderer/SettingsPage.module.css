@@ -19,16 +19,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.settingsControls input {
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
-  color: var(--od-color-text-strong);
-  font: inherit;
-  min-height: var(--od-control-min);
-  padding: var(--od-space-3) var(--od-space-4);
-}
-
 .detailList {
   display: grid;
   gap: var(--od-space-4);

@@ -30,6 +30,7 @@ export function PracticeCount({
             isDisabled={disabled}
             aria-pressed={valid && Number(value) === count}
             className={styles.quizLengthButton}
+            density="compact"
             data-selected={(valid && Number(value) === count) || undefined}
             onPress={() => {
               onChange(String(count));

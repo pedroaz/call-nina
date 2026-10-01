@@ -9,6 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  Card,
   DiagnosticCode,
   Feedback,
   FieldGroup,
@@ -324,7 +325,8 @@ export function ProfileOnboarding({
         />
       </div>
       <main className={styles.startup}>
-        <section
+        <Card
+          as="section"
           className={`${styles.startupCard} ${styles.onboardingCard}`}
           aria-labelledby="setup-title"
         >
@@ -640,7 +642,7 @@ export function ProfileOnboarding({
               )}
             </Feedback>
           )}
-        </section>
+        </Card>
       </main>
     </div>
   );

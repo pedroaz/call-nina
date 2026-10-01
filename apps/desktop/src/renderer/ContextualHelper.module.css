@@ -77,28 +77,7 @@
 }
 
 .helperComposer textarea {
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
-  color: var(--od-color-text-strong);
-  font: inherit;
-  line-height: var(--od-line-normal);
   min-height: var(--od-control-wide);
-  padding: var(--od-space-4);
-  resize: vertical;
-  width: 100%;
-}
-
-.helperComposer textarea:focus-visible {
-  border-color: var(--od-color-focus);
-  box-shadow: var(--od-focus-ring);
-  outline: none;
-}
-
-.helperComposer textarea:disabled {
-  background: var(--od-color-surface-sunken);
-  color: var(--od-color-text-muted);
-  cursor: not-allowed;
 }
 
 .helperComposerActions {

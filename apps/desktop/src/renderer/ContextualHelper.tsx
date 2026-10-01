@@ -9,7 +9,7 @@ import { OperationProgress } from "./OperationProgress.js";
 import { Languages, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { DiagnosticCode, Button, Feedback, ItemList } from "./components/ui/index.js";
+import { DiagnosticCode, Button, Feedback, FieldGroup, ItemList } from "./components/ui/index.js";
 
 import styles from "./ContextualHelper.module.css";
 import {
@@ -246,24 +246,26 @@ export function ContextualHelper({
       </div>
       <div className={styles.helperComposer}>
         <OperationProgress progress={stage === "idle" ? undefined : progress.progress} />
-        <textarea
-          data-helper-selection="ignore"
-          aria-label={t("helper.messageLabel")}
-          disabled={!selection || stage !== "idle"}
-          maxLength={1_000}
-          placeholder={t("helper.messagePlaceholder")}
-          rows={2}
-          value={question}
-          onChange={(event) => {
-            setQuestion(event.currentTarget.value);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              ask();
-            }
-          }}
-        />
+        <FieldGroup>
+          <textarea
+            data-helper-selection="ignore"
+            aria-label={t("helper.messageLabel")}
+            disabled={!selection || stage !== "idle"}
+            maxLength={1_000}
+            placeholder={t("helper.messagePlaceholder")}
+            rows={2}
+            value={question}
+            onChange={(event) => {
+              setQuestion(event.currentTarget.value);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                ask();
+              }
+            }}
+          />
+        </FieldGroup>
         <div className={styles.helperComposerActions}>
           <Button
             isDisabled={!selection || stage !== "idle"}
