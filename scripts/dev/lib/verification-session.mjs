@@ -36,7 +36,7 @@ export function validateVerificationPreferences(preference, initialRoot) {
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       preference.connectionId,
     ) ||
-    preference.route !== "codex" ||
+    preference.route !== "chatgpt" ||
     typeof preference.rootGeneration !== "string" ||
     !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
     !Number.isSafeInteger(Number(preference.rootGeneration)) ||
@@ -71,7 +71,9 @@ export function validateVerificationJournal(previous) {
   validateVerificationPreferences(previous.preferences, previous.initialRoot);
   const needsRecovery = Boolean(
     previous.suspended ||
+    previous.baseline ||
     previous.initialTarget ||
+    previous.localeRestore ||
     Object.keys(previous.learningPreferences ?? {}).length ||
     previous.records?.length ||
     Object.keys(previous.preferences ?? {}).length ||
@@ -240,21 +242,6 @@ export class VerificationSession {
     this.initialLocale =
       this.journal.locale ?? (await this.page.locator("html").getAttribute("lang"));
     this.journal.locale = this.initialLocale;
-    const selectedLanguage = this.page
-      .getByRole("navigation", { includeHidden: true })
-      .getByRole("combobox", {
-        name: await this.t("onboarding.targetLanguage"),
-        exact: true,
-        includeHidden: true,
-      });
-    if (!this.journal.initialTarget && (await selectedLanguage.count()) === 1) {
-      this.journal.initialTarget = await selectedLanguage.inputValue();
-      this.journal.initialRoot = await this.page
-        .locator("[data-learning-root]")
-        .getAttribute("data-learning-root");
-      if (!this.journal.notes.includes("LEARNING_SETTINGS_RESTORE_REQUIRED"))
-        this.journal.notes.push("LEARNING_SETTINGS_RESTORE_REQUIRED");
-    }
     delete this.journal.suspended;
     await this.persist();
     this.phase = "ready";
@@ -314,13 +301,32 @@ export class VerificationSession {
         : {}),
     };
   }
-  async rememberSettings() {
+  async rememberSettings(target) {
+    // Navigation and screenshots do not create restoration obligations.
+    if (target) {
+      const tag = await target.evaluate((element) => element.tagName.toLowerCase());
+      const save = await this.button("settings.save");
+      if (!["input", "select", "textarea"].includes(tag) && !(await target.and(save).count()))
+        return;
+    }
     // Only capture an unedited persisted profile. Never replace an earlier baseline.
     const profile = this.page.locator("#settings-profile-title");
     if (!(await profile.isVisible())) return;
     const language = await this.page
       .locator("[data-settings-language]")
       .getAttribute("data-settings-language");
+    if (
+      target &&
+      (await target
+        .and(
+          this.page.getByRole("combobox", { name: await this.t("settings.uiLocale"), exact: true }),
+        )
+        .count())
+    ) {
+      this.journal.localeRestore = true;
+      this.journal.expectedLocale ??= await this.page.locator("html").getAttribute("lang");
+      await this.persist();
+    }
     if (this.journal.learningPreferences?.[language]) return;
     if (!(await this.page.locator('[data-settings-ready="true"]').count()))
       throw failure("VERIFY_SETTINGS_BASELINE_REQUIRED");
@@ -329,11 +335,41 @@ export class VerificationSession {
       throw failure("VERIFY_SETTINGS_BASELINE_REQUIRED");
     this.journal.learningPreferences ??= {};
     this.journal.learningPreferences[values.language] = values;
+    this.journal.expectedLearningPreferences ??= {};
+    this.journal.expectedLearningPreferences[values.language] = values;
+    this.journal.expectedTarget ??= values.language;
     this.journal.initialTarget ??= values.language;
     this.journal.initialRoot ??= values.rootGeneration;
     if (!this.journal.notes.includes("LEARNING_SETTINGS_RESTORE_REQUIRED"))
       this.journal.notes.push("LEARNING_SETTINGS_RESTORE_REQUIRED");
     await this.persist();
+  }
+  async isProfileSave(target) {
+    return (
+      Boolean(await this.page.locator("#settings-profile-title").isVisible()) &&
+      Boolean(await target.and(await this.button("settings.save")).count())
+    );
+  }
+  async observeSettingsAfterAction(profileSave, selection, localeBefore) {
+    const localeAfter = await this.page.locator("html").getAttribute("lang");
+    if (localeBefore && localeAfter !== localeBefore) {
+      if (!this.journal.localeRestore) {
+        this.initialLocale = localeBefore;
+        this.journal.locale = localeBefore;
+      }
+      this.journal.localeRestore = true;
+      this.journal.expectedLocale = localeAfter;
+    }
+    if (selection) this.journal.expectedTarget = selection.selectedLanguage;
+    if (!profileSave) return;
+    await this.page.locator('[data-settings-ready="true"]').waitFor();
+    const values = await this.profileValues();
+    if (this.journal.learningPreferences?.[values.language]) {
+      this.journal.expectedLearningPreferences ??= {};
+      this.journal.expectedLearningPreferences[values.language] = values;
+    }
+    if (this.journal.localeRestore)
+      this.journal.expectedLocale = await this.page.locator("html").getAttribute("lang");
   }
   async selectLanguage(language) {
     if (!locales[language]) throw failure("VERIFY_RECORD_SCOPE_UNKNOWN");
@@ -357,6 +393,8 @@ export class VerificationSession {
             .getAttribute("data-settings-language")) === language,
         "VERIFY_LANGUAGE_SWITCH_FAILED",
       );
+      this.journal.expectedTarget = language;
+      await this.persist();
     }
   }
   async languageSelectionOwnership(target, selectedLanguage) {
@@ -373,6 +411,14 @@ export class VerificationSession {
           ? "navigation-language"
           : undefined;
     if (!kind) return undefined;
+    if (!this.journal.initialTarget) {
+      this.journal.initialTarget = await target.inputValue();
+      this.journal.expectedTarget = this.journal.initialTarget;
+      this.journal.initialRoot = await this.page
+        .locator("[data-learning-root]")
+        .getAttribute("data-learning-root");
+      await this.persist();
+    }
     const rootGeneration = await this.page
       .locator("[data-learning-root]")
       .getAttribute("data-learning-root");
@@ -396,17 +442,37 @@ export class VerificationSession {
       throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
   }
   async settings() {
+    this.phase = "settings-navigation";
     await this.navigate(await this.t("nav.settings"));
     await this.page
-      .getByRole("tab", { name: await this.t("settings.tabs.models"), exact: true })
+      .getByRole("tab", { name: await this.t("settings.tabs.ai"), exact: true })
       .click();
-    const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
+    const tab = this.page.getByRole("tabpanel");
+    this.phase = "settings-management";
+    const management = tab.locator("details[data-connection-management]");
+    const active = tab.locator('button[data-active-connection="true"]');
+    // Loading replaces the initially open empty-connection disclosure. Wait for
+    // its saved entries before opening it, so that refresh cannot close it.
+    await active.waitFor({ state: "attached" });
+    if ((await management.getAttribute("open")) === null)
+      await management.locator("summary").click();
+    this.phase = "settings-active";
+    await active.waitFor();
+    if ((await active.getAttribute("aria-current")) !== "true") await active.click();
+    await management.locator("summary").click();
+    const panel = tab.locator("[data-ai-connection]");
     await panel.waitFor();
-    if ((await panel.locator("details").getAttribute("open")) === null)
-      await panel.locator("summary").click();
-    await panel
-      .getByRole("combobox", { name: await this.t("connections.active"), exact: true })
-      .waitFor();
+    if ((await panel.getAttribute("data-dirty")) !== "false")
+      throw failure("VERIFY_SETTINGS_UNRESTORABLE");
+    this.phase = "settings-advanced";
+    const advanced = panel.locator("details").filter({
+      has: this.page.getByText(await this.t("connectionSettings.advanced"), { exact: true }),
+    });
+    await advanced.waitFor().catch(() => {
+      throw failure("VERIFY_AI_ADVANCED_UNAVAILABLE");
+    });
+    if ((await advanced.getAttribute("open")) === null) await advanced.locator("summary").click();
+    this.phase = "settings-ready";
     return panel;
   }
   async preferences() {
@@ -417,42 +483,54 @@ export class VerificationSession {
       rootGeneration: await panel.getAttribute("data-root-generation"),
       model: await panel
         .getByRole("combobox", { name: await this.t("modelControl.model"), exact: true })
-        .inputValue(),
+        .inputValue()
+        .catch(() => {
+          throw failure("VERIFY_AI_MODEL_CONTROL_UNAVAILABLE");
+        }),
       effort: await panel
         .getByRole("combobox", { name: await this.t("settings.effort"), exact: true })
-        .inputValue(),
+        .inputValue()
+        .catch(() => {
+          throw failure("VERIFY_AI_EFFORT_CONTROL_UNAVAILABLE");
+        }),
     };
     return validateVerificationPreferences(preference, this.journal.initialRoot);
   }
   async selectAiPreference(panel, key, value) {
     const control = panel.getByRole("combobox", { name: await this.t(key), exact: true });
+    this.phase = "settings-select";
     if ((await control.inputValue()) === value) return;
     const revision = await panel.getAttribute("data-connection-revision");
     await control.selectOption(value);
+    const save = panel.getByRole("button", { name: await this.t("settings.save"), exact: true });
+    await save.click();
     await until(
       async () =>
         (await panel.getAttribute("aria-busy")) === "false" &&
         (await panel.getAttribute("data-connection-revision")) !== revision &&
+        (await panel.getAttribute("data-dirty")) === "false" &&
         (await control.inputValue()) === value,
       "VERIFY_SETTINGS_SAVE_FAILED",
     );
+    if (Object.keys(this.journal.preferences).length) {
+      this.journal.expectedPreferences = await this.preferences();
+      await this.persist();
+    }
   }
   async saveSettings() {
+    // The persisted/dirty state is the contract; button visibility is presentation.
+    if (await this.page.locator('[data-settings-ready="true"]').count()) return;
     const save = await this.button("settings.save");
-    if (await save.isEnabled()) {
-      await save.click();
-      await until(async () => {
-        const currentSave = await this.button("settings.save");
-        const message = this.page.getByText(await this.t("settings.saved"), { exact: true });
-        return (await message.isVisible()) && !(await currentSave.isEnabled());
-      }, "VERIFY_SETTINGS_SAVE_FAILED");
-    }
+    if (!(await save.count()) || !(await save.isEnabled()))
+      throw failure("VERIFY_SETTINGS_SAVE_UNAVAILABLE");
+    await save.click();
+    await this.page.locator('[data-settings-ready="true"]').waitFor();
   }
   async prepareAI() {
     this.phase = "select-luna";
     const panel = await this.settings();
     const current = await this.preferences();
-    if (current.route !== "codex") throw failure("VERIFY_CODEX_CONNECTION_REQUIRED");
+    if (current.route !== "chatgpt") throw failure("VERIFY_CHATGPT_CONNECTION_REQUIRED");
     // Refuse to mutate an unavailable saved selection that cannot be restored
     // through the current advertised controls; keep the original journal intact.
     if (!(await panel.getAttribute("data-effective-model")))
@@ -490,6 +568,8 @@ export class VerificationSession {
       observed.effort !== "semantic:balanced"
     )
       throw failure("VERIFY_LUNA_SELECTION_FAILED");
+    this.journal.expectedPreferences = observed;
+    await this.persist();
     this.aiPrepared = true;
     this.phase = "ready";
     return { model: "gpt-6-luna", effort: "runtime-default" };
@@ -532,9 +612,7 @@ export class VerificationSession {
     await this.page.getByRole("tab", { name: await this.t("ui.newPractice"), exact: true }).click();
     await (await this.button("practice.types.reading.title")).click();
     const disclosure = this.page.locator("details").filter({
-      has: this.page
-        .locator("summary")
-        .getByText(await this.t("materialPractice.optional"), { exact: true }),
+      has: this.page.getByText(await this.t("materialPractice.optional"), { exact: true }),
     });
     if ((await disclosure.getAttribute("open")) === null)
       await disclosure.locator("summary").click();
@@ -607,9 +685,12 @@ export class VerificationSession {
     return { kind, existingCount: this.baseline.ids.length };
   }
   async confirmNoCreation(confirmation) {
+    const cancelled =
+      confirmation === "cancelled-without-creation" &&
+      this.journal.notes.includes("CANCELLED_UI_OBSERVED_NO_ACTIVITY");
     if (
-      confirmation !== "no-creation-submitted" ||
-      this.journal.records.length ||
+      (!cancelled && confirmation !== "no-creation-submitted") ||
+      (!cancelled && this.journal.records.length) ||
       this.journal.pendingAction ||
       this.journal.interruptedActions?.length ||
       !this.journal.baseline ||
@@ -649,12 +730,18 @@ export class VerificationSession {
     }
     this.journal.receipts ??= [];
     this.journal.receipts.push({
-      code: "NO_CREATION_SUBMITTED",
+      code: cancelled ? "CANCELLED_WITHOUT_CREATION" : "NO_CREATION_SUBMITTED",
       at: new Date().toISOString(),
-      evidence: "unchanged-library-and-operator-attestation",
+      evidence: cancelled
+        ? "observed-cancellation-and-unchanged-libraries"
+        : "unchanged-library-and-operator-attestation",
       deletedRecords: 0,
     });
-    this.journal.notes = this.journal.notes.filter((note) => note !== "UNCONFIRMED_CREATION");
+    this.journal.notes = this.journal.notes.filter(
+      (note) =>
+        note !== "UNCONFIRMED_CREATION" &&
+        (!cancelled || note !== "CANCELLED_UI_OBSERVED_NO_ACTIVITY"),
+    );
     delete this.journal.baseline;
     this.baseline = undefined;
     await this.persist();
@@ -923,6 +1010,23 @@ export class VerificationSession {
     this.page = this.mainPage;
     const failures = [];
     let restoredSelection;
+    const currentTarget = this.page
+      .getByRole("navigation", { includeHidden: true })
+      .getByRole("combobox", {
+        name: await this.t("onboarding.targetLanguage"),
+        exact: true,
+        includeHidden: true,
+      });
+    if (this.journal.initialTarget && (await currentTarget.count())) {
+      const current = await currentTarget.inputValue();
+      if (current !== this.journal.initialTarget && current !== this.journal.expectedTarget)
+        throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
+    }
+    if (this.journal.localeRestore) {
+      const current = await this.page.locator("html").getAttribute("lang");
+      if (current !== this.initialLocale && current !== this.journal.expectedLocale)
+        throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
+    }
     for (const record of [...this.journal.records].sort(
       (a, b) => Number(a.kind === "material") - Number(b.kind === "material"),
     )) {
@@ -938,6 +1042,12 @@ export class VerificationSession {
         const observed = await this.profileValues();
         if (observed.rootGeneration !== preference.rootGeneration)
           throw failure("VERIFY_SETTINGS_ROOT_CHANGED");
+        if (JSON.stringify(observed) === JSON.stringify(preference)) continue;
+        if (
+          JSON.stringify(observed) !==
+          JSON.stringify(this.journal.expectedLearningPreferences?.[preference.language])
+        )
+          throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
         const panel = this.page.getByRole("tabpanel");
         for (const [field, key] of [
           ["level", "onboarding.level"],
@@ -984,6 +1094,11 @@ export class VerificationSession {
           preference.route !== current.route
         )
           throw failure("VERIFY_SETTINGS_SCOPE_CHANGED");
+        if (
+          JSON.stringify(current) !== JSON.stringify(preference) &&
+          JSON.stringify(current) !== JSON.stringify(this.journal.expectedPreferences)
+        )
+          throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
         await this.selectAiPreference(panel, "modelControl.model", preference.model);
         await this.selectAiPreference(panel, "settings.effort", preference.effort);
         await this.navigate(await this.t("nav.nina"));
@@ -994,10 +1109,11 @@ export class VerificationSession {
         this.journal.preferences = {};
       }
       if (
-        await this.page
+        this.journal.localeRestore &&
+        (await this.page
           .getByRole("navigation")
           .filter({ has: this.page.getByRole("list") })
-          .count()
+          .count())
       ) {
         await this.navigate(await this.t("nav.settings"));
         await this.page
@@ -1008,7 +1124,10 @@ export class VerificationSession {
           .selectOption(this.initialLocale);
         await this.saveSettings();
       }
-      if ((await this.page.locator("html").getAttribute("lang")) !== this.initialLocale) {
+      if (
+        this.journal.localeRestore &&
+        (await this.page.locator("html").getAttribute("lang")) !== this.initialLocale
+      ) {
         await this.page
           .getByRole("button", {
             name: languageNames[this.initialLocale],
@@ -1021,11 +1140,17 @@ export class VerificationSession {
         );
       }
       delete this.journal.learningPreferences;
+      delete this.journal.expectedLearningPreferences;
+      delete this.journal.expectedPreferences;
+      delete this.journal.localeRestore;
+      delete this.journal.expectedLocale;
       this.journal.notes = this.journal.notes.filter(
         (note) => note !== "LEARNING_SETTINGS_RESTORE_REQUIRED",
       );
-    } catch {
+    } catch (error) {
       failures.push("VERIFY_SETTINGS_RESTORE_FAILED");
+      const code = safeCode(error, "VERIFY_SETTINGS_RESTORE_FAILED");
+      if (code !== "VERIFY_SETTINGS_RESTORE_FAILED") failures.push(code);
       if (!this.journal.notes.includes("SETTINGS_RESTORE_REQUIRED"))
         this.journal.notes.push("SETTINGS_RESTORE_REQUIRED");
     }
@@ -1067,6 +1192,7 @@ export class VerificationSession {
       });
       // Preserve the original selection baseline while any unproven select remains.
       if (!this.journal.interruptedActions.some((entry) => entry.action === "select")) {
+        delete this.journal.expectedTarget;
         delete this.journal.initialTarget;
         delete this.journal.initialRoot;
       }

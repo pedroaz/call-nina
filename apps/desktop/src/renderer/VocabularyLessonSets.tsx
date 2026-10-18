@@ -27,9 +27,10 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
       active = false;
     };
   }, [rootGeneration, retry]);
+  if (result?.entries.length === 0) return null;
   return (
-    <section>
-      <h3>{t("vocabulary.lessonSets")}</h3>
+    <details>
+      <summary>{t("vocabulary.lessonSets")}</summary>
       {error && (
         <>
           <Feedback tone="error" live="assertive">
@@ -57,6 +58,6 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
           ))}
         </ul>
       )}
-    </section>
+    </details>
   );
 }

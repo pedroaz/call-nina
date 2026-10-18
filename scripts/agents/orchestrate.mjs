@@ -35,10 +35,16 @@ const { positionals, values } = parseArgs({
   options: {
     idle: { type: "boolean" },
     ...Object.fromEntries(
-      ["run", "task", "worktree", "baseline", "coordinator", "role"].map((name) => [
-        name,
-        { type: "string" },
-      ]),
+      [
+        "run",
+        "task",
+        "worktree",
+        "baseline",
+        "coordinator",
+        "role",
+        "previous-coordinator",
+        "previous-generation",
+      ].map((name) => [name, { type: "string" }]),
     ),
   },
 });
@@ -52,6 +58,7 @@ const help = `Call Nina Orca coordination (Git owns integration):
   start [--idle]            Managed coordinator; --idle delivers policy then waits for user work
   start --role product-owner  Interactive planning agent in this terminal
   bind --run RUN --coordinator HANDLE
+       [--previous-coordinator HANDLE --previous-generation NUMBER]  Reconcile an accepted Orca takeover
   task                     Assignment JSON on stdin: run, role, title, brief,
                            owned:[], acceptance:[], exclusions:[], skills:[], deps:[], issue + branch (writers), commit (reviewer/verifier),
                            execution:{risk,model,effort,rationale,escalation?}; see policy
@@ -500,214 +507,263 @@ function main() {
     if (result.status !== 0) throw new Error("MAIN_AGENT_EXITED_WITH_ERROR");
     return { role: config.name, exited: true };
   }
-  return locked(() => {
-    if (command === "bind") {
-      if (!values.coordinator) throw new Error("EXPLICIT_COORDINATOR_REQUIRED");
-      // Never let --coordinator authenticate its own claim, or let Orca's implicit
-      // focus fallback select a user-owned sibling terminal.
-      const terminal = ownedCoordinatorTerminal();
-      if (terminal.handle !== values.coordinator) throw new Error("COORDINATOR_MISMATCH");
-      const caller = orca(["orchestration", "run-current"]).run;
-      const current = orca(["orchestration", "run-show", "--id", values.run]).run;
-      if (
-        !caller ||
-        caller.id !== values.run ||
-        current?.id !== values.run ||
-        caller.coordinator_handle !== terminal.handle ||
-        current.coordinator_handle !== terminal.handle ||
-        !Number.isSafeInteger(current.consumer_generation) ||
-        current.consumer_generation < 1 ||
-        caller.consumer_generation !== current.consumer_generation
-      )
-        throw new Error("LIVE_COORDINATOR_REQUIRED");
-      if (existsSync(bindingFile)) {
-        const binding = load(bindingFile);
+  return locked(
+    () => {
+      if (command === "bind") {
+        if (!values.coordinator) throw new Error("EXPLICIT_COORDINATOR_REQUIRED");
+        // Never let --coordinator authenticate its own claim, or let Orca's implicit
+        // focus fallback select a user-owned sibling terminal.
+        const terminal = ownedCoordinatorTerminal();
+        if (terminal.handle !== values.coordinator) throw new Error("COORDINATOR_MISMATCH");
+        const caller = orca(["orchestration", "run-current"]).run;
+        const current = orca(["orchestration", "run-show", "--id", values.run]).run;
         if (
-          binding.run !== values.run ||
-          binding.coordinator !== terminal.handle ||
-          binding.generation !== current.consumer_generation ||
-          repositoryIdentity(binding.integrationRoot) !== repositoryIdentity(root)
+          !caller ||
+          caller.id !== values.run ||
+          current?.id !== values.run ||
+          caller.coordinator_handle !== terminal.handle ||
+          current.coordinator_handle !== terminal.handle ||
+          !Number.isSafeInteger(current.consumer_generation) ||
+          current.consumer_generation < 1 ||
+          caller.consumer_generation !== current.consumer_generation
         )
-          throw new Error(
-            "OTHER_COORDINATOR_BOUND: inspect existing binding; never rebind implicitly",
-          );
-        return { bound: true, unchanged: true, run: values.run };
-      }
-      if (existsSync(startupFile)) {
-        const startup = load(startupFile);
+          throw new Error("LIVE_COORDINATOR_REQUIRED");
+        if (existsSync(bindingFile)) {
+          const binding = load(bindingFile);
+          const reconcile =
+            values["previous-coordinator"] !== undefined ||
+            values["previous-generation"] !== undefined;
+          if (reconcile) {
+            if (
+              binding.run !== values.run ||
+              binding.integrationRoot !== root ||
+              binding.coordinator !== values["previous-coordinator"] ||
+              !Number.isSafeInteger(binding.generation) ||
+              binding.generation < 1 ||
+              String(binding.generation) !== values["previous-generation"] ||
+              current.consumer_generation <= binding.generation
+            )
+              throw new Error(
+                "TAKEOVER_PREDECESSOR_MISMATCH: inspect the retained and live bindings",
+              );
+            // Orca has already fenced the predecessor. Recheck its authoritative
+            // generation immediately before recording the explicit local handback.
+            const latest = orca(["orchestration", "run-current"]).run;
+            if (
+              latest?.id !== values.run ||
+              latest.coordinator_handle !== terminal.handle ||
+              latest.consumer_generation !== current.consumer_generation
+            )
+              throw new Error(
+                "COORDINATOR_BINDING_CHANGED: takeover changed during reconciliation",
+              );
+            replace(bindingFile, {
+              ...binding,
+              coordinator: terminal.handle,
+              generation: latest.consumer_generation,
+              previousBinding: binding,
+              reconciledAt: new Date().toISOString(),
+            });
+            return {
+              bound: true,
+              reconciled: true,
+              run: values.run,
+              generation: latest.consumer_generation,
+            };
+          }
+          if (
+            binding.run !== values.run ||
+            binding.coordinator !== terminal.handle ||
+            binding.generation !== current.consumer_generation ||
+            repositoryIdentity(binding.integrationRoot) !== repositoryIdentity(root)
+          )
+            throw new Error(
+              "OTHER_COORDINATOR_BOUND: inspect existing binding; never rebind implicitly",
+            );
+          return { bound: true, unchanged: true, run: values.run };
+        }
         if (
-          startup.version !== 1 ||
-          startup.integrationRoot !== root ||
-          startup.terminal !== terminal.handle ||
-          startup.incarnation !== terminal.incarnationId ||
-          !["instructions-returned", "input-accepted", "turn-started"].includes(startup.phase)
+          values["previous-coordinator"] !== undefined ||
+          values["previous-generation"] !== undefined
         )
-          throw new Error("COORDINATOR_START_UNCONFIRMED: inspect retained startup receipts");
+          throw new Error("TAKEOVER_PREDECESSOR_MISSING");
+        if (existsSync(startupFile)) {
+          const startup = load(startupFile);
+          if (
+            startup.version !== 1 ||
+            startup.integrationRoot !== root ||
+            startup.terminal !== terminal.handle ||
+            startup.incarnation !== terminal.incarnationId ||
+            !["instructions-returned", "input-accepted", "turn-started"].includes(startup.phase)
+          )
+            throw new Error("COORDINATOR_START_UNCONFIRMED: inspect retained startup receipts");
+        }
+        save(bindingFile, {
+          run: values.run,
+          coordinator: terminal.handle,
+          generation: current.consumer_generation,
+          integrationRoot: root,
+        });
+        return { bound: true, run: values.run };
       }
-      save(bindingFile, {
-        run: values.run,
-        coordinator: terminal.handle,
-        generation: current.consumer_generation,
-        integrationRoot: root,
-      });
-      return { bound: true, run: values.run };
-    }
-    if (command === "task") {
-      const input = JSON.parse(readFileSync(0, "utf8"));
-      const binding = bound(input.run);
-      const config = { ...role(input.role), ...assignmentSettings(input) };
-      if (["coordinator", "product-owner"].includes(input.role))
-        throw new Error("MAIN_ROLE_CANNOT_BE_WORKER");
-      for (const key of ["title", "brief"])
-        if (typeof input[key] !== "string" || !input[key].trim())
-          throw new Error("ASSIGNMENT_TEXT_REQUIRED");
-      for (const key of ["owned", "acceptance", "exclusions", "skills", "deps"])
-        if (!Array.isArray(input[key]) || input[key].some((item) => typeof item !== "string"))
-          throw new Error(`ASSIGNMENT_ARRAY_REQUIRED: ${key}`);
-      if (!input.acceptance.length || (writers.has(input.role) && !input.owned.length))
-        throw new Error("ASSIGNMENT_SCOPE_REQUIRED");
-      if (writers.has(input.role)) {
-        if (!Number.isSafeInteger(input.issue) || input.issue < 1)
-          throw new Error("WRITER_TASK_ISSUE_REQUIRED");
-        taskBranch(input.branch, input.issue);
+      if (command === "task") {
+        const input = JSON.parse(readFileSync(0, "utf8"));
+        const binding = bound(input.run);
+        const config = { ...role(input.role), ...assignmentSettings(input) };
+        if (["coordinator", "product-owner"].includes(input.role))
+          throw new Error("MAIN_ROLE_CANNOT_BE_WORKER");
+        for (const key of ["title", "brief"])
+          if (typeof input[key] !== "string" || !input[key].trim())
+            throw new Error("ASSIGNMENT_TEXT_REQUIRED");
+        for (const key of ["owned", "acceptance", "exclusions", "skills", "deps"])
+          if (!Array.isArray(input[key]) || input[key].some((item) => typeof item !== "string"))
+            throw new Error(`ASSIGNMENT_ARRAY_REQUIRED: ${key}`);
+        if (!input.acceptance.length || (writers.has(input.role) && !input.owned.length))
+          throw new Error("ASSIGNMENT_SCOPE_REQUIRED");
+        if (writers.has(input.role)) {
+          if (!Number.isSafeInteger(input.issue) || input.issue < 1)
+            throw new Error("WRITER_TASK_ISSUE_REQUIRED");
+          taskBranch(input.branch, input.issue);
+        }
+        if (["reviewer", "verifier"].includes(input.role)) {
+          if (!input.commit) throw new Error("REVIEW_OR_VERIFICATION_COMMIT_REQUIRED");
+          input.commit = git(["rev-parse", "--verify", `${input.commit}^{commit}`]).trim();
+        }
+        const spec = `NINA_ASSIGNMENT=${JSON.stringify(input)}\n\n${config.developer_instructions}\n\n${input.brief}`;
+        return orca([
+          "orchestration",
+          "task-create",
+          "--from",
+          binding.coordinator,
+          "--run",
+          input.run,
+          "--task-title",
+          input.title,
+          "--spec",
+          spec,
+          "--deps",
+          JSON.stringify(input.deps),
+        ]);
       }
-      if (["reviewer", "verifier"].includes(input.role)) {
-        if (!input.commit) throw new Error("REVIEW_OR_VERIFICATION_COMMIT_REQUIRED");
-        input.commit = git(["rev-parse", "--verify", `${input.commit}^{commit}`]).trim();
-      }
-      const spec = `NINA_ASSIGNMENT=${JSON.stringify(input)}\n\n${config.developer_instructions}\n\n${input.brief}`;
-      return orca([
-        "orchestration",
-        "task-create",
-        "--from",
-        binding.coordinator,
-        "--run",
-        input.run,
-        "--task-title",
-        input.title,
-        "--spec",
-        spec,
-        "--deps",
-        JSON.stringify(input.deps),
-      ]);
-    }
-    const binding = bound(values.run);
-    const all = tasks(values.run);
-    const active = all.filter((item) => item.status === "dispatched");
-    if (command === "launch") {
-      const task = all.find((item) => item.id === values.task);
-      if (!task || task.status !== "ready") throw new Error("TASK_NOT_READY");
-      const spec = assignment(task);
-      const config = { ...role(spec.role), ...assignmentSettings(spec) };
-      const limits = developmentConfig().workers;
-      if (
-        active.length >= limits.maximum ||
-        (writers.has(spec.role) &&
-          active.filter((item) => writers.has(assignment(item).role)).length >= limits.writers)
-      )
-        throw new Error("WORKER_LIMIT");
-      const target = realpathSync(values.worktree);
-      cleanWorktree(target);
-      if (writers.has(spec.role)) assertWriterCheckout(target, spec);
-      const baseline = git(["rev-parse", "--verify", `${values.baseline}^{commit}`]).trim();
-      if (spec.commit && spec.commit !== baseline) throw new Error("ASSIGNMENT_COMMIT_MISMATCH");
-      if (git(["rev-parse", "HEAD"], target).trim() !== baseline)
-        throw new Error("WORKTREE_BASELINE_MISMATCH");
-      if (spec.role === "verifier") {
+      const binding = bound(values.run);
+      const all = tasks(values.run);
+      const active = all.filter((item) => item.status === "dispatched");
+      if (command === "launch") {
+        const task = all.find((item) => item.id === values.task);
+        if (!task || task.status !== "ready") throw new Error("TASK_NOT_READY");
+        const spec = assignment(task);
+        const config = { ...role(spec.role), ...assignmentSettings(spec) };
+        const limits = developmentConfig().workers;
         if (
-          !existsSync(verificationGate) ||
-          load(verificationGate).worktree !== target ||
-          load(verificationGate).run !== values.run
+          active.length >= limits.maximum ||
+          (writers.has(spec.role) &&
+            active.filter((item) => writers.has(assignment(item).role)).length >= limits.writers)
         )
-          throw new Error("VERIFICATION_GATE_REQUIRED");
-      } else assertNoVerification(target);
-      if (
-        active.some(
-          (item) =>
-            !existsSync(receiptFile(item.id)) || load(receiptFile(item.id)).target === target,
-        )
-      )
-        throw new Error("WORKTREE_BUSY_OR_UNKNOWN");
-      available(config, modelCatalog());
-      save(receiptFile(task.id), {
-        run: values.run,
-        task: task.id,
-        target,
-        baseline,
-        role: spec.role,
-        execution: spec.execution,
-      });
-      const result = orca([
-        "orchestration",
-        "worker-start",
-        "--run",
-        values.run,
-        "--from",
-        binding.coordinator,
-        "--task",
-        task.id,
-        "--worktree",
-        `path:${target}`,
-        "--agent",
-        "codex",
-        "--model",
-        config.model,
-        "--effort",
-        config.model_reasoning_effort,
-      ]);
-      save(receiptFile(task.id) + ".receipt", result);
-      assertEffectiveSettings(result, config);
-      return result;
-    }
-    if (command === "verify-enter") {
-      const target = realpathSync(values.worktree);
-      cleanWorktree(target);
-      if (target === root) throw new Error("DEDICATED_VERIFICATION_WORKTREE_REQUIRED");
-      if (existsSync(verificationGate)) throw new Error("VERIFICATION_ALREADY_RESERVED");
-      if (
-        active.some(
-          (item) =>
-            !existsSync(receiptFile(item.id)) || load(receiptFile(item.id)).target === target,
-        )
-      )
-        throw new Error("VERIFICATION_WORKTREE_BUSY_OR_UNKNOWN");
-      if (!verificationStopped(target)) throw new Error("VERIFICATION_ALREADY_RUNNING");
-      save(verificationGate, {
-        run: values.run,
-        worktree: target,
-        head: git(["rev-parse", "HEAD"], target).trim(),
-        initialRecovery: fingerprint(target),
-      });
-      return { verification: "reserved", worktree: target };
-    }
-    if (command === "verify-leave") {
-      if (!existsSync(verificationGate)) return { verification: "not-held" };
-      const gate = load(verificationGate);
-      if (gate.run !== values.run || !verificationStopped(gate.worktree))
-        throw new Error("VERIFICATION_STILL_OWNED");
-      if (fingerprint(gate.worktree) && fingerprint(gate.worktree) !== gate.initialRecovery) {
-        const recovery = load(path.join(gate.worktree, ".runtime/verification/recovery.json"));
+          throw new Error("WORKER_LIMIT");
+        const target = realpathSync(values.worktree);
+        cleanWorktree(target);
+        if (writers.has(spec.role)) assertWriterCheckout(target, spec);
+        const baseline = git(["rev-parse", "--verify", `${values.baseline}^{commit}`]).trim();
+        if (spec.commit && spec.commit !== baseline) throw new Error("ASSIGNMENT_COMMIT_MISMATCH");
+        if (git(["rev-parse", "HEAD"], target).trim() !== baseline)
+          throw new Error("WORKTREE_BASELINE_MISMATCH");
+        if (spec.role === "verifier") {
+          if (
+            !existsSync(verificationGate) ||
+            load(verificationGate).worktree !== target ||
+            load(verificationGate).run !== values.run
+          )
+            throw new Error("VERIFICATION_GATE_REQUIRED");
+        } else assertNoVerification(target);
         if (
-          recovery.records?.length ||
-          Object.keys(recovery.preferences ?? {}).length ||
-          recovery.notes?.length
+          active.some(
+            (item) =>
+              !existsSync(receiptFile(item.id)) || load(receiptFile(item.id)).target === target,
+          )
         )
-          throw new Error("VERIFICATION_CLEANUP_REQUIRED");
+          throw new Error("WORKTREE_BUSY_OR_UNKNOWN");
+        available(config, modelCatalog());
+        save(receiptFile(task.id), {
+          run: values.run,
+          task: task.id,
+          target,
+          baseline,
+          role: spec.role,
+          execution: spec.execution,
+        });
+        const result = orca([
+          "orchestration",
+          "worker-start",
+          "--run",
+          values.run,
+          "--from",
+          binding.coordinator,
+          "--task",
+          task.id,
+          "--worktree",
+          `path:${target}`,
+          "--agent",
+          "codex",
+          "--model",
+          config.model,
+          "--effort",
+          config.model_reasoning_effort,
+        ]);
+        save(receiptFile(task.id) + ".receipt", result);
+        assertEffectiveSettings(result, config);
+        return result;
       }
-      rmSync(verificationGate);
-      return { verification: "released" };
-    }
-    if (command === "finish") {
-      if (
-        existsSync(verificationGate) ||
-        all.some((item) => ["dispatched", "ready", "pending"].includes(item.status))
-      )
-        throw new Error("RUN_HAS_UNFINISHED_WORK");
-      rmSync(bindingFile);
-      return { detached: true, run: values.run };
-    }
-    throw new Error("UNKNOWN_COMMAND");
-  });
+      if (command === "verify-enter") {
+        const target = realpathSync(values.worktree);
+        cleanWorktree(target);
+        if (target === root) throw new Error("DEDICATED_VERIFICATION_WORKTREE_REQUIRED");
+        if (existsSync(verificationGate)) throw new Error("VERIFICATION_ALREADY_RESERVED");
+        if (
+          active.some(
+            (item) =>
+              !existsSync(receiptFile(item.id)) || load(receiptFile(item.id)).target === target,
+          )
+        )
+          throw new Error("VERIFICATION_WORKTREE_BUSY_OR_UNKNOWN");
+        if (!verificationStopped(target)) throw new Error("VERIFICATION_ALREADY_RUNNING");
+        save(verificationGate, {
+          run: values.run,
+          worktree: target,
+          head: git(["rev-parse", "HEAD"], target).trim(),
+          initialRecovery: fingerprint(target),
+        });
+        return { verification: "reserved", worktree: target };
+      }
+      if (command === "verify-leave") {
+        if (!existsSync(verificationGate)) return { verification: "not-held" };
+        const gate = load(verificationGate);
+        if (gate.run !== values.run || !verificationStopped(gate.worktree))
+          throw new Error("VERIFICATION_STILL_OWNED");
+        if (fingerprint(gate.worktree) && fingerprint(gate.worktree) !== gate.initialRecovery) {
+          const recovery = load(path.join(gate.worktree, ".runtime/verification/recovery.json"));
+          if (
+            recovery.records?.length ||
+            Object.keys(recovery.preferences ?? {}).length ||
+            recovery.notes?.length
+          )
+            throw new Error("VERIFICATION_CLEANUP_REQUIRED");
+        }
+        rmSync(verificationGate);
+        return { verification: "released" };
+      }
+      if (command === "finish") {
+        if (
+          existsSync(verificationGate) ||
+          all.some((item) => ["dispatched", "ready", "pending"].includes(item.status))
+        )
+          throw new Error("RUN_HAS_UNFINISHED_WORK");
+        rmSync(bindingFile);
+        return { detached: true, run: values.run };
+      }
+      throw new Error("UNKNOWN_COMMAND");
+    },
+    ["verify-enter", "verify-leave", "launch"].includes(command) ? "verification" : "operation",
+  );
 }
 try {
   console.log(JSON.stringify(main(), null, 2));

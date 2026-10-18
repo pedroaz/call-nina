@@ -1,0 +1,98 @@
+.panel,
+.list,
+.editor,
+.items,
+.secret,
+.offline,
+.confirm,
+.notice,
+.remove {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
+}
+.panel {
+  gap: var(--od-space-4);
+}
+.panel p,
+.panel h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.panel h4 {
+  margin: 0;
+}
+.list,
+.editor,
+.secret {
+  align-content: start;
+}
+.offline,
+.confirm,
+.notice {
+  align-content: start;
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-md);
+  padding: var(--od-space-4);
+}
+.item {
+  justify-content: flex-start;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  width: 100%;
+}
+.item[aria-current="true"] {
+  background: var(--od-color-state-selected-soft);
+  border-color: var(--od-color-state-selected);
+}
+.item:focus-visible,
+.items:focus-visible,
+.offline:focus-visible,
+.editor summary:focus-visible,
+.management summary:focus-visible {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: var(--od-space-1);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-3);
+}
+.remove {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-3);
+}
+.editor details {
+  min-width: 0;
+}
+.editor details[open],
+.management[open] {
+  display: grid;
+  gap: var(--od-space-3);
+}
+
+.editor {
+  gap: var(--od-space-4);
+}
+.editor > button,
+.remove > button {
+  justify-self: start;
+}
+.connectionDetails {
+  color: var(--od-color-text-muted);
+}
+.editor summary,
+.management summary {
+  cursor: pointer;
+  font-weight: var(--od-weight-medium);
+  padding-block: var(--od-space-2);
+}
+
+.management {
+  min-width: 0;
+}
+.list > button,
+.notice > button {
+  justify-self: start;
+}

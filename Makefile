@@ -164,7 +164,19 @@ uninstall-plugin: ## Uninstall only the scoped Call Nina Codex plugin.
 	@echo "+ pnpm run plugin:uninstall"
 	@pnpm run plugin:uninstall
 
-.PHONY: verify-recovery-inventory verify-recovery-resume verify-recovery-reconcile verify-recovery-do verify-start verify-resume verify-status verify-inspect verify-do verify-shot verify-stop verify-suspend verify-recovery-stop verify-recovery-advance verify-reconcile-disclosure verify-reconcile-plugin-refresh logs-once
+.PHONY: verify-recovery-inventory verify-recovery-resume verify-recovery-reconcile verify-recovery-do verify-start verify-resume verify-status verify-inspect verify-do verify-shot verify-stop verify-suspend verify-recovery-stop verify-recovery-advance verify-reconcile-disclosure verify-reconcile-plugin-refresh verify-reconcile-connection-draft logs-once
+.PHONY: verify-session-status verify-manual-recover verify-manual-quarantine verify-manual-enter verify-manual-leave
+verify-session-status: ## Read reservation, local cleanup and retained history independently of app status.
+	@node scripts/dev/verify.mjs manual-status
+verify-manual-recover: ## Release an explicitly selected, proven-stopped Manual reservation; retain all cleanup evidence.
+	@node scripts/dev/verify.mjs manual-recover $(ARGS)
+verify-manual-quarantine: ## Archive an explicitly fingerprinted unresolved journal without changing learner data.
+	@node scripts/dev/verify.mjs manual-quarantine $(ARGS)
+verify-manual-enter: ## Reserve desktop runtime inputs; pending compatible cleanup resumes under the new session.
+	@node scripts/dev/verify.mjs manual-enter
+verify-manual-leave: ## Release a proven-stopped Manual reservation while retaining any pending cleanup.
+	@node scripts/dev/verify.mjs manual-leave
+
 verify-start: ## Build once and launch an interactive real Electron verification session.
 	@node scripts/dev/verify.mjs start $(ARGS)
 verify-resume: ## Rebuild and reopen a stopped verification session while retaining its recovery journal.
@@ -195,6 +207,8 @@ verify-reconcile-disclosure: ## Coordinator: reconcile one source-bounded disclo
 	@node scripts/dev/verify.mjs reconcile-disclosure $(ARGS)
 verify-reconcile-plugin-refresh: ## Coordinator: reconcile an evidenced scoped plugin refresh after verified UI registration.
 	@node scripts/dev/verify.mjs reconcile-plugin-refresh $(ARGS)
+verify-reconcile-connection-draft: ## Coordinator: reconcile an evidenced unsaved connection route selection after exact stop.
+	@node scripts/dev/verify.mjs reconcile-connection-draft $(ARGS)
 verify-stop: ## Bounded graceful-first shutdown of exact-owned processes; retain incomplete UI recovery.
 	@node scripts/dev/verify.mjs stop
 logs-once: ## Read bounded redacted logs once with the same filters as make logs.
@@ -223,10 +237,6 @@ github: ## GitHub project, linked task publication, metadata and PR operations v
 .PHONY: pipeline-policy
 pipeline-policy: ## Show additive GitHub settings diff; ARGS="apply --plan-digest SHA" applies the reviewed plan.
 	@node scripts/agents/pipeline-policy.mjs $(ARGS)
-
-.PHONY: stage-codex-runtime
-stage-codex-runtime: ## Stage and integrity-check the pinned standalone Codex and notices for this host.
-	@node scripts/build/stage-codex-runtime.mjs
 
 .PHONY: managed-service-plan
 managed-service-plan: ## Build and print the disabled starter service plan; no remote actions or inference.

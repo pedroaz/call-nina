@@ -61,6 +61,12 @@ export function LearningPathPage({
   const [activityId, setActivityId] = useState<ActivityId>();
   const [vocabularyAdded, setVocabularyAdded] = useState<number>();
   const [busy, setBusy] = useState(false);
+  const [launchOrigin, setLaunchOrigin] = useState<string>();
+  const [changingSituation, setChangingSituation] = useState(false);
+  const [changedSituation, setChangedSituation] = useState<{
+    unitId: string;
+    previousMissionId: string | undefined;
+  }>();
   const pending = useRef(false);
   const [error, setError] = useState<CallNinaError>();
   const snapshot = learning.snapshot;
@@ -82,6 +88,7 @@ export function LearningPathPage({
     if (!snapshot || pending.current) return;
     pending.current = true;
     setBusy(true);
+    setChangingSituation(action === "new-mission");
     setError(undefined);
     try {
       await invokeDesktop("learning-path/update", {
@@ -89,6 +96,16 @@ export function LearningPathPage({
         reference: ref,
         action,
       });
+      if (action === "new-mission")
+        setChangedSituation({
+          unitId: ref.unitId,
+          previousMissionId: state?.missions.find(
+            (mission) =>
+              mission.version === ref.version &&
+              mission.unitId === ref.unitId &&
+              mission.mode === "course",
+          )?.id,
+        });
       setSelectedUnit(ref.unitId);
       await learning.refresh();
     } catch (cause) {
@@ -96,9 +113,10 @@ export function LearningPathPage({
     } finally {
       pending.current = false;
       setBusy(false);
+      setChangingSituation(false);
     }
   };
-  const launch = async (ref: CourseReference) => {
+  const launch = async (ref: CourseReference, origin: string) => {
     if (!snapshot || !course || !state || pending.current) return;
     const { activity } = resolveCourseReference(course, ref);
     if (activity.delivery === "explanation") {
@@ -121,6 +139,7 @@ export function LearningPathPage({
     }
     pending.current = true;
     setBusy(true);
+    setLaunchOrigin(origin);
     setError(undefined);
     try {
       if (ref.mode === "course")
@@ -154,8 +173,19 @@ export function LearningPathPage({
     } finally {
       pending.current = false;
       setBusy(false);
+      setLaunchOrigin(undefined);
     }
   };
+  const launchFeedback = (origin: string) =>
+    launchOrigin === origin ? (
+      <div className={styles.launchProgress}>
+        {generation.progress ? (
+          <OperationProgress progress={generation.progress} onCancel={generation.cancel} />
+        ) : (
+          <p role="status">{t("learningPath.preparing")}</p>
+        )}
+      </div>
+    ) : null;
   if (activityId)
     return (
       <div className={styles.page}>
@@ -206,14 +236,14 @@ export function LearningPathPage({
       (a) => sameCourseActivity(a.reference, ref) && (!mission || a.missionId === mission.id),
     );
     return (
-      <Card as="article" key={activity.id}>
+      <Card as="article" className={styles.card} key={activity.id}>
+        <h3>{activity.title[locale]}</h3>
         <Muted as="p">
           {t(`missions.purpose.${activity.purpose}`)} ·{" "}
           {t(
             `learningPath.steps.${activity.delivery === "explanation" ? "learn" : activity.delivery}`,
           )}
         </Muted>
-        <h3>{activity.title[locale]}</h3>
         <p>{activity.instructions[locale]}</p>
         <Muted as="p">{t(`learningPath.status.${status}`)}</Muted>
         {activity.delivery === "explanation" && (
@@ -230,7 +260,7 @@ export function LearningPathPage({
             </Disclosure>
           </>
         )}
-        <ActionGroup>
+        <ActionGroup className={styles.cardActions}>
           {activity.delivery === "explanation" ? (
             <Button
               isDisabled={busy || status === "completed"}
@@ -239,7 +269,11 @@ export function LearningPathPage({
               {t("learningPath.finishExplanation")}
             </Button>
           ) : (
-            <Button isDisabled={busy} onPress={() => void launch(ref)}>
+            <Button
+              isDisabled={busy}
+              isPending={launchOrigin === `activity:${activity.id}`}
+              onPress={() => void launch(ref, `activity:${activity.id}`)}
+            >
               {t(
                 attempts.some((a) => !a.completed)
                   ? "missions.resume"
@@ -263,6 +297,7 @@ export function LearningPathPage({
             )}
           </Button>
         </ActionGroup>
+        {launchFeedback(`activity:${activity.id}`)}
         {attempts.some((a) => a.evidence.length) && (
           <Disclosure label={t("learningPath.evidence")}>
             <ItemList>
@@ -297,12 +332,16 @@ export function LearningPathPage({
   const selectedMission = state?.missions.find(
     (m) => m.unitId === selected?.id && m.version === course?.version && m.mode === "course",
   );
+  const situationChanged =
+    selectedMission &&
+    changedSituation?.unitId === selected?.id &&
+    changedSituation.previousMissionId !== selectedMission.id;
   return (
     <Page title={t("learningPath.title")} refresh={{ onRefresh: learning.refresh, disabled: busy }}>
-      <p>{t("missions.intro")}</p>
       {displayedError && <OperationError error={displayedError} />}
-      <OperationProgress progress={generation.progress} onCancel={generation.cancel} />
-      {busy && !generation.busy && <Feedback live="polite">{t("learningPath.preparing")}</Feedback>}
+      {busy && !launchOrigin && !generation.busy && !changingSituation && (
+        <Feedback live="polite">{t("learningPath.preparing")}</Feedback>
+      )}
       {!snapshot && !learning.error && (
         <LoadingState live>{t("learningPath.loading")}</LoadingState>
       )}
@@ -319,23 +358,30 @@ export function LearningPathPage({
               children: (
                 <div className={styles.unit}>
                   {recommended && (
-                    <Card>
+                    <Card className={styles.card}>
                       <h2>{t(`missions.recommendation.${recommended.reason}`)}</h2>
                       <p>{describe(recommended.reference)}</p>
-                      <ActionGroup>
+                      <ActionGroup className={styles.cardActions}>
                         <Button
                           variant="primary"
                           isDisabled={busy}
-                          onPress={() => void launch(recommended.reference)}
+                          isPending={launchOrigin === "recommendation"}
+                          onPress={() => void launch(recommended.reference, "recommendation")}
                         >
                           {t("learningPath.continue")}
                         </Button>
                         {next && recommended.reason === "review" && (
-                          <Button isDisabled={busy} onPress={() => void launch(next)}>
+                          <Button
+                            isDisabled={busy}
+                            isPending={launchOrigin === "continue-course"}
+                            onPress={() => void launch(next, "continue-course")}
+                          >
                             {t("missions.continueCourse")}
                           </Button>
                         )}
                       </ActionGroup>
+                      {launchFeedback("recommendation")}
+                      {launchFeedback("continue-course")}
                     </Card>
                   )}
                   <ActionGroup>
@@ -355,7 +401,7 @@ export function LearningPathPage({
                       </Button>
                     ))}
                   </ActionGroup>
-                  <Disclosure label={t("missions.map")} defaultOpen>
+                  <Disclosure label={t("missions.map")}>
                     <div className={styles.outline}>
                       {course.units
                         .filter((u) => u.stage === state.selectedStage)
@@ -378,9 +424,15 @@ export function LearningPathPage({
                   </Disclosure>
                   {selected && (
                     <section className={styles.unit} aria-label={selected.title[locale]}>
-                      <Card>
+                      <Card className={styles.card} variant="muted">
+                        <p className={styles.eyebrow}>{t("missions.unitOverview")}</p>
                         <h2>{selected.title[locale]}</h2>
-                        <p>{selected.scenario[locale]}</p>
+                        <p>{t("missions.unitOverviewHint")}</p>
+                        <section className={styles.scenario}>
+                          <h3>{t("missions.sharedFacts")}</h3>
+                          <p>{selected.scenario[locale]}</p>
+                          {selectedMission && <p>{selectedMission.facts}</p>}
+                        </section>
                         <p>{t("learningPath.counts", counts(selected))}</p>
                         <ItemList>
                           {selected.objectives.map((o) => (
@@ -438,21 +490,29 @@ export function LearningPathPage({
                               ))}
                           </ItemList>
                         </Disclosure>
-                        {selectedMission && (
-                          <Disclosure label={t("missions.sharedFacts")}>
-                            <p>{selectedMission.facts}</p>
-                          </Disclosure>
+                        <ActionGroup className={styles.cardActions}>
+                          <Button
+                            variant="secondary"
+                            isPending={changingSituation}
+                            isDisabled={busy}
+                            onPress={() =>
+                              void mutate(
+                                reference(selected, selected.activities[0]),
+                                "new-mission",
+                              )
+                            }
+                          >
+                            {t("missions.newContext")}
+                          </Button>
+                        </ActionGroup>
+                        <p>{t("missions.newContextHint")}</p>
+                        {situationChanged && (
+                          <Feedback tone="success" live="polite">
+                            {t("missions.contextUpdated")}
+                          </Feedback>
                         )}
-                        <Button
-                          variant="quiet"
-                          isDisabled={busy}
-                          onPress={() =>
-                            void mutate(reference(selected, selected.activities[0]), "new-mission")
-                          }
-                        >
-                          {t("missions.newContext")}
-                        </Button>
                       </Card>
+                      <h2 className={styles.activitiesHeading}>{t("missions.unitActivities")}</h2>
                       {selected.activities.map((a) => activityCard(selected, a))}
                     </section>
                   )}
@@ -470,15 +530,30 @@ export function LearningPathPage({
                   ) : (
                     due.slice(0, 12).map((item) => (
                       <Card
+                        className={styles.card}
                         key={`${item.reference.unitId}-${item.objectiveId}-${item.reference.retrieval ?? item.reference.activityKey}`}
                       >
                         <h2>{describe(item.reference)}</h2>
                         <p>
                           {t(item.struggling ? "missions.focusedRetry" : "missions.delayedCheck")}
                         </p>
-                        <Button isDisabled={busy} onPress={() => void launch(item.reference)}>
-                          {t("missions.startReview")}
-                        </Button>
+                        <ActionGroup className={styles.cardActions}>
+                          <Button
+                            isDisabled={busy}
+                            isPending={
+                              launchOrigin === `review:${item.reference.unitId}:${item.objectiveId}`
+                            }
+                            onPress={() =>
+                              void launch(
+                                item.reference,
+                                `review:${item.reference.unitId}:${item.objectiveId}`,
+                              )
+                            }
+                          >
+                            {t("missions.startReview")}
+                          </Button>
+                        </ActionGroup>
+                        {launchFeedback(`review:${item.reference.unitId}:${item.objectiveId}`)}
                       </Card>
                     ))
                   )}
@@ -493,7 +568,7 @@ export function LearningPathPage({
                   <p>{t("missions.progressMeaning")}</p>
                   <ContentGrid>
                     {course.units.map((unit) => (
-                      <Card key={unit.id}>
+                      <Card className={styles.card} key={unit.id}>
                         <h2>{unit.title[locale]}</h2>
                         <p>{t("learningPath.counts", counts(unit))}</p>
                         <p>
@@ -561,6 +636,10 @@ export function LearningPathPage({
                                       <Button
                                         variant="quiet"
                                         isDisabled={busy}
+                                        isPending={
+                                          launchOrigin ===
+                                          `mode:${unit.id}:${p.target.id}:${mode.retrieval}`
+                                        }
                                         onPress={() => {
                                           const activity = unit.activities.find(
                                             (a) =>
@@ -568,16 +647,22 @@ export function LearningPathPage({
                                               a.targetIds.includes(p.target.id),
                                           );
                                           if (activity)
-                                            void launch({
-                                              ...reference(unit, activity, "review"),
-                                              retrieval: mode.retrieval,
-                                            });
+                                            void launch(
+                                              {
+                                                ...reference(unit, activity, "review"),
+                                                retrieval: mode.retrieval,
+                                              },
+                                              `mode:${unit.id}:${p.target.id}:${mode.retrieval}`,
+                                            );
                                         }}
                                       >
                                         {t("missions.practiseMode", {
                                           mode: t(`vocabulary.review.modes.${mode.retrieval}`),
                                         })}
                                       </Button>
+                                      {launchFeedback(
+                                        `mode:${unit.id}:${p.target.id}:${mode.retrieval}`,
+                                      )}
                                     </li>
                                   ))}
                                 </ItemList>
@@ -585,7 +670,7 @@ export function LearningPathPage({
                             ))}
                           </ItemList>
                         </Disclosure>
-                        <ActionGroup>
+                        <ActionGroup className={styles.cardActions}>
                           <Button
                             onPress={() => {
                               setSelectedUnit(unit.id);
@@ -627,18 +712,20 @@ export function LearningPathPage({
                   {course.units
                     .filter((u) => u.kind === "checkpoint")
                     .map((unit) => (
-                      <Card key={unit.id}>
+                      <Card className={styles.card} key={unit.id}>
                         <h2>{unit.title[locale]}</h2>
                         <p>{unit.scenario[locale]}</p>
-                        <Button
-                          isDisabled={busy}
-                          onPress={() => {
-                            setTab("course");
-                            void mutate(reference(unit, unit.activities[0]), "select");
-                          }}
-                        >
-                          {t("learningPath.openUnit")}
-                        </Button>
+                        <ActionGroup className={styles.cardActions}>
+                          <Button
+                            isDisabled={busy}
+                            onPress={() => {
+                              setTab("course");
+                              void mutate(reference(unit, unit.activities[0]), "select");
+                            }}
+                          >
+                            {t("learningPath.openUnit")}
+                          </Button>
+                        </ActionGroup>
                       </Card>
                     ))}
                 </div>

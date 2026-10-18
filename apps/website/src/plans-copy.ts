@@ -19,7 +19,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
     introduction:
       "Personal practice today, more ways to learn together in the future. Here’s how the planned tiers differ.",
     current:
-      "Call Nina is in development; public downloads are coming soon. The current desktop app connects to Codex. Direct connections using your own API key and Nina-managed AI access are not available yet.",
+      "Call Nina is in development; public downloads are coming soon. The development app includes Codex and direct API-key connections. Provider and platform verification is ongoing; Nina-managed access is not available yet.",
     caption: "Plan comparison — current development capabilities and planned access",
     scrollHint: "On small screens, scroll the table sideways to compare all four plans.",
     feature: "Capability or access",
@@ -37,7 +37,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
       {
         label: "Your own API key (BYOK)",
         values: [
-          "Planned · direct provider connections",
+          "Development build · provider access required",
           "Planned · retained alongside managed access",
           "Not part of this planned tier",
           "Not part of this planned tier",
@@ -84,12 +84,12 @@ export const planCopy: Record<Locale, PlanCopy> = {
       {
         question: "What can the current desktop app do?",
         answer:
-          "The development version offers German reading and writing practice, prepared activities and vocabulary review, with learning records stored locally. AI preparation and feedback use a connected Codex setup. The interface is available in English and German.",
+          "The development version offers German reading and writing practice, prepared activities and vocabulary review, with learning records stored locally. AI preparation and feedback use a connected Codex setup. The interface is available in English, German, Spanish and Brazilian Portuguese.",
       },
       {
         question: "What does BYOK mean, and can I use it today?",
         answer:
-          "BYOK means bring your own API key: you pay the AI provider directly for usage. Direct BYOK connections are planned for Free personal and Premium personal. Today’s implemented AI connection is Codex, with eligible provider access; BYOK is not an available alternative in the app yet.",
+          "BYOK means bring your own API key: you pay the AI provider directly for usage. The development app includes connections for OpenAI, Anthropic and Google API keys, alongside Codex subscription access. Availability depends on the provider account and selected model. These routes are still being verified before a public release.",
       },
       {
         question: "What changes with Premium, Teachers or Enterprise?",
@@ -99,7 +99,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
       {
         question: "Does local-first mean AI works offline?",
         answer:
-          "No. Learning records are stored on your device, but current AI features send relevant learning content through Codex and need provider access. Optional local desktop models, mobile offline practice and desktop-to-phone transfer are planned work, not available integrations.",
+          "No. Learning records and prepared practice stay on your device. Cloud AI sends relevant content to the provider you select. Downloaded-model settings are included in the development app, with device support still being verified. Mobile offline practice and desktop-to-phone transfer remain planned.",
       },
       {
         question: "Which license applies, and who can use Call Nina for free?",
@@ -118,7 +118,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
     introduction:
       "Heute persönlich üben, künftig auch gemeinsam lernen. So unterscheiden sich die geplanten Angebote.",
     current:
-      "Call Nina ist in Entwicklung; öffentliche Downloads folgen noch. Die aktuelle Desktop-App verbindet sich mit Codex. Direkte Verbindungen mit deinem eigenen API-Schlüssel und von Nina bereitgestellter KI-Zugang sind noch nicht verfügbar.",
+      "Call Nina ist in Entwicklung; öffentliche Downloads folgen noch. Die Entwicklungsversion enthält Codex und direkte API-Schlüssel-Verbindungen. Anbieter- und Plattformprüfungen laufen noch; KI-Zugang über Nina ist noch nicht verfügbar.",
     caption: "Angebote im Vergleich — aktueller Entwicklungsstand und geplanter Zugang",
     scrollHint:
       "Auf kleinen Bildschirmen kannst du die Tabelle seitlich scrollen, um alle vier Angebote zu vergleichen.",
@@ -142,7 +142,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
       {
         label: "Eigener API-Schlüssel (BYOK)",
         values: [
-          "Geplant · direkte Verbindung zum Anbieter",
+          "Entwicklungsversion · Anbieterzugang erforderlich",
           "Geplant · zusätzlich zum Zugang über Nina",
           "Nicht Teil dieses geplanten Angebots",
           "Nicht Teil dieses geplanten Angebots",
@@ -189,12 +189,12 @@ export const planCopy: Record<Locale, PlanCopy> = {
       {
         question: "Was kann die aktuelle Desktop-App?",
         answer:
-          "Die Entwicklungsversion bietet Lese- und Schreibübungen auf Deutsch, vorbereitete Aufgaben und Wortschatzwiederholungen. Lerndaten werden lokal gespeichert. KI-gestützte Vorbereitung und Feedback nutzen eine eingerichtete Codex-Verbindung. Die Oberfläche gibt es auf Englisch und Deutsch.",
+          "Die Entwicklungsversion bietet Lese- und Schreibübungen auf Deutsch, vorbereitete Aufgaben und Wortschatzwiederholungen. Lerndaten werden lokal gespeichert. KI-gestützte Vorbereitung und Feedback nutzen eine eingerichtete Codex-Verbindung. Die Oberfläche gibt es auf Englisch, Deutsch, Spanisch und brasilianischem Portugiesisch.",
       },
       {
         question: "Was bedeutet BYOK, und kann ich es schon nutzen?",
         answer:
-          "BYOK bedeutet, dass du deinen eigenen API-Schlüssel mitbringst und die Nutzung direkt beim KI-Anbieter bezahlst. Direkte BYOK-Verbindungen sind für das kostenlose Angebot und Premium für Privatpersonen geplant. Der aktuell umgesetzte KI-Zugang läuft über Codex und erfordert einen berechtigten Anbieterzugang. BYOK ist in der App noch keine verfügbare Alternative.",
+          "BYOK bedeutet, dass du deinen eigenen API-Schlüssel mitbringst und die Nutzung direkt beim KI-Anbieter bezahlst. Die Entwicklungsversion enthält Verbindungen für API-Schlüssel von OpenAI, Anthropic und Google sowie Codex-Abonnementzugang. Die Verfügbarkeit hängt vom Anbieterkonto und gewählten Modell ab. Diese Verbindungen werden vor einer öffentlichen Veröffentlichung noch geprüft.",
       },
       {
         question: "Was ändert sich mit Premium, dem Angebot für Lehrkräfte oder Enterprise?",
@@ -204,7 +204,7 @@ export const planCopy: Record<Locale, PlanCopy> = {
       {
         question: "Bedeutet lokale Speicherung, dass die KI offline funktioniert?",
         answer:
-          "Nein. Lerndaten liegen auf deinem Gerät, aber aktuelle KI-Funktionen übermitteln relevante Lerninhalte über Codex und benötigen einen Anbieterzugang. Optionale lokale Desktop-Modelle, mobile Offline-Übungen und die Übertragung vom Desktop aufs Handy sind geplant und noch keine verfügbaren Integrationen.",
+          "Nein. Lerndaten und vorbereitete Übungen bleiben auf deinem Gerät. Cloud-KI übermittelt relevante Inhalte an den gewählten Anbieter. Einstellungen für heruntergeladene Modelle sind in der Entwicklungsversion enthalten; die Geräteunterstützung wird noch geprüft. Mobile Offline-Übungen und die Übertragung aufs Handy bleiben geplant.",
       },
       {
         question: "Welche Lizenz gilt, und wer kann Call Nina kostenlos nutzen?",

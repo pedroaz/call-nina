@@ -7,8 +7,9 @@ import {
   type PracticeSuggestion,
 } from "@call-nina/contracts";
 import { invokeDesktop } from "./ipc.js";
-import { Button, Muted } from "./components/ui/index.js";
+import { Button, Card, Muted } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
+import styles from "./CompletionActions.module.css";
 
 /** Read-only follow-up to the shared player's committed completion. */
 export function CompletionActions({
@@ -46,7 +47,7 @@ export function CompletionActions({
     };
   }, [locale, rootGeneration, targetLanguage]);
   return (
-    <div>
+    <Card className={styles.summary}>
       <h3 ref={heading} tabIndex={-1}>
         {t("completion.next")}
       </h3>
@@ -54,16 +55,16 @@ export function CompletionActions({
         {t(evidence === "answers" ? "completion.evidence" : "completion.selfAssessment")}
       </Muted>
       {suggestion ? (
-        <>
+        <div className={styles.suggestion}>
           <p>
             <strong>{suggestion.title}</strong>
           </p>
           <p>{suggestion.rationale}</p>
-        </>
+        </div>
       ) : (
         <p>{t("completion.nextHint")}</p>
       )}
-      <ActionGroup>
+      <ActionGroup className={styles.actions}>
         <Button onPress={onNina}>{t("completion.nina")}</Button>
         <Button variant="secondary" onPress={onHistory}>
           {t("nav.history")}
@@ -72,6 +73,6 @@ export function CompletionActions({
           {t("completion.return", { origin: parentLabel })}
         </Button>
       </ActionGroup>
-    </div>
+    </Card>
   );
 }

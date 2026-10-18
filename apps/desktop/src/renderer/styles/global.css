@@ -34,11 +34,6 @@ textarea {
   transition-property: background-color, border-color, box-shadow, color, opacity;
 }
 
-:focus-visible {
-  box-shadow: var(--od-focus-ring);
-  outline: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -52,7 +47,8 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--od-font-family-display);
+  font-family: var(--od-font-family-body);
+  font-weight: var(--od-weight-strong);
   line-height: var(--od-line-tight);
   overflow-wrap: anywhere;
 }
@@ -84,6 +80,11 @@ textarea {
 :focus-visible {
   outline: var(--od-border-outlined) solid var(--od-color-focus);
   outline-offset: var(--od-space-2);
+}
+
+/* Headings receive programmatic focus for reading order, not as controls. */
+:is(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus {
+  outline: none;
 }
 
 [hidden] {

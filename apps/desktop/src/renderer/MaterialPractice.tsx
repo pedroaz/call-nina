@@ -263,7 +263,7 @@ export function MaterialPractice({
                   })}
                 </Muted>
                 {snapshot.materials.length === 0 && <Muted>{t("materialPractice.empty")}</Muted>}
-                <ItemList>
+                <ItemList className={styles.sourceList}>
                   {snapshot.materials.map((material) => (
                     <li key={material.materialId}>
                       <Button

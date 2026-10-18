@@ -17,6 +17,7 @@
   display: grid;
   gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
 }
 
 .detailList {
@@ -59,6 +60,8 @@
 
 .settingsActions {
   bottom: var(--od-space-4);
+  margin-top: var(--od-space-4);
+  box-shadow: var(--od-shadow-card);
   display: flex;
   flex-wrap: wrap;
   gap: var(--od-space-4);
@@ -85,4 +88,53 @@
   .modelRow {
     grid-template-columns: 1fr;
   }
+}
+
+.coursePreference {
+  grid-column: 1 / -1;
+  padding-top: var(--od-space-3);
+}
+
+.aiSetup,
+.accountAccess {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.aiSetup section {
+  min-width: 0;
+}
+.accountAccess p {
+  margin: 0;
+}
+.connectionStatus {
+  font-weight: var(--od-weight-strong);
+}
+.accountOptions,
+.optionalIntegration {
+  min-width: 0;
+}
+.accountOptions[open],
+.optionalIntegration[open] {
+  display: grid;
+  gap: var(--od-space-4);
+}
+.accountOptions summary,
+.optionalIntegration summary {
+  cursor: pointer;
+  font-weight: var(--od-weight-medium);
+  padding-block: var(--od-space-2);
+  overflow-wrap: anywhere;
+}
+.accountOptions summary:focus-visible,
+.optionalIntegration summary:focus-visible {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: var(--od-space-1);
+}
+.optionalIntegration {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-4);
+}
+.optionalIntegration p {
+  margin: 0;
 }

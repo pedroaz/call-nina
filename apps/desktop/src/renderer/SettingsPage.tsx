@@ -1,4 +1,4 @@
-import { SidebarModelControl } from "./SidebarModelControl.js";
+import { ConnectionSettings } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   languageDefinitions,
@@ -17,6 +17,7 @@ import {
   CheckboxField,
   Feedback,
   FieldGroup,
+  SelectField,
   LoadingState,
   ItemList,
   Muted,
@@ -41,12 +42,16 @@ type Integration = Extract<
 >["result"];
 type Account = Extract<
   DesktopIpcResponse,
-  { status: "ok"; channel: "codex/account/read" }
+  { status: "ok"; channel: "chatgpt/account/read" }
 >["result"];
-type Limits = Extract<
+type Accounts = Extract<
   DesktopIpcResponse,
-  { status: "ok"; channel: "codex/rate-limits/read" }
+  { status: "ok"; channel: "chatgpt/accounts/read" }
 >["result"];
+type LoginId = Extract<
+  DesktopIpcResponse,
+  { status: "ok"; channel: "chatgpt/account/login/start" }
+>["result"]["loginId"];
 type DataRootSelection = Extract<
   Extract<DesktopIpcResponse, { status: "ok"; channel: "data-root/choose" }>["result"],
   { status: "selected" }
@@ -104,11 +109,14 @@ export function SettingsPage({
 }) {
   const { t } = useTranslation();
   const [account, setAccount] = useState<Account>();
-  const [limits, setLimits] = useState<Limits>();
+  const [loginId, setLoginId] = useState<LoginId>();
+  const [accounts, setAccounts] = useState<Accounts>();
+  const [selectedRegistration, setSelectedRegistration] = useState<string>();
   const [persisted, setPersisted] = useState<DesktopSettingsResult>();
   const [draft, setDraft] = useState<DesktopSettingsValue>();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [connectionPending, setConnectionPending] = useState(false);
   const [error, setError] = useState<CallNinaError>();
   const [notice, setNotice] = useState<string>();
   const [integrationFailure, setIntegrationFailure] = useState<string>();
@@ -132,21 +140,17 @@ export function SettingsPage({
   }, []);
 
   const refreshRuntime = useCallback(async () => {
-    const [accountResult, limitsResult] = await Promise.allSettled([
-      invokeDesktop("codex/account/read", {}),
-      invokeDesktop("codex/rate-limits/read", {}),
+    const [accountResult, accountsResult] = await Promise.allSettled([
+      invokeDesktop("chatgpt/account/read", {}),
+      invokeDesktop("chatgpt/accounts/read", {}),
     ]);
     setAccount(
       accountResult.status === "fulfilled"
         ? accountResult.value
         : { status: "unavailable", reason: "runtime-not-ready" },
     );
-    setLimits(
-      limitsResult.status === "fulfilled"
-        ? limitsResult.value
-        : { status: "unavailable", reason: "runtime-not-ready" },
-    );
-    const failure = [accountResult, limitsResult].find((result) => result.status === "rejected");
+    setAccounts(accountsResult.status === "fulfilled" ? accountsResult.value : undefined);
+    const failure = [accountResult, accountsResult].find((result) => result.status === "rejected");
     if (failure?.status === "rejected") setError(normalizeDesktopError(failure.reason).detail);
   }, []);
 
@@ -176,6 +180,10 @@ export function SettingsPage({
         event.event === "account-login" &&
         ["complete", "cancelled", "failed"].includes(event.state.status)
       ) {
+        setLoginId(undefined);
+        setNotice(undefined);
+        if (event.state.status === "failed") setError(event.state.error);
+        if (event.state.status === "complete") setSelectedRegistration(undefined);
         void refreshRuntime();
       } else if (
         event.event === "state-invalidated" &&
@@ -245,10 +253,47 @@ export function SettingsPage({
   };
 
   const login = async () => {
+    if (busy || loginId) return;
     setBusy(true);
+    setError(undefined);
     try {
-      await invokeDesktop("codex/account/login/start", { method: "browser" });
+      const result = await invokeDesktop("chatgpt/account/login/start", {
+        registrationId: (selectedRegistration ?? accounts?.selectedId) || null,
+      });
+      setLoginId(result.loginId);
       setNotice(t("settings.loginStarted"));
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const logout = async () => {
+    if (busy || loginId) return;
+    setBusy(true);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      setAccount(await invokeDesktop("chatgpt/account/logout", {}));
+      void refreshRuntime();
+      setNotice(t("settings.loggedOut"));
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+      void refreshRuntime();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancelLogin = async () => {
+    if (busy || !loginId) return;
+    setBusy(true);
+    setError(undefined);
+    try {
+      await invokeDesktop("chatgpt/account/login/cancel", { loginId });
+      setLoginId(undefined);
+      void refreshRuntime();
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -360,24 +405,34 @@ export function SettingsPage({
       className={styles.settingsPage}
       data-settings-root={persisted?.dataRoot.generation}
       data-settings-language={persisted?.settings.learningScope.targetLanguage}
-      data-settings-ready={Boolean(persisted) && !loading && !busy && !dirty}
+      data-settings-ready={Boolean(persisted) && !loading && !busy && !dirty && !connectionPending}
 
+      actions={
+        <ActionGroup>
+          <Button
+            variant="secondary"
+            isDisabled={loading || busy || dirty || connectionPending || Boolean(loginId)}
+            onPress={onRunSetup}
+          >
+            {t("onboarding.runAgain")}
+          </Button>
+          <Button
+            variant="secondary"
+            isDisabled={loading || busy || dirty || connectionPending || Boolean(loginId)}
+            onPress={onOpenPersonalData}
+          >
+            {t("nav.personalData")}
+          </Button>
+          {(dirty || connectionPending) && <span>{t("onboarding.saveSettingsFirst")}</span>}
+        </ActionGroup>
+      }
       title={t("settings.title")}
-      refresh={{ onRefresh: load, busy: loading || busy, disabled: dirty }}
+      refresh={{
+        onRefresh: load,
+        busy: loading || busy,
+        disabled: dirty || connectionPending || Boolean(loginId),
+      }}
     >
-      <ActionGroup>
-        <Button isDisabled={loading || busy || dirty} onPress={onRunSetup}>
-          {t("onboarding.runAgain")}
-        </Button>
-        <Button
-          variant="secondary"
-          isDisabled={loading || busy || dirty}
-          onPress={onOpenPersonalData}
-        >
-          {t("nav.personalData")}
-        </Button>
-        {dirty && <span>{t("onboarding.saveSettingsFirst")}</span>}
-      </ActionGroup>
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
       {error && <SettingsError error={error} />}
       {integrationFailure && (
@@ -413,27 +468,6 @@ export function SettingsPage({
                         disabled={busy}
                         onChange={(language) => void selectTarget(language)}
                       />
-                      {draft.learningScope.targetLanguage === "de" ? (
-                        <CheckboxField
-                          checked={
-                            draft.learningScope.courseId ===
-                            languageDefinitions.de.structuredCourseId
-                          }
-                          disabled={busy}
-                          onChange={(event) => {
-                            setProfile("learningScope", {
-                              ...draft.learningScope,
-                              courseId: event.currentTarget.checked
-                                ? languageDefinitions.de.structuredCourseId
-                                : null,
-                            });
-                          }}
-                        >
-                          {t("onboarding.enrollCourse")}
-                        </CheckboxField>
-                      ) : (
-                        <p>{t("onboarding.pathUnavailable")}</p>
-                      )}
                       <FieldGroup>
                         <span>{t("onboarding.level")}</span>
                         <select
@@ -502,7 +536,29 @@ export function SettingsPage({
                             setProfile("uiLocale", language);
                           }}
                         />
-                        <small>{t("settings.localeSeparate")}</small>
+                      </div>
+                      <div className={styles.coursePreference}>
+                        {draft.learningScope.targetLanguage === "de" ? (
+                          <CheckboxField
+                            checked={
+                              draft.learningScope.courseId ===
+                              languageDefinitions.de.structuredCourseId
+                            }
+                            disabled={busy}
+                            onChange={(event) => {
+                              setProfile("learningScope", {
+                                ...draft.learningScope,
+                                courseId: event.currentTarget.checked
+                                  ? languageDefinitions.de.structuredCourseId
+                                  : null,
+                              });
+                            }}
+                          >
+                            {t("onboarding.enrollCourse")}
+                          </CheckboxField>
+                        ) : (
+                          <p>{t("onboarding.pathUnavailable")}</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -511,46 +567,122 @@ export function SettingsPage({
             ),
           },
           {
-            id: "models",
-            label: t("settings.tabs.models"),
+            id: "ai",
+            label: t("settings.tabs.ai"),
             children: (
-              <>
-                <Card as="section" aria-labelledby="settings-models-title">
-                  <h2 id="settings-models-title">{t("settings.modelsTitle")}</h2>
-                  <SidebarModelControl />
-                </Card>
-              </>
-            ),
-          },
-          {
-            id: "account",
-            label: t("settings.tabs.account"),
-            children: (
-              <>
-                <Card as="section" aria-labelledby="settings-account-title">
-                  <h2 id="settings-account-title">{t("settings.accountTitle")}</h2>
-                  <p>{t("providerAccess.identityBoundary")}</p>
-                  <p>{t("providerAccess.localAvailable")}</p>
-                  <p>
-                    {account ? t(`settings.account.${account.status}`) : t("settings.notReported")}
-                  </p>
-                  {account?.status === "signed-in" && account.planType && (
-                    <p>{t("settings.plan", { plan: account.planType })}</p>
-                  )}
-                  <ActionGroup>
-                    {account?.status === "signed-in" ? (
-                      <p>{t("connections.officialAuth")}</p>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        isDisabled={busy || integration?.status !== "available"}
-                        onPress={() => void login()}
-                      >
-                        <UserRound aria-hidden="true" />
-                        {t("settings.login")}
-                      </Button>
-                    )}
-                  </ActionGroup>
+              <div className={styles.aiSetup}>
+                <section aria-labelledby="settings-ai-title">
+                  <h2 id="settings-ai-title">{t("settings.aiTitle")}</h2>
+                  <ConnectionSettings
+                    active={selectedTab === "ai"}
+                    disabled={busy || Boolean(loginId)}
+                    onPendingChange={setConnectionPending}
+                    chatgptAccess={({ active, saved, dirty: connectionDirty }) => {
+                      const blocked = busy || Boolean(loginId) || connectionDirty;
+                      if (!active)
+                        return (
+                          <p>
+                            {t(saved ? "settings.activateBeforeLogin" : "settings.saveBeforeLogin")}
+                          </p>
+                        );
+                      return (
+                        <div className={styles.accountAccess}>
+                          <p role="status" className={styles.connectionStatus}>
+                            {account
+                              ? t(`settings.account.${account.status}`)
+                              : t("settings.notReported")}
+                          </p>
+                          <p>{t("connectionSettings.cost.chatgpt")}</p>
+                          {account?.status !== "signed-in" && (
+                            <ActionGroup>
+                              <Button
+                                variant="primary"
+                                isDisabled={blocked || !account || account.status === "unavailable"}
+                                onPress={() => void login()}
+                              >
+                                <UserRound aria-hidden="true" />
+                                {t("settings.login")}
+                              </Button>
+                            </ActionGroup>
+                          )}
+                          {loginId && (
+                            <ActionGroup>
+                              <span role="status">{t("onboarding.login.waiting")}</span>
+                              <Button isDisabled={busy} onPress={() => void cancelLogin()}>
+                                {t("onboarding.cancelLogin")}
+                              </Button>
+                            </ActionGroup>
+                          )}
+                          {account?.status === "unavailable" && (
+                            <p>{t("connectionSettings.chatgptLoginUnavailable")}</p>
+                          )}
+                          {accounts?.remoteRevocationPending && (
+                            <Feedback tone="warning" live="polite">
+                              {t("settings.chatgptRevocationPending")}
+                            </Feedback>
+                          )}
+                          <ActionGroup>
+                            <Button
+                              variant="quiet"
+                              onPress={() =>
+                                void invokeDesktop("chatgpt/usage/open", {}).catch(
+                                  (cause: unknown) => {
+                                    setError(normalizeDesktopError(cause).detail);
+                                  },
+                                )
+                              }
+                            >
+                              {t("settings.chatgptUsageLink")}
+                            </Button>
+                          </ActionGroup>
+                          <details className={styles.accountOptions}>
+                            <summary>{t("settings.accountOptions")}</summary>
+                            {account?.status === "signed-in" && account.planType && (
+                              <p>{t("settings.plan", { plan: account.planType })}</p>
+                            )}
+                            <SelectField
+                              label={t("settings.chatgptAccount")}
+                              disabled={blocked}
+                              value={selectedRegistration ?? accounts?.selectedId ?? ""}
+                              onChange={(event) => {
+                                setSelectedRegistration(event.currentTarget.value);
+                              }}
+                            >
+                              <option value="">{t("settings.chatgptNewAccount")}</option>
+                              {accounts?.registrations.map((entry) => (
+                                <option key={entry.id} value={entry.id}>
+                                  {entry.label}
+                                </option>
+                              ))}
+                            </SelectField>
+                            <ActionGroup>
+                              <Button
+                                isDisabled={blocked || !account || account.status === "unavailable"}
+                                onPress={() => void login()}
+                              >
+                                {t("settings.login")}
+                              </Button>
+                              {account?.status === "signed-in" && (
+                                <Button
+                                  variant="quiet"
+                                  isDisabled={blocked}
+                                  onPress={() => void logout()}
+                                >
+                                  {t("settings.logout")}
+                                </Button>
+                              )}
+                            </ActionGroup>
+                            <p>{t("settings.sessionPrivacy")}</p>
+                          </details>
+                          {connectionDirty && <p>{t("settings.saveBeforeAccount")}</p>}
+                        </div>
+                      );
+                    }}
+                  />
+                </section>
+                <details className={styles.optionalIntegration}>
+                  <summary>{t("settings.externalIntegrationTitle")}</summary>
+                  <p>{t("settings.externalIntegrationHelp")}</p>
                   <p>
                     {integration === undefined
                       ? t("settings.notReported")
@@ -591,25 +723,8 @@ export function SettingsPage({
                       </ActionGroup>
                     </>
                   )}
-                </Card>
-                <Card as="section" aria-labelledby="settings-limits-title">
-                  <h2 id="settings-limits-title">{t("settings.limitsTitle")}</h2>
-                  {limits && (limits.status === "available" || limits.status === "limited") ? (
-                    <ItemList>
-                      {limits.buckets.map((bucket) => (
-                        <li key={bucket.limitId}>
-                          <strong>{bucket.limitId}</strong>
-                          {bucket.primary?.usedPercent == null
-                            ? ""
-                            : ` · ${String(bucket.primary.usedPercent)}%`}
-                        </li>
-                      ))}
-                    </ItemList>
-                  ) : (
-                    <Muted as="p">{t("settings.notReported")}</Muted>
-                  )}
-                </Card>
-              </>
+                </details>
+              </div>
             ),
           },
           {
@@ -717,10 +832,14 @@ export function SettingsPage({
                     <Button isDisabled={busy} onPress={() => void readDiagnostics()}>
                       {t("settings.runDiagnostics")}
                     </Button>
-                    <Button isDisabled={busy} onPress={() => void exportDiagnostics()}>
+                    <Button
+                      variant="secondary"
+                      isDisabled={busy}
+                      onPress={() => void exportDiagnostics()}
+                    >
                       {t("settings.exportDiagnostics")}
                     </Button>
-                    <Button isDisabled={busy} onPress={() => void clearLogs()}>
+                    <Button variant="secondary" isDisabled={busy} onPress={() => void clearLogs()}>
                       {t("settings.clearLogs")}
                     </Button>
                   </ActionGroup>
@@ -731,9 +850,10 @@ export function SettingsPage({
         ]}
       />
 
-      {draft && (selectedTab === "profile" || selectedTab === "models" || dirty) && (
+      {draft && (selectedTab === "profile" || dirty) && (
         <div className={styles.settingsActions}>
           <Button
+            variant="secondary"
             isDisabled={busy || !persisted || !dirty}
             onPress={() => {
               if (persisted) setDraft(persisted.settings);

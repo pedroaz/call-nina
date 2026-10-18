@@ -4,14 +4,9 @@
   gap: var(--od-space-5);
   align-items: end;
 }
-.sort,
 .editForm {
   display: grid;
   gap: var(--od-space-4);
-}
-.sort select {
-  width: 100%;
-  min-width: 0;
 }
 .tableRegion {
   border: var(--od-border-thin) solid var(--od-color-border-default);
@@ -105,4 +100,22 @@
   .toolbar {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+.welcome {
+  display: grid;
+  gap: var(--od-space-5);
+  padding: var(--od-space-6);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-lg);
+  background: var(--od-color-surface-card);
+}
+.welcome h2,
+.welcome p {
+  margin: 0;
+}
+.steps {
+  display: grid;
+  gap: var(--od-space-4);
+  margin: 0;
+  padding-inline-start: var(--od-space-6);
 }

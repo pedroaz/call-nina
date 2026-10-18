@@ -8,6 +8,7 @@ import {
   type NinaRequest,
   type MaterialReference,
 } from "@call-nina/contracts";
+import { BookOpen, MessageCircle, PencilLine, ArrowRight, ListChecks } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -249,101 +250,144 @@ export function NinaHome({
     (item) => item.revisionId === draft.material?.revisionId,
   );
   return (
-    <Page title={t("ninaHome.title")} refresh={{ onRefresh: refresh, busy: refreshing }}>
+    <Page
+      className={styles.home}
+      title={t("ninaHome.heading")}
+      refresh={{ onRefresh: refresh, busy: refreshing }}
+    >
       {error && <OperationError error={error} />}
       {launch.error && <OperationError error={launch.error} />}
-      <Card as="section" className={styles.request}>
-        <h2>{t("ninaHome.heading")}</h2>
-        <p>{t("ninaHome.intro")}</p>
-        <TextAreaField
-          label={t("ninaHome.request")}
-          placeholder={t("ninaHome.placeholder")}
-          value={draft.naturalRequest}
-          maxLength={1800}
-          rows={3}
-          disabled={disabled}
-          onChange={(event) => {
-            edit({ naturalRequest: event.target.value });
-          }}
-        />
-        <ActionGroup>
-          {(["reading", "grammar", "writing"] as const).map((kind) => (
-            <Button
-              key={kind}
-              variant="quiet"
-              isDisabled={disabled}
-              onPress={() => {
-                edit({ naturalRequest: t(`ninaHome.examples.${kind}`) });
-              }}
-            >
-              {t(`ninaHome.examples.${kind}`)}
+      {snapshot?.resume && (
+        <Card as="section" className={styles.resume}>
+          <h2>{t("ninaHome.continue")}</h2>
+          <p>{snapshot.resume.title}</p>
+          <ActionGroup>
+            <Button variant="secondary" isDisabled={disabled} onPress={() => void resume()}>
+              {t("ninaHome.continue")}
             </Button>
-          ))}
-        </ActionGroup>
-        <div className={styles.options}>
-          <SelectField
-            label={t("ninaHome.time")}
-            description={t("ninaHome.timeHint")}
-            value={draft.minutes}
+          </ActionGroup>
+        </Card>
+      )}
+      <Card as="section" className={styles.request}>
+        <div className={styles.composer}>
+          <TextAreaField
+            label={t("ninaHome.request")}
+            placeholder={t("ninaHome.placeholder")}
+            value={draft.naturalRequest}
+            maxLength={1800}
+            rows={1}
             disabled={disabled}
             onChange={(event) => {
-              edit({ minutes: event.target.value });
+              edit({ naturalRequest: event.target.value });
             }}
-          >
-            <option value="">{t("ninaHome.noTime")}</option>
-            {[5, 10, 15, 20, 30, 60].map((count) => (
-              <option key={count} value={count}>
-                {t("ninaHome.minutes", { count })}
-              </option>
-            ))}
-          </SelectField>
-          <Disclosure label={t("ninaHome.material")}>
-            <SelectField
-              label={t("ninaHome.materialLabel")}
-              description={t("ninaHome.materialHint")}
-              value={draft.material?.revisionId ?? ""}
-              disabled={disabled}
-              onChange={(event) => {
-                const material = materials?.materials.find(
-                  (item) => item.revisionId === event.target.value,
-                );
-                edit({
-                  material: material
-                    ? { materialId: material.materialId, revisionId: material.revisionId }
-                    : undefined,
-                  materialTitle: material?.title,
+          />
+          <ActionGroup>
+            <Button
+              variant="primary"
+              trailingIcon={<ArrowRight aria-hidden="true" />}
+              isDisabled={disabled || !snapshot || !draft.naturalRequest.trim()}
+              onPress={() => void plan()}
+            >
+              {t("ninaHome.plan")}
+            </Button>
+          </ActionGroup>
+        </div>
+        <div className={styles.requestTools}>
+          <ActionGroup className={styles.ideas}>
+            <Button
+              variant="secondary"
+              leadingIcon={<ListChecks aria-hidden="true" />}
+              isDisabled={disabled}
+              onPress={() => {
+                actions.onLaunch({
+                  destination: "preparation",
+                  kind: "custom",
+                  prompt: draft.naturalRequest,
                 });
               }}
             >
-              <option value="">{t("ninaHome.noMaterial")}</option>
-              {draft.material && !selectedMaterialListed && (
-                <option value={draft.material.revisionId}>
-                  {draft.materialTitle ?? t("ninaHome.savedRevision")}
-                </option>
-              )}
-              {materials?.materials.map((material) => (
-                <option key={material.revisionId} value={material.revisionId}>
-                  {material.title}
-                </option>
-              ))}
-            </SelectField>
-            {materials?.nextCursor && (
-              <Button isDisabled={disabled} onPress={() => void moreMaterials()}>
-                {t("ninaHome.moreMaterials")}
+              {t("ninaHome.shortcuts.quiz")}
+            </Button>
+            {(["reading", "grammar", "writing"] as const).map((kind) => (
+              <Button
+                key={kind}
+                variant="secondary"
+                leadingIcon={
+                  kind === "reading" ? (
+                    <BookOpen aria-hidden="true" />
+                  ) : kind === "grammar" ? (
+                    <MessageCircle aria-hidden="true" />
+                  ) : (
+                    <PencilLine aria-hidden="true" />
+                  )
+                }
+                isDisabled={disabled}
+                onPress={() => {
+                  edit({ naturalRequest: t(`ninaHome.examples.${kind}`) });
+                }}
+              >
+                {t(`ninaHome.shortcuts.${kind}`)}
               </Button>
-            )}
-            {!materials?.materials.length && <p>{t("ninaHome.emptyMaterials")}</p>}
+            ))}
+          </ActionGroup>
+          <Disclosure label={t("ninaHome.options")}>
+            <div className={styles.options}>
+              <SelectField
+                label={t("ninaHome.time")}
+                description={t("ninaHome.timeHint")}
+                value={draft.minutes}
+                disabled={disabled}
+                onChange={(event) => {
+                  edit({ minutes: event.target.value });
+                }}
+              >
+                <option value="">{t("ninaHome.noTime")}</option>
+                {[5, 10, 15, 20, 30, 60].map((count) => (
+                  <option key={count} value={count}>
+                    {t("ninaHome.minutes", { count })}
+                  </option>
+                ))}
+              </SelectField>
+              <div>
+                <SelectField
+                  label={t("ninaHome.materialLabel")}
+                  description={t("ninaHome.materialHint")}
+                  value={draft.material?.revisionId ?? ""}
+                  disabled={disabled}
+                  onChange={(event) => {
+                    const material = materials?.materials.find(
+                      (item) => item.revisionId === event.target.value,
+                    );
+                    edit({
+                      material: material
+                        ? { materialId: material.materialId, revisionId: material.revisionId }
+                        : undefined,
+                      materialTitle: material?.title,
+                    });
+                  }}
+                >
+                  <option value="">{t("ninaHome.noMaterial")}</option>
+                  {draft.material && !selectedMaterialListed && (
+                    <option value={draft.material.revisionId}>
+                      {draft.materialTitle ?? t("ninaHome.savedRevision")}
+                    </option>
+                  )}
+                  {materials?.materials.map((material) => (
+                    <option key={material.revisionId} value={material.revisionId}>
+                      {material.title}
+                    </option>
+                  ))}
+                </SelectField>
+                {materials?.nextCursor && (
+                  <Button isDisabled={disabled} onPress={() => void moreMaterials()}>
+                    {t("ninaHome.moreMaterials")}
+                  </Button>
+                )}
+                {!materials?.materials.length && <p>{t("ninaHome.emptyMaterials")}</p>}
+              </div>
+            </div>
           </Disclosure>
         </div>
-        <ActionGroup>
-          <Button
-            variant="primary"
-            isDisabled={disabled || !snapshot || !draft.naturalRequest.trim()}
-            onPress={() => void plan()}
-          >
-            {t("ninaHome.plan")}
-          </Button>
-        </ActionGroup>
       </Card>
       {draft.plan?.status === "clarification" && (
         <Card as="section" className={styles.summary}>
@@ -405,26 +449,12 @@ export function NinaHome({
         </Card>
       )}
       {!snapshot && !error && <LoadingState live>{t("dashboard.refreshing")}</LoadingState>}
-      {snapshot && (
-        <Card as="section" className={styles.summary}>
-          <h2>{t("ninaHome.continue")}</h2>
-          <p>{snapshot.resume?.title ?? t("ninaHome.noResume")}</p>
-          {snapshot.resume && (
-            <>
-              <Muted as="p">{t("ninaHome.recent")}</Muted>
-              <ActionGroup>
-                <Button isDisabled={disabled} onPress={() => void resume()}>
-                  {t("ninaHome.continue")}
-                </Button>
-              </ActionGroup>
-            </>
-          )}
-        </Card>
-      )}
+
       <section aria-labelledby="practice-next-heading" aria-busy={refreshing}>
         <SectionHeader>
           <h2 id="practice-next-heading">{t("suggestions.title")}</h2>
           <Button
+            variant="quiet"
             isDisabled={disabled || suggestions.length <= 3}
             onPress={() => {
               setOffset((value) => (value + 3) % suggestions.length);
@@ -450,6 +480,7 @@ export function NinaHome({
       </section>
       <ActionGroup>
         <Button
+          variant="quiet"
           onPress={() => {
             onNavigate("practice");
           }}
@@ -457,6 +488,7 @@ export function NinaHome({
           {t("suggestions.choosePractice")}
         </Button>
         <Button
+          variant="quiet"
           onPress={() => {
             onNavigate("history");
           }}

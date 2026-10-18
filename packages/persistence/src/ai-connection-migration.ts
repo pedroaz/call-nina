@@ -52,8 +52,8 @@ export function migrateAiConnections(database: DatabaseSync) {
       )
         connections.push({
           id: randomUUID(),
-          label: `Codex (${workload})`,
-          routeId: "codex",
+          label: `ChatGPT (${workload})`,
+          routeId: "chatgpt",
           preference,
           secretRef: null,
         });

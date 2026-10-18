@@ -11,7 +11,7 @@ import {
   assertVerificationBarrier,
   coordinatorVerificationBarrier,
   advanceVerificationBarrier,
-  locked,
+  verificationLocked as locked,
 } from "../agents/lib/orchestration.mjs";
 import { inspectOwnedProcess, lifecyclePaths, startMode, statusMode } from "./lib/lifecycle.mjs";
 import {
@@ -43,11 +43,21 @@ import {
   existingControllerRecovery,
   assertRecoveryAction,
 } from "./lib/verification-recovery.mjs";
+import {
+  manualVerificationStatus,
+  recoverManualVerification,
+  quarantineManualJournal,
+  enterManualVerification,
+  leaveManualVerification,
+  markManualVerificationStarted,
+} from "./lib/manual-verification.mjs";
 
 const { positionals, values: launchOptions } = parseArgs({
   allowPositionals: true,
   options: {
     run: { type: "string" },
+    "journal-sha": { type: "string" },
+    worktree: { type: "string" },
     attempt: { type: "string" },
     "expected-head": { type: "string" },
     executable: { type: "string" },
@@ -57,6 +67,8 @@ const { positionals, values: launchOptions } = parseArgs({
 });
 const {
   run: recoveryRun,
+  "journal-sha": journalSha,
+  worktree: selectedWorktree,
   "expected-head": expectedHead,
   attempt: recoveryAttempt,
   ...appOptions
@@ -214,6 +226,8 @@ async function serve(resume = false, recovering = false) {
   if (!info.isDirectory() || info.uid !== process.getuid() || info.mode & 0o077)
     throw failure("VERIFY_DIRECTORY_UNSAFE");
   const ownership = await recordVerificationController(lifecycleState, context);
+  // The starting parent holds the shared lock until this child reports ready.
+  if (barrier.mode === "manual") markManualVerificationStarted(barrier);
   try {
     const previous = JSON.parse(
       await readFile(path.join(verificationRoot, "recovery.json"), "utf8"),
@@ -245,6 +259,7 @@ async function serve(resume = false, recovering = false) {
   await rm(socketPath, { force: true });
   await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
   if (!recovering) await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
+  if (barrier.mode === "manual") assertVerificationBarrier();
   if (recovering) await validateRecoveryContext(context, { beforeLaunch: true });
   const session = new VerificationSession(
     verificationRoot,
@@ -277,6 +292,12 @@ async function serve(resume = false, recovering = false) {
   }
   async function journaled(request, operation) {
     const { action } = request;
+    if (
+      barrier.mode === "manual" &&
+      mutatingActions.includes(action) &&
+      !["stop", "suspend", "restore", "cleanup"].includes(action)
+    )
+      assertVerificationBarrier();
     if (recovering) {
       assertRecoveryAction(request);
       await validateRecoveryContext(context);
@@ -287,6 +308,7 @@ async function serve(resume = false, recovering = false) {
       action,
       startedAt: new Date().toISOString(),
       sourceHead: barrier.head,
+      ...(barrier.mode === "manual" ? { sourceDigest: barrier.sourceDigest } : {}),
       ...(recovering
         ? { controllerHead: context.provenance.controllerHead, recoveryReceipt: context.receipt.id }
         : {}),
@@ -294,6 +316,8 @@ async function serve(resume = false, recovering = false) {
     // Only the digest is retained; selectors, labels, keys and fill text stay ephemeral.
     identity.requestFingerprint = journalFingerprint(JSON.stringify(request));
     let target;
+    let profileSave = false;
+    let localeBefore;
     try {
       if (action === "restore" && request.languageSelection !== undefined)
         await session.historicalLanguageSelection(request.languageSelection);
@@ -307,7 +331,27 @@ async function serve(resume = false, recovering = false) {
           throw failure("VERIFY_TARGET_INVALID");
         });
         if (count !== 1) throw failure(count ? "VERIFY_TARGET_AMBIGUOUS" : "VERIFY_TARGET_MISSING");
-        await session.rememberSettings();
+        if (action === "select") {
+          // Reject an unavailable option before recording a possible mutation.
+          // Native selects accept either the option value or label.
+          const options = await target.locator("option").evaluateAll((entries) =>
+            entries.map((entry) => ({
+              value: entry.value,
+              label: entry.label,
+              disabled: entry.disabled,
+            })),
+          );
+          if (
+            !options.some(
+              (entry) =>
+                !entry.disabled && (entry.value === request.value || entry.label === request.value),
+            )
+          )
+            throw failure("VERIFY_SELECT_OPTION_UNAVAILABLE");
+        }
+        localeBefore = await session.page.locator("html").getAttribute("lang");
+        profileSave = await session.isProfileSave(target);
+        await session.rememberSettings(target);
         if (action === "select") {
           const selection = await session.languageSelectionOwnership(target, request.value);
           if (selection) identity.learningLanguageSelection = selection;
@@ -338,6 +382,12 @@ async function serve(resume = false, recovering = false) {
     session.journal.pendingAction = { ...identity, phase: "dispatch-may-have-started" };
     await session.persist();
     const result = await operation(target);
+    if (["click", "double-click", "fill", "select", "press"].includes(action))
+      await session.observeSettingsAfterAction(
+        profileSave,
+        identity.learningLanguageSelection,
+        localeBefore,
+      );
     if (recovering) await validateRecoveryContext(context);
     delete session.journal.pendingAction;
     await session.persist();
@@ -384,6 +434,9 @@ async function serve(resume = false, recovering = false) {
       case "status":
         return {
           phase: session.phase,
+          ...(barrier.mode === "manual"
+            ? { baseHead: barrier.head, sourceDigest: barrier.sourceDigest }
+            : {}),
           aiPrepared: Boolean(session.aiPrepared),
           records: session.journal.records,
           notes: session.journal.notes,
@@ -445,6 +498,11 @@ async function serve(resume = false, recovering = false) {
           request.height > 1600
         )
           throw failure("VERIFY_REQUEST_INVALID");
+        const window = await session.application.browserWindow(page);
+        await window.evaluate(
+          (nativeWindow, size) => nativeWindow.setContentSize(size.width, size.height),
+          { width: request.width, height: request.height },
+        );
         await page.setViewportSize({ width: request.width, height: request.height });
         result = { width: request.width, height: request.height };
         break;
@@ -623,17 +681,42 @@ async function serve(resume = false, recovering = false) {
 async function stopLocal(suspend) {
   let barrier;
   try {
-    barrier = assertVerificationBarrier();
+    barrier = assertVerificationBarrier({ allowSourceChanges: true });
   } catch (error) {
     if (suspend) throw error;
   }
-  return stopVerification({ suspend, barrier });
+  const result = await stopVerification({ suspend, barrier });
+  if (
+    !suspend &&
+    barrier?.mode === "manual" &&
+    ["stopped", "already-stopped"].includes(result.status)
+  ) {
+    result.reservation = await leaveManualVerification();
+  }
+  return result;
 }
 
 try {
   const action = positionals[0];
+  if (selectedWorktree && (action !== "manual-quarantine" || !path.isAbsolute(selectedWorktree)))
+    throw failure("VERIFY_REQUEST_INVALID");
   let result;
-  if (action === "serve-recovery") await serve(true, true);
+  if (action === "manual-status") {
+    result = manualVerificationStatus();
+  } else if (action === "manual-recover") {
+    if (Object.keys(appOptions).length || journalSha || expectedHead || recoveryAttempt)
+      throw failure("VERIFY_REQUEST_INVALID");
+    result = await locked(() => recoverManualVerification(recoveryRun));
+  } else if (action === "manual-quarantine") {
+    if (Object.keys(appOptions).length || recoveryRun || expectedHead || recoveryAttempt)
+      throw failure("VERIFY_REQUEST_INVALID");
+    result = await locked(() => quarantineManualJournal(journalSha, selectedWorktree));
+  } else if (action === "manual-enter" || action === "manual-leave") {
+    if (Object.keys(launchOptions).length) throw failure("VERIFY_REQUEST_INVALID");
+    result = await locked(() =>
+      action === "manual-enter" ? enterManualVerification() : leaveManualVerification(),
+    );
+  } else if (action === "serve-recovery") await serve(true, true);
   else if (action === "serve" || action === "serve-resume") await serve(action === "serve-resume");
   else if (action === "start" || action === "resume") {
     result = await locked(async () => {
@@ -648,7 +731,7 @@ try {
         if (error.code !== "ENOENT") throw error;
       }
       process.stderr.write(
-        "Live verification uses your selected learner data and connected Codex account. AI actions consume usage; use prepare-ai before generation.\n",
+      "Live verification uses your selected learner data and connected ChatGPT account. AI actions consume usage; use prepare-ai before generation.\n",
       );
       return await startMode({
         mode: "verify",
@@ -749,6 +832,7 @@ try {
       "recovery-stop",
       "reconcile-disclosure",
       "reconcile-plugin-refresh",
+      "reconcile-connection-draft",
       "recovery-advance",
     ].includes(action)
   ) {
@@ -783,11 +867,25 @@ try {
       process.exitCode = 1;
   }
 } catch (error) {
-  const code = error.message?.startsWith("LIFECYCLE_APP_ALREADY_RUNNING_OR_RETAINED:")
-    ? "VERIFY_APP_ALREADY_RUNNING_OR_RETAINED"
-    : error.message?.startsWith("LIFECYCLE_START_LOCKED")
-      ? "VERIFY_START_LOCKED"
-      : safeCode(error, "VERIFY_COMMAND_FAILED");
+  const code = error.message?.startsWith("ORCHESTRATION_OPERATION_BUSY:")
+    ? "VERIFY_OPERATION_BUSY"
+    : error.message?.startsWith("LIFECYCLE_APP_ALREADY_RUNNING_OR_RETAINED:")
+      ? "VERIFY_APP_ALREADY_RUNNING_OR_RETAINED"
+      : error.message?.startsWith("LIFECYCLE_START_LOCKED")
+        ? "VERIFY_START_LOCKED"
+        : safeCode(error, "VERIFY_COMMAND_FAILED");
+  if (code === "VERIFY_RESERVATION_ALREADY_HELD")
+    process.stderr.write(
+      "Managed session reserved: run make verify-session-status for ownership, cleanup and the supported recovery action. Source work and existing-window visual inspection remain available. No application was started.\n",
+    );
+  if (code === "VERIFY_JOURNAL_QUARANTINE_REQUIRED")
+    process.stderr.write(
+      "This checkout has an incompatible journal. Inspect make verify-session-status; use explicit fingerprint-bound quarantine to retain it without changing learner data.\n",
+    );
+  if (code === "VERIFY_OPERATION_BUSY")
+    process.stderr.write(
+      "The verification operation lock is held. This invocation did not dispatch a verification action; inspect its owner before retrying.\n",
+    );
   if (code === "VERIFY_COMMAND_FAILED")
     process.stderr.write(
       "Inspect make logs-once ARGS='--scope history --component lifecycle' and .runtime/logs/verify.log for startup/build diagnostics.\n",

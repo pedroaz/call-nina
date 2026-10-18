@@ -263,22 +263,3 @@ export function StartupError(props: {
     </StartupFrame>
   );
 }
-
-export function CodexBanner({ readiness }: { readiness: Readiness }) {
-  const { t } = useTranslation();
-  if (readiness.codex.status === "available") return null;
-  const message =
-    readiness.codex.reason === "missing"
-      ? "codex.missing"
-      : readiness.codex.reason === "unsupported-version"
-        ? "codex.unsupported"
-        : "codex.unavailable";
-  return (
-    <Feedback live="off" tone="warning">
-      <div>
-        {t(message)}
-        <Diagnostic error={readiness.codex.error} />
-      </div>
-    </Feedback>
-  );
-}

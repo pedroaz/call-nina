@@ -1,3 +1,11 @@
+import {
+  BookOpen,
+  Headphones,
+  MessageCircle,
+  PencilLine,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
 import { OperationProgress } from "./OperationProgress.js";
 import type { OperationProgressState } from "./useOperationProgress.js";
 import type { PracticeSuggestion } from "@call-nina/contracts";
@@ -32,27 +40,35 @@ export function PracticeSuggestionCard({
         : suggestion.kind === "codex-listening" || suggestion.kind === "voice-speaking"
           ? "prepare"
           : "start";
+  const Icon =
+    suggestion.kind === "writing"
+      ? PencilLine
+      : suggestion.kind === "reading"
+        ? BookOpen
+        : suggestion.kind === "codex-listening"
+          ? Headphones
+          : suggestion.kind === "voice-speaking"
+            ? MessageCircle
+            : Sparkles;
   return (
     <Card as="article" className={styles.suggestion}>
+      <span className={styles.activityIcon} aria-hidden="true">
+        <Icon />
+      </span>
       <Muted as="p">
         {recommended ? t("suggestions.recommended") : t(`suggestions.sources.${suggestion.source}`)}{" "}
         · {t("suggestions.minutes", { count: suggestion.estimatedMinutes })}
       </Muted>
       <h3>{suggestion.title}</h3>
-      {suggestion.naturalRequest.length > 220 ? (
-        <>
-          <p>{suggestion.naturalRequest.slice(0, 217)}…</p>
-          <Disclosure label={t("suggestions.fullPrompt")}>
-            <p>{suggestion.naturalRequest}</p>
-          </Disclosure>
-        </>
-      ) : (
+      <Disclosure label={t("suggestions.fullPrompt")}>
         <p>{suggestion.naturalRequest}</p>
-      )}
-      <Muted as="p">{suggestion.rationale}</Muted>
+        <Muted as="p">{suggestion.rationale}</Muted>
+      </Disclosure>
       <OperationProgress progress={progress} />
       <ActionGroup>
         <Button
+          trailingIcon={<ArrowRight aria-hidden="true" />}
+          variant={recommended ? "primary" : "secondary"}
           isPending={starting}
           isDisabled={disabled}
           pendingLabel={t("suggestions.starting")}

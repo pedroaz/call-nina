@@ -12,3 +12,10 @@
 .saved p {
   white-space: pre-wrap;
 }
+
+.controls > button {
+  justify-self: start;
+}
+.saved p {
+  margin-block: 0;
+}

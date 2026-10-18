@@ -44,3 +44,7 @@
 .dialog[data-density="compact"] {
   padding: var(--od-space-5);
 }
+
+.body > :where(p, ul, ol, dl, blockquote) {
+  margin-block: 0;
+}

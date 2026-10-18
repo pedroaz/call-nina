@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import {
   Button,
   Card,
+  CheckboxField,
   DiagnosticCode,
   Feedback,
   FieldGroup,
@@ -20,18 +21,22 @@ import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js
 import type { DesktopSettingsResult, DesktopSettingsValue } from "./settings-adapter.js";
 import i18n from "./i18n.js";
 import styles from "./ProfileOnboarding.module.css";
-import { SidebarModelControl } from "./SidebarModelControl.js";
+import { ConnectionSettings } from "./ConnectionSettings.js";
 import { LanguageSelect } from "./LanguageSelect.js";
 
 type Readiness = Extract<DesktopIpcResponse, { status: "ok"; channel: "app/readiness" }>["result"];
 type Account = Extract<
   DesktopIpcResponse,
-  { status: "ok"; channel: "codex/account/read" }
+  { status: "ok"; channel: "chatgpt/account/read" }
 >["result"];
 type LoginId = Extract<
   DesktopIpcResponse,
-  { status: "ok"; channel: "codex/account/login/start" }
+  { status: "ok"; channel: "chatgpt/account/login/start" }
 >["result"]["loginId"];
+type Connections = Extract<
+  DesktopIpcResponse,
+  { status: "ok"; channel: "ai-connections/read" }
+>["result"];
 type Choices = Pick<
   DesktopSettingsValue,
   | "approximateLevel"
@@ -76,7 +81,9 @@ export function ProfileOnboarding({
   const [connectionFailed, setConnectionFailed] = useState(false);
   const [connectionChecked, setConnectionChecked] = useState(false);
   const [integration, setIntegration] = useState(readiness.codex);
+  const [connections, setConnections] = useState<Connections>();
   const [loginId, setLoginId] = useState<LoginId>();
+  const [connectionPending, setConnectionPending] = useState(false);
   const [loginStatus, setLoginStatus] = useState<string>();
   const generation =
     readiness.dataRoot.status === "ready" ? readiness.dataRoot.generation : undefined;
@@ -96,15 +103,29 @@ export function ProfileOnboarding({
   const refreshConnection = useCallback(async () => {
     setChecking(true);
     try {
-      const state = await invokeDesktop("app/readiness", {});
-      setIntegration(state.codex);
-      setAccount(await invokeDesktop("codex/account/read", {}));
+      const [accountState, connectionState] = await Promise.all([
+        invokeDesktop("chatgpt/account/read", {}),
+        invokeDesktop("ai-connections/read", {}),
+      ]);
+      setAccount(accountState);
+      if (accountState.status === "signed-in") {
+        setLoginStatus(undefined);
+        setLoginId(undefined);
+      }
+      setConnections(connectionState);
       setConnectionFailed(false);
     } catch (cause) {
       setConnectionFailed(true);
       throw cause;
     } finally {
       setChecking(false);
+    }
+  }, []);
+  const refreshExternalIntegration = useCallback(async () => {
+    try {
+      setIntegration(await invokeDesktop("codex/integration/read", {}));
+    } catch {
+      // The optional external Voice/plugin installation is independent of setup.
     }
   }, []);
   const load = useCallback(async () => {
@@ -128,7 +149,8 @@ export function ProfileOnboarding({
     }
     // Provider inspection is optional; local setup never waits for authentication.
     void refreshConnection().catch(() => undefined);
-  }, [refreshConnection]);
+    void refreshExternalIntegration();
+  }, [refreshConnection, refreshExternalIntegration]);
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
     return () => {
@@ -231,8 +253,16 @@ export function ProfileOnboarding({
     await i18n.changeLanguage(choices.uiLocale);
     return current;
   }
+  const cancelPendingLogin = async () => {
+    if (!loginId) return;
+    await invokeDesktop("chatgpt/account/login/cancel", { loginId });
+    setLoginId(undefined);
+    setLoginStatus("cancelled");
+  };
   const move = (destination: number) =>
     void attempt(async () => {
+      if (connectionPending) return;
+      if (step === 0) await cancelPendingLogin();
       if (step === 1 && !choices.everydayLifeGoal.trim()) {
         if (destination > step) return;
         setNotice(t("onboarding.unsavedGoal"));
@@ -241,11 +271,15 @@ export function ProfileOnboarding({
     });
   const exit = () =>
     void attempt(async () => {
+      if (connectionPending) return;
+      await cancelPendingLogin();
       if (choices.everydayLifeGoal.trim()) await save();
       onExit?.();
     });
   const finish = () =>
     void attempt(async () => {
+      if (connectionPending) return;
+      await cancelPendingLogin();
       const current = await save();
       if (!current || !generation) return;
       await invokeDesktop("learner-profile/finish-onboarding", {
@@ -254,9 +288,11 @@ export function ProfileOnboarding({
       });
       onComplete();
     });
-  const connect = (method: "browser" | "device-code") =>
+  const connect = () =>
     void attempt(async () => {
-      const result = await invokeDesktop("codex/account/login/start", { method });
+      const result = await invokeDesktop("chatgpt/account/login/start", {
+        registrationId: (await invokeDesktop("chatgpt/accounts/read", {})).selectedId,
+      });
       setLoginId(result.loginId);
       setLoginStatus("waiting");
     });
@@ -270,8 +306,13 @@ export function ProfileOnboarding({
           : account.status === "unsupported"
             ? t("onboarding.accountUnsupported")
             : t("onboarding.accountUnavailable");
-  const connected =
-    !connectionFailed && integration.status === "available" && account.status === "signed-in";
+  const activeRoute = connections?.settings.connections.find(
+    (entry) => entry.id === connections.settings.activeConnectionId,
+  )?.routeId;
+  const activeConnection = connections?.availability.find(
+    (entry) => entry.connectionId === connections.settings.activeConnectionId,
+  );
+  const connected = !connectionFailed && activeConnection?.status === "available";
   const connectionStatus = (
     <Feedback
       className={styles.connectionStatus}
@@ -289,13 +330,19 @@ export function ProfileOnboarding({
       </strong>
       {!checking && (
         <>
-          <p>
-            {connectionFailed
-              ? t("onboarding.checkFailed")
-              : integration.status === "unavailable"
-                ? t(`onboarding.runtime.${integration.reason}`)
-                : accountSummary}
-          </p>
+          {!connected && (
+            <p>
+              {connectionFailed
+                ? t("onboarding.checkFailed")
+                : !connections?.settings.activeConnectionId
+                  ? t("providerAccess.reasons.connection-required")
+                  : activeRoute === "chatgpt" && account.status !== "signed-in"
+                    ? accountSummary
+                    : t(
+                        `connectionSettings.status.${activeConnection?.status ?? "runtime-unavailable"}`,
+                      )}
+            </p>
+          )}
           <p>
             {t(
               connected
@@ -337,55 +384,54 @@ export function ProfileOnboarding({
             {t(`onboarding.steps.${steps[step] ?? "connection"}`)}
           </h1>
           <p>{t(`onboarding.guidance.${steps[step] ?? "connection"}`)}</p>
-          {step === 0 && (
-            <p>
-              {t("onboarding.selectedFolder", {
-                folder: readiness.dataRoot.status === "ready" ? readiness.dataRoot.displayName : "",
-              })}
-            </p>
-          )}
-          {step === 0 && onExit && <small>{t("onboarding.folderSettings")}</small>}
           {loading ? (
             <LoadingState live>{t("startup.loading")}</LoadingState>
           ) : (
             <>
+              <div hidden={step !== 0}>
+                <details className={styles.accessOptions}>
+                  <summary>{t("onboarding.accessOptions")}</summary>
+                  <p>{t("onboarding.accessIntro")}</p>
+                  <ConnectionSettings
+                    active={step === 0}
+                    disabled={busy || Boolean(loginId)}
+                    onPendingChange={setConnectionPending}
+                    authHelp={t("onboarding.chatgptAuthHelp")}
+                  />
+                </details>
+                {connectionPending && (
+                  <Feedback live="polite">{t("onboarding.connectionDraft")}</Feedback>
+                )}
+              </div>
               {step === 0 && (
                 <fieldset disabled={busy} className={styles.onboardingSection}>
                   <legend>{t("onboarding.accountTitle")}</legend>
                   <p>{t("providerAccess.identityBoundary")}</p>
-                  <SidebarModelControl />
+
                   {connectionStatus}
-                  {loginStatus && <p role="status">{t(`onboarding.login.${loginStatus}`)}</p>}
+                  {loginStatus && account.status !== "signed-in" && (
+                    <p role="status">{t(`onboarding.login.${loginStatus}`)}</p>
+                  )}
                   <ActionGroup>
-                    {account.status !== "signed-in" &&
-                      integration.status === "available" &&
-                      !loginId && (
-                        <>
-                          <Button
-                            isDisabled={busy}
-                            onPress={() => {
-                              connect("browser");
-                            }}
-                          >
-                            {t("onboarding.connectBrowser")}
-                          </Button>
-                          <Button
-                            isDisabled={busy}
-                            onPress={() => {
-                              connect("device-code");
-                            }}
-                          >
-                            {t("onboarding.connectDevice")}
-                          </Button>
-                        </>
-                      )}
+                    {account.status !== "signed-in" && !loginId && (
+                      <>
+                        <Button
+                          isDisabled={busy || connectionPending || account.status === "unavailable"}
+                          onPress={() => {
+                            connect();
+                          }}
+                        >
+                          {t("onboarding.connectBrowser")}
+                        </Button>
+                      </>
+                    )}
                     {loginId && (
                       <Button
                         isDisabled={busy}
                         onPress={() =>
                           void attempt(async () => {
                             if (!loginId) return;
-                            await invokeDesktop("codex/account/login/cancel", { loginId });
+                            await invokeDesktop("chatgpt/account/login/cancel", { loginId });
                             setLoginId(undefined);
                             setLoginStatus("cancelled");
                           })
@@ -411,10 +457,10 @@ export function ProfileOnboarding({
                 </fieldset>
               )}
               {step === 0 && integration.status === "available" && (
-                <fieldset disabled={busy} className={styles.onboardingSection}>
-                  <legend>{t("onboarding.pluginTitle")}</legend>
+                <details className={styles.accessOptions}>
+                  <summary>{t("onboarding.pluginTitle")}</summary>
+                  <p>{t("settings.externalIntegrationHelp")}</p>
                   <p>{t(`onboarding.plugin.${integration.plugin}`)}</p>
-                  <p>{t("onboarding.pluginOptional")}</p>
                   {integration.plugin !== "installed" && (
                     <Button
                       variant="secondary"
@@ -440,7 +486,10 @@ export function ProfileOnboarding({
                       )}
                     </Button>
                   )}
-                </fieldset>
+                </details>
+              )}
+              {step === 0 && integration.status === "unavailable" && (
+                <p>{t("settings.codexUnavailable")}</p>
               )}
               {step === 1 && (
                 <fieldset disabled={busy} className={styles.onboardingSection}>
@@ -452,16 +501,14 @@ export function ProfileOnboarding({
                     onChange={selectTarget}
                   />
                   {targetLanguage === "de" && (
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={enrollCourse}
-                        onChange={(event) => {
-                          setEnrollCourse(event.currentTarget.checked);
-                        }}
-                      />
+                    <CheckboxField
+                      checked={enrollCourse}
+                      onChange={(event) => {
+                        setEnrollCourse(event.currentTarget.checked);
+                      }}
+                    >
                       {t("onboarding.enrollCourse")}
-                    </label>
+                    </CheckboxField>
                   )}
                   {targetLanguage !== "de" && <p>{t("onboarding.pathUnavailable")}</p>}
                   <FieldGroup>
@@ -584,6 +631,7 @@ export function ProfileOnboarding({
               <ActionGroup>
                 {step > 0 && (
                   <Button
+                    variant="secondary"
                     isDisabled={busy}
                     onPress={() => {
                       move(step - 1);
@@ -595,12 +643,18 @@ export function ProfileOnboarding({
                 {step < 3 ? (
                   <Button
                     variant="primary"
-                    isDisabled={busy || (step === 1 && !choices.everydayLifeGoal.trim())}
+                    isDisabled={
+                      busy || connectionPending || (step === 1 && !choices.everydayLifeGoal.trim())
+                    }
                     onPress={() => {
                       move(step + 1);
                     }}
                   >
-                    {t("onboarding.next")}
+                    {t(
+                      step === 0 && !connections?.settings.activeConnectionId
+                        ? "onboarding.skipAccess"
+                        : "onboarding.next",
+                    )}
                   </Button>
                 ) : (
                   <Button
@@ -612,7 +666,7 @@ export function ProfileOnboarding({
                   </Button>
                 )}
                 {onExit && (
-                  <Button isDisabled={busy} onPress={exit}>
+                  <Button variant="secondary" isDisabled={busy || connectionPending} onPress={exit}>
                     {t("onboarding.returnSettings")}
                   </Button>
                 )}
@@ -627,7 +681,7 @@ export function ProfileOnboarding({
                 {error.reference.code} · {error.reference.correlationId}
               </DiagnosticCode>
               <Button
-                isDisabled={busy}
+                isDisabled={busy || connectionPending}
                 onPress={() => {
                   setError(undefined);
                   void load();
@@ -636,7 +690,7 @@ export function ProfileOnboarding({
                 {t("onboarding.reloadSaved")}
               </Button>
               {onExit && (
-                <Button variant="secondary" isDisabled={busy} onPress={onExit}>
+                <Button variant="secondary" isDisabled={busy || connectionPending} onPress={exit}>
                   {t("onboarding.leaveUnsaved")}
                 </Button>
               )}

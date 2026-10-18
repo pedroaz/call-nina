@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   DesktopIpcResponse,
   DesktopIpcRequest,
@@ -14,23 +14,38 @@ import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js
 type View = Extract<DesktopIpcResponse, { status: "ok"; channel: "ai-connections/read" }>["result"];
 type Action = Extract<DesktopIpcRequest, { channel: "ai-connections/update" }>["payload"]["action"];
 
-// Shared minimal current selector. Full connection authoring/onboarding belongs
-// to the settings tasks; no control stores a per-activity route or model.
 export function SidebarModelControl() {
   const { t } = useTranslation();
   const [view, setView] = useState<View>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
+  const rootEpoch = useRef(0);
+  const readSerial = useRef(0);
+  const mounted = useRef(true);
   const load = useCallback(async () => {
+    const epoch = rootEpoch.current;
+    const serial = ++readSerial.current;
     try {
-      setView(await invokeDesktop("ai-connections/read", {}));
+      const next = await invokeDesktop("ai-connections/read", {});
+      if (mounted.current && epoch === rootEpoch.current && serial === readSerial.current)
+        setView(next);
     } catch (cause) {
-      setError(normalizeDesktopError(cause).detail);
+      if (mounted.current && epoch === rootEpoch.current && serial === readSerial.current)
+        setError(normalizeDesktopError(cause).detail);
     }
   }, []);
   useEffect(() => {
+    mounted.current = true;
+    const epochRef = rootEpoch;
     const timer = window.setTimeout(() => void load(), 0);
     const unsubscribe = subscribeDesktop((event) => {
+      if (event.event === "data-root-changed") {
+        rootEpoch.current++;
+        readSerial.current++;
+        setView(undefined);
+        setBusy(false);
+        setError(undefined);
+      }
       if (
         event.event === "data-root-changed" ||
         (event.event === "state-invalidated" && ["ai-connections", "account"].includes(event.scope))
@@ -38,6 +53,8 @@ export function SidebarModelControl() {
         void load();
     });
     return () => {
+      mounted.current = false;
+      epochRef.current++;
       window.clearTimeout(timer);
       unsubscribe();
     };
@@ -57,22 +74,23 @@ export function SidebarModelControl() {
         : catalog.runtimeDefaultModelId),
   );
   const mutate = async (action: Action) => {
-    if (!view) return;
+    if (!view || busy) return;
+    const epoch = rootEpoch.current;
     setBusy(true);
     setError(undefined);
     try {
-      setView(
-        await invokeDesktop("ai-connections/update", {
-          expectedGeneration: view.expectedGeneration,
-          expectedRevision: view.settings.revision,
-          action,
-        }),
-      );
+      const next = await invokeDesktop("ai-connections/update", {
+        expectedGeneration: view.expectedGeneration,
+        expectedRevision: view.settings.revision,
+        action,
+      });
+      if (mounted.current && epoch === rootEpoch.current) setView(next);
     } catch (cause) {
+      if (!mounted.current || epoch !== rootEpoch.current) return;
       setError(normalizeDesktopError(cause).detail);
       await load();
     } finally {
-      setBusy(false);
+      if (mounted.current && epoch === rootEpoch.current) setBusy(false);
     }
   };
   const save = (preference: AiModelPreference) => {
@@ -205,20 +223,10 @@ export function SidebarModelControl() {
                     ))}
                   </select>
                 </label>
-                {availability?.status !== "available" && <p>{t("connections.unavailable")}</p>}
-                {view.settings.connections.length === 1 && (
-                  <Button
-                    isDisabled={busy}
-                    onPress={() =>
-                      void mutate({
-                        kind: "remove",
-                        connectionId: active.id,
-                        nextActiveConnectionId: null,
-                      })
-                    }
-                  >
-                    {t("connections.disconnect")}
-                  </Button>
+                {availability && (
+                  <p className={styles.navModelStatus} role="status">
+                    {t(`connectionSettings.status.${availability.status}`)}
+                  </p>
                 )}
               </>
             ) : (
@@ -231,8 +239,8 @@ export function SidebarModelControl() {
                       kind: "save",
                       connection: {
                         id: crypto.randomUUID(),
-                        label: "Codex",
-                        routeId: "codex",
+                        label: "ChatGPT",
+                        routeId: "chatgpt",
                         preference: {
                           model: { mode: "automatic" },
                           effort: { mode: "semantic", effort: "balanced" },
@@ -242,7 +250,7 @@ export function SidebarModelControl() {
                     })
                   }
                 >
-                  {t("connections.connectCodex")}
+                  {t("connections.connectChatgpt")}
                 </Button>
               </>
             )}

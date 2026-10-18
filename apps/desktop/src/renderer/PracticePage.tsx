@@ -1,5 +1,4 @@
 import { CompletionActions } from "./CompletionActions.js";
-import { SavedTranslation } from "./SavedTranslation.js";
 import {
   MaterialPractice,
   emptyMaterialPracticeState,
@@ -28,6 +27,7 @@ import { OperationError } from "./Startup.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { materializeContentExercises } from "@call-nina/domain";
 import {
+  FilePenLine,
   BookOpen,
   ChevronRight,
   MessageSquareText,
@@ -82,6 +82,7 @@ export function PracticePage({
   onOpenActivity,
   onCloseActivity,
   onVocabulary,
+  onWriting,
   onHistory,
   onNina,
 }: {
@@ -93,6 +94,7 @@ export function PracticePage({
   onOpenActivity: (activityId: PreparedActivityId) => void;
   onCloseActivity: () => void;
   onVocabulary?: () => void;
+  onWriting?: () => void;
   onHistory: (language: Language, rootGeneration: DataRootGeneration) => void;
   onNina: (language: Language, rootGeneration: DataRootGeneration) => void;
 }) {
@@ -113,7 +115,9 @@ export function PracticePage({
         { status: "ok"; channel: "exercise-set/start" }
       >["result"]["attemptIds"]
     >();
-  const [customRequest, setCustomRequest] = useState("");
+  const [customRequest, setCustomRequest] = useState(
+    initialPreparation?.kind === "custom" ? initialPreparation.prompt : "",
+  );
   const [grammarRequest, setGrammarRequest] = useState("");
   const [quizCount, setQuizCount] = useState("6");
   const [cardCount, setCardCount] = useState("10");
@@ -336,7 +340,6 @@ export function PracticePage({
         }}
         onClose={onCloseActivity}
         onVocabulary={onVocabulary ?? onCloseActivity}
-        requestAiAccess={requestAiAccess}
       />
     );
   }
@@ -357,21 +360,6 @@ export function PracticePage({
     );
   }
   if (activityId) {
-    const translateLesson = (field: Parameters<typeof SavedTranslation>[0]["request"]["field"]) =>
-      generated && prepared ? (
-        <SavedTranslation
-          request={{
-            activityId,
-            rootGeneration: prepared.rootGeneration,
-            content: {
-              contentId: generated.content.contentId,
-              revisionId: generated.content.revisionId,
-            },
-            field,
-          }}
-          requestAiAccess={requestAiAccess}
-        />
-      ) : null;
     const deleteGeneratedLesson = async () => {
       setDeleting(true);
       setError(undefined);
@@ -446,23 +434,20 @@ export function PracticePage({
             </summary>
             <div className={styles.practiceLessonBody}>
               <p>{generated.content.payload.lesson.explanation}</p>
-              {translateLesson({ kind: "lesson-explanation" })}
-              {generated.content.payload.lesson.sections.map((section, index) => (
+              {generated.content.payload.lesson.sections.map((section) => (
                 <section key={section.heading}>
                   <h3>{section.heading}</h3>
                   <p>{section.content}</p>
-                  {translateLesson({ kind: "lesson-section", index })}
                 </section>
               ))}
               {generated.content.payload.lesson.vocabularyFoundations.length > 0 && (
                 <section>
                   <h3>{t("exercises.custom.vocabulary")}</h3>
                   <ItemList>
-                    {generated.content.payload.lesson.vocabularyFoundations.map((item, index) => (
+                    {generated.content.payload.lesson.vocabularyFoundations.map((item) => (
                       <li key={`${item.term}:${item.example}`}>
                         <strong>{item.term}</strong> — {item.explanation}
                         <Muted as="span">{item.example}</Muted>
-                        {translateLesson({ kind: "lesson-vocabulary", index })}
                       </li>
                     ))}
                   </ItemList>
@@ -497,20 +482,6 @@ export function PracticePage({
                 )
               }
               targetLanguage={generated.learningScope.targetLanguage}
-              {...(prepared
-                ? {
-                    translation: {
-                      activityId,
-                      rootGeneration: prepared.rootGeneration,
-                      content: {
-                        contentId: generated.content.contentId,
-                        revisionId: generated.content.revisionId,
-                      },
-                      requestAiAccess,
-                    },
-                  }
-                : {})}
-              attemptIds={startedAttemptIds}
               {...(feedback.busy ? { onCancelAiEvaluation: feedback.cancel } : {})}
               key={activityId}
               exercises={exercises}
@@ -661,7 +632,21 @@ export function PracticePage({
   };
 
   return (
-    <Page title={t("practice.title")} refresh={{ onRefresh: library.refresh, busy: libraryBusy }}>
+    <Page
+      title={t("practice.title")}
+      refresh={{ onRefresh: library.refresh, busy: libraryBusy }}
+      actions={
+        onWriting && (
+          <Button
+            variant="secondary"
+            leadingIcon={<FilePenLine aria-hidden="true" />}
+            onPress={onWriting}
+          >
+            {t("nav.writing")}
+          </Button>
+        )
+      }
+    >
       <Tabs
         label={t("practice.title")}
         selectedKey={libraryView ? "saved" : "new"}
@@ -827,6 +812,7 @@ export function PracticePage({
                         />
                       </FieldGroup>
                       <Button
+                        variant="secondary"
                         isDisabled={generating || !targetLanguage}
                         onPress={() => {
                           if (targetLanguage)

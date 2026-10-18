@@ -1,0 +1,17 @@
+.summary {
+  background: var(--od-color-surface-sunken);
+}
+
+.suggestion {
+  display: grid;
+  gap: var(--od-space-3);
+}
+
+.suggestion > p {
+  margin: 0;
+}
+
+.actions {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+}

@@ -1,8 +1,16 @@
 import net from "node:net";
+import { execFileSync } from "node:child_process";
 import { lstat, readFile, rename, rm, mkdir, open } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import path from "node:path";
+import { existsSync } from "node:fs";
+import {
+  verificationGate,
+  load,
+  assertManualVerificationOwner,
+  verificationSourceDigest,
+} from "../../agents/lib/orchestration.mjs";
 import {
   inspectOwnedProcess,
   processIdentity,
@@ -13,6 +21,23 @@ import {
 export const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
 export const verificationRoot = path.join(repositoryRoot, ".runtime", "verification");
 export const socketPath = path.join(verificationRoot, "control.sock");
+function manualAccess(targetRoot, ownership, checkSource = false) {
+  const gate = existsSync(verificationGate) ? load(verificationGate) : undefined;
+  if (gate?.mode === "manual" && gate.worktree === targetRoot) {
+    assertManualVerificationOwner(gate, targetRoot);
+    if (
+      ownership &&
+      (ownership.owner !== gate.owner ||
+        ownership.run !== gate.run ||
+        ownership.sourceDigest !== gate.sourceDigest)
+    )
+      throw new Error("VERIFY_MANUAL_OWNER_MISMATCH");
+    if (checkSource && verificationSourceDigest(targetRoot) !== gate.sourceDigest)
+      throw new Error("VERIFY_CHECKOUT_CHANGED");
+    return gate;
+  }
+  if (ownership) throw new Error("VERIFY_MANUAL_OWNER_MISMATCH");
+}
 export async function requestVerification(
   request,
   timeoutMs = 300000,
@@ -36,6 +61,21 @@ async function send(request, timeoutMs, targetRoot) {
     await readFile(path.join(repositoryRoot, ".runtime/verify.json"), "utf8"),
   );
   if (!(await inspectOwnedProcess(state)).owned) throw new Error("VERIFY_OWNER_UNAVAILABLE");
+  const ownership = await privateJson(path.join(verificationRoot, "processes.json"));
+  manualAccess(
+    targetRoot,
+    ownership.manualOwner,
+    ![
+      "status",
+      "snapshot",
+      "screenshot",
+      "windows",
+      "restore",
+      "cleanup",
+      "stop",
+      "suspend",
+    ].includes(request.action),
+  );
   const directory = await lstat(verificationRoot);
   const socket = await lstat(socketPath);
   if (
@@ -175,6 +215,15 @@ export async function recordVerificationController(
   const record = {
     schemaVersion: 1,
     runId: state.runId,
+    ...(context.barrier?.mode === "manual"
+      ? {
+          manualOwner: {
+            owner: context.barrier.owner,
+            run: context.barrier.run,
+            sourceDigest: context.barrier.sourceDigest,
+          },
+        }
+      : {}),
     ...(context.provenance ? { provenance: context.provenance } : {}),
     controller,
     app: null,
@@ -287,6 +336,7 @@ async function finalizeStoppedVerification(targetRoot, barrier, proof, unpublish
     proof.worktree !== targetRoot ||
     proof.run !== (barrier?.run ?? null) ||
     proof.head !== (barrier?.head ?? null) ||
+    (barrier?.mode === "manual" && proof.sourceDigest !== barrier.sourceDigest) ||
     proof.status !== "exact-processes-stopped" ||
     typeof proof.lifecycleRunId !== "string" ||
     !Array.isArray(proof.processes) ||
@@ -360,6 +410,11 @@ export async function stopVerification({
   barrier,
   suspend = false,
 } = {}) {
+  const manualGate = manualAccess(targetRoot);
+  if (manualGate) {
+    if (barrier && barrier.run !== manualGate.run) throw new Error("VERIFY_MANUAL_OWNER_MISMATCH");
+    barrier = manualGate;
+  }
   const verificationRoot = path.join(targetRoot, ".runtime/verification");
   const ownershipPath = path.join(verificationRoot, "processes.json");
   const repositoryRoot = targetRoot;
@@ -383,6 +438,7 @@ export async function stopVerification({
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
+  manualAccess(targetRoot, record?.manualOwner);
   const previousProofBytes = await privateText(path.join(verificationRoot, "stopped.json")).catch(
     (error) => {
       if (error.code !== "ENOENT") throw error;
@@ -546,6 +602,9 @@ export async function stopVerification({
     schemaVersion: 1,
     run: barrier?.run ?? null,
     head: barrier?.head ?? null,
+    ...(record.manualOwner
+      ? { sourceDigest: record.manualOwner.sourceDigest, manualOwner: record.manualOwner }
+      : {}),
     worktree: targetRoot,
     lifecycleRunId: record.runId,
     ...(record.provenance ? { provenance: record.provenance } : {}),
@@ -587,7 +646,12 @@ export function journalFingerprint(text) {
 // command accepts a filesystem target or a generic effects-cleared assertion.
 export async function reconcileVerificationEffect(barrier, request, command) {
   const plugin = command === "reconcile-plugin-refresh";
-  if (!["reconcile-disclosure", "reconcile-plugin-refresh"].includes(command))
+  const draft = command === "reconcile-connection-draft";
+  if (
+    !["reconcile-disclosure", "reconcile-plugin-refresh", "reconcile-connection-draft"].includes(
+      command,
+    )
+  )
     throw new Error("VERIFY_RECONCILIATION_INVALID");
   const filename = path.join(barrier.worktree, ".runtime/verification/recovery.json");
   const hex = (value) => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
@@ -606,6 +670,7 @@ export async function reconcileVerificationEffect(barrier, request, command) {
     "attestation",
     "effectReadback",
     "effectSourceReferences",
+    ...(draft ? ["originalRequest"] : []),
   ];
   if (
     !request ||
@@ -614,7 +679,7 @@ export async function reconcileVerificationEffect(barrier, request, command) {
     request.expectedHead !== barrier.head ||
     !hex(request.expectedJournalFingerprint) ||
     !hex(request.requestFingerprint) ||
-    request.action !== "click" ||
+    request.action !== (draft ? "select" : "click") ||
     !(
       request.sourceHead === barrier.head ||
       barrier.advances?.some((entry) => entry.from === request.sourceHead)
@@ -626,13 +691,46 @@ export async function reconcileVerificationEffect(barrier, request, command) {
     request.evidenceKind !==
       (plugin
         ? "source-bounded-scoped-nina-plugin-refresh"
-        : "source-bounded-main-reading-summary-disclosure") ||
+        : draft
+          ? "source-bounded-connection-route-draft"
+          : "source-bounded-main-reading-summary-disclosure") ||
     request.attestation !==
       (plugin
         ? "original-request-and-screen-bound-to-entry;only-scoped-nina-plugin-refresh;explicit-action-and-fresh-registration-verified;cleanup-and-settings-readback-confirmed"
-        : "original-request-and-screen-bound-to-entry;all-target-and-ancestor-effects-transient-local-ui;cleanup-and-settings-readback-confirmed")
+        : draft
+          ? "original-request-and-screen-bound-to-new-unsaved-connection-route;no-save-submitted;all-target-and-ancestor-effects-transient-local-ui;cleanup-and-settings-readback-confirmed"
+          : "original-request-and-screen-bound-to-entry;all-target-and-ancestor-effects-transient-local-ui;cleanup-and-settings-readback-confirmed")
   )
     throw new Error("VERIFY_RECONCILIATION_INVALID");
+  if (draft) {
+    const originalRequest = request.originalRequest;
+    if (
+      !originalRequest ||
+      Object.keys(originalRequest).sort().join(",") !== "action,target,value" ||
+      originalRequest.action !== "select" ||
+      typeof originalRequest.value !== "string" ||
+      !/^[a-z][a-z-]{0,39}$/.test(originalRequest.value) ||
+      !originalRequest.target ||
+      Object.keys(originalRequest.target).sort().join(",") !== "name,role" ||
+      originalRequest.target.role !== "combobox" ||
+      journalFingerprint(JSON.stringify(originalRequest)) !== request.requestFingerprint
+    )
+      throw new Error("VERIFY_DRAFT_SELECTION_PROOF_INVALID");
+    // Read the labels from the actual action revision, never a caller-supplied
+    // selector or the newer controller's potentially changed locale catalog.
+    const labels = ["en", "de", "es", "pt-BR"].map((locale) => {
+      const catalog = JSON.parse(
+        execFileSync(
+          "git",
+          ["show", `${request.sourceHead}:apps/desktop/src/renderer/locales/${locale}.json`],
+          { cwd: barrier.worktree, encoding: "utf8", maxBuffer: 1024 * 1024 },
+        ),
+      );
+      return catalog.connectionSettings.route;
+    });
+    if (!labels.includes(originalRequest.target.name))
+      throw new Error("VERIFY_DRAFT_SELECTION_PROOF_INVALID");
+  }
   const pluginPaths = [
     "apps/desktop/src/renderer/SettingsPage.tsx",
     "apps/desktop/src/main/plugin-integration.ts",
@@ -641,12 +739,19 @@ export async function reconcileVerificationEffect(barrier, request, command) {
   ];
   const sourcePaths = plugin
     ? pluginPaths
-    : [
-        "apps/desktop/src/renderer/components/ui/Disclosure.tsx",
-        "apps/desktop/src/renderer/ReadingPractice.tsx",
-        "apps/desktop/src/renderer/components/layout/AppShell.tsx",
-        "apps/desktop/src/renderer/useHelperSelection.ts",
-      ];
+    : draft
+      ? [
+          "apps/desktop/src/renderer/ConnectionSettings.tsx",
+          "apps/desktop/src/renderer/SettingsPage.tsx",
+          "apps/desktop/src/renderer/components/layout/AppShell.tsx",
+          "apps/desktop/src/renderer/useHelperSelection.ts",
+        ]
+      : [
+          "apps/desktop/src/renderer/components/ui/Disclosure.tsx",
+          "apps/desktop/src/renderer/ReadingPractice.tsx",
+          "apps/desktop/src/renderer/components/layout/AppShell.tsx",
+          "apps/desktop/src/renderer/useHelperSelection.ts",
+        ];
   if (
     !Array.isArray(request.sourceReferences) ||
     request.sourceReferences.length !== sourcePaths.length ||
@@ -767,7 +872,7 @@ export async function reconcileVerificationEffect(barrier, request, command) {
     !journal.preferences ||
     Object.keys(journal.preferences).length ||
     journal.baseline ||
-    journal.initialTarget ||
+    (!draft && journal.initialTarget) ||
     Object.keys(journal.learningPreferences ?? {}).length ||
     journal.pendingAction ||
     !Array.isArray(journal.notes) ||
@@ -776,6 +881,18 @@ export async function reconcileVerificationEffect(barrier, request, command) {
     ) ||
     !Array.isArray(journal.interruptedActions) ||
     (journal.receipts !== undefined && !Array.isArray(journal.receipts))
+  )
+    throw new Error("VERIFY_UI_RECOVERY_REQUIRED");
+  // restore() deliberately retains this baseline while any select is unknown.
+  // A clean graceful stop proves its UI restoration; preserve it in the receipt
+  // and retire it only when this was the last outstanding selection.
+  if (
+    draft &&
+    (proof.escalated ||
+      proof.failures?.length ||
+      proof.disposition !== "stopped" ||
+      !["en-US", "pt-BR", "es", "de"].includes(journal.initialTarget) ||
+      !/^[1-9][0-9]*$/.test(journal.initialRoot ?? ""))
   )
     throw new Error("VERIFY_UI_RECOVERY_REQUIRED");
   const matches = journal.interruptedActions.filter(
@@ -801,6 +918,16 @@ export async function reconcileVerificationEffect(barrier, request, command) {
       ))
   )
     throw new Error("VERIFY_ACTION_IDENTITY_MISMATCH");
+  if (
+    draft &&
+    (!/^[a-f0-9-]{36}$/.test(request.actionId ?? "") ||
+      matches[0].actionId !== request.actionId ||
+      matches[0].sourceHead !== request.sourceHead ||
+      !hex(matches[0].requestFingerprint) ||
+      matches[0].requestFingerprint !== request.requestFingerprint ||
+      matches[0].phase !== "dispatch-may-have-started")
+  )
+    throw new Error("VERIFY_ACTION_IDENTITY_MISMATCH");
   if (plugin && request.effectReadback.at > proof.stoppedAt)
     throw new Error("VERIFY_PLUGIN_EFFECT_UNPROVEN");
   const entry = matches[0];
@@ -810,16 +937,30 @@ export async function reconcileVerificationEffect(barrier, request, command) {
     at: new Date().toISOString(),
     effect: plugin
       ? "scoped-nina-plugin-refresh-effect-reconciled"
-      : "transient-disclosure-effect-reconciled",
+      : draft
+        ? "transient-connection-route-draft-reconciled"
+        : "transient-disclosure-effect-reconciled",
     dispatchOccurrence: "unknown",
     entry,
     evidence: request,
     lifecycleRunId: proof.lifecycleRunId,
+    ...(draft
+      ? {
+          restoredSelectionBaseline: {
+            language: journal.initialTarget,
+            rootGeneration: journal.initialRoot,
+          },
+        }
+      : {}),
     stopProof: proof,
   };
   journal.receipts ??= [];
   journal.receipts.push(receipt);
   journal.interruptedActions = journal.interruptedActions.filter((item) => item !== entry);
+  if (draft && !journal.interruptedActions.some((item) => item.action === "select")) {
+    delete journal.initialTarget;
+    delete journal.initialRoot;
+  }
   if (!journal.interruptedActions.length)
     journal.notes = journal.notes.filter(
       (note) => !["ACTION_RECONCILIATION_REQUIRED", "INTERRUPTED_SHUTDOWN"].includes(note),

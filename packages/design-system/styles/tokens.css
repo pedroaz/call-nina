@@ -53,6 +53,11 @@
   --od-color-border-default: #f0e5d4;
   --od-color-text-strong: #1b2238;
   --od-color-text-muted: #4b5573;
+  --od-color-action-primary: #262f4a;
+  --od-color-action-primary-hover: #37415f;
+  --od-color-on-action: #ffffff;
+  --od-color-surface-disabled: #ebecf2;
+  --od-color-text-disabled: #4b5573;
   --od-color-brand: #db7a2c;
   --od-color-brand-hover: #924a17;
   --od-color-brand-ink: #6a3614;

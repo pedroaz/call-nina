@@ -7,14 +7,15 @@
   gap: var(--od-space-4);
   justify-content: flex-end;
   padding: var(--od-space-5) var(--od-space-6);
+  margin-inline: auto;
+  max-width: calc(56rem + 2 * var(--od-space-6));
 }
 
 .startup {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
   justify-content: center;
-  min-height: 80dvh;
-  padding: var(--od-space-6);
+  padding: 0 var(--od-space-6) var(--od-space-6);
 }
 
 .startupCard {
@@ -25,7 +26,7 @@
 }
 
 .onboardingCard {
-  max-width: var(--od-onboarding-max);
+  max-width: 56rem;
 }
 
 .onboardingGrid {
@@ -103,4 +104,26 @@
 .connectionStatus > div {
   display: grid;
   gap: var(--od-space-3);
+}
+
+.accessOptions {
+  margin-block: 0;
+  min-width: 0;
+}
+.accessOptions[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--od-space-4);
+}
+.accessOptions p {
+  margin: 0;
+}
+.accessOptions summary {
+  cursor: pointer;
+  font-weight: var(--od-weight-strong);
+  padding-block: var(--od-space-3);
+}
+.accessOptions summary:focus-visible {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: var(--od-space-1);
 }

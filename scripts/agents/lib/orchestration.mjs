@@ -40,14 +40,19 @@ export function replace(file, value) {
     rmSync(temporary, { force: true });
   }
 }
-export function locked(fn) {
+export function locked(fn, resource = "operation") {
+  if (!["operation", "verification"].includes(resource)) throw new Error("LOCK_RESOURCE_INVALID");
   mkdirSync(stateRoot, { recursive: true, mode: 0o700 });
-  const lock = path.join(stateRoot, "operation.lock");
+  const lock = path.join(stateRoot, `${resource}.lock`);
   try {
     mkdirSync(lock);
   } catch (error) {
     if (error.code === "EEXIST")
-      throw new Error("ORCHESTRATION_OPERATION_BUSY: reconcile the owner before retrying");
+      throw new Error(
+        resource === "verification"
+          ? "VERIFY_OPERATION_BUSY"
+          : "ORCHESTRATION_OPERATION_BUSY: reconcile the owner before retrying",
+      );
     throw error;
   }
   try {
@@ -61,6 +66,8 @@ export function locked(fn) {
     throw error;
   }
 }
+export const verificationLocked = (fn) => locked(fn, "verification");
+
 export function resolveOrca() {
   const candidates = [developmentConfig().executables.orca];
   for (const name of ["orca-dev", "orca-ide", ...(process.platform === "linux" ? [] : ["orca"])]) {
@@ -177,11 +184,78 @@ export function assertNoVerification(target = root) {
   if (existsSync(verificationGate) && load(verificationGate).worktree === target)
     throw new Error("VERIFICATION_CHECKOUT_FROZEN");
 }
-export function assertVerificationBarrier() {
+// Manual reservations use the same exclusion barrier as coordinated verification.
+// Their source is an uncommitted, fingerprinted checkout, not a claimed Git commit.
+export function manualVerificationOwner() {
+  const owner = process.env.CODEX_THREAD_ID;
+  if (!/^[a-f0-9-]{36}$/i.test(owner ?? "")) throw new Error("VERIFY_MANUAL_SESSION_REQUIRED");
+  return owner;
+}
+export function verificationSourceDigest(target = root) {
+  const digest = createHash("sha256");
+  digest.update("desktop-verification-source-v2\0");
+  const files = [
+    ...new Set(
+      git(["ls-files", "-z", "--cached", "--others", "--exclude-standard"], target)
+        .split("\0")
+        .filter(Boolean),
+    ),
+  ].sort();
+  for (const file of files) {
+    // Bind executable desktop/controller inputs, not unrelated docs or website edits.
+    if (
+      !/^(apps\/(desktop|mcp-server)\/|packages\/|scripts\/(dev|build|lib|agents)\/|content\/|plugins\/)/.test(
+        file,
+      ) &&
+      !/^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|toolchain\.json|\.node-version|tsconfig[^/]*\.json|development\.json)$/.test(
+        file,
+      )
+    )
+      continue;
+    if (/\.(md|mdx)$/.test(file) && !file.startsWith("content/") && !file.startsWith("plugins/"))
+      continue;
+    digest.update(JSON.stringify(file));
+    let info;
+    try {
+      info = lstatSync(path.join(target, file));
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      digest.update("deleted\0");
+      continue;
+    }
+    if (!info.isFile()) throw new Error("VERIFY_MANUAL_SOURCE_UNSUPPORTED");
+    digest.update(`${info.mode & 0o111}:${info.size}:`);
+    digest.update(readFileSync(path.join(target, file)));
+  }
+  return digest.digest("hex");
+}
+export function assertManualVerificationOwner(gate, target = root) {
+  if (
+    gate.mode !== "manual" ||
+    gate.schemaVersion !== 1 ||
+    typeof gate.started !== "boolean" ||
+    !/^[a-f0-9]{40}$/.test(gate.head ?? "") ||
+    gate.owner !== manualVerificationOwner() ||
+    gate.worktree !== target ||
+    !/^manual_[a-f0-9-]{36}$/.test(gate.run ?? "") ||
+    !/^[a-f0-9]{64}$/.test(gate.sourceDigest ?? "")
+  )
+    throw new Error("VERIFY_MANUAL_OWNER_MISMATCH");
+  return gate;
+}
+export function assertVerificationBarrier({ allowSourceChanges = false } = {}) {
   if (!existsSync(verificationGate))
-    throw new Error("VERIFY_BARRIER_REQUIRED: acquire with orchestrate verify-enter");
+    throw new Error(
+      "VERIFY_BARRIER_REQUIRED: use verify-manual-enter in Manual mode, or coordinator verify-enter",
+    );
   const gate = load(verificationGate);
   if (gate.worktree !== root) throw new Error("VERIFY_CHECKOUT_MISMATCH");
+  if (gate.mode === "manual") {
+    assertManualVerificationOwner(gate);
+    if (!allowSourceChanges && verificationSourceDigest() !== gate.sourceDigest)
+      throw new Error("VERIFY_CHECKOUT_CHANGED");
+    return gate;
+  }
   if (git(["rev-parse", "HEAD"]).trim() !== gate.head || git(["status", "--porcelain"]).trim())
     throw new Error("VERIFY_CHECKOUT_CHANGED");
   return gate;

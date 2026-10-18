@@ -1,3 +1,4 @@
+import { chatgptRegistrationIdSchema, chatgptAccountsSchema } from "./chatgpt.js";
 import { offlineModelActionSchema, offlineModelViewSchema } from "./offline-model.js";
 import { aiConnectionMutationSchema, aiConnectionsViewSchema } from "./ai-connections.js";
 import {
@@ -81,11 +82,7 @@ import {
   vocabularyIdSchema,
 } from "./common.js";
 import { callNinaErrorSchema } from "./errors.js";
-import {
-  accountStateSchema,
-  modelCatalogSchema,
-  rateLimitStateSchema,
-} from "./app-server-state.js";
+import { accountStateSchema, modelCatalogSchema } from "./app-server-state.js";
 import { generationCandidateOutputSchemas } from "./generation.js";
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
@@ -167,12 +164,13 @@ export const desktopIpcChannels = [
   "history/delete",
   "codex/integration/read",
   "codex/integration/action",
-  "codex/account/read",
-  "codex/account/logout",
-  "codex/account/login/start",
-  "codex/account/login/cancel",
-  "codex/models/read",
-  "codex/rate-limits/read",
+  "chatgpt/account/read",
+  "chatgpt/account/logout",
+  "chatgpt/account/login/start",
+  "chatgpt/account/login/cancel",
+  "chatgpt/models/read",
+  "chatgpt/accounts/read",
+  "chatgpt/usage/open",
   "learning-operation/start",
   "learning-operation/retry",
   "learning-operation/cancel",
@@ -561,18 +559,19 @@ const integrationActionRequest = request(
   "codex/integration/action",
   z.strictObject({ action: z.enum(["install", "refresh", "uninstall"]) }),
 );
-const accountReadRequest = request("codex/account/read", emptyPayload);
-const accountLogoutRequest = request("codex/account/logout", emptyPayload);
+const accountReadRequest = request("chatgpt/account/read", emptyPayload);
+const accountLogoutRequest = request("chatgpt/account/logout", emptyPayload);
 const accountLoginRequest = request(
-  "codex/account/login/start",
-  z.strictObject({ method: z.enum(["browser", "device-code"]) }),
+  "chatgpt/account/login/start",
+  z.strictObject({ registrationId: chatgptRegistrationIdSchema.nullable() }),
 );
 const accountLoginCancelRequest = request(
-  "codex/account/login/cancel",
+  "chatgpt/account/login/cancel",
   z.strictObject({ loginId: correlationIdSchema }),
 );
-const modelsReadRequest = request("codex/models/read", emptyPayload);
-const rateLimitsReadRequest = request("codex/rate-limits/read", emptyPayload);
+const modelsReadRequest = request("chatgpt/models/read", emptyPayload);
+const usageOpenRequest = request("chatgpt/usage/open", emptyPayload);
+const accountsReadRequest = request("chatgpt/accounts/read", emptyPayload);
 
 export const learningOperationKinds = [
   "writing-prompt",
@@ -804,7 +803,8 @@ export const desktopIpcRequestSchema = boundaryUnion([
   accountLoginRequest,
   accountLoginCancelRequest,
   modelsReadRequest,
-  rateLimitsReadRequest,
+  accountsReadRequest,
+  usageOpenRequest,
   learningOperationStartRequest,
   learningOperationRetryRequest,
   learningOperationCancelRequest,
@@ -1650,21 +1650,25 @@ const integrationActionResponse = response(
     steps: z.array(text(240)).min(1).max(8),
   }),
 );
-const accountReadResponse = response("codex/account/read", accountStateSchema);
-const accountLogoutResponse = response("codex/account/logout", accountStateSchema);
+const accountReadResponse = response("chatgpt/account/read", accountStateSchema);
+const accountLogoutResponse = response("chatgpt/account/logout", accountStateSchema);
 const accountLoginResponse = response(
-  "codex/account/login/start",
+  "chatgpt/account/login/start",
   z.strictObject({ loginId: correlationIdSchema, status: z.literal("started") }),
 );
 const accountLoginCancelResponse = response(
-  "codex/account/login/cancel",
+  "chatgpt/account/login/cancel",
   z.strictObject({
     loginId: correlationIdSchema,
     status: z.enum(["cancelled", "already-finished"]),
   }),
 );
-const modelsReadResponse = response("codex/models/read", modelCatalogSchema);
-const rateLimitsReadResponse = response("codex/rate-limits/read", rateLimitStateSchema);
+const modelsReadResponse = response("chatgpt/models/read", modelCatalogSchema);
+const usageOpenResponse = response(
+  "chatgpt/usage/open",
+  z.strictObject({ status: z.literal("opened") }),
+);
+const accountsReadResponse = response("chatgpt/accounts/read", chatgptAccountsSchema);
 const learningOperationAcceptanceSchema = z.discriminatedUnion("status", [
   z.strictObject({
     operationId: correlationIdSchema,
@@ -1790,7 +1794,8 @@ export const desktopIpcResponseSchema = boundaryUnion([
   accountLoginResponse,
   accountLoginCancelResponse,
   modelsReadResponse,
-  rateLimitsReadResponse,
+  accountsReadResponse,
+  usageOpenResponse,
   learningOperationStartResponse,
   learningOperationRetryResponse,
   learningOperationCancelResponse,

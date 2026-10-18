@@ -7,7 +7,7 @@ import { z } from "./schema-system.js";
 
 // Configuration describes intent, never adapter availability or entitlement.
 export const aiRouteSchema = z.enum([
-  "codex",
+  "chatgpt",
   "claude-code",
   "openai",
   "anthropic",
@@ -48,7 +48,7 @@ export const aiConnectionSchema = aiConnectionInputSchema
 // Root-owned intent survives portability; device-owned key material never travels with it.
 export const aiConnectionsSchema = z
   .strictObject({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.literal(2),
     revision: z.int().min(0),
     connections: z.array(aiConnectionSchema).max(50),
     activeConnectionId: aiConnectionIdSchema.nullable(),
@@ -71,7 +71,7 @@ export const aiConnectionsSchema = z
     }
   });
 export const emptyAiConnections = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   revision: 0,
   connections: [],
   activeConnectionId: null,

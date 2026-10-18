@@ -2,13 +2,13 @@
 declare module "*AppShell.module.css" {
   const styles: {
     readonly brand: string;
-    readonly brandMark: string;
     readonly brandText: string;
     readonly helper: string;
     readonly helperCollapsed: string;
     readonly helperContent: string;
     readonly helperHeader: string;
     readonly helperInner: string;
+    readonly helperRail: string;
     readonly helperToggle: string;
     readonly location: string;
     readonly nav: string;
@@ -31,22 +31,53 @@ declare module "*AppShell.module.css" {
 
 declare module "*AppStyles.module.css" {
   const styles: {
-    readonly practiceSecondary: string;
     readonly startupCard: string;
+  };
+  export default styles;
+}
+
+declare module "*CompletionActions.module.css" {
+  const styles: {
+    readonly actions: string;
+    readonly suggestion: string;
+    readonly summary: string;
+  };
+  export default styles;
+}
+
+declare module "*ConnectionSettings.module.css" {
+  const styles: {
+    readonly actions: string;
+    readonly confirm: string;
+    readonly connectionDetails: string;
+    readonly editor: string;
+    readonly item: string;
+    readonly items: string;
+    readonly list: string;
+    readonly management: string;
+    readonly notice: string;
+    readonly offline: string;
+    readonly panel: string;
+    readonly remove: string;
+    readonly secret: string;
   };
   export default styles;
 }
 
 declare module "*ContextualHelper.module.css" {
   const styles: {
-    readonly eyebrow: string;
+    readonly answerBubble: string;
+    readonly exchange: string;
     readonly helperAnswer: string;
     readonly helperComposer: string;
     readonly helperComposerActions: string;
     readonly helperComposerHint: string;
     readonly helperConversation: string;
+    readonly helperScroll: string;
     readonly helperSelection: string;
     readonly helperTurns: string;
+    readonly questionBubble: string;
+    readonly supportNotice: string;
   };
   export default styles;
 }
@@ -70,8 +101,14 @@ declare module "*CorrectionComparison.module.css" {
 
 declare module "*Dashboard.module.css" {
   const styles: {
+    readonly activityIcon: string;
+    readonly composer: string;
+    readonly home: string;
+    readonly ideas: string;
     readonly options: string;
     readonly request: string;
+    readonly requestTools: string;
+    readonly resume: string;
     readonly suggestion: string;
     readonly suggestions: string;
     readonly summary: string;
@@ -99,6 +136,9 @@ declare module "*ExerciseEngine.module.css" {
   const styles: {
     readonly acceptedAnswers: string;
     readonly activeExercise: string;
+    readonly answerLabel: string;
+    readonly answerReview: string;
+    readonly completion: string;
     readonly exerciseActions: string;
     readonly exerciseAiFeedback: string;
     readonly exerciseBlanks: string;
@@ -114,6 +154,8 @@ declare module "*ExerciseEngine.module.css" {
     readonly optionGroup: string;
     readonly primaryAction: string;
     readonly questionHeader: string;
+    readonly questionSection: string;
+    readonly suggestedAnswer: string;
   };
   export default styles;
 }
@@ -122,6 +164,16 @@ declare module "*FlashcardWorkspace.module.css" {
   const styles: {
     readonly answer: string;
     readonly card: string;
+    readonly controls: string;
+    readonly deckActions: string;
+    readonly example: string;
+    readonly face: string;
+    readonly progress: string;
+    readonly progressHeader: string;
+    readonly saveSection: string;
+    readonly shortcuts: string;
+    readonly sideLabel: string;
+    readonly word: string;
   };
   export default styles;
 }
@@ -170,6 +222,7 @@ declare module "*Layout.module.css" {
     readonly sectionHeading: string;
     readonly stack: string;
     readonly stackCompact: string;
+    readonly stickyHeader: string;
     readonly title: string;
     readonly twoColumns: string;
     readonly wide: string;
@@ -179,9 +232,15 @@ declare module "*Layout.module.css" {
 
 declare module "*LearningPathPage.module.css" {
   const styles: {
+    readonly activitiesHeading: string;
+    readonly card: string;
+    readonly cardActions: string;
     readonly explanation: string;
+    readonly eyebrow: string;
+    readonly launchProgress: string;
     readonly outline: string;
     readonly page: string;
+    readonly scenario: string;
     readonly unit: string;
     readonly words: string;
   };
@@ -192,6 +251,7 @@ declare module "*MaterialPractice.module.css" {
   const styles: {
     readonly reference: string;
     readonly source: string;
+    readonly sourceList: string;
     readonly workspace: string;
   };
   export default styles;
@@ -265,6 +325,7 @@ declare module "*PracticePage.module.css" {
 
 declare module "*ProfileOnboarding.module.css" {
   const styles: {
+    readonly accessOptions: string;
     readonly app: string;
     readonly connectionStatus: string;
     readonly controlLegend: string;
@@ -290,8 +351,14 @@ declare module "*SavedTranslation.module.css" {
 
 declare module "*SettingsPage.module.css" {
   const styles: {
+    readonly accountAccess: string;
+    readonly accountOptions: string;
+    readonly aiSetup: string;
+    readonly connectionStatus: string;
+    readonly coursePreference: string;
     readonly detailList: string;
     readonly modelRow: string;
+    readonly optionalIntegration: string;
     readonly settingsActions: string;
     readonly settingsControls: string;
     readonly settingsPage: string;
@@ -341,11 +408,12 @@ declare module "*VocabularyPage.module.css" {
     readonly muted: string;
     readonly reviewCard: string;
     readonly selection: string;
-    readonly sort: string;
+    readonly steps: string;
     readonly summary: string;
     readonly table: string;
     readonly tableRegion: string;
     readonly toolbar: string;
+    readonly welcome: string;
     readonly word: string;
   };
   export default styles;

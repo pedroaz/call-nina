@@ -78,6 +78,7 @@ export function ReadingPractice({
       </FieldGroup>
       <ActionGroup>
         <Button
+          variant="secondary"
           isDisabled={busy}
           onPress={() => {
             setTopic(t("practice.readingFlow.defaultRequest"));

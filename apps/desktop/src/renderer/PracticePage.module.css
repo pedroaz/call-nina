@@ -319,6 +319,12 @@
   padding-top: var(--od-space-4);
 }
 
+.practiceRunner {
+  display: grid;
+  gap: var(--od-space-6);
+  min-width: 0;
+}
+
 .practiceRunner > article {
   border-color: var(--od-color-brand-ink);
 
@@ -415,4 +421,10 @@
 
 .quizLengthOptions input {
   width: 8rem;
+}
+
+.quizLengthOptions > label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 8rem);
+  align-items: center;
 }

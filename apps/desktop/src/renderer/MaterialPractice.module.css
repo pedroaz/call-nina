@@ -14,3 +14,23 @@
 .reference {
   overflow-wrap: anywhere;
 }
+
+.workspace > :where(h3, h4, p, ul) {
+  margin-block: 0;
+}
+
+.workspace > button {
+  justify-self: start;
+}
+
+.sourceList {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.sourceList button {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: start;
+  overflow-wrap: anywhere;
+}

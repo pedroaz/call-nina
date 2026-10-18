@@ -19,13 +19,13 @@ export type ShellNavigationItem<Page extends string> = Readonly<{
 
 export function AppShell<Page extends string>(props: {
   activePage: Page;
+  integratedHeader?: boolean;
   navigation: ReadonlyArray<ShellNavigationItem<Page>>;
   settingsNavigation: ShellNavigationItem<Page>;
   parent?: { label: string; onPress: () => void };
   locationLabel: string;
   navigationLabel: string;
   brandName: string;
-  brandMark: string;
   navCollapsed: boolean;
   navToggleLabel: string;
   helperOpen: boolean;
@@ -115,6 +115,25 @@ export function AppShell<Page extends string>(props: {
       window.removeEventListener("keydown", handleShortcut);
     };
   }, [onToggleNavigation, onToggleHelper, navCollapsed, helperOpen, macKeyboard]);
+  const helperControl = (
+    <IconButton
+      variant="quiet"
+      className={styles.helperToggle}
+      ref={helperToggle}
+      label={`${props.helperToggleLabel} (${shortcutModifier}G)`}
+      aria-keyshortcuts={macKeyboard ? "Meta+G" : "Control+G"}
+      aria-expanded={helperOpen}
+      aria-controls="context-helper"
+      leadingIcon={
+        helperOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />
+      }
+      onPress={() => {
+        focusHelperOnOpen.current = !helperOpen;
+        focusHelperOnClose.current = helperOpen;
+        props.onToggleHelper();
+      }}
+    />
+  );
   return (
     <div
       className={`${styles.shell} ${props.navCollapsed ? styles.navCollapsed : ""} ${props.helperOpen ? "" : styles.helperCollapsed} ${props.wide ? styles.wide : ""}`}
@@ -124,9 +143,9 @@ export function AppShell<Page extends string>(props: {
       <nav ref={navigation} className={styles.nav} aria-label={props.navigationLabel}>
         <div className={styles.navInner}>
           <div className={styles.brand}>
-            <img alt="" className={styles.brandMark} src={props.brandMark} />
             <span className={styles.brandText}>{props.brandName}</span>
             <IconButton
+              variant="quiet"
               ref={navigationToggle}
               label={`${props.navToggleLabel} (${shortcutModifier}B)`}
               aria-keyshortcuts={macKeyboard ? "Meta+B" : "Control+B"}
@@ -197,39 +216,25 @@ export function AppShell<Page extends string>(props: {
       </nav>
       <main className={styles.workspace} id="main-content">
         <div className={styles.workspaceInner}>
-          <header className={styles.workspaceHeader}>
-            <div className={styles.location}>
-              {props.parent && (
-                <Button
-                  className={styles.parentLink}
-                  density="compact"
-                  onPress={props.parent.onPress}
-                  variant="quiet"
-                >
-                  <ChevronLeft aria-hidden="true" />
-                  {props.parent.label}
-                </Button>
-              )}
-              {props.parent && <span aria-hidden="true">/</span>}
-              <span aria-current="page">{props.locationLabel}</span>
-            </div>
-            {!helperOpen && (
-              <IconButton
-                variant="quiet"
-                className={styles.helperToggle}
-                ref={helperToggle}
-                label={`${props.helperToggleLabel} (${shortcutModifier}G)`}
-                aria-keyshortcuts={macKeyboard ? "Meta+G" : "Control+G"}
-                aria-expanded={false}
-                aria-controls="context-helper"
-                leadingIcon={<PanelRightOpen aria-hidden="true" />}
-                onPress={() => {
-                  focusHelperOnOpen.current = true;
-                  props.onToggleHelper();
-                }}
-              />
-            )}
-          </header>
+          {!props.integratedHeader && (
+            <header className={styles.workspaceHeader}>
+              <div className={styles.location}>
+                {props.parent && (
+                  <Button
+                    className={styles.parentLink}
+                    density="compact"
+                    onPress={props.parent.onPress}
+                    variant="quiet"
+                  >
+                    <ChevronLeft aria-hidden="true" />
+                    {props.parent.label}
+                  </Button>
+                )}
+                {props.parent && <span aria-hidden="true">/</span>}
+                <span aria-current="page">{props.locationLabel}</span>
+              </div>
+            </header>
+          )}
           {props.content}
         </div>
       </main>
@@ -244,23 +249,11 @@ export function AppShell<Page extends string>(props: {
         <div className={styles.helperInner}>
           <div className={styles.helperHeader}>
             <h2>{props.helperTitle}</h2>
-            <IconButton
-              variant="quiet"
-              className={styles.helperToggle}
-              aria-expanded={true}
-              aria-controls="context-helper"
-              label={`${props.helperToggleLabel} (${shortcutModifier}G)`}
-              aria-keyshortcuts={macKeyboard ? "Meta+G" : "Control+G"}
-              leadingIcon={<PanelRightClose aria-hidden="true" />}
-              onPress={() => {
-                focusHelperOnClose.current = true;
-                props.onToggleHelper();
-              }}
-            />
           </div>
           <div className={styles.helperContent}>{props.helper}</div>
         </div>
       </aside>
+      <div className={styles.helperRail}>{helperControl}</div>
     </div>
   );
 }

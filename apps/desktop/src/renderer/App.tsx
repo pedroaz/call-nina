@@ -14,7 +14,6 @@ import {
   type DataRootGeneration,
 } from "@call-nina/contracts";
 import {
-  FilePenLine,
   Gauge,
   History,
   MessageCircle,
@@ -22,13 +21,11 @@ import {
   LoaderCircle,
   Settings,
   Sparkles,
-  UserRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, Feedback, LoadingState, ModalDialog } from "./components/ui/index.js";
 import { ActionGroup, AppShell as ApplicationShell, Page } from "./components/layout/index.js";
 
-import callNinaLogo from "@call-nina/design-system/brand/nina-phone.png";
 import styles from "./AppStyles.module.css";
 import { NinaHome, emptyNinaHomeDraft, type NinaHomeDraft } from "./Dashboard.js";
 import { useHelperSelection } from "./useHelperSelection.js";
@@ -45,7 +42,6 @@ import { SidebarModelControl } from "./SidebarModelControl.js";
 import { VocabularyPage } from "./VocabularyPage.js";
 import { WritingWorkspace } from "./WritingWorkspace.js";
 import {
-  CodexBanner,
   FolderOnboarding,
   OperationError,
   StartupError,
@@ -209,7 +205,6 @@ function DesktopWorkspace({
     },
     [],
   );
-  const [accountSignedOut, setAccountSignedOut] = useState(false);
   const [providerUnavailable, setProviderUnavailable] =
     useState<Extract<ProviderAccess, { status: "unavailable" }>>();
   const [operationError, setOperationError] = useState<CallNinaError>();
@@ -288,31 +283,12 @@ function DesktopWorkspace({
   const [helperSelection, setHelperSelection] = useHelperSelection(helperEpoch);
 
   useEffect(() => {
-    let disposed = false;
-    const refreshAccount = () => {
-      void invokeDesktop("codex/account/read", {})
-        .then((state) => {
-          if (!disposed) setAccountSignedOut(state.status !== "signed-in");
-        })
-        .catch((cause: unknown) => {
-          if (!disposed) setOperationError(normalizeDesktopError(cause).detail);
-        });
-    };
-    refreshAccount();
     const unsubscribe = subscribeDesktop((event) => {
-      if (event.event === "state-invalidated" && event.scope === "account") {
+      if (
+        event.event === "state-invalidated" &&
+        ["account", "ai-connections"].includes(event.scope)
+      )
         setProviderUnavailable(undefined);
-        refreshAccount();
-      }
-    });
-    return () => {
-      disposed = true;
-      unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = subscribeDesktop((event) => {
       if (event.event === "prepared-activity-open") {
         if (writingDirty)
           setPendingNavigation({
@@ -450,13 +426,12 @@ function DesktopWorkspace({
     <>
       <ApplicationShell
         activePage={shellPage}
+        integratedHeader={!parent}
         locationLabel={t(`nav.${page}`)}
         {...(parent ? { parent } : {})}
-        brandMark={callNinaLogo}
         brandName={t("app.name")}
         content={
           <>
-            <CodexBanner readiness={readiness} />
             {resetNotice && (
               <Feedback live="polite">
                 <p>{t("developmentReset.body")}</p>
@@ -499,11 +474,6 @@ function DesktopWorkspace({
                 </ActionGroup>
               </Feedback>
             )}
-            {accountSignedOut && readiness.codex.status === "available" && (
-              <Feedback live="polite">
-                <UserRound aria-hidden="true" /> {t("codex.signedOut")}
-              </Feedback>
-            )}
             {page === "nina" && learningScope ? (
               <NinaHome
                 key={ninaScopeKey}
@@ -518,20 +488,10 @@ function DesktopWorkspace({
             ) : null}
             {page === "practice" || (page === "writing" && writingOrigin === "practice") ? (
               <div ref={practiceContainer} hidden={page !== "practice"}>
-                {!preparedActivityId && page === "practice" && (
-                  <div className={styles.practiceSecondary}>
-                    <Button
-                      variant="secondary"
-                      leadingIcon={<FilePenLine aria-hidden="true" />}
-                      onPress={() => {
-                        navigate("writing");
-                      }}
-                    >
-                      {t("nav.writing")}
-                    </Button>
-                  </div>
-                )}
                 <PracticePage
+                  onWriting={() => {
+                    navigate("writing");
+                  }}
                   onHistory={(language, rootGeneration) =>
                     void openCompletionPage("history", language, rootGeneration)
                   }
@@ -643,6 +603,7 @@ function DesktopWorkspace({
             ) : null}
             {page === "vocabulary" ? (
               <VocabularyPage
+                requestAiAccess={openAi}
                 targetLanguage={learningScope?.targetLanguage}
                 onOpenActivity={(activityId) => {
                   setActivityOrigin("vocabulary");

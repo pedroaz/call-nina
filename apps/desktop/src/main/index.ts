@@ -13,7 +13,7 @@ import {
   desktopIpcResponseSchema,
   type ActivityId,
 } from "@call-nina/contracts";
-import { CallNinaAppServerClient } from "@call-nina/codex-client";
+import { ChatgptSession } from "./chatgpt-session.js";
 import { app, BrowserWindow, dialog, ipcMain, session } from "electron";
 
 import { DesktopBackend } from "./backend.js";
@@ -26,6 +26,12 @@ import {
   isTrustedRendererFrame,
   openValidatedExternalUrl,
 } from "./security.js";
+
+// Interactive launchers may inject Chromium's plaintext/mock credential stores.
+// Nina always uses the real OS key provider; unavailable stores remain unavailable.
+if (process.platform === "linux" && app.commandLine.getSwitchValue("password-store") === "basic")
+  app.commandLine.removeSwitch("password-store");
+app.commandLine.removeSwitch("use-mock-keychain");
 
 const rendererUrl = new URL(
   process.env["CALL_NINA_RENDERER_URL"] ?? new URL("../renderer/index.html", import.meta.url),
@@ -217,42 +223,21 @@ if (!app.requestSingleInstanceLock()) {
       message: "Call Nina desktop process started.",
       phase: "started",
     });
-    const appServer = new CallNinaAppServerClient({
-      forbiddenRoots: [userData, ...knownInstallRoots, ...(app.isPackaged ? [] : [process.cwd()])],
+    const secrets = new ConnectionSecretStorage(userData);
+    const chatgpt = new ChatgptSession({
+      configDirectory: userData,
+      secrets,
       openExternal: openValidatedExternalUrl,
-      presentDeviceCode: async ({ verificationUrl, userCode }) => {
-        await openValidatedExternalUrl(verificationUrl);
-        await dialog.showMessageBox({
-          type: "info",
-          title: "Call Nina account connection",
-          message: "Enter this one-time code in the browser window:",
-          detail: userCode,
-          buttons: ["Continue"],
-          defaultId: 0,
-          noLink: true,
-        });
-      },
-      processOptions: {
-        standalone: {
-          resourceRoot: app.isPackaged
-            ? path.join(process.resourcesPath, "codex-runtime")
-            : fileURLToPath(new URL("../../../../release/codex-runtime/", import.meta.url)),
-          deviceRoot: userData,
-        },
-        log,
-        runId,
-        sessionId,
-      },
     });
     backend = new DesktopBackend({
       curriculumRoot: app.isPackaged
         ? path.join(process.resourcesPath, "curriculum")
         : fileURLToPath(new URL("../../../../content/curriculum/", import.meta.url)),
       bootstrapFile,
-      secrets: new ConnectionSecretStorage(userData),
+      secrets,
       offlineRuntime: new OfflineRuntime({ artifactRoot: path.join(userData, "offline") }),
       knownInstallRoots,
-      appServer,
+      chatgpt,
       openExternal: openValidatedExternalUrl,
       log,
       emitEvent: (event) => {

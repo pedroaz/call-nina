@@ -1,7 +1,5 @@
-import { SavedTranslation, type SavedTranslationContext } from "./SavedTranslation.js";
 import { normalizeDesktopError } from "./ipc.js";
 import type {
-  AttemptId,
   Language,
   DesktopIpcResponse,
   GenerationCandidateOutputMap,
@@ -21,11 +19,11 @@ import {
   PopoverDialog as Dialog,
   PopoverDialogTrigger as DialogTrigger,
   Card,
+  Disclosure,
   Feedback,
   FieldGroup,
   IconButton,
   OptionCard,
-  ItemList,
 } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 
@@ -79,7 +77,8 @@ function ExerciseContent({
   if (definition.kind === "free-writing") {
     return (
       <FieldGroup>
-        {definition.content.prompt}
+        <span>{definition.content.prompt}</span>
+        <span className={styles.answerLabel}>{t("exercises.answer")}</span>
         <textarea
           aria-label={t("exercises.answer")}
           maxLength={definition.answerContract.maximumCharacters}
@@ -95,7 +94,8 @@ function ExerciseContent({
   if (definition.kind === "short-answer") {
     return (
       <FieldGroup>
-        {definition.content.question}
+        <span>{definition.content.question}</span>
+        <span className={styles.answerLabel}>{t("exercises.answer")}</span>
         <textarea
           aria-label={t("exercises.answer")}
           readOnly={evaluated}
@@ -225,30 +225,17 @@ function Evaluation({
   );
 }
 
-function AiFeedback({
-  feedback,
-  translate,
-}: {
-  feedback: ExerciseAiFeedback;
-  translate?: (
-    field: "feedback-summary" | "feedback-strength" | "feedback-improvement",
-    index?: number,
-  ) => ReactNode;
-}) {
+function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
   const { t } = useTranslation();
   return (
     <div className={styles.exerciseAiFeedback}>
       <p>{feedback.summary}</p>
-      {translate?.("feedback-summary")}
       {feedback.strengths.length > 0 && (
         <section>
           <h3>{t("exercises.aiFeedback.strengths")}</h3>
           <ul>
-            {feedback.strengths.map((item, index) => (
-              <li key={item}>
-                {item}
-                {translate?.("feedback-strength", index)}
-              </li>
+            {feedback.strengths.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </section>
@@ -257,19 +244,17 @@ function AiFeedback({
         <section>
           <h3>{t("exercises.aiFeedback.improvements")}</h3>
           <ul>
-            {feedback.improvements.map((item, index) => (
-              <li key={item}>
-                {item}
-                {translate?.("feedback-improvement", index)}
-              </li>
+            {feedback.improvements.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </section>
       )}
       {feedback.suggestedAnswer && (
-        <p>
-          <strong>{t("exercises.aiFeedback.suggestedAnswer")}</strong> {feedback.suggestedAnswer}
-        </p>
+        <section className={styles.suggestedAnswer}>
+          <h3>{t("exercises.aiFeedback.suggestedAnswer")}</h3>
+          <p>{feedback.suggestedAnswer}</p>
+        </section>
       )}
     </div>
   );
@@ -321,8 +306,6 @@ function resumeExerciseProgress(
 
 export function ExerciseEngine({
   targetLanguage,
-  translation,
-  attemptIds,
   exercises,
   progress,
   onNewAttempt,
@@ -337,8 +320,6 @@ export function ExerciseEngine({
   completionActions,
 }: {
   targetLanguage: Language;
-  translation?: SavedTranslationContext;
-  attemptIds?: readonly AttemptId[] | undefined;
   exercises: readonly ExerciseDefinition[];
   progress?: ExerciseProgress;
   onNewAttempt?: () => Promise<void>;
@@ -405,30 +386,6 @@ export function ExerciseEngine({
   const [abandonFailed, setAbandonFailed] = useState(false);
   const [abandoned, setAbandoned] = useState(false);
   const definition = exercises[position];
-  const translationFor = (
-    exercisePosition: number,
-    field:
-      | "exercise-explanation"
-      | "exercise-hint"
-      | "feedback-summary"
-      | "feedback-strength"
-      | "feedback-improvement",
-    index?: number,
-  ) => {
-    const attemptId = attemptIds?.[exercisePosition];
-    if (!translation || !attemptId) return null;
-    const { requestAiAccess, ...reference } = translation;
-    const target =
-      field === "exercise-hint" || field === "feedback-strength" || field === "feedback-improvement"
-        ? { kind: field, position: exercisePosition, attemptId, index: index ?? 0 }
-        : { kind: field, position: exercisePosition, attemptId };
-    return (
-      <SavedTranslation
-        request={{ ...reference, field: target }}
-        requestAiAccess={requestAiAccess}
-      />
-    );
-  };
 
   if (abandoned) {
     return (
@@ -441,28 +398,26 @@ export function ExerciseEngine({
 
   if (!definition) {
     return evaluations.length > 0 ? (
-      <section aria-labelledby="exercise-complete-heading">
+      <section className={styles.completion} aria-labelledby="exercise-complete-heading">
         <h2 id="exercise-complete-heading">{t("exercises.complete")}</h2>
         {completionActions}
-        <ItemList>
+        <h3>{t("exercises.reviewAnswers")}</h3>
+        <ol className={styles.answerReview}>
           {evaluations.map((evaluation, index) => (
-            <li key={`${evaluation.exerciseKind}:${String(index)}`}>
+            <Card as="li" key={`${evaluation.exerciseKind}:${String(index)}`}>
+              <h4 className={styles.eyebrow}>
+                {t("exercises.progress", { current: index + 1, total: exercises.length })}
+              </h4>
               <Evaluation evaluation={evaluation} aiFeedback={aiFeedbackByPosition[index]} />
               {exercises[index]?.explanation && (
                 <>
                   <p>{exercises[index].explanation}</p>
-                  {translationFor(index, "exercise-explanation")}
                 </>
               )}
-              {aiFeedbackByPosition[index] && (
-                <AiFeedback
-                  feedback={aiFeedbackByPosition[index]}
-                  translate={(field, fieldIndex) => translationFor(index, field, fieldIndex)}
-                />
-              )}
-            </li>
+              {aiFeedbackByPosition[index] && <AiFeedback feedback={aiFeedbackByPosition[index]} />}
+            </Card>
           ))}
-        </ItemList>
+        </ol>
       </section>
     ) : null;
   }
@@ -692,73 +647,84 @@ export function ExerciseEngine({
           />
         </div>
       </div>
-      <div className={styles.questionHeader}>
-        <h2>{definition.instructions}</h2>
-        {displayedHints.length > 0 && (
-          <DialogTrigger
-            isOpen={hintOpen}
-            onOpenChange={(open) => {
-              setHintOpen(open);
-              if (open && hintCount === 0) void revealHint();
-            }}
-          >
-            <Button
-              variant="quiet"
-              leadingIcon={<Lightbulb aria-hidden="true" />}
-              isDisabled={
-                evaluatingWithAi || savingAnswer || (Boolean(currentEvaluation) && hintCount === 0)
-              }
+      <section className={styles.questionSection}>
+        <div className={styles.questionHeader}>
+          <h2>{definition.instructions}</h2>
+          {displayedHints.length > 0 && (
+            <DialogTrigger
+              isOpen={hintOpen}
+              onOpenChange={(open) => {
+                setHintOpen(open);
+                if (open && hintCount === 0) void revealHint();
+              }}
             >
-              {t("exercises.hint")}
-            </Button>
-            <Popover className={styles.hintPopover} placement="bottom end">
-              <Dialog className={styles.hintDialog}>
-                <Heading slot="title">{t("exercises.hint")}</Heading>
-                <div aria-live="polite" className={styles.hintContent}>
-                  {displayedHints.slice(0, hintCount).map((hint, index) => (
-                    <div key={index}>
-                      <p>{hint.text}</p>
-                      {index < definition.hints.length &&
-                        translationFor(position, "exercise-hint", index)}
-                    </div>
-                  ))}
-                </div>
-                {supportFailed && (
-                  <Feedback tone="error" live="assertive">
-                    {t("exercises.supportFailed")}
-                  </Feedback>
-                )}
-                <ActionGroup>
-                  {hintCount < displayedHints.length && !currentEvaluation && (
-                    <Button
-                      variant="secondary"
-                      isDisabled={savingSupport}
-                      onPress={() => void revealHint()}
-                    >
-                      {t(hintCount === 0 ? "exercises.showHint" : "exercises.nextHint")}
-                    </Button>
+              <Button
+                variant="quiet"
+                leadingIcon={<Lightbulb aria-hidden="true" />}
+                isDisabled={
+                  evaluatingWithAi ||
+                  savingAnswer ||
+                  (Boolean(currentEvaluation) && hintCount === 0)
+                }
+              >
+                {t("exercises.hint")}
+              </Button>
+              <Popover className={styles.hintPopover} placement="bottom end">
+                <Dialog className={styles.hintDialog}>
+                  <Heading slot="title">{t("exercises.hint")}</Heading>
+                  <div aria-live="polite" className={styles.hintContent}>
+                    {displayedHints.slice(0, hintCount).map((hint, index) => (
+                      <div key={index}>
+                        <p>{hint.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {supportFailed && (
+                    <Feedback tone="error" live="assertive">
+                      {t("exercises.supportFailed")}
+                    </Feedback>
                   )}
-                  <Button variant="quiet" slot="close">
-                    {t("actions.close")}
-                  </Button>
-                </ActionGroup>
-              </Dialog>
-            </Popover>
-          </DialogTrigger>
-        )}
-      </div>
-      <ExerciseContent
-        definition={definition}
-        evaluated={
-          currentEvaluation !== undefined ||
-          evaluatingWithAi ||
-          savingAnswer ||
-          Boolean(submittedByPosition[position])
+                  <ActionGroup>
+                    {hintCount < displayedHints.length && !currentEvaluation && (
+                      <Button
+                        variant="secondary"
+                        isDisabled={savingSupport}
+                        onPress={() => void revealHint()}
+                      >
+                        {t(hintCount === 0 ? "exercises.showHint" : "exercises.nextHint")}
+                      </Button>
+                    )}
+                    <Button variant="quiet" slot="close">
+                      {t("actions.close")}
+                    </Button>
+                  </ActionGroup>
+                </Dialog>
+              </Popover>
+            </DialogTrigger>
+          )}
+        </div>
+        <ExerciseContent
+          definition={definition}
+          evaluated={
+            currentEvaluation !== undefined ||
+            evaluatingWithAi ||
+            savingAnswer ||
+            Boolean(submittedByPosition[position])
+          }
+          values={values}
+          setValue={setValue}
+        />
+      </section>
+      <div
+        className={styles.feedbackArea}
+        data-visible={
+          Boolean(currentEvaluation || submittedByPosition[position] || evaluatingWithAi) ||
+          undefined
         }
-        values={values}
-        setValue={setValue}
-      />
-      <div className={styles.feedbackArea}>
+      >
+        {(currentEvaluation || submittedByPosition[position] || evaluatingWithAi) && (
+          <h2>{t("exercises.feedbackTitle")}</h2>
+        )}
         {evaluationProgress}
         {answerInvalid && (
           <Feedback live="assertive" tone="error">
@@ -796,19 +762,13 @@ export function ExerciseEngine({
           <>
             <Evaluation evaluation={currentEvaluation} aiFeedback={currentAiFeedback} />
             {definition.explanation && (
-              <>
+              <Disclosure label={t("exercises.explanationTitle")}>
                 <p>{definition.explanation}</p>
-                {translationFor(position, "exercise-explanation")}
-              </>
+              </Disclosure>
             )}
           </>
         )}
-        {currentAiFeedback && (
-          <AiFeedback
-            feedback={currentAiFeedback}
-            translate={(field, index) => translationFor(position, field, index)}
-          />
-        )}
+        {currentAiFeedback && <AiFeedback feedback={currentAiFeedback} />}
       </div>
       <ActionGroup className={styles.exerciseActions}>
         {onAbandoned && (

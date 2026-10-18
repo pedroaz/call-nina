@@ -9,7 +9,7 @@ import {
 
 import { useTranslation } from "react-i18next";
 import { ChevronRight, RefreshCw } from "lucide-react";
-import { Button } from "../ui/Button.js";
+import { Button, IconButton } from "../ui/Button.js";
 import { Card } from "../ui/Surface.js";
 import styles from "./Layout.module.css";
 
@@ -46,7 +46,7 @@ export function Page({
       className={`${styles.page} ${width === "wide" ? styles.wide : ""} ${className ?? ""}`}
     >
       {breadcrumbs && <Breadcrumbs items={breadcrumbs} current={title} />}
-      <header className={styles.header}>
+      <header className={`${styles.header} ${styles.stickyHeader}`}>
         <div className={styles.heading}>
           {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
           <h1 ref={heading} tabIndex={-1} className={styles.title}>
@@ -201,11 +201,11 @@ export function RefreshButton({
   const { t } = useTranslation();
   const [pending, setPending] = useState(false);
   return (
-    <Button
-      variant="secondary"
+    <IconButton
+      variant="quiet"
+      label={pending || busy ? t("layout.refreshing") : t("layout.refresh")}
       isPending={pending || Boolean(busy)}
       isDisabled={Boolean(disabled)}
-      pendingLabel={t("layout.refreshing")}
       leadingIcon={<RefreshCw aria-hidden="true" />}
       onPress={() => {
         setPending(true);
@@ -213,8 +213,6 @@ export function RefreshButton({
           setPending(false);
         });
       }}
-    >
-      {t("layout.refresh")}
-    </Button>
+    />
   );
 }

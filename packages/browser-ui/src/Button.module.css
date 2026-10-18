@@ -15,13 +15,13 @@
 }
 
 .primary {
-  background: var(--od-color-brand);
-  color: var(--od-color-on-brand);
+  background: var(--od-color-action-primary);
+  color: var(--od-color-on-action);
 }
 
 .primary:hover,
 .primary[data-pressed] {
-  background: var(--od-color-brand-hover);
+  background: var(--od-color-action-primary-hover);
   color: var(--od-color-on-dark);
 }
 
@@ -163,4 +163,11 @@
   .button {
     transition: none;
   }
+}
+
+.button[data-disabled]:not([data-pending]) {
+  background: var(--od-color-surface-disabled);
+  border-color: var(--od-color-surface-disabled);
+  color: var(--od-color-text-disabled);
+  opacity: 1;
 }

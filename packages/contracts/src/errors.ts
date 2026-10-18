@@ -107,16 +107,16 @@ export const safeErrorMessages = {
     database:
       "Call Nina could not read or save local learning data. Check that the selected folder is available and writable in Settings/Account, then retry.",
     "app-server":
-      "The AI action could not finish. Retry once. If it fails again, check Codex in Settings/Account and report the diagnostic reference.",
+      "The AI action could not finish. Check the selected connection in Settings and retry.",
     authentication:
-      "Codex needs you to sign in. Open Settings/Account, connect your Codex account, then retry.",
+      "Reconnect your provider account in Settings / Account, or check the selected connection under Models.",
     "unsupported-codex-version":
       "Call Nina could not use this Codex installation. Check its status in Settings/Account and update or reinstall Codex if needed.",
     "rate-limit":
-      "Your Codex usage limit was reached. Check Settings/Account for the reset time and try again after it resets.",
+      "The provider’s usage limit was reached. Check its usage settings before trying again.",
     cancellation: "The operation was cancelled.",
     "model-output":
-      "Codex returned an incomplete or unusable result. Try again; if it keeps happening, try another model or report the diagnostic reference.",
+      "The AI result was incomplete or unusable. Try again or choose another available model.",
     mcp: "The Codex integration could not complete this action. Check its status in Settings/Account and install or refresh the integration if needed.",
     handoff:
       "Call Nina could not open the related activity. Check the Codex integration in Settings/Account, then try again.",
@@ -125,7 +125,7 @@ export const safeErrorMessages = {
     "ai-policy":
       "Call Nina stopped this AI action because it encountered an operation outside the allowed learning workflow. Retry once. If it happens again, report the diagnostic reference.",
     "ai-timeout":
-      "Codex did not finish within the time limit. Try again with a shorter request or a smaller activity.",
+      "The AI request did not finish within the time limit. Try a shorter request or a smaller activity.",
     "model-unavailable":
       "The selected model or reasoning setting is unavailable. Choose Automatic or another available option in the model selector, then retry.",
   },
@@ -145,16 +145,16 @@ export const safeErrorMessages = {
     database:
       "Call Nina konnte lokale Lerndaten nicht lesen oder speichern. Prüfe unter Einstellungen/Konto, ob der gewählte Ordner verfügbar und beschreibbar ist, und versuche es erneut.",
     "app-server":
-      "Die KI-Aktion konnte nicht abgeschlossen werden. Versuche es einmal erneut. Prüfe bei erneutem Fehler Codex unter Einstellungen/Konto und melde die Diagnosereferenz.",
+      "Die KI-Aktion konnte nicht abgeschlossen werden. Prüfe die ausgewählte Verbindung in den Einstellungen und versuche es erneut.",
     authentication:
-      "Du musst dich bei Codex anmelden. Verbinde dein Codex-Konto unter Einstellungen/Konto und versuche es erneut.",
+      "Verbinde dein Anbieterkonto unter Einstellungen / Konto erneut oder prüfe die ausgewählte Verbindung unter Modelle.",
     "unsupported-codex-version":
       "Call Nina konnte diese Codex-Installation nicht verwenden. Prüfe den Status unter Einstellungen/Konto und aktualisiere oder installiere Codex bei Bedarf neu.",
     "rate-limit":
-      "Dein Codex-Nutzungslimit wurde erreicht. Prüfe unter Einstellungen/Konto den Zeitpunkt der Zurücksetzung und versuche es danach erneut.",
+      "Das Nutzungslimit des Anbieters wurde erreicht. Prüfe vor dem nächsten Versuch die Nutzungseinstellungen des Anbieters.",
     cancellation: "Der Vorgang wurde abgebrochen.",
     "model-output":
-      "Codex hat ein unvollständiges oder unbrauchbares Ergebnis geliefert. Versuche es erneut. Wähle bei wiederholtem Fehler ein anderes Modell oder melde die Diagnosereferenz.",
+      "Das KI-Ergebnis war unvollständig oder unbrauchbar. Versuche es erneut oder wähle ein anderes verfügbares Modell.",
     mcp: "Die Codex-Integration konnte diese Aktion nicht abschließen. Prüfe den Status unter Einstellungen/Konto und installiere oder aktualisiere die Integration bei Bedarf.",
     handoff:
       "Call Nina konnte die zugehörige Aktivität nicht öffnen. Prüfe die Codex-Integration unter Einstellungen/Konto und versuche es erneut.",
@@ -163,7 +163,7 @@ export const safeErrorMessages = {
     "ai-policy":
       "Call Nina hat diese KI-Aktion gestoppt, weil ein Vorgang außerhalb des erlaubten Lernablaufs auftrat. Versuche es einmal erneut. Melde bei erneutem Auftreten die Diagnosereferenz.",
     "ai-timeout":
-      "Codex wurde innerhalb des Zeitlimits nicht fertig. Versuche es mit einer kürzeren Anfrage oder einer kleineren Übung erneut.",
+      "Die KI-Anfrage wurde nicht rechtzeitig abgeschlossen. Versuche eine kürzere Anfrage oder eine kleinere Übung.",
     "model-unavailable":
       "Das gewählte Modell oder die Denkeinstellung ist nicht verfügbar. Wähle in der Modellauswahl Automatisch oder eine andere verfügbare Option und versuche es erneut.",
   },

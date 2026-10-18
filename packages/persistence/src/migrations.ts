@@ -3,7 +3,7 @@ import { migrateMultilingualTeaching } from "./teaching-migration.js";
 import { migrateLanguageProfiles } from "./language-migration.js";
 import { migrateAttemptEvidence } from "./attempt-evidence.js";
 import { migrateVersionedContent } from "./content.js";
-import type { DataRootGeneration } from "@call-nina/contracts";
+import { aiConnectionsSchema, z, type DataRootGeneration } from "@call-nina/contracts";
 
 import { openDataRootDatabase, type DatabaseMigration } from "./sqlite.js";
 
@@ -1806,6 +1806,57 @@ export const callNinaMigrations = [
     // The existing BEFORE UPDATE trigger also protects this additive column.
     sql: `ALTER TABLE exercise_attempt_feedback ADD COLUMN provenance_json TEXT
       CHECK(provenance_json IS NULL OR json_valid(provenance_json));`,
+  },
+  {
+    version: 37,
+    name: "chatgpt-plan-connections",
+    sql: "SELECT 1;",
+    migrate(database) {
+      const row = database
+        .prepare("SELECT settings_json FROM ai_connections WHERE singleton = 1")
+        .get();
+      if (!row || typeof row["settings_json"] !== "string")
+        throw new Error("OD_CONNECTION_CONFIG_INVALID");
+      const unknownValue: unknown = JSON.parse(row["settings_json"]);
+      const envelope = z.looseObject({ schemaVersion: z.int() }).parse(unknownValue);
+      if (envelope.schemaVersion === 2) {
+        aiConnectionsSchema.parse(unknownValue);
+        return;
+      }
+      const value = z
+        .strictObject({
+          schemaVersion: z.literal(1),
+          revision: z.int().nonnegative(),
+          migrationNotice: z.boolean(),
+          activeConnectionId: z.uuid().nullable(),
+          retiredSecretRefs: z.array(z.uuid()).max(100),
+          connections: z.array(z.looseObject({ routeId: z.string(), label: z.string() })).max(50),
+        })
+        .parse(unknownValue);
+      const next = aiConnectionsSchema.parse({
+        ...value,
+        schemaVersion: 2,
+        revision: value.revision + 1,
+        migrationNotice:
+          value.migrationNotice ||
+          value.connections.some((entry: { routeId?: unknown }) => entry.routeId === "codex"),
+        connections: value.connections.map((entry: { routeId?: unknown; label?: unknown }) =>
+          entry.routeId === "codex"
+            ? {
+                ...entry,
+                routeId: "chatgpt",
+                label:
+                  typeof entry.label === "string"
+                    ? entry.label.replace(/^Codex(?= \(|$)/u, "ChatGPT")
+                    : entry.label,
+              }
+            : entry,
+        ),
+      });
+      database
+        .prepare("UPDATE ai_connections SET settings_json = ? WHERE singleton = 1")
+        .run(JSON.stringify(next));
+    },
   },
 ] as const satisfies readonly DatabaseMigration[];
 

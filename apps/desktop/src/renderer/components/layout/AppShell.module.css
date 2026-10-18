@@ -1,7 +1,19 @@
 .shell {
+  --helper-rail-width: calc(var(--od-control-min) + 2 * var(--od-space-3));
   display: grid;
   grid-template-columns: var(--od-nav-width) minmax(0, 1fr) var(--od-helper-width);
   min-height: 100dvh;
+}
+.helperRail {
+  position: fixed;
+  inset: var(--od-space-5) 0 auto auto;
+  width: var(--helper-rail-width);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: var(--od-space-3);
+  padding-inline: var(--od-space-3);
+  z-index: 6;
 }
 .navCollapsed {
   grid-template-columns: var(--od-nav-collapsed-width) minmax(0, 1fr) var(--od-helper-width);
@@ -33,16 +45,11 @@
   align-items: center;
   gap: var(--od-space-3);
   min-height: var(--od-control-min);
-}
-.brandMark {
-  display: block;
-  flex: none;
-  height: var(--od-control-small);
-  width: var(--od-control-small);
+  padding-inline: var(--od-space-3);
 }
 .brandText {
   font-family: var(--od-font-family-display);
-  font-size: var(--od-font-size-sm);
+  font-size: var(--od-font-size-lg);
   font-weight: var(--od-weight-strong);
   line-height: var(--od-line-tight);
 }
@@ -80,7 +87,6 @@
   height: var(--od-icon-md);
   width: var(--od-icon-md);
 }
-.navCollapsed .brandMark,
 .navCollapsed .brandText,
 .navCollapsed .navLabel,
 .navCollapsed .navFooter {
@@ -141,6 +147,8 @@
   display: flex;
   gap: var(--od-space-4);
   justify-content: space-between;
+  min-height: var(--od-control-min);
+  padding-right: var(--od-control-min);
 }
 .helperHeader h2 {
   font-size: var(--od-font-size-md);
@@ -148,7 +156,8 @@
 }
 .helperContent {
   min-height: 0;
-  overflow-y: auto;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
 }
 @media (max-width: 68rem) {
   .shell,
@@ -243,6 +252,28 @@
 }
 
 .helperToggle {
-  width: var(--od-control-small);
+  width: var(--od-control-min);
+  min-height: var(--od-control-min);
   flex: none;
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.helperToggle[aria-expanded="true"] {
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-text-strong);
+}
+
+.navButton svg {
+  stroke-width: 1.75;
+}
+.navButton[aria-current="page"] {
+  color: var(--od-color-text-strong);
+}
+.workspaceHeader {
+  border-bottom: 0;
+  padding-block: 0;
+}
+
+.helperCollapsed .workspace {
+  padding-right: var(--helper-rail-width);
 }

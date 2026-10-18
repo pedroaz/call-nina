@@ -65,11 +65,11 @@ export const copy: Record<Locale, Copy> = {
     practiceLabel: "Inside the current desktop app",
     practiceTitle: "Your next step can be a small one.",
     practiceIntro:
-      "The development version focuses on German practice. Its interface is available in English and German; public downloads are still coming soon.",
+      "The development version focuses on German practice. Its interface is available in English, German, Spanish and Brazilian Portuguese; public downloads are still coming soon.",
     steps: [
       {
         title: "Find something to practise",
-        text: "Choose reading or writing practice, work through prepared activities, or return to vocabulary that’s due for review.",
+        text: "Describe a learning goal to Nina, choose reading or writing practice, or return to prepared activities and vocabulary review.",
       },
       {
         title: "Make it relevant",
@@ -92,7 +92,7 @@ export const copy: Record<Locale, Copy> = {
     futureItems: [
       {
         title: "Start with a conversation",
-        text: "A planned Nina home screen will turn a typed goal into a suggested activity. Nina will be an AI guide; voice is a later step.",
+        text: "Nina already accepts a typed learning goal. A built-in voice conversation experience is a later step.",
       },
       {
         title: "Take practice with you",
@@ -100,7 +100,7 @@ export const copy: Record<Locale, Copy> = {
       },
       {
         title: "Choose more ways to connect",
-        text: "Additional AI providers, optional desktop local models and a Nina-managed service are future work. Today’s AI route is Codex.",
+        text: "Nina-managed access and the Claude Code subscription route are not available yet. The development app already includes Codex, API-key connections and downloaded-model settings.",
       },
     ],
     downloadsTitle: "A new learning companion is on the way.",
@@ -136,11 +136,11 @@ export const copy: Record<Locale, Copy> = {
     practiceLabel: "In der aktuellen Desktop-App",
     practiceTitle: "Dein nächster Schritt darf klein sein.",
     practiceIntro:
-      "Die Entwicklungsversion konzentriert sich auf Deutschübungen. Die Oberfläche gibt es auf Englisch und Deutsch. Öffentliche Downloads folgen noch.",
+      "Die Entwicklungsversion konzentriert sich auf Deutschübungen. Die Oberfläche gibt es auf Englisch, Deutsch, Spanisch und brasilianischem Portugiesisch. Öffentliche Downloads folgen noch.",
     steps: [
       {
         title: "Finde eine passende Übung",
-        text: "Wähle Lese- oder Schreibübungen, bearbeite vorbereitete Aufgaben oder wiederhole fällige Vokabeln.",
+        text: "Beschreibe Nina dein Lernziel, wähle Lese- oder Schreibübungen oder nutze vorbereitete Aufgaben und Wortschatzwiederholungen.",
       },
       {
         title: "Übe, was dich interessiert",
@@ -163,7 +163,7 @@ export const copy: Record<Locale, Copy> = {
     futureItems: [
       {
         title: "Mit einem Gespräch beginnen",
-        text: "Auf einer geplanten Nina-Startseite soll aus deinem eingetippten Lernziel ein Übungsvorschlag werden. Nina wird eine KI-Lernbegleitung sein; Spracheingabe und Sprachausgabe folgen später.",
+        text: "Nina nimmt bereits eingetippte Lernziele entgegen. Ein integriertes Sprachgespräch ist ein späterer Schritt.",
       },
       {
         title: "Übungen mitnehmen",
@@ -171,7 +171,7 @@ export const copy: Record<Locale, Copy> = {
       },
       {
         title: "Mehr Möglichkeiten für KI",
-        text: "Weitere KI-Anbieter, optionale lokale Desktop-Modelle und ein von Nina betriebener Dienst sind geplant. Der aktuelle KI-Zugang läuft über Codex.",
+        text: "Zugang über Nina und die Claude-Code-Abonnementverbindung sind noch nicht verfügbar. Die Entwicklungsversion enthält bereits Codex, API-Schlüssel-Verbindungen und Einstellungen für heruntergeladene Modelle.",
       },
     ],
     downloadsTitle: "Eine neue Lernbegleitung entsteht.",

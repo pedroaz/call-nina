@@ -1,3 +1,5 @@
+import { ChatgptGenerationService } from "./chatgpt-generation.js";
+import { type ChatgptSession } from "./chatgpt-session.js";
 import { ManagedGenerationService, managedCatalog } from "@call-nina/managed-generation/service";
 import {
   OfflineGenerationService,
@@ -82,9 +84,8 @@ import {
   type DesktopIpcResponse,
   type DesktopIpcEvent,
   type ErrorKind,
-  type AppServerEvent,
+  type GenerationEvent,
   type ActivityAction,
-  type CallNinaAppServerAdapter,
 } from "@call-nina/contracts";
 import { ActivityService } from "./services/activities.js";
 import { LearningResultService } from "./services/learning-results.js";
@@ -101,12 +102,7 @@ import {
   evaluateExerciseAnswer,
   resolveModelPreference,
 } from "@call-nina/domain";
-import {
-  AppServerTransportError,
-  AppServerUnavailableError,
-  discoverCodex,
-  type AppServerLogRecord,
-} from "@call-nina/codex-client";
+import { discoverCodex, type AppServerLogRecord } from "@call-nina/codex-client";
 import { readPluginIntegrationState, runPluginIntegrationAction } from "./plugin-integration.js";
 
 import {
@@ -141,7 +137,6 @@ type TranslationJob = {
 };
 
 export class DesktopBackend {
-  #pendingLoginId: ReturnType<typeof correlationIdSchema.parse> | undefined;
   readonly #secrets: ConnectionSecretStorage;
   readonly #curriculumRoot: string;
   readonly #bootstrapFile: string;
@@ -153,8 +148,9 @@ export class DesktopBackend {
   readonly #offlineServices = new Set<OfflineGenerationService>();
   readonly #offline: OfflineRuntime;
   #offlineEpoch = 0;
-  readonly #projectGenerationEvent: (event: AppServerEvent) => void;
-  readonly #appServer: CallNinaAppServerAdapter | undefined;
+  readonly #projectGenerationEvent: (event: GenerationEvent) => void;
+  readonly #chatgpt: ChatgptSession;
+  readonly #chatgptServices = new Set<ChatgptGenerationService>();
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
   readonly #emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
   readonly #openExternal: ((url: string) => Promise<void>) | undefined;
@@ -179,7 +175,6 @@ export class DesktopBackend {
   >();
   #database: CallNinaDatabase | undefined;
   #repository: CallNinaRepository | undefined;
-  #appServerStart: Promise<unknown> | undefined;
   #requestQueue: Promise<void> = Promise.resolve();
   #closing = false;
 
@@ -214,7 +209,7 @@ export class DesktopBackend {
     offlineRuntime: OfflineRuntime;
     chooseDirectory: () => Promise<string | undefined>;
     knownInstallRoots: readonly string[];
-    appServer?: CallNinaAppServerAdapter;
+    chatgpt: ChatgptSession;
     log?: (record: AppServerLogRecord) => void;
     emitEvent?: (event: DesktopIpcEvent) => void;
     openExternal?: (url: string) => Promise<void>;
@@ -228,32 +223,29 @@ export class DesktopBackend {
     this.#bootstrapFile = options.bootstrapFile;
     this.#chooseDirectory = options.chooseDirectory;
     this.#knownInstallRoots = options.knownInstallRoots;
-    this.#appServer = options.appServer;
+    this.#chatgpt = options.chatgpt;
+    this.#chatgpt.subscribe((event) => this.#emitEvent?.(event));
     this.#log = options.log;
     this.#emitEvent = options.emitEvent;
     this.#openExternal = options.openExternal;
     this.#exportDiagnostics = options.exportDiagnostics;
-    const projectEvent = (event: AppServerEvent) => {
+    const projectEvent = (event: GenerationEvent) => {
       // Saved translations have their own settlement and never enter helper history,
       // course support, skill evidence, or learning-operation output events.
       const translationOperationId =
-        event.event === "operation-state-changed"
-          ? event.state.operationId
-          : event.event === "operation-progress" || event.event === "operation-finished"
-            ? event.operationId
-            : undefined;
+        event.event === "operation-state-changed" ? event.state.operationId : event.operationId;
       if (translationOperationId && this.#translationProviderOperations.has(translationOperationId))
         return;
       void this.#enqueue(async () => {
-        if (!this.#closing) await this.#projectAppServerEvent(event);
-      }).catch(() => {
+        if (!this.#closing) await this.#handleGenerationEvent(event);
+      }).catch((error: unknown) => {
         this.#operationLog(
           "error",
           "DESKTOP_EVENT_FAILED",
           selectionId(),
-          "app-server-event",
-          undefined,
-          "App Server event could not be handled.",
+          "generation-event",
+          diagnosticErrorCode(error),
+          "Generation event could not be handled.",
         );
         if (event.event === "operation-state-changed") {
           const accepted = this.#operationsBySubmission.get(event.state.submissionId);
@@ -261,16 +253,7 @@ export class DesktopBackend {
         }
       });
     };
-    this.#appServer?.subscribe((event) => {
-      if (
-        event.event !== "operation-state-changed" &&
-        event.event !== "operation-progress" &&
-        event.event !== "operation-finished"
-      )
-        projectEvent(event);
-    });
     this.#projectGenerationEvent = projectEvent;
-    this.#appServer?.subscribeGeneration(projectEvent);
   }
 
   close(): void {
@@ -290,6 +273,8 @@ export class DesktopBackend {
     this.#managedServices.clear();
     for (const service of this.#directServices) void service.shutdown();
     this.#directServices.clear();
+    for (const service of this.#chatgptServices) void service.shutdown();
+    this.#chatgptServices.clear();
     this.#operationServices.clear();
     this.#translationReveals.clear();
     this.#database?.close();
@@ -317,7 +302,7 @@ export class DesktopBackend {
       this.close();
     });
     await this.#offline.stop();
-    await this.#appServer?.shutdown();
+    await this.#chatgpt.shutdown();
     this.#operationLog(
       "info",
       "DESKTOP_SHUTDOWN_COMPLETED",
@@ -360,51 +345,14 @@ export class DesktopBackend {
     });
   }
 
-  async #ensureAppServer(): Promise<CallNinaAppServerAdapter | undefined> {
-    if (!this.#appServer || (await this.#activeConnection())?.routeId !== "codex") return undefined;
-    if (this.#appServerStart) {
-      await this.#appServerStart;
-      const { lifecycle } = await this.#appServer.snapshot();
-      if (lifecycle.status === "failed" || lifecycle.status === "stopped") {
-        this.#appServerStart = undefined;
-      }
-    }
-    if (!this.#appServerStart) {
-      this.#appServerStart = this.#appServer.start().catch((error: unknown) => {
-        this.#appServerStart = undefined;
-        throw error;
-      });
-    }
-    await this.#appServerStart;
-    return this.#appServer;
-  }
-
   async #stopConnectionRuntime(): Promise<void> {
     this.#offlineEpoch++;
     await this.#offline.stop();
-    if (this.#pendingLoginId && this.#appServer) {
-      await this.#appServer.cancelManagedLogin(this.#pendingLoginId);
-      this.#pendingLoginId = undefined;
-    }
-    await this.#appServer?.shutdown();
-    this.#appServerStart = undefined;
+    if (this.#chatgpt.pendingLoginId) this.#chatgpt.cancelLogin(this.#chatgpt.pendingLoginId);
   }
 
-  async #projectAppServerEvent(event: AppServerEvent): Promise<void> {
-    if (event.event === "account-login-changed") {
-      if (
-        ["complete", "cancelled", "failed"].includes(event.state.status) &&
-        this.#pendingLoginId === event.loginId
-      )
-        this.#pendingLoginId = undefined;
-      this.#emitEvent?.({ event: "account-login", loginId: event.loginId, state: event.state });
-    } else if (event.event === "models-changed") {
-      this.#emitEvent?.({ event: "state-invalidated", scope: "models" });
-    } else if (event.event === "rate-limits-changed") {
-      this.#emitEvent?.({ event: "state-invalidated", scope: "rate-limits" });
-    } else if (event.event === "account-changed") {
-      this.#emitEvent?.({ event: "state-invalidated", scope: "account" });
-    } else if (event.event === "operation-progress") {
+  async #handleGenerationEvent(event: GenerationEvent): Promise<void> {
+    if (event.event === "operation-progress") {
       const accepted = this.#operationsBySubmission.get(event.submissionId);
       if (
         !accepted ||
@@ -581,6 +529,10 @@ export class DesktopBackend {
           }
           const selection = accepted.operation.modelSelection;
           const provenance = generationProvenanceSchema.parse(state.provenance);
+          const expectedProducer =
+            accepted.connection.routeId === "chatgpt"
+              ? "chatgpt-plan"
+              : accepted.connection.routeId;
           const capturedEffort =
             selection.effort.selection === "exact"
               ? selection.effort.effortId
@@ -590,7 +542,7 @@ export class DesktopBackend {
           if (
             selection.model.selection !== "exact" ||
             capturedEffort === undefined ||
-            provenance.producer !== accepted.connection.routeId ||
+            provenance.producer !== expectedProducer ||
             provenance.modelId !== selection.model.modelId ||
             provenance.effortId !== capturedEffort
           )
@@ -1439,8 +1391,34 @@ export class DesktopBackend {
     return settings.connections.find((entry) => entry.id === settings.activeConnectionId);
   }
 
-  #generationForConnection(connection: AiConnection): GenerationService | undefined {
-    if (connection.routeId === "codex") return this.#appServer;
+  async #generationForConnection(connection: AiConnection): Promise<GenerationService | undefined> {
+    if (connection.routeId === "chatgpt" && this.#database) {
+      const database = this.#database;
+      const captured = structuredClone(connection);
+      const registrationId = await this.#chatgpt.selectedRegistration();
+      if (!registrationId) throw new Error("OD_CHATGPT_SIGN_IN_REQUIRED");
+      const assertActive = async () => {
+        if (this.#closing || database !== this.#database || database.closed)
+          throw new Error("OD_DATA_ROOT_STALE");
+        const current = await this.#requireActiveConnection();
+        if (
+          current.id !== captured.id ||
+          current.routeId !== "chatgpt" ||
+          (await this.#chatgpt.selectedRegistration()) !== registrationId
+        )
+          throw new Error("OD_CONNECTION_CONFLICT");
+      };
+      const service = new ChatgptGenerationService({
+        session: this.#chatgpt,
+        registrationId,
+        assertActive,
+        connectionId: connection.id,
+        rootGeneration: database.rootGeneration,
+      });
+      service.subscribeGeneration(this.#projectGenerationEvent);
+      this.#chatgptServices.add(service);
+      return service;
+    }
     if (connection.routeId === "managed" && this.#database) {
       const database = this.#database;
       const service = new ManagedGenerationService({
@@ -1520,6 +1498,15 @@ export class DesktopBackend {
 
   #releaseOperation(operationId: CorrelationId): void {
     const service = this.#operationServices.get(operationId);
+    if (
+      service instanceof ChatgptGenerationService &&
+      ![...this.#operationServices.entries()].some(
+        ([id, current]) => id !== operationId && current === service,
+      )
+    ) {
+      this.#chatgptServices.delete(service);
+      void service.shutdown();
+    }
     service?.releaseOperation(operationId);
     this.#operationServices.delete(operationId);
     if (
@@ -1567,33 +1554,37 @@ export class DesktopBackend {
         languages: [],
         models: null,
       };
-      if (connection.routeId === "codex") {
-        entry.status = "inactive";
-        // Reading settings never starts an inactive runtime or probes credentials.
+      if (connection.routeId === "chatgpt") {
+        entry.status =
+          connection.id === settings.activeConnectionId ? "account-required" : "inactive";
         if (connection.id === settings.activeConnectionId) {
-          entry.status = "runtime-unavailable";
-          try {
-            const runtime = await this.#ensureAppServer();
-            if (runtime) {
-              const snapshot = await runtime.snapshot();
-              if (snapshot.lifecycle.status === "ready") {
-                entry.models =
-                  snapshot.account.status === "signed-in" ? await runtime.refreshModels() : null;
-                entry.operations = [...runtime.generationCapabilities.operations];
+          if (this.#secrets.state().status !== "available")
+            entry.status = "secure-storage-unavailable";
+          else
+            try {
+              if (
+                (await this.#chatgpt.account()).status === "signed-in" &&
+                !this.#chatgpt.pendingLoginId
+              ) {
+                entry.models = await this.#chatgpt.models();
+                entry.operations = [
+                  "writing-prompt",
+                  "voice-activity-draft",
+                  "writing-correction",
+                  "contextual-help",
+                  "flashcard-generation",
+                  "exercise-generation",
+                  "exercise-feedback",
+                ];
                 entry.languages = ["en-US", "pt-BR", "es", "de"];
                 entry.status =
-                  snapshot.account.status !== "signed-in"
-                    ? "account-required"
-                    : entry.models &&
-                        resolveModelPreference(connection.preference, entry.models).status ===
-                          "available"
-                      ? "available"
-                      : "model-unavailable";
+                  resolveModelPreference(connection.preference, entry.models).status === "available"
+                    ? "available"
+                    : "model-unavailable";
               }
+            } catch {
+              entry.status = "model-unavailable";
             }
-          } catch {
-            entry.status = "runtime-unavailable";
-          }
         }
       }
       if (isDirectApiRoute(connection.routeId)) {
@@ -1671,6 +1662,18 @@ export class DesktopBackend {
       status: "unavailable",
       reason,
     });
+    if (operation === "voice-handoff") {
+      if (!this.#openExternal) return unavailable("capability-unavailable");
+      const integration = await this.#codexState(correlationId);
+      if (integration.status !== "available") return unavailable("runtime-unavailable");
+      if (integration.plugin !== "installed") return unavailable("plugin-required");
+      return {
+        routeId: connection?.routeId ?? "chatgpt",
+        operation,
+        status: "available",
+        modelSelection: null,
+      };
+    }
     if (!connection) return unavailable("connection-required");
     if (
       retainedConnection &&
@@ -1681,8 +1684,7 @@ export class DesktopBackend {
       return unavailable("capability-unavailable");
     if (isDirectApiRoute(connection.routeId)) {
       const catalog = directApiCatalog(connection.routeId);
-      if (operation === "voice-handoff" || !catalog.operations.includes(operation))
-        return unavailable("capability-unavailable");
+      if (!catalog.operations.includes(operation)) return unavailable("capability-unavailable");
       if (this.#secrets.state().status !== "available")
         return unavailable("secure-storage-unavailable");
       if (!connection.secretRef) return unavailable("credential-required");
@@ -1749,8 +1751,7 @@ export class DesktopBackend {
     if (connection.routeId === "managed") {
       const catalog = managedCatalog();
       if (!catalog) return unavailable("runtime-unavailable");
-      if (operation === "voice-handoff" || !catalog.operations.includes(operation))
-        return unavailable("capability-unavailable");
+      if (!catalog.operations.includes(operation)) return unavailable("capability-unavailable");
       if (retainedSelection) {
         if (
           retainedSelection.model.selection !== "exact" ||
@@ -1777,44 +1778,16 @@ export class DesktopBackend {
         },
       };
     }
-    if (connection.routeId !== "codex") return unavailable("capability-unavailable");
-    if (operation === "voice-handoff") {
-      const capabilities = this.#appServer?.codexCapabilities;
-      if (
-        !this.#openExternal ||
-        !capabilities?.voiceHandoff ||
-        !capabilities.externalConversation ||
-        !capabilities.localMcp ||
-        !capabilities.plugin
-      )
-        return unavailable("capability-unavailable");
-      const integration = await this.#codexState(correlationId);
-      if (integration.status !== "available") return unavailable("runtime-unavailable");
-      if (integration.plugin !== "installed") return unavailable("plugin-required");
-      return { routeId: "codex", operation, status: "available", modelSelection: null };
-    }
-    if (this.#pendingLoginId) return unavailable("account-unavailable");
-    let appServer: CallNinaAppServerAdapter | undefined;
+    if (connection.routeId !== "chatgpt") return unavailable("capability-unavailable");
+    if (this.#secrets.state().status !== "available")
+      return unavailable("secure-storage-unavailable");
+    if (this.#chatgpt.pendingLoginId) return unavailable("account-unavailable");
+    const account = await this.#chatgpt.account();
+    if (account.status === "signed-out" || account.status === "expired")
+      return unavailable("account-required");
+    if (account.status !== "signed-in") return unavailable("account-unavailable");
     try {
-      appServer = await this.#ensureAppServer();
-      if (!appServer) return unavailable("runtime-unavailable");
-      const snapshot = await appServer.snapshot();
-      if (snapshot.lifecycle.status !== "ready") return unavailable("runtime-unavailable");
-      if (snapshot.account.status === "signed-out" || snapshot.account.status === "expired")
-        return unavailable("account-required");
-      if (snapshot.account.status !== "signed-in") return unavailable("account-unavailable");
-    } catch {
-      return unavailable("runtime-unavailable");
-    }
-    const capabilities = this.#appServer?.generationCapabilities;
-    if (
-      !capabilities ||
-      capabilities.providerId !== connection.routeId ||
-      !capabilities.operations.includes(operation)
-    )
-      return unavailable("capability-unavailable");
-    try {
-      const catalog = await appServer.refreshModels();
+      const catalog = await this.#chatgpt.models();
       // Retry retains the original model/effort and never silently changes it.
       if (retainedSelection) {
         const model = retainedSelection.model;
@@ -2079,7 +2052,7 @@ export class DesktopBackend {
           await readSavedTranslations(database, request, this.#translationReveal(job.request));
         });
         assertActive();
-        const generation = this.#generationForConnection(connection);
+        const generation = await this.#generationForConnection(connection);
         if (!generation) throw new Error("OD_OPERATION_UNSUPPORTED");
         const operationId = selectionId();
         this.#operationServices.set(operationId, generation);
@@ -3530,79 +3503,82 @@ export class DesktopBackend {
           await runPluginIntegrationAction(request.payload.action, current.codexVersion),
         );
       }
-      if (request.channel === "codex/account/read") {
-        try {
-          const appServer = await this.#ensureAppServer();
-          if (appServer) return this.#success(request, (await appServer.snapshot()).account);
-        } catch {
-          // Optional provider state must not turn local setup into an error screen.
-        }
-        return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
+      if (request.channel === "chatgpt/usage/open") {
+        if (!this.#openExternal) return this.#failure(request, "app-server");
+        await this.#openExternal("https://chatgpt.com/settings/usage");
+        return this.#success(request, { status: "opened" });
       }
-      if (request.channel === "codex/account/logout") {
+      if (request.channel === "chatgpt/account/read")
+        return this.#success(request, await this.#chatgpt.account());
+      if (request.channel === "chatgpt/accounts/read")
+        return this.#success(request, await this.#chatgpt.accounts());
+      if (request.channel === "chatgpt/account/logout") {
         if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
           return this.#failure(request, "conflict");
-        const appServer = await this.#ensureAppServer();
-        if (!appServer) return this.#failure(request, "app-server");
-        const account = await appServer.logout();
-        this.#pendingLoginId = undefined;
+        return this.#success(request, await this.#chatgpt.logout());
+      }
+      if (request.channel === "chatgpt/account/login/start") {
+        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+          return this.#failure(request, "conflict");
+        // Choosing ChatGPT sign-in explicitly selects that route, preserving every saved connection.
+        if (!this.#database) return this.#failure(request, "stale-data-root");
+        const connections = await readAiConnections(this.#database);
+        let connection =
+          connections.connections.find(
+            (entry) => entry.id === connections.activeConnectionId && entry.routeId === "chatgpt",
+          ) ?? connections.connections.find((entry) => entry.routeId === "chatgpt");
+        if (!connection) {
+          const created = await mutateConnections(
+            this.#database,
+            this.#secrets,
+            {
+              expectedGeneration: this.#database.rootGeneration,
+              expectedRevision: connections.revision,
+              action: {
+                kind: "save",
+                connection: {
+                  id: crypto.randomUUID(),
+                  label: "ChatGPT",
+                  routeId: "chatgpt",
+                  preference: {
+                    model: { mode: "automatic" },
+                    effort: { mode: "semantic", effort: "balanced" },
+                  },
+                },
+                credential: { action: "keep" },
+              },
+            },
+            async () => this.#stopConnectionRuntime(),
+          );
+          connection = created.connections.find((entry) => entry.routeId === "chatgpt");
+        }
+        if (connection) {
+          const current = await readAiConnections(this.#database);
+          if (current.activeConnectionId !== connection.id)
+            await mutateConnections(
+              this.#database,
+              this.#secrets,
+              {
+                expectedGeneration: this.#database.rootGeneration,
+                expectedRevision: current.revision,
+                action: { kind: "activate", connectionId: connection.id },
+              },
+              async () => this.#stopConnectionRuntime(),
+            );
+        }
+        const loginId = await this.#chatgpt.startLogin(request.payload.registrationId);
         this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
-        return this.#success(request, account);
+        return this.#success(request, { loginId, status: "started" });
       }
-      if (request.channel === "codex/account/login/start") {
-        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
-          return this.#failure(request, "conflict");
-        const appServer = await this.#ensureAppServer();
-        if (appServer) {
-          const loginId = await appServer.startManagedLogin(request.payload.method);
-          this.#pendingLoginId = loginId;
-          return this.#success(request, { loginId, status: "started" });
-        }
-        return this.#failure(request, "app-server");
+      if (request.channel === "chatgpt/account/login/cancel") {
+        const cancelled = this.#chatgpt.cancelLogin(request.payload.loginId);
+        return this.#success(request, {
+          loginId: request.payload.loginId,
+          status: cancelled ? "cancelled" : "already-finished",
+        });
       }
-      if (request.channel === "codex/account/login/cancel") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) {
-          try {
-            await appServer.cancelManagedLogin(request.payload.loginId);
-            if (this.#pendingLoginId === request.payload.loginId) this.#pendingLoginId = undefined;
-            return this.#success(request, {
-              loginId: request.payload.loginId,
-              status: "cancelled",
-            });
-          } catch {
-            return this.#success(request, {
-              loginId: request.payload.loginId,
-              status: "already-finished",
-            });
-          }
-        }
-        return this.#failure(request, "app-server");
-      }
-      if (request.channel === "codex/models/read") {
-        try {
-          const appServer = await this.#ensureAppServer();
-          if (!appServer || (await appServer.snapshot()).lifecycle.status !== "ready") {
-            return this.#failure(request, "app-server");
-          }
-          if ((await appServer.snapshot()).account.status !== "signed-in")
-            return this.#failure(request, "authentication");
-          return this.#success(request, await appServer.refreshModels());
-        } catch (error) {
-          if (
-            error instanceof AppServerUnavailableError ||
-            error instanceof AppServerTransportError
-          ) {
-            return this.#failure(request, "app-server");
-          }
-          throw error;
-        }
-      }
-      if (request.channel === "codex/rate-limits/read") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) return this.#success(request, await appServer.refreshRateLimits());
-        return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
-      }
+      if (request.channel === "chatgpt/models/read")
+        return this.#success(request, await this.#chatgpt.models());
       if (request.channel === "learning-operation/start") {
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") {
@@ -3702,7 +3678,7 @@ export class DesktopBackend {
             )),
           },
         });
-        const generation = this.#generationForConnection(connection);
+        const generation = await this.#generationForConnection(connection);
         if (!generation) return this.#failure(request, "unsupported-operation");
         this.#operationsBySubmission.set(request.payload.submissionId, {
           connection,

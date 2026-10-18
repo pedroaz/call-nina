@@ -20,7 +20,7 @@ export type PracticeLaunch =
   | { destination: "activity"; activityId: ActivityId }
   | { destination: "writing"; prompt: string }
   | { destination: "vocabulary" }
-  | { destination: "preparation"; kind: "listening" | "speaking"; prompt: string };
+  | { destination: "preparation"; kind: "custom" | "listening" | "speaking"; prompt: string };
 
 export type SuggestionActions = {
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
