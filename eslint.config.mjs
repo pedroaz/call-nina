@@ -23,6 +23,8 @@ export default tseslint.config(
   {
     name: "call-nina/ignores",
     ignores: [
+      ".runtime/**",
+      ".tmp/**",
       "**/dist/**",
       "apps/*/build/**",
       "packages/*/build/**",

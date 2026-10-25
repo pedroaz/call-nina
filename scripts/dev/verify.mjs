@@ -7,12 +7,7 @@ import { chmod, lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import {
-  assertVerificationBarrier,
-  coordinatorVerificationBarrier,
-  advanceVerificationBarrier,
-  verificationLocked as locked,
-} from "../agents/lib/orchestration.mjs";
+import { assertVerificationBarrier, locked } from "./lib/verification-state.mjs";
 import { inspectOwnedProcess, lifecyclePaths, startMode, statusMode } from "./lib/lifecycle.mjs";
 import {
   requestVerification,
@@ -21,7 +16,6 @@ import {
   persistVerificationProcesses,
   stopVerification,
   journalFingerprint,
-  reconcileVerificationEffect,
 } from "./lib/verification-client.mjs";
 import {
   VerificationSession,
@@ -33,16 +27,6 @@ import {
   mutatingActions,
 } from "./lib/verification-session.mjs";
 
-import {
-  prepareControllerRecovery,
-  recoveryContext,
-  childRecoveryContext,
-  validateRecoveryContext,
-  recordRecoveryIntent,
-  reconcileControllerRecovery,
-  existingControllerRecovery,
-  assertRecoveryAction,
-} from "./lib/verification-recovery.mjs";
 import {
   manualVerificationStatus,
   recoverManualVerification,
@@ -58,8 +42,6 @@ const { positionals, values: launchOptions } = parseArgs({
     run: { type: "string" },
     "journal-sha": { type: "string" },
     worktree: { type: "string" },
-    attempt: { type: "string" },
-    "expected-head": { type: "string" },
     executable: { type: "string" },
     "config-dir": { type: "string" },
     "codex-executable": { type: "string" },
@@ -69,8 +51,6 @@ const {
   run: recoveryRun,
   "journal-sha": journalSha,
   worktree: selectedWorktree,
-  "expected-head": expectedHead,
-  attempt: recoveryAttempt,
   ...appOptions
 } = launchOptions;
 for (const value of Object.values(appOptions))
@@ -188,12 +168,8 @@ function locate(page, target) {
   }
   return locator;
 }
-async function serve(resume = false, recovering = false) {
-  if (recovering && Object.keys(appOptions).length)
-    throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
-  const context = recovering
-    ? await childRecoveryContext(recoveryRun, expectedHead, recoveryAttempt)
-    : { targetRoot: root, barrier: assertVerificationBarrier() };
+async function serve(resume = false) {
+  const context = { targetRoot: root, barrier: assertVerificationBarrier() };
   const barrier = context.barrier;
   const runtimeRoot = path.join(context.targetRoot, ".runtime");
   const verificationRoot = path.join(runtimeRoot, "verification");
@@ -258,9 +234,8 @@ async function serve(resume = false, recovering = false) {
   }
   await rm(socketPath, { force: true });
   await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
-  if (!recovering) await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
+  await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
   if (barrier.mode === "manual") assertVerificationBarrier();
-  if (recovering) await validateRecoveryContext(context, { beforeLaunch: true });
   const session = new VerificationSession(
     verificationRoot,
     recovery,
@@ -298,10 +273,6 @@ async function serve(resume = false, recovering = false) {
       !["stop", "suspend", "restore", "cleanup"].includes(action)
     )
       assertVerificationBarrier();
-    if (recovering) {
-      assertRecoveryAction(request);
-      await validateRecoveryContext(context);
-    }
     if (!mutatingActions.includes(action)) return operation();
     const identity = {
       actionId: randomUUID(),
@@ -309,9 +280,6 @@ async function serve(resume = false, recovering = false) {
       startedAt: new Date().toISOString(),
       sourceHead: barrier.head,
       ...(barrier.mode === "manual" ? { sourceDigest: barrier.sourceDigest } : {}),
-      ...(recovering
-        ? { controllerHead: context.provenance.controllerHead, recoveryReceipt: context.receipt.id }
-        : {}),
     };
     // Only the digest is retained; selectors, labels, keys and fill text stay ephemeral.
     identity.requestFingerprint = journalFingerprint(JSON.stringify(request));
@@ -388,7 +356,6 @@ async function serve(resume = false, recovering = false) {
         identity.learningLanguageSelection,
         localeBefore,
       );
-    if (recovering) await validateRecoveryContext(context);
     delete session.journal.pendingAction;
     await session.persist();
     return result;
@@ -599,7 +566,6 @@ async function serve(resume = false, recovering = false) {
         let request;
         try {
           request = validateRequest(JSON.parse(buffer.slice(0, buffer.indexOf("\n"))));
-          if (recovering) assertRecoveryAction(request);
         } catch {
           connection.end(JSON.stringify({ ok: false, code: "VERIFY_REQUEST_INVALID" }) + "\n");
           return;
@@ -704,20 +670,18 @@ try {
   if (action === "manual-status") {
     result = manualVerificationStatus();
   } else if (action === "manual-recover") {
-    if (Object.keys(appOptions).length || journalSha || expectedHead || recoveryAttempt)
-      throw failure("VERIFY_REQUEST_INVALID");
+    if (Object.keys(appOptions).length || journalSha) throw failure("VERIFY_REQUEST_INVALID");
     result = await locked(() => recoverManualVerification(recoveryRun));
   } else if (action === "manual-quarantine") {
-    if (Object.keys(appOptions).length || recoveryRun || expectedHead || recoveryAttempt)
-      throw failure("VERIFY_REQUEST_INVALID");
+    if (Object.keys(appOptions).length || recoveryRun) throw failure("VERIFY_REQUEST_INVALID");
     result = await locked(() => quarantineManualJournal(journalSha, selectedWorktree));
   } else if (action === "manual-enter" || action === "manual-leave") {
     if (Object.keys(launchOptions).length) throw failure("VERIFY_REQUEST_INVALID");
     result = await locked(() =>
       action === "manual-enter" ? enterManualVerification() : leaveManualVerification(),
     );
-  } else if (action === "serve-recovery") await serve(true, true);
-  else if (action === "serve" || action === "serve-resume") await serve(action === "serve-resume");
+  } else if (action === "serve" || action === "serve-resume")
+    await serve(action === "serve-resume");
   else if (action === "start" || action === "resume") {
     result = await locked(async () => {
       const barrier = assertVerificationBarrier();
@@ -731,7 +695,7 @@ try {
         if (error.code !== "ENOENT") throw error;
       }
       process.stderr.write(
-      "Live verification uses your selected learner data and connected ChatGPT account. AI actions consume usage; use prepare-ai before generation.\n",
+        "Live verification uses your selected learner data and connected ChatGPT account. AI actions consume usage; use prepare-ai before generation.\n",
       );
       return await startMode({
         mode: "verify",
@@ -757,63 +721,6 @@ try {
       });
     });
     result = { status: result.status, pid: result.pid };
-  } else if (
-    ["recovery-inventory", "recovery-resume", "recovery-reconcile", "recovery-do"].includes(action)
-  ) {
-    if (Object.keys(appOptions).length || recoveryAttempt)
-      throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
-    let input = "";
-    if (action !== "recovery-reconcile") {
-      for await (const chunk of process.stdin) {
-        input += chunk;
-        if (Buffer.byteLength(input) > maxRequest) throw failure("VERIFY_REQUEST_LIMIT");
-      }
-    }
-    result = await locked(async () => {
-      if (["recovery-do", "recovery-reconcile"].includes(action)) {
-        const context = await existingControllerRecovery(recoveryRun, expectedHead);
-        if (action === "recovery-reconcile") return reconcileControllerRecovery(context);
-        const request = validateRequest(JSON.parse(input));
-        assertRecoveryAction(request);
-        if (request.action === "stop") return stopVerification(context);
-        return requestVerification(request, 300000, context.targetRoot);
-      }
-      const prepared = await prepareControllerRecovery(
-        JSON.parse(input),
-        action === "recovery-inventory",
-      );
-      if (action === "recovery-inventory") return prepared;
-      const context = recoveryContext(prepared.receipt, prepared.filename);
-      if (prepared.existing) return reconcileControllerRecovery(context);
-      const command = [
-        process.execPath,
-        path.join(root, "scripts/dev/verify.mjs"),
-        "serve-recovery",
-        "--run",
-        context.receipt.run,
-        "--expected-head",
-        context.receipt.appHead,
-        "--attempt",
-        context.receipt.id,
-      ];
-      const state = await startMode({
-        mode: "verify",
-        runtimeRoot: path.join(context.targetRoot, ".runtime"),
-        cwd: root,
-        command: process.env.DISPLAY ? command : ["xvfb-run", "-a", ...command],
-        verificationContext: context,
-        beforeSpawn: () => recordRecoveryIntent(context),
-        timeoutMs: 180000,
-      });
-      await validateRecoveryContext(context);
-      return {
-        status: state.status,
-        receipt: context.receipt.id,
-        lifecycleRunId: state.runId,
-        appHead: context.receipt.appHead,
-        controllerHead: context.receipt.controllerHead,
-      };
-    });
   } else if (action === "status") result = await statusMode({ mode: "verify", runtimeRoot });
   else if (action === "do") {
     let input = "";
@@ -827,29 +734,6 @@ try {
       : await requestVerification(request);
   } else if (["stop", "suspend"].includes(action)) {
     result = await locked(() => stopLocal(action === "suspend"));
-  } else if (
-    [
-      "recovery-stop",
-      "reconcile-disclosure",
-      "reconcile-plugin-refresh",
-      "reconcile-connection-draft",
-      "recovery-advance",
-    ].includes(action)
-  ) {
-    let input = "";
-    if (action !== "recovery-stop") {
-      for await (const chunk of process.stdin) {
-        input += chunk;
-        if (Buffer.byteLength(input) > maxRequest) throw failure("VERIFY_REQUEST_LIMIT");
-      }
-    }
-    result = await locked(async () => {
-      if (action === "recovery-advance") return advanceVerificationBarrier(JSON.parse(input));
-      const barrier = coordinatorVerificationBarrier(recoveryRun, expectedHead);
-      if (action === "recovery-stop")
-        return stopVerification({ targetRoot: barrier.worktree, barrier });
-      return reconcileVerificationEffect(barrier, JSON.parse(input), action);
-    });
   } else if (["snapshot", "screenshot"].includes(action)) {
     result = await requestVerification({ action });
   } else throw failure("VERIFY_COMMAND_INVALID");
@@ -867,13 +751,11 @@ try {
       process.exitCode = 1;
   }
 } catch (error) {
-  const code = error.message?.startsWith("ORCHESTRATION_OPERATION_BUSY:")
-    ? "VERIFY_OPERATION_BUSY"
-    : error.message?.startsWith("LIFECYCLE_APP_ALREADY_RUNNING_OR_RETAINED:")
-      ? "VERIFY_APP_ALREADY_RUNNING_OR_RETAINED"
-      : error.message?.startsWith("LIFECYCLE_START_LOCKED")
-        ? "VERIFY_START_LOCKED"
-        : safeCode(error, "VERIFY_COMMAND_FAILED");
+  const code = error.message?.startsWith("LIFECYCLE_APP_ALREADY_RUNNING_OR_RETAINED:")
+    ? "VERIFY_APP_ALREADY_RUNNING_OR_RETAINED"
+    : error.message?.startsWith("LIFECYCLE_START_LOCKED")
+      ? "VERIFY_START_LOCKED"
+      : safeCode(error, "VERIFY_COMMAND_FAILED");
   if (code === "VERIFY_RESERVATION_ALREADY_HELD")
     process.stderr.write(
       "Managed session reserved: run make verify-session-status for ownership, cleanup and the supported recovery action. Source work and existing-window visual inspection remain available. No application was started.\n",

@@ -267,8 +267,7 @@ h3 {
 .steps li {
   min-width: 0;
 }
-.step-card,
-.future-card {
+.step-card {
   align-content: start;
   gap: var(--od-space-5);
   padding: var(--od-space-8);
@@ -293,21 +292,6 @@ h3 {
 .local-note p + p {
   color: var(--od-color-text-muted);
   font-size: var(--od-type-body-small-size);
-}
-.future-band {
-  background: var(--od-color-surface-brand);
-  border-block: var(--od-border-thin) solid var(--od-color-border-default);
-}
-.future-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--od-space-8);
-}
-.future-symbol {
-  display: block;
-  font-family: var(--od-font-family-display);
-  font-size: var(--od-type-display-small-size);
-  color: var(--od-color-brand-ink);
 }
 .downloads {
   display: grid;
@@ -355,8 +339,7 @@ h3 {
     width: min(100%, 32rem);
     justify-self: center;
   }
-  .steps,
-  .future-grid {
+  .steps {
     grid-template-columns: 1fr;
   }
   .local-note {
@@ -377,71 +360,7 @@ h3 {
   .local-note {
     padding: var(--od-space-6);
   }
-  .step-card,
-  .future-card {
-    padding: var(--od-space-6);
-  }
-}
-
-.blog {
-  display: grid;
-  gap: var(--od-space-9);
-  max-width: 52rem;
-}
-.blog-heading,
-.blog-article,
-.article-body {
-  display: grid;
-  gap: var(--od-space-6);
-  min-width: 0;
-}
-.blog-article {
-  gap: var(--od-space-9);
-}
-.article-meta {
-  color: var(--od-color-text-muted);
-  font-size: var(--od-type-body-small-size);
-}
-.article-body {
-  font-size: var(--od-type-body-large-size);
-  line-height: 1.8;
-  padding: var(--od-space-8);
-}
-.article-body .article-body {
-  padding: 0;
-}
-.article-body h2 {
-  margin-top: var(--od-space-6);
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-}
-.article-body ul {
-  margin: 0;
-  padding-inline-start: var(--od-space-7);
-  display: grid;
-  gap: var(--od-space-4);
-}
-.article-index {
-  display: grid;
-  gap: var(--od-space-9);
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.blog-empty {
-  padding: var(--od-space-7);
-}
-.article-card {
-  padding: var(--od-space-8);
-  box-shadow: var(--od-shadow-card);
-}
-.article-card h2 {
-  font-size: var(--od-type-h1-size);
-}
-@media (max-width: 420px) {
-  .article-card {
-    padding: var(--od-space-6);
-  }
-  .blog-article > .article-body {
+  .step-card {
     padding: var(--od-space-6);
   }
 }

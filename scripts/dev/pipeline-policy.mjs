@@ -3,8 +3,9 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import { developmentConfig, root } from "../lib/config.mjs";
-import { metadataDigest } from "./lib/task-metadata.mjs";
+import { root } from "../lib/config.mjs";
+import { createHash } from "node:crypto";
+const metadataDigest = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -13,32 +14,22 @@ const { positionals, values } = parseArgs({
 const mode = positionals[0] ?? "plan";
 if (!["plan", "apply"].includes(mode)) throw new Error("USE_PLAN_OR_APPLY");
 const policy = JSON.parse(readFileSync(path.join(root, ".github/pipeline-policy.json"), "utf8"));
-const desiredRule = policy.metadataRuleset;
+// Exact retired policy: refuse to delete a same-named rule with unrelated additions.
+const desiredRule = {
+  name: "nina-task-metadata",
+  conditions: { ref_name: { include: ["refs/heads/main"], exclude: [] } },
+  rules: [{ parameters: { required_status_checks: [{ context: "nina/task-metadata" }] } }],
+};
 if (
   policy.actionsEnabled !== false ||
   policy.branch !== "main" ||
+  policy.retiredMetadataRuleset !== desiredRule.name ||
   policy.squashMergeCommitTitle !== "PR_TITLE" ||
   policy.squashMergeCommitMessage !== "PR_BODY" ||
-  desiredRule?.name !== "nina-task-metadata" ||
-  desiredRule.target !== "branch" ||
-  desiredRule.enforcement !== "active" ||
-  desiredRule.bypass_actors.length ||
-  JSON.stringify(desiredRule.conditions) !==
-    JSON.stringify({ ref_name: { include: ["refs/heads/main"], exclude: [] } }) ||
-  JSON.stringify(desiredRule.rules) !==
-    JSON.stringify([
-      {
-        type: "required_status_checks",
-        parameters: {
-          required_status_checks: [{ context: "nina/task-metadata" }],
-          strict_required_status_checks_policy: false,
-          do_not_enforce_on_create: false,
-        },
-      },
-    ])
+  !/^[\w.-]+\/[\w.-]+$/.test(policy.repository ?? "")
 )
-  throw new Error("ONLY_LOCAL_METADATA_POLICY_SUPPORTED");
-const repo = developmentConfig().github.repository;
+  throw new Error("ONLY_LOCAL_DEVELOPMENT_POLICY_SUPPORTED");
+const repo = policy.repository;
 function api(endpoint, { method = "GET", body, optional = false, paginate = false } = {}) {
   const result = spawnSync(
     "gh",
@@ -174,12 +165,11 @@ function plan(before) {
       body: { enabled: false },
     });
   const owned = ownedRule(before.rulesets);
-  if (!owned || !same(rulePayload(structuredClone(owned)), desiredRule))
+  if (owned)
     operations.push({
-      endpoint: owned ? `rulesets/${owned.id}` : "rulesets",
-      method: owned ? "PUT" : "POST",
-      before: owned ? rulePayload(structuredClone(owned)) : null,
-      body: desiredRule,
+      endpoint: `rulesets/${owned.id}`,
+      method: "DELETE",
+      before: rulePayload(structuredClone(owned)),
     });
   return operations;
 }
@@ -218,7 +208,7 @@ console.log(
         unrelatedRulesets: before.rulesets.filter((rule) => rule.name !== desiredRule.name),
       },
       limitation:
-        "No hosted automation: arbitrary UI/raw-gh PR edits do not refresh metadata status; coordinator merge always freshly validates. Settings APIs do not offer atomic compare-and-swap.",
+        "Settings APIs do not offer atomic compare-and-swap. Only the exact retired metadata rule is removed; unrelated protections are preserved.",
     },
     null,
     2,

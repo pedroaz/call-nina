@@ -1,12 +1,12 @@
 name: Task
-description: Propose work; only maintainer-approved tasks become Ready.
+description: Describe a requested change.
 title: ""
 body:
   - type: textarea
     id: outcome
     attributes:
       label: Outcome
-      description: The observable result and its parent epic.
+      description: The observable result; related issues or an epic are optional.
     validations:
       required: true
   - type: textarea

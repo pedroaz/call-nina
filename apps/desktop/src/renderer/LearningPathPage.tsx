@@ -334,7 +334,8 @@ export function LearningPathPage({
   );
   const situationChanged =
     selectedMission &&
-    changedSituation?.unitId === selected?.id &&
+    changedSituation &&
+    changedSituation.unitId === selected?.id &&
     changedSituation.previousMissionId !== selectedMission.id;
   return (
     <Page title={t("learningPath.title")} refresh={{ onRefresh: learning.refresh, disabled: busy }}>

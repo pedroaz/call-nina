@@ -535,8 +535,7 @@ export async function statusMode({ mode, runtimeRoot }) {
 export async function killMode({ mode, runtimeRoot, graceMs = 5_000, verificationContext }) {
   if (mode === "verify") {
     const { stopVerification } = await import("./verification-client.mjs");
-    const { locked, assertVerificationBarrier } =
-      await import("../../agents/lib/orchestration.mjs");
+    const { locked, assertVerificationBarrier } = await import("./verification-state.mjs");
     return locked(() => {
       const targetRoot = path.dirname(path.resolve(runtimeRoot));
       let barrier;

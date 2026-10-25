@@ -11,7 +11,7 @@ type Copy = {
   skip: string;
   navigation: string;
   language: string;
-  nav: { practice: string; future: string; downloads: string };
+  nav: { practice: string; downloads: string };
   prelaunch: string;
   headline: string;
   introduction: string;
@@ -29,10 +29,6 @@ type Copy = {
   localTitle: string;
   localText: string;
   aiText: string;
-  futureLabel: string;
-  futureTitle: string;
-  futureIntro: string;
-  futureItems: { title: string; text: string }[];
   downloadsTitle: string;
   downloadsText: string;
   platforms: string;
@@ -44,17 +40,17 @@ type Copy = {
 
 export const copy: Record<Locale, Copy> = {
   en: {
-    title: "Call Nina — German, one small step at a time",
+    title: "Call Nina — languages, one small step at a time",
     description:
-      "Meet Call Nina, a local-first German learning companion in development. Explore desktop practice and what’s planned. Downloads coming soon.",
+      "Meet Call Nina, a local-first language learning companion in development. Explore desktop practice. Public downloads are not available yet.",
     skip: "Skip to content",
     navigation: "Main navigation",
     language: "Website language",
-    nav: { practice: "The idea", future: "What’s next", downloads: "Downloads" },
-    prelaunch: "In development · German first",
-    headline: "A little German. A little more confidence.",
+    nav: { practice: "The idea", downloads: "Downloads" },
+    prelaunch: "In development · Personal language practice",
+    headline: "A little practice. A little more confidence.",
     introduction:
-      "Make room for German in your everyday life. Call Nina brings reading, writing and vocabulary practice together in a desktop companion, with your learning history kept on your device.",
+      "Make room for language learning in your everyday life. Call Nina brings reading, writing and vocabulary practice together in a desktop companion, with your learning history kept on your device.",
     explore: "Explore the idea",
     downloadStatus: "Coming soon",
     previewLabel: "A little German for today",
@@ -65,7 +61,7 @@ export const copy: Record<Locale, Copy> = {
     practiceLabel: "Inside the current desktop app",
     practiceTitle: "Your next step can be a small one.",
     practiceIntro:
-      "The development version focuses on German practice. Its interface is available in English, German, Spanish and Brazilian Portuguese; public downloads are still coming soon.",
+      "Practise US English, Brazilian Portuguese, Spanish or German. Choose learning, interface and explanation languages independently. The structured Learning Path is German-only; public downloads are not available yet.",
     steps: [
       {
         title: "Find something to practise",
@@ -73,7 +69,7 @@ export const copy: Record<Locale, Copy> = {
       },
       {
         title: "Make it relevant",
-        text: "Pick a reading topic or paste a passage. With a connected Codex setup, the app can prepare exercises and provide writing feedback.",
+        text: "Pick a reading topic or paste a passage. With your selected AI connection, the app can prepare exercises and provide writing feedback.",
       },
       {
         title: "Build on what you’ve done",
@@ -84,25 +80,7 @@ export const copy: Record<Locale, Copy> = {
     localText:
       "The desktop app stores learning records locally. You can come back to your history and vocabulary without a cloud learning library.",
     aiText:
-      "Local-first doesn’t mean all AI runs offline: AI preparation and feedback currently use a connected Codex setup. Relevant learning content is sent through that connection, and provider access is required.",
-    futureLabel: "The direction · not available yet",
-    futureTitle: "More ways to make German part of your day.",
-    futureIntro:
-      "These are plans, not features you can use today. There’s no announced release date.",
-    futureItems: [
-      {
-        title: "Start with a conversation",
-        text: "Nina already accepts a typed learning goal. A built-in voice conversation experience is a later step.",
-      },
-      {
-        title: "Take practice with you",
-        text: "Android and iOS companions are planned for practising prepared material offline, with desktop-to-phone transfer still to come.",
-      },
-      {
-        title: "Choose more ways to connect",
-        text: "Nina-managed access and the Claude Code subscription route are not available yet. The development app already includes Codex, API-key connections and downloaded-model settings.",
-      },
-    ],
+      "Local-first doesn’t mean all AI runs offline: Cloud AI preparation and feedback send relevant content through your selected ChatGPT or API-key connection. Provider access is required; Nina-managed access is not available.",
     downloadsTitle: "A new learning companion is on the way.",
     downloadsText:
       "We’re still building Call Nina. Public installers aren’t available yet, so there’s nothing to download here today.",
@@ -114,17 +92,17 @@ export const copy: Record<Locale, Copy> = {
     footer: "Made for small steps forward.",
   },
   de: {
-    title: "Call Nina — Deutsch, einen kleinen Schritt nach dem anderen",
+    title: "Call Nina — Sprachen, einen kleinen Schritt nach dem anderen",
     description:
-      "Call Nina ist eine Deutsch-Lernbegleitung in Entwicklung, mit lokal gespeicherten Lerndaten. Entdecke die Desktop-Übungen und unsere Pläne. Downloads folgen.",
+      "Call Nina ist eine Sprachlernbegleitung in Entwicklung mit lokal gespeicherten Lerndaten. Entdecke die Desktop-Übungen. Öffentliche Downloads sind noch nicht verfügbar.",
     skip: "Zum Inhalt springen",
     navigation: "Hauptnavigation",
     language: "Sprache der Website",
-    nav: { practice: "Die Idee", future: "Was kommt", downloads: "Downloads" },
-    prelaunch: "In Entwicklung · Deutsch zuerst",
-    headline: "Ein bisschen Deutsch. Ein bisschen mehr Sicherheit.",
+    nav: { practice: "Die Idee", downloads: "Downloads" },
+    prelaunch: "In Entwicklung · Persönliches Sprachenlernen",
+    headline: "Ein bisschen Übung. Ein bisschen mehr Sicherheit.",
     introduction:
-      "Gib Deutsch einen Platz in deinem Alltag. Call Nina verbindet Lesen, Schreiben und Wortschatzübungen in einer Desktop-App. Dein Lernverlauf bleibt auf deinem Gerät gespeichert.",
+      "Gib dem Sprachenlernen einen Platz in deinem Alltag. Call Nina verbindet Lesen, Schreiben und Wortschatzübungen in einer Desktop-App. Dein Lernverlauf bleibt auf deinem Gerät gespeichert.",
     explore: "Die Idee entdecken",
     downloadStatus: "Demnächst verfügbar",
     previewLabel: "Ein bisschen Deutsch für heute",
@@ -136,7 +114,7 @@ export const copy: Record<Locale, Copy> = {
     practiceLabel: "In der aktuellen Desktop-App",
     practiceTitle: "Dein nächster Schritt darf klein sein.",
     practiceIntro:
-      "Die Entwicklungsversion konzentriert sich auf Deutschübungen. Die Oberfläche gibt es auf Englisch, Deutsch, Spanisch und brasilianischem Portugiesisch. Öffentliche Downloads folgen noch.",
+      "Übe US-Englisch, brasilianisches Portugiesisch, Spanisch oder Deutsch. Lern-, Oberflächen- und Erklärungssprache sind unabhängig wählbar. Den strukturierten Lernpfad gibt es nur für Deutsch; öffentliche Downloads sind noch nicht verfügbar.",
     steps: [
       {
         title: "Finde eine passende Übung",
@@ -144,7 +122,7 @@ export const copy: Record<Locale, Copy> = {
       },
       {
         title: "Übe, was dich interessiert",
-        text: "Wähle ein Lesethema oder füge einen Text ein. Mit einer eingerichteten Codex-Verbindung kann die App Übungen vorbereiten und Feedback zu deinen Texten geben.",
+        text: "Wähle ein Lesethema oder füge einen Text ein. Mit deiner ausgewählten KI-Verbindung kann die App Übungen vorbereiten und Feedback zu deinen Texten geben.",
       },
       {
         title: "Baue auf deinem Lernen auf",
@@ -155,25 +133,7 @@ export const copy: Record<Locale, Copy> = {
     localText:
       "Die Desktop-App speichert Lerndaten lokal. Du kannst auf deinen Verlauf und Wortschatz zurückgreifen, ohne eine Lernbibliothek in der Cloud zu benötigen.",
     aiText:
-      "Lokal gespeichert heißt nicht, dass jede KI offline läuft: KI-gestützte Vorbereitung und Feedback nutzen derzeit eine eingerichtete Codex-Verbindung. Relevante Lerninhalte werden darüber übermittelt; ein Zugang zum Anbieter ist erforderlich.",
-    futureLabel: "Unsere Richtung · noch nicht verfügbar",
-    futureTitle: "Mehr Platz für Deutsch in deinem Alltag.",
-    futureIntro:
-      "Das sind Pläne, keine heute verfügbaren Funktionen. Ein Veröffentlichungstermin steht noch nicht fest.",
-    futureItems: [
-      {
-        title: "Mit einem Gespräch beginnen",
-        text: "Nina nimmt bereits eingetippte Lernziele entgegen. Ein integriertes Sprachgespräch ist ein späterer Schritt.",
-      },
-      {
-        title: "Übungen mitnehmen",
-        text: "Apps für Android und iOS sind geplant, um vorbereitete Inhalte offline zu üben. Auch die Übertragung vom Desktop aufs Handy ist noch Zukunftsmusik.",
-      },
-      {
-        title: "Mehr Möglichkeiten für KI",
-        text: "Zugang über Nina und die Claude-Code-Abonnementverbindung sind noch nicht verfügbar. Die Entwicklungsversion enthält bereits Codex, API-Schlüssel-Verbindungen und Einstellungen für heruntergeladene Modelle.",
-      },
-    ],
+      "Lokal gespeichert heißt nicht, dass jede KI offline läuft: Cloud-KI für Übungen und Feedback übermittelt relevante Inhalte über deine ausgewählte ChatGPT- oder API-Schlüssel-Verbindung. Ein Anbieterzugang ist erforderlich; KI-Zugang über Nina ist nicht verfügbar.",
     downloadsTitle: "Eine neue Lernbegleitung entsteht.",
     downloadsText:
       "Wir entwickeln Call Nina noch. Öffentliche Installationspakete sind noch nicht verfügbar. Deshalb gibt es hier heute noch keinen Download.",

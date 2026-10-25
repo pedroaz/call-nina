@@ -19,12 +19,12 @@ const project = "prj_G6dX6jZ4E9hnlSxxLZXnRhMfndba";
 // https://vercel.com/docs/cli/deploy
 // https://vercel.com/docs/cli/global-options
 function help() {
-  process.stdout.write(`Manual website deployment (coordinator only)
+  process.stdout.write(`Manual website deployment (explicit user request required)
 
 Local preparation: make setup && make package-website
 Review the source commit, printed file hashes and ${destination} before upload.
-Independent local review, make check and the editorial publication decision must
-be complete before deploying. Packaging does not authorize publication.
+Review the diff and actual local verification results before deploying.
+Packaging does not authorize publication; independent review is optional.
 
 Desired configuration / expected remote settings diff:
   Existing project: call-nina (${project}), Pedro Azevedo projects, Hobby.
@@ -54,8 +54,8 @@ Readback (DEPLOYMENT_URL is the successful deploy command's returned URL):
   vercel api /v9/projects/${project} --scope "$VERCEL_SCOPE"
 Confirm the same project/owner/plan, Ready production deployment, assigned URL,
 static files only and automatic Git deployments still disabled.
-Inspect /, /?lang=de, /blog, /blog/, all published article URLs and an asset URL.
-Unknown paths and /blog/preview/format-example/ must return HTTP 404.
+Inspect /, /?lang=de, a bundled font notice and an asset URL.
+Removed blog URLs and all unknown paths must return HTTP 404.
 Verify the public page content, contact mailto and Coming soon states manually.
 
 Provider state is ignored; make clean removes this generated deployment directory.
@@ -78,8 +78,13 @@ async function filesIn(directory, prefix = "") {
       files.push(...(await filesIn(path.join(directory, entry.name), `${relative}/`)));
     } else if (
       entry.isFile() &&
-      (/^(?:blog\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)?)?index\.html$/.test(relative) ||
-        /^assets\/[a-zA-Z0-9_-]+\.(?:js|css|svg|png|jpg|jpeg|webp|avif|ico|woff2?)$/.test(relative))
+      (relative === "index.html" ||
+        /^notices\/fonts\/OFL-(?:Fredoka|Figtree|JetBrainsMono|NotoSansMono)\.txt$/.test(
+          relative,
+        ) ||
+        /^assets\/[a-zA-Z0-9_-]+\.(?:js|css|svg|png|jpg|jpeg|webp|avif|ico|woff2?|ttf)$/.test(
+          relative,
+        ))
     ) {
       files.push(relative);
     } else {
@@ -100,8 +105,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   await rm(staging, { recursive: true, force: true });
   run(...pnpmCommand(["--filter", "@call-nina/website", "run", "build"]));
   const files = await filesIn(source);
-  if (!files.includes("index.html") || !files.includes("blog/index.html"))
-    throw new Error("Website build is missing its landing or blog index");
+  if (!files.includes("index.html")) throw new Error("Website build is missing its landing index");
   const vercelConfig = await readFile(path.join(root, "vercel.json"), "utf8");
   if (JSON.parse(vercelConfig).git?.deploymentEnabled !== false)
     throw new Error("Automatic Git deployments must remain disabled");
@@ -117,8 +121,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
       })),
     ],
   };
-  // Deliberately no SPA catch-all: only built pages resolve; missing articles,
-  // development previews and unknown assets keep the platform's HTTP 404.
+  // Deliberately no SPA catch-all: removed routes and unknown assets keep HTTP 404.
   for (const file of files) {
     const target = path.join(output, "static", file);
     await mkdir(path.dirname(target), { recursive: true });

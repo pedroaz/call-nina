@@ -302,7 +302,7 @@ function VocabularyWorkspace({
             </section>
           )}
           {result && result.counts.candidate > 0 && (
-            <Feedback>
+            <Feedback live="polite">
               {t("vocabulary.flow.suggestions", { count: result.counts.candidate })}
             </Feedback>
           )}

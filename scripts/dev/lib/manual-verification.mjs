@@ -12,7 +12,7 @@ import {
   manualVerificationOwner,
   assertManualVerificationOwner,
   verificationSourceDigest,
-} from "../../agents/lib/orchestration.mjs";
+} from "./verification-state.mjs";
 import { validateVerificationJournal } from "./verification-session.mjs";
 import {
   privateJson,
@@ -88,7 +88,9 @@ export function manualVerificationStatus() {
     retained: history(),
     available: ["source-work", "build", "existing-window-visual-review"],
     next: gate
-      ? "Use verify-manual-recover ARGS='--run <reported-manual-run>' after exact stop; active or Orca sessions are not adopted."
+      ? gate.mode !== "manual"
+        ? "Retired session retained: preserve ownership and private evidence; do not adopt or delete its resources."
+        : "Use verify-manual-recover ARGS='--run <reported-manual-run>' after exact stop; active sessions are not adopted."
       : local.state === "incompatible"
         ? "Inspect the retained journal, then explicitly quarantine by its reported fingerprint; no learner records are deleted."
         : local.state === "pending"
