@@ -7,6 +7,276 @@
 .card {
   min-width: 0;
 }
+.tabIntro {
+  gap: var(--od-space-3);
+}
+.progressSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-6);
+}
+.progressHeadline {
+  display: grid;
+  gap: var(--od-space-2);
+}
+.progressHeadline h2 {
+  margin: 0;
+}
+.progressHeadline p {
+  margin: 0;
+}
+.reviewCount {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--od-space-2);
+  flex-shrink: 0;
+  width: 6rem;
+  height: 6rem;
+  border-radius: var(--od-radius-pill);
+  background: var(--od-color-surface-card);
+  color: var(--od-color-brand-ink);
+}
+.reviewCount strong {
+  font-size: var(--od-font-size-xl);
+  line-height: 1;
+}
+.reviewCount svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+}
+.reviewGrid {
+  display: grid;
+  gap: var(--od-space-4);
+}
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+  padding-top: var(--od-space-3);
+}
+.reviewReason {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  padding: var(--od-space-2) var(--od-space-3);
+  border-radius: var(--od-radius-pill);
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+  font-size: var(--od-font-size-sm);
+}
+.reviewReason svg {
+  width: 1rem;
+  height: 1rem;
+}
+.progressHeadline > span:last-child {
+  font-size: var(--od-font-size-sm);
+}
+.progressRing {
+  position: relative;
+  width: 7rem;
+  height: 7rem;
+  flex-shrink: 0;
+}
+.progressRing svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke-width: 7;
+}
+.ringTrack {
+  stroke: var(--od-color-border-default);
+}
+.ringValue {
+  stroke: var(--od-color-action-primary);
+}
+.progressRing > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--od-space-1);
+}
+.progressRing strong {
+  font-size: var(--od-font-size-xl);
+}
+.progressRing small {
+  font-size: var(--od-font-size-sm);
+}
+.progressGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--od-space-4);
+  align-items: start;
+}
+.progressCard {
+  min-width: 0;
+}
+.progressCardHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-3);
+  min-height: var(--od-control-min);
+}
+.progressCardHeading h2 {
+  margin: 0;
+}
+.progressCardHeading p {
+  margin: 0;
+  font-size: var(--od-font-size-xs);
+}
+.lessonNumber {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--od-control-min);
+  height: var(--od-control-min);
+  border-radius: var(--od-radius-md);
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+  font-weight: var(--od-weight-strong);
+}
+.lessonNumber svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+}
+.activityTrack {
+  display: flex;
+  gap: var(--od-space-1);
+  padding-top: var(--od-space-3);
+}
+.activityTrack > span {
+  flex: 1;
+  height: var(--od-space-2);
+  border-radius: var(--od-radius-pill);
+  background: var(--od-color-border-default);
+}
+.activityTrack > span[data-status="completed"] {
+  background: var(--od-color-action-primary);
+}
+.activityTrack > span[data-status="skipped"] {
+  background: transparent;
+  border: 1px dashed var(--od-color-text-muted);
+}
+.activityTrack > span[data-status="started"] {
+  background: var(--od-color-surface-brand);
+  border: 1px solid var(--od-color-action-primary);
+}
+.progressCardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-2);
+  font-size: var(--od-font-size-sm);
+  color: var(--od-color-text-muted);
+}
+@container workspace (max-width: 45rem) {
+  .progressGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.checkpointIcon {
+  display: grid;
+  place-items: center;
+  width: var(--od-control-min);
+  height: var(--od-control-min);
+  border-radius: var(--od-radius-md);
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+}
+.checkpointIcon svg,
+.recommendation > svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+}
+.pathCard,
+.lessonPreview {
+  display: grid;
+  gap: var(--od-space-4);
+  align-content: start;
+  min-width: 0;
+}
+.pathCard > *,
+.lessonPreview > *,
+.recommendation h2,
+.recommendation p {
+  margin: 0;
+}
+.pathCard > svg {
+  width: var(--od-space-6);
+  height: var(--od-space-6);
+  color: var(--od-color-action-primary);
+}
+.trailLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 19rem);
+  gap: var(--od-space-6);
+  align-items: start;
+}
+.trail {
+  list-style: none;
+  margin: 0;
+  padding: var(--od-space-3) 0;
+  display: grid;
+  gap: var(--od-space-7);
+  min-width: 0;
+}
+.trail > li {
+  display: grid;
+  position: relative;
+  width: 82%;
+  margin-inline-start: 4%;
+}
+.trail > li:nth-child(even) {
+  margin-inline-start: 14%;
+}
+.trail > li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  height: var(--od-space-7);
+  left: 45%;
+  width: 12%;
+  border-inline-start: 3px solid var(--od-color-border-default);
+  border-bottom: 3px solid var(--od-color-border-default);
+  border-end-start-radius: var(--od-radius-lg);
+  pointer-events: none;
+}
+.trail > li:nth-child(even)::after {
+  transform: scaleX(-1);
+}
+.trailStop {
+  display: grid;
+  gap: var(--od-space-2);
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.trailMeta {
+  font-size: var(--od-font-size-xs);
+  font-weight: var(--od-weight-regular, 400);
+}
+.activitySummary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--od-space-3);
+}
+.activitySummary > span:nth-child(2) {
+  flex: 1;
+}
+@container workspace (max-width: 45rem) {
+  .trailLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lessonPreview {
+    grid-row: 1;
+  }
+}
 .cardActions {
   padding-top: 0;
 }
@@ -35,15 +305,6 @@
 .scenario > *,
 .activitiesHeading {
   margin: 0;
-}
-.outline {
-  display: grid;
-  gap: var(--od-space-3);
-}
-.outline button {
-  justify-content: flex-start;
-  white-space: normal;
-  text-align: start;
 }
 .explanation {
   line-height: 1.7;
@@ -74,19 +335,6 @@
   min-width: 12rem;
 }
 
-.unitToolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--od-space-4);
-}
-.unitToolbar > details {
-  border: 0;
-}
-.unitToolbar > details[open] {
-  flex-basis: 100%;
-}
 .unitDetails {
   display: flex;
   flex-wrap: wrap;

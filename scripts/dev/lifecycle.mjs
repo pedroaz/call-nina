@@ -43,6 +43,30 @@ async function status() {
 async function kill() {
   let incomplete = false;
   for (const lifecycleMode of lifecycleModes) {
+    if (lifecycleMode === "verify") {
+      try {
+        const result = await killMode({ mode: lifecycleMode, runtimeRoot });
+        const recoveryIncomplete = Boolean(
+          result.failures?.length ||
+          result.notes?.length ||
+          result.pendingAction ||
+          result.interruptedActions?.length ||
+          result.remainingRecords?.length ||
+          result.remainingPreferences?.length,
+        );
+        process.stdout.write(
+          `verify: ${result.status} cleanup=${recoveryIncomplete ? "incomplete" : "complete"}\n`,
+        );
+        if (recoveryIncomplete) incomplete = true;
+      } catch {
+        process.stderr.write(
+          "verify: retained; inspect make verify-stop for the exact ownership/recovery blocker.\n",
+        );
+        incomplete = true;
+      }
+      continue;
+    }
+
     const result = await killMode({ mode: lifecycleMode, runtimeRoot });
     process.stdout.write(
       `${result.mode}: ${result.status}${result.reason ? ` reason=${result.reason}` : ""}\n`,

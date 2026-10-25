@@ -23,7 +23,9 @@ export function NinaHome({
   onDraftChange,
   requestAiAccess,
   onLaunch,
+  onLearningPaths,
 }: SuggestionActions & {
+  onLearningPaths: () => void;
   draft: NinaHomeDraft;
   onDraftChange: (draft: NinaHomeDraft) => void;
 }) {
@@ -209,6 +211,20 @@ export function NinaHome({
           </Button>
         )}
       </form>
+      <section className={styles.pathReminder}>
+        <div>
+          <h2>{t("pathLibrary.homeTitle")}</h2>
+          <Muted as="p">{t("pathLibrary.homeHint")}</Muted>
+        </div>
+        <Button
+          variant="secondary"
+          isDisabled={busy}
+          onPress={onLearningPaths}
+          trailingIcon={<ArrowRight aria-hidden="true" />}
+        >
+          {t("pathLibrary.homeAction")}
+        </Button>
+      </section>
     </Page>
   );
 }

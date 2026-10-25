@@ -45,6 +45,23 @@
 .quickActions {
   justify-content: space-between;
 }
+.pathReminder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-5);
+  padding-block: var(--od-space-5);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.pathReminder h2,
+.pathReminder p {
+  margin: 0;
+}
+.pathReminder > div {
+  display: grid;
+  gap: var(--od-space-2);
+}
 @container workspace (max-width: 35rem) {
   .resumeCopy {
     grid-template-columns: minmax(0, 1fr);

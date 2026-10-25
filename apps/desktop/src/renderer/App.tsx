@@ -498,6 +498,7 @@ function DesktopWorkspace({
             )}
             {page === "nina" && learningScope ? (
               <NinaHome
+                onLearningPaths={() => navigate("learningPath")}
                 key={ninaScopeKey}
                 draft={ninaDrafts[ninaScopeKey] ?? emptyNinaHomeDraft}
                 onDraftChange={(draft) => {

@@ -38,3 +38,35 @@ format: ## Format repository source and configuration.
 
 clean: ## Remove generated build output, preserving learner data.
 	@pnpm run clean
+
+##@ Interactive desktop verification
+.PHONY: verify-start verify-resume verify-status verify-inspect verify-do verify-shot verify-stop verify-suspend
+.PHONY: verify-session-status verify-manual-recover verify-manual-quarantine verify-manual-enter verify-manual-leave
+verify-session-status: ## Read reservation, local cleanup and retained history independently of app status.
+	@node scripts/dev/verify.mjs manual-status
+verify-manual-recover: ## Release an explicitly selected, proven-stopped Manual reservation; retain all cleanup evidence.
+	@node scripts/dev/verify.mjs manual-recover $(ARGS)
+verify-manual-quarantine: ## Archive an explicitly fingerprinted unresolved journal without changing learner data.
+	@node scripts/dev/verify.mjs manual-quarantine $(ARGS)
+verify-manual-enter: ## Reserve desktop runtime inputs; pending compatible cleanup resumes under the new session.
+	@node scripts/dev/verify.mjs manual-enter
+verify-manual-leave: ## Release a proven-stopped Manual reservation while retaining any pending cleanup.
+	@node scripts/dev/verify.mjs manual-leave
+
+verify-start: ## Build once and launch an interactive real Electron verification session.
+	@node scripts/dev/verify.mjs start $(ARGS)
+verify-resume: ## Rebuild and reopen a stopped verification session while retaining its recovery journal.
+	@node scripts/dev/verify.mjs resume $(ARGS)
+verify-status: ## Show the owned verification process status.
+	@node scripts/dev/verify.mjs status
+verify-inspect: ## Inspect the current window's visible UI (session-only learner content).
+	@node scripts/dev/verify.mjs snapshot
+verify-do: ## Send one bounded JSON UI action on stdin to the running session.
+	@node scripts/dev/verify.mjs do
+verify-shot: ## Capture a private screenshot deleted when the session stops.
+	@node scripts/dev/verify.mjs screenshot
+verify-suspend: ## Stop exact-owned processes without UI cleanup; preserve records/preferences for verify-resume.
+	@node scripts/dev/verify.mjs suspend
+verify-stop: ## Bounded graceful-first shutdown of exact-owned processes; retain incomplete UI recovery.
+	@node scripts/dev/verify.mjs stop
+

@@ -13,6 +13,8 @@
   border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .tab {
+  border: 0;
+  background: transparent;
   flex: none;
   font-size: var(--od-font-size-sm, var(--od-type-body-small-size));
   line-height: var(--od-type-body-small-line);

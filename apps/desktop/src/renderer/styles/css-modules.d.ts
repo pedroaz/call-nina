@@ -102,6 +102,7 @@ declare module "*CorrectionComparison.module.css" {
 declare module "*Dashboard.module.css" {
   const styles: {
     readonly home: string;
+    readonly pathReminder: string;
     readonly quickActions: string;
     readonly quickPractice: string;
     readonly resume: string;
@@ -227,20 +228,42 @@ declare module "*Layout.module.css" {
 declare module "*LearningPathPage.module.css" {
   const styles: {
     readonly activitiesHeading: string;
+    readonly activitySummary: string;
+    readonly activityTrack: string;
     readonly card: string;
     readonly cardActions: string;
+    readonly checkpointIcon: string;
     readonly completion: string;
     readonly explanation: string;
     readonly eyebrow: string;
     readonly launchProgress: string;
-    readonly outline: string;
+    readonly lessonNumber: string;
+    readonly lessonPreview: string;
     readonly page: string;
+    readonly pathCard: string;
+    readonly progressCard: string;
+    readonly progressCardHeading: string;
+    readonly progressCardMeta: string;
+    readonly progressGrid: string;
+    readonly progressHeadline: string;
+    readonly progressRing: string;
+    readonly progressSummary: string;
     readonly recommendation: string;
+    readonly reviewActions: string;
+    readonly reviewCount: string;
+    readonly reviewGrid: string;
+    readonly reviewReason: string;
+    readonly ringTrack: string;
+    readonly ringValue: string;
     readonly scenario: string;
+    readonly tabIntro: string;
+    readonly trail: string;
+    readonly trailLayout: string;
+    readonly trailMeta: string;
+    readonly trailStop: string;
     readonly unit: string;
     readonly unitDetails: string;
     readonly unitOverview: string;
-    readonly unitToolbar: string;
     readonly words: string;
   };
   export default styles;

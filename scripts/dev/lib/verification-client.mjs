@@ -1,0 +1,646 @@
+import net from "node:net";
+import { lstat, readFile, rename, rm, mkdir, open } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
+import path from "node:path";
+import { existsSync } from "node:fs";
+import {
+  verificationGate,
+  load,
+  assertManualVerificationOwner,
+  verificationSourceDigest,
+} from "./verification-state.mjs";
+import {
+  inspectOwnedProcess,
+  processIdentity,
+  processInventory,
+  sameProcess,
+} from "./lifecycle.mjs";
+
+export const repositoryRoot = path.resolve(import.meta.dirname, "../../..");
+export const verificationRoot = path.join(repositoryRoot, ".runtime", "verification");
+export const socketPath = path.join(verificationRoot, "control.sock");
+function manualAccess(targetRoot, ownership, checkSource = false) {
+  const gate = existsSync(verificationGate) ? load(verificationGate) : undefined;
+  if (gate?.mode === "manual" && gate.worktree === targetRoot) {
+    assertManualVerificationOwner(gate, targetRoot);
+    if (
+      ownership &&
+      (ownership.owner !== gate.owner ||
+        ownership.run !== gate.run ||
+        ownership.sourceDigest !== gate.sourceDigest)
+    )
+      throw new Error("VERIFY_MANUAL_OWNER_MISMATCH");
+    if (checkSource && verificationSourceDigest(targetRoot) !== gate.sourceDigest)
+      throw new Error("VERIFY_CHECKOUT_CHANGED");
+    return gate;
+  }
+  if (gate && gate.mode !== "manual") throw new Error("VERIFY_RETIRED_SESSION_RETAINED");
+  if (ownership) throw new Error("VERIFY_MANUAL_OWNER_MISMATCH");
+}
+export async function requestVerification(
+  request,
+  timeoutMs = 300000,
+  targetRoot = repositoryRoot,
+) {
+  try {
+    return await send(request, timeoutMs, targetRoot);
+  } catch (error) {
+    throw new Error(
+      /^VERIFY_[A-Z0-9_:]+$/.test(error?.message ?? "")
+        ? error.message
+        : "VERIFY_SESSION_UNAVAILABLE",
+    );
+  }
+}
+async function send(request, timeoutMs, targetRoot) {
+  const repositoryRoot = targetRoot;
+  const verificationRoot = path.join(targetRoot, ".runtime/verification");
+  const socketPath = path.join(verificationRoot, "control.sock");
+  const state = JSON.parse(
+    await readFile(path.join(repositoryRoot, ".runtime/verify.json"), "utf8"),
+  );
+  if (!(await inspectOwnedProcess(state)).owned) throw new Error("VERIFY_OWNER_UNAVAILABLE");
+  const ownership = await privateJson(path.join(verificationRoot, "processes.json"));
+  if (!ownership.manualOwner) throw new Error("VERIFY_RETIRED_SESSION_RETAINED");
+  manualAccess(
+    targetRoot,
+    ownership.manualOwner,
+    ![
+      "status",
+      "snapshot",
+      "screenshot",
+      "windows",
+      "restore",
+      "cleanup",
+      "stop",
+      "suspend",
+    ].includes(request.action),
+  );
+  const directory = await lstat(verificationRoot);
+  const socket = await lstat(socketPath);
+  if (
+    !directory.isDirectory() ||
+    directory.uid !== process.getuid() ||
+    directory.mode & 0o077 ||
+    !socket.isSocket() ||
+    socket.uid !== process.getuid() ||
+    socket.mode & 0o077
+  )
+    throw new Error("VERIFY_SOCKET_UNSAFE");
+  return new Promise((resolve, reject) => {
+    const connection = net.createConnection(socketPath);
+    let output = "";
+    connection.setEncoding("utf8");
+    const deadline = setTimeout(
+      () => connection.destroy(new Error("VERIFY_REQUEST_TIMEOUT")),
+      timeoutMs,
+    );
+    connection.on("close", () => clearTimeout(deadline));
+    connection.on("connect", () => connection.write(JSON.stringify(request) + "\n"));
+    connection.on("data", (chunk) => {
+      output += chunk;
+      if (Buffer.byteLength(output) > 2 * 1024 * 1024)
+        connection.destroy(new Error("VERIFY_RESPONSE_LIMIT"));
+      if (output.includes("\n")) {
+        connection.destroy();
+        try {
+          const response = JSON.parse(output.slice(0, output.indexOf("\n")));
+          if (!response.ok) {
+            const phase =
+              typeof response.phase === "string"
+                ? response.phase.toUpperCase().replaceAll("-", "_")
+                : "";
+            reject(new Error(`${response.code}${/^[A-Z_]+$/.test(phase) ? `:${phase}` : ""}`));
+          } else resolve(response.result);
+        } catch {
+          reject(new Error("VERIFY_RESPONSE_INVALID"));
+        }
+      }
+    });
+    connection.on("error", (error) =>
+      reject(
+        new Error(
+          error.message === "VERIFY_REQUEST_TIMEOUT" ? error.message : "VERIFY_CONNECTION_FAILED",
+        ),
+      ),
+    );
+    connection.on("end", () => {
+      if (!output.includes("\n")) reject(new Error("VERIFY_CONNECTION_CLOSED"));
+    });
+  });
+}
+
+function ownershipPath(targetRoot) {
+  return path.join(targetRoot, ".runtime/verification/processes.json");
+}
+async function syncDirectory(directory) {
+  const handle = await open(directory, "r");
+  try {
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+}
+export async function writePrivateJson(filename, value) {
+  const temporary = `${filename}.${randomUUID()}.tmp`;
+  const handle = await open(temporary, "wx", 0o600);
+  try {
+    await handle.writeFile(JSON.stringify(value));
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  await rename(temporary, filename);
+  await syncDirectory(path.dirname(filename));
+}
+export async function privateText(filename) {
+  const info = await lstat(filename);
+  if (!info.isFile() || info.uid !== process.getuid() || info.mode & 0o077)
+    throw new Error("VERIFY_OWNERSHIP_UNSAFE");
+  return readFile(filename, "utf8");
+}
+export async function privateJson(filename) {
+  return JSON.parse(await privateText(filename));
+}
+
+// Follow only proven parentage. A shared process group alone never grants authority.
+export async function refreshVerificationProcesses(record) {
+  const inventory = await processInventory();
+  const owned = record.processes.filter((prior) => {
+    const observed = inventory.find((item) => item.pid === prior.pid);
+    if (observed && !sameProcess(prior, observed))
+      throw new Error("VERIFY_PROCESS_IDENTITY_CHANGED");
+    return Boolean(observed);
+  });
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const candidate of inventory) {
+      if (candidate.uid !== process.getuid()) continue;
+      if (owned.some((item) => item.pid === candidate.pid)) continue;
+      const parent = owned.find((item) => item.pid === candidate.parentPid);
+      if (parent && sameProcess(parent, await processIdentity(parent.pid))) {
+        owned.push(candidate);
+        changed = true;
+      }
+    }
+  }
+  // Detect orphaned/unknown members, but never signal a group to collect them.
+  const groups = record.processes
+    .filter((item) => item.groupId === item.pid)
+    .map((item) => item.pid);
+  if (
+    inventory.some(
+      (item) => groups.includes(item.groupId) && !owned.some((known) => sameProcess(known, item)),
+    )
+  )
+    throw new Error("VERIFY_PROCESS_GROUP_UNPROVEN");
+  // Retain dead leaders as group anchors until the whole session is settled.
+  record.processes = [
+    ...record.processes.filter((item) => !owned.some((live) => live.pid === item.pid)),
+    ...owned,
+  ];
+  if (record.processes.length > 4096) throw new Error("VERIFY_PROCESS_LIMIT");
+  return owned;
+}
+
+export async function recordVerificationController(
+  state,
+  context = { targetRoot: repositoryRoot },
+) {
+  const launcher = await processIdentity(state.pid);
+  const controller = await processIdentity(process.pid);
+  if (!launcher || launcher.startTicks !== state.startTicks || !controller)
+    throw new Error("VERIFY_LIFECYCLE_OWNER_REQUIRED");
+  const record = {
+    schemaVersion: 1,
+    runId: state.runId,
+    ...(context.barrier?.mode === "manual"
+      ? {
+          manualOwner: {
+            owner: context.barrier.owner,
+            run: context.barrier.run,
+            sourceDigest: context.barrier.sourceDigest,
+          },
+        }
+      : {}),
+    ...(context.provenance ? { provenance: context.provenance } : {}),
+    controller,
+    app: null,
+    processes: [launcher],
+  };
+  const owned = await refreshVerificationProcesses(record);
+  if (!owned.some((item) => sameProcess(controller, item)))
+    throw new Error("VERIFY_CONTROLLER_UNPROVEN");
+  await writePrivateJson(ownershipPath(context.targetRoot), record);
+  return record;
+}
+export async function recordVerificationApp(record, pid, context = { targetRoot: repositoryRoot }) {
+  const app = await processIdentity(pid);
+  const owned = await refreshVerificationProcesses(record);
+  if (!app || !owned.some((item) => sameProcess(app, item))) throw new Error("VERIFY_APP_UNPROVEN");
+  record.app = app;
+  await writePrivateJson(ownershipPath(context.targetRoot), record);
+}
+export async function persistVerificationProcesses(
+  record,
+  context = { targetRoot: repositoryRoot },
+) {
+  await refreshVerificationProcesses(record);
+  await writePrivateJson(ownershipPath(context.targetRoot), record);
+}
+
+async function signalExact(identity, signal) {
+  const observed = await processIdentity(identity.pid);
+  if (!observed || observed.zombie) return;
+  if (!sameProcess(identity, observed)) throw new Error("VERIFY_PROCESS_IDENTITY_CHANGED");
+  try {
+    process.kill(identity.pid, signal);
+  } catch (error) {
+    if (error.code !== "ESRCH") throw error;
+  }
+}
+
+const stoppedArtifacts = [
+  "verification/control.sock",
+  "verification/processes.json",
+  "verification/shutdown.json",
+  "verification/screenshot.png",
+  "verify.json",
+  "verify.ready.json",
+];
+async function stoppedArtifact(targetRoot, relative) {
+  const filename = path.join(targetRoot, ".runtime", relative);
+  const info = await lstat(filename).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if (!info) return undefined;
+  if (info.uid !== process.getuid() || info.mode & 0o077)
+    throw new Error("VERIFY_OWNERSHIP_UNSAFE");
+  if (relative === "verification/control.sock") {
+    if (!info.isSocket()) throw new Error("VERIFY_SOCKET_UNSAFE");
+    return { relative, kind: "socket", device: info.dev, inode: info.ino };
+  }
+  if (!info.isFile()) throw new Error("VERIFY_OWNERSHIP_UNSAFE");
+  return { relative, kind: "file", sha256: journalFingerprint(await readFile(filename)) };
+}
+// Each lifecycle attempt owns one immutable terminal proof. The latest file is
+// only a convenience copy; retaining it must never destroy the preceding attempt.
+async function archiveStoppedProof(targetRoot, original) {
+  const proof = JSON.parse(original);
+  if (!/^[a-f0-9-]{36}$/.test(proof.lifecycleRunId ?? ""))
+    throw new Error("VERIFY_STOP_PROOF_REQUIRED");
+  const directory = path.join(targetRoot, ".runtime/verification/stopped");
+  await mkdir(directory, { mode: 0o700 }).catch((error) => {
+    if (error.code !== "EEXIST") throw error;
+  });
+  const info = await lstat(directory);
+  if (!info.isDirectory() || info.uid !== process.getuid() || info.mode & 0o077)
+    throw new Error("VERIFY_DIRECTORY_UNSAFE");
+  const filename = path.join(directory, `${proof.lifecycleRunId}.json`);
+  let handle;
+  try {
+    handle = await open(filename, "wx", 0o600);
+    await handle.writeFile(original);
+    await handle.sync();
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    if ((await privateText(filename)) !== original) throw new Error("VERIFY_STOP_ARCHIVE_CONFLICT");
+  } finally {
+    await handle?.close();
+  }
+  await syncDirectory(directory);
+  await syncDirectory(path.dirname(directory));
+  return { lifecycleRunId: proof.lifecycleRunId, sha256: journalFingerprint(original) };
+}
+
+async function publishStoppedProof(targetRoot, proof, previous) {
+  const filename = path.join(targetRoot, ".runtime/verification/stopped.json");
+  if (previous !== undefined) {
+    const predecessor = await archiveStoppedProof(targetRoot, previous);
+    if (JSON.stringify(proof.predecessor) !== JSON.stringify(predecessor))
+      throw new Error("VERIFY_STOP_PREDECESSOR_CHANGED");
+  }
+  await archiveStoppedProof(targetRoot, JSON.stringify(proof));
+  const current = await privateText(filename).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if (current !== previous) throw new Error("VERIFY_STOP_PREDECESSOR_CHANGED");
+  await writePrivateJson(filename, proof);
+}
+
+async function finalizeStoppedVerification(targetRoot, barrier, proof, unpublishedPredecessor) {
+  const bootId = (await processIdentity(process.pid)).bootId;
+  if (
+    proof.schemaVersion !== 1 ||
+    proof.worktree !== targetRoot ||
+    proof.run !== (barrier?.run ?? null) ||
+    proof.head !== (barrier?.head ?? null) ||
+    (barrier?.mode === "manual" && proof.sourceDigest !== barrier.sourceDigest) ||
+    proof.status !== "exact-processes-stopped" ||
+    typeof proof.lifecycleRunId !== "string" ||
+    !Array.isArray(proof.processes) ||
+    !proof.processes.some((item) => sameProcess(item, proof.controller)) ||
+    (proof.app && !proof.processes.some((item) => sameProcess(item, proof.app))) ||
+    proof.processes.some((item) => !sameProcess(item, item) || item.bootId !== bootId) ||
+    !Array.isArray(proof.finalization) ||
+    proof.finalization.some(
+      (item, index) =>
+        !stoppedArtifacts.includes(item.relative) ||
+        proof.finalization.findIndex((other) => other.relative === item.relative) !== index,
+    )
+  )
+    throw new Error("VERIFY_STOP_PROOF_REQUIRED");
+  if ((await refreshVerificationProcesses({ processes: [...proof.processes] })).length)
+    throw new Error("VERIFY_OWNED_PROCESSES_RETAINED");
+  const journalFile = path.join(targetRoot, ".runtime/verification/recovery.json");
+  const original = await privateText(journalFile).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if ((original === undefined ? null : journalFingerprint(original)) !== proof.journalFingerprint)
+    throw new Error("VERIFY_JOURNAL_CHANGED");
+  // Validate every survivor before removing any. A different/new session's file
+  // cannot be adopted merely because an earlier stop receipt exists.
+  for (const relative of stoppedArtifacts) {
+    const observed = await stoppedArtifact(targetRoot, relative);
+    if (
+      observed &&
+      JSON.stringify(observed) !==
+        JSON.stringify(proof.finalization.find((item) => item.relative === relative))
+    )
+      throw new Error("VERIFY_SHUTDOWN_OWNER_CHANGED");
+  }
+  if (unpublishedPredecessor) {
+    await publishStoppedProof(targetRoot, proof, unpublishedPredecessor.bytes);
+  }
+  const terminalBytes = await privateText(
+    path.join(targetRoot, ".runtime/verification/stopped.json"),
+  );
+  if (JSON.stringify(JSON.parse(terminalBytes)) !== JSON.stringify(proof))
+    throw new Error("VERIFY_STOP_PREDECESSOR_CHANGED");
+  await archiveStoppedProof(targetRoot, terminalBytes);
+  for (const relative of stoppedArtifacts) {
+    const observed = await stoppedArtifact(targetRoot, relative);
+    if (!observed) continue;
+    if (
+      JSON.stringify(observed) !==
+      JSON.stringify(proof.finalization.find((item) => item.relative === relative))
+    )
+      throw new Error("VERIFY_SHUTDOWN_OWNER_CHANGED");
+    await rm(path.join(targetRoot, ".runtime", relative));
+  }
+  const journal = original === undefined ? undefined : JSON.parse(original);
+  return {
+    status: proof.disposition,
+    journalFingerprint: proof.journalFingerprint,
+    escalated: proof.escalated,
+    failures: proof.failures,
+    remainingRecords: journal?.records ?? [],
+    remainingPreferences: Object.keys(journal?.preferences ?? {}),
+    notes: journal?.notes ?? [],
+    pendingAction: journal?.pendingAction,
+    interruptedActions: journal?.interruptedActions ?? [],
+  };
+}
+
+// Caller serializes this with starts. Timeouts never release a pending UI action:
+// escalation first stops its processes, and preserves its journal for resumption.
+export async function stopVerification({
+  targetRoot = repositoryRoot,
+  barrier,
+  suspend = false,
+} = {}) {
+  const manualGate = manualAccess(targetRoot);
+  if (manualGate) {
+    if (barrier && barrier.run !== manualGate.run) throw new Error("VERIFY_MANUAL_OWNER_MISMATCH");
+    barrier = manualGate;
+  }
+  const verificationRoot = path.join(targetRoot, ".runtime/verification");
+  const ownershipPath = path.join(verificationRoot, "processes.json");
+  const repositoryRoot = targetRoot;
+  const directory = await lstat(verificationRoot).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if (
+    directory &&
+    (!directory.isDirectory() || directory.uid !== process.getuid() || directory.mode & 0o077)
+  )
+    throw new Error("VERIFY_DIRECTORY_UNSAFE");
+  let state;
+  try {
+    state = await privateJson(path.join(repositoryRoot, ".runtime/verify.json"));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  let record;
+  try {
+    record = await privateJson(ownershipPath);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if ((record && !record.manualOwner) || (state && !record))
+    throw new Error("VERIFY_RETIRED_SESSION_RETAINED");
+  manualAccess(targetRoot, record?.manualOwner);
+  const previousProofBytes = await privateText(path.join(verificationRoot, "stopped.json")).catch(
+    (error) => {
+      if (error.code !== "ENOENT") throw error;
+    },
+  );
+  const stoppedProof =
+    previousProofBytes === undefined ? undefined : JSON.parse(previousProofBytes);
+  if (
+    stoppedProof &&
+    (!state || state.runId === stoppedProof.lifecycleRunId) &&
+    (!record || record.runId === stoppedProof.lifecycleRunId)
+  ) {
+    const remaining = await Promise.all(
+      stoppedArtifacts.map((relative) => stoppedArtifact(targetRoot, relative)),
+    );
+    if (
+      remaining.some(Boolean) ||
+      (stoppedProof.provenance &&
+        stoppedProof.run === barrier?.run &&
+        stoppedProof.head === barrier?.head)
+    )
+      return finalizeStoppedVerification(targetRoot, barrier, stoppedProof);
+  }
+  if (state && state.mode !== "verify") throw new Error("VERIFY_OWNERSHIP_INVALID");
+  if (state && !record) throw new Error("VERIFY_PROCESS_OWNERSHIP_REQUIRED");
+  if (
+    record &&
+    (record.schemaVersion !== 1 ||
+      record.runId !== state?.runId ||
+      !Array.isArray(record.processes) ||
+      !record.processes.some(
+        (item) => item.pid === state.pid && item.startTicks === state.startTicks,
+      ) ||
+      !record.processes.some((item) => sameProcess(item, record.controller)))
+  )
+    throw new Error("VERIFY_OWNERSHIP_INVALID");
+  if (record?.provenance && JSON.stringify(record.provenance) !== JSON.stringify(state.provenance))
+    throw new Error("VERIFY_RECOVERY_ATTEMPT_CHANGED");
+  // A crash after archiving but before publishing latest retains an exact proof.
+  // Validate its own survivors/journal before publishing or removing anything.
+  if (record && /^[a-f0-9-]{36}$/.test(record.runId)) {
+    const archived = await privateJson(
+      path.join(verificationRoot, "stopped", `${record.runId}.json`),
+    ).catch((error) => {
+      if (error.code !== "ENOENT") throw error;
+    });
+    if (archived) {
+      if (
+        archived.lifecycleRunId !== record.runId ||
+        !sameProcess(archived.controller, record.controller) ||
+        JSON.stringify(archived.provenance) !== JSON.stringify(record.provenance)
+      )
+        throw new Error("VERIFY_STOP_ARCHIVE_CONFLICT");
+      return finalizeStoppedVerification(targetRoot, barrier, archived, {
+        bytes: previousProofBytes,
+      });
+    }
+  }
+  const recoveryFile = path.join(verificationRoot, "shutdown.json");
+  if (record) {
+    const bootId = (await processIdentity(process.pid)).bootId;
+    if (
+      record.controller?.bootId !== bootId ||
+      record.processes.some((item) => !sameProcess(item, item) || item.bootId !== bootId)
+    )
+      throw new Error("VERIFY_PROCESS_IDENTITY_CHANGED");
+    const retained = await privateJson(recoveryFile).catch((error) => {
+      if (error.code !== "ENOENT") throw error;
+    });
+    if (retained) {
+      if (retained.runId !== record.runId) throw new Error("VERIFY_SHUTDOWN_OWNER_CHANGED");
+      for (const item of retained.processes) {
+        if (!record.processes.some((prior) => sameProcess(prior, item)))
+          record.processes.push(item);
+      }
+    }
+    // Save children before a graceful parent exit can reparent them.
+    await refreshVerificationProcesses(record);
+    await writePrivateJson(recoveryFile, record);
+  }
+  let cleanup;
+  let gracefulFailure;
+  if (state && (await inspectOwnedProcess(state)).owned) {
+    try {
+      cleanup = await requestVerification(
+        { action: suspend ? "suspend" : "stop" },
+        30000,
+        targetRoot,
+      );
+    } catch (error) {
+      gracefulFailure = error.message;
+    }
+  }
+  if (!record) {
+    const journal = await privateJson(path.join(verificationRoot, "recovery.json")).catch(
+      (error) => {
+        if (error.code !== "ENOENT") throw error;
+      },
+    );
+    return {
+      status: "already-stopped",
+      notes: journal?.notes ?? [],
+      remainingRecords: journal?.records ?? [],
+      remainingPreferences: Object.keys(journal?.preferences ?? {}),
+      pendingAction: journal?.pendingAction,
+      interruptedActions: journal?.interruptedActions ?? [],
+    };
+  }
+  const latest = await privateJson(ownershipPath);
+  if (latest.runId !== record.runId || !sameProcess(latest.controller, record.controller))
+    throw new Error("VERIFY_SHUTDOWN_OWNER_CHANGED");
+  if (JSON.stringify(latest.provenance) !== JSON.stringify(record.provenance))
+    throw new Error("VERIFY_RECOVERY_ATTEMPT_CHANGED");
+  record.app = latest.app;
+  if (record.app && !latest.processes.some((item) => sameProcess(item, record.app)))
+    throw new Error("VERIFY_APP_OWNERSHIP_REQUIRED");
+  for (const item of latest.processes) {
+    if (!record.processes.some((prior) => sameProcess(prior, item))) record.processes.push(item);
+  }
+  if (["stopped", "suspended"].includes(cleanup?.status)) await delay(250);
+  let live = await refreshVerificationProcesses(record);
+  // A rejected launch can exit before an Electron identity is recorded. Reconcile
+  // only when every proven process is gone; missing app proof never grants signals.
+  if (!record.app && live.length) throw new Error("VERIFY_APP_OWNERSHIP_REQUIRED");
+  const escalated = live.length > 0;
+  await writePrivateJson(recoveryFile, record);
+  // The socket request is the controller's graceful shutdown. Never deliver a
+  // controller SIGTERM: Playwright handlers can signal a whole child group.
+  // Kill only its exact identity, after all known children have exited.
+  const controllers = new Set([state.pid, record.controller.pid]);
+  for (const signal of ["SIGTERM", "SIGKILL"]) {
+    const sent = new Set();
+    const deadline = Date.now() + 5000;
+    do {
+      live = await refreshVerificationProcesses(record);
+      await writePrivateJson(recoveryFile, record);
+      const children = live.filter((item) => !controllers.has(item.pid));
+      for (const item of children.length ? children : live) {
+        const key = `${item.pid}:${item.startTicks}`;
+        if (!sent.has(key)) {
+          await signalExact(item, controllers.has(item.pid) ? "SIGKILL" : signal);
+          sent.add(key);
+        }
+      }
+      if (!live.length) break;
+      await delay(100);
+    } while (Date.now() < deadline);
+  }
+  live = await refreshVerificationProcesses(record);
+  if (live.length) throw new Error("VERIFY_OWNED_PROCESSES_RETAINED");
+  // The controller is now gone; reading its final journal cannot race a mutation.
+  const journal = await privateJson(path.join(verificationRoot, "recovery.json")).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  if (!cleanup && journal) {
+    if (!journal.notes.includes("INTERRUPTED_SHUTDOWN")) journal.notes.push("INTERRUPTED_SHUTDOWN");
+    await writePrivateJson(path.join(verificationRoot, "recovery.json"), journal);
+  }
+  // Durable terminal identity evidence precedes removing any ownership file.
+  const proof = {
+    schemaVersion: 1,
+    run: barrier?.run ?? null,
+    head: barrier?.head ?? null,
+    ...(record.manualOwner
+      ? { sourceDigest: record.manualOwner.sourceDigest, manualOwner: record.manualOwner }
+      : {}),
+    worktree: targetRoot,
+    lifecycleRunId: record.runId,
+    ...(record.provenance ? { provenance: record.provenance } : {}),
+    ...(previousProofBytes === undefined
+      ? {}
+      : {
+          predecessor: {
+            lifecycleRunId: stoppedProof.lifecycleRunId,
+            sha256: journalFingerprint(previousProofBytes),
+          },
+        }),
+    controller: record.controller,
+    app: record.app,
+    processes: record.processes,
+    stoppedAt: new Date().toISOString(),
+    status: "exact-processes-stopped",
+    disposition: suspend && cleanup?.status === "suspended" && !escalated ? "suspended" : "stopped",
+    journalFingerprint: journal
+      ? journalFingerprint(await privateText(path.join(verificationRoot, "recovery.json")))
+      : null,
+  };
+  proof.escalated = escalated;
+  proof.failures = [
+    ...(cleanup?.failures ?? []),
+    ...(!cleanup ? [gracefulFailure ?? "VERIFY_CLEANUP_UNCONFIRMED"] : []),
+  ];
+  proof.finalization = (
+    await Promise.all(stoppedArtifacts.map((relative) => stoppedArtifact(targetRoot, relative)))
+  ).filter(Boolean);
+  await publishStoppedProof(targetRoot, proof, previousProofBytes);
+  return finalizeStoppedVerification(targetRoot, barrier, proof);
+}
+
+export function journalFingerprint(text) {
+  return createHash("sha256").update(text).digest("hex");
+}

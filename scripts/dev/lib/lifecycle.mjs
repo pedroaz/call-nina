@@ -6,6 +6,7 @@ import {
   mkdir,
   open,
   readFile,
+  readdir,
   rename,
   rm,
   rmdir,
@@ -16,7 +17,7 @@ import {
 import { constants as fsConstants } from "node:fs";
 import path from "node:path";
 
-export const lifecycleModes = ["dev", "prd"];
+export const lifecycleModes = ["dev", "prd", "verify"];
 const maxLogBytes = 5 * 1024 * 1024;
 const retainedLogs = 10;
 
@@ -131,6 +132,64 @@ export async function inspectOwnedProcess(state) {
   return { owned: true, reason: "running" };
 }
 
+// Verification recovery needs a boot/UID-bound identity, not a PID or process name.
+// On platforms without this evidence recovery fails closed.
+export async function processIdentity(pid) {
+  if (process.platform !== "linux") throw new Error("VERIFY_PROCESS_IDENTITY_UNAVAILABLE");
+  if (!Number.isSafeInteger(pid) || pid <= 1) throw new Error("VERIFY_PROCESS_IDENTITY_INVALID");
+  try {
+    const [contents, info, bootId] = await Promise.all([
+      readFile(`/proc/${pid}/stat`, "utf8"),
+      stat(`/proc/${pid}`),
+      readFile("/proc/sys/kernel/random/boot_id", "utf8"),
+    ]);
+    const fields = contents
+      .slice(contents.lastIndexOf(") ") + 2)
+      .trim()
+      .split(/\s+/);
+    return {
+      pid,
+      startTicks: fields[19],
+      uid: info.uid,
+      bootId: bootId.trim(),
+      parentPid: Number(fields[1]),
+      groupId: Number(fields[2]),
+      zombie: fields[0] === "Z",
+    };
+  } catch (error) {
+    if (["ENOENT", "ESRCH"].includes(error.code)) return undefined;
+    throw error;
+  }
+}
+
+export function sameProcess(expected, observed) {
+  return Boolean(
+    expected &&
+    observed &&
+    Number.isSafeInteger(expected.pid) &&
+    expected.pid > 1 &&
+    typeof expected.startTicks === "string" &&
+    /^[0-9]+$/.test(expected.startTicks) &&
+    typeof expected.bootId === "string" &&
+    /^[0-9a-f-]{36}$/.test(expected.bootId) &&
+    expected.pid === observed.pid &&
+    expected.startTicks === observed.startTicks &&
+    expected.bootId === observed.bootId &&
+    expected.uid === observed.uid &&
+    expected.uid === process.getuid(),
+  );
+}
+
+export async function processInventory() {
+  const result = [];
+  for (const name of await readdir("/proc")) {
+    if (!/^[0-9]+$/.test(name) || Number(name) <= 1) continue;
+    const identity = await processIdentity(Number(name));
+    if (identity && !identity.zombie) result.push(identity);
+  }
+  return result;
+}
+
 async function rotateLog(log) {
   if (!(await pathExists(log))) return;
   const info = await stat(log);
@@ -195,8 +254,15 @@ function retainedStaleReason(state, identity) {
 
 async function terminateStartedProcess(
   state,
-  { graceMs = 1_000, requireLeaderIdentity = true } = {},
+  { graceMs = 1_000, requireLeaderIdentity = true, verificationContext } = {},
 ) {
+  if (state.mode === "verify") {
+    const { stopVerification } = await import("./verification-client.mjs");
+    const result = await stopVerification(verificationContext);
+    if (!["stopped", "already-stopped"].includes(result.status))
+      throw new Error("VERIFY_SHUTDOWN_INCOMPLETE");
+    return true;
+  }
   const identity = await inspectOwnedProcess(state);
   if (requireLeaderIdentity && !identity.owned) return false;
 
@@ -311,6 +377,8 @@ export async function startMode(options) {
         throw new Error(`LIFECYCLE_APP_ALREADY_RUNNING_OR_RETAINED:${mode}`);
       }
     }
+    if (await pathExists(path.join(root, "verification/processes.json")))
+      throw new Error("VERIFY_PROCESS_RECOVERY_REQUIRED");
     return await startModeUnlocked(options);
   });
 }
@@ -323,6 +391,8 @@ async function startModeUnlocked({
   timeoutMs = 60_000,
   environment = process.env,
   detached = true,
+  verificationContext,
+  beforeSpawn,
 }) {
   assertMode(mode);
   if (!Array.isArray(command) || command.length === 0)
@@ -354,8 +424,9 @@ async function startModeUnlocked({
     0o600,
   );
   await chmod(paths.log, 0o600);
-  const runId = randomUUID();
+  const runId = verificationContext?.receipt?.lifecycleRunId ?? randomUUID();
   await lifecycleLog(paths.log, "INFO", "LIFECYCLE_STARTING", runId, `Starting ${mode} service.`);
+  await beforeSpawn?.();
   const [executable, ...args] = command;
   const child = spawn(executable, args, {
     cwd,
@@ -385,6 +456,7 @@ async function startModeUnlocked({
     pid: child.pid,
     startTicks,
     runId,
+    ...(verificationContext?.provenance ? { provenance: verificationContext.provenance } : {}),
     startedAt: new Date().toISOString(),
     command,
     processGroupId: detached ? child.pid : undefined,
@@ -395,7 +467,7 @@ async function startModeUnlocked({
   while (Date.now() < deadline) {
     const identity = await inspectOwnedProcess(state);
     if (!identity.owned) {
-      await terminateStartedProcess(state, { requireLeaderIdentity: false });
+      await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
       await rm(paths.state, { force: true });
       await lifecycleLog(
         paths.log,
@@ -411,13 +483,13 @@ async function startModeUnlocked({
       try {
         ready = await readReadinessJson(paths.ready);
       } catch (error) {
-        await terminateStartedProcess(state, { requireLeaderIdentity: false });
+        await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
         await rm(paths.state, { force: true });
         await rm(paths.ready, { force: true });
         throw new Error(`${mode} emitted malformed readiness: ${error.message}`);
       }
       if (ready.status !== "ready" || ready.runId !== runId) {
-        await terminateStartedProcess(state, { requireLeaderIdentity: false });
+        await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
         await rm(paths.state, { force: true });
         await rm(paths.ready, { force: true });
         throw new Error(`${mode} emitted an invalid or stale readiness signal.`);
@@ -430,7 +502,7 @@ async function startModeUnlocked({
     await delay(50);
   }
 
-  await terminateStartedProcess(state, { requireLeaderIdentity: false });
+  await terminateStartedProcess(state, { requireLeaderIdentity: false, verificationContext });
   await rm(paths.state, { force: true });
   await rm(paths.ready, { force: true });
   await lifecycleLog(
@@ -467,6 +539,24 @@ export async function statusMode({ mode, runtimeRoot }) {
 }
 
 export async function killMode(options) {
+  const { mode, runtimeRoot, verificationContext } = options;
+  if (mode === "verify") {
+    const { stopVerification } = await import("./verification-client.mjs");
+    const { locked, assertVerificationBarrier } = await import("./verification-state.mjs");
+    return locked(() => {
+      const targetRoot = path.dirname(path.resolve(runtimeRoot));
+      let barrier;
+      if (!verificationContext) {
+        try {
+          barrier = assertVerificationBarrier();
+        } catch {
+          /* Retain exact process-only recovery. */
+        }
+      }
+      return stopVerification(verificationContext ?? { targetRoot, barrier });
+    });
+  }
+
   return withLifecycleLock(options.runtimeRoot, () => killModeUnlocked(options));
 }
 
