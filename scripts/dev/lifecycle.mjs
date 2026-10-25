@@ -43,29 +43,6 @@ async function status() {
 async function kill() {
   let incomplete = false;
   for (const lifecycleMode of lifecycleModes) {
-    if (lifecycleMode === "verify") {
-      try {
-        const result = await killMode({ mode: lifecycleMode, runtimeRoot });
-        const recoveryIncomplete = Boolean(
-          result.failures?.length ||
-          result.notes?.length ||
-          result.pendingAction ||
-          result.interruptedActions?.length ||
-          result.remainingRecords?.length ||
-          result.remainingPreferences?.length,
-        );
-        process.stdout.write(
-          `verify: ${result.status} cleanup=${recoveryIncomplete ? "incomplete" : "complete"}\n`,
-        );
-        if (recoveryIncomplete) incomplete = true;
-      } catch {
-        process.stderr.write(
-          "verify: retained; inspect make verify-stop for the exact ownership/recovery blocker.\n",
-        );
-        incomplete = true;
-      }
-      continue;
-    }
     const result = await killMode({ mode: lifecycleMode, runtimeRoot });
     process.stdout.write(
       `${result.mode}: ${result.status}${result.reason ? ` reason=${result.reason}` : ""}\n`,
@@ -75,15 +52,11 @@ async function kill() {
   if (incomplete) process.exitCode = 1;
 }
 
-async function logs(args = [mode, ...flags].filter(Boolean), selectedMode, signal) {
+async function logs(args = [mode, ...flags].filter(Boolean)) {
   const options = logViewOptions(args);
   const followedAt = new Date().toISOString();
   const active = (
-    await Promise.all(
-      (selectedMode ? [selectedMode] : lifecycleModes).map((mode) =>
-        statusMode({ mode, runtimeRoot }),
-      ),
-    )
+    await Promise.all(lifecycleModes.map((mode) => statusMode({ mode, runtimeRoot })))
   ).filter((state) => state.runId && state.startedAt);
   const since = active.map((state) => state.startedAt).sort()[0] ?? followedAt;
   const runIds = new Set(active.map((state) => state.runId));
@@ -91,12 +64,11 @@ async function logs(args = [mode, ...flags].filter(Boolean), selectedMode, signa
   const unreadable = new Set();
   let initial = true;
   let displayedDate;
-  let observedRun = active.length > 0;
   process.stdout.write(
     `Call Nina logs · ${options.level.toUpperCase()}+ · ${options.scope === "history" ? "history" : active.length ? "current run" : "new records only (no running app)"} · UTC\n`,
   );
   process.stdout.write("LEVEL=debug for details · SCOPE=history for earlier runs\n");
-  while (!signal?.aborted) {
+  while (true) {
     // Resolve again so onboarding, folder switches and newly created logs are discovered.
     const files = [
       ...new Set([
@@ -144,20 +116,9 @@ async function logs(args = [mode, ...flags].filter(Boolean), selectedMode, signa
       process.stdout.write(`${formatLog(record, options)}\n`);
     }
     if (!options.follow) return;
-    if (selectedMode) {
-      const state = await statusMode({ mode: selectedMode, runtimeRoot });
-      if (["ready", "starting"].includes(state.status)) observedRun = true;
-      else if (
-        observedRun &&
-        (state.status === "stopped" || (state.status === "stale" && state.reason === "not-running"))
-      ) {
-        process.stdout.write("The app has stopped. Run make debug to open it again.\n");
-        return;
-      }
-    }
     if (initial)
       process.stdout.write(
-        "Following new records. Ctrl-C stops log following; make kill stops the app.\n",
+        "Following new records. Ctrl-C stops log following; make stop stops the app.\n",
       );
     initial = false;
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -187,61 +148,31 @@ async function logsClear() {
 }
 
 try {
-  if (action === "debug") {
-    if (mode) throw new Error("debug does not accept arguments; use logs with explicit flags.");
-    logViewOptions(["--follow"]);
-    const current = await statusMode({ mode: "dev", runtimeRoot });
-    const controller = new AbortController();
-    const stopFollowing = () => controller.abort();
-    process.on("SIGINT", stopFollowing);
-    let startup;
-    try {
-      if (!["ready", "starting"].includes(current.status)) {
-        process.stdout.write("Starting development; build progress follows below…\n");
-        startup = startMode({
-          mode: "dev",
-          runtimeRoot,
-          cwd: root,
-          command: ["pnpm", "run", "service:dev"],
-          timeoutMs: 180_000,
-        }).catch((error) => {
-          controller.abort();
-          throw error;
-        });
-      }
-      await Promise.all([startup, logs(["--follow"], "dev", controller.signal)]);
-    } finally {
-      controller.abort();
-      // Finish recording startup ownership even when log following is interrupted.
-      await startup?.catch(() => {});
-      process.removeListener("SIGINT", stopFollowing);
-    }
-  } else if (action === "start") {
-    if (!["dev", "prd"].includes(mode))
-      throw new Error("Start requires mode dev or prd; use make verify-start for verification.");
+  if (action === "start") {
+    if (!["dev", "prd"].includes(mode)) throw new Error("Start requires mode dev or prd.");
     assertNoUnknownFlags([]);
     const state = await startMode({
       mode,
       runtimeRoot,
       cwd: root,
-      command: ["pnpm", "run", `service:${mode}`],
+      command: [process.execPath, "apps/desktop/scripts/desktop-service.mjs", mode],
       timeoutMs: mode === "dev" ? 180_000 : 60_000,
     });
     process.stdout.write(`${mode}: ready pid=${state.pid}\n`);
   } else if (action === "status") {
     if (mode) throw new Error("Status does not accept arguments.");
     await status();
-  } else if (action === "kill") {
-    if (mode) throw new Error("Kill does not accept arguments.");
+  } else if (action === "stop" || action === "kill") {
+    if (mode) throw new Error("Stop does not accept arguments.");
     await kill();
   } else if (action === "logs") {
-    await logs();
-  } else if (action === "logs-clear") {
-    if (mode) throw new Error("logs-clear does not accept arguments.");
-    await logsClear();
+    if (flags.includes("--clear") || mode === "--clear") {
+      if (mode !== "--clear" || flags.length) throw new Error("Use logs --clear alone.");
+      await logsClear();
+    } else await logs();
   } else {
     throw new Error(
-      "Usage: lifecycle.mjs debug | start <dev|prd> | status | kill | logs [--follow] [--errors] | logs-clear",
+      "Usage: lifecycle.mjs start <dev|prd> | status | stop | logs [--follow] [--errors] [--clear]",
     );
   }
 } catch (error) {

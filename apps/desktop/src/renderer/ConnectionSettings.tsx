@@ -1,3 +1,4 @@
+import { Disclosure } from "./components/ui/Disclosure.js";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type {
   AiConnection,
@@ -357,13 +358,14 @@ export function ConnectionSettings({
   return (
     <div className={styles.panel} aria-busy={busy}>
       <p>{t("connectionSettings.localPractice")}</p>
-      <details
+      <Disclosure
         ref={managementRef}
         data-connection-management
         className={styles.management}
         open={!view?.settings.connections.length || undefined}
+        variant="plain"
+        label={<> {t("connectionSettings.manage")} </>}
       >
-        <summary>{t("connectionSettings.manage")}</summary>
         <div className={styles.list}>
           <div
             ref={listRef}
@@ -427,7 +429,7 @@ export function ConnectionSettings({
             {t("connectionSettings.add")}
           </Button>
         </div>
-      </details>
+      </Disclosure>
       {draft ? (
         <Card
           className={styles.editor}
@@ -493,6 +495,7 @@ export function ConnectionSettings({
             )}
           {!isNew && view?.settings.activeConnectionId !== draft.id && (
             <Button
+              variant="primary"
               isDisabled={busy || dirty}
               onPress={() => void mutate({ kind: "activate", connectionId: draft.id })}
             >
@@ -544,8 +547,7 @@ export function ConnectionSettings({
               </option>
             ))}
           </SelectField>
-          <details>
-            <summary>{t("connectionSettings.advanced")}</summary>
+          <Disclosure variant="plain" label={<> {t("connectionSettings.advanced")} </>}>
             <SelectField
               label={t("settings.effort")}
               disabled={busy}
@@ -587,7 +589,7 @@ export function ConnectionSettings({
                 </option>
               ))}
             </SelectField>
-          </details>
+          </Disclosure>
           {isDirect && (
             <Card variant="muted" className={styles.secret}>
               {view?.secureStorage.status === "unavailable" && (
@@ -662,6 +664,7 @@ export function ConnectionSettings({
               <div className={styles.actions}>
                 {(offline.snapshot.state === "absent" || offline.snapshot.state === "partial") && (
                   <Button
+                    variant="primary"
                     isDisabled={
                       busy || offlineBusy || !offline.snapshot.preflight?.platformSupported
                     }
@@ -676,6 +679,7 @@ export function ConnectionSettings({
                 )}
                 {offline.snapshot.state === "downloading" && (
                   <Button
+                    variant="primary"
                     isDisabled={busy || offlineBusy}
                     onPress={() => void manageOffline("cancel")}
                   >
@@ -685,6 +689,7 @@ export function ConnectionSettings({
                 {(offline.snapshot.state === "installed" ||
                   offline.snapshot.state === "partial") && (
                   <Button
+                    variant="primary"
                     isDisabled={busy || offlineBusy}
                     onPress={() => {
                       setConfirmOfflineRemove(true);
@@ -699,12 +704,14 @@ export function ConnectionSettings({
                   <p>{t("connectionSettings.offlineRemoveWarning")}</p>
                   <div className={styles.actions}>
                     <Button
+                      variant="primary"
                       isDisabled={busy || offlineBusy}
                       onPress={() => void manageOffline("remove")}
                     >
                       {t("connectionSettings.offlineConfirmRemove")}
                     </Button>
                     <Button
+                      variant="secondary"
                       isDisabled={busy || offlineBusy}
                       onPress={() => {
                         setConfirmOfflineRemove(false);
@@ -718,8 +725,11 @@ export function ConnectionSettings({
             </div>
           )}
           {draft.routeId === "managed" && <p>{t("connectionSettings.managedUnavailable")}</p>}
-          <details className={styles.connectionDetails}>
-            <summary>{t("connectionSettings.details")}</summary>
+          <Disclosure
+            className={styles.connectionDetails}
+            variant="plain"
+            label={<> {t("connectionSettings.details")} </>}
+          >
             <TextField
               label={t("connectionSettings.name")}
               maxLength={120}
@@ -805,7 +815,7 @@ export function ConnectionSettings({
                 )}
               </div>
             )}
-          </details>
+          </Disclosure>
           {(dirty || saving) && (
             <div className={styles.actions}>
               <Button variant="primary" isDisabled={busy || !dirty} onPress={() => void save()}>

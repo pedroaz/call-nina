@@ -1,3 +1,8 @@
+import { Disclosure } from "./components/ui/Disclosure.js";
+import { PracticeComposer } from "./PracticeComposer.js";
+import { ActivityVisual } from "./activityPresentation.js";
+import type { PracticeKind } from "./PracticeTypeChooser.js";
+import { startTopicPractice, practiceDefaults } from "./startTopicPractice.js";
 import { CompletionActions } from "./CompletionActions.js";
 import {
   MaterialPractice,
@@ -22,20 +27,11 @@ import { useLearningOperation } from "./useLearningOperation.js";
 import { ReadingPractice } from "./ReadingPractice.js";
 import { PreparedActivityWorkspace } from "./PreparedActivityWorkspace.js";
 import { useActivityLibrary } from "./useActivityLibrary.js";
-import { generatePracticeActivity, reusePracticeActivity } from "./generatePracticeActivity.js";
+import { reusePracticeActivity } from "./generatePracticeActivity.js";
 import { OperationError } from "./Startup.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { materializeContentExercises } from "@call-nina/domain";
-import {
-  FilePenLine,
-  BookOpen,
-  ChevronRight,
-  MessageSquareText,
-  Sparkles,
-  Trash2,
-  UserRound,
-  Volume2,
-} from "lucide-react";
+import { FilePenLine, BookOpen, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { ExerciseEngine } from "./ExerciseEngine.js";
@@ -46,12 +42,11 @@ import {
   Card,
   ConfirmDialog,
   FieldGroup,
-  IconButton,
   InfoHint,
   ItemList,
   Muted,
 } from "./components/ui/index.js";
-import { ActionGroup, Page } from "./components/layout/index.js";
+import { ActionGroup, Page, Section, ContentRow } from "./components/layout/index.js";
 import { createDesktopSubmissionId, invokeDesktop, normalizeDesktopError } from "./ipc.js";
 
 type PreparedActivityId = Extract<
@@ -62,7 +57,6 @@ type PreparedActivity = Extract<
   DesktopIpcResponse,
   { status: "ok"; channel: "dashboard/read" }
 >["result"]["preparedActivities"][number];
-type PracticeKind = "flashcards" | "custom" | "grammar" | "reading" | "listening" | "speaking";
 type PracticeLibraryFilter =
   | "flashcards"
   | "all"
@@ -74,7 +68,10 @@ type PracticeLibraryFilter =
 type PracticeLevel = "a1" | "a2" | "b1" | "b2";
 
 export function PracticePage({
+  selectedTab,
+  onTabChange,
   targetLanguage,
+  autoStart = false,
   initialPreparation,
   parentLabel,
   activityId,
@@ -86,7 +83,10 @@ export function PracticePage({
   onHistory,
   onNina,
 }: {
+  selectedTab?: "new" | "saved";
+  onTabChange?: (tab: "new" | "saved") => void;
   targetLanguage?: Language | undefined;
+  autoStart?: boolean;
   parentLabel?: string;
   initialPreparation?: Extract<PracticeLaunch, { destination: "preparation" }>;
   activityId?: PreparedActivityId;
@@ -118,11 +118,23 @@ export function PracticePage({
   const [customRequest, setCustomRequest] = useState(
     initialPreparation?.kind === "custom" ? initialPreparation.prompt : "",
   );
-  const [grammarRequest, setGrammarRequest] = useState("");
-  const [quizCount, setQuizCount] = useState("6");
-  const [cardCount, setCardCount] = useState("10");
-  const [flashcardTopic, setFlashcardTopic] = useState("");
-  const [readingTopic, setReadingTopic] = useState("");
+  const [grammarRequest, setGrammarRequest] = useState(
+    initialPreparation?.kind === "grammar" ? initialPreparation.prompt : "",
+  );
+  const [quizCount, setQuizCount] = useState(String(practiceDefaults.exerciseCount));
+  const [cardCount, setCardCount] = useState(String(practiceDefaults.cardCount));
+  const [flashcardTopic, setFlashcardTopic] = useState(
+    initialPreparation?.kind === "flashcards" ? initialPreparation.prompt : "",
+  );
+  const [listeningTopic, setListeningTopic] = useState(
+    initialPreparation?.kind === "listening" ? initialPreparation.prompt : "",
+  );
+  const [speakingTopic, setSpeakingTopic] = useState(
+    initialPreparation?.kind === "speaking" ? initialPreparation.prompt : "",
+  );
+  const [readingTopic, setReadingTopic] = useState(
+    initialPreparation?.kind === "reading" ? initialPreparation.prompt : "",
+  );
   const [vocabularyMaterialState, setVocabularyMaterialState] = useState<MaterialPracticeState>(
     emptyMaterialPracticeState,
   );
@@ -155,7 +167,12 @@ export function PracticePage({
   const formBusy = generating || voiceBusy || readingBusy || materialBusy;
   const [generationError, setGenerationError] = useState<CallNinaError>();
   const [deleting, setDeleting] = useState(false);
-  const [libraryView, setLibraryView] = useState(false);
+  const [localLibraryView, setLocalLibraryView] = useState(false);
+  const libraryView = selectedTab ? selectedTab === "saved" : localLibraryView;
+  const setLibraryView = (saved: boolean) => {
+    setLocalLibraryView(saved);
+    onTabChange?.(saved ? "saved" : "new");
+  };
   const returnPosition = useRef<{ y: number; id: string } | undefined>(undefined);
   const openSavedActivity = async (id: PreparedActivityId) => {
     returnPosition.current = { y: window.scrollY, id };
@@ -381,18 +398,7 @@ export function PracticePage({
         data-root-generation={prepared?.rootGeneration}
         data-learning-language={prepared?.activity.context.learningScope.targetLanguage}
         title={generated?.title ?? t("exercises.loading")}
-        eyebrow={t("practice.session.eyebrow")}
         breadcrumbs={[{ label: parentLabel ?? t("practice.title"), onPress: onCloseActivity }]}
-        {...(generated
-          ? {
-              description: [
-                t("practice.session.exerciseCount", { count: exercises.length }),
-                generated.content.payload.lesson ? t("practice.session.lessonIncluded") : "",
-              ]
-                .filter(Boolean)
-                .join(" · "),
-            }
-          : {})}
         actions={
           generated &&
           generated.deletionStatus !== "retained-data" && (
@@ -407,6 +413,7 @@ export function PracticePage({
               onConfirm={() => deleteGeneratedLesson()}
               title={t("exercises.delete.title")}
               trigger={deleting ? t("exercises.delete.deleting") : t("practice.session.delete")}
+              menuLabel={t("ui.activityActions")}
               triggerVariant="secondary"
             />
           )
@@ -422,16 +429,21 @@ export function PracticePage({
           </Card>
         )}
         {generated?.content.payload.lesson && !generated.missionFacts && (
-          <details className={styles.practiceLessonDisclosure}>
-            <summary>
-              <span>
-                <BookOpen aria-hidden="true" />
-                <span>
-                  <strong>{generated.content.payload.lesson.title}</strong>
-                  <small>{t("practice.session.lessonHint")}</small>
+          <Disclosure
+            className={styles.practiceLessonDisclosure}
+            variant="plain"
+            label={
+              <>
+                <span className={styles.lessonHeading}>
+                  <BookOpen aria-hidden="true" />
+                  <span className={styles.lessonCopy}>
+                    <strong>{generated.content.payload.lesson.title}</strong>
+                    <small>{t("practice.session.lessonHint")}</small>
+                  </span>
                 </span>
-              </span>
-            </summary>
+              </>
+            }
+          >
             <div className={styles.practiceLessonBody}>
               <p>{generated.content.payload.lesson.explanation}</p>
               {generated.content.payload.lesson.sections.map((section) => (
@@ -454,7 +466,7 @@ export function PracticePage({
                 </section>
               )}
             </div>
-          </details>
+          </Disclosure>
         )}
         {generated && (
           <div className={styles.practiceRunner}>
@@ -465,6 +477,7 @@ export function PracticePage({
               </Card>
             )}
             <ExerciseEngine
+              autoStart={autoStart}
               completionActions={
                 prepared && (
                   <CompletionActions
@@ -577,11 +590,11 @@ export function PracticePage({
       return;
     setGenerationError(undefined);
     try {
-      const createdId = await generatePracticeActivity(
+      const createdId = await startTopicPractice(
         {
-          source,
-          naturalRequest: requestedLesson.trim(),
-          exerciseCount,
+          kind: source === "grammar" ? "grammar" : "custom",
+          topic: requestedLesson,
+          count: exerciseCount,
           targetLevel,
         },
         generation.run,
@@ -591,17 +604,6 @@ export function PracticePage({
       setGenerationError(normalizeDesktopError(cause).detail);
     }
   };
-  const practiceKinds: ReadonlyArray<{
-    kind: PracticeKind;
-    icon: typeof BookOpen;
-  }> = [
-    { kind: "custom", icon: Sparkles },
-    { kind: "flashcards", icon: BookOpen },
-    { kind: "grammar", icon: BookOpen },
-    { kind: "reading", icon: MessageSquareText },
-    { kind: "listening", icon: Volume2 },
-    { kind: "speaking", icon: UserRound },
-  ];
   const quizLengthControl = (
     <PracticeCount
       value={selectedKind === "flashcards" ? cardCount : quizCount}
@@ -609,6 +611,28 @@ export function PracticePage({
       disabled={formBusy}
       flashcards={selectedKind === "flashcards"}
     />
+  );
+  const practiceSettings = (
+    <div className={styles.practiceControls}>
+      <FieldGroup>
+        {t("practice.targetLevel")}
+        <select
+          value={targetLevel}
+          disabled={formBusy}
+          onChange={(event) => {
+            levelEdited.current = true;
+            setTargetLevel(event.target.value as PracticeLevel);
+          }}
+        >
+          {(["a1", "a2", "b1", "b2"] as const).map((level) => (
+            <option key={level} value={level}>
+              {level.toUpperCase()}
+            </option>
+          ))}
+        </select>
+      </FieldGroup>
+      {selectedKind !== "listening" && selectedKind !== "speaking" && quizLengthControl}
+    </div>
   );
   const generateFlashcards = async () => {
     if (
@@ -619,13 +643,11 @@ export function PracticePage({
       return;
     setGenerationError(undefined);
     try {
-      const result = await generation.run({
-        kind: "flashcard-generation",
-        topic: flashcardTopic.trim(),
-        cardCount: Number(cardCount),
-        targetLevel,
-      });
-      if (result.activityId) onOpenActivity(result.activityId);
+      const activityId = await startTopicPractice(
+        { kind: "flashcards", topic: flashcardTopic, count: Number(cardCount), targetLevel },
+        generation.run,
+      );
+      onOpenActivity(activityId);
     } catch (cause) {
       setGenerationError(normalizeDesktopError(cause).detail);
     }
@@ -634,6 +656,8 @@ export function PracticePage({
   return (
     <Page
       title={t("practice.title")}
+      width="form"
+      className={styles.creationPage}
       refresh={{ onRefresh: library.refresh, busy: libraryBusy }}
       actions={
         onWriting && (
@@ -658,76 +682,64 @@ export function PracticePage({
             id: "new",
             label: t("ui.newPractice"),
             children: (
-              <div>
-                <section className={styles.practiceSection} aria-labelledby="practice-type-heading">
-                  <div className={styles.practiceSectionHeader}>
-                    <div>
-                      <h2 id="practice-type-heading">{t("practice.chooser.title")}</h2>
-                    </div>
-                  </div>
-                  <div className={styles.practiceTypeGrid}>
-                    {practiceKinds.map(({ kind, icon: Icon }) => (
-                      <Button
-                        isDisabled={formBusy}
-                        aria-pressed={selectedKind === kind}
-                        className={styles.practiceTypeCard}
-                        data-selected={selectedKind === kind || undefined}
-                        key={kind}
-                        onPress={() => {
-                          setSelectedKind(kind);
-                        }}
-                      >
-                        <span className={styles.practiceTypeIcon}>
-                          <Icon aria-hidden="true" />
-                        </span>
-                        <span className={styles.practiceTypeCopy}>
-                          <strong>{t(`practice.types.${kind}.title`)}</strong>
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                </section>
-
-                <div className={styles.practiceControls}>
-                  <FieldGroup>
-                    {t("practice.targetLevel")}
-                    <select
-                      value={targetLevel}
-                      disabled={formBusy}
-                      onChange={(event) => {
-                        levelEdited.current = true;
-                        setTargetLevel(event.target.value as PracticeLevel);
-                      }}
-                    >
-                      {(["a1", "a2", "b1", "b2"] as const).map((level) => (
-                        <option key={level} value={level}>
-                          {level.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </FieldGroup>
-                  {selectedKind !== "listening" && selectedKind !== "speaking" && quizLengthControl}
-                </div>
+              <div className={styles.creationStudio}>
+                <PracticeComposer
+                  kind={selectedKind}
+                  onKindChange={(kind) => {
+                    const topics = {
+                      custom: customRequest,
+                      grammar: grammarRequest,
+                      flashcards: flashcardTopic,
+                      reading: readingTopic,
+                      listening: listeningTopic,
+                      speaking: speakingTopic,
+                    };
+                    const setters = {
+                      custom: setCustomRequest,
+                      grammar: setGrammarRequest,
+                      flashcards: setFlashcardTopic,
+                      reading: setReadingTopic,
+                      listening: setListeningTopic,
+                      speaking: setSpeakingTopic,
+                    };
+                    if (!topics[kind]) setters[kind](topics[selectedKind]);
+                    setSelectedKind(kind);
+                  }}
+                  disabled={formBusy}
+                  topic={
+                    {
+                      custom: customRequest,
+                      grammar: grammarRequest,
+                      flashcards: flashcardTopic,
+                      reading: readingTopic,
+                      listening: listeningTopic,
+                      speaking: speakingTopic,
+                    }[selectedKind]
+                  }
+                  onTopicChange={
+                    {
+                      custom: setCustomRequest,
+                      grammar: setGrammarRequest,
+                      flashcards: setFlashcardTopic,
+                      reading: setReadingTopic,
+                      listening: setListeningTopic,
+                      speaking: setSpeakingTopic,
+                    }[selectedKind]
+                  }
+                />
+                {(selectedKind === "listening" || selectedKind === "speaking") && (
+                  <Disclosure label={t("ui.practiceOptions")} variant="plain">
+                    {practiceSettings}
+                  </Disclosure>
+                )}
 
                 {generationError && <OperationError error={generationError} />}
                 <div className={styles.practiceContent}>
                   <div hidden={selectedKind !== "flashcards"}>
-                    <Card as="article">
-                      <h2>{t("flashcards.title")}</h2>
-                      <p>{t("flashcards.description")}</p>
-                      <FieldGroup>
-                        {t("practice.promptLabel")}
-                        <textarea
-                          rows={3}
-                          maxLength={2_000}
-                          disabled={formBusy}
-                          value={flashcardTopic}
-                          placeholder={t("flashcards.placeholder")}
-                          onChange={(event) => {
-                            setFlashcardTopic(event.target.value);
-                          }}
-                        />
-                      </FieldGroup>
+                    <Section as="article">
+                      <Disclosure label={t("ui.practiceOptions")} variant="plain">
+                        {practiceSettings}
+                      </Disclosure>
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button
@@ -740,7 +752,9 @@ export function PracticePage({
                           {t("flashcards.generate")}
                         </Button>
                         {generating && (
-                          <Button onPress={generation.cancel}>{t("actions.cancel")}</Button>
+                          <Button variant="secondary" onPress={generation.cancel}>
+                            {t("actions.cancel")}
+                          </Button>
                         )}
                       </ActionGroup>
                       <MaterialPractice
@@ -755,25 +769,13 @@ export function PracticePage({
                         requestAiAccess={requestAiAccess}
                         onOpenActivity={onOpenActivity}
                       />
-                    </Card>
+                    </Section>
                   </div>
                   <div hidden={selectedKind !== "custom"}>
-                    <Card as="article">
-                      <h2>{t("exercises.custom.title")}</h2>
-
-                      <FieldGroup>
-                        {t("exercises.custom.request")}
-                        <textarea
-                          rows={3}
-                          maxLength={2_000}
-                          disabled={generating}
-                          value={customRequest}
-                          placeholder={t("practice.customPromptPlaceholder")}
-                          onChange={(event) => {
-                            setCustomRequest(event.target.value);
-                          }}
-                        />
-                      </FieldGroup>
+                    <Section as="article">
+                      <Disclosure label={t("ui.practiceOptions")} variant="plain">
+                        {practiceSettings}
+                      </Disclosure>
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button
@@ -793,24 +795,13 @@ export function PracticePage({
                           </Button>
                         )}
                       </ActionGroup>
-                    </Card>
+                    </Section>
                   </div>
                   <div hidden={selectedKind !== "grammar"}>
-                    <Card as="article">
-                      <h2>{t("practice.grammarLesson.title")}</h2>
-                      <FieldGroup>
-                        {t("practice.promptLabel")}
-                        <textarea
-                          rows={3}
-                          maxLength={2_000}
-                          disabled={generating}
-                          value={grammarRequest}
-                          placeholder={t("practice.grammarPromptPlaceholder")}
-                          onChange={(event) => {
-                            setGrammarRequest(event.target.value);
-                          }}
-                        />
-                      </FieldGroup>
+                    <Section as="article">
+                      <Disclosure label={t("ui.practiceOptions")} variant="plain">
+                        {practiceSettings}
+                      </Disclosure>
                       <Button
                         variant="secondary"
                         isDisabled={generating || !targetLanguage}
@@ -824,6 +815,7 @@ export function PracticePage({
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button
+                          variant="primary"
                           isDisabled={generating || !quizCountValid || !grammarRequest.trim()}
                           onPress={() => void generateCustomLesson(grammarRequest, "grammar")}
                         >
@@ -838,10 +830,14 @@ export function PracticePage({
                           </Button>
                         )}
                       </ActionGroup>
-                    </Card>
+                    </Section>
                   </div>
                   <div hidden={selectedKind !== "reading"}>
                     <ReadingPractice
+                      hideTopic
+                      settings=<Disclosure label={t("ui.practiceOptions")} variant="plain">
+                        {practiceSettings}
+                      </Disclosure>
                       topic={readingTopic}
                       setTopic={setReadingTopic}
                       materialState={readingMaterialState}
@@ -860,9 +856,8 @@ export function PracticePage({
                       targetLevel={targetLevel}
                       onBusyChange={setVoiceBusy}
                       requestAiAccess={requestAiAccess}
-                      {...(initialPreparation?.kind === "listening"
-                        ? { initialScenario: initialPreparation.prompt }
-                        : {})}
+                      request={listeningTopic}
+                      onRequestChange={setListeningTopic}
                       onOpenActivity={onOpenActivity}
                     />
                   </div>
@@ -872,9 +867,8 @@ export function PracticePage({
                       targetLevel={targetLevel}
                       onBusyChange={setVoiceBusy}
                       requestAiAccess={requestAiAccess}
-                      {...(initialPreparation?.kind === "speaking"
-                        ? { initialScenario: initialPreparation.prompt }
-                        : {})}
+                      request={speakingTopic}
+                      onRequestChange={setSpeakingTopic}
                       onOpenActivity={onOpenActivity}
                     />
                   </div>
@@ -922,6 +916,7 @@ export function PracticePage({
                     ).map((filter) => {
                       return (
                         <Button
+                          variant="secondary"
                           className={styles.libraryFilterButton}
                           density="compact"
                           aria-pressed={libraryFilter === filter}
@@ -960,7 +955,42 @@ export function PracticePage({
                           })
                         : t("practice.library.deleteAction", { title: activity.title });
                       return (
-                        <div className={styles.generatedActivity} key={activity.activityId}>
+                        <ContentRow
+                          variant="bordered"
+                          leading={<ActivityVisual kind={activity.activityType} />}
+                          key={activity.activityId}
+                          actions={
+                            <>
+                              {deletionBlocked ? (
+                                <InfoHint
+                                  label={t("practice.library.deleteAction", {
+                                    title: activity.title,
+                                  })}
+                                >
+                                  {deleteLabel}
+                                </InfoHint>
+                              ) : (
+                                <ConfirmDialog
+                                  body={t(
+                                    activity.activityType === "flashcards"
+                                      ? "flashcards.deleteBody"
+                                      : activity.deletionStatus === "cascade"
+                                        ? "practice.library.deleteCascadeBody"
+                                        : "practice.library.deleteBody",
+                                  )}
+                                  cancel={t("actions.cancel")}
+                                  confirm={t("practice.library.deleteConfirm")}
+                                  title={t("practice.library.deleteTitle", {
+                                    title: activity.title,
+                                  })}
+                                  trigger={deleteLabel}
+                                  menuLabel={deleteLabel}
+                                  onConfirm={() => deletePreparedActivity(activity)}
+                                />
+                              )}
+                            </>
+                          }
+                        >
                           <Button
                             id={`activity-open-${activity.activityId}`}
                             aria-label={t("practice.library.open", { title: activity.title })}
@@ -982,43 +1012,17 @@ export function PracticePage({
                             </span>
                             <ChevronRight aria-hidden="true" />
                           </Button>
-                          {deletionBlocked ? (
-                            <InfoHint
-                              label={t("practice.library.deleteAction", { title: activity.title })}
-                            >
-                              {deleteLabel}
-                            </InfoHint>
-                          ) : (
-                            <ConfirmDialog
-                              body={t(
-                                activity.activityType === "flashcards"
-                                  ? "flashcards.deleteBody"
-                                  : activity.deletionStatus === "cascade"
-                                    ? "practice.library.deleteCascadeBody"
-                                    : "practice.library.deleteBody",
-                              )}
-                              cancel={t("actions.cancel")}
-                              confirm={t("practice.library.deleteConfirm")}
-                              title={t("practice.library.deleteTitle", { title: activity.title })}
-                              trigger={deleteLabel}
-                              triggerNode={
-                                <IconButton
-                                  className={styles.generatedActivityDelete}
-                                  label={deleteLabel}
-                                  leadingIcon={<Trash2 aria-hidden="true" />}
-                                  variant="quiet"
-                                />
-                              }
-                              onConfirm={() => deletePreparedActivity(activity)}
-                            />
-                          )}
-                        </div>
+                        </ContentRow>
                       );
                     })}
                   </div>
                 )}
                 {library.hasMore && (
-                  <Button isDisabled={libraryBusy} onPress={() => void library.loadMore()}>
+                  <Button
+                    variant="secondary"
+                    isDisabled={libraryBusy}
+                    onPress={() => void library.loadMore()}
+                  >
                     {t("practice.library.loadMore")}
                   </Button>
                 )}

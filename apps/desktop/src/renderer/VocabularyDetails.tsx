@@ -180,9 +180,10 @@ export function VocabularyDetails(props: {
             <strong>{t("vocabulary.library.source")}</strong>
             <p>{entry.source.context}</p>
           </div>
-          <ActionGroup>
+          <ActionGroup align="end">
             {entry.state.status === "candidate" && (
               <Button
+                variant="primary"
                 isDisabled={busy || loading}
                 onPress={() => {
                   bulk("confirm");
@@ -204,6 +205,7 @@ export function VocabularyDetails(props: {
             )}
             {entry.state.status === "suspended" && (
               <Button
+                variant="primary"
                 isDisabled={busy || loading}
                 onPress={() => {
                   bulk("resume");
@@ -283,14 +285,7 @@ export function VocabularyDetails(props: {
               }}
             />
           ))}
-          <ActionGroup>
-            <Button
-              type="submit"
-              isPending={busy}
-              isDisabled={loading || Object.values(draft).some((value) => !value.trim())}
-            >
-              {t("vocabulary.save")}
-            </Button>
+          <ActionGroup align="end">
             <Button
               variant="secondary"
               isDisabled={busy}
@@ -299,6 +294,14 @@ export function VocabularyDetails(props: {
               }}
             >
               {t("actions.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              isPending={busy}
+              isDisabled={loading || Object.values(draft).some((value) => !value.trim())}
+            >
+              {t("vocabulary.save")}
             </Button>
           </ActionGroup>
         </form>

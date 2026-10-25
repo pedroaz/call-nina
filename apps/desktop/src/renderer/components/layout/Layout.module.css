@@ -4,10 +4,14 @@
   min-width: 0;
   width: 100%;
   max-width: var(--od-content-max);
+  margin-inline: auto;
 }
 
-.wide {
-  max-width: var(--od-writing-content-max);
+.page[data-width="form"] {
+  max-width: var(--od-form-max);
+}
+.page[data-width="reading"] {
+  max-width: var(--od-reading-measure);
 }
 
 .stickyHeader {
@@ -15,13 +19,14 @@
   top: 0;
   z-index: 2;
   background: var(--od-color-bg-app);
-  padding-block: var(--od-space-3);
+  padding-block: 0;
+  min-height: var(--od-control-min);
 }
 
 .header {
   align-items: center;
   display: flex;
-  gap: var(--od-space-6);
+  gap: var(--od-space-7);
   justify-content: space-between;
 }
 
@@ -45,7 +50,7 @@
 .title {
   font-family: var(--od-font-family-body);
   font-size: var(--od-font-size-xl);
-  line-height: var(--od-line-tight);
+  line-height: var(--od-type-h1-line);
 }
 
 .description {
@@ -56,7 +61,7 @@
 
 .stack {
   display: grid;
-  gap: var(--od-space-6);
+  gap: var(--od-space-7);
 }
 
 .stackCompact {
@@ -85,6 +90,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--od-space-4);
+}
+
+.actions[data-align="end"] {
+  justify-content: flex-end;
 }
 
 .grid {
@@ -124,35 +133,9 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-@media (max-width: 52rem) {
-  .header,
-  .sectionHeading {
-    flex-wrap: wrap;
-    gap: var(--od-space-4);
-  }
-
-  .twoColumns {
-    grid-template-columns: 1fr;
-  }
-
-  .filterBar[data-columns] {
-    grid-template-columns: 1fr;
-  }
-}
-
 .heading,
 .sectionHeading > div {
   min-width: 0;
-}
-@container workspace (max-width: 42rem) {
-  .twoColumns,
-  .filterBar[data-columns] {
-    grid-template-columns: 1fr;
-  }
-  .header,
-  .sectionHeading {
-    flex-wrap: wrap;
-  }
 }
 
 .breadcrumbs ol {
@@ -186,8 +169,35 @@
 }
 :global([data-exercise-mode="true"]) .title {
   font-size: var(--od-font-size-lg);
+  line-height: var(--od-type-section-title-line);
 }
 
 .page > button {
   justify-self: start;
+}
+
+@media (max-width: 52rem) {
+  .header,
+  .sectionHeading {
+    flex-wrap: wrap;
+    gap: var(--od-space-4);
+  }
+
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .filterBar[data-columns] {
+    grid-template-columns: 1fr;
+  }
+}
+@container workspace (max-width: 42rem) {
+  .twoColumns,
+  .filterBar[data-columns] {
+    grid-template-columns: 1fr;
+  }
+  .header,
+  .sectionHeading {
+    flex-wrap: wrap;
+  }
 }

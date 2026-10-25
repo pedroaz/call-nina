@@ -7,7 +7,7 @@ import {
   type PracticeSuggestion,
 } from "@call-nina/contracts";
 import { invokeDesktop } from "./ipc.js";
-import { Button, Card, Muted } from "./components/ui/index.js";
+import { Button, Card, Muted, Nina } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import styles from "./CompletionActions.module.css";
 
@@ -47,7 +47,8 @@ export function CompletionActions({
     };
   }, [locale, rootGeneration, targetLanguage]);
   return (
-    <Card className={styles.summary}>
+    <Card variant="muted" className={styles.summary}>
+      <Nina pose="celebration" />
       <h3 ref={heading} tabIndex={-1}>
         {t("completion.next")}
       </h3>
@@ -65,12 +66,14 @@ export function CompletionActions({
         <p>{t("completion.nextHint")}</p>
       )}
       <ActionGroup className={styles.actions}>
-        <Button onPress={onNina}>{t("completion.nina")}</Button>
+        <Button variant="primary" onPress={onReturn}>
+          {t("completion.return", { origin: parentLabel })}
+        </Button>
+        <Button variant="secondary" onPress={onNina}>
+          {t("nav.nina")}
+        </Button>
         <Button variant="secondary" onPress={onHistory}>
           {t("nav.history")}
-        </Button>
-        <Button variant="secondary" onPress={onReturn}>
-          {t("completion.return", { origin: parentLabel })}
         </Button>
       </ActionGroup>
     </Card>

@@ -1,3 +1,4 @@
+import { Disclosure } from "./components/ui/Disclosure.js";
 import { ConnectionSettings } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -456,8 +457,7 @@ export function SettingsPage({
             label: t("settings.tabs.profile"),
             children: (
               <>
-                <Card as="section" aria-labelledby="settings-profile-title">
-                  <h2 id="settings-profile-title">{t("settings.profileTitle")}</h2>
+                <Card as="section" density="compact" aria-label={t("settings.profileTitle")}>
                   {!draft ? (
                     <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
                   ) : (
@@ -571,8 +571,7 @@ export function SettingsPage({
             label: t("settings.tabs.ai"),
             children: (
               <div className={styles.aiSetup}>
-                <section aria-labelledby="settings-ai-title">
-                  <h2 id="settings-ai-title">{t("settings.aiTitle")}</h2>
+                <section aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
                     active={selectedTab === "ai"}
                     disabled={busy || Boolean(loginId)}
@@ -608,7 +607,11 @@ export function SettingsPage({
                           {loginId && (
                             <ActionGroup>
                               <span role="status">{t("onboarding.login.waiting")}</span>
-                              <Button isDisabled={busy} onPress={() => void cancelLogin()}>
+                              <Button
+                                variant="primary"
+                                isDisabled={busy}
+                                onPress={() => void cancelLogin()}
+                              >
                                 {t("onboarding.cancelLogin")}
                               </Button>
                             </ActionGroup>
@@ -635,8 +638,11 @@ export function SettingsPage({
                               {t("settings.chatgptUsageLink")}
                             </Button>
                           </ActionGroup>
-                          <details className={styles.accountOptions}>
-                            <summary>{t("settings.accountOptions")}</summary>
+                          <Disclosure
+                            className={styles.accountOptions}
+                            variant="plain"
+                            label={<> {t("settings.accountOptions")} </>}
+                          >
                             {account?.status === "signed-in" && account.planType && (
                               <p>{t("settings.plan", { plan: account.planType })}</p>
                             )}
@@ -657,6 +663,7 @@ export function SettingsPage({
                             </SelectField>
                             <ActionGroup>
                               <Button
+                                variant="primary"
                                 isDisabled={blocked || !account || account.status === "unavailable"}
                                 onPress={() => void login()}
                               >
@@ -673,16 +680,21 @@ export function SettingsPage({
                               )}
                             </ActionGroup>
                             <p>{t("settings.sessionPrivacy")}</p>
-                          </details>
+                          </Disclosure>
                           {connectionDirty && <p>{t("settings.saveBeforeAccount")}</p>}
                         </div>
                       );
                     }}
                   />
                 </section>
-                <details className={styles.optionalIntegration}>
-                  <summary>{t("settings.externalIntegrationTitle")}</summary>
-                  <p>{t("settings.externalIntegrationHelp")}</p>
+                <Disclosure
+                  className={styles.optionalIntegration}
+                  variant="plain"
+                  label={<> {t("settings.externalIntegrationTitle")} </>}
+                >
+                  <InfoHint label={t("settings.externalIntegrationTitle")}>
+                    <p>{t("settings.externalIntegrationHelp")}</p>
+                  </InfoHint>
                   <p>
                     {integration === undefined
                       ? t("settings.notReported")
@@ -714,6 +726,7 @@ export function SettingsPage({
                         )}
                         {integration.plugin === "installed" && (
                           <Button
+                            variant="primary"
                             isDisabled={busy}
                             onPress={() => void manageIntegration("uninstall")}
                           >
@@ -723,7 +736,7 @@ export function SettingsPage({
                       </ActionGroup>
                     </>
                   )}
-                </details>
+                </Disclosure>
               </div>
             ),
           },
@@ -743,7 +756,11 @@ export function SettingsPage({
                     </dl>
                   )}
                   {!dataRootSelection ? (
-                    <Button isDisabled={busy} onPress={() => void chooseDataRoot()}>
+                    <Button
+                      variant="primary"
+                      isDisabled={busy}
+                      onPress={() => void chooseDataRoot()}
+                    >
                       {t("settings.dataSwitch")}
                     </Button>
                   ) : (
@@ -829,7 +846,11 @@ export function SettingsPage({
                     </dl>
                   )}
                   <ActionGroup>
-                    <Button isDisabled={busy} onPress={() => void readDiagnostics()}>
+                    <Button
+                      variant="primary"
+                      isDisabled={busy}
+                      onPress={() => void readDiagnostics()}
+                    >
                       {t("settings.runDiagnostics")}
                     </Button>
                     <Button

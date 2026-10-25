@@ -1,3 +1,6 @@
+import startupStyles from "./Startup.module.css";
+import { Disclosure } from "./components/ui/Disclosure.js";
+import { Nina } from "./components/ui/Nina.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   languageDefinitions,
@@ -358,8 +361,8 @@ export function ProfileOnboarding({
     </Feedback>
   );
   return (
-    <div className={styles.app}>
-      <div className={styles.topActions}>
+    <div className={startupStyles.app}>
+      <div className={startupStyles.topActions}>
         <LanguageSelect
           label={t("onboarding.interfaceLanguage")}
           value={choices.uiLocale}
@@ -371,26 +374,32 @@ export function ProfileOnboarding({
           }}
         />
       </div>
-      <main className={styles.startup}>
+      <main className={startupStyles.startup}>
         <Card
           as="section"
-          className={`${styles.startupCard} ${styles.onboardingCard}`}
+          className={`${startupStyles.startupCard} ${styles.onboardingCard}`}
           aria-labelledby="setup-title"
         >
           <p className={styles.eyebrow}>
             {t("onboarding.progress", { current: step + 1, total: steps.length })}
           </p>
-          <h1 id="setup-title" ref={heading} tabIndex={-1}>
-            {t(`onboarding.steps.${steps[step] ?? "connection"}`)}
-          </h1>
+          <div className={styles.heading}>
+            <h1 id="setup-title" ref={heading} tabIndex={-1}>
+              {t(`onboarding.steps.${steps[step] ?? "connection"}`)}
+            </h1>
+            <Nina />
+          </div>
           <p>{t(`onboarding.guidance.${steps[step] ?? "connection"}`)}</p>
           {loading ? (
             <LoadingState live>{t("startup.loading")}</LoadingState>
           ) : (
             <>
               <div hidden={step !== 0}>
-                <details className={styles.accessOptions}>
-                  <summary>{t("onboarding.accessOptions")}</summary>
+                <Disclosure
+                  className={styles.accessOptions}
+                  variant="plain"
+                  label={<> {t("onboarding.accessOptions")} </>}
+                >
                   <p>{t("onboarding.accessIntro")}</p>
                   <ConnectionSettings
                     active={step === 0}
@@ -398,7 +407,7 @@ export function ProfileOnboarding({
                     onPendingChange={setConnectionPending}
                     authHelp={t("onboarding.chatgptAuthHelp")}
                   />
-                </details>
+                </Disclosure>
                 {connectionPending && (
                   <Feedback live="polite">{t("onboarding.connectionDraft")}</Feedback>
                 )}
@@ -416,6 +425,7 @@ export function ProfileOnboarding({
                     {account.status !== "signed-in" && !loginId && (
                       <>
                         <Button
+                          variant="primary"
                           isDisabled={busy || connectionPending || account.status === "unavailable"}
                           onPress={() => {
                             connect();
@@ -427,6 +437,7 @@ export function ProfileOnboarding({
                     )}
                     {loginId && (
                       <Button
+                        variant="primary"
                         isDisabled={busy}
                         onPress={() =>
                           void attempt(async () => {
@@ -457,8 +468,11 @@ export function ProfileOnboarding({
                 </fieldset>
               )}
               {step === 0 && integration.status === "available" && (
-                <details className={styles.accessOptions}>
-                  <summary>{t("onboarding.pluginTitle")}</summary>
+                <Disclosure
+                  className={styles.accessOptions}
+                  variant="plain"
+                  label={<> {t("onboarding.pluginTitle")} </>}
+                >
                   <p>{t("settings.externalIntegrationHelp")}</p>
                   <p>{t(`onboarding.plugin.${integration.plugin}`)}</p>
                   {integration.plugin !== "installed" && (
@@ -486,7 +500,7 @@ export function ProfileOnboarding({
                       )}
                     </Button>
                   )}
-                </details>
+                </Disclosure>
               )}
               {step === 0 && integration.status === "unavailable" && (
                 <p>{t("settings.codexUnavailable")}</p>
@@ -618,6 +632,7 @@ export function ProfileOnboarding({
                   </p>
                   {!connected && (
                     <Button
+                      variant="primary"
                       isDisabled={busy || checking}
                       onPress={() => {
                         move(0);
@@ -681,6 +696,7 @@ export function ProfileOnboarding({
                 {error.reference.code} · {error.reference.correlationId}
               </DiagnosticCode>
               <Button
+                variant="primary"
                 isDisabled={busy || connectionPending}
                 onPress={() => {
                   setError(undefined);

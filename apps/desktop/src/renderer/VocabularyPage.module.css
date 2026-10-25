@@ -14,23 +14,14 @@
   background: var(--od-color-surface-card);
 }
 .table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
+  min-width: 0;
 }
 .caption {
   text-align: start;
   padding: var(--od-space-4) var(--od-space-5);
   color: var(--od-color-text-muted);
 }
-.table th,
-.table td {
-  padding: var(--od-space-4);
-  text-align: start;
-  vertical-align: middle;
-  overflow-wrap: anywhere;
-  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
-}
+
 .table tbody tr:last-child td {
   border-bottom: 0;
 }
@@ -53,10 +44,8 @@
   max-width: 100%;
 }
 .summary {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  display: block;
+  overflow-wrap: anywhere;
 }
 .compactMeaning,
 .compactDue {
@@ -86,10 +75,8 @@
     margin-top: var(--od-space-2);
   }
   .compactMeaning {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
+    display: block;
+    overflow-wrap: anywhere;
   }
   .table th:last-of-type,
   .table td:last-of-type {

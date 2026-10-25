@@ -1,0 +1,35 @@
+.composer {
+  display: grid;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.choices {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--od-space-3);
+  min-width: 0;
+}
+.activityVisual {
+  display: grid;
+  place-items: center;
+  width: var(--od-icon-container);
+  height: var(--od-icon-container);
+  flex: none;
+  border-radius: var(--od-radius-md);
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+}
+.activityVisual svg {
+  width: var(--od-icon-activity);
+  height: var(--od-icon-activity);
+}
+@container workspace (max-width: 42rem) {
+  .choices {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container workspace (max-width: 28rem) {
+  .choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

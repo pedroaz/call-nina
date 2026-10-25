@@ -12,6 +12,11 @@
   max-width: 100%;
   font-size: var(--od-font-size-sm, var(--od-type-body-small-size));
   padding: var(--od-space-3) var(--od-space-5);
+  text-decoration: none;
+  transition:
+    transform var(--od-motion-duration-press) var(--od-motion-ease-ui),
+    box-shadow var(--od-motion-duration-ui) var(--od-motion-ease-ui);
+  line-height: var(--od-type-body-small-line);
 }
 
 .primary {
@@ -51,6 +56,8 @@
 .button[data-pending] {
   cursor: not-allowed;
   opacity: 0.55;
+  box-shadow: none;
+  transform: none;
 }
 
 .button[data-pending] {
@@ -68,7 +75,7 @@
   width: var(--od-control-min, 2.75rem);
 }
 
-.iconButton svg,
+.iconSlot > svg,
 .buttonIcon {
   flex: none;
   height: var(--od-icon-md, 1.25rem);
@@ -94,22 +101,11 @@
   width: 1px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation: none;
-  }
-}
-
 .content {
   display: contents;
 }
-.button svg {
+.button > svg,
+.content > svg {
   flex: none;
   height: var(--od-icon-md, 1.25rem);
   width: var(--od-icon-md, 1.25rem);
@@ -137,10 +133,10 @@
   min-height: var(--od-control-min, 2.75rem);
 }
 .button[data-hovered] {
-  box-shadow: var(--od-shadow-card);
+  box-shadow: var(--od-button-hover-shadow, var(--od-shadow-card));
 }
 .button[data-pressed] {
-  transform: translateY(var(--od-space-1));
+  transform: translateY(var(--od-button-press-offset, var(--od-space-1)));
   box-shadow: none;
 }
 .button[data-focus-visible],
@@ -148,26 +144,39 @@
   outline: var(--od-border-outlined) solid var(--od-color-focus);
   outline-offset: var(--od-space-2);
 }
-.button[data-disabled],
-.button[data-pending] {
-  box-shadow: none;
-  transform: none;
-}
-.button {
-  text-decoration: none;
-  transition:
-    transform var(--od-motion-duration-press) var(--od-motion-ease-ui),
-    box-shadow var(--od-motion-duration-ui) var(--od-motion-ease-ui);
-}
-@media (prefers-reduced-motion: reduce) {
-  .button {
-    transition: none;
-  }
-}
 
 .button[data-disabled]:not([data-pending]) {
   background: var(--od-color-surface-disabled);
   border-color: var(--od-color-surface-disabled);
   color: var(--od-color-text-disabled);
   opacity: 1;
+}
+
+.iconSlot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.iconButton[data-density="compact"] {
+  width: var(--od-control-small, 2.25rem);
+  min-height: var(--od-control-small, 2.25rem);
+  padding: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
 }

@@ -12,7 +12,7 @@ Inspect the current implementation and runtime capabilities before diagnosing co
 - Direct personal API transports and the shipped support allowlist: `packages/direct-api/src/`; active dispatch and private device-key reads: `apps/desktop/src/main/backend.ts`. Catalogs are static support policy, never live key/access validation. Explicit SDK instances pin provider endpoints; no ambient credentials, Gateway resolution or fallback. Shared workflows retain prompt/schema/repair ownership.
 - Offline adapter and download ownership: `packages/offline-runtime/src/`; its catalog explicitly distinguishes supported operations from unverified quality/native execution. Managed generation: use [the managed-service skill](../call-nina-managed-service/SKILL.md).
 - Model catalog and saved/effective choices: `packages/codex-client/src/catalog.ts`, `packages/domain/src/model-preference.ts` and their renderer callers.
-- Scoped installation and payload staging: `packages/codex-client/src/plugin.ts`, `plugin-source.ts`, `apps/desktop/src/main/plugin-integration.ts`, `plugins/call-nina/.codex-plugin/plugin.json`, `.mcp.json`, and `Makefile`.
+- Scoped installation and payload staging: `packages/codex-client/src/plugin.ts`, `plugin-source.ts`, `apps/desktop/src/main/plugin-integration.ts`, `plugins/call-nina/.codex-plugin/plugin.json`, `.mcp.json`, and the plugin package scripts.
 - MCP tools: `packages/contracts/src/mcp.ts`, `apps/mcp-server/src/index.ts`; teaching workflows: `plugins/call-nina/skills/`.
 - Cross-surface opening: `apps/desktop/src/main/deep-link.ts` and its callers. Inspect exact activity and generation validation before changing routing.
 

@@ -1,3 +1,4 @@
+import { ActivityVisual } from "./activityPresentation.js";
 import type {
   ProviderOperation,
   ActivityId,
@@ -30,7 +31,7 @@ import {
   LoadingState,
   Muted,
 } from "./components/ui/index.js";
-import { ActionGroup, ContentGrid, Page } from "./components/layout/index.js";
+import { ActionGroup, ContentGrid, Page, ContentRow, Section } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 import { useLearningPath } from "./useLearningPath.js";
 import { useLearningOperation } from "./useLearningOperation.js";
@@ -236,16 +237,67 @@ export function LearningPathPage({
       (a) => sameCourseActivity(a.reference, ref) && (!mission || a.missionId === mission.id),
     );
     return (
-      <Card as="article" className={styles.card} key={activity.id}>
+      <ContentRow
+        variant="bordered"
+        key={activity.id}
+        leading={
+          <ActivityVisual
+            kind={activity.delivery === "explanation" ? "grammar" : activity.delivery}
+          />
+        }
+        actions={
+          <ActionGroup className={styles.cardActions}>
+            {activity.delivery === "explanation" ? (
+              <Button
+                variant="secondary"
+                isDisabled={busy || status === "completed"}
+                onPress={() => void mutate(ref, "complete-explanation")}
+              >
+                {t("learningPath.finishExplanation")}
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                isDisabled={busy}
+                isPending={launchOrigin === `activity:${activity.id}`}
+                onPress={() => void launch(ref, `activity:${activity.id}`)}
+              >
+                {t(
+                  attempts.some((a) => !a.completed)
+                    ? "missions.resume"
+                    : attempts.length
+                      ? "missions.retry"
+                      : "learningPath.start",
+                )}
+              </Button>
+            )}
+            <Button
+              variant="quiet"
+              isDisabled={busy}
+              onPress={() =>
+                void mutate(ref, ["completed", "skipped"].includes(status) ? "reopen" : "skip")
+              }
+            >
+              {t(
+                ["completed", "skipped"].includes(status)
+                  ? "learningPath.reopen"
+                  : "learningPath.skip",
+              )}
+            </Button>
+          </ActionGroup>
+        }
+      >
         <h3>{activity.title[locale]}</h3>
-        <Muted as="p">
-          {t(`missions.purpose.${activity.purpose}`)} ·{" "}
-          {t(
-            `learningPath.steps.${activity.delivery === "explanation" ? "learn" : activity.delivery}`,
-          )}
-        </Muted>
-        <p>{activity.instructions[locale]}</p>
         <Muted as="p">{t(`learningPath.status.${status}`)}</Muted>
+        <Disclosure label={t("ui.details")}>
+          <p>
+            {t(`missions.purpose.${activity.purpose}`)} ·{" "}
+            {t(
+              `learningPath.steps.${activity.delivery === "explanation" ? "learn" : activity.delivery}`,
+            )}
+          </p>
+          <p>{activity.instructions[locale]}</p>
+        </Disclosure>
         {activity.delivery === "explanation" && (
           <>
             <Disclosure label={t("missions.explanation")}>
@@ -260,43 +312,6 @@ export function LearningPathPage({
             </Disclosure>
           </>
         )}
-        <ActionGroup className={styles.cardActions}>
-          {activity.delivery === "explanation" ? (
-            <Button
-              isDisabled={busy || status === "completed"}
-              onPress={() => void mutate(ref, "complete-explanation")}
-            >
-              {t("learningPath.finishExplanation")}
-            </Button>
-          ) : (
-            <Button
-              isDisabled={busy}
-              isPending={launchOrigin === `activity:${activity.id}`}
-              onPress={() => void launch(ref, `activity:${activity.id}`)}
-            >
-              {t(
-                attempts.some((a) => !a.completed)
-                  ? "missions.resume"
-                  : attempts.length
-                    ? "missions.retry"
-                    : "learningPath.start",
-              )}
-            </Button>
-          )}
-          <Button
-            variant="quiet"
-            isDisabled={busy}
-            onPress={() =>
-              void mutate(ref, ["completed", "skipped"].includes(status) ? "reopen" : "skip")
-            }
-          >
-            {t(
-              ["completed", "skipped"].includes(status)
-                ? "learningPath.reopen"
-                : "learningPath.skip",
-            )}
-          </Button>
-        </ActionGroup>
         {launchFeedback(`activity:${activity.id}`)}
         {attempts.some((a) => a.evidence.length) && (
           <Disclosure label={t("learningPath.evidence")}>
@@ -317,6 +332,7 @@ export function LearningPathPage({
                 ))}
             </ItemList>
             <Button
+              variant="secondary"
               onPress={() => {
                 onOpenHistory(attempts.flatMap((a) => a.historyEntryIds).slice(0, 100));
               }}
@@ -325,7 +341,7 @@ export function LearningPathPage({
             </Button>
           </Disclosure>
         )}
-      </Card>
+      </ContentRow>
     );
   };
   const displayedError = error ?? learning.error;
@@ -358,161 +374,191 @@ export function LearningPathPage({
               label: t("learningPath.tabs.course"),
               children: (
                 <div className={styles.unit}>
-                  {recommended && (
-                    <Card className={styles.card}>
-                      <h2>{t(`missions.recommendation.${recommended.reason}`)}</h2>
-                      <p>{describe(recommended.reference)}</p>
-                      <ActionGroup className={styles.cardActions}>
+                  <div className={styles.unitToolbar}>
+                    <ActionGroup>
+                      {(["a1-1", "a1-2"] as const).map((stage) => (
                         <Button
-                          variant="primary"
+                          variant="secondary"
+                          key={stage}
                           isDisabled={busy}
-                          isPending={launchOrigin === "recommendation"}
-                          onPress={() => void launch(recommended.reference, "recommendation")}
+                          aria-pressed={state.selectedStage === stage}
+                          onPress={() => {
+                            const unit = course.units.find(
+                              (u) => u.stage === stage && u.kind === "module",
+                            );
+                            if (unit) void mutate(reference(unit, unit.activities[0]), "select");
+                          }}
                         >
-                          {t("learningPath.continue")}
+                          {stage === "a1-1" ? "A1.1" : "A1.2"}
                         </Button>
-                        {next && recommended.reason === "review" && (
-                          <Button
-                            isDisabled={busy}
-                            isPending={launchOrigin === "continue-course"}
-                            onPress={() => void launch(next, "continue-course")}
-                          >
-                            {t("missions.continueCourse")}
-                          </Button>
-                        )}
-                      </ActionGroup>
-                      {launchFeedback("recommendation")}
-                      {launchFeedback("continue-course")}
-                    </Card>
-                  )}
-                  <ActionGroup>
-                    {(["a1-1", "a1-2"] as const).map((stage) => (
-                      <Button
-                        key={stage}
-                        isDisabled={busy}
-                        aria-pressed={state.selectedStage === stage}
-                        onPress={() => {
-                          const unit = course.units.find(
-                            (u) => u.stage === stage && u.kind === "module",
-                          );
-                          if (unit) void mutate(reference(unit, unit.activities[0]), "select");
-                        }}
-                      >
-                        {stage === "a1-1" ? "A1.1" : "A1.2"}
-                      </Button>
-                    ))}
-                  </ActionGroup>
-                  <Disclosure label={t("missions.map")}>
-                    <div className={styles.outline}>
-                      {course.units
-                        .filter((u) => u.stage === state.selectedStage)
-                        .map((u) => (
-                          <Button
-                            key={u.id}
-                            variant="quiet"
-                            aria-pressed={selected?.id === u.id}
-                            isDisabled={busy}
-                            onPress={() => {
-                              setSelectedUnit(u.id);
-                              void mutate(reference(u, u.activities[0]), "select");
-                            }}
-                          >
-                            {u.title[locale]}
-                            {u.kind === "launchpad" ? ` · ${t("missions.optional")}` : ""}
-                          </Button>
-                        ))}
-                    </div>
-                  </Disclosure>
+                      ))}
+                    </ActionGroup>
+                    <Disclosure label={t("missions.map")}>
+                      <div className={styles.outline}>
+                        {course.units
+                          .filter((u) => u.stage === state.selectedStage)
+                          .map((u) => (
+                            <Button
+                              key={u.id}
+                              variant="quiet"
+                              aria-pressed={selected?.id === u.id}
+                              isDisabled={busy}
+                              onPress={() => {
+                                setSelectedUnit(u.id);
+                                void mutate(reference(u, u.activities[0]), "select");
+                              }}
+                            >
+                              {u.title[locale]}
+                              {u.kind === "launchpad" ? ` · ${t("missions.optional")}` : ""}
+                            </Button>
+                          ))}
+                      </div>
+                    </Disclosure>
+                  </div>
                   {selected && (
                     <section className={styles.unit} aria-label={selected.title[locale]}>
-                      <Card className={styles.card} variant="muted">
-                        <p className={styles.eyebrow}>{t("missions.unitOverview")}</p>
+                      <Section className={styles.unitOverview}>
                         <h2>{selected.title[locale]}</h2>
-                        <p>{t("missions.unitOverviewHint")}</p>
-                        <section className={styles.scenario}>
-                          <h3>{t("missions.sharedFacts")}</h3>
-                          <p>{selected.scenario[locale]}</p>
-                          {selectedMission && <p>{selectedMission.facts}</p>}
-                        </section>
-                        <p>{t("learningPath.counts", counts(selected))}</p>
-                        <ItemList>
-                          {selected.objectives.map((o) => (
-                            <li key={o.id}>{o.description[locale]}</li>
-                          ))}
-                        </ItemList>
-                        <Disclosure label={t("missions.language")}>
-                          <p>{selected.grammar[locale]}</p>
-                          <Button
-                            isDisabled={busy}
-                            onPress={() => {
-                              if (pending.current) return;
-                              pending.current = true;
-                              setBusy(true);
-                              setVocabularyAdded(undefined);
-                              void invokeDesktop("learning-path/vocabulary", {
-                                expectedGeneration: snapshot.rootGeneration,
-                                reference: reference(selected, selected.activities[0]),
-                              })
-                                .then((result) => {
-                                  setVocabularyAdded(result.added);
-                                })
-                                .catch((cause: unknown) => {
-                                  setError(normalizeDesktopError(cause).detail);
-                                })
-                                .finally(() => {
-                                  pending.current = false;
-                                  setBusy(false);
-                                });
-                            }}
-                          >
-                            {t("missions.addVocabulary")}
-                          </Button>
-                          {vocabularyAdded !== undefined && (
-                            <Feedback live="polite">
-                              {t("missions.vocabularyAdded", { count: vocabularyAdded })}
-                            </Feedback>
-                          )}
-                          <dl className={styles.words}>
-                            {course.targets
-                              .filter((target) => selected.targetIds.includes(target.id))
-                              .map((target) => (
-                                <div key={target.id}>
-                                  <dt>{target.german}</dt>
-                                  <dd>{target.meaning[locale]}</dd>
-                                </div>
+                        <p>{selected.scenario[locale]}</p>
+                        <div className={styles.completion}>
+                          <progress
+                            value={counts(selected).completed}
+                            max={counts(selected).total}
+                            aria-label={t("learningPath.counts", counts(selected))}
+                          />
+                          <span>{t("learningPath.counts", counts(selected))}</span>
+                        </div>
+                        <div className={styles.unitDetails}>
+                          <Disclosure label={t("missions.sharedFacts")}>
+                            <section className={styles.scenario}>
+                              <p>{selected.scenario[locale]}</p>
+                              {selectedMission && <p>{selectedMission.facts}</p>}
+                            </section>
+                            <ActionGroup className={styles.cardActions}>
+                              <Button
+                                variant="secondary"
+                                isPending={changingSituation}
+                                isDisabled={busy}
+                                onPress={() =>
+                                  void mutate(
+                                    reference(selected, selected.activities[0]),
+                                    "new-mission",
+                                  )
+                                }
+                              >
+                                {t("missions.newContext")}
+                              </Button>
+                            </ActionGroup>
+                            <p>{t("missions.newContextHint")}</p>
+                            {situationChanged && (
+                              <Feedback tone="success" live="polite">
+                                {t("missions.contextUpdated")}
+                              </Feedback>
+                            )}
+                          </Disclosure>
+                          <Disclosure label={t("ui.learningGoals")}>
+                            <ItemList>
+                              {selected.objectives.map((o) => (
+                                <li key={o.id}>{o.description[locale]}</li>
                               ))}
-                          </dl>
-                          <p>{t("missions.reuses")}</p>
-                          <ItemList>
-                            {course.targets
-                              .filter((target) => selected.reviewTargetIds.includes(target.id))
-                              .map((target) => (
-                                <li key={target.id}>{target.german}</li>
-                              ))}
-                          </ItemList>
-                        </Disclosure>
-                        <ActionGroup className={styles.cardActions}>
-                          <Button
-                            variant="secondary"
-                            isPending={changingSituation}
-                            isDisabled={busy}
-                            onPress={() =>
-                              void mutate(
-                                reference(selected, selected.activities[0]),
-                                "new-mission",
-                              )
-                            }
-                          >
-                            {t("missions.newContext")}
-                          </Button>
-                        </ActionGroup>
-                        <p>{t("missions.newContextHint")}</p>
-                        {situationChanged && (
-                          <Feedback tone="success" live="polite">
-                            {t("missions.contextUpdated")}
-                          </Feedback>
-                        )}
-                      </Card>
+                            </ItemList>
+                          </Disclosure>
+                          <Disclosure label={t("missions.language")}>
+                            <p>{selected.grammar[locale]}</p>
+                            <Button
+                              variant="primary"
+                              isDisabled={busy}
+                              onPress={() => {
+                                if (pending.current) return;
+                                pending.current = true;
+                                setBusy(true);
+                                setVocabularyAdded(undefined);
+                                void invokeDesktop("learning-path/vocabulary", {
+                                  expectedGeneration: snapshot.rootGeneration,
+                                  reference: reference(selected, selected.activities[0]),
+                                })
+                                  .then((result) => {
+                                    setVocabularyAdded(result.added);
+                                  })
+                                  .catch((cause: unknown) => {
+                                    setError(normalizeDesktopError(cause).detail);
+                                  })
+                                  .finally(() => {
+                                    pending.current = false;
+                                    setBusy(false);
+                                  });
+                              }}
+                            >
+                              {t("missions.addVocabulary")}
+                            </Button>
+                            {vocabularyAdded !== undefined && (
+                              <Feedback live="polite">
+                                {t("missions.vocabularyAdded", { count: vocabularyAdded })}
+                              </Feedback>
+                            )}
+                            <dl className={styles.words}>
+                              {course.targets
+                                .filter((target) => selected.targetIds.includes(target.id))
+                                .map((target) => (
+                                  <div key={target.id}>
+                                    <dt>{target.german}</dt>
+                                    <dd>{target.meaning[locale]}</dd>
+                                  </div>
+                                ))}
+                            </dl>
+                            <p>{t("missions.reuses")}</p>
+                            <ItemList>
+                              {course.targets
+                                .filter((target) => selected.reviewTargetIds.includes(target.id))
+                                .map((target) => (
+                                  <li key={target.id}>{target.german}</li>
+                                ))}
+                            </ItemList>
+                          </Disclosure>
+                        </div>
+                      </Section>
+                      {recommended && (
+                        <Card className={styles.recommendation} density="compact">
+                          <p>
+                            {describe(
+                              recommended.reason === "review" && next
+                                ? next
+                                : recommended.reference,
+                            )}
+                          </p>
+                          <ActionGroup className={styles.cardActions}>
+                            <Button
+                              variant={recommended.reason === "review" ? "quiet" : "primary"}
+                              aria-label={
+                                recommended.reason === "review"
+                                  ? `${t("ui.review")}: ${describe(recommended.reference)}`
+                                  : t("learningPath.continue")
+                              }
+                              isDisabled={busy}
+                              isPending={launchOrigin === "recommendation"}
+                              onPress={() => void launch(recommended.reference, "recommendation")}
+                            >
+                              {t(
+                                recommended.reason === "review"
+                                  ? "ui.review"
+                                  : "learningPath.continue",
+                              )}
+                            </Button>
+                            {next && recommended.reason === "review" && (
+                              <Button
+                                variant="primary"
+                                isDisabled={busy}
+                                isPending={launchOrigin === "continue-course"}
+                                onPress={() => void launch(next, "continue-course")}
+                              >
+                                {t("missions.continueCourse")}
+                              </Button>
+                            )}
+                          </ActionGroup>
+                          {launchFeedback("recommendation")}
+                          {launchFeedback("continue-course")}
+                        </Card>
+                      )}
                       <h2 className={styles.activitiesHeading}>{t("missions.unitActivities")}</h2>
                       {selected.activities.map((a) => activityCard(selected, a))}
                     </section>
@@ -540,6 +586,7 @@ export function LearningPathPage({
                         </p>
                         <ActionGroup className={styles.cardActions}>
                           <Button
+                            variant="primary"
                             isDisabled={busy}
                             isPending={
                               launchOrigin === `review:${item.reference.unitId}:${item.objectiveId}`
@@ -673,6 +720,7 @@ export function LearningPathPage({
                         </Disclosure>
                         <ActionGroup className={styles.cardActions}>
                           <Button
+                            variant="primary"
                             onPress={() => {
                               setSelectedUnit(unit.id);
                               setTab("course");
@@ -685,6 +733,7 @@ export function LearningPathPage({
                             (a) => a.reference.unitId === unit.id && a.historyEntryIds.length,
                           ) && (
                             <Button
+                              variant="primary"
                               onPress={() => {
                                 onOpenHistory(
                                   state.activities
@@ -718,6 +767,7 @@ export function LearningPathPage({
                         <p>{unit.scenario[locale]}</p>
                         <ActionGroup className={styles.cardActions}>
                           <Button
+                            variant="primary"
                             isDisabled={busy}
                             onPress={() => {
                               setTab("course");

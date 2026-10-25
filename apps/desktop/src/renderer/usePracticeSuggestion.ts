@@ -1,3 +1,4 @@
+import type { PracticeKind } from "./PracticeTypeChooser.js";
 import {
   type ProviderOperation,
   errorDefinitions,
@@ -17,10 +18,10 @@ import { useLearningOperation } from "./useLearningOperation.js";
 import { generatePracticeActivity, reusePracticeActivity } from "./generatePracticeActivity.js";
 
 export type PracticeLaunch =
-  | { destination: "activity"; activityId: ActivityId }
+  | { destination: "activity"; activityId: ActivityId; autoStart?: boolean }
   | { destination: "writing"; prompt: string }
   | { destination: "vocabulary" }
-  | { destination: "preparation"; kind: "custom" | "listening" | "speaking"; prompt: string };
+  | { destination: "preparation"; kind: PracticeKind; prompt: string };
 
 export type SuggestionActions = {
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;

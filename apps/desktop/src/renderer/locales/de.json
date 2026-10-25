@@ -22,7 +22,7 @@
   },
   "nav": {
     "label": "Hauptnavigation",
-    "nina": "Nina",
+    "nina": "Startseite",
     "practice": "Üben",
     "writing": "Schreiben",
     "vocabulary": "Wortschatz",
@@ -42,8 +42,8 @@
     "listening": "Codex-Hörübung übergeben",
     "speaking": "Codex-Sprechübung übergeben",
     "diagnostic": "Optionale Einstufung",
-    "promptLabel": "Was möchtest du üben?",
-    "targetLevel": "Zielniveau",
+    "promptLabel": "Thema",
+    "targetLevel": "Niveau",
     "useExample": "Beispiel verwenden",
     "generateDetails": "Details mit KI erstellen",
     "regenerateDetails": "Details neu erstellen",
@@ -55,16 +55,16 @@
       "normal": "Normal",
       "fast": "Schnell"
     },
-    "customPromptPlaceholder": "Zum Beispiel: Essen bestellen oder nach dem Weg fragen",
-    "grammarPromptPlaceholder": "Zum Beispiel: Dativartikel nach mit und zu üben",
-    "readingPromptPlaceholder": "Zum Beispiel: über einen Arztbesuch oder den Einkauf lesen",
+    "customPromptPlaceholder": "Essen bestellen, nach dem Weg fragen…",
+    "grammarPromptPlaceholder": "Artikel nach mit und zu…",
+    "readingPromptPlaceholder": "Arztbesuch, Reise, Alltag…",
     "chooser": {
       "title": "Übungsart wählen",
       "body": "Wähle ein Format, um die Vorbereitung zu sehen und zu beginnen."
     },
     "types": {
       "custom": {
-        "title": "Quiz erstellen",
+        "title": "Quiz",
         "body": "Beschreibe, was du üben möchtest. Das Quiz kann Multiple Choice, Lückentexte, Satzkorrekturen und kurze Schreibantworten mischen."
       },
       "grammar": {
@@ -92,7 +92,7 @@
       }
     },
     "library": {
-      "title": "Gespeicherte Übungen",
+      "title": "Gespeicherte Aktivitäten",
       "body": "Öffne gespeicherte Aktivitäten und erstellte Übungen.",
       "count_one": "{{count}} bereit",
       "count_other": "{{count}} bereit",
@@ -146,14 +146,14 @@
     "grammarLesson": {
       "title": "Gezielte Grammatiklektion",
       "body": "Erstelle eine Lektion auf deinem gewählten Lernniveau mit dem geprüften Curriculum und vorhandenen Fehlerbelegen.",
-      "start": "Grammatiklektion erstellen"
+      "start": "Übung erstellen"
     },
     "readingFlow": {
       "title": "Lesen und üben",
       "body": "Erstelle einen Text in deiner Lernsprache für dein Niveau oder Aufgaben zu einem eingefügten Text. Codex erstellt passende Aufgaben und gibt Feedback zu deinen schriftlichen Antworten.",
       "topic": "Thema oder Lernziel (optional)",
       "defaultRequest": "Übe das Verstehen eines kurzen Alltagstextes in meiner Lernsprache mit Wortschatz, Schlussfolgerungen und einer schriftlichen Zusammenfassung.",
-      "generate": "Leseübung erstellen",
+      "generate": "Lesetext erstellen",
       "material": "Lesetext",
       "importLabel": "Text in deiner Lernsprache einfügen (optional)",
       "useStarter": "Beispieltext verwenden",
@@ -302,9 +302,13 @@
       "resume": "Kehre zum Fortsetzen eines Gesprächs zu seiner Aufgabe in Codex zurück. Diese Schaltfläche bereitet einen neuen Chat vor."
     },
     "customCount": "Eigene Anzahl (3–30)",
-    "invalidCount": "Gib eine ganze Zahl von 3 bis 30 ein."
+    "invalidCount": "Gib eine ganze Zahl von 3 bis 30 ein.",
+    "customCountChoice": "Eigene Anzahl"
   },
   "modelControl": {
+    "connection": "Verbindung",
+    "default": "Standard",
+    "settings": "KI-Einstellungen",
     "title": "KI-Modell",
     "loading": "Modellauswahl wird geladen…",
     "saving": "Wird gespeichert…",
@@ -381,8 +385,8 @@
     "custom": {
       "title": "Quiz erstellen",
       "body": "Bitte um ein Thema, eine Alltagssituation, einen Grammatikschwerpunkt, ein Wortschatzthema oder ein Fragenformat. Das Quiz ist ohne Zeitdruck und enthält optionale Hinweise.",
-      "request": "Was möchtest du üben?",
-      "countLabel": "Quizlänge",
+      "request": "Thema",
+      "countLabel": "Fragen",
       "countOption_one": "{{count}} Übung",
       "countOption_other": "{{count}} Übungen",
       "generate": "Quiz erstellen",
@@ -516,7 +520,7 @@
       "generate": "Wortschatz generieren",
       "intro": "Hier findest du Wörter aus deinen Übungen und gespeicherten Lernkarten. Wähle aus, welche Vorschläge du aktiv wiederholen möchtest.",
       "emptyTitle": "Deine Wortsammlung",
-      "previewHint": "Sieh dir die generierten Lernkarten an und speichere die Wörter, die du wiederholen möchtest. Erst beim Speichern werden sie deinem Wortschatz hinzugefügt.",
+      "previewHint": "Sieh dir die Karten an und speichere die Wörter, die du üben möchtest.",
       "step1": "Wähle ein Thema und dein Niveau.",
       "step2": "Sieh dir Wörter, Bedeutungen und Beispiele an.",
       "step3": "Speichere nützliche Wörter und kehre zum regelmäßigen Wiederholen zurück.",
@@ -559,12 +563,12 @@
     "openVocabulary": "Wortschatz öffnen"
   },
   "helper": {
-    "supportNotice": "Hilfe zählt bei offenen Kursaktivitäten als Unterstützung",
+    "supportNotice": "Hilfe zählt als Lernunterstützung",
     "supportDetails": "Wie Hilfe den Kursfortschritt beeinflusst",
     "selectionTruncated": "Nur die ersten 4.000 Zeichen werden verwendet. Markiere einen kürzeren Abschnitt, um nach dem Rest zu fragen.",
-    "selectText": "Wähle Text in der App aus, um ihn zu übersetzen oder Fragen dazu zu stellen.",
+    "selectText": "Text auswählen, um ihn zu übersetzen oder Nina zu fragen.",
     "selectedContext": "Aktueller Kontext",
-    "messageLabel": "Nachricht an die Kontexthilfe",
+    "messageLabel": "Nina fragen",
     "messagePlaceholder": "Frage zu diesem Text…",
     "send": "Senden",
     "sendHint": "Enter zum Senden · Umschalt+Enter für eine neue Zeile",
@@ -844,8 +848,8 @@
   },
   "onboarding": {
     "step": "Lernprofil einrichten",
-    "title": "Deine Lernpräferenzen",
-    "intro": "Wähle jetzt einige Vorgaben. Du kannst sie später ändern; die App-Sprache bleibt davon unabhängig.",
+    "title": "Richte dich ein",
+    "intro": "Wähle deine Lernvorgaben. Du kannst sie jederzeit in den Einstellungen ändern.",
     "accountTitle": "ChatGPT-Konto",
     "accountConnected": "ChatGPT-Konto verbunden",
     "accountSignedOut": "Fahre mit ChatGPT in deinem Browser fort.",
@@ -864,9 +868,9 @@
     },
     "startTitle": "Dein Ausgangspunkt",
     "level": "Ungefähres Sprachniveau",
-    "goal": "Dein Lernziel für den Alltag",
+    "goal": "Lernziel",
     "goalHint": "Zum Beispiel: Termine vereinbaren oder sicherer mit Nachbarn sprechen.",
-    "time": "Verfügbare Lernzeit pro Woche",
+    "time": "Minuten pro Woche",
     "minutes": "{{count}} Minuten",
     "skipPlacement": "Optionale Einstufung vorerst überspringen",
     "placementLater": "Eine freiwillige Standortbestimmung findest du unter Übungen.",
@@ -887,7 +891,7 @@
       "de": "Deutsch"
     },
     "localeIndependent": "Erklärungen verwenden die gewählte Erklärungssprache. Menüs und Schaltflächen verwenden die Sprache der Oberfläche.",
-    "finish": "Einrichtung abschließen und lernen",
+    "finish": "Lernen starten",
     "progress": "Schritt {{current}} von {{total}}",
     "steps": {
       "connection": "Optionale KI-Verbindung",
@@ -929,9 +933,9 @@
     },
     "guidance": {
       "connection": "Richte jetzt das lokale Lernen ein. Du kannst Ninas ChatGPT-Konto hier oder später in den Einstellungen verbinden.",
-      "goal": "Sag uns, wo du stehst und was du in deiner Lernsprache machen möchtest.",
-      "defaults": "Wähle deinen Korrekturstil und deine Sprachen. Du kannst sie später in den Einstellungen ändern.",
-      "review": "Prüfe deine Auswahl. Mit Zurück kannst du sie ändern. Schließe die Einrichtung ab, um mit dem Lernen zu beginnen."
+      "goal": "Wähle dein Niveau und ein Alltagsziel.",
+      "defaults": "Wähle Feedback-Stil und Sprachen.",
+      "review": "Bereit? Prüfe deine Auswahl."
     },
     "levelHint": "Schätze dein Niveau: A1 bedeutet Anfänger, A2 grundlegende Kenntnisse, B1 Mittelstufe und B2 fortgeschrittene Mittelstufe. Du kannst es später ändern.",
     "goalRequired": "Gib ein Ziel ein, um fortzufahren.",
@@ -997,7 +1001,7 @@
     "privacyTitle": "Lokale Verarbeitung und OpenAI",
     "profileTitle": "Lernvorgaben",
     "persistenceUnavailable": "Die Einstellungen können in dieser App-Version nicht bearbeitet werden.",
-    "teachingProfile": "Standard-Unterrichtsprofil",
+    "teachingProfile": "Lernstil",
     "uiLocale": "Oberflächensprache",
     "localeSeparate": "Die Erklärungssprache ist unabhängig von der App-Sprache.",
     "model": "Modell",
@@ -1027,7 +1031,7 @@
       "helper": "Kontexthilfe",
       "research": "Curriculum-Recherche"
     },
-    "diagnosticsTitle": "Diagnose und Protokolle",
+    "diagnosticsTitle": "Diagnose",
     "diagnosticsPrivacy": "Diese lokale Zustandsübersicht enthält nur Versionen und Anzahlen. Lerntexte, Modellausgaben, Zugangsdaten, Pfade und Rohprotokolldaten sind ausgeschlossen.",
     "diagnosticsGeneration": "Datenstamm-Generation",
     "diagnosticsSchema": "Datenbankschema",
@@ -1040,7 +1044,7 @@
     "logsCleared": "{{count}} lokale Protokolldateien gelöscht.",
     "restoreModels": "Automatische Modellvorgaben wiederherstellen",
     "discard": "Änderungen verwerfen",
-    "save": "Einstellungen speichern",
+    "save": "Änderungen speichern",
     "automaticFallback": "{{model}} ist nicht verfügbar. Derzeit wird {{effective}} verwendet.",
     "tabs": {
       "profile": "Lernen",
@@ -1049,7 +1053,7 @@
       "diagnostics": "Diagnose"
     },
     "languageSelected": "Lernsprache gewechselt. Das gespeicherte Niveau und Ziel werden angezeigt.",
-    "finishBeforeSwitch": "Schließe die Aktivität ab oder verlasse sie, bevor du die Lernsprache wechselst.",
+    "finishBeforeSwitch": "Zum Sprachwechsel diese Aktivität verlassen oder beenden.",
     "chatgptAccount": "ChatGPT-Konto",
     "chatgptNewAccount": "Anderes ChatGPT-Konto oder anderen Workspace verwenden",
     "chatgptRevocationPending": "Lokal abgemeldet. Der Widerruf beim Anbieter wurde nicht bestätigt. Trenne Call Nina bei Bedarf in den ChatGPT-Einstellungen.",
@@ -1086,15 +1090,20 @@
     "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst."
   },
   "ui": {
-    "newPractice": "Neue Übung",
+    "newPractice": "Neu",
     "moreFilters": "Weitere Filter",
-    "details": "Details ansehen",
+    "details": "Details",
     "activityOptions": "Übungseinstellungen",
     "manageWord": "Wort verwalten",
     "deleteWord": "„{{word}}“ löschen?",
     "actionFailed": "Die Aktion ist fehlgeschlagen. Bitte erneut versuchen.",
     "loading": "Wird geladen…",
-    "completeOptions": "Vervollständige vor dem Speichern die erforderlichen Übungseinstellungen."
+    "completeOptions": "Vervollständige vor dem Speichern die erforderlichen Übungseinstellungen.",
+    "activityActions": "Aktivitätsaktionen",
+    "learningGoals": "Lernziele",
+    "review": "Wiederholen",
+    "topic": "Thema",
+    "practiceOptions": "Übungsoptionen"
   },
   "suggestions": {
     "title": "Als Nächstes üben",
@@ -1122,7 +1131,7 @@
       "prepare": "Gespräch vorbereiten",
       "diagnostic": "Einstufung öffnen"
     },
-    "fullPrompt": "Vollständige Aufgabe"
+    "fullPrompt": "Details"
   },
   "personalData": {
     "title": "Persönliche Daten",
@@ -1360,7 +1369,7 @@
     "refreshing": "Wird aktualisiert…"
   },
   "missions": {
-    "unitActivities": "Aktivitäten dieser Einheit",
+    "unitActivities": "Aktivitäten",
     "unitOverviewHint": "Die Aktivitäten unten verwenden diese gemeinsame Situation. Wähle auf einer Aktivitätskarte „Aktivität starten“, um zu üben.",
     "unitOverview": "Überblick zur Einheit",
     "newContextHint": "Mit einer anderen Situation beginnt eine neue Runde dieser Einheit. Bisherige Übungen bleiben im Verlauf.",
@@ -1373,7 +1382,7 @@
     "optional": "Optional",
     "language": "Wörter, Bausteine und Muster",
     "reuses": "Sprache zum Wiederverwenden",
-    "sharedFacts": "Gemeinsame Situation",
+    "sharedFacts": "Situation",
     "newContext": "Situation der Einheit ändern",
     "reviewTab": "Wiederholen ({{count}})",
     "reviewMeaning": "Prüfe ein Lernziel in einer veränderten Situation. Diese Checks helfen bei Empfehlungen und sperren keine Inhalte. Wortschatz wiederholst du unter Üben.",
@@ -1522,7 +1531,7 @@
     "title": "Nina",
     "heading": "Was üben wir heute?",
     "intro": "Beschreibe ein Ziel oder wähle eine Idee. Nina schlägt dir eine Aktivität zum Starten oder Erstellen vor.",
-    "request": "Deine Idee",
+    "request": "Hast du etwas im Sinn?",
     "placeholder": "Einen Kaffee bestellen, eine Reise planen, eine Geschichte erzählen …",
     "examples": {
       "reading": "Eine kurze Nachricht über einen Termin lesen",
@@ -1530,8 +1539,8 @@
       "writing": "Eine E-Mail an einen Nachbarn schreiben"
     },
     "time": "Verfügbare Zeit",
-    "timeHint": "Nina schlägt damit einen passenden Übungsumfang vor. Es gibt keinen Timer; lerne in deinem Tempo.",
-    "noTime": "Nina wählt den Umfang",
+    "timeHint": "In deinem Tempo, ohne Timer.",
+    "noTime": "Nina wählen lassen",
     "minutes": "{{count}} Min.",
     "material": "Gespeichertes Material nutzen (optional)",
     "materialLabel": "Mit gespeichertem Material üben",
@@ -1562,19 +1571,22 @@
     "estimate": "Etwa {{count}} Minuten · in deinem eigenen Tempo",
     "languages": "Übung: {{target}} · Erklärungen: {{explanation}}",
     "unavailable": "Die Erstellung wurde nicht gestartet. Dein Wunsch bleibt erhalten; vorbereitete Aktivitäten und direkte Übungszugänge sind weiter verfügbar.",
-    "start": "Vorbereitete Aktivität starten",
+    "start": "Starten",
     "generate": "Neue Übung erstellen",
     "continue": "Fortsetzen",
     "noResume": "In diesem Lernkontext gibt es noch keine fortsetzbare Aktivität. Starte mit einem Wunsch oder einer Empfehlung.",
     "recent": "Deine zuletzt genutzte fortsetzbare Aktivität.",
     "savedWording": "Gespeicherte Formulierungen bleiben unverändert. Die obige Sprachauswahl gilt für neu erstellte Übungen.",
-    "options": "Übung anpassen (optional)",
+    "options": "Übung anpassen",
     "shortcuts": {
-      "quiz": "Quiz erstellen",
-      "reading": "Etwas lesen",
-      "grammar": "Alltagssprache",
-      "writing": "Nachricht schreiben"
-    }
+      "quiz": "Quiz",
+      "reading": "Lesen",
+      "grammar": "Grammatik",
+      "writing": "Schreiben"
+    },
+    "quickPractice": "Schnell üben",
+    "moreOptions": "Übung anpassen",
+    "or": "oder"
   },
   "translation": {
     "action": "Übersetzen",
@@ -1596,7 +1608,7 @@
     "next": "Wie geht es weiter?",
     "evidence": "Deine Antworten und Rückmeldungen sind im Verlauf gespeichert. Hinweise, wiederholte Antworten und Selbsteinschätzungen bleiben von selbstständigen Leistungen getrennt.",
     "nextHint": "Wähle bei Nina eine passende Wiederholung oder neue Übung. Vorbereitete Aktivitäten bleiben ohne KI verfügbar.",
-    "nina": "Ninas Empfehlungen ansehen",
+    "nina": "Startseite",
     "return": "Zurück zu {{origin}}",
     "selfAssessment": "Die Kartenwiederholung ist bei dieser Aktivität gespeichert. Selbsteinschätzungen steuern die Vokabelwiederholung; sie belegen keine selbstständige Sprachkompetenz."
   },

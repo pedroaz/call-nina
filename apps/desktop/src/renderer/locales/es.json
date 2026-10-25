@@ -22,7 +22,7 @@
   },
   "nav": {
     "label": "Navegación principal",
-    "nina": "Nina",
+    "nina": "Inicio",
     "practice": "Práctica",
     "writing": "Escritura",
     "vocabulary": "Vocabulario",
@@ -42,8 +42,8 @@
     "listening": "Continuar la práctica auditiva en Codex",
     "speaking": "Continuar la práctica oral en Codex",
     "diagnostic": "Diagnóstico opcional",
-    "promptLabel": "¿Qué te gustaría practicar?",
-    "targetLevel": "Nivel objetivo",
+    "promptLabel": "Tema",
+    "targetLevel": "Nivel",
     "useExample": "Usar ejemplo",
     "generateDetails": "Generar detalles con IA",
     "regenerateDetails": "Regenerar detalles",
@@ -55,16 +55,16 @@
       "normal": "Normal",
       "fast": "Rápido"
     },
-    "customPromptPlaceholder": "Por ejemplo: practicar cómo pedir comida o preguntar por una dirección",
-    "grammarPromptPlaceholder": "Por ejemplo: practicar los artículos en dativo después de mit y zu",
-    "readingPromptPlaceholder": "Por ejemplo: leer sobre una visita al médico o una compra de alimentos",
+    "customPromptPlaceholder": "Pedir comida, preguntar cómo llegar…",
+    "grammarPromptPlaceholder": "Artículos después de mit y zu…",
+    "readingPromptPlaceholder": "Una visita médica, un viaje, la vida cotidiana…",
     "chooser": {
       "title": "Elige un tipo de práctica",
       "body": "Elige un formato para ver cómo se prepara y empieza cuando quieras."
     },
     "types": {
       "custom": {
-        "title": "Crear un cuestionario",
+        "title": "Cuestionario",
         "body": "Describe qué quieres practicar. El cuestionario puede combinar preguntas de opción múltiple, espacios en blanco, corrección de oraciones y respuestas breves por escrito."
       },
       "grammar": {
@@ -72,15 +72,15 @@
         "body": "Lee una breve explicación y responde preguntas de completar espacios, corregir oraciones y dar respuestas breves."
       },
       "reading": {
-        "title": "Lectura",
+        "title": "Leer",
         "body": "Lee un texto breve de la vida cotidiana, elige respuestas de comprensión y escribe un resumen corto."
       },
       "listening": {
-        "title": "Comprensión auditiva",
+        "title": "Escuchar",
         "body": "Prepara preguntas de comprensión auditiva para Codex Voice. Call Nina no reproduce audio."
       },
       "speaking": {
-        "title": "Expresión oral",
+        "title": "Hablar",
         "body": "Prepara una situación práctica con indicaciones y objetivos de corrección; después, habla en Codex Voice."
       },
       "diagnostic": {
@@ -146,14 +146,14 @@
     "grammarLesson": {
       "title": "Lección de gramática específica",
       "body": "Genera una lección para el nivel de aprendizaje seleccionado a partir del programa y de los errores guardados disponibles.",
-      "start": "Generar lección de gramática"
+      "start": "Crear práctica"
     },
     "readingFlow": {
       "title": "Leer y practicar",
       "body": "Genera un pasaje para tu idioma y nivel de aprendizaje, o crea preguntas a partir del texto que pegues abajo. Codex prepara los ejercicios y revisa tus respuestas escritas.",
       "topic": "Tema u objetivo de aprendizaje (opcional)",
       "defaultRequest": "Practicar la comprensión de un texto breve de la vida cotidiana en el idioma que aprendo, con vocabulario, inferencias y un resumen escrito.",
-      "generate": "Generar práctica de lectura",
+      "generate": "Crear lectura",
       "material": "Material de lectura",
       "importLabel": "Pega un texto en el idioma que aprendes (opcional)",
       "useStarter": "Usar un texto inicial",
@@ -302,9 +302,13 @@
       "resume": "Para reanudar una conversación, vuelve a su tarea en Codex. Este botón prepara un chat nuevo."
     },
     "customCount": "Personalizado (3–30)",
-    "invalidCount": "Escribe un número entero entre 3 y 30."
+    "invalidCount": "Escribe un número entero entre 3 y 30.",
+    "customCountChoice": "Personalizado"
   },
   "modelControl": {
+    "connection": "Conexión",
+    "default": "Predeterminado",
+    "settings": "Ajustes de IA",
     "title": "Modelo de IA",
     "loading": "Cargando opciones de modelos…",
     "saving": "Guardando…",
@@ -381,8 +385,8 @@
     "custom": {
       "title": "Crear un cuestionario",
       "body": "Pide un tema, una situación cotidiana, un aspecto gramatical, un campo de vocabulario o un formato de pregunta. El cuestionario no tiene límite de tiempo e incluye pistas opcionales.",
-      "request": "¿Qué te gustaría practicar?",
-      "countLabel": "Extensión del cuestionario",
+      "request": "Tema",
+      "countLabel": "Preguntas",
       "countOption_one": "{{count}} ejercicio",
       "countOption_other": "{{count}} ejercicios",
       "generate": "Crear cuestionario",
@@ -516,7 +520,7 @@
       "generate": "Generar vocabulario",
       "intro": "Aquí están las palabras de tus ejercicios y tarjetas guardadas. Elige qué sugerencias añadir al repaso activo.",
       "emptyTitle": "Tu colección de palabras",
-      "previewHint": "Revisa las tarjetas generadas y guarda las palabras que quieras repasar. No se añade nada a tu vocabulario hasta que lo guardes.",
+      "previewHint": "Revisa las tarjetas y guarda las palabras que quieras practicar.",
       "step1": "Elige un tema y tu nivel.",
       "step2": "Consulta palabras, significados y ejemplos.",
       "step3": "Guarda palabras útiles y vuelve para repasarlas a intervalos.",
@@ -559,12 +563,12 @@
     "openVocabulary": "Abrir Vocabulario"
   },
   "helper": {
-    "supportNotice": "La ayuda cuenta como apoyo en actividades del curso sin terminar",
+    "supportNotice": "La ayuda cuenta como apoyo en el curso",
     "supportDetails": "Cómo influye la ayuda en el progreso",
     "selectionTruncated": "Solo se seleccionaron los primeros 4000 caracteres. Selecciona un fragmento más corto para preguntar por el resto.",
-    "selectText": "Selecciona texto en cualquier parte de la aplicación para traducirlo o preguntar por él.",
+    "selectText": "Selecciona texto para traducirlo o preguntarle a Nina.",
     "selectedContext": "Contexto actual",
-    "messageLabel": "Escribir al asistente contextual",
+    "messageLabel": "Pregúntale a Nina",
     "messagePlaceholder": "Pregunta sobre este texto…",
     "send": "Enviar",
     "sendHint": "Enter para enviar · Shift+Enter para añadir una línea",
@@ -844,8 +848,8 @@
   },
   "onboarding": {
     "step": "Configura tu perfil de aprendizaje",
-    "title": "Tus preferencias de aprendizaje",
-    "intro": "Elige algunas opciones iniciales. Puedes cambiarlas más adelante; el idioma de la aplicación se elige por separado.",
+    "title": "Siéntete como en casa",
+    "intro": "Elige tus preferencias. Puedes cambiarlas en Ajustes.",
     "accountTitle": "Cuenta de ChatGPT",
     "accountConnected": "Cuenta de ChatGPT conectada",
     "accountSignedOut": "Continúa con ChatGPT en el navegador.",
@@ -864,9 +868,9 @@
     },
     "startTitle": "Tu punto de partida",
     "level": "Nivel aproximado",
-    "goal": "Tu objetivo cotidiano de aprendizaje",
+    "goal": "Objetivo de aprendizaje",
     "goalHint": "Por ejemplo: concertar citas o hablar con más confianza con tus vecinos.",
-    "time": "Tiempo de estudio disponible cada semana",
+    "time": "Minutos por semana",
     "minutes": "{{count}} minutos",
     "skipPlacement": "Omitir por ahora el diagnóstico de nivel opcional",
     "placementLater": "El diagnóstico opcional está disponible en Práctica.",
@@ -887,7 +891,7 @@
       "de": "Alemán"
     },
     "localeIndependent": "Las explicaciones usan el idioma que elijas para ellas. Los menús y botones usan el idioma de la interfaz.",
-    "finish": "Terminar la configuración y empezar a aprender",
+    "finish": "Empezar a aprender",
     "progress": "Paso {{current}} de {{total}}",
     "steps": {
       "connection": "Conexión de IA opcional",
@@ -929,9 +933,9 @@
     },
     "guidance": {
       "connection": "Configura ahora el aprendizaje local. Puedes conectar la cuenta ChatGPT de Nina aquí o más tarde en Ajustes.",
-      "goal": "Cuéntanos desde dónde empiezas y qué quieres hacer en el idioma que aprendes.",
-      "defaults": "Elige cómo quieres recibir comentarios y qué idiomas usar. Puedes cambiarlo en Configuración.",
-      "review": "Revisa tus elecciones. Usa Atrás para cambiarlas o termina la configuración para empezar a aprender."
+      "goal": "Elige tu nivel y un objetivo cotidiano.",
+      "defaults": "Elige el estilo de corrección y los idiomas.",
+      "review": "¿Todo listo? Revisa tus opciones."
     },
     "levelHint": "Elige la mejor estimación: A1 es principiante, A2 es elemental, B1 es intermedio y B2 es intermedio alto. Puedes cambiarla más adelante.",
     "goalRequired": "Escribe un objetivo para continuar.",
@@ -997,7 +1001,7 @@
     "privacyTitle": "Procesamiento local y de OpenAI",
     "profileTitle": "Opciones iniciales de aprendizaje",
     "persistenceUnavailable": "La configuración no se puede editar en esta versión de la aplicación.",
-    "teachingProfile": "Perfil de enseñanza predeterminado",
+    "teachingProfile": "Estilo de enseñanza",
     "uiLocale": "Idioma de la interfaz",
     "localeSeparate": "El idioma de las explicaciones es independiente del idioma de la interfaz.",
     "model": "Modelo",
@@ -1027,7 +1031,7 @@
       "helper": "Asistente contextual",
       "research": "Investigación para el programa de aprendizaje"
     },
-    "diagnosticsTitle": "Diagnósticos y registros",
+    "diagnosticsTitle": "Diagnóstico",
     "diagnosticsPrivacy": "Este resumen local del estado solo contiene versiones y cifras. Excluye textos del estudiante, resultados del modelo, credenciales, rutas y datos de protocolo sin procesar.",
     "diagnosticsGeneration": "Generación de la carpeta de datos",
     "diagnosticsSchema": "Esquema de la base de datos",
@@ -1040,7 +1044,7 @@
     "logsCleared": "Se borraron {{count}} archivos de registro locales.",
     "restoreModels": "Restablecer valores automáticos de los modelos",
     "discard": "Descartar cambios",
-    "save": "Guardar configuración",
+    "save": "Guardar cambios",
     "automaticFallback": "{{model}} no está disponible. Se usa {{effective}} por ahora.",
     "tabs": {
       "profile": "Aprendizaje",
@@ -1049,7 +1053,7 @@
       "diagnostics": "Diagnósticos"
     },
     "languageSelected": "Cambió el idioma de aprendizaje. Ahora se muestran el nivel y objetivo guardados para ese idioma.",
-    "finishBeforeSwitch": "Termina esta actividad o sal de ella antes de cambiar el idioma de aprendizaje.",
+    "finishBeforeSwitch": "Sal de la actividad o termínala para cambiar de idioma.",
     "chatgptAccount": "Cuenta de ChatGPT",
     "chatgptNewAccount": "Usar otra cuenta o espacio de trabajo de ChatGPT",
     "chatgptRevocationPending": "Se cerró la sesión local. No se confirmó la revocación remota; desconecta Call Nina en los ajustes de ChatGPT si es necesario.",
@@ -1086,15 +1090,20 @@
     "dataRootBusy": "Termina o cancela la acción de IA activa antes de cambiar la carpeta de datos."
   },
   "ui": {
-    "newPractice": "Nueva práctica",
+    "newPractice": "Nuevo",
     "moreFilters": "Más filtros",
-    "details": "Ver detalles",
+    "details": "Detalles",
     "activityOptions": "Opciones de la actividad",
     "manageWord": "Administrar palabra",
     "deleteWord": "¿Eliminar «{{word}}»?",
     "actionFailed": "No se pudo completar esta acción. Inténtalo de nuevo.",
     "loading": "Cargando…",
-    "completeOptions": "Completa las opciones obligatorias de la actividad antes de guardar."
+    "completeOptions": "Completa las opciones obligatorias de la actividad antes de guardar.",
+    "activityActions": "Acciones de la actividad",
+    "learningGoals": "Objetivos de aprendizaje",
+    "review": "Repasar",
+    "topic": "Tema",
+    "practiceOptions": "Opciones de práctica"
   },
   "suggestions": {
     "title": "Qué practicar después",
@@ -1122,7 +1131,7 @@
       "prepare": "Preparar conversación",
       "diagnostic": "Abrir diagnóstico"
     },
-    "fullPrompt": "Consigna completa"
+    "fullPrompt": "Detalles"
   },
   "personalData": {
     "title": "Datos personales",
@@ -1360,7 +1369,7 @@
     "refreshing": "Actualizando…"
   },
   "missions": {
-    "unitActivities": "Actividades de esta unidad",
+    "unitActivities": "Actividades",
     "unitOverviewHint": "Las actividades de abajo comparten esta situación. Elige «Iniciar actividad» en una tarjeta para empezar a practicar.",
     "unitOverview": "Resumen de la unidad",
     "newContextHint": "Cambiar la situación inicia una nueva ronda de esta unidad. El trabajo anterior se conserva en el historial.",
@@ -1368,12 +1377,12 @@
     "intro": "Aprende mediante situaciones cotidianas. Elige tu siguiente paso, practica con ayuda y vuelve más tarde para ver qué puedes hacer de forma independiente.",
     "resume": "Reanudar actividad",
     "retry": "Volver a intentar con comentarios",
-    "continueCourse": "Continuar el curso",
+    "continueCourse": "Continuar curso",
     "map": "Mapa del curso",
     "optional": "Opcional",
     "language": "Palabras, expresiones y estructuras",
     "reuses": "Lenguaje que puedes reutilizar",
-    "sharedFacts": "Situación compartida",
+    "sharedFacts": "Situación",
     "newContext": "Cambiar la situación de la unidad",
     "reviewTab": "Repaso ({{count}})",
     "reviewMeaning": "Vuelve a demostrar lo que puedes hacer en una situación distinta. Estas comprobaciones orientan las recomendaciones y nunca bloquean el curso. El repaso de vocabulario sigue en Práctica.",
@@ -1522,7 +1531,7 @@
     "title": "Nina",
     "heading": "¿Qué practicamos hoy?",
     "intro": "Describe un objetivo o elige una idea. Nina te propondrá una actividad para iniciar o generar.",
-    "request": "Tu idea",
+    "request": "¿Tienes algo en mente?",
     "placeholder": "Pedir un café, planear un viaje, contar una historia…",
     "examples": {
       "reading": "Leer un mensaje corto sobre una cita",
@@ -1530,8 +1539,8 @@
       "writing": "Escribir un correo a un vecino"
     },
     "time": "Tiempo disponible",
-    "timeHint": "Nina lo usa para sugerir la duración de la práctica. No hay cronómetro; avanza a tu ritmo.",
-    "noTime": "Que Nina elija la duración",
+    "timeHint": "A tu ritmo, sin temporizador.",
+    "noTime": "Que elija Nina",
     "minutes": "{{count}} min",
     "material": "Usar material guardado (opcional)",
     "materialLabel": "Practicar con material guardado",
@@ -1540,7 +1549,7 @@
     "savedRevision": "Versión guardada seleccionada",
     "moreMaterials": "Mostrar más material guardado",
     "emptyMaterials": "Todavía no tienes temas ni textos guardados. Nina puede crear una práctica a partir de tu idea de arriba.",
-    "plan": "Encontrar una práctica",
+    "plan": "Buscar práctica",
     "clarification": "¿Qué tipo de práctica te ayudaría?",
     "supported": "Elige una actividad disponible para convertir tu solicitud en práctica. Voice y otras prácticas siguen disponibles en el menú.",
     "kinds": {
@@ -1562,19 +1571,22 @@
     "estimate": "Unos {{count}} minutos · a tu ritmo",
     "languages": "Práctica: {{target}} · explicaciones: {{explanation}}",
     "unavailable": "La generación no se inició. Tu solicitud se conserva; las actividades preparadas y el acceso directo a la práctica siguen disponibles.",
-    "start": "Iniciar actividad preparada",
+    "start": "Empezar",
     "generate": "Generar práctica nueva",
     "continue": "Continuar",
     "noResume": "Todavía no hay una actividad que puedas retomar en este contexto de aprendizaje. Empieza con una solicitud o recomendación.",
     "recent": "Tu actividad retomable utilizada más recientemente.",
     "savedWording": "El texto guardado se conserva tal como se creó. Los idiomas indicados se aplican a la práctica nueva.",
-    "options": "Personaliza tu práctica (opcional)",
+    "options": "Ajustar práctica",
     "shortcuts": {
-      "quiz": "Crear un cuestionario",
-      "reading": "Leer algo",
-      "grammar": "Frases cotidianas",
-      "writing": "Escribir un mensaje"
-    }
+      "quiz": "Cuestionario",
+      "reading": "Leer",
+      "grammar": "Gramática",
+      "writing": "Escribir"
+    },
+    "quickPractice": "Práctica rápida",
+    "moreOptions": "Personalizar práctica",
+    "or": "o"
   },
   "translation": {
     "action": "Traducir",
@@ -1596,7 +1608,7 @@
     "next": "Qué hacer después",
     "evidence": "Tus respuestas y comentarios están guardados en el historial. Las pistas, las respuestas repetidas y las autoevaluaciones se distinguen de los resultados independientes.",
     "nextHint": "Vuelve a Nina para elegir un repaso o una práctica nueva. Las actividades preparadas siguen disponibles sin IA.",
-    "nina": "Ver las recomendaciones de Nina",
+    "nina": "Inicio",
     "return": "Volver a {{origin}}",
     "selfAssessment": "El repaso de tarjetas se guarda con esta actividad. Las autoevaluaciones orientan el repaso de vocabulario; no demuestran un dominio independiente."
   },

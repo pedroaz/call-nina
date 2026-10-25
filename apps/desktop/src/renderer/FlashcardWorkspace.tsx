@@ -232,7 +232,7 @@ export function FlashcardWorkspace({
       {error && (
         <>
           <OperationError error={error} />
-          <Button isDisabled={busy} onPress={() => void load()}>
+          <Button variant="secondary" isDisabled={busy} onPress={() => void load()}>
             {t("vocabulary.refresh")}
           </Button>
         </>
@@ -257,6 +257,7 @@ export function FlashcardWorkspace({
               />
               <ActionGroup>
                 <Button
+                  variant="primary"
                   isDisabled={busy}
                   onPress={() => {
                     move(0);

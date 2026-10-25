@@ -22,7 +22,7 @@
   },
   "nav": {
     "label": "Main navigation",
-    "nina": "Nina",
+    "nina": "Home",
     "practice": "Practice",
     "writing": "Writing",
     "vocabulary": "Vocabulary",
@@ -42,8 +42,8 @@
     "listening": "Codex listening handoff",
     "speaking": "Codex speaking handoff",
     "diagnostic": "Optional diagnostic",
-    "promptLabel": "What would you like to practise?",
-    "targetLevel": "Target level",
+    "promptLabel": "Topic",
+    "targetLevel": "Level",
     "useExample": "Use example",
     "generateDetails": "Generate details with AI",
     "regenerateDetails": "Regenerate details",
@@ -55,16 +55,16 @@
       "normal": "Normal",
       "fast": "Fast"
     },
-    "customPromptPlaceholder": "For example: practise ordering food or asking for directions",
-    "grammarPromptPlaceholder": "For example: practise dative articles after mit and zu",
-    "readingPromptPlaceholder": "For example: read about a visit to the doctor or buying groceries",
+    "customPromptPlaceholder": "Ordering food, asking directions…",
+    "grammarPromptPlaceholder": "Articles after mit and zu…",
+    "readingPromptPlaceholder": "A doctor’s visit, a trip, everyday life…",
     "chooser": {
       "title": "Choose a practice type",
       "body": "Choose a format to see its setup and start when you are ready."
     },
     "types": {
       "custom": {
-        "title": "Create a quiz",
+        "title": "Quiz",
         "body": "Describe what you want to practise. The quiz can mix multiple choice, gap fills, sentence correction, and short written answers."
       },
       "grammar": {
@@ -72,15 +72,15 @@
         "body": "Read a short explanation, then answer gap-fill, sentence-correction, and short-answer questions."
       },
       "reading": {
-        "title": "Reading",
+        "title": "Read",
         "body": "Read a short everyday text, choose comprehension answers, and write a brief summary."
       },
       "listening": {
-        "title": "Listening",
+        "title": "Listen",
         "body": "Prepare listening questions for Codex Voice. Audio is not played inside Call Nina."
       },
       "speaking": {
-        "title": "Speaking",
+        "title": "Speak",
         "body": "Prepare a practical role-play with prompts and correction goals, then speak in Codex Voice."
       },
       "diagnostic": {
@@ -146,14 +146,14 @@
     "grammarLesson": {
       "title": "Focused grammar lesson",
       "body": "Generate a lesson at your selected learning level using the curriculum and available saved mistake evidence.",
-      "start": "Generate grammar lesson"
+      "start": "Create practice"
     },
     "readingFlow": {
       "title": "Read and practise",
       "body": "Generate a passage for your learning language and level, or create questions from text you paste below. Codex prepares exercises and reviews your written answers.",
       "topic": "Topic or learning goal (optional)",
       "defaultRequest": "Practise understanding a short everyday text in my learning language, including vocabulary, inference and a written summary.",
-      "generate": "Generate reading practice",
+      "generate": "Create reading",
       "material": "Reading material",
       "importLabel": "Paste a text in your learning language (optional)",
       "useStarter": "Use a starter text",
@@ -302,9 +302,13 @@
       "resume": "To resume a conversation, return to its task in Codex. This button prepares a new chat."
     },
     "customCount": "Custom (3–30)",
-    "invalidCount": "Enter a whole number from 3 to 30."
+    "invalidCount": "Enter a whole number from 3 to 30.",
+    "customCountChoice": "Custom"
   },
   "modelControl": {
+    "connection": "Connection",
+    "default": "Default",
+    "settings": "AI settings",
     "title": "AI model",
     "loading": "Loading model choices…",
     "saving": "Saving…",
@@ -381,8 +385,8 @@
     "custom": {
       "title": "Create a quiz",
       "body": "Ask for a topic, everyday scenario, grammar focus, vocabulary theme, or question format. The quiz is untimed and includes optional hints.",
-      "request": "What would you like to practise?",
-      "countLabel": "Quiz length",
+      "request": "Topic",
+      "countLabel": "Questions",
       "countOption_one": "{{count}} exercise",
       "countOption_other": "{{count}} exercises",
       "generate": "Create quiz",
@@ -516,7 +520,7 @@
       "generate": "Generate vocabulary",
       "intro": "Words from your exercises and saved flashcards live here. Choose which suggestions to add to active review.",
       "emptyTitle": "Your word library",
-      "previewHint": "Preview the generated flashcards, then save the words you want to review. Nothing is added to your vocabulary until you save it.",
+      "previewHint": "Preview the cards, then save the words you want to review.",
       "step1": "Choose a topic and your level.",
       "step2": "Preview words, meanings and examples.",
       "step3": "Save useful words and return here for spaced review.",
@@ -559,12 +563,12 @@
     "openVocabulary": "Open vocabulary"
   },
   "helper": {
-    "supportNotice": "Help counts as support in unfinished course activities",
+    "supportNotice": "Help counts as course support",
     "supportDetails": "How help affects course progress",
     "selectionTruncated": "Only the first 4,000 characters are selected. Select a shorter passage to ask about the rest.",
-    "selectText": "Select text anywhere in the app, then translate it or ask about it.",
+    "selectText": "Select text to translate it or ask Nina.",
     "selectedContext": "Current context",
-    "messageLabel": "Message the context helper",
+    "messageLabel": "Ask Nina",
     "messagePlaceholder": "Ask about this text…",
     "send": "Send",
     "sendHint": "Enter to send · Shift+Enter for a new line",
@@ -844,8 +848,8 @@
   },
   "onboarding": {
     "step": "Set up your learning profile",
-    "title": "Your learning preferences",
-    "intro": "Choose a few defaults now. You can change them later, and the app language remains a separate choice.",
+    "title": "Make yourself at home",
+    "intro": "Choose your learning defaults. Change them anytime in Settings.",
     "accountTitle": "ChatGPT account",
     "accountConnected": "ChatGPT account connected",
     "accountSignedOut": "Continue with ChatGPT in your browser.",
@@ -864,9 +868,9 @@
     },
     "startTitle": "Your starting point",
     "level": "Approximate level",
-    "goal": "Your everyday learning goal",
+    "goal": "Learning goal",
     "goalHint": "For example: make appointments or feel more confident speaking with neighbours.",
-    "time": "Available study time each week",
+    "time": "Minutes per week",
     "minutes": "{{count}} minutes",
     "skipPlacement": "Skip the optional placement diagnostic for now",
     "placementLater": "Optional diagnostic available in Practice.",
@@ -887,7 +891,7 @@
       "de": "German"
     },
     "localeIndependent": "Explanations use your chosen explanation language. Menus and buttons use the interface language.",
-    "finish": "Finish setup and start learning",
+    "finish": "Start learning",
     "progress": "Step {{current}} of {{total}}",
     "steps": {
       "connection": "Optional AI connection",
@@ -929,9 +933,9 @@
     },
     "guidance": {
       "connection": "Set up local learning now. You can connect Nina’s ChatGPT account here or later in Settings.",
-      "goal": "Tell us where you are starting and what you want to do in your learning language.",
-      "defaults": "Choose how you want feedback and which languages to use. You can change these in Settings.",
-      "review": "Review your choices below. Use Back to make changes, or finish setup to start learning."
+      "goal": "Choose your level and an everyday goal.",
+      "defaults": "Choose your feedback style and languages.",
+      "review": "Ready? Check your choices below."
     },
     "levelHint": "Choose your best estimate: A1 is beginner, A2 elementary, B1 intermediate, and B2 upper intermediate. You can change it later.",
     "goalRequired": "Enter a goal to continue.",
@@ -997,7 +1001,7 @@
     "privacyTitle": "Local and OpenAI processing",
     "profileTitle": "Learning defaults",
     "persistenceUnavailable": "Settings cannot be edited in this app version.",
-    "teachingProfile": "Default teaching profile",
+    "teachingProfile": "Teaching style",
     "uiLocale": "Interface language",
     "localeSeparate": "Explanation language is independent of the interface language.",
     "model": "Model",
@@ -1027,7 +1031,7 @@
       "helper": "Contextual helper",
       "research": "Curriculum research"
     },
-    "diagnosticsTitle": "Diagnostics and logs",
+    "diagnosticsTitle": "Diagnostics",
     "diagnosticsPrivacy": "This local health summary contains versions and counts only. It excludes learner text, model output, credentials, paths, and raw protocol data.",
     "diagnosticsGeneration": "Data-root generation",
     "diagnosticsSchema": "Database schema",
@@ -1040,7 +1044,7 @@
     "logsCleared": "Cleared {{count}} local log files.",
     "restoreModels": "Restore automatic model defaults",
     "discard": "Discard changes",
-    "save": "Save settings",
+    "save": "Save changes",
     "automaticFallback": "{{model}} is unavailable. Using {{effective}} for now.",
     "tabs": {
       "profile": "Learning",
@@ -1049,7 +1053,7 @@
       "diagnostics": "Diagnostics"
     },
     "languageSelected": "Learning language changed. Its saved level and goal are now shown.",
-    "finishBeforeSwitch": "Finish or leave this activity before switching learning languages.",
+    "finishBeforeSwitch": "Leave or finish this activity to switch languages.",
     "chatgptAccount": "ChatGPT account",
     "chatgptNewAccount": "Use another ChatGPT account or workspace",
     "chatgptRevocationPending": "Signed out locally. Remote revocation was not confirmed; disconnect Call Nina in ChatGPT settings if needed.",
@@ -1086,15 +1090,20 @@
     "dataRootBusy": "Finish or cancel the active AI operation before changing the data folder."
   },
   "ui": {
-    "newPractice": "New practice",
+    "newPractice": "New",
     "moreFilters": "More filters",
-    "details": "View details",
+    "details": "Details",
     "activityOptions": "Activity options",
     "manageWord": "Manage word",
     "deleteWord": "Delete “{{word}}”?",
     "actionFailed": "Could not complete this action. Please try again.",
     "loading": "Loading…",
-    "completeOptions": "Complete the required activity options before saving."
+    "completeOptions": "Complete the required activity options before saving.",
+    "activityActions": "Activity actions",
+    "learningGoals": "Learning goals",
+    "review": "Review",
+    "topic": "Topic",
+    "practiceOptions": "Practice options"
   },
   "suggestions": {
     "title": "Practice next",
@@ -1122,7 +1131,7 @@
       "prepare": "Prepare conversation",
       "diagnostic": "Open diagnostic"
     },
-    "fullPrompt": "Full prompt"
+    "fullPrompt": "Details"
   },
   "personalData": {
     "title": "Personal Data",
@@ -1360,7 +1369,7 @@
     "refreshing": "Refreshing…"
   },
   "missions": {
-    "unitActivities": "Activities in this unit",
+    "unitActivities": "Activities",
     "unitOverviewHint": "The activities below share this scenario. Choose “Start activity” on an activity card to begin practising.",
     "unitOverview": "Unit overview",
     "newContextHint": "Changing the scenario starts a fresh round of this unit. Previous work stays in History.",
@@ -1373,7 +1382,7 @@
     "optional": "Optional",
     "language": "Words, phrases and patterns",
     "reuses": "Language to reuse",
-    "sharedFacts": "Shared scenario",
+    "sharedFacts": "Situation",
     "newContext": "Change unit scenario",
     "reviewTab": "Review ({{count}})",
     "reviewMeaning": "Revisit a can-do outcome in a changed situation. These checks inform recommendations; they never lock the course. Vocabulary review remains in Practice.",
@@ -1522,7 +1531,7 @@
     "title": "Nina",
     "heading": "What shall we practise?",
     "intro": "Describe a goal or choose an idea. Nina will suggest an activity you can start or generate.",
-    "request": "Your idea",
+    "request": "Have something in mind?",
     "placeholder": "Order a coffee, plan a trip, tell a story…",
     "examples": {
       "reading": "Read a short message about an appointment",
@@ -1530,8 +1539,8 @@
       "writing": "Write an email to a neighbour"
     },
     "time": "Time available",
-    "timeHint": "Nina uses this to suggest a practice length. There is no timer; go at your own pace.",
-    "noTime": "Let Nina choose the length",
+    "timeHint": "Self-paced; no timer.",
+    "noTime": "Let Nina choose",
     "minutes": "{{count}} min",
     "material": "Use saved material (optional)",
     "materialLabel": "Practise from saved material",
@@ -1540,7 +1549,7 @@
     "savedRevision": "Selected saved revision",
     "moreMaterials": "Show more saved material",
     "emptyMaterials": "You have no saved topics or passages yet. Nina can create practice from your idea above.",
-    "plan": "Find my practice",
+    "plan": "Find practice",
     "clarification": "Which kind of practice would help?",
     "supported": "Choose one supported activity to turn your request into practice. Voice and other practice remain available from the menu.",
     "kinds": {
@@ -1562,19 +1571,22 @@
     "estimate": "About {{count}} minutes · work at your own pace",
     "languages": "Practice: {{target}} · explanations: {{explanation}}",
     "unavailable": "Generation did not start. Your request is kept; prepared activities and direct practice remain available.",
-    "start": "Start prepared activity",
+    "start": "Start",
     "generate": "Generate fresh practice",
     "continue": "Continue",
     "noResume": "No resumable activity in this learning context yet. Choose a request or recommendation to get started.",
     "recent": "Your most recently used resumable activity.",
     "savedWording": "Saved wording stays as created. The language choices above apply to fresh generation.",
-    "options": "Customize your practice (optional)",
+    "options": "Adjust practice",
     "shortcuts": {
-      "quiz": "Create a quiz",
-      "reading": "Read something",
-      "grammar": "Everyday phrases",
-      "writing": "Write a message"
-    }
+      "quiz": "Quiz",
+      "reading": "Read",
+      "grammar": "Grammar",
+      "writing": "Write"
+    },
+    "quickPractice": "Quick practice",
+    "moreOptions": "Customize practice",
+    "or": "or"
   },
   "translation": {
     "action": "Translate",
@@ -1596,7 +1608,7 @@
     "next": "What comes next",
     "evidence": "Your answers and feedback are saved in History. Hints, repeated answers and self-ratings remain distinct from independent evidence.",
     "nextHint": "Return to Nina to choose relevant review or fresh practice. Prepared activities stay available without AI.",
-    "nina": "See Nina’s recommendations",
+    "nina": "Home",
     "return": "Back to {{origin}}",
     "selfAssessment": "Card review is saved with this activity. Self-ratings guide vocabulary review; they do not establish independent proficiency."
   },

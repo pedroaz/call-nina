@@ -141,6 +141,7 @@ export function PlacementDiagnostic() {
             {t("practice.diagnosticFlow.start")}
           </Button>
           <Button
+            variant="primary"
             onPress={() => {
               setSkipped(true);
             }}

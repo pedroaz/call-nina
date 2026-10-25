@@ -4,6 +4,7 @@
   grid-template-rows: minmax(0, 1fr) auto;
   height: 100%;
   min-height: 0;
+  font-size: var(--od-font-size-sm);
 }
 .helperScroll {
   display: grid;
@@ -20,7 +21,7 @@
   justify-content: space-between;
   gap: var(--od-space-3);
   color: var(--od-color-text-muted);
-  font-size: var(--od-font-size-xs);
+  font-size: var(--od-font-size-sm);
 }
 
 .helperTurns {
@@ -35,9 +36,6 @@
   border-radius: var(--od-radius-md);
   margin: 0;
   padding: var(--od-space-4);
-}
-
-.helperSelection {
   background: var(--od-color-surface-sunken);
   border-inline-start: var(--od-border-outlined) solid var(--od-color-brand);
 }
@@ -115,6 +113,8 @@
 
 .helperComposer textarea {
   min-height: var(--od-control-wide);
+  max-height: 30dvh;
+  font-size: var(--od-font-size-md);
 }
 
 .helperComposerActions {
@@ -130,14 +130,6 @@
 
 .helperComposerHint {
   color: var(--od-color-text-muted);
-  font-size: var(--od-font-size-xs);
+  font-size: var(--od-font-size-sm);
   margin: 0;
-}
-
-.helperComposer textarea {
-  max-height: 30dvh;
-  font-size: var(--od-font-size-sm);
-}
-.helperConversation {
-  font-size: var(--od-font-size-sm);
 }

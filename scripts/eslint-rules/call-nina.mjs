@@ -10,6 +10,20 @@ const nodeBuiltins = new Set(
 
 const boundaries = [
   {
+    id: "browser-ui",
+    prefix: "packages/browser-ui/",
+    packages: ["design-system"],
+    node: false,
+    electron: false,
+  },
+  {
+    id: "website",
+    prefix: "apps/website/",
+    packages: ["design-system", "browser-ui"],
+    node: false,
+    electron: false,
+  },
+  {
     id: "managed-generation",
     prefix: "packages/managed-generation/",
     packages: ["contracts", "learning-workflows"],
@@ -33,7 +47,7 @@ const boundaries = [
   {
     id: "desktop-renderer",
     prefix: "apps/desktop/src/renderer/",
-    packages: ["contracts", "design-system", "domain"],
+    packages: ["contracts", "design-system", "domain", "browser-ui"],
     node: false,
     electron: false,
   },
@@ -126,6 +140,8 @@ const boundaries = [
 ];
 
 const packagePrefixes = new Map([
+  ["@call-nina/browser-ui", "browser-ui"],
+  ["@call-nina/website", "website"],
   ["@call-nina/managed-generation", "managed-generation"],
   ["@call-nina/learning-workflows", "learning-workflows"],
   ["@call-nina/design-system", "design-system"],
@@ -429,7 +445,8 @@ const noDirectReactAriaControls = {
   },
   create(context) {
     const filename = repositoryPath(context.getFilename());
-    if (filename.includes("/components/ui/")) return {};
+    if (filename.includes("/components/ui/") || filename.startsWith("packages/browser-ui/"))
+      return {};
     return {
       ImportDeclaration(node) {
         if (literalSource(node.source) !== "react-aria-components") return;

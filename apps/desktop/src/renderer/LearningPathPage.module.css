@@ -1,16 +1,14 @@
 .page,
 .unit {
   display: grid;
-  gap: var(--od-space-6);
+  gap: var(--od-space-5);
   min-width: 0;
 }
-.card > :is(h2, h3) {
-  font-size: var(--od-font-size-lg);
-  line-height: var(--od-line-tight);
+.card {
+  min-width: 0;
 }
 .cardActions {
-  border-top: var(--od-border-thin) solid var(--od-color-border-default);
-  padding-top: var(--od-space-5);
+  padding-top: 0;
 }
 .launchProgress {
   min-width: 0;
@@ -24,15 +22,15 @@
   color: var(--od-color-text-muted);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 .scenario {
   display: grid;
   gap: var(--od-space-3);
-  background: var(--od-color-surface-card);
   border-radius: var(--od-radius-md);
-  padding: var(--od-space-5);
+  padding: 0;
+  background: transparent;
 }
 .scenario > *,
 .activitiesHeading {
@@ -57,8 +55,85 @@
   gap: var(--od-space-4);
 }
 .words dt {
-  font-weight: 600;
+  font-weight: var(--od-font-weight-semibold);
 }
 .words dd {
   margin-inline-start: 0;
+}
+
+.recommendation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+  background: var(--od-color-surface-brand);
+}
+.recommendation > p {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.unitToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.unitToolbar > details {
+  border: 0;
+}
+.unitToolbar > details[open] {
+  flex-basis: 100%;
+}
+.unitDetails {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: var(--od-space-3) var(--od-space-6);
+}
+.unitDetails > details {
+  border: 0;
+}
+
+.unitDetails > details[open] {
+  flex-basis: 100%;
+}
+
+.unit {
+  gap: var(--od-space-4);
+}
+.unitOverview {
+  padding: var(--od-space-5);
+  gap: var(--od-space-3);
+  background: transparent;
+  border: 0;
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: 0;
+  padding-inline: 0;
+}
+.completion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--od-space-3);
+  font-size: var(--od-font-size-sm);
+  color: var(--od-color-text-muted);
+}
+.completion progress {
+  appearance: none;
+  width: 8rem;
+  height: 0.5rem;
+  border: 0;
+  border-radius: var(--od-radius-pill);
+  overflow: hidden;
+  background: var(--od-color-surface-brand);
+}
+.completion progress::-webkit-progress-bar {
+  background: var(--od-color-surface-brand);
+}
+.completion progress::-webkit-progress-value {
+  background: var(--od-color-action-primary);
+  border-radius: inherit;
 }

@@ -11,7 +11,11 @@ import tseslint from "typescript-eslint";
 import callNina from "./scripts/eslint-rules/call-nina.mjs";
 
 const typeScriptFiles = ["**/*.{ts,tsx}"];
-const rendererFiles = ["apps/desktop/src/renderer/**/*.{ts,tsx}", "apps/website/src/**/*.{ts,tsx}"];
+const rendererFiles = [
+  "apps/desktop/src/renderer/**/*.{ts,tsx}",
+  "apps/website/src/**/*.{ts,tsx}",
+  "packages/browser-ui/src/**/*.{ts,tsx}",
+];
 const electronFiles = ["apps/desktop/src/{main,preload}/**/*.{ts,tsx}"];
 
 const scopedTypeScriptConfigs = tseslint.configs.strictTypeChecked.map((config) => ({

@@ -1,3 +1,5 @@
+import { Disclosure } from "./components/ui/Disclosure.js";
+import { Nina } from "./components/ui/Nina.js";
 import {
   type ProviderOperation,
   contextualHelpCandidateSchema,
@@ -183,6 +185,7 @@ export function ContextualHelper({
             <p>{t("helper.courseSupport")}</p>
           </InfoHint>
         </div>
+        {turns.length === 0 && <Nina pose="listening" size="medium" />}
         {!selection ? (
           <Feedback live="off">{t("helper.selectText")}</Feedback>
         ) : (
@@ -234,10 +237,13 @@ export function ContextualHelper({
                   <section>
                     <h3>{t("helper.miniExercises")}</h3>
                     {turn.output.miniExercises.map((exercise) => (
-                      <details key={exercise.prompt}>
-                        <summary>{exercise.prompt}</summary>
+                      <Disclosure
+                        key={exercise.prompt}
+                        variant="plain"
+                        label={<> {exercise.prompt} </>}
+                      >
                         <p>{exercise.suggestedAnswer}</p>
-                      </details>
+                      </Disclosure>
                     ))}
                   </section>
                 ) : null}

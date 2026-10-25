@@ -1,6 +1,5 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 import {
-  ChevronLeft,
   type LucideIcon,
   PanelLeftClose,
   PanelLeftOpen,
@@ -19,11 +18,8 @@ export type ShellNavigationItem<Page extends string> = Readonly<{
 
 export function AppShell<Page extends string>(props: {
   activePage: Page;
-  integratedHeader?: boolean;
   navigation: ReadonlyArray<ShellNavigationItem<Page>>;
   settingsNavigation: ShellNavigationItem<Page>;
-  parent?: { label: string; onPress: () => void };
-  locationLabel: string;
   navigationLabel: string;
   brandName: string;
   navCollapsed: boolean;
@@ -32,7 +28,6 @@ export function AppShell<Page extends string>(props: {
   helperTitle: string;
   helperToggleLabel: string;
   exerciseMode?: boolean;
-  wide?: boolean;
   content: ReactNode;
   helper: ReactNode;
   navFooter?: ReactNode;
@@ -136,7 +131,7 @@ export function AppShell<Page extends string>(props: {
   );
   return (
     <div
-      className={`${styles.shell} ${props.navCollapsed ? styles.navCollapsed : ""} ${props.helperOpen ? "" : styles.helperCollapsed} ${props.wide ? styles.wide : ""}`}
+      className={`${styles.shell} ${props.navCollapsed ? styles.navCollapsed : ""} ${props.helperOpen ? "" : styles.helperCollapsed}`}
       data-exercise-mode={props.exerciseMode || undefined}
       data-nav-collapsed={props.navCollapsed || undefined}
     >
@@ -215,28 +210,7 @@ export function AppShell<Page extends string>(props: {
         </div>
       </nav>
       <main className={styles.workspace} id="main-content">
-        <div className={styles.workspaceInner}>
-          {!props.integratedHeader && (
-            <header className={styles.workspaceHeader}>
-              <div className={styles.location}>
-                {props.parent && (
-                  <Button
-                    className={styles.parentLink}
-                    density="compact"
-                    onPress={props.parent.onPress}
-                    variant="quiet"
-                  >
-                    <ChevronLeft aria-hidden="true" />
-                    {props.parent.label}
-                  </Button>
-                )}
-                {props.parent && <span aria-hidden="true">/</span>}
-                <span aria-current="page">{props.locationLabel}</span>
-              </div>
-            </header>
-          )}
-          {props.content}
-        </div>
+        <div className={styles.workspaceInner}>{props.content}</div>
       </main>
       <aside
         ref={helper}

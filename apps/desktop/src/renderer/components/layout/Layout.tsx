@@ -20,7 +20,7 @@ type PageProps = Omit<ComponentPropsWithoutRef<"section">, "title"> & {
   description?: string;
   eyebrow?: string;
   title: string;
-  width?: "standard" | "wide";
+  width?: "standard" | "form" | "reading";
 };
 
 export function Page({
@@ -41,10 +41,7 @@ export function Page({
     heading.current?.focus({ preventScroll: true });
   }, [title]);
   return (
-    <section
-      {...props}
-      className={`${styles.page} ${width === "wide" ? styles.wide : ""} ${className ?? ""}`}
-    >
+    <section {...props} data-width={width} className={`${styles.page} ${className ?? ""}`}>
       {breadcrumbs && <Breadcrumbs items={breadcrumbs} current={title} />}
       <header className={`${styles.header} ${styles.stickyHeader}`}>
         <div className={styles.heading}>
@@ -76,35 +73,46 @@ export function Stack(props: { children: ReactNode; compact?: boolean; className
   );
 }
 
-export function Section(props: {
+export function Section({
+  title,
+  description,
+  actions,
+  children,
+  surface = false,
+  as: Component = "section",
+  className,
+  ...attributes
+}: Omit<ComponentPropsWithoutRef<"section">, "title"> & {
   title?: string;
   description?: string;
   actions?: ReactNode;
   children: ReactNode;
   surface?: boolean;
   as?: ElementType;
-  className?: string;
 }) {
   const content = (
     <>
-      {(props.title || props.description || props.actions) && (
+      {(title || description || actions) && (
         <header className={styles.sectionHeading}>
           <div>
-            {props.title && <h2>{props.title}</h2>}
-            {props.description && <p>{props.description}</p>}
+            {title && <h2>{title}</h2>}
+            {description && <p>{description}</p>}
           </div>
-          {props.actions}
+          {actions}
         </header>
       )}
-      {props.children}
+      {children}
     </>
   );
-  return props.surface ? (
-    <Card as={props.as ?? "section"} className={`${styles.section} ${props.className ?? ""}`}>
+  const classes = `${styles.section} ${className ?? ""}`;
+  return surface ? (
+    <Card as={Component} {...attributes} className={classes}>
       {content}
     </Card>
   ) : (
-    <section className={`${styles.section} ${props.className ?? ""}`}>{content}</section>
+    <Component {...attributes} className={classes}>
+      {content}
+    </Component>
   );
 }
 
@@ -114,8 +122,19 @@ export function SectionHeader(props: { children: ReactNode; className?: string }
   );
 }
 
-export function ActionGroup(props: { children: ReactNode; className?: string }) {
-  return <div className={`${styles.actions} ${props.className ?? ""}`}>{props.children}</div>;
+export function ActionGroup(props: {
+  children: ReactNode;
+  className?: string;
+  align?: "start" | "end";
+}) {
+  return (
+    <div
+      data-align={props.align ?? "start"}
+      className={`${styles.actions} ${props.className ?? ""}`}
+    >
+      {props.children}
+    </div>
+  );
 }
 
 export function ContentGrid({

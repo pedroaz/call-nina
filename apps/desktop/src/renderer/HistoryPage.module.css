@@ -53,6 +53,7 @@
 .historyEntryHeader time {
   color: var(--od-color-text-muted);
   white-space: nowrap;
+  font-size: var(--od-font-size-sm);
 }
 
 .correctionText {
@@ -82,13 +83,39 @@
   color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
+  letter-spacing: normal;
   margin: 0 0 var(--od-space-3);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .page {
   max-width: var(--od-content-max);
+}
+.advancedFilters {
+  grid-column: 1 / -1;
+}
+.advancedGrid {
+  display: grid;
+  gap: var(--od-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.historyEntryHeader h2 {
+  line-height: var(--od-type-subsection-title-line);
+  font-size: var(--od-font-size-md);
+  overflow-wrap: anywhere;
+}
+.historyDetail > section {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.historyDetail > section > :where(h3, p, ul) {
+  margin-block: 0;
+}
+.historyEntryHeader .eyebrow {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: var(--od-weight-medium);
 }
 
 @media (max-width: 52rem) {
@@ -100,28 +127,6 @@
   .historyEntryHeader {
     flex-direction: column;
   }
-}
-.advancedFilters {
-  grid-column: 1 / -1;
-}
-.advancedGrid {
-  display: grid;
-  gap: var(--od-space-4);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.historyEntryHeader time {
-  font-size: var(--od-font-size-sm);
-}
-.historyEntryHeader h2 {
-  font-size: var(--od-font-size-md);
-}
-.historyDetail > section {
-  display: grid;
-  gap: var(--od-space-4);
-  min-width: 0;
-}
-.historyDetail > section > :where(h3, p, ul) {
-  margin-block: 0;
 }
 @container workspace (max-width: 42rem) {
   .historyMistakeGrid,

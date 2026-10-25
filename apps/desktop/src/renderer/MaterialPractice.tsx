@@ -245,6 +245,7 @@ export function MaterialPractice({
                 {t("materialPractice.load")}
               </Button>
               <Button
+                variant="primary"
                 isDisabled={locked || !snapshot}
                 onPress={() => {
                   setSelected(undefined);
@@ -343,7 +344,11 @@ export function MaterialPractice({
             <Muted>{t("materialPractice.sourceHint")}</Muted>
             <Muted>{t("materialPractice.preserve")}</Muted>
             <ActionGroup>
-              <Button isDisabled={locked || !value?.success} onPress={() => void save()}>
+              <Button
+                variant="primary"
+                isDisabled={locked || !value?.success}
+                onPress={() => void save()}
+              >
                 {t("materialPractice.save")}
               </Button>
               <Button
@@ -404,7 +409,11 @@ export function MaterialPractice({
               >
                 {t("materialPractice.edit")}
               </Button>
-              <Button isDisabled={locked || !countValid} onPress={() => void generate()}>
+              <Button
+                variant="primary"
+                isDisabled={locked || !countValid}
+                onPress={() => void generate()}
+              >
                 {t(
                   practiceType === "reading"
                     ? "materialPractice.generateReading"
@@ -538,7 +547,11 @@ function RelatedPractice({
           {t("materialPractice.refresh")}
         </Button>
         {library.hasMore && (
-          <Button isDisabled={disabled || library.busy} onPress={() => void library.loadMore()}>
+          <Button
+            variant="primary"
+            isDisabled={disabled || library.busy}
+            onPress={() => void library.loadMore()}
+          >
             {t("materialPractice.more")}
           </Button>
         )}

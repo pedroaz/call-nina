@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "artifacts": "pnpm run build && node ../../scripts/dev/offline-artifacts.mjs"
   },
   "dependencies": {
     "@call-nina/learning-workflows": "workspace:*",

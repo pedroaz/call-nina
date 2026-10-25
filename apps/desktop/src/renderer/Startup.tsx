@@ -86,6 +86,7 @@ export class ViewBoundary extends Component<BoundaryProps, BoundaryState> {
           <strong>{this.props.title}</strong>
           <p>{this.props.body}</p>
           <Button
+            variant="primary"
             onPress={() => {
               this.setState({ failed: false });
             }}
@@ -257,7 +258,9 @@ export function StartupError(props: {
           <Button variant="primary" onPress={() => void props.retry()}>
             {t("actions.retry")}
           </Button>
-          <Button onPress={props.recover}>{t("actions.chooseAnother")}</Button>
+          <Button variant="primary" onPress={props.recover}>
+            {t("actions.chooseAnother")}
+          </Button>
         </ActionGroup>
       </Card>
     </StartupFrame>

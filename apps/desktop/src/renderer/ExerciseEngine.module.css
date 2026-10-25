@@ -33,8 +33,9 @@
   border-radius: var(--od-radius-sm);
   color: var(--od-color-text-strong);
   font: inherit;
-  max-width: var(--od-field-max);
   padding: var(--od-space-3);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .exercisePrompt {
@@ -47,9 +48,9 @@
   color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
+  letter-spacing: normal;
   margin: 0 0 var(--od-space-3);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .exerciseCardHeader {
@@ -68,41 +69,6 @@
   display: flex;
   flex: none;
   gap: var(--od-space-2);
-}
-
-.exerciseNavButton {
-  align-items: center;
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
-  color: var(--od-color-brand-ink);
-  cursor: pointer;
-  display: inline-flex;
-  height: var(--od-control-min);
-  justify-content: center;
-  padding: 0;
-  width: var(--od-control-min);
-}
-
-.exerciseNavButton:hover:not([data-disabled]),
-.exerciseNavButton[data-pressed]:not([data-disabled]) {
-  background: var(--od-color-surface-brand);
-  border-color: var(--od-color-brand-ink);
-}
-
-.exerciseNavButton:focus-visible {
-  outline: var(--od-border-outlined) solid var(--od-color-focus);
-  outline-offset: var(--od-space-2);
-}
-
-.exerciseNavButton[data-disabled] {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-
-.exerciseNavButton svg {
-  height: var(--od-icon-md);
-  width: var(--od-icon-md);
 }
 
 :global([data-exercise-mode="true"]) .exerciseCardHeader {
@@ -150,20 +116,13 @@
   overflow-anchor: none;
   display: flex;
   flex-direction: column;
-  min-height: min(var(--od-exercise-min), calc(100dvh - var(--od-exercise-chrome)));
 }
 .exerciseActions {
-  margin-top: auto;
+  margin-top: var(--od-space-4);
   border-top: var(--od-border-thin) solid var(--od-color-border-default);
   padding-block: var(--od-space-4);
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
+
   background: var(--od-color-surface-card);
-}
-.exerciseBlanks input {
-  min-width: 0;
-  max-width: 100%;
 }
 
 .questionHeader {
@@ -187,7 +146,7 @@
   margin: 0;
 }
 .primaryAction {
-  width: 16rem;
+  width: auto;
 }
 .optionGroup[data-evaluated] > label:has(input:disabled) {
   opacity: 1;
@@ -197,7 +156,7 @@
   background: var(--od-color-surface-card);
   border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
-  box-shadow: var(--od-shadow-card);
+  box-shadow: var(--od-shadow-pop);
   width: var(--od-info-width);
   max-width: calc(100vw - var(--od-space-8));
   max-height: calc(100dvh - var(--od-space-8));
@@ -215,11 +174,6 @@
 .hintDialog h2,
 .hintDialog p {
   margin: 0;
-}
-@container workspace (max-width: 28rem) {
-  .questionHeader {
-    flex-wrap: wrap;
-  }
 }
 
 .activeExercise > fieldset {
@@ -260,4 +214,13 @@
 }
 .exerciseAiFeedback .suggestedAnswer {
   border-top: 0;
+}
+
+.questionSection textarea {
+  min-height: 12rem;
+}
+@container workspace (max-width: 28rem) {
+  .questionHeader {
+    flex-wrap: wrap;
+  }
 }

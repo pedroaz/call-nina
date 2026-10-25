@@ -13,20 +13,12 @@ import {
   type Language,
   type DataRootGeneration,
 } from "@call-nina/contracts";
-import {
-  Gauge,
-  History,
-  MessageCircle,
-  LibraryBig,
-  LoaderCircle,
-  Settings,
-  Sparkles,
-} from "lucide-react";
+import { Gauge, History, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, Feedback, LoadingState, ModalDialog } from "./components/ui/index.js";
 import { ActionGroup, AppShell as ApplicationShell, Page } from "./components/layout/index.js";
 
-import styles from "./AppStyles.module.css";
+import styles from "./Startup.module.css";
 import { NinaHome, emptyNinaHomeDraft, type NinaHomeDraft } from "./Dashboard.js";
 import { useHelperSelection } from "./useHelperSelection.js";
 import { ContextualHelper } from "./ContextualHelper.js";
@@ -64,13 +56,22 @@ type Page =
   | "personalData"
   | "settings";
 
+type NavigationTarget =
+  | {
+      destination: "practice";
+      tab?: "new" | "saved";
+      seed?: Extract<PracticeLaunch, { destination: "preparation" }>;
+    }
+  | { destination: "settings"; tab?: "profile" | "ai" | "data" | "diagnostics" }
+  | { destination: Exclude<Page, "practice" | "settings"> };
+
 const navigation: ReadonlyArray<{
   page: Page;
-  icon: typeof MessageCircle;
+  icon: typeof House;
 }> = [
-  { page: "nina", icon: MessageCircle },
+  { page: "nina", icon: House },
   { page: "practice", icon: Gauge },
-  { page: "learningPath", icon: Sparkles },
+  { page: "learningPath", icon: Route },
   { page: "vocabulary", icon: LibraryBig },
   { page: "history", icon: History },
 ];
@@ -101,15 +102,7 @@ function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) 
     >
       <p>{t("aiReminder.body")}</p>
       {error && <OperationError error={error} />}
-      <ActionGroup>
-        <Button
-          isPending={busy}
-          pendingLabel={t("actions.acknowledge")}
-          variant="primary"
-          onPress={() => void acknowledge()}
-        >
-          {t("actions.acknowledge")}
-        </Button>
+      <ActionGroup align="end">
         <Button
           variant="secondary"
           isDisabled={busy}
@@ -118,6 +111,14 @@ function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) 
           }}
         >
           {t("actions.cancel")}
+        </Button>
+        <Button
+          isPending={busy}
+          pendingLabel={t("actions.acknowledge")}
+          variant="primary"
+          onPress={() => void acknowledge()}
+        >
+          {t("actions.acknowledge")}
         </Button>
       </ActionGroup>
     </ModalDialog>
@@ -239,6 +240,7 @@ function DesktopWorkspace({
     useState<Extract<HistoryPracticeSeed, { kind: "writing" }>>();
   const [preparedActivityId, setPreparedActivityId] = useState<PreparedActivityId>();
   const [suggestedWriting, setSuggestedWriting] = useState<string>();
+  const [practiceTab, setPracticeTab] = useState<"new" | "saved">("new");
   const [practiceSeed, setPracticeSeed] =
     useState<Extract<PracticeLaunch, { destination: "preparation" }>>();
   const practiceContainer = useRef<HTMLDivElement>(null);
@@ -263,7 +265,11 @@ function DesktopWorkspace({
     setPage("practice");
   };
   const [vocabularyDue, setVocabularyDue] = useState(false);
+  const [quickStartId, setQuickStartId] = useState<PreparedActivityId>();
   const launchPractice = (intent: PracticeLaunch) => {
+    setQuickStartId(
+      intent.destination === "activity" && intent.autoStart ? intent.activityId : undefined,
+    );
     if (intent.destination === "writing") {
       setWritingOrigin(page);
       setWritingSeed(undefined);
@@ -273,6 +279,8 @@ function DesktopWorkspace({
       setVocabularyDue(true);
       setPage("vocabulary");
     } else {
+      if (intent.destination === "preparation")
+        applyNavigation({ destination: "practice", tab: "new", seed: intent });
       setActivityOrigin(page);
       setPreparedActivityId(intent.destination === "activity" ? intent.activityId : undefined);
       setPracticeSeed(intent.destination === "preparation" ? intent : undefined);
@@ -360,7 +368,8 @@ function DesktopWorkspace({
     buttons[(current + delta + buttons.length) % buttons.length]?.focus();
   };
 
-  const applyNavigation = (destination: Page) => {
+  const applyNavigation = (target: Page | NavigationTarget) => {
+    const destination = typeof target === "string" ? target : target.destination;
     if (destination === "history") setHistoryEntryIds(undefined);
     if (destination === "writing" && page !== "writing") {
       setWritingOrigin(page);
@@ -373,6 +382,13 @@ function DesktopWorkspace({
       setActivityOrigin(undefined);
     }
     if (destination === "vocabulary") setVocabularyDue(false);
+    if (typeof target !== "string") {
+      if (target.destination === "practice") {
+        setPracticeTab(target.tab ?? "new");
+        setPracticeSeed(target.seed);
+      }
+      if (target.destination === "settings" && target.tab) setSettingsTab(target.tab);
+    }
     setPage(destination);
   };
   const navigate = (destination: Page, mode: "normal" | "return" = "normal") => {
@@ -420,15 +436,19 @@ function DesktopWorkspace({
             },
           }
         : undefined;
-  const shellPage = page === "writing" ? "practice" : page === "personalData" ? "settings" : page;
+  const shellPage =
+    page === "writing"
+      ? writingOrigin
+      : page === "personalData"
+        ? "settings"
+        : page === "practice" && preparedActivityId
+          ? (activityOrigin ?? "practice")
+          : page;
 
   return (
     <>
       <ApplicationShell
         activePage={shellPage}
-        integratedHeader={!parent}
-        locationLabel={t(`nav.${page}`)}
-        {...(parent ? { parent } : {})}
         brandName={t("app.name")}
         content={
           <>
@@ -436,6 +456,7 @@ function DesktopWorkspace({
               <Feedback live="polite">
                 <p>{t("developmentReset.body")}</p>
                 <Button
+                  variant="primary"
                   onPress={() => {
                     void invokeDesktop("development-notice/dismiss", {})
                       .then(() => {
@@ -457,6 +478,7 @@ function DesktopWorkspace({
                 <p>{t("providerAccess.localAvailable")}</p>
                 <ActionGroup>
                   <Button
+                    variant="primary"
                     onPress={() => {
                       navigate("settings");
                     }}
@@ -483,12 +505,13 @@ function DesktopWorkspace({
                 }}
                 requestAiAccess={openAi}
                 onLaunch={launchPractice}
-                onNavigate={navigate}
               />
             ) : null}
             {page === "practice" || (page === "writing" && writingOrigin === "practice") ? (
               <div ref={practiceContainer} hidden={page !== "practice"}>
                 <PracticePage
+                  selectedTab={practiceTab}
+                  onTabChange={setPracticeTab}
                   onWriting={() => {
                     navigate("writing");
                   }}
@@ -498,6 +521,7 @@ function DesktopWorkspace({
                   onNina={(language, rootGeneration) =>
                     void openCompletionPage("nina", language, rootGeneration)
                   }
+                  autoStart={Boolean(preparedActivityId && quickStartId === preparedActivityId)}
                   targetLanguage={learningScope?.targetLanguage}
                   {...(activityOrigin ? { parentLabel: t(`nav.${activityOrigin}`) } : {})}
                   onVocabulary={() => {
@@ -521,6 +545,7 @@ function DesktopWorkspace({
             ) : null}
             {page === "writing" ? (
               <WritingWorkspace
+                {...(parent ? { breadcrumbs: [parent] } : {})}
                 key={writingSeed?.historyEntryId ?? "new-writing"}
                 {...(writingSeed
                   ? { initialContext: writingSeed.context, initialDraft: writingSeed.draft }
@@ -581,6 +606,7 @@ function DesktopWorkspace({
                     </p>
                     <ActionGroup>
                       <Button
+                        variant="primary"
                         onPress={() => {
                           setSettingsTab("profile");
                           navigate("settings");
@@ -619,6 +645,7 @@ function DesktopWorkspace({
             ) : null}
             {page === "personalData" ? (
               <PersonalDataPage
+                {...(parent ? { breadcrumbs: [parent] } : {})}
                 onDataCleared={() => {
                   setHelperSelection(undefined);
                   setHelperEpoch((value) => value + 1);
@@ -697,13 +724,17 @@ function DesktopWorkspace({
                 )}
               </>
             )}
-            <SidebarModelControl />
+            <SidebarModelControl
+              onOpenSettings={() => {
+                setSettingsTab("ai");
+                navigate("settings");
+              }}
+            />
           </>
         }
         navToggleLabel={
           navCollapsed ? t("actions.expandNavigation") : t("actions.collapseNavigation")
         }
-        wide={page === "writing"}
         onMoveNavFocus={moveNavFocus}
         onNavigate={navigate}
         onToggleHelper={() => {
@@ -730,7 +761,15 @@ function DesktopWorkspace({
           }}
         >
           <p>{t("writing.unsavedBody")}</p>
-          <ActionGroup>
+          <ActionGroup align="end">
+            <Button
+              variant="secondary"
+              onPress={() => {
+                setPendingNavigation(undefined);
+              }}
+            >
+              {t("writing.keepEditing")}
+            </Button>
             <Button
               variant="danger"
               onPress={() => {
@@ -744,13 +783,6 @@ function DesktopWorkspace({
               }}
             >
               {t("writing.leave")}
-            </Button>
-            <Button
-              onPress={() => {
-                setPendingNavigation(undefined);
-              }}
-            >
-              {t("writing.keepEditing")}
             </Button>
           </ActionGroup>
         </ModalDialog>
@@ -795,23 +827,23 @@ export default function App() {
   if (fatal) {
     return (
       <StartupFrame>
-        <section className={styles.startupCard} role="alert">
+        <Card as="section" className={styles.startupCard} role="alert">
           <h1>{t("startup.unavailableTitle")}</h1>
           <p>{t("startup.unavailableBody")}</p>
           <OperationError error={fatal} />
           <Button variant="primary" onPress={() => void load()}>
             {t("actions.retry")}
           </Button>
-        </section>
+        </Card>
       </StartupFrame>
     );
   }
   if (!readiness) {
     return (
       <StartupFrame>
-        <section className={styles.startupCard} role="status">
+        <Card as="section" className={styles.startupCard} role="status">
           <LoaderCircle aria-hidden="true" /> {t("startup.loading")}
-        </section>
+        </Card>
       </StartupFrame>
     );
   }

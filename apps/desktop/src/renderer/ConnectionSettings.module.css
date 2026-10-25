@@ -82,12 +82,6 @@
 .connectionDetails {
   color: var(--od-color-text-muted);
 }
-.editor summary,
-.management summary {
-  cursor: pointer;
-  font-weight: var(--od-weight-medium);
-  padding-block: var(--od-space-2);
-}
 
 .management {
   min-width: 0;

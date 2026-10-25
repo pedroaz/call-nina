@@ -126,7 +126,11 @@ export function VocabularyReview({
         </Feedback>
       )}
       {!queue && busy && <LoadingState live>{t("ui.loading")}</LoadingState>}
-      {!queue && !busy && <Button onPress={() => void load()}>{t("vocabulary.refresh")}</Button>}
+      {!queue && !busy && (
+        <Button variant="secondary" onPress={() => void load()}>
+          {t("vocabulary.refresh")}
+        </Button>
+      )}
       {entry && (
         <Card as="article" className={styles.reviewCard}>
           <label>
@@ -164,6 +168,7 @@ export function VocabularyReview({
           </h2>
           {!revealed && (
             <Button
+              variant="primary"
               onPress={() => {
                 setRevealed(true);
               }}
@@ -201,7 +206,7 @@ export function VocabularyReview({
             </Feedback>
           )}
           {(dueOn || error) && (
-            <Button ref={nextButton} isDisabled={busy} onPress={next}>
+            <Button variant="primary" ref={nextButton} isDisabled={busy} onPress={next}>
               {t(error ? "vocabulary.review.skip" : "vocabulary.review.next")}
             </Button>
           )}
@@ -215,7 +220,7 @@ export function VocabularyReview({
           <p>{t("vocabulary.review.reviewed", { count: reviewed })}</p>
           {queue.length === 0 && <p>{t("vocabulary.review.noneDue")}</p>}
           <ActionGroup>
-            <Button isPending={busy} onPress={() => void load()}>
+            <Button variant="primary" isPending={busy} onPress={() => void load()}>
               {t("vocabulary.review.another")}
             </Button>
             <Button variant="secondary" onPress={onExit}>

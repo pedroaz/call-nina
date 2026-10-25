@@ -7,14 +7,14 @@ import type {
 } from "@call-nina/contracts";
 import { resolveModelPreference } from "@call-nina/domain";
 import { useTranslation } from "react-i18next";
-import { Button, Disclosure } from "./components/ui/index.js";
+import { Button, Disclosure, FieldGroup } from "./components/ui/index.js";
 import styles from "./SidebarModelControl.module.css";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 
 type View = Extract<DesktopIpcResponse, { status: "ok"; channel: "ai-connections/read" }>["result"];
 type Action = Extract<DesktopIpcRequest, { channel: "ai-connections/update" }>["payload"]["action"];
 
-export function SidebarModelControl() {
+export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useTranslation();
   const [view, setView] = useState<View>();
   const [busy, setBusy] = useState(false);
@@ -120,29 +120,33 @@ export function SidebarModelControl() {
       data-effective-effort={resolution?.status === "available" ? resolution.effectiveEffortId : ""}
       data-default-effort={model?.defaultReasoningEffort ?? ""}
     >
-      <Disclosure label={model?.displayName ?? active?.label ?? t("connections.title")}>
-        <p className={styles.navModelStatus}>{t("connections.single")}</p>
+      <Disclosure
+        density="compact"
+        label={model?.displayName ?? active?.label ?? t("connections.title")}
+      >
         {view && (
           <>
             {active ? (
               <>
-                <label className={styles.navModelField}>
-                  <span>{t("connections.active")}</span>
-                  <select
-                    disabled={busy}
-                    value={active.id}
-                    onChange={(event) =>
-                      void mutate({ kind: "activate", connectionId: event.currentTarget.value })
-                    }
-                  >
-                    {view.settings.connections.map((entry) => (
-                      <option key={entry.id} value={entry.id}>
-                        {entry.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.navModelField}>
+                {view.settings.connections.length > 1 && (
+                  <FieldGroup density="compact">
+                    <span>{t("modelControl.connection")}</span>
+                    <select
+                      disabled={busy}
+                      value={active.id}
+                      onChange={(event) =>
+                        void mutate({ kind: "activate", connectionId: event.currentTarget.value })
+                      }
+                    >
+                      {view.settings.connections.map((entry) => (
+                        <option key={entry.id} value={entry.id}>
+                          {entry.label}
+                        </option>
+                      ))}
+                    </select>
+                  </FieldGroup>
+                )}
+                <FieldGroup density="compact">
                   <span>{t("modelControl.model")}</span>
                   <select
                     disabled={busy || !catalog}
@@ -161,7 +165,7 @@ export function SidebarModelControl() {
                       });
                     }}
                   >
-                    <option value="automatic">{t("connections.runtimeDefault")}</option>
+                    <option value="automatic">{t("modelControl.default")}</option>
                     {active.preference.model.mode === "exact" &&
                       !catalog?.models.some(
                         (entry) =>
@@ -180,9 +184,9 @@ export function SidebarModelControl() {
                       </option>
                     ))}
                   </select>
-                </label>
-                <label className={styles.navModelField}>
-                  <span>{t("settings.effort")}</span>
+                </FieldGroup>
+                <FieldGroup density="compact">
+                  <span>{t("modelControl.reasoning")}</span>
                   <select
                     disabled={busy || !model}
                     value={
@@ -222,52 +226,21 @@ export function SidebarModelControl() {
                       </option>
                     ))}
                   </select>
-                </label>
-                {availability && (
+                </FieldGroup>
+                {availability && !["available", "configured"].includes(availability.status) && (
                   <p className={styles.navModelStatus} role="status">
                     {t(`connectionSettings.status.${availability.status}`)}
                   </p>
                 )}
               </>
             ) : (
-              <>
-                <p>{t("connections.none")}</p>
-                <Button
-                  isDisabled={busy}
-                  onPress={() =>
-                    void mutate({
-                      kind: "save",
-                      connection: {
-                        id: crypto.randomUUID(),
-                        label: "ChatGPT",
-                        routeId: "chatgpt",
-                        preference: {
-                          model: { mode: "automatic" },
-                          effort: { mode: "semantic", effort: "balanced" },
-                        },
-                      },
-                      credential: { action: "keep" },
-                    })
-                  }
-                >
-                  {t("connections.connectChatgpt")}
-                </Button>
-              </>
+              <p className={styles.navModelStatus}>{t("connections.none")}</p>
             )}
-            {view.settings.migrationNotice && (
-              <>
-                <p>{t("connections.migrated")}</p>
-                <Button
-                  isDisabled={busy}
-                  onPress={() => void mutate({ kind: "dismiss-migration" })}
-                >
-                  {t("connections.dismiss")}
-                </Button>
-              </>
-            )}
-            {view.settings.retiredSecretRefs.length > 0 && <p>{t("connections.cleanupPending")}</p>}
           </>
         )}
+        <Button variant="quiet" density="compact" onPress={onOpenSettings}>
+          {t("modelControl.settings")}
+        </Button>
       </Disclosure>
       {error && (
         <p role="alert" className={styles.navModelError}>

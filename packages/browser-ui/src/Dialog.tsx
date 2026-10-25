@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import {
   Dialog as AriaDialog,
   DialogTrigger,
@@ -8,6 +8,7 @@ import {
 } from "react-aria-components";
 
 import { Button, type ButtonVariant } from "./Button.js";
+import { OverflowMenu } from "./OverflowMenu.js";
 import { Feedback } from "./Feedback.js";
 import styles from "./Dialog.module.css";
 
@@ -60,6 +61,7 @@ export function ModalDialog(props: {
 
 export function ConfirmDialog(props: {
   trigger: string;
+  menuLabel?: string;
   triggerNode?: ReactNode;
   triggerVariant?: ButtonVariant;
   density?: "compact" | "comfortable";
@@ -71,12 +73,36 @@ export function ConfirmDialog(props: {
   cancel: string;
   onConfirm?: () => void | Promise<void>;
 }) {
+  const [open, setOpen] = useState(false);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
   return (
-    <DialogTrigger>
-      {props.triggerNode ?? (
-        <Button variant={props.triggerVariant ?? "danger"}>{props.trigger}</Button>
+    <DialogTrigger
+      isOpen={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next && props.menuLabel) menuTrigger.current?.focus();
+      }}
+    >
+      {props.menuLabel ? (
+        <OverflowMenu
+          triggerRef={menuTrigger}
+          label={props.menuLabel}
+          disabled={pending}
+          items={[
+            {
+              id: "delete",
+              label: props.trigger,
+              destructive: true,
+              onAction: () => setOpen(true),
+            },
+          ]}
+        />
+      ) : (
+        (props.triggerNode ?? (
+          <Button variant={props.triggerVariant ?? "danger"}>{props.trigger}</Button>
+        ))
       )}
       <ModalOverlay className={styles.overlay} isDismissable={!pending}>
         <Modal className={styles.dialog} data-density={props.density ?? "comfortable"}>
@@ -93,6 +119,9 @@ export function ConfirmDialog(props: {
                   )}
                 </div>
                 <div className={styles.actions}>
+                  <Button variant="secondary" isDisabled={pending} onPress={close}>
+                    {props.cancel}
+                  </Button>
                   <Button
                     isPending={pending}
                     pendingLabel={props.pendingLabel ?? props.confirm}
@@ -111,9 +140,6 @@ export function ConfirmDialog(props: {
                     }}
                   >
                     {props.confirm}
-                  </Button>
-                  <Button variant="secondary" isDisabled={pending} onPress={close}>
-                    {props.cancel}
                   </Button>
                 </div>
               </>

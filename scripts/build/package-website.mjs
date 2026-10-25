@@ -21,7 +21,7 @@ const project = "prj_G6dX6jZ4E9hnlSxxLZXnRhMfndba";
 function help() {
   process.stdout.write(`Manual website deployment (explicit user request required)
 
-Local preparation: make setup && make package-website
+Local preparation: make setup && pnpm run package:website
 Review the source commit, printed file hashes and ${destination} before upload.
 Review the diff and actual local verification results before deploying.
 Packaging does not authorize publication; independent review is optional.
@@ -139,5 +139,5 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
     process.stdout.write(`${createHash("sha256").update(bytes).digest("hex")}  ${file}\n`);
   }
   process.stdout.write(`Packaged ${files.length} static website files in ${destination}.\n`);
-  process.stdout.write("No remote actions. Next: make website-deployment-help\n");
+  process.stdout.write("No remote actions. Next: pnpm run package:website --help\n");
 }

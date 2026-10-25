@@ -9,7 +9,7 @@ Read the development skill for general repository and service-configuration poli
 
 ## Configuration and secrets
 
-This is a separate service from the static website. `desired.json` currently disables preview and production; desktop defaults have no enabled endpoint/model. `make managed-service-plan` compiles source and prints desired changes and parameterized budget-row SQL; it does not provision, read secrets, apply SQL, deploy or call inference. Keep the starter unavailable until a selected deployment and model are verified; never fall back to personal keys or another route.
+This is a separate service from the static website. `desired.json` currently disables preview and production; desktop defaults have no enabled endpoint/model. `pnpm --filter @call-nina/managed-service run plan` compiles source and prints desired changes and parameterized budget-row SQL; it does not provision, read secrets, apply SQL, deploy or call inference. Keep the starter unavailable until a selected deployment and model are verified; never fall back to personal keys or another route.
 
 Keep desired configuration beside the integration. Pin the selected project/team, exact HTTPS origin, direct Vercel ingress, isolated Gateway funding, one model/provider, expiring authoritative cost evidence and numerical limits using the current schemas. Preview and production require separate database roles, budget epochs and Gateway funding/credentials. Local environments are unavailable. Review a concrete diff and read back remote settings under the user's deployment authorization; do not introduce approval tickets or infer permission from repository presence.
 

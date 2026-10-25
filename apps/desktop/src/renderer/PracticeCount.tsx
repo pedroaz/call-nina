@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, FieldGroup } from "./components/ui/index.js";
 import styles from "./PracticePage.module.css";
@@ -20,41 +20,62 @@ export function PracticeCount({
   const { t } = useTranslation();
   const errorId = useId();
   const valid = validPracticeCount(value);
+  const [customSelected, setCustom] = useState(false);
+  const custom = customSelected || !["3", "6", "10"].includes(value);
+  const [customValue, setCustomValue] = useState(value);
   return (
     <fieldset className={styles.quizLength}>
       <legend>{t(flashcards ? "flashcards.count" : "exercises.custom.countLabel")}</legend>
       <div className={styles.quizLengthOptions}>
         {[3, 6, 10].map((count) => (
           <Button
+            variant="secondary"
             key={count}
             isDisabled={disabled}
-            aria-pressed={valid && Number(value) === count}
+            aria-pressed={!custom && valid && Number(value) === count}
             className={styles.quizLengthButton}
             density="compact"
-            data-selected={(valid && Number(value) === count) || undefined}
+            data-selected={(!custom && valid && Number(value) === count) || undefined}
             onPress={() => {
+              if (custom) setCustomValue(value);
+              setCustom(false);
               onChange(String(count));
             }}
           >
             {count}
           </Button>
         ))}
-        <FieldGroup>
-          {t("practice.customCount")}
-          <input
-            type="number"
-            min={3}
-            max={30}
-            step={1}
-            value={value}
-            disabled={disabled}
-            aria-invalid={!valid}
-            aria-describedby={!valid ? errorId : undefined}
-            onChange={(event) => {
-              onChange(event.target.value);
-            }}
-          />
-        </FieldGroup>
+        <Button
+          variant="secondary"
+          density="compact"
+          aria-pressed={custom}
+          isDisabled={disabled}
+          onPress={() => {
+            setCustom(true);
+            if (!custom) onChange(customValue);
+          }}
+        >
+          {t("practice.customCountChoice")}
+        </Button>
+        {custom && (
+          <FieldGroup>
+            {t("practice.customCount")}
+            <input
+              type="number"
+              min={3}
+              max={30}
+              step={1}
+              value={value}
+              disabled={disabled}
+              aria-invalid={!valid}
+              aria-describedby={!valid ? errorId : undefined}
+              onChange={(event) => {
+                setCustomValue(event.target.value);
+                onChange(event.target.value);
+              }}
+            />
+          </FieldGroup>
+        )}
       </div>
       {!valid && (
         <p id={errorId} role="status">

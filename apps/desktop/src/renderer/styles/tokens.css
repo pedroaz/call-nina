@@ -1,17 +1,16 @@
 :root {
   color-scheme: light;
-  --od-color-overlay: rgb(24 35 52 / 36%);
   --od-color-transparent: transparent;
   --od-font-size-xs: var(--od-type-caption-size);
   --od-font-size-sm: var(--od-type-body-small-size);
   --od-font-size-md: var(--od-type-body-size);
-  --od-font-size-lg: var(--od-type-h3-size);
-  --od-font-size-xl: var(--od-type-h2-size);
-  --od-font-size-hero: 2.25rem;
+  --od-font-size-lg: var(--od-type-section-title-size);
+  --od-font-size-xl: var(--od-type-page-title-size);
+  --od-font-size-hero: var(--od-type-h1-size);
   --od-line-tight: 1.2;
-  --od-line-normal: 1.55;
+  --od-line-normal: 1.5;
   --od-letter-wide: 0.08em;
-  --od-weight-medium: 550;
+  --od-weight-medium: 600;
   --od-weight-strong: 700;
   --od-radius-full: 50%;
   --od-border-none: 0;
@@ -21,7 +20,13 @@
   --od-helper-width: 22rem;
   --od-content-max: 64rem;
   --od-writing-content-max: 64rem;
+  --od-form-max: 52rem;
   --od-field-max: 32rem;
+  --od-icon-activity: 1.5rem;
+  --od-icon-container: 2.75rem;
+  --od-panel-padding: var(--od-space-7);
+  --od-button-hover-shadow: none;
+  --od-button-press-offset: 0;
   --od-icon-sm: 1rem;
   --od-icon-md: 1.25rem;
   --od-control-compact: 2rem;

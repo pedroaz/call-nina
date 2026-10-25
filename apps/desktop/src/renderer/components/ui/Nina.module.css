@@ -1,0 +1,15 @@
+.nina {
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+  flex: none;
+}
+.nina[data-size="medium"] {
+  width: 5rem;
+  height: 5rem;
+}
+.nina[data-size="hero"] {
+  width: 10rem;
+  height: 10rem;
+}

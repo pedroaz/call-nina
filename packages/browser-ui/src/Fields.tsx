@@ -178,8 +178,19 @@ export function CheckboxField(
   );
 }
 
-export function FieldGroup(props: { children: ReactNode; className?: string }) {
-  return <label className={`${styles.field} ${props.className ?? ""}`}>{props.children}</label>;
+export function FieldGroup(props: {
+  children: ReactNode;
+  className?: string;
+  density?: "compact" | "comfortable";
+}) {
+  return (
+    <label
+      data-density={props.density ?? "comfortable"}
+      className={`${styles.field} ${props.className ?? ""}`}
+    >
+      {props.children}
+    </label>
+  );
 }
 
 export function CheckboxContainer(props: { children: ReactNode; className?: string }) {
@@ -194,7 +205,7 @@ export function OptionCard(props: { children: ReactNode; className?: string }) {
 
 export function RadioCardGroup(props: { label: string; children: ReactNode; className?: string }) {
   return (
-    <fieldset className={props.className}>
+    <fieldset className={`${styles.radioGroup} ${props.className ?? ""}`}>
       <legend>{props.label}</legend>
       <div className={styles.optionGrid}>{props.children}</div>
     </fieldset>

@@ -1,3 +1,4 @@
+import tableStyles from "./components/layout/Table.module.css";
 import { useEffect, useRef, useState } from "react";
 import type {
   ActivityId,
@@ -250,6 +251,7 @@ function VocabularyWorkspace({
             result.counts.all > 0 && (
               <ActionGroup>
                 <Button
+                  variant="primary"
                   ref={reviewButton}
                   isDisabled={waiting || !result.counts.due}
                   onPress={() => {
@@ -284,14 +286,13 @@ function VocabularyWorkspace({
               {notice}
             </Feedback>
           )}
-          <p className={styles.muted}>{t("vocabulary.flow.intro")}</p>
           {result && result.counts.all === 0 && !library.busy && (
             <section className={styles.welcome}>
               <h2>{t("vocabulary.flow.emptyTitle")}</h2>
               <p>{t("vocabulary.flow.previewHint")}</p>
-              <p>{t("vocabulary.flow.exerciseSources")}</p>
               <ActionGroup>
                 <Button
+                  variant="primary"
                   onPress={() => {
                     setCreating(true);
                   }}
@@ -333,6 +334,7 @@ function VocabularyWorkspace({
               <ToggleButtonGroup label={t("vocabulary.filtersLabel")}>
                 {(["all", "candidate", "due", "active", "suspended"] as const).map((filter) => (
                   <Button
+                    variant="secondary"
                     key={filter}
                     aria-pressed={query.filter === filter}
                     onPress={() => {
@@ -347,6 +349,7 @@ function VocabularyWorkspace({
                 <ActionGroup>
                   <span>{t("vocabulary.library.selected", { count: selected.length })}</span>
                   <Button
+                    variant="primary"
                     isDisabled={waiting || selected.length < 3 || selected.length > 30}
                     onPress={() => void studyFlashcards()}
                   >
@@ -354,6 +357,7 @@ function VocabularyWorkspace({
                   </Button>
                   {selected.length < 3 && <span>{t("flashcards.selectRange")}</span>}
                   <Button
+                    variant="primary"
                     isDisabled={!canBulk("candidate")}
                     onPress={() => {
                       bulk("confirm");
@@ -396,7 +400,7 @@ function VocabularyWorkspace({
           {result && (
             <>
               <div className={styles.tableRegion} aria-busy={waiting}>
-                <table className={styles.table}>
+                <table className={`${tableStyles.table} ${styles.table}`}>
                   <caption ref={tableCaption} tabIndex={-1} className={styles.caption}>
                     {t("vocabulary.library.resultCount", { count: result.total })}
                   </caption>

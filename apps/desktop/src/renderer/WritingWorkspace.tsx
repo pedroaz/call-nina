@@ -41,12 +41,14 @@ type CorrelationId = ReturnType<typeof createDesktopSubmissionId>;
 type OperationStage = "idle" | "queued" | "running" | "validating" | "cancelling";
 
 export function WritingWorkspace({
+  breadcrumbs,
   onDirtyChange,
   requestAiAccess,
   initialContext = "",
   initialDraft = "",
   onHelperSelection,
 }: {
+  breadcrumbs?: ReadonlyArray<{ label: string; onPress: () => void }>;
   onDirtyChange: (dirty: boolean) => void;
   requestAiAccess: (
     operation: ProviderOperation,
@@ -292,10 +294,14 @@ export function WritingWorkspace({
   };
 
   return (
-    <Page title={t("writing.title")} width="wide">
+    <Page title={t("writing.title")} width="form" {...(breadcrumbs ? { breadcrumbs } : {})}>
       <section className={styles.promptActions} aria-label={t("writing.promptTitle")}>
         <ActionGroup className={styles.promptActionButtons}>
-          <Button isDisabled={promptStage !== "idle"} onPress={() => void generatePrompt()}>
+          <Button
+            variant="primary"
+            isDisabled={promptStage !== "idle"}
+            onPress={() => void generatePrompt()}
+          >
             <Sparkles aria-hidden="true" />
             {promptStage === "idle"
               ? t("writing.generatePrompt")
@@ -306,7 +312,11 @@ export function WritingWorkspace({
               <X aria-hidden="true" /> {t("actions.cancel")}
             </Button>
           ) : null}
-          {context && <Button onPress={useFreeWriting}>{t("writing.freeWriting")}</Button>}
+          {context && (
+            <Button variant="primary" onPress={useFreeWriting}>
+              {t("writing.freeWriting")}
+            </Button>
+          )}
           <InfoHint label={t("writing.generatePrompt")}>{t("writing.promptBody")}</InfoHint>
         </ActionGroup>
         <OperationProgress
@@ -330,13 +340,15 @@ export function WritingWorkspace({
               {t("writing.suggestedWords", { count: prompt.suggestedWordCount })}
             </Muted>
             {prompt.helpfulVocabulary.length > 0 ? (
-              <ul>
-                {prompt.helpfulVocabulary.map((item) => (
-                  <li key={item.term}>
-                    <strong>{item.term}</strong> — {item.explanation}
-                  </li>
-                ))}
-              </ul>
+              <Disclosure label={t("nav.vocabulary")}>
+                <ul>
+                  {prompt.helpfulVocabulary.map((item) => (
+                    <li key={item.term}>
+                      <strong>{item.term}</strong> — {item.explanation}
+                    </li>
+                  ))}
+                </ul>
+              </Disclosure>
             ) : null}
           </article>
         ) : null}
@@ -434,7 +446,9 @@ export function WritingWorkspace({
             ) : null}
             {(correctionError || correctionOutcome === "rate-limited") &&
             previousCorrectionOperationId ? (
-              <Button onPress={() => void retryCorrection()}>{t("writing.retryCorrection")}</Button>
+              <Button variant="primary" onPress={() => void retryCorrection()}>
+                {t("writing.retryCorrection")}
+              </Button>
             ) : null}
           </ActionGroup>
           <Muted as="p" className={styles.draftNotice}>

@@ -1,25 +1,27 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
+import { glob, readFile } from "node:fs/promises";
 import path from "node:path";
+import { parse } from "yaml";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
+const workspace = parse(await readFile(path.join(repositoryRoot, "pnpm-workspace.yaml"), "utf8"));
+if (
+  !Array.isArray(workspace.packages) ||
+  !workspace.packages.every((pattern) => typeof pattern === "string" && !pattern.startsWith("!"))
+) {
+  throw new Error("OD_WORKSPACE_PATTERNS_INVALID");
+}
+const discovered = [];
+for await (const manifest of glob(
+  workspace.packages.map((pattern) => `${pattern}/package.json`),
+  { cwd: repositoryRoot },
+)) {
+  discovered.push(manifest);
+}
 const manifests = [
   "package.json",
-  "packages/managed-generation/package.json",
-  "apps/managed-service/package.json",
-  "apps/desktop/package.json",
-  "apps/mcp-server/package.json",
-  "packages/codex-client/package.json",
-  "packages/offline-runtime/package.json",
-  "packages/direct-api/package.json",
-  "packages/learning-workflows/package.json",
-  "packages/contracts/package.json",
-  "packages/design-system/package.json",
-  "packages/browser-ui/package.json",
-  "packages/domain/package.json",
-  "packages/persistence/package.json",
-  "packages/platform/package.json",
+  ...new Set(discovered.sort()),
   "plugins/call-nina/.codex-plugin/plugin.json",
 ];
 

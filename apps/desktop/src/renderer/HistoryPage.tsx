@@ -24,7 +24,7 @@ import {
   Muted,
   ItemList,
 } from "./components/ui/index.js";
-import { ActionGroup, FilterBar, Page } from "./components/layout/index.js";
+import { ActionGroup, FilterBar, Page, ContentRow } from "./components/layout/index.js";
 
 import styles from "./HistoryPage.module.css";
 import {
@@ -326,6 +326,7 @@ export function HistoryPage({
     >
       {entryIds && (
         <Button
+          variant="primary"
           onPress={() => {
             setEntryIds(undefined);
           }}
@@ -479,7 +480,10 @@ export function HistoryPage({
                     </ActionGroup>
                   ) : (
                     <ActionGroup>
-                      <Button onPress={() => void createTargetedPractice(pattern)}>
+                      <Button
+                        variant="primary"
+                        onPress={() => void createTargetedPractice(pattern)}
+                      >
                         <Sparkles aria-hidden="true" /> {t("history.patterns.practice.create")}
                       </Button>
                       {practiceState?.patternKey ===
@@ -525,8 +529,8 @@ export function HistoryPage({
 
       <div className={styles.historyList}>
         {snapshot?.entries.map((entry) => (
-          <Card
-            as="article"
+          <ContentRow
+            variant="bordered"
             key={entry.historyEntryId}
             data-history-entry-id={entry.historyEntryId}
             data-history-activity-id={
@@ -541,10 +545,7 @@ export function HistoryPage({
           >
             <header className={styles.historyEntryHeader}>
               <div>
-                <p className={styles.eyebrow}>
-                  {t(`history.skills.${entry.skill}`)} ·{" "}
-                  {t(`history.activityTypes.${entry.activityType}`)}
-                </p>
+                <p className={styles.eyebrow}>{t(`history.activityTypes.${entry.activityType}`)}</p>
                 <h2>{entry.title}</h2>
               </div>
               <time dateTime={entry.occurredAt}>
@@ -635,6 +636,7 @@ export function HistoryPage({
                   </Muted>
                   <ActionGroup>
                     <Button
+                      variant="primary"
                       onPress={() => {
                         onPracticeAgain(practiceSeed(entry));
                       }}
@@ -812,7 +814,7 @@ export function HistoryPage({
                             : t("history.voiceSummary.practiceRunning")}
                         </Feedback>
                       ) : (
-                        <Button onPress={() => void createVoiceFollowUp(entry)}>
+                        <Button variant="primary" onPress={() => void createVoiceFollowUp(entry)}>
                           <Sparkles aria-hidden="true" /> {t("history.voiceSummary.practice")}
                         </Button>
                       )}
@@ -899,6 +901,7 @@ export function HistoryPage({
                   )}
                   <ActionGroup>
                     <Button
+                      variant="primary"
                       onPress={() => {
                         if (entry.detail.kind === "exercise-attempt") {
                           onPracticeAgain({
@@ -925,7 +928,7 @@ export function HistoryPage({
                 <Muted as="p">{t("history.referenceOnly")}</Muted>
               )}
             </Disclosure>
-          </Card>
+          </ContentRow>
         ))}
       </div>
     </Page>

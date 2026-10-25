@@ -67,27 +67,11 @@
   gap: var(--od-space-4);
   justify-content: flex-end;
   position: sticky;
-}
-
-@media (max-width: 52rem) {
-  .settingsControls,
-  .modelRow {
-    grid-template-columns: 1fr;
-  }
-}
-
-.settingsActions {
   background: var(--od-color-surface-card);
   border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   padding: var(--od-space-4);
   z-index: 1;
-}
-@container workspace (max-width: 42rem) {
-  .settingsControls,
-  .modelRow {
-    grid-template-columns: 1fr;
-  }
 }
 
 .coursePreference {
@@ -119,22 +103,24 @@
   display: grid;
   gap: var(--od-space-4);
 }
-.accountOptions summary,
-.optionalIntegration summary {
-  cursor: pointer;
-  font-weight: var(--od-weight-medium);
-  padding-block: var(--od-space-2);
-  overflow-wrap: anywhere;
-}
-.accountOptions summary:focus-visible,
-.optionalIntegration summary:focus-visible {
-  outline: var(--od-border-outlined) solid var(--od-color-focus);
-  outline-offset: var(--od-space-1);
-}
+
 .optionalIntegration {
   border-top: var(--od-border-thin) solid var(--od-color-border-default);
   padding-top: var(--od-space-4);
 }
 .optionalIntegration p {
   margin: 0;
+}
+
+@media (max-width: 52rem) {
+  .settingsControls,
+  .modelRow {
+    grid-template-columns: 1fr;
+  }
+}
+@container workspace (max-width: 42rem) {
+  .settingsControls,
+  .modelRow {
+    grid-template-columns: 1fr;
+  }
 }

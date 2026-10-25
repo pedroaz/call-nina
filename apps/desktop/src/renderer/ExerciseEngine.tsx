@@ -11,7 +11,7 @@ import {
   type ExerciseEvaluation,
 } from "@call-nina/domain";
 import { ChevronLeft, ChevronRight, Lightbulb } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Heading, Popover } from "react-aria-components";
 import { useTranslation } from "react-i18next";
 import {
@@ -305,6 +305,7 @@ function resumeExerciseProgress(
 }
 
 export function ExerciseEngine({
+  autoStart = false,
   targetLanguage,
   exercises,
   progress,
@@ -319,6 +320,7 @@ export function ExerciseEngine({
   evaluationProgress,
   completionActions,
 }: {
+  autoStart?: boolean;
   targetLanguage: Language;
   exercises: readonly ExerciseDefinition[];
   progress?: ExerciseProgress;
@@ -385,6 +387,17 @@ export function ExerciseEngine({
   const [abandoning, setAbandoning] = useState(false);
   const [abandonFailed, setAbandonFailed] = useState(false);
   const [abandoned, setAbandoned] = useState(false);
+  const autoStartAttempted = useRef(false);
+  useEffect(() => {
+    if (!autoStart || autoStartAttempted.current || !exercises.length) return;
+    autoStartAttempted.current = true;
+    setStarting(true);
+    void Promise.resolve()
+      .then(() => onStarted?.())
+      .then(() => setStarted(true))
+      .catch(() => setStartFailed(true))
+      .finally(() => setStarting(false));
+  }, [autoStart, exercises.length, onStarted]);
   const definition = exercises[position];
 
   if (abandoned) {
@@ -620,7 +633,7 @@ export function ExerciseEngine({
           role="group"
         >
           <IconButton
-            className={styles.exerciseNavButton}
+            variant="secondary"
             isDisabled={
               position === 0 || evaluatingWithAi || savingAnswer || completing || savingSupport
             }
@@ -631,7 +644,7 @@ export function ExerciseEngine({
             }}
           />
           <IconButton
-            className={styles.exerciseNavButton}
+            variant="secondary"
             isDisabled={
               position >= furthestPosition ||
               evaluatingWithAi ||

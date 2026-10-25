@@ -56,7 +56,7 @@ The native app bundles these **modified static derivatives** of those pinned var
 | JetBrains Mono `48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda` | `JetBrainsMono-400.ttf` `055b6ae4449b5274591c1aa5aacbc8dee4b1c8b87a8bd9fbb7dee485ab337c2d` | `wght=400` (default) |
 | Noto Sans Mono `2cb2adb378a8f574213e23df697050b83c54c27df465a2015552740b2769a081` | `NotoSansMono-400.ttf` `a860d73c8eb7162ac1beb3da33a5183f3880aa9327b56f055048fc50a6c80fe7` | `wght=400` (default), `wdth=100` (default) |
 
-The original variable binaries and complete OFL notices remain alongside the derivatives. `make design-tokens` generates `font-notices.json` directly from those four notice files, and the mobile Font licenses disclosure presents their complete text. The design package build checks the generated notice against its sources.
+The original variable binaries and complete OFL notices remain alongside the derivatives. `pnpm run design-tokens` generates `font-notices.json` directly from those four notice files, and the mobile Font licenses disclosure presents their complete text. The design package build checks the generated notice against its sources.
 
 The generated runtime inventory records the installed package versions and their declared licenses. Those declarations are evidence from package metadata, not a full transitive source audit or a substitute for required license texts. The generator retains the dependency inventory and curriculum attribution and links to this authored policy; regenerating notices does not author or overwrite licensing policy. No dependency or source attribution was removed by adoption.
 

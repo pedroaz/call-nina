@@ -60,7 +60,7 @@
 .correctionChange ins {
   color: var(--od-color-state-correct);
   font-weight: var(--od-weight-strong);
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .correctionChange svg,
@@ -124,9 +124,9 @@
   color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
+  letter-spacing: normal;
   margin: 0 0 var(--od-space-3);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 @media (max-width: 52rem) {

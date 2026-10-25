@@ -1,3 +1,4 @@
+import { Disclosure } from "./components/ui/Disclosure.js";
 import { useEffect, useState } from "react";
 import type { DataRootGeneration, DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
@@ -29,8 +30,7 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
   }, [rootGeneration, retry]);
   if (result?.entries.length === 0) return null;
   return (
-    <details>
-      <summary>{t("vocabulary.lessonSets")}</summary>
+    <Disclosure variant="plain" label={<> {t("vocabulary.lessonSets")} </>}>
       {error && (
         <>
           <Feedback tone="error" live="assertive">
@@ -58,6 +58,6 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
           ))}
         </ul>
       )}
-    </details>
+    </Disclosure>
   );
 }

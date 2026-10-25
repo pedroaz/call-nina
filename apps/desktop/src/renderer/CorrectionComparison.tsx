@@ -65,6 +65,7 @@ function AlignedPane({
           <span key={`unchanged-${String(index)}`}>{segment.text}</span>
         ) : (
           <Button
+            variant="secondary"
             aria-label={t("writing.selectChange", { number: Number(segment.changeId.slice(7)) })}
             aria-pressed={selectedId === segment.changeId}
             className={styles.correctionChange}
@@ -131,6 +132,7 @@ export function CorrectionComparison({
                 <span key={`unchanged-${String(index)}`}>{segment.text}</span>
               ) : (
                 <Button
+                  variant="secondary"
                   aria-label={t("writing.selectChange", {
                     number: Number(segment.changeId.slice(7)),
                   })}
@@ -153,6 +155,7 @@ export function CorrectionComparison({
                 return (
                   <li key={segment.changeId}>
                     <Button
+                      variant="secondary"
                       aria-pressed={selected?.changeId === segment.changeId}
                       className={styles.correctionMistake}
                       onPress={() => {

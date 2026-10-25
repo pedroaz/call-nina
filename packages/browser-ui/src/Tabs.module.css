@@ -6,11 +6,16 @@
 }
 .list {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-block: var(--od-space-2);
   gap: var(--od-space-3);
   border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .tab {
+  flex: none;
+  font-size: var(--od-font-size-sm, var(--od-type-body-small-size));
+  line-height: var(--od-type-body-small-line);
   cursor: pointer;
   padding: var(--od-space-4) var(--od-space-5);
   border-bottom: var(--od-border-outlined) solid var(--od-color-transparent, transparent);

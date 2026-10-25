@@ -1,115 +1,101 @@
-import { ChatgptGenerationService } from "./chatgpt-generation.js";
-import { type ChatgptSession } from "./chatgpt-session.js";
-import { ManagedGenerationService, managedCatalog } from "@call-nina/managed-generation/service";
 import {
-  OfflineGenerationService,
-  type OfflineRuntime,
-  offlineCatalog,
-  offlineSelection,
-} from "@call-nina/offline-runtime";
+  activityIdSchema,
+  aiConnectionsViewSchema,
+  correlationIdSchema,
+  dataRootGenerationSchema,
+  desktopIpcResponseSchema,
+  generationOperationStartSchema,
+  historyEntryIdSchema,
+  learnerIdSchema,
+  ninaGenerationRequestSchema,
+  translationRequestSchema,
+  utcInstantSchema,
+  type ActivityAction,
+  type AiConnection,
+  type CapturedTeachingContext,
+  type DesktopIpcEvent,
+  type DesktopIpcRequest,
+  type DesktopIpcResponse,
+  type ErrorKind,
+  type GenerationEvent,
+  type LearningScope,
+  type NinaPlan,
+  type ProviderAccess,
+  type ProviderOperation,
+} from "@call-nina/contracts";
 import {
-  DirectApiGenerationService,
   directApiCatalog,
   directApiCatalogs,
   directApiSelection,
   isDirectApiRoute,
 } from "@call-nina/direct-api";
-import { type ConnectionSecretStorage } from "./secret-storage.js";
+import { managedCatalog } from "@call-nina/managed-generation/service";
+import { offlineCatalog, offlineSelection, type OfflineRuntime } from "@call-nina/offline-runtime";
 import {
-  mutateConnections,
-  cleanupConnectionSecrets,
-  type ConnectionView,
-} from "./connection-settings.js";
-import {
-  readAiConnections,
-  readSavedTranslations,
-  saveSupportingTranslation,
-  validateTranslationReveal,
-  readFlashcards,
-  readMaterialRevision,
-  listMaterials,
-  deleteMaterial,
-  saveMaterial,
-  createVocabularyFlashcards,
-  updateFlashcardProgress,
-  saveFlashcardVocabulary,
-  prepareCourseTeaching,
+  CallNinaRepository,
   addCourseVocabulary,
-  readLearningCourse,
+  createVocabularyFlashcards,
+  deleteMaterial,
   initializeCallNinaDataRoot,
   inspectDataRootChoice,
-  CallNinaRepository,
+  listMaterials,
   openCallNinaDatabase,
+  prepareCourseTeaching,
+  readAiConnections,
   readBootstrapPointer,
+  readFlashcards,
+  readLearningCourse,
+  readMaterialRevision,
+  readSavedTranslations,
   recoverCallNinaDataRoot,
   resolveDataRootLayout,
+  saveFlashcardVocabulary,
+  saveMaterial,
   switchCallNinaDataRoot,
+  updateFlashcardProgress,
+  validateTranslationReveal,
   type CallNinaDatabase,
   type LearnerSettingsRecord,
 } from "@call-nina/persistence";
-import {
-  aiConnectionsViewSchema,
-  type AiConnection,
-  ninaGenerationRequestSchema,
-  type NinaPlan,
-  translationRequestSchema,
-  type TranslationRequest,
-  type TranslationStart,
-  type TranslationReveal,
-  type LearningContext,
-  type CapturedTeachingContext,
-  type GenerationOperationStart,
-  type GenerationProvenance,
-  type CorrelationId,
-  type GenerationService,
-  type LearningScope,
-  type ProviderAccess,
-  type ProviderOperation,
-  learnerIdSchema,
-  activityIdSchema,
-  correlationIdSchema,
-  contextualHelpCandidateSchema,
-  historyEntryIdSchema,
-  generationOperationStartSchema,
-  generationProvenanceSchema,
-  dataRootGenerationSchema,
-  modelRequestIdSchema,
-  utcInstantSchema,
-  desktopIpcResponseSchema,
-  desktopIpcEventSchema,
-  exerciseGenerationCandidateSchema,
-  exerciseFeedbackCandidateSchema,
-  writingCorrectionCandidateSchema,
-  type DesktopIpcRequest,
-  type DesktopIpcResponse,
-  type DesktopIpcEvent,
-  type ErrorKind,
-  type GenerationEvent,
-  type ActivityAction,
-} from "@call-nina/contracts";
-import { ActivityService } from "./services/activities.js";
-import { LearningResultService } from "./services/learning-results.js";
-import { desktopPathOption } from "./options.js";
-import { readPersonalDataLocations } from "./personal-data.js";
 import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
 import path from "node:path";
-
+import { type ChatgptSession } from "./chatgpt-session.js";
 import {
-  buildPracticeSuggestions,
+  cleanupConnectionSecrets,
+  mutateConnections,
+  type ConnectionView,
+} from "./connection-settings.js";
+import { desktopPathOption } from "./options.js";
+import { readPersonalDataLocations } from "./personal-data.js";
+import { type ConnectionSecretStorage } from "./secret-storage.js";
+import { ActivityService } from "./services/activities.js";
+import { ConnectionRuntime } from "./services/connection-runtime.js";
+import { GenerationOperations } from "./services/generation-operations.js";
+import { LearningResultService } from "./services/learning-results.js";
+import { TranslationJobs, type TranslationJob } from "./services/translation-jobs.js";
+
+import { discoverCodex, type AppServerLogRecord } from "@call-nina/codex-client";
+import {
   assertExerciseGenerationContext,
-  resolveCourseReference,
+  buildPracticeSuggestions,
   createInitialLearnerProfile,
   evaluateExerciseAnswer,
+  resolveCourseReference,
   resolveModelPreference,
 } from "@call-nina/domain";
-import { discoverCodex, type AppServerLogRecord } from "@call-nina/codex-client";
 import { readPluginIntegrationState, runPluginIntegrationAction } from "./plugin-integration.js";
 
+import {
+  buildLearningCalibration,
+  generationLevel,
+  interpretNinaRequest,
+  matchesNinaRequest,
+  ninaExerciseCount,
+} from "@call-nina/learning-workflows";
 import {
   diagnosticErrorCode,
   exerciseHistoryPrompt,
   freshTimestampAfter,
-  maximumRetainedSubmissions,
   opaqueId,
   operationInputFingerprint,
   safeError,
@@ -120,37 +106,18 @@ import {
   type AcceptedOperation,
   type PendingSelection,
 } from "./backend-support.js";
-import {
-  buildLearningCalibration,
-  generationLevel,
-  interpretNinaRequest,
-  ninaExerciseCount,
-  matchesNinaRequest,
-  savedTranslationInput,
-  translationParts,
-} from "@call-nina/learning-workflows";
-
-type TranslationJob = {
-  request: TranslationStart;
-  cancelled: boolean;
-  providerOperationId: CorrelationId | undefined;
-};
 
 export class DesktopBackend {
+  readonly #connections: ConnectionRuntime;
+  readonly #operations: GenerationOperations;
+  readonly #translations: TranslationJobs;
   readonly #secrets: ConnectionSecretStorage;
   readonly #curriculumRoot: string;
   readonly #bootstrapFile: string;
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
-  readonly #operationServices = new Map<string, GenerationService>();
-  readonly #managedServices = new Set<ManagedGenerationService>();
-  readonly #directServices = new Set<DirectApiGenerationService>();
-  readonly #offlineServices = new Set<OfflineGenerationService>();
   readonly #offline: OfflineRuntime;
-  #offlineEpoch = 0;
-  readonly #projectGenerationEvent: (event: GenerationEvent) => void;
   readonly #chatgpt: ChatgptSession;
-  readonly #chatgptServices = new Set<ChatgptGenerationService>();
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
   readonly #emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
   readonly #openExternal: ((url: string) => Promise<void>) | undefined;
@@ -159,20 +126,7 @@ export class DesktopBackend {
         content: string,
       ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>)
     | undefined;
-  readonly #translationJobs = new Map<string, TranslationJob>();
-  readonly #translationReveals = new Map<string, TranslationReveal>();
-  readonly #translationProviderOperations = new Set<string>();
   readonly #pending = new Map<string, PendingSelection>();
-  readonly #operationsBySubmission = new Map<string, AcceptedOperation>();
-  readonly #activeOperations = new Set<string>();
-  readonly #retryableOperations = new Set<string>();
-  readonly #helperSessions = new Map<
-    string,
-    {
-      activityId: ReturnType<typeof activityIdSchema.parse>;
-      turns: Array<{ question: string; answer: string }>;
-    }
-  >();
   #database: CallNinaDatabase | undefined;
   #repository: CallNinaRepository | undefined;
   #requestQueue: Promise<void> = Promise.resolve();
@@ -185,21 +139,6 @@ export class DesktopBackend {
       () => undefined,
     );
     return result;
-  }
-
-  #makeOperationRoom(protectedOperationId?: string): boolean {
-    for (const [submissionId, operation] of this.#operationsBySubmission) {
-      if (this.#operationsBySubmission.size < maximumRetainedSubmissions) return true;
-      if (
-        this.#activeOperations.has(operation.operationId) ||
-        operation.operationId === protectedOperationId
-      )
-        continue;
-      this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
-      this.#operationsBySubmission.delete(submissionId);
-      this.#retryableOperations.delete(operation.operationId);
-    }
-    return this.#operationsBySubmission.size < maximumRetainedSubmissions;
   }
 
   constructor(options: {
@@ -234,10 +173,13 @@ export class DesktopBackend {
       // course support, skill evidence, or learning-operation output events.
       const translationOperationId =
         event.event === "operation-state-changed" ? event.state.operationId : event.operationId;
-      if (translationOperationId && this.#translationProviderOperations.has(translationOperationId))
+      if (
+        translationOperationId &&
+        this.#translations.translationProviderOperations.has(translationOperationId)
+      )
         return;
       void this.#enqueue(async () => {
-        if (!this.#closing) await this.#handleGenerationEvent(event);
+        if (!this.#closing) await this.#operations.handleGenerationEvent(event);
       }).catch((error: unknown) => {
         this.#operationLog(
           "error",
@@ -248,43 +190,84 @@ export class DesktopBackend {
           "Generation event could not be handled.",
         );
         if (event.event === "operation-state-changed") {
-          const accepted = this.#operationsBySubmission.get(event.state.submissionId);
-          if (accepted) void this.#rejectUnsettledOperation(accepted.operation);
+          const accepted = this.#operations.operationsBySubmission.get(event.state.submissionId);
+          if (accepted) void this.#operations.rejectUnsettledOperation(accepted.operation);
         }
       });
     };
-    this.#projectGenerationEvent = projectEvent;
+    this.#connections = new ConnectionRuntime({
+      database: () => this.#database,
+      closing: () => this.#closing,
+      chatgpt: this.#chatgpt,
+      offline: this.#offline,
+      secrets: this.#secrets,
+      requireActiveConnection: () => this.#requireActiveConnection(),
+      projectGenerationEvent: projectEvent,
+      providerAccess: (...args) => this.#providerAccess(...args),
+    });
+    this.#operations = new GenerationOperations({
+      repository: () => this.#repository,
+      closing: () => this.#closing,
+      enqueue: (work) => this.#enqueue(work),
+      operationServices: this.#connections.operationServices,
+      releaseOperation: (id) => {
+        this.#connections.releaseOperation(id);
+      },
+      emitEvent: this.#emitEvent,
+      operationLog: (...args) => {
+        this.#operationLog(...args);
+      },
+      dataRootState: (id) => this.#dataRootState(id),
+      learningResults: () => this.#learningResults(),
+    });
+    this.#translations = new TranslationJobs({
+      database: () => this.#database,
+      closing: () => this.#closing,
+      enqueue: (work) => this.#enqueue(work),
+      activeOperations: this.#operations.activeOperations,
+      operationServices: this.#connections.operationServices,
+      releaseOperation: (id) => {
+        this.#connections.releaseOperation(id);
+      },
+      emitEvent: this.#emitEvent,
+      operationLog: (...args) => {
+        this.#operationLog(...args);
+      },
+      providerAccess: (...args) => this.#providerAccess(...args),
+      generationForConnection: (connection) =>
+        this.#connections.generationForConnection(connection),
+    });
   }
 
   close(): void {
-    this.#offlineEpoch++;
-    for (const service of this.#offlineServices) void service.shutdown();
-    this.#offlineServices.clear();
+    this.#connections.offlineEpoch++;
+    for (const service of this.#connections.offlineServices) void service.shutdown();
+    this.#connections.offlineServices.clear();
     void this.#offline.stop().catch(() => undefined);
-    for (const job of this.#translationJobs.values()) {
+    for (const job of this.#translations.translationJobs.values()) {
       job.cancelled = true;
       if (job.providerOperationId)
-        void this.#operationServices
+        void this.#connections.operationServices
           .get(job.providerOperationId)
           ?.cancelOperation(job.providerOperationId)
           .catch(() => undefined);
     }
-    for (const service of this.#managedServices) void service.shutdown();
-    this.#managedServices.clear();
-    for (const service of this.#directServices) void service.shutdown();
-    this.#directServices.clear();
-    for (const service of this.#chatgptServices) void service.shutdown();
-    this.#chatgptServices.clear();
-    this.#operationServices.clear();
-    this.#translationReveals.clear();
+    for (const service of this.#connections.managedServices) void service.shutdown();
+    this.#connections.managedServices.clear();
+    for (const service of this.#connections.directServices) void service.shutdown();
+    this.#connections.directServices.clear();
+    for (const service of this.#connections.chatgptServices) void service.shutdown();
+    this.#connections.chatgptServices.clear();
+    this.#connections.operationServices.clear();
+    this.#translations.translationReveals.clear();
     this.#database?.close();
     this.#database = undefined;
     this.#repository = undefined;
     this.#pending.clear();
-    this.#operationsBySubmission.clear();
-    this.#activeOperations.clear();
-    this.#retryableOperations.clear();
-    this.#helperSessions.clear();
+    this.#operations.operationsBySubmission.clear();
+    this.#operations.activeOperations.clear();
+    this.#operations.retryableOperations.clear();
+    this.#operations.helperSessions.clear();
   }
 
   async shutdown(): Promise<void> {
@@ -312,325 +295,6 @@ export class DesktopBackend {
       "Call Nina desktop shutdown completed.",
       { action: "lifecycle/shutdown", phase: "completed", outcome: "ok" },
     );
-  }
-
-  async #rejectUnsettledOperation(
-    operation: AcceptedOperation["operation"],
-    error?: unknown,
-  ): Promise<void> {
-    await this.#enqueue(() => {
-      if (
-        !this.#closing &&
-        error !== undefined &&
-        this.#operationServices.get(operation.operationId) instanceof DirectApiGenerationService
-      )
-        this.#operationLog(
-          "warn",
-          "DESKTOP_DIRECT_API_OPERATION_FAILED",
-          operation.operationId,
-          operation.input.kind,
-          diagnosticErrorCode(error),
-          "Personal API generation did not complete.",
-          { phase: "failed", outcome: "error" },
-        );
-      if (!this.#activeOperations.delete(operation.operationId) || this.#closing) return;
-      this.#emitEvent?.({
-        event: "learning-operation-finished",
-        operationId: operation.operationId,
-        submissionId: operation.submissionId,
-        kind: operation.input.kind,
-        submission: "retained",
-        outcome: { status: "failed", error: safeError("app-server", operation.operationId) },
-      });
-    });
-  }
-
-  async #stopConnectionRuntime(): Promise<void> {
-    this.#offlineEpoch++;
-    await this.#offline.stop();
-    if (this.#chatgpt.pendingLoginId) this.#chatgpt.cancelLogin(this.#chatgpt.pendingLoginId);
-  }
-
-  async #handleGenerationEvent(event: GenerationEvent): Promise<void> {
-    if (event.event === "operation-progress") {
-      const accepted = this.#operationsBySubmission.get(event.submissionId);
-      if (
-        !accepted ||
-        accepted.operationId !== event.operationId ||
-        !this.#activeOperations.has(event.operationId)
-      )
-        return;
-      this.#operationsBySubmission.set(event.submissionId, {
-        ...accepted,
-        attempt: event.attempt,
-      });
-      this.#emitEvent?.({
-        event: "learning-operation-progress",
-        operationId: event.operationId,
-        submissionId: event.submissionId,
-        kind: event.kind,
-        submission: "retained",
-        stage: event.stage,
-        attempt: event.attempt,
-      });
-    } else if (event.event === "operation-state-changed") {
-      const state = event.state;
-      const owned = this.#operationsBySubmission.get(state.submissionId);
-      if (
-        !owned ||
-        owned.operationId !== state.operationId ||
-        !this.#activeOperations.has(state.operationId)
-      )
-        return;
-      if (state.status === "validated") {
-        const projectionStartedAt = performance.now();
-        let savedActivityId: ReturnType<typeof activityIdSchema.parse> | undefined;
-        const acceptedOperation = this.#operationsBySubmission.get(state.submissionId);
-        if (acceptedOperation)
-          state.provenance = { ...state.provenance, connectionId: acceptedOperation.connection.id };
-        const root = await this.#dataRootState(state.operationId);
-        if (
-          !acceptedOperation ||
-          acceptedOperation.operationId !== state.operationId ||
-          root.status !== "ready" ||
-          acceptedOperation.dataRootGeneration !== root.generation
-        ) {
-          this.#activeOperations.delete(state.operationId);
-          this.#retryableOperations.delete(state.operationId);
-          this.#emitEvent?.({
-            event: "learning-operation-finished",
-            operationId: state.operationId,
-            submissionId: state.submissionId,
-            kind: state.kind,
-            submission: "retained",
-            outcome: { status: "failed", error: safeError("stale-data-root", state.operationId) },
-          });
-          return;
-        }
-        if (
-          state.kind === "writing-correction" ||
-          state.kind === "exercise-generation" ||
-          state.kind === "flashcard-generation"
-        ) {
-          this.#emitEvent?.({
-            event: "learning-operation-progress",
-            operationId: state.operationId,
-            submissionId: state.submissionId,
-            kind: state.kind,
-            submission: "retained",
-            stage: "persisting",
-            attempt: acceptedOperation.attempt ?? 1,
-          });
-        }
-        if (state.kind === "writing-correction") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          try {
-            if (!accepted || !this.#repository) throw new Error("OD_WRITING_ATTEMPT_UNAVAILABLE");
-            await this.#learningResults().persistWritingCorrection(accepted, {
-              operationId: state.operationId,
-              submissionId: state.submissionId,
-              modelRequestId: state.modelRequestId,
-              provenance: state.provenance,
-              output: writingCorrectionCandidateSchema.parse(state.output),
-            });
-          } catch (error) {
-            this.#operationLog(
-              "error",
-              "DESKTOP_OPERATION_PERSIST_FAILED",
-              state.operationId,
-              state.kind,
-              diagnosticErrorCode(error),
-              "Validated operation output could not be saved.",
-              {
-                phase: "failed",
-                outcome: "error",
-                durationMs: Math.round(performance.now() - projectionStartedAt),
-              },
-            );
-            this.#activeOperations.delete(state.operationId);
-            this.#emitEvent?.({
-              event: "learning-operation-finished",
-              operationId: state.operationId,
-              submissionId: state.submissionId,
-              kind: state.kind,
-              submission: "retained",
-              outcome: { status: "failed", error: safeError("database", state.operationId) },
-            });
-            return;
-          }
-        } else if (state.kind === "exercise-generation" || state.kind === "flashcard-generation") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          try {
-            if (!accepted || !this.#repository) {
-              throw new Error("OD_TARGETED_PRACTICE_UNAVAILABLE");
-            }
-            savedActivityId =
-              state.kind === "flashcard-generation"
-                ? await this.#learningResults().persistFlashcards(
-                    accepted,
-                    state.output,
-                    state.provenance,
-                  )
-                : await this.#learningResults().persistTargetedPractice(accepted, {
-                    modelRequestId: state.modelRequestId,
-                    provenance: state.provenance,
-                    output: exerciseGenerationCandidateSchema.parse(state.output),
-                  });
-          } catch (error) {
-            this.#operationLog(
-              "error",
-              "DESKTOP_OPERATION_PERSIST_FAILED",
-              state.operationId,
-              state.kind,
-              diagnosticErrorCode(error),
-              "Validated operation output could not be saved.",
-              {
-                phase: "failed",
-                outcome: "error",
-                durationMs: Math.round(performance.now() - projectionStartedAt),
-              },
-            );
-            this.#activeOperations.delete(state.operationId);
-            this.#emitEvent?.({
-              event: "learning-operation-finished",
-              operationId: state.operationId,
-              submissionId: state.submissionId,
-              kind: state.kind,
-              submission: "retained",
-              outcome: { status: "failed", error: safeError("database", state.operationId) },
-            });
-            return;
-          }
-        } else if (state.kind === "contextual-help") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          const session = accepted?.helperSessionId
-            ? this.#helperSessions.get(accepted.helperSessionId)
-            : undefined;
-          if (accepted && session && accepted.operation.input.kind === "contextual-help") {
-            const output = contextualHelpCandidateSchema.parse(state.output);
-            session.turns.push({
-              question: accepted.operation.input.question,
-              answer: output.answer,
-            });
-            if (session.turns.length > 6) session.turns.splice(0, session.turns.length - 6);
-          }
-        } else if (state.kind === "exercise-feedback") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          if (!accepted?.exerciseFeedback) {
-            throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
-          }
-          const selection = accepted.operation.modelSelection;
-          const provenance = generationProvenanceSchema.parse(state.provenance);
-          const expectedProducer =
-            accepted.connection.routeId === "chatgpt"
-              ? "chatgpt-plan"
-              : accepted.connection.routeId;
-          const capturedEffort =
-            selection.effort.selection === "exact"
-              ? selection.effort.effortId
-              : accepted.connection.routeId === "managed"
-                ? "runtime-default"
-                : undefined;
-          if (
-            selection.model.selection !== "exact" ||
-            capturedEffort === undefined ||
-            provenance.producer !== expectedProducer ||
-            provenance.modelId !== selection.model.modelId ||
-            provenance.effortId !== capturedEffort
-          )
-            throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
-          if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
-          await this.#repository.saveGeneratedExerciseFeedback(
-            accepted.exerciseFeedback.activityId,
-            accepted.exerciseFeedback.attemptId,
-            {
-              modelRequestId: modelRequestIdSchema.parse(state.modelRequestId),
-              provenance,
-              output: exerciseFeedbackCandidateSchema.parse(state.output),
-            },
-          );
-        }
-        this.#operationLog(
-          "info",
-          "DESKTOP_OPERATION_OUTPUT_APPLIED",
-          state.operationId,
-          state.kind,
-          undefined,
-          "Validated AI output applied to learning state.",
-          {
-            phase: "completed",
-            outcome: "ok",
-            durationMs: Math.round(performance.now() - projectionStartedAt),
-            metadata: { stage: "apply-output" },
-          },
-        );
-        this.#activeOperations.delete(state.operationId);
-        this.#retryableOperations.delete(state.operationId);
-        if (state.kind === "voice-activity-draft")
-          this.#operationsBySubmission.set(state.submissionId, {
-            ...acceptedOperation,
-            validatedVoiceModelRequestId: state.modelRequestId,
-          });
-        this.#emitEvent?.(
-          desktopIpcEventSchema.parse({
-            event: "learning-operation-finished",
-            operationId: state.operationId,
-            submissionId: state.submissionId,
-            kind: state.kind,
-            submission: "retained",
-            outcome: {
-              status: "validated",
-              modelRequestId: state.modelRequestId,
-              provenance: state.provenance,
-              output: state.output,
-              learningScope: {
-                learnerId: acceptedOperation.operation.input.learningContext.learnerId,
-                courseId: acceptedOperation.operation.input.learningContext.courseId,
-                targetLanguage: acceptedOperation.operation.input.learningContext.targetLanguage,
-              },
-              ...(savedActivityId ? { activityId: savedActivityId } : {}),
-            },
-          }),
-        );
-      } else if (
-        state.status === "cancelled" ||
-        state.status === "rate-limited" ||
-        state.status === "failed"
-      ) {
-        this.#activeOperations.delete(state.operationId);
-        if (state.status === "failed" || state.status === "rate-limited") {
-          this.#retryableOperations.add(state.operationId);
-        } else {
-          this.#retryableOperations.delete(state.operationId);
-        }
-        const outcome =
-          state.status === "cancelled"
-            ? { status: "cancelled" as const }
-            : state.status === "rate-limited"
-              ? {
-                  status: "rate-limited" as const,
-                  reached: state.reached,
-                  retryAt: state.retryAt,
-                }
-              : { status: "failed" as const, error: state.error };
-        this.#emitEvent?.({
-          event: "learning-operation-finished",
-          operationId: state.operationId,
-          submissionId: state.submissionId,
-          kind: state.kind,
-          submission: "retained",
-          outcome,
-        });
-      }
-    }
   }
 
   async #activities(requestId: string): Promise<ActivityService> {
@@ -795,16 +459,6 @@ export class DesktopBackend {
     return saved;
   }
 
-  #hasActiveExerciseFeedback(input: NonNullable<AcceptedOperation["exerciseFeedback"]>) {
-    return [...this.#operationsBySubmission.values()].some(
-      (accepted) =>
-        this.#activeOperations.has(accepted.operationId) &&
-        accepted.dataRootGeneration === input.expectedGeneration &&
-        accepted.exerciseFeedback?.activityId === input.activityId &&
-        accepted.exerciseFeedback.attemptId === input.attemptId,
-    );
-  }
-
   async #operationLearnerSettings(
     input: Extract<DesktopIpcRequest, { channel: "learning-operation/start" }>["payload"]["input"],
     settings: LearnerSettingsRecord,
@@ -943,14 +597,14 @@ export class DesktopBackend {
       if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
       await this.#repository.recordCourseHelperSupport(input.intent, settings.learningContext);
       const helperKey = `${input.sessionId}:${settings.learningContext.targetLanguage}`;
-      let session = this.#helperSessions.get(helperKey);
+      let session = this.#operations.helperSessions.get(helperKey);
       if (!session) {
-        if (this.#helperSessions.size >= 64) {
-          const oldest = this.#helperSessions.keys().next().value;
-          if (oldest) this.#helperSessions.delete(oldest);
+        if (this.#operations.helperSessions.size >= 64) {
+          const oldest = this.#operations.helperSessions.keys().next().value;
+          if (oldest) this.#operations.helperSessions.delete(oldest);
         }
         session = { activityId: activityIdSchema.parse(opaqueId("activity")), turns: [] };
-        this.#helperSessions.set(helperKey, session);
+        this.#operations.helperSessions.set(helperKey, session);
       }
       return {
         kind: input.kind,
@@ -1389,147 +1043,6 @@ export class DesktopBackend {
     if (!this.#database) return undefined;
     const settings = await readAiConnections(this.#database);
     return settings.connections.find((entry) => entry.id === settings.activeConnectionId);
-  }
-
-  async #generationForConnection(connection: AiConnection): Promise<GenerationService | undefined> {
-    if (connection.routeId === "chatgpt" && this.#database) {
-      const database = this.#database;
-      const captured = structuredClone(connection);
-      const registrationId = await this.#chatgpt.selectedRegistration();
-      if (!registrationId) throw new Error("OD_CHATGPT_SIGN_IN_REQUIRED");
-      const assertActive = async () => {
-        if (this.#closing || database !== this.#database || database.closed)
-          throw new Error("OD_DATA_ROOT_STALE");
-        const current = await this.#requireActiveConnection();
-        if (
-          current.id !== captured.id ||
-          current.routeId !== "chatgpt" ||
-          (await this.#chatgpt.selectedRegistration()) !== registrationId
-        )
-          throw new Error("OD_CONNECTION_CONFLICT");
-      };
-      const service = new ChatgptGenerationService({
-        session: this.#chatgpt,
-        registrationId,
-        assertActive,
-        connectionId: connection.id,
-        rootGeneration: database.rootGeneration,
-      });
-      service.subscribeGeneration(this.#projectGenerationEvent);
-      this.#chatgptServices.add(service);
-      return service;
-    }
-    if (connection.routeId === "managed" && this.#database) {
-      const database = this.#database;
-      const service = new ManagedGenerationService({
-        connectionId: connection.id,
-        rootGeneration: database.rootGeneration,
-        // Connection mutations wait for settlement; root changes invalidate the lease.
-        assertActive: () => {
-          if (this.#closing || database !== this.#database || database.closed)
-            throw new Error("OD_DATA_ROOT_STALE");
-        },
-      });
-      service.subscribeGeneration(this.#projectGenerationEvent);
-      this.#managedServices.add(service);
-      return service;
-    }
-    if (connection.routeId === "local" && this.#database) {
-      const database = this.#database;
-      const captured = structuredClone(connection);
-      const service = new OfflineGenerationService({
-        connectionId: captured.id,
-        rootGeneration: database.rootGeneration,
-        runtime: this.#offline,
-        captureActive: () => {
-          const epoch = this.#offlineEpoch;
-          return () =>
-            !this.#closing &&
-            database === this.#database &&
-            !database.closed &&
-            epoch === this.#offlineEpoch;
-        },
-        assertActive: async (request) => {
-          const access = await this.#providerAccess(
-            request.input.kind,
-            request.operationId,
-            request.modelSelection,
-            captured,
-          );
-          if (access.status !== "available" || access.routeId !== "local")
-            throw new Error("OD_OFFLINE_INACTIVE");
-        },
-      });
-      service.subscribeGeneration(this.#projectGenerationEvent);
-      this.#offlineServices.add(service);
-      return service;
-    }
-    if (!isDirectApiRoute(connection.routeId) || !this.#database) return undefined;
-    const database = this.#database;
-    const captured = structuredClone(connection);
-    const assertActive = async () => {
-      if (this.#closing || database !== this.#database || database.closed)
-        throw new Error("OD_DATA_ROOT_STALE");
-      const current = await this.#requireActiveConnection();
-      if (
-        current.id !== captured.id ||
-        current.routeId !== captured.routeId ||
-        current.secretRef !== captured.secretRef ||
-        !captured.secretRef
-      )
-        throw new Error("OD_CONNECTION_CONFLICT");
-    };
-    const service = new DirectApiGenerationService({
-      route: connection.routeId,
-      connectionId: connection.id,
-      rootGeneration: database.rootGeneration,
-      readActiveCredential: async () => {
-        await assertActive();
-        if (!captured.secretRef) throw new Error("OD_CONNECTION_CREDENTIAL_UNAVAILABLE");
-        const secret = await this.#secrets.read(captured.secretRef);
-        await assertActive();
-        return secret;
-      },
-    });
-    service.subscribeGeneration(this.#projectGenerationEvent);
-    this.#directServices.add(service);
-    return service;
-  }
-
-  #releaseOperation(operationId: CorrelationId): void {
-    const service = this.#operationServices.get(operationId);
-    if (
-      service instanceof ChatgptGenerationService &&
-      ![...this.#operationServices.entries()].some(
-        ([id, current]) => id !== operationId && current === service,
-      )
-    ) {
-      this.#chatgptServices.delete(service);
-      void service.shutdown();
-    }
-    service?.releaseOperation(operationId);
-    this.#operationServices.delete(operationId);
-    if (
-      service instanceof ManagedGenerationService &&
-      ![...this.#operationServices.values()].includes(service)
-    ) {
-      this.#managedServices.delete(service);
-      void service.shutdown();
-    }
-    if (
-      service instanceof OfflineGenerationService &&
-      ![...this.#operationServices.values()].includes(service)
-    ) {
-      this.#offlineServices.delete(service);
-      void service.shutdown();
-    }
-    if (
-      service instanceof DirectApiGenerationService &&
-      ![...this.#operationServices.values()].includes(service)
-    ) {
-      this.#directServices.delete(service);
-      void service.shutdown();
-    }
   }
 
   async #requireActiveConnection(): Promise<AiConnection> {
@@ -1997,121 +1510,6 @@ export class DesktopBackend {
     return response;
   }
 
-  #translationReveal(request: TranslationRequest) {
-    return "revealId" in request.field
-      ? this.#translationReveals.get(request.field.revealId)
-      : undefined;
-  }
-
-  #finishTranslation(job: TranslationJob, outcome: "saved" | "cancelled" | "failed") {
-    this.#translationJobs.delete(job.request.operationId);
-    this.#activeOperations.delete(job.request.operationId);
-    if (!this.#closing)
-      this.#emitEvent?.({
-        event: "translation-finished",
-        operationId: job.request.operationId,
-        rootGeneration: job.request.rootGeneration,
-        outcome,
-      });
-  }
-
-  async #runTranslation(
-    job: TranslationJob,
-    database: CallNinaDatabase,
-    source: Awaited<ReturnType<typeof readSavedTranslations>>,
-    context: LearningContext,
-    modelSelection: GenerationOperationStart["modelSelection"],
-    connection: AiConnection,
-  ) {
-    const request = translationRequestSchema.parse({
-      rootGeneration: job.request.rootGeneration,
-      activityId: job.request.activityId,
-      content: job.request.content,
-      field: job.request.field,
-    });
-    const assertActive = () => {
-      if (job.cancelled || this.#closing) throw new Error("OD_TRANSLATION_CANCELLED");
-    };
-    try {
-      const translated: string[] = [];
-      let provenance: GenerationProvenance | undefined;
-      for (const part of translationParts(source.original)) {
-        assertActive();
-        // Recheck lease/visibility between bounded provider calls, without ever
-        // holding a database transaction or the IPC queue during generation.
-        await this.#enqueue(async () => {
-          if (database !== this.#database) throw new Error("OD_DATA_ROOT_STALE");
-          const access = await this.#providerAccess(
-            "contextual-help",
-            job.request.operationId,
-            modelSelection,
-            connection,
-          );
-          if (access.status === "unavailable")
-            throw new Error("OD_TRANSLATION_PROVIDER_UNAVAILABLE");
-          await readSavedTranslations(database, request, this.#translationReveal(job.request));
-        });
-        assertActive();
-        const generation = await this.#generationForConnection(connection);
-        if (!generation) throw new Error("OD_OPERATION_UNSUPPORTED");
-        const operationId = selectionId();
-        this.#operationServices.set(operationId, generation);
-        job.providerOperationId = operationId;
-        this.#translationProviderOperations.add(operationId);
-        try {
-          const result = await generation.runOperation({
-            operationId,
-            submissionId: operationId,
-            dataRootGeneration: job.request.rootGeneration,
-            modelSelection,
-            input: savedTranslationInput(job.request, part, context),
-          });
-          translated.push(contextualHelpCandidateSchema.parse(result.output).answer);
-          provenance = { ...result.provenance, connectionId: connection.id };
-        } finally {
-          this.#translationProviderOperations.delete(operationId);
-          this.#releaseOperation(operationId);
-          job.providerOperationId = undefined;
-        }
-      }
-      await this.#enqueue(async () => {
-        assertActive();
-        if (database !== this.#database || !provenance) throw new Error("OD_DATA_ROOT_STALE");
-        await saveSupportingTranslation(
-          database,
-          request,
-          {
-            schemaVersion: 1,
-            activityId: job.request.activityId,
-            content: job.request.content,
-            fieldKey: source.fieldKey,
-            original: source.original,
-            learningScope: source.learningScope,
-            language: job.request.language,
-            text: translated.join("\n\n"),
-            createdAt: utcInstantSchema.parse(new Date().toISOString()),
-            provenance,
-          },
-          this.#translationReveal(job.request),
-        );
-        this.#finishTranslation(job, "saved");
-      });
-    } catch (error) {
-      await this.#enqueue(() => {
-        this.#operationLog(
-          "warn",
-          "DESKTOP_TRANSLATION_FAILED",
-          job.request.operationId,
-          "translation/start",
-          diagnosticErrorCode(error),
-          "Saved translation did not complete.",
-          { action: "translation/start", phase: "failed", outcome: "error" },
-        );
-        this.#finishTranslation(job, job.cancelled || this.#closing ? "cancelled" : "failed");
-      });
-    }
-  }
-
   async #handleRequest(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
     try {
       if (
@@ -2127,7 +1525,8 @@ export class DesktopBackend {
         if (request.channel === "offline-model/manage") {
           if (
             request.payload.action !== "cancel" &&
-            (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+            (this.#operations.activeOperations.size > 0 ||
+              this.#translations.translationJobs.size > 0)
           )
             return this.#failure(request, "conflict");
           if (request.payload.action === "install") this.#offline.install();
@@ -2148,9 +1547,12 @@ export class DesktopBackend {
         if (root.status !== "ready" || !this.#database)
           return this.#failure(request, "stale-data-root");
         if (request.channel === "ai-connections/update") {
-          if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+          if (
+            this.#operations.activeOperations.size > 0 ||
+            this.#translations.translationJobs.size > 0
+          )
             return this.#failure(request, "conflict");
-          this.#offlineEpoch++;
+          this.#connections.offlineEpoch++;
           await mutateConnections(
             this.#database,
             this.#secrets,
@@ -2160,7 +1562,7 @@ export class DesktopBackend {
                 current.activeConnectionId !== null &&
                 current.activeConnectionId !== next.activeConnectionId
               )
-                await this.#stopConnectionRuntime();
+                await this.#connections.stopConnectionRuntime();
             },
           );
           this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
@@ -2178,9 +1580,9 @@ export class DesktopBackend {
         if (request.payload.visible) {
           await validateTranslationReveal(this.#database, request.payload);
           // Only the currently displayed back is authorized; a new flip revokes old capabilities.
-          this.#translationReveals.clear();
-          this.#translationReveals.set(request.payload.revealId, request.payload);
-        } else this.#translationReveals.delete(request.payload.revealId);
+          this.#translations.translationReveals.clear();
+          this.#translations.translationReveals.set(request.payload.revealId, request.payload);
+        } else this.#translations.translationReveals.delete(request.payload.revealId);
         return this.#success(request, { visible: request.payload.visible });
       }
       if (request.channel === "translation/read" || request.channel === "translation/start") {
@@ -2201,7 +1603,7 @@ export class DesktopBackend {
             content: request.payload.content,
             field: request.payload.field,
           }),
-          this.#translationReveal(request.payload),
+          this.#translations.translationReveal(request.payload),
         );
         if (request.channel === "translation/read")
           return this.#success(request, { translations: source.translations });
@@ -2211,8 +1613,8 @@ export class DesktopBackend {
             status: "saved",
           });
         if (
-          this.#translationJobs.size > 0 ||
-          this.#activeOperations.has(request.payload.operationId)
+          this.#translations.translationJobs.size > 0 ||
+          this.#operations.activeOperations.has(request.payload.operationId)
         )
           return this.#failure(request, "conflict");
         if (!(await this.#hasAcknowledgedAiDisclosure()))
@@ -2222,7 +1624,7 @@ export class DesktopBackend {
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#activeOperations.size >= 4
+          this.#operations.activeOperations.size >= 4
         )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
@@ -2231,9 +1633,9 @@ export class DesktopBackend {
           cancelled: false,
           providerOperationId: undefined,
         };
-        this.#translationJobs.set(request.payload.operationId, job);
-        this.#activeOperations.add(request.payload.operationId);
-        void this.#runTranslation(
+        this.#translations.translationJobs.set(request.payload.operationId, job);
+        this.#operations.activeOperations.add(request.payload.operationId);
+        void this.#translations.runTranslation(
           job,
           database,
           source,
@@ -2253,13 +1655,13 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "translation/cancel") {
-        const job = this.#translationJobs.get(request.payload.operationId);
+        const job = this.#translations.translationJobs.get(request.payload.operationId);
         if (job && job.request.rootGeneration !== request.payload.rootGeneration)
           return this.#failure(request, "stale-data-root");
         if (job) {
           job.cancelled = true;
           if (job.providerOperationId)
-            await this.#operationServices
+            await this.#connections.operationServices
               .get(job.providerOperationId)
               ?.cancelOperation(job.providerOperationId);
         }
@@ -2286,7 +1688,7 @@ export class DesktopBackend {
         if (request.payload.previousOperationId) {
           const dataRoot = await this.#dataRootState(request.requestId);
           if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-          const prior = [...this.#operationsBySubmission.values()].find(
+          const prior = [...this.#operations.operationsBySubmission.values()].find(
             ({ operationId }) => operationId === request.payload.previousOperationId,
           );
           if (!prior) return this.#failure(request, "not-found");
@@ -2294,7 +1696,7 @@ export class DesktopBackend {
             return this.#failure(request, "stale-data-root");
           if (
             prior.operation.input.kind !== request.payload.operation ||
-            !this.#retryableOperations.has(prior.operationId)
+            !this.#operations.retryableOperations.has(prior.operationId)
           )
             return this.#failure(request, "conflict");
           // Resolve retry access from main-owned state, never the current sidebar preference.
@@ -2343,10 +1745,11 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "data-root/confirm") {
-        if (this.#activeOperations.size > 0) return this.#failure(request, "data-root-busy");
+        if (this.#operations.activeOperations.size > 0)
+          return this.#failure(request, "data-root-busy");
         const pending = this.#pending.get(request.payload.selectionId);
         if (!pending) return this.#failure(request, "conflict");
-        await this.#stopConnectionRuntime();
+        await this.#connections.stopConnectionRuntime();
         this.#pending.delete(request.payload.selectionId);
         const timestamp = new Date().toISOString();
         if (pending.mode === "initialize") {
@@ -2377,13 +1780,13 @@ export class DesktopBackend {
           });
         }
         this.#repository = new CallNinaRepository(this.#database);
-        for (const operation of this.#operationsBySubmission.values()) {
-          this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
+        for (const operation of this.#operations.operationsBySubmission.values()) {
+          this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
         }
-        this.#operationsBySubmission.clear();
-        this.#retryableOperations.clear();
-        this.#helperSessions.clear();
-        this.#translationReveals.clear();
+        this.#operations.operationsBySubmission.clear();
+        this.#operations.retryableOperations.clear();
+        this.#operations.helperSessions.clear();
+        this.#translations.translationReveals.clear();
         const state = await this.#dataRootState(request.requestId);
         if (state.status === "ready") {
           this.#emitEvent?.({
@@ -2525,7 +1928,7 @@ export class DesktopBackend {
       }
       if (request.channel === "codex-activity/prepare") {
         const activities = await this.#activities(request.requestId);
-        const accepted = [...this.#operationsBySubmission.values()].find(
+        const accepted = [...this.#operations.operationsBySubmission.values()].find(
           (operation) =>
             operation.validatedVoiceModelRequestId === request.payload.draftModelRequestId,
         );
@@ -2646,7 +2049,7 @@ export class DesktopBackend {
         return this.#success(request, this.#settingsProjection(stored, dataRoot));
       }
       if (request.channel === "personal-data/clear") {
-        if (this.#activeOperations.size > 0) {
+        if (this.#operations.activeOperations.size > 0) {
           return this.#success(request, { status: "blocked", reason: "busy" });
         }
         const root = await this.#dataRootState(request.requestId);
@@ -2659,13 +2062,13 @@ export class DesktopBackend {
         }
         const result = await this.#repository.clearPersonalData(request.payload);
         if (result.status === "cleared") {
-          for (const operation of this.#operationsBySubmission.values()) {
-            this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
+          for (const operation of this.#operations.operationsBySubmission.values()) {
+            this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
           }
-          this.#operationsBySubmission.clear();
-          this.#retryableOperations.clear();
-          this.#helperSessions.clear();
-          this.#translationReveals.clear();
+          this.#operations.operationsBySubmission.clear();
+          this.#operations.retryableOperations.clear();
+          this.#operations.helperSessions.clear();
+          this.#translations.translationReveals.clear();
           for (const scope of ["dashboard", "history", "vocabulary", "settings"] as const) {
             this.#emitEvent?.({ event: "state-invalidated", scope });
           }
@@ -3513,12 +2916,18 @@ export class DesktopBackend {
       if (request.channel === "chatgpt/accounts/read")
         return this.#success(request, await this.#chatgpt.accounts());
       if (request.channel === "chatgpt/account/logout") {
-        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+        if (
+          this.#operations.activeOperations.size > 0 ||
+          this.#translations.translationJobs.size > 0
+        )
           return this.#failure(request, "conflict");
         return this.#success(request, await this.#chatgpt.logout());
       }
       if (request.channel === "chatgpt/account/login/start") {
-        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+        if (
+          this.#operations.activeOperations.size > 0 ||
+          this.#translations.translationJobs.size > 0
+        )
           return this.#failure(request, "conflict");
         // Choosing ChatGPT sign-in explicitly selects that route, preserving every saved connection.
         if (!this.#database) return this.#failure(request, "stale-data-root");
@@ -3548,7 +2957,7 @@ export class DesktopBackend {
                 credential: { action: "keep" },
               },
             },
-            async () => this.#stopConnectionRuntime(),
+            async () => this.#connections.stopConnectionRuntime(),
           );
           connection = created.connections.find((entry) => entry.routeId === "chatgpt");
         }
@@ -3563,7 +2972,7 @@ export class DesktopBackend {
                 expectedRevision: current.revision,
                 action: { kind: "activate", connectionId: connection.id },
               },
-              async () => this.#stopConnectionRuntime(),
+              async () => this.#connections.stopConnectionRuntime(),
             );
         }
         const loginId = await this.#chatgpt.startLogin(request.payload.registrationId);
@@ -3590,7 +2999,7 @@ export class DesktopBackend {
           );
         }
         const inputFingerprint = operationInputFingerprint(request.payload.input);
-        const previous = this.#operationsBySubmission.get(request.payload.submissionId);
+        const previous = this.#operations.operationsBySubmission.get(request.payload.submissionId);
         if (
           previous &&
           (previous.inputFingerprint !== inputFingerprint ||
@@ -3613,7 +3022,7 @@ export class DesktopBackend {
               submission: "retained",
               ...feedback,
             });
-          if (!previous && this.#hasActiveExerciseFeedback(request.payload.input))
+          if (!previous && this.#operations.hasActiveExerciseFeedback(request.payload.input))
             return this.#failure(request, "conflict");
         }
         if (previous) {
@@ -3632,7 +3041,7 @@ export class DesktopBackend {
             "ai-disclosure",
           );
         }
-        if (!this.#makeOperationRoom()) {
+        if (!this.#operations.makeOperationRoom()) {
           return this.#failure(request, "conflict");
         }
         const activeSettings = await this.#readActiveLearnerSettings();
@@ -3652,7 +3061,7 @@ export class DesktopBackend {
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#activeOperations.size >= 4
+          this.#operations.activeOperations.size >= 4
         )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
@@ -3678,9 +3087,9 @@ export class DesktopBackend {
             )),
           },
         });
-        const generation = await this.#generationForConnection(connection);
+        const generation = await this.#connections.generationForConnection(connection);
         if (!generation) return this.#failure(request, "unsupported-operation");
-        this.#operationsBySubmission.set(request.payload.submissionId, {
+        this.#operations.operationsBySubmission.set(request.payload.submissionId, {
           connection,
           operationId,
           inputFingerprint,
@@ -3698,11 +3107,11 @@ export class DesktopBackend {
               }
             : {}),
         });
-        this.#operationServices.set(operationId, generation);
-        this.#activeOperations.add(operationId);
+        this.#connections.operationServices.set(operationId, generation);
+        this.#operations.activeOperations.add(operationId);
         void Promise.resolve()
           .then(() => generation.runOperation(operation))
-          .catch((error: unknown) => this.#rejectUnsettledOperation(operation, error));
+          .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
         return this.#success(request, {
           operationId,
           submissionId: request.payload.submissionId,
@@ -3713,14 +3122,14 @@ export class DesktopBackend {
       if (request.channel === "learning-operation/retry") {
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-        const prior = [...this.#operationsBySubmission.values()].find(
+        const prior = [...this.#operations.operationsBySubmission.values()].find(
           ({ operationId }) => operationId === request.payload.previousOperationId,
         );
         if (!prior) return this.#failure(request, "not-found");
         if (prior.dataRootGeneration !== dataRoot.generation) {
           return this.#failure(request, "stale-data-root");
         }
-        const replay = this.#operationsBySubmission.get(request.payload.submissionId);
+        const replay = this.#operations.operationsBySubmission.get(request.payload.submissionId);
         if (
           replay &&
           (replay.inputFingerprint !== prior.inputFingerprint ||
@@ -3738,7 +3147,7 @@ export class DesktopBackend {
               ...feedback,
             });
         }
-        if (!this.#retryableOperations.has(prior.operationId)) {
+        if (!this.#operations.retryableOperations.has(prior.operationId)) {
           return this.#failure(request, "conflict");
         }
         if (!(await this.#hasAcknowledgedAiDisclosure())) {
@@ -3752,9 +3161,12 @@ export class DesktopBackend {
             submission: "retained",
           });
         }
-        if (prior.exerciseFeedback && this.#hasActiveExerciseFeedback(prior.exerciseFeedback))
+        if (
+          prior.exerciseFeedback &&
+          this.#operations.hasActiveExerciseFeedback(prior.exerciseFeedback)
+        )
           return this.#failure(request, "conflict");
-        if (!this.#makeOperationRoom(prior.operationId)) {
+        if (!this.#operations.makeOperationRoom(prior.operationId)) {
           return this.#failure(request, "conflict");
         }
         const access = await this.#providerAccess(
@@ -3766,10 +3178,10 @@ export class DesktopBackend {
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#activeOperations.size >= 4
+          this.#operations.activeOperations.size >= 4
         )
           return this.#failure(request, "conflict");
-        const generation = this.#operationServices.get(prior.operationId);
+        const generation = this.#connections.operationServices.get(prior.operationId);
         if (!generation) return this.#failure(request, "unsupported-operation");
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
@@ -3778,7 +3190,7 @@ export class DesktopBackend {
           submissionId: request.payload.submissionId,
           dataRootGeneration: dataRoot.generation,
         });
-        this.#operationsBySubmission.set(request.payload.submissionId, {
+        this.#operations.operationsBySubmission.set(request.payload.submissionId, {
           connection: prior.connection,
           operationId,
           inputFingerprint: prior.inputFingerprint,
@@ -3788,8 +3200,8 @@ export class DesktopBackend {
           ...(prior.helperSessionId ? { helperSessionId: prior.helperSessionId } : {}),
           ...(prior.exerciseFeedback ? { exerciseFeedback: prior.exerciseFeedback } : {}),
         });
-        this.#operationServices.set(operationId, generation);
-        this.#activeOperations.add(operationId);
+        this.#connections.operationServices.set(operationId, generation);
+        this.#operations.activeOperations.add(operationId);
         void Promise.resolve()
           .then(() =>
             generation.retryOperation({
@@ -3798,7 +3210,7 @@ export class DesktopBackend {
               submissionId: request.payload.submissionId,
             }),
           )
-          .catch((error: unknown) => this.#rejectUnsettledOperation(operation, error));
+          .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
         return this.#success(request, {
           operationId,
           submissionId: request.payload.submissionId,
@@ -3806,9 +3218,9 @@ export class DesktopBackend {
           submission: "retained",
         });
       }
-      const active = this.#activeOperations.has(request.payload.operationId);
+      const active = this.#operations.activeOperations.has(request.payload.operationId);
       if (active) {
-        await this.#operationServices
+        await this.#connections.operationServices
           .get(request.payload.operationId)
           ?.cancelOperation(request.payload.operationId);
       }

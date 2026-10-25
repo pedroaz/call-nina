@@ -1,3 +1,4 @@
+import tableStyles from "./components/layout/Table.module.css";
 import type {
   DesktopIpcResponse,
   CallNinaError,
@@ -13,6 +14,7 @@ import {
   Button,
   Card,
   DiagnosticCode,
+  InfoHint,
   Feedback,
   ModalDialog,
   Muted,
@@ -127,7 +129,10 @@ function CleanupDialog({
         </Feedback>
       )}
       {error && <DataError error={error} />}
-      <ActionGroup>
+      <ActionGroup align="end">
+        <Button variant="secondary" isDisabled={pending} onPress={onClose}>
+          {t("actions.cancel")}
+        </Button>
         <Button
           variant="danger"
           isPending={pending}
@@ -139,15 +144,18 @@ function CleanupDialog({
         >
           {t(`personalData.cleanup.${scope}.action`)}
         </Button>
-        <Button variant="secondary" isDisabled={pending} onPress={onClose}>
-          {t("actions.cancel")}
-        </Button>
       </ActionGroup>
     </ModalDialog>
   );
 }
 
-export function PersonalDataPage({ onDataCleared }: { onDataCleared: () => void }) {
+export function PersonalDataPage({
+  onDataCleared,
+  breadcrumbs,
+}: {
+  onDataCleared: () => void;
+  breadcrumbs?: ReadonlyArray<{ label: string; onPress: () => void }>;
+}) {
   const { t, i18n } = useTranslation();
   const [overview, setOverview] = useState<Overview>();
   const [busy, setBusy] = useState(true);
@@ -199,8 +207,13 @@ export function PersonalDataPage({ onDataCleared }: { onDataCleared: () => void 
     );
   return (
     <Page
+      {...(breadcrumbs ? { breadcrumbs } : {})}
       title={t("personalData.title")}
-      description={t("personalData.intro")}
+      actions={
+        <InfoHint label={t("personalData.title")}>
+          <p>{t("personalData.intro")}</p>
+        </InfoHint>
+      }
       aria-busy={busy}
       refresh={{ onRefresh: refresh, busy: busy }}
     >
@@ -228,7 +241,7 @@ export function PersonalDataPage({ onDataCleared }: { onDataCleared: () => void 
                   <>
                     <Muted>{t("personalData.overviewHelp")}</Muted>
                     <div className={styles.tableWrap}>
-                      <table className={styles.table}>
+                      <table className={`${tableStyles.table} ${styles.table}`}>
                         <caption>{t("personalData.overviewCaption")}</caption>
                         <thead>
                           <tr>
@@ -267,7 +280,7 @@ export function PersonalDataPage({ onDataCleared }: { onDataCleared: () => void 
                   <>
                     <Muted>{t("personalData.storageHelp")}</Muted>
                     <div className={styles.tableWrap}>
-                      <table className={styles.table}>
+                      <table className={`${tableStyles.table} ${styles.table}`}>
                         <caption>{t("personalData.storageCaption")}</caption>
                         <thead>
                           <tr>
@@ -306,7 +319,7 @@ export function PersonalDataPage({ onDataCleared }: { onDataCleared: () => void 
                   <>
                     <Muted>{t("personalData.cleanup.intro")}</Muted>
                     <div className={styles.tableWrap}>
-                      <table className={styles.table}>
+                      <table className={`${tableStyles.table} ${styles.table}`}>
                         <caption>{t("personalData.cleanup.caption")}</caption>
                         <thead>
                           <tr>

@@ -128,10 +128,7 @@ export function VocabularyGenerator({
           </Feedback>
         )}
         <OperationProgress progress={generation.progress} />
-        <ActionGroup>
-          <Button type="submit" isPending={busy} isDisabled={busy || !topic.trim()}>
-            {t("vocabulary.flow.generate")}
-          </Button>
+        <ActionGroup align="end">
           <Button
             variant="secondary"
             onPress={() => {
@@ -141,6 +138,14 @@ export function VocabularyGenerator({
             isDisabled={checking}
           >
             {t("actions.cancel")}
+          </Button>
+          <Button
+            variant="primary"
+            type="submit"
+            isPending={busy}
+            isDisabled={busy || !topic.trim()}
+          >
+            {t("vocabulary.flow.generate")}
           </Button>
         </ActionGroup>
       </form>

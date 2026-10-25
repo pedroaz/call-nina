@@ -29,10 +29,7 @@
   background: var(--od-color-surface-card);
 }
 .table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-size: var(--od-font-size-sm);
+  min-width: 0;
 }
 .table caption {
   text-align: start;
@@ -40,18 +37,7 @@
   font-weight: var(--od-weight-strong);
   font-size: var(--od-font-size-md);
 }
-.table th,
-.table td {
-  padding: var(--od-space-5);
-  border-top: var(--od-border-thin) solid var(--od-color-border-default);
-  text-align: start;
-  vertical-align: top;
-  overflow-wrap: anywhere;
-}
-.table thead th {
-  font-size: var(--od-font-size-xs);
-  color: var(--od-color-text-muted);
-}
+
 .table th:first-child {
   width: 32%;
 }
@@ -69,10 +55,4 @@
 }
 .reset {
   border-color: var(--od-color-state-wrong);
-}
-@container workspace (max-width: 42rem) {
-  .table th,
-  .table td {
-    padding: var(--od-space-4) var(--od-space-3);
-  }
 }

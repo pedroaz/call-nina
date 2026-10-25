@@ -178,7 +178,11 @@ function TranslationControls({
       )}
       <ActionGroup>
         {!saved && (
-          <Button isDisabled={loading || busy || !available} onPress={() => void start()}>
+          <Button
+            variant="primary"
+            isDisabled={loading || busy || !available}
+            onPress={() => void start()}
+          >
             {t(busy ? "translation.translating" : "translation.action")}
           </Button>
         )}
@@ -199,7 +203,9 @@ function TranslationControls({
           </Button>
         )}
         {notice === "loadFailed" && (
-          <Button onPress={() => void load()}>{t("translation.retryRead")}</Button>
+          <Button variant="primary" onPress={() => void load()}>
+            {t("translation.retryRead")}
+          </Button>
         )}
       </ActionGroup>
       {notice && (
