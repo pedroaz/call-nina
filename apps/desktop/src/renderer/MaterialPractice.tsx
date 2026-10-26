@@ -11,6 +11,7 @@ import {
   type ProviderOperation,
 } from "@call-nina/contracts";
 import {
+  SelectControl,
   Button,
   ConfirmDialog,
   Disclosure,
@@ -306,7 +307,7 @@ export function MaterialPractice({
             </FieldGroup>
             <FieldGroup>
               {t("materialPractice.kind")}
-              <select
+              <SelectControl
                 value={draft.kind}
                 disabled={locked}
                 onChange={(event) => {
@@ -315,7 +316,7 @@ export function MaterialPractice({
               >
                 <option value="topic">{t("materialPractice.topic")}</option>
                 <option value="pasted-text">{t("materialPractice.passage")}</option>
-              </select>
+              </SelectControl>
             </FieldGroup>
             <FieldGroup>
               {t(`materialPractice.${draft.kind === "topic" ? "topic" : "passage"}`)}

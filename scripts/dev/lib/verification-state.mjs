@@ -119,7 +119,7 @@ export function assertManualVerificationOwner(gate, target = root) {
 }
 export function assertVerificationBarrier({ allowSourceChanges = false } = {}) {
   if (!existsSync(verificationGate))
-    throw new Error("VERIFY_BARRIER_REQUIRED: use make verify-manual-enter");
+    throw new Error("VERIFY_BARRIER_REQUIRED: use make verify manual-enter");
   const gate = load(verificationGate);
   if (gate.worktree !== root) throw new Error("VERIFY_CHECKOUT_MISMATCH");
   if (gate.mode !== "manual") throw new Error("VERIFY_RETIRED_SESSION_RETAINED");

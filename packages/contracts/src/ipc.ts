@@ -1,3 +1,9 @@
+import {
+  ninaAccountStateSchema,
+  ninaAccountUpdateSchema,
+  ninaLoginDiagnosticSchema,
+  ninaLoginCredentialsSchema,
+} from "./nina-account.js";
 import { chatgptRegistrationIdSchema, chatgptAccountsSchema } from "./chatgpt.js";
 import { offlineModelActionSchema, offlineModelViewSchema } from "./offline-model.js";
 import { aiConnectionMutationSchema, aiConnectionsViewSchema } from "./ai-connections.js";
@@ -90,6 +96,11 @@ import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "nina-account/credentials/read",
+  "nina-account/credentials/save",
+  "nina-account/diagnostic",
+  "nina-account/read",
+  "nina-account/update",
   "offline-model/read",
   "offline-model/manage",
   "ai-connections/read",
@@ -724,6 +735,11 @@ const learningOperationRetryRequest = request(
 );
 
 export const desktopIpcRequestSchema = boundaryUnion([
+  request("nina-account/credentials/read", emptyPayload),
+  request("nina-account/credentials/save", ninaLoginCredentialsSchema),
+  request("nina-account/diagnostic", ninaLoginDiagnosticSchema),
+  request("nina-account/read", emptyPayload),
+  request("nina-account/update", ninaAccountUpdateSchema),
   request("offline-model/read", emptyPayload),
   request("offline-model/manage", offlineModelActionSchema),
   request("ai-connections/read", emptyPayload),
@@ -1709,6 +1725,14 @@ const errorResponse = strictBoundaryObject({
 });
 
 export const desktopIpcResponseSchema = boundaryUnion([
+  response(
+    "nina-account/credentials/read",
+    z.strictObject({ available: z.boolean(), credentials: ninaLoginCredentialsSchema.nullable() }),
+  ),
+  response("nina-account/credentials/save", z.strictObject({ saved: z.boolean() })),
+  response("nina-account/diagnostic", z.strictObject({ recorded: z.boolean() })),
+  response("nina-account/read", ninaAccountStateSchema),
+  response("nina-account/update", ninaAccountStateSchema),
   response("offline-model/read", offlineModelViewSchema),
   response("offline-model/manage", offlineModelViewSchema),
   response("ai-connections/read", aiConnectionsViewSchema),

@@ -60,6 +60,7 @@ declare module "*Fields.module.css" {
     readonly optionCard: string;
     readonly optionGrid: string;
     readonly radioGroup: string;
+    readonly select: string;
     readonly toggleGroup: string;
   };
   export default styles;

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MousePointer2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
+  SelectControl,
   DiagnosticCode,
   Disclosure,
   InfoHint,
@@ -283,7 +284,7 @@ export function WritingWorkspace({
                       <div className={styles.writingOptions}>
                         <FieldGroup>
                           <span>{t("writing.profileLabel")}</span>
-                          <select
+                          <SelectControl
                             value={teachingProfile}
                             onChange={(event) => {
                               setTeachingProfile(
@@ -296,11 +297,11 @@ export function WritingWorkspace({
                               {t("writing.profileConversation")}
                             </option>
                             <option value="strict-corrector">{t("writing.profileStrict")}</option>
-                          </select>
+                          </SelectControl>
                         </FieldGroup>
                         <FieldGroup>
                           <span>{t("writing.feedbackLabel")}</span>
-                          <select
+                          <SelectControl
                             value={feedback}
                             onChange={(event) => {
                               setFeedback(event.currentTarget.value as FeedbackChoice);
@@ -308,7 +309,7 @@ export function WritingWorkspace({
                           >
                             <option value="all-meaningful">{t("writing.feedbackAll")}</option>
                             <option value="priority-only">{t("writing.feedbackPriority")}</option>
-                          </select>
+                          </SelectControl>
                         </FieldGroup>
                       </div>
                     </Disclosure>

@@ -23,6 +23,7 @@
   "dependencies": {
     "@call-nina/contracts": "workspace:*",
     "@call-nina/learning-workflows": "workspace:*",
+    "@clerk/backend": "^3.26.2",
     "ai": "7.0.123",
     "postgres": "3.4.9"
   }

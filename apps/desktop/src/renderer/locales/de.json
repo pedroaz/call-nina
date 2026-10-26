@@ -1685,7 +1685,7 @@
       "removing": "Modelldateien werden entfernt…",
       "unavailable": "Lokale Modellverwaltung ist auf diesem Gerät nicht verfügbar."
     },
-    "managedUnavailable": "Der Nina-Starterdienst ist nicht aktiviert. Es können keine Anfragen gesendet werden.",
+    "managedUnavailable": "Die von Nina verwaltete KI benötigt ein genehmigtes Nina-Konto und verfügbare KI-Aktionen. Die Pilotverwaltung aktiviert den Dienst.",
     "remove": "Verbindung entfernen",
     "removeWarning": "Diese gespeicherte Verbindung entfernen? Lerndaten bleiben erhalten. Ein gespeicherter API-Schlüssel dieser Verbindung wird von diesem Gerät entfernt. Das Entfernen einer ChatGPT-Verbindung behält Ninas Anmeldung bei.",
     "successor": "Nächste aktive Verbindung",
@@ -1698,7 +1698,7 @@
       "anthropic": "Anthropic-API",
       "google": "Google-API",
       "local": "Heruntergeladenes Modell",
-      "managed": "Nina-Starter",
+      "managed": "Nina-KI",
       "chatgpt": "ChatGPT"
     },
     "destination": {
@@ -1707,7 +1707,7 @@
       "anthropic": "KI-Anfragen würden direkt an Anthropic gehen.",
       "google": "KI-Anfragen würden direkt an Google gehen.",
       "local": "KI-Anfragen würden auf diesem Gerät ausgeführt.",
-      "managed": "KI-Anfragen würden an den Nina-Starterdienst gehen.",
+      "managed": "KI-Anfragen laufen über Ninas verwalteten Dienst und AI Gateway.",
       "chatgpt": "KI-Anfragen gehen direkt an OpenAI."
     },
     "cost": {
@@ -1716,7 +1716,7 @@
       "anthropic": "Die direkte API-Nutzung kann von Anthropic berechnet werden.",
       "google": "Die direkte API-Nutzung kann von Google berechnet werden.",
       "local": "Lokale KI nutzt keine Anbieter-API, benötigt aber ein geladenes Modell und Geräteressourcen.",
-      "managed": "Nina Starter ist bei Aktivierung als begrenzte kostenlose Option vorgesehen.",
+      "managed": "Verwendet dein KI-Aktionskontingent; eigene Anbieterzugangsdaten werden nicht genutzt.",
       "chatgpt": "Dein ChatGPT-Abo und dessen App-Limits gelten. KI-Anfragen gehen direkt an OpenAI."
     },
     "status": {
@@ -1839,5 +1839,55 @@
     "answer": "Deine Antwort",
     "review": "Rückmeldung",
     "writingViews": "Schreibansichten"
+  },
+  "ninaAccount": {
+    "title": "Nina-Konto",
+    "description": "Melde dich für Nina-finanzierte KI an. Deine eigenen KI-Verbindungen funktionieren unabhängig davon.",
+    "unconfigured": "Die Pilotanmeldung ist noch nicht eingerichtet.",
+    "error": "Aktion fehlgeschlagen. Prüfe deine Zugangsdaten oder kontaktiere die Pilotverwaltung.",
+    "signedIn": "Angemeldet als {{username}}",
+    "remaining": "Verbleibende KI-Aktionen: {{count}}",
+    "pending": "Die verwaltete KI wartet auf die Aktivierung.",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "recovery": "Zugangsdaten und Passwortzurücksetzungen erhältst du von der Pilotverwaltung.",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "signed-out": "Abgemeldet",
+    "signing-in": "Anmeldung läuft…",
+    "signed-in": "Konto verbunden",
+    "expired": "Sitzung abgelaufen. Melde dich erneut an.",
+    "unavailable": "Kontodienst vorübergehend nicht verfügbar.",
+    "approved": "Verwalteter Zugang genehmigt",
+    "unapproved": "Genehmigung ausstehend",
+    "suspended": "Verwalteter Zugang gesperrt",
+    "exhausted": "KI-Kontingent aufgebraucht",
+    "loginStage": {
+      "initialization": "Anmeldung vorbereiten",
+      "desktop": "Verbindung mit Nina",
+      "credentials": "Zugangsdaten prüfen",
+      "session": "Sitzung aktivieren",
+      "cleanup": "Anmeldung zurücksetzen"
+    },
+    "loginOutcome": {
+      "started": "Warte auf eine Antwort…",
+      "completed": "Dieser Schritt ist abgeschlossen.",
+      "slow": "Dies dauert länger als erwartet. Brich die Anmeldung ab und versuche es erneut, wenn du bereit bist.",
+      "failed": "Dieser Schritt ist fehlgeschlagen."
+    },
+    "loginReason": {
+      "credentials": "Der Anmeldedienst hat Benutzername oder Passwort abgelehnt.",
+      "rate-limit": "Zu viele Versuche. Warte vor einem neuen Versuch.",
+      "network": "Der Anmeldedienst ist nicht erreichbar. Prüfe deine Verbindung.",
+      "additional-step": "Dein Konto benötigt einen weiteren Bestätigungsschritt, den dieses Formular nicht unterstützt. Kontaktiere die Pilotadministration.",
+      "unknown": "Es wurde kein bekannter Fehlergrund zurückgegeben. Teile den Diagnosecode oben."
+    },
+    "cancelLogin": "Anmeldung abbrechen",
+    "retry": "Anmeldung erneut versuchen",
+    "cancelled": "Abgebrochen. Deine Eingaben bleiben erhalten.",
+    "diagnosticDetails": "Diagnosedetails",
+    "loginFailedTitle": "Anmeldung nicht möglich",
+    "cancellingRequest": "Abgebrochen. Vor einem neuen Versuch muss die vorherige Anfrage beendet werden.",
+    "initializationFailed": "Die Anmeldung konnte nicht starten. Versuche es gleich erneut."
   }
 }

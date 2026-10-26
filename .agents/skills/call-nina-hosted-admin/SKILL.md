@@ -1,15 +1,15 @@
 ---
-name: call-nina-managed-service
-description: Maintain Call Nina's managed starter API, deployment configuration, Gateway funding, PostgreSQL budget ledger, and bounded real-service verification. Use for service work, not ordinary personal AI connections or automatic deployment.
+name: call-nina-hosted-admin
+description: Maintain Call Nina's hosted API, runtime, authentication, combined hosting, Gateway funding, and PostgreSQL accounting. Use for hosted implementation work; use nina-admin for operator actions.
 ---
 
-# Call Nina managed service
+# Call Nina hosted API and administration
 
-Read the development skill for general repository and service-configuration policy. Inspect `apps/managed-service/{deployment.ts,desired.json,plan.ts,api/generate.ts}`, `packages/managed-generation/src/` and `packages/managed-generation/sql/001-budget.sql`. Desktop dispatch lives in `apps/desktop/src/main/backend.ts`. Current source and remote readback establish availability, not a plan or static catalog.
+Read the development skill for general repository and service-configuration policy. Inspect `apps/api/{deployment.ts,desired.json,api/generate.ts}`, `packages/managed-generation/src/` and `packages/managed-generation/sql/001-budget.sql`. Desktop dispatch lives in `apps/desktop/src/main/backend.ts`. Current source and remote readback establish availability, not a plan or static catalog.
 
 ## Configuration and secrets
 
-This is a separate service from the static website. `desired.json` currently disables preview and production; desktop defaults have no enabled endpoint/model. `pnpm --filter @call-nina/managed-service run plan` compiles source and prints desired changes and parameterized budget-row SQL; it does not provision, read secrets, apply SQL, deploy or call inference. Keep the starter unavailable until a selected deployment and model are verified; never fall back to personal keys or another route.
+The account and generation API share the existing `call-nina` Vercel project with the static website. The combined package includes both endpoints; never upload a static-only artifact. `desired.json` currently disables preview and production; desktop defaults have no enabled endpoint/model. `node scripts/admin/index.mjs infra plan` compiles source and prints desired changes and parameterized budget-row SQL; it does not provision, read secrets, apply SQL, deploy or call inference. Keep the starter unavailable until a selected deployment and model are verified; never fall back to personal keys or another route.
 
 Keep desired configuration beside the integration. Pin the selected project/team, exact HTTPS origin, direct Vercel ingress, isolated Gateway funding, one model/provider, expiring authoritative cost evidence and numerical limits using the current schemas. Preview and production require separate database roles, budget epochs and Gateway funding/credentials. Local environments are unavailable. Review a concrete diff and read back remote settings under the user's deployment authorization; do not introduce approval tickets or infer permission from repository presence.
 
@@ -17,7 +17,7 @@ Required server-only secrets come from the maintainer through the selected envir
 
 | Name                             | Provision source                                                                                                            |
 | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `NINA_STARTER_GATEWAY_API_KEY`   | Dedicated service-owned Gateway scope, never a learner key or ambient developer credential                                  |
+| `NINA_STARTER_GATEWAY_API_KEY`   | Service-owned Gateway scope, never a learner key or ambient developer credential                                            |
 | `NINA_STARTER_DATABASE_URL`      | Selected PostgreSQL primary's restricted service role with explicit credentials and verified TLS; no query-string overrides |
 | `NINA_STARTER_THROTTLE_HMAC_KEY` | Maintainer-generated random 32-byte secret, encoded as 64 lowercase hex characters and stable across instances              |
 
@@ -39,14 +39,20 @@ Preserve these accounting invariants:
 - Keep reservation IDs for their budget epoch. Disable the old epoch and drain admitted work before replacement. Do not reset a live ledger; overlapping epochs have independently funded caps. Epoch retirement requires an explicit accounting decision.
 - Disable the durable budget row to stop new admissions and repairs across instances. An environment switch alone waits for old instances to drain; already admitted work may still bill.
 
-The database stores budget/control state, random identifiers, charges, timestamps and rotating keyed throttle hashes, never profiles, prompts, output, raw IPs or personal credentials.
+The database stores Clerk user IDs, account access state, append-only action grants, request metadata, reported usage, conservative charges and rotating keyed throttle hashes; never learning profiles, prompts, output, raw IPs or personal provider credentials.
 
 ## Ingress, desktop and verification
 
 Only the Vercel entrypoint extracts `x-vercel-forwarded-for`, after matching server-owned environment/project/team/origin. Require direct Vercel ingress without a custom trusted proxy or alternate origin bypass, and verify spoofed-header rejection against the actual deployment. Consult [Vercel request headers](https://vercel.com/docs/headers/request-headers#x-vercel-forwarded-for); do not transplant this assumption into a generic Node server.
 
-IP throttling is abuse friction, not identity or per-person quotas. NATs share limits and rotating addresses can evade them. CORS, an install ID or a desktop-shipped secret does not authenticate anonymous native clients. Keep global durable limits and infrastructure flood controls, with honest unavailability when limits are reached.
+Clerk session verification establishes identity; PostgreSQL account status and action balances authorize managed use. IP throttling remains additional abuse friction. NATs share limits and rotating addresses can evade them. CORS, an install ID or a desktop-shipped secret does not authenticate anonymous native clients. Keep global durable limits and infrastructure flood controls, with honest unavailability when limits are reached.
 
 Desktop `ManagedGenerationService` captures connection/root, preserves submissions, validates output locally, supports explicit retry/cancellation and never reads personal keys. A configured catalog is not a live probe. Verify deadlines, actual platform disconnect propagation, shutdown, exhaustion, concurrent admission, restarts, secret isolation and model quality through bounded real interactions; no automated application suites, fake services or learner database manipulation.
 
-The user approved a narrow exception for the anonymous starter pilot: real calls may use its explicitly selected managed model/provider instead of direct ChatGPT GPT-6 Luna, only after model costs, deployment and a bounded verification allocation within the approved total budget are settled. This permits no other provider/model substitution. Use the Electron skill's ownership, settings restoration and session-record cleanup for desktop interactions. Inspect the controller before use: its current `prepare-ai` forces direct ChatGPT, so adapt the owned verification path explicitly before claiming managed-route verification. Never misreport the route used. Service-only checks must not mutate personal learner storage. Keep public activation and scheduled renewal out of documentation-only work.
+The user approved a narrow exception for the managed pilot: real calls may use its explicitly selected managed model/provider instead of direct ChatGPT GPT-6 Luna, only after model costs, deployment and a bounded verification allocation within the approved total budget are settled. This permits no other provider/model substitution. Use the Electron skill's ownership, settings restoration and session-record cleanup for desktop interactions. Inspect the controller before use: its current `prepare-ai` forces direct ChatGPT, so adapt the owned verification path explicitly before claiming managed-route verification. Never misreport the route used. Service-only checks must not mutate personal learner storage. Keep public activation and scheduled renewal out of documentation-only work.
+
+## Nina accounts and operator commands
+
+Desktop Nina login is optional and independent of learner roots, ChatGPT sessions and connection selection. `@clerk/electron` owns native username/password authentication and encrypted device token persistence; the main process receives only short-lived session JWTs through validated IPC and verifies identity through `/api/account`. Public configuration lives in `packages/contracts/src/nina-public.json`; null configuration keeps login/inference unavailable. Account changes invalidate captured managed work, never personal routes or learner records. Use the existing UI controls and all interface locales.
+
+For account operations, provisioning, configuration and deployment, use [nina-admin](../nina-admin/SKILL.md). That skill owns operator workflows and credential handling.

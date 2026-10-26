@@ -1685,7 +1685,7 @@
       "removing": "Eliminando archivos del modelo…",
       "unavailable": "La gestión del modelo local no está disponible en este dispositivo."
     },
-    "managedUnavailable": "El servicio inicial de Nina no está habilitado. No se pueden enviar solicitudes.",
+    "managedUnavailable": "La IA gestionada requiere una cuenta Nina aprobada y acciones disponibles. El administrador del piloto controla la activación.",
     "remove": "Eliminar conexión",
     "removeWarning": "¿Eliminar esta conexión guardada? Los datos de aprendizaje permanecen. Una clave API guardada para esta conexión se eliminará del dispositivo. Eliminar una conexión ChatGPT mantiene la sesión de Nina.",
     "successor": "Siguiente conexión activa",
@@ -1698,7 +1698,7 @@
       "anthropic": "API de Anthropic",
       "google": "API de Google",
       "local": "Modelo descargado",
-      "managed": "Inicio de Nina",
+      "managed": "IA de Nina",
       "chatgpt": "ChatGPT"
     },
     "destination": {
@@ -1707,7 +1707,7 @@
       "anthropic": "Las solicitudes de IA irían directamente a Anthropic.",
       "google": "Las solicitudes de IA irían directamente a Google.",
       "local": "Las solicitudes de IA se ejecutarían en este dispositivo.",
-      "managed": "Las solicitudes de IA irían al servicio inicial de Nina.",
+      "managed": "Las solicitudes pasan por el servicio de Nina y AI Gateway.",
       "chatgpt": "Las solicitudes de IA se envían directamente a OpenAI."
     },
     "cost": {
@@ -1716,7 +1716,7 @@
       "anthropic": "Anthropic puede cobrar el uso directo de la API.",
       "google": "Google puede cobrar el uso directo de la API.",
       "local": "La IA local no usa una API externa, pero requiere un modelo descargado y recursos del dispositivo.",
-      "managed": "El inicio de Nina está pensado como opción gratuita limitada cuando se habilite.",
+      "managed": "Usa tu cuota de acciones del piloto; no utiliza tus credenciales personales.",
       "chatgpt": "Se aplican tu plan de ChatGPT y sus límites de uso en aplicaciones. Las solicitudes de IA van directamente a OpenAI."
     },
     "status": {
@@ -1839,5 +1839,55 @@
     "answer": "Tu respuesta",
     "review": "Revisión",
     "writingViews": "Vistas de escritura"
+  },
+  "ninaAccount": {
+    "title": "Cuenta de Nina",
+    "description": "Accede a la IA financiada por Nina. Tus conexiones personales de IA funcionan de forma independiente.",
+    "unconfigured": "El inicio de sesión del piloto aún no está configurado.",
+    "error": "No se pudo completar la acción. Revisa tus credenciales o contacta al administrador del piloto.",
+    "signedIn": "Sesión iniciada como {{username}}",
+    "remaining": "Acciones de IA restantes: {{count}}",
+    "pending": "La IA gestionada está pendiente de activación.",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "recovery": "El administrador del piloto proporciona credenciales y restablece contraseñas.",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "signed-out": "Sesión cerrada",
+    "signing-in": "Iniciando sesión…",
+    "signed-in": "Cuenta conectada",
+    "expired": "Sesión caducada. Inicia sesión de nuevo.",
+    "unavailable": "Servicio de cuentas no disponible temporalmente.",
+    "approved": "Acceso gestionado aprobado",
+    "unapproved": "Pendiente de aprobación",
+    "suspended": "Acceso gestionado suspendido",
+    "exhausted": "Cuota de IA agotada",
+    "loginStage": {
+      "initialization": "Preparando el acceso",
+      "desktop": "Conectando con Nina",
+      "credentials": "Comprobando tus credenciales",
+      "session": "Activando tu sesión",
+      "cleanup": "Restableciendo el acceso"
+    },
+    "loginOutcome": {
+      "started": "Esperando una respuesta…",
+      "completed": "Este paso se completó.",
+      "slow": "Está tardando más de lo esperado. Cancela el acceso y vuelve a intentarlo cuando quieras.",
+      "failed": "Este paso falló."
+    },
+    "loginReason": {
+      "credentials": "El servicio rechazó el usuario o la contraseña.",
+      "rate-limit": "Demasiados intentos. Espera antes de volver a intentarlo.",
+      "network": "No se pudo contactar con el servicio de acceso. Comprueba tu conexión.",
+      "additional-step": "Tu cuenta necesita otro paso de verificación que este formulario no admite. Contacta con la administración del piloto.",
+      "unknown": "No se recibió un motivo de error reconocido. Comparte el código de diagnóstico de arriba."
+    },
+    "cancelLogin": "Cancelar acceso",
+    "retry": "Reintentar acceso",
+    "cancelled": "Cancelado. Tus datos siguen aquí.",
+    "diagnosticDetails": "Detalles de diagnóstico",
+    "loginFailedTitle": "No se pudo iniciar sesión",
+    "cancellingRequest": "Cancelado. Esperando a que termine la solicitud anterior antes de reintentar.",
+    "initializationFailed": "No se pudo iniciar el acceso. Vuelve a intentarlo en un momento."
   }
 }

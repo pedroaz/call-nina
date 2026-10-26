@@ -1,3 +1,4 @@
+import type { NinaAccount } from "../nina-account.js";
 import {
   type AiConnection,
   type CorrelationId,
@@ -19,6 +20,7 @@ interface Dependencies {
   database: () => CallNinaDatabase | undefined;
   closing: () => boolean;
   chatgpt: ChatgptSession;
+  nina: NinaAccount;
   offline: OfflineRuntime;
   secrets: ConnectionSecretStorage;
   requireActiveConnection: () => Promise<AiConnection>;
@@ -84,11 +86,14 @@ export class ConnectionRuntime {
     }
     if (connection.routeId === "managed" && this.#database) {
       const database = this.#database;
+      const epoch = this.#dependencies.nina.epoch;
       const service = new ManagedGenerationService({
+        readToken: () => this.#dependencies.nina.token(epoch),
         connectionId: connection.id,
         rootGeneration: database.rootGeneration,
-        // Connection mutations wait for settlement; root changes invalidate the lease.
+        // Connection mutations wait for settlement; root/account changes invalidate the lease.
         assertActive: () => {
+          this.#dependencies.nina.assert(epoch);
           if (this.#closing || database !== this.#database || database.closed)
             throw new Error("OD_DATA_ROOT_STALE");
         },

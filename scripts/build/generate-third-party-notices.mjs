@@ -114,7 +114,7 @@ const lines = [
   "# Call Nina third-party notices",
   "",
   `This inventory covers the ${String(packages.length)} package versions bundled into, or providing the Electron runtime for, the local application from the pinned pnpm lockfile. Build-only quality and packaging tools are excluded. Each dependency remains under its own license; consult the package metadata and upstream repository for the complete license text. This file is regenerated with ` +
-    "`pnpm run generate:third-party-notices`.",
+    "`make generate third-party-notices`.",
   "",
   "## Application and assets",
   "",

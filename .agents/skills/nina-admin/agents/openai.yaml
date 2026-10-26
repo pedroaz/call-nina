@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nina Admin"
+  short_description: "Operate Nina accounts and hosted infrastructure"
+  default_prompt: "Use $nina-admin to carry out the requested Nina administration operation."

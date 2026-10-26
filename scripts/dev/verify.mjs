@@ -758,11 +758,11 @@ try {
       : safeCode(error, "VERIFY_COMMAND_FAILED");
   if (code === "VERIFY_RESERVATION_ALREADY_HELD")
     process.stderr.write(
-      "Managed session reserved: run make verify-session-status for ownership, cleanup and the supported recovery action. Source work and existing-window visual inspection remain available. No application was started.\n",
+      "Managed session reserved: run make verify manual-status for ownership, cleanup and the supported recovery action. Source work and existing-window visual inspection remain available. No application was started.\n",
     );
   if (code === "VERIFY_JOURNAL_QUARANTINE_REQUIRED")
     process.stderr.write(
-      "This checkout has an incompatible journal. Inspect make verify-session-status; use explicit fingerprint-bound quarantine to retain it without changing learner data.\n",
+      "This checkout has an incompatible journal. Inspect make verify manual-status; use explicit fingerprint-bound quarantine to retain it without changing learner data.\n",
     );
   if (code === "VERIFY_OPERATION_BUSY")
     process.stderr.write(
@@ -770,7 +770,7 @@ try {
     );
   if (code === "VERIFY_COMMAND_FAILED")
     process.stderr.write(
-      "Inspect make logs ARGS='--scope history --component lifecycle' and .runtime/logs/verify.log for startup/build diagnostics.\n",
+      "Inspect make logs -- --scope history --component lifecycle and .runtime/logs/verify.log for startup/build diagnostics.\n",
     );
   process.stderr.write(code + "\n");
   process.exitCode = 1;

@@ -95,11 +95,84 @@
 .aiSetup section {
   min-width: 0;
 }
+.aiConnections {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-6);
+}
 .accountAccess p {
   margin: 0;
 }
+.ninaAccount {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--od-space-4);
+  align-items: start;
+}
+.ninaAccountIntro,
+.ninaAccountForm {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.ninaAccountIntro {
+  gap: var(--od-space-2);
+}
+.ninaAccountIntro h2,
+.ninaAccountIntro p,
+.ninaAccountFooter p {
+  margin: 0;
+}
+.ninaAccountIntro h2 {
+  font-size: var(--od-type-section-title-size);
+  line-height: var(--od-type-section-title-line);
+  font-weight: var(--od-font-weight-semibold);
+}
+.ninaAccountIntro p,
+.ninaAccountFooter p {
+  font-size: var(--od-font-size-sm);
+  line-height: var(--od-type-body-small-line);
+}
+.ninaAccountFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--od-space-4);
+}
+.ninaAccountSummary,
+.ninaAccountFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.ninaAccountSummary {
+  flex-wrap: wrap;
+}
+.ninaAccountSummary p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.loginStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  color: var(--od-color-text-muted);
+}
+.loginStatus svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
 .connectionStatus {
-  font-weight: var(--od-weight-strong);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  font-weight: var(--od-weight-medium);
   display: flex;
   align-items: center;
   gap: var(--od-space-3);
@@ -120,9 +193,8 @@
 }
 .accountSummary {
   justify-content: space-between;
-  padding: var(--od-space-4) var(--od-space-5);
-  background: var(--od-color-surface-brand);
-  border-radius: var(--od-radius-md);
+  min-height: var(--od-control-min);
+  min-width: 0;
 }
 .accountTools {
   flex-wrap: wrap;
@@ -150,14 +222,23 @@
 }
 
 @media (max-width: 52rem) {
+  .ninaAccount,
+  .ninaAccountFields,
   .settingsControls,
   .modelRow {
     grid-template-columns: 1fr;
   }
 }
 @container workspace (max-width: 42rem) {
+  .ninaAccount,
+  .ninaAccountFields,
   .settingsControls,
   .modelRow {
     grid-template-columns: 1fr;
+  }
+  .ninaAccountSummary,
+  .ninaAccountFooter {
+    align-items: start;
+    flex-direction: column;
   }
 }

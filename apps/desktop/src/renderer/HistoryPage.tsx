@@ -13,6 +13,7 @@ import { History, Repeat2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  SelectControl,
   DiagnosticCode,
   Button,
   Disclosure,
@@ -345,7 +346,7 @@ export function HistoryPage({
       >
         <FieldGroup>
           {t("history.filters.skill")}
-          <select
+          <SelectControl
             value={skill}
             onChange={(event) => {
               setSkill(event.target.value as Skill | "");
@@ -357,11 +358,11 @@ export function HistoryPage({
                 {t(`history.skills.${value}`)}
               </option>
             ))}
-          </select>
+          </SelectControl>
         </FieldGroup>
         <FieldGroup>
           {t("history.filters.activityType")}
-          <select
+          <SelectControl
             value={activityType}
             onChange={(event) => {
               setActivityType(event.target.value as ActivityType | "");
@@ -373,7 +374,7 @@ export function HistoryPage({
                 {t(`history.activityTypes.${value}`)}
               </option>
             ))}
-          </select>
+          </SelectControl>
         </FieldGroup>
         <Button variant="primary" isDisabled={busy} type="submit">
           {t("history.filters.apply")}

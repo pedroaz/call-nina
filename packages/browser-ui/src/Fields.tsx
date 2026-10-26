@@ -1,5 +1,6 @@
 import {
   useId,
+  type ComponentPropsWithRef,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
@@ -125,6 +126,10 @@ export function TextAreaField({
   );
 }
 
+export function SelectControl({ className, ...props }: ComponentPropsWithRef<"select">) {
+  return <select {...props} className={`${styles.control} ${styles.select} ${className ?? ""}`} />;
+}
+
 type SelectFieldProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "id"> & {
   label: string;
   description?: string | undefined;
@@ -153,15 +158,15 @@ export function SelectField({
       id={id}
       label={label}
     >
-      <select
+      <SelectControl
         {...selectProps}
         aria-describedby={describedBy(id, description, error)}
         aria-invalid={Boolean(error) || undefined}
-        className={`${styles.control} ${error ? styles.invalid : ""}`}
+        className={error ? styles.invalid : undefined}
         id={id}
       >
         {children}
-      </select>
+      </SelectControl>
     </FieldFrame>
   );
 }

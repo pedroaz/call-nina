@@ -10,7 +10,7 @@
   min-width: 0;
 }
 .panel {
-  gap: var(--od-space-5);
+  gap: var(--od-space-4);
 }
 .connectionPicker {
   display: grid;
@@ -28,6 +28,8 @@
 }
 .connectionHeading h3 {
   flex: 1;
+  min-width: 0;
+  font-weight: var(--od-font-weight-semibold);
   font-size: var(--od-type-section-title-size);
   line-height: var(--od-type-section-title-line);
 }
@@ -52,7 +54,9 @@
   padding-top: var(--od-space-5);
 }
 .modelHeading h3 {
-  font-size: var(--od-font-size-md);
+  font-size: var(--od-type-subsection-title-size);
+  line-height: var(--od-type-subsection-title-line);
+  font-weight: var(--od-font-weight-semibold);
 }
 .modelHeading svg {
   width: 20px;
@@ -63,11 +67,11 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
-  gap: var(--od-space-5);
+  gap: var(--od-space-4);
 }
 .detailsBody {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-4);
   min-width: 0;
 }
 .notice {
@@ -110,7 +114,7 @@
   padding-top: var(--od-space-3);
 }
 .editor {
-  gap: var(--od-space-5);
+  gap: var(--od-space-4);
 }
 .editor > button,
 .remove > button {
@@ -120,7 +124,7 @@
   justify-self: start;
 }
 
-@container workspace (max-width: 35rem) {
+@container workspace (max-width: 42rem) {
   .modelControls,
   .connectionPicker {
     grid-template-columns: minmax(0, 1fr);

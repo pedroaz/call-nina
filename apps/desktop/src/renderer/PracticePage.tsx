@@ -42,6 +42,7 @@ import {
 import { ExerciseEngine } from "./ExerciseEngine.js";
 import styles from "./PracticePage.module.css";
 import {
+  SelectControl,
   Button,
   Tabs,
   ConfirmDialog,
@@ -640,7 +641,7 @@ export function PracticePage({
     <div className={styles.practiceControls}>
       <FieldGroup>
         {t("practice.targetLevel")}
-        <select
+        <SelectControl
           value={targetLevel}
           disabled={formBusy}
           onChange={(event) => {
@@ -653,7 +654,7 @@ export function PracticePage({
               {level.toUpperCase()}
             </option>
           ))}
-        </select>
+        </SelectControl>
       </FieldGroup>
       {selectedKind !== "listening" && selectedKind !== "speaking" && quizLengthControl}
     </div>

@@ -11,6 +11,9 @@ export async function generateGatewayAttempt(options: {
   apiKey: string;
   attempt: LearningAttempt;
   signal: AbortSignal;
+  userId: string;
+  operation: string;
+  recordUsage: (usage: GatewayUsage) => void;
 }): Promise<string> {
   const { policy, apiKey, attempt, signal } = options;
   let transportFailure: ManagedFailure | undefined;
@@ -55,13 +58,30 @@ export async function generateGatewayAttempt(options: {
         schema: jsonSchema(attempt.outputSchema as Parameters<typeof jsonSchema>[0]),
       }),
       providerOptions: {
-        gateway: { only: [policy.model.provider], order: [policy.model.provider], models: [] },
+        gateway: {
+          user: options.userId,
+          tags: [options.operation],
+          only: [policy.model.provider],
+          order: [policy.model.provider],
+          models: [],
+        },
       },
       maxOutputTokens: limits.outputTokens,
       maxRetries: 0,
       abortSignal: signal,
       telemetry: { isEnabled: false, recordInputs: false, recordOutputs: false, integrations: [] },
       include: { requestBody: false, responseBody: false },
+    });
+    const metadata = result.providerMetadata?.["gateway"];
+    const cost = metadata?.["cost"];
+    options.recordUsage({
+      inputTokens: result.usage.inputTokens ?? null,
+      outputTokens: result.usage.outputTokens ?? null,
+      costUsd:
+        (typeof cost === "string" && /^\d+(\.\d+)?$/u.test(cost)) ||
+        (typeof cost === "number" && Number.isFinite(cost) && cost >= 0)
+          ? String(cost)
+          : null,
     });
     signal.throwIfAborted();
     if (
@@ -83,3 +103,9 @@ export async function generateGatewayAttempt(options: {
     throw new ManagedFailure("unavailable");
   }
 }
+
+export type GatewayUsage = {
+  inputTokens: number | null;
+  outputTokens: number | null;
+  costUsd: string | null;
+};

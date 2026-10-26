@@ -11,6 +11,7 @@ import {
 } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import {
+  SelectControl,
   Button,
   Card,
   CheckboxField,
@@ -519,7 +520,7 @@ export function ProfileOnboarding({
                   }
                   <FieldGroup>
                     <span>{t("onboarding.level")}</span>
-                    <select
+                    <SelectControl
                       aria-label={t("onboarding.level")}
                       value={choices.approximateLevel}
                       onChange={(event) => {
@@ -534,7 +535,7 @@ export function ProfileOnboarding({
                           {level.toUpperCase()}
                         </option>
                       ))}
-                    </select>
+                    </SelectControl>
                   </FieldGroup>
                   <p>{t("onboarding.levelHint")}</p>
                   <FieldGroup>
@@ -559,7 +560,7 @@ export function ProfileOnboarding({
                   <legend>{t("onboarding.teachingTitle")}</legend>
                   <FieldGroup>
                     <span>{t("onboarding.teachingTitle")}</span>
-                    <select
+                    <SelectControl
                       aria-label={t("onboarding.teachingTitle")}
                       value={choices.defaultTeachingProfileId}
                       onChange={(event) => {
@@ -574,7 +575,7 @@ export function ProfileOnboarding({
                           {t(`onboarding.profiles.${style}.title`)}
                         </option>
                       ))}
-                    </select>
+                    </SelectControl>
                   </FieldGroup>
                   <p>{t(`onboarding.profiles.${choices.defaultTeachingProfileId}.body`)}</p>
                   <LanguageSelect

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Call Nina Hosted API Development"
+  short_description: "Maintain hosted runtime and accounting boundaries"
+  default_prompt: "Use $call-nina-hosted-admin to inspect or update the requested hosted API implementation."

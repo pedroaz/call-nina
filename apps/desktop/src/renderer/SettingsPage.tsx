@@ -1,3 +1,4 @@
+import { NinaAccountSettings } from "./NinaAccount.js";
 import { Disclosure } from "./components/ui/Disclosure.js";
 import { ConnectionSettings } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
+  SelectControl,
   Tabs,
   InfoHint,
   DiagnosticCode,
@@ -484,7 +486,7 @@ export function SettingsPage({
                       />
                       <FieldGroup>
                         <span>{t("onboarding.level")}</span>
-                        <select
+                        <SelectControl
                           value={draft.approximateLevel}
                           onChange={(event) => {
                             setProfile(
@@ -498,7 +500,7 @@ export function SettingsPage({
                               {value.toUpperCase()}
                             </option>
                           ))}
-                        </select>
+                        </SelectControl>
                       </FieldGroup>
                       <FieldGroup>
                         <span>{t("onboarding.goal")}</span>
@@ -514,7 +516,7 @@ export function SettingsPage({
 
                       <FieldGroup>
                         <span>{t("settings.teachingProfile")}</span>
-                        <select
+                        <SelectControl
                           value={draft.defaultTeachingProfileId}
                           onChange={(event) => {
                             setProfile(
@@ -530,7 +532,7 @@ export function SettingsPage({
                           <option value="strict-corrector">
                             {t("onboarding.profiles.strict-corrector.title")}
                           </option>
-                        </select>
+                        </SelectControl>
                       </FieldGroup>
                       <LanguageSelect
                         label={t("onboarding.explanationLanguage")}
@@ -586,7 +588,8 @@ export function SettingsPage({
             icon: <Plug aria-hidden="true" />,
             children: (
               <div className={styles.aiSetup}>
-                <section aria-label={t("settings.aiTitle")}>
+                <NinaAccountSettings />
+                <Section className={styles.aiConnections} aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
                     surface={false}
                     active={selectedTab === "ai"}
@@ -730,7 +733,7 @@ export function SettingsPage({
                       );
                     }}
                   />
-                </section>
+                </Section>
                 <Disclosure
                   className={styles.optionalIntegration}
                   variant="plain"

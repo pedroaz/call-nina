@@ -1,0 +1,13 @@
+{
+  "name": "@call-nina/api",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@call-nina/contracts": "workspace:*",
+    "@call-nina/managed-generation": "workspace:*"
+  }
+}

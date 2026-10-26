@@ -1685,7 +1685,7 @@
       "removing": "Removendo arquivos do modelo…",
       "unavailable": "O gerenciamento do modelo local não está disponível neste dispositivo."
     },
-    "managedUnavailable": "O serviço inicial da Nina não está ativado. Nenhuma solicitação pode ser enviada.",
+    "managedUnavailable": "A IA gerenciada exige uma conta Nina aprovada e ações disponíveis. O administrador do piloto controla a ativação.",
     "remove": "Remover conexão",
     "removeWarning": "Remover esta conexão salva? Os dados de aprendizagem permanecem. Uma chave de API salva para esta conexão será removida do dispositivo. Remover uma conexão ChatGPT mantém a sessão da Nina.",
     "successor": "Próxima conexão ativa",
@@ -1698,7 +1698,7 @@
       "anthropic": "API Anthropic",
       "google": "API Google",
       "local": "Modelo baixado",
-      "managed": "Nina inicial",
+      "managed": "IA da Nina",
       "chatgpt": "ChatGPT"
     },
     "destination": {
@@ -1707,7 +1707,7 @@
       "anthropic": "As solicitações de IA iriam diretamente para a Anthropic.",
       "google": "As solicitações de IA iriam diretamente para o Google.",
       "local": "As solicitações de IA seriam executadas neste dispositivo.",
-      "managed": "As solicitações de IA iriam para o serviço inicial da Nina.",
+      "managed": "As solicitações passam pelo serviço da Nina e pelo AI Gateway.",
       "chatgpt": "As solicitações de IA são enviadas diretamente à OpenAI."
     },
     "cost": {
@@ -1716,7 +1716,7 @@
       "anthropic": "A Anthropic pode cobrar o uso direto da API.",
       "google": "O Google pode cobrar o uso direto da API.",
       "local": "A IA local não usa API de provedor, mas precisa de um modelo baixado e recursos do dispositivo.",
-      "managed": "O Nina inicial está previsto como opção gratuita limitada quando ativado.",
+      "managed": "Usa sua cota de ações do piloto; não utiliza suas credenciais pessoais.",
       "chatgpt": "Seu plano do ChatGPT e os limites de uso em aplicativos se aplicam. As solicitações de IA vão diretamente para a OpenAI."
     },
     "status": {
@@ -1839,5 +1839,55 @@
     "answer": "Sua resposta",
     "review": "Revisão",
     "writingViews": "Visualizações de escrita"
+  },
+  "ninaAccount": {
+    "title": "Conta Nina",
+    "description": "Entre para usar a IA financiada pela Nina. Suas conexões pessoais de IA funcionam de forma independente.",
+    "unconfigured": "O login do piloto ainda não foi configurado.",
+    "error": "Não foi possível concluir a ação. Confira suas credenciais ou contate o administrador do piloto.",
+    "signedIn": "Conectado como {{username}}",
+    "remaining": "Ações de IA restantes: {{count}}",
+    "pending": "A IA gerenciada aguarda ativação.",
+    "username": "Nome de usuário",
+    "password": "Senha",
+    "recovery": "O administrador do piloto fornece credenciais e redefine senhas.",
+    "signIn": "Entrar",
+    "signOut": "Sair",
+    "signed-out": "Desconectado",
+    "signing-in": "Entrando…",
+    "signed-in": "Conta conectada",
+    "expired": "Sessão expirada. Entre novamente.",
+    "unavailable": "Serviço de contas temporariamente indisponível.",
+    "approved": "Acesso gerenciado aprovado",
+    "unapproved": "Aguardando aprovação",
+    "suspended": "Acesso gerenciado suspenso",
+    "exhausted": "Cota de IA esgotada",
+    "loginStage": {
+      "initialization": "Preparando o login",
+      "desktop": "Conectando à Nina",
+      "credentials": "Verificando suas credenciais",
+      "session": "Ativando sua sessão",
+      "cleanup": "Redefinindo o login"
+    },
+    "loginOutcome": {
+      "started": "Aguardando uma resposta…",
+      "completed": "Esta etapa foi concluída.",
+      "slow": "Está demorando mais que o esperado. Cancele o login e tente novamente quando quiser.",
+      "failed": "Esta etapa falhou."
+    },
+    "loginReason": {
+      "credentials": "O serviço recusou o nome de usuário ou a senha.",
+      "rate-limit": "Muitas tentativas. Aguarde antes de tentar novamente.",
+      "network": "Não foi possível acessar o serviço de login. Verifique sua conexão.",
+      "additional-step": "Sua conta exige outra etapa de verificação que este formulário não suporta. Entre em contato com a administração do piloto.",
+      "unknown": "Nenhum motivo de erro conhecido foi retornado. Compartilhe o código de diagnóstico acima."
+    },
+    "cancelLogin": "Cancelar login",
+    "retry": "Tentar login novamente",
+    "cancelled": "Cancelado. Seus dados continuam aqui.",
+    "diagnosticDetails": "Detalhes do diagnóstico",
+    "loginFailedTitle": "Não foi possível entrar",
+    "cancellingRequest": "Cancelado. Aguardando a solicitação anterior terminar antes de tentar novamente.",
+    "initializationFailed": "Não foi possível iniciar o login. Tente novamente em instantes."
   }
 }

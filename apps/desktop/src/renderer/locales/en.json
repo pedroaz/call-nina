@@ -1685,7 +1685,7 @@
       "removing": "Removing model files…",
       "unavailable": "Local model management is unavailable on this device."
     },
-    "managedUnavailable": "The Nina starter service is not enabled. No starter request can be sent.",
+    "managedUnavailable": "Nina-managed AI requires an approved Nina account and available AI actions. Service activation is controlled by the pilot administrator.",
     "remove": "Remove connection",
     "removeWarning": "Remove this saved connection? Learning records stay. A saved API key for this connection will be removed from this device. Removing a ChatGPT connection keeps Nina’s sign-in.",
     "successor": "Next active connection",
@@ -1698,7 +1698,7 @@
       "anthropic": "Anthropic API",
       "google": "Google API",
       "local": "Downloaded model",
-      "managed": "Nina starter",
+      "managed": "Nina-managed AI",
       "chatgpt": "ChatGPT"
     },
     "destination": {
@@ -1707,7 +1707,7 @@
       "anthropic": "AI requests would go directly to Anthropic.",
       "google": "AI requests would go directly to Google.",
       "local": "AI requests would run on this device.",
-      "managed": "AI requests would go to the Nina starter service.",
+      "managed": "AI requests go through Nina’s managed service and AI Gateway.",
       "chatgpt": "AI requests go directly to OpenAI."
     },
     "cost": {
@@ -1716,7 +1716,7 @@
       "anthropic": "Direct API usage may be charged by Anthropic.",
       "google": "Direct API usage may be charged by Google.",
       "local": "Local inference does not use a provider API, but requires a downloaded model and device resources.",
-      "managed": "Nina starter is intended as a bounded free option when enabled.",
+      "managed": "Uses your pilot AI-action allowance; your personal provider credentials are not used.",
       "chatgpt": "Uses your ChatGPT plan and app limits. AI requests go directly to OpenAI."
     },
     "status": {
@@ -1839,5 +1839,55 @@
     "answer": "Your answer",
     "review": "Review",
     "writingViews": "Writing views"
+  },
+  "ninaAccount": {
+    "title": "Nina account",
+    "description": "Sign in for Nina-funded AI. Your personal AI connections work independently.",
+    "unconfigured": "Pilot login has not been configured yet.",
+    "error": "Could not complete this action. Check your credentials or contact the pilot administrator.",
+    "signedIn": "Signed in as {{username}}",
+    "remaining": "AI actions remaining: {{count}}",
+    "pending": "Managed AI is awaiting activation.",
+    "username": "Username",
+    "password": "Password",
+    "recovery": "Your pilot administrator provides credentials and password resets.",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signed-out": "Signed out",
+    "signing-in": "Signing in…",
+    "signed-in": "Account connected",
+    "expired": "Session expired. Sign in again.",
+    "unavailable": "Account service temporarily unavailable.",
+    "approved": "Managed access approved",
+    "unapproved": "Awaiting approval",
+    "suspended": "Managed access suspended",
+    "exhausted": "AI allowance exhausted",
+    "loginStage": {
+      "initialization": "Preparing sign-in",
+      "desktop": "Connecting to Nina",
+      "credentials": "Checking your credentials",
+      "session": "Activating your session",
+      "cleanup": "Resetting sign-in"
+    },
+    "loginOutcome": {
+      "started": "Waiting for a response…",
+      "completed": "This step completed.",
+      "slow": "This is taking longer than expected. Cancel login, then retry when you’re ready.",
+      "failed": "This step failed."
+    },
+    "loginReason": {
+      "credentials": "The sign-in service rejected the username or password.",
+      "rate-limit": "Too many attempts. Wait before trying again.",
+      "network": "The sign-in service could not be reached. Check your connection.",
+      "additional-step": "Your account requires another verification step that this form does not support. Contact your pilot administrator.",
+      "unknown": "No recognized error reason was returned. Share the diagnostic code above."
+    },
+    "cancelLogin": "Cancel login",
+    "retry": "Retry login",
+    "cancelled": "Cancelled. Your details are still here.",
+    "diagnosticDetails": "Diagnostic details",
+    "loginFailedTitle": "Unable to sign in",
+    "cancellingRequest": "Cancelled. Waiting for the previous request to finish before retrying.",
+    "initializationFailed": "Sign-in could not start. Try again in a moment."
   }
 }

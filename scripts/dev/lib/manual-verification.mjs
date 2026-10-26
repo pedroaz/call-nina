@@ -90,12 +90,12 @@ export function manualVerificationStatus() {
     next: gate
       ? gate.mode !== "manual"
         ? "Retired session retained: preserve ownership and private evidence; do not adopt or delete its resources."
-        : "Use verify-manual-recover ARGS='--run <reported-manual-run>' after exact stop; active sessions are not adopted."
+        : "Use make verify manual-recover -- --run <reported-manual-run> after exact stop; active sessions are not adopted."
       : local.state === "incompatible"
         ? "Inspect the retained journal, then explicitly quarantine by its reported fingerprint; no learner records are deleted."
         : local.state === "pending"
-          ? "Run verify-manual-enter, then verify-resume to recover this checkout using current source."
-          : "Run verify-manual-enter then verify-start for a controlled session.",
+          ? "Run make verify manual-enter, then make verify resume to recover this checkout using current source."
+          : "Run make verify manual-enter then make verify start for a controlled session.",
   };
 }
 function archive(kind, target, gate, proof) {
@@ -152,7 +152,7 @@ async function releaseStopped(gate, kind) {
     recoveryId: entry.id,
     next:
       entry.cleanup === "clean"
-        ? "verify-manual-enter"
+        ? "make verify manual-enter"
         : "The original checkout retains its journal. Enter there and resume; independent work may continue.",
   };
 }
@@ -179,7 +179,7 @@ export function enterManualVerification() {
     baseHead: gate.head,
     sourceDigest: gate.sourceDigest,
     cleanup: local.state,
-    next: local.state === "pending" ? "verify-resume" : "verify-start",
+    next: local.state === "pending" ? "make verify resume" : "make verify start",
   };
 }
 export function markManualVerificationStarted(expected) {
@@ -232,6 +232,6 @@ export function quarantineManualJournal(expectedFingerprint, selectedWorktree = 
     recoveryId: entry.id,
     cleanup: "unresolved",
     learnerDataChanged: false,
-    next: "Independent work is available; archived obligations remain visible in verify-status.",
+    next: "Independent work is available; archived obligations remain visible in make verify status.",
   };
 }

@@ -19,7 +19,7 @@ Use the same command with `status`, `update`, or `uninstall` instead of `install
 
 ## Development
 
-Run `make setup`, then `make dev`; use `make help` for commands. Read [AGENTS.md](AGENTS.md) and the [development skill](.agents/skills/call-nina-development/SKILL.md) for repository work. Skills own technical guidance; source and observed behavior establish implementation status.
+Run `make setup`, then `make dev`; use `make help` for commands. Use the [nina-admin skill](.agents/skills/nina-admin/SKILL.md) for hosted account and infrastructure administration; `make verify`, `make package`, `make deploy help`, and `make install` list their subcommands. Hosting deployments are manual: `make deploy prepare` builds locally, `make deploy` reviews the target, and `make deploy production` publishes the combined website/API to Vercel. Admin credentials belong in ignored root `.env` (see `.env.example`); edit that file directly rather than passing credentials on the command line. Read [AGENTS.md](AGENTS.md) and the [development skill](.agents/skills/call-nina-development/SKILL.md) for repository work. Skills own technical guidance; source and observed behavior establish implementation status.
 
 Bug reports are welcome. Include the OS, revision, reproduction steps, and bounded redacted diagnostic codes; exclude learner content, credentials, private paths, and databases. Outside feature contributions are not currently a project priority.
 

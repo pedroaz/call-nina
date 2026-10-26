@@ -1,3 +1,5 @@
+import { exposeClerkBridge } from "@clerk/electron/preload";
+exposeClerkBridge();
 import {
   desktopIpcEventSchema,
   desktopIpcRequestSchema,

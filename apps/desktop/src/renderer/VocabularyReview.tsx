@@ -1,7 +1,7 @@
 import type { DataRootGeneration } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { ActionGroup } from "./components/layout/index.js";
-import { Button, FieldGroup, LoadingState } from "./components/ui/index.js";
+import { SelectControl, Button, FieldGroup, LoadingState } from "./components/ui/index.js";
 import { VocabularyInformation } from "./VocabularyDetails.js";
 import { useVocabularyReviewSession } from "./useVocabularyReviewSession.js";
 import {
@@ -113,7 +113,7 @@ export function VocabularyReview({
           <>
             <FieldGroup>
               <span>{t("vocabulary.review.retrieval")}</span>
-              <select
+              <SelectControl
                 value={retrieval}
                 disabled={revealed || busy}
                 onChange={(event) => setRetrieval(event.target.value as typeof retrieval)}
@@ -131,7 +131,7 @@ export function VocabularyReview({
                     {entry.retrievalSchedules.find((s) => s.retrieval === mode)?.dueOn}
                   </option>
                 ))}
-              </select>
+              </SelectControl>
             </FieldGroup>
             <p>{t(`vocabulary.review.prompts.${retrieval}`)}</p>
             <RecallCard

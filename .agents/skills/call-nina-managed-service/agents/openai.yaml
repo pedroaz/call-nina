@@ -1,4 +1,0 @@
-interface:
-  display_name: "Call Nina Managed Service"
-  short_description: "Maintain the bounded managed starter service"
-  default_prompt: "Use $call-nina-managed-service to inspect or update the requested starter-service boundary."

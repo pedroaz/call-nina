@@ -60,7 +60,7 @@ async function kill() {
         if (recoveryIncomplete) incomplete = true;
       } catch {
         process.stderr.write(
-          "verify: retained; inspect make verify-stop for the exact ownership/recovery blocker.\n",
+          "verify: retained; inspect make verify stop for the exact ownership/recovery blocker.\n",
         );
         incomplete = true;
       }

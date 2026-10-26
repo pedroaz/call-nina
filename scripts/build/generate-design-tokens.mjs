@@ -56,7 +56,7 @@ addGroup(
 addGroup("motion-duration", designTokens.motion.durations, (value) => `${value}ms`);
 addGroup("motion-ease", designTokens.motion.easing, (value) => `cubic-bezier(${value.join(", ")})`);
 const css = [
-  "/* Generated from packages/design-system/src/index.ts. Regenerate with pnpm run design-tokens. */",
+  "/* Generated from packages/design-system/src/index.ts. Regenerate with make generate design-tokens. */",
   ":root {",
   ...declarations,
   "}",
@@ -76,7 +76,7 @@ if (args[0] === "--check") {
     throw error;
   });
   if (current !== css) {
-    process.stderr.write("[FAIL] DESIGN_TOKENS_STALE: run pnpm run design-tokens\n");
+    process.stderr.write("[FAIL] DESIGN_TOKENS_STALE: run make generate design-tokens\n");
     process.exitCode = 1;
   } else {
     process.stdout.write("[PASS] DESIGN_TOKENS_CURRENT\n");
@@ -86,7 +86,7 @@ if (args[0] === "--check") {
     throw error;
   });
   if (currentNotices !== noticesJson) {
-    process.stderr.write("[FAIL] FONT_NOTICES_STALE: run pnpm run design-tokens\n");
+    process.stderr.write("[FAIL] FONT_NOTICES_STALE: run make generate design-tokens\n");
     process.exitCode = 1;
   } else {
     process.stdout.write("[PASS] FONT_NOTICES_CURRENT\n");

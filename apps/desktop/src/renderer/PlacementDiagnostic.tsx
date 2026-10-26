@@ -6,7 +6,7 @@ import {
   type LearningScope,
   type CallNinaError,
 } from "@call-nina/contracts";
-import { Button, Card, Feedback, FieldGroup, ItemList } from "./components/ui/index.js";
+import { SelectControl, Button, Card, Feedback, FieldGroup, ItemList } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 
@@ -154,7 +154,7 @@ export function PlacementDiagnostic() {
         <div className={styles.historyDetail}>
           <FieldGroup>
             {t("practice.diagnosticFlow.grammar")}
-            <select
+            <SelectControl
               aria-label={t("practice.diagnosticFlow.grammar")}
               value={answers.grammar}
               onChange={(event) => {
@@ -164,11 +164,11 @@ export function PlacementDiagnostic() {
               <option value="">{t("practice.diagnosticFlow.choose")}</option>
               <option value="zum">zum</option>
               <option value="zu den">zu den</option>
-            </select>
+            </SelectControl>
           </FieldGroup>
           <FieldGroup>
             {t("practice.diagnosticFlow.vocabulary")}
-            <select
+            <SelectControl
               aria-label={t("practice.diagnosticFlow.vocabulary")}
               value={answers.vocabulary}
               onChange={(event) => {
@@ -178,14 +178,14 @@ export function PlacementDiagnostic() {
               <option value="">{t("practice.diagnosticFlow.choose")}</option>
               <option value="appointment">appointment</option>
               <option value="neighborhood">neighborhood</option>
-            </select>
+            </SelectControl>
           </FieldGroup>
           <section>
             <h3>{t("practice.diagnosticFlow.reading")}</h3>
             <p>{t("practice.diagnosticFlow.readingText")}</p>
             <FieldGroup>
               {t("practice.diagnosticFlow.readingQuestion")}
-              <select
+              <SelectControl
                 aria-label={t("practice.diagnosticFlow.readingQuestion")}
                 value={answers.reading}
                 onChange={(event) => {
@@ -195,7 +195,7 @@ export function PlacementDiagnostic() {
                 <option value="">{t("practice.diagnosticFlow.choose")}</option>
                 <option value="10">10:00</option>
                 <option value="12">12:00</option>
-              </select>
+              </SelectControl>
             </FieldGroup>
           </section>
           <p>{t("practice.diagnosticFlow.writingNotAssessed")}</p>

@@ -5,7 +5,7 @@ import {
   type Language,
 } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
-import { FieldGroup } from "./components/ui/index.js";
+import { SelectControl, FieldGroup } from "./components/ui/index.js";
 
 export function LanguageSelect({
   label,
@@ -24,7 +24,7 @@ export function LanguageSelect({
   return (
     <FieldGroup>
       <span>{label}</span>
-      <select
+      <SelectControl
         aria-label={label}
         value={value}
         disabled={disabled}
@@ -39,7 +39,7 @@ export function LanguageSelect({
               {t(`languages.${language}`, { defaultValue: languageDefinitions[language].name })}
             </option>
           ))}
-      </select>
+      </SelectControl>
     </FieldGroup>
   );
 }

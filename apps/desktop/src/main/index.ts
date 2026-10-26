@@ -1,3 +1,8 @@
+import { NinaLoginStorage } from "./nina-login-storage.js";
+import { createClerkBridge } from "@clerk/electron";
+import { storage } from "@clerk/electron/storage";
+import { ninaPublicConfiguration } from "@call-nina/contracts";
+import { pathToFileURL } from "node:url";
 import { OfflineRuntime } from "@call-nina/offline-runtime";
 import { ConnectionSecretStorage } from "./secret-storage.js";
 import { desktopPathOption } from "./options.js";
@@ -14,7 +19,7 @@ import {
   type ActivityId,
 } from "@call-nina/contracts";
 import { ChatgptSession } from "./chatgpt-session.js";
-import { app, BrowserWindow, dialog, ipcMain, Menu, session } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, session, net, protocol } from "electron";
 
 import { DesktopBackend } from "./backend.js";
 import { parseCallNinaActivityUrl } from "./deep-link.js";
@@ -34,7 +39,10 @@ if (process.platform === "linux" && app.commandLine.getSwitchValue("password-sto
 app.commandLine.removeSwitch("use-mock-keychain");
 
 const rendererUrl = new URL(
-  process.env["CALL_NINA_RENDERER_URL"] ?? new URL("../renderer/index.html", import.meta.url),
+  process.env["CALL_NINA_RENDERER_URL"] ??
+    (ninaPublicConfiguration.publishableKey
+      ? "call-nina-ui://renderer/index.html"
+      : new URL("../renderer/index.html", import.meta.url)),
 ).href;
 const preload = fileURLToPath(new URL("../preload/index.cjs", import.meta.url));
 const developmentWindowIcon = fileURLToPath(new URL("../../assets/call-nina.png", import.meta.url));
@@ -182,6 +190,29 @@ for (const segment of userDataDirectory
 }
 mkdirSync(userDataDirectory, { recursive: true, mode: 0o700 });
 
+const clerkBridge = ninaPublicConfiguration.publishableKey
+  ? createClerkBridge({
+      storage: storage({
+        name: "nina-account",
+        path: userDataDirectory,
+        unencryptedFallback: false,
+      }),
+      renderer: { scheme: "call-nina-ui", host: "renderer" },
+      manageSingleInstanceLock: false,
+    })
+  : undefined;
+app.on("will-quit", () => clerkBridge?.cleanup());
+app.whenReady().then(() => {
+  if (!clerkBridge) return;
+  const directory = path.resolve(fileURLToPath(new URL("../renderer/", import.meta.url)));
+  protocol.handle("call-nina-ui", (request) => {
+    const url = new URL(request.url);
+    const target = path.resolve(directory, `.${decodeURIComponent(url.pathname)}`);
+    if (url.host !== "renderer" || !target.startsWith(`${directory}${path.sep}`))
+      return new Response(null, { status: 404 });
+    return net.fetch(pathToFileURL(target).href);
+  });
+});
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -214,10 +245,7 @@ if (!app.requestSingleInstanceLock()) {
     Menu.setApplicationMenu(null);
     if (app.isPackaged) app.setAsDefaultProtocolClient("call-nina");
     handleProtocolArguments(process.argv);
-    configureSessionSecurity(
-      session.defaultSession,
-      Boolean(process.env["CALL_NINA_RENDERER_URL"]),
-    );
+    configureSessionSecurity(session.defaultSession, process.env["CALL_NINA_RENDERER_URL"]);
     const userData = app.getPath("userData");
     const bootstrapFile = path.join(userData, "bootstrap.json");
     const knownInstallRoots = [app.getAppPath(), process.resourcesPath];
@@ -245,6 +273,7 @@ if (!app.requestSingleInstanceLock()) {
       openExternal: openValidatedExternalUrl,
     });
     backend = new DesktopBackend({
+      loginCredentials: new NinaLoginStorage(userData),
       curriculumRoot: app.isPackaged
         ? path.join(process.resourcesPath, "curriculum")
         : fileURLToPath(new URL("../../../../content/curriculum/", import.meta.url)),

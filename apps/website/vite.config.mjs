@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   // This is a static landing page: unknown URLs must not render the app shell.
   appType: "mpa",
+  server: { host: "127.0.0.1", port: 5173, strictPort: true },
   plugins: [
     react(),
     {

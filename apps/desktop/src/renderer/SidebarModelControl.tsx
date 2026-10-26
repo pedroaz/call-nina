@@ -7,7 +7,7 @@ import type {
 } from "@call-nina/contracts";
 import { resolveModelPreference } from "@call-nina/domain";
 import { useTranslation } from "react-i18next";
-import { Button, Disclosure, FieldGroup } from "./components/ui/index.js";
+import { SelectControl, Button, Disclosure, FieldGroup } from "./components/ui/index.js";
 import styles from "./SidebarModelControl.module.css";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 
@@ -131,7 +131,7 @@ export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => 
                 {view.settings.connections.length > 1 && (
                   <FieldGroup density="compact">
                     <span>{t("modelControl.connection")}</span>
-                    <select
+                    <SelectControl
                       disabled={busy}
                       value={active.id}
                       onChange={(event) =>
@@ -143,12 +143,12 @@ export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => 
                           {entry.label}
                         </option>
                       ))}
-                    </select>
+                    </SelectControl>
                   </FieldGroup>
                 )}
                 <FieldGroup density="compact">
                   <span>{t("modelControl.model")}</span>
-                  <select
+                  <SelectControl
                     disabled={busy || !catalog}
                     value={
                       active.preference.model.mode === "automatic"
@@ -183,11 +183,11 @@ export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => 
                         {entry.displayName}
                       </option>
                     ))}
-                  </select>
+                  </SelectControl>
                 </FieldGroup>
                 <FieldGroup density="compact">
                   <span>{t("modelControl.reasoning")}</span>
-                  <select
+                  <SelectControl
                     disabled={busy || !model}
                     value={
                       active.preference.effort.mode === "semantic"
@@ -225,7 +225,7 @@ export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => 
                         {effort}
                       </option>
                     ))}
-                  </select>
+                  </SelectControl>
                 </FieldGroup>
                 {availability && !["available", "configured"].includes(availability.status) && (
                   <p className={styles.navModelStatus} role="status">

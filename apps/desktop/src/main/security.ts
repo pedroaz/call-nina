@@ -1,13 +1,24 @@
+import { ninaPublicConfiguration } from "@call-nina/contracts";
 import { shell, type BrowserWindow, type Session, type WebFrameMain } from "electron";
 import { codexVoiceWorkspacePath, ensureCodexVoiceWorkspace } from "./voice-workspace.js";
 
+const clerkHost = ninaPublicConfiguration.publishableKey
+  ? `https://${Buffer.from(
+      ninaPublicConfiguration.publishableKey.replace(/^pk_(test|live)_/u, ""),
+      "base64",
+    )
+      .toString("utf8")
+      .replace(/\$$/u, "")}`
+  : "";
+if (clerkHost && !/^https:\/\/[a-zA-Z0-9.-]+$/u.test(clerkHost))
+  throw new Error("OD_CLERK_HOST_INVALID");
 export const productionContentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self'",
+  `script-src 'self' ${clerkHost}`,
   "style-src 'self' 'unsafe-hashes' 'sha256-38RhXrc7EdReTKsOm23ZPOCUgniTUUcjky8QOOrQx6o='",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self' ${clerkHost}`,
   "object-src 'none'",
   "base-uri 'none'",
   "frame-ancestors 'none'",
@@ -18,11 +29,15 @@ export const developmentContentSecurityPolicy = productionContentSecurityPolicy
   .replace(
     "style-src 'self' 'unsafe-hashes' 'sha256-38RhXrc7EdReTKsOm23ZPOCUgniTUUcjky8QOOrQx6o='",
     "style-src 'self' 'unsafe-inline'",
-  )
-  .replace("connect-src 'self'", "connect-src 'self' ws://127.0.0.1:5173");
+  );
 
-export function configureSessionSecurity(session: Session, development: boolean): void {
-  const policy = development ? developmentContentSecurityPolicy : productionContentSecurityPolicy;
+export function configureSessionSecurity(session: Session, rendererUrl: string | undefined): void {
+  const policy = rendererUrl
+    ? developmentContentSecurityPolicy.replace(
+        "connect-src 'self'",
+        `connect-src 'self' ${new URL(rendererUrl).origin.replace(/^http/u, "ws")}`,
+      )
+    : productionContentSecurityPolicy;
   session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {

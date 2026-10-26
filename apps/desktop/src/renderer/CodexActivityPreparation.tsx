@@ -9,7 +9,7 @@ import {
 } from "@call-nina/contracts";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Disclosure, Feedback, FieldGroup, InfoHint } from "./components/ui/index.js";
+import { SelectControl, Button, Disclosure, Feedback, FieldGroup, InfoHint } from "./components/ui/index.js";
 import { Section, ActionGroup } from "./components/layout/index.js";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
@@ -170,7 +170,7 @@ export function CodexActivityPreparation({
       <div className={styles.voiceSettingsGrid}>
         <FieldGroup>
           {t(`${base}.difficultyLabel`)}
-          <select
+          <SelectControl
             value={difficulty}
             disabled={draft.busy || preparing}
             onChange={(event) => {
@@ -182,11 +182,11 @@ export function CodexActivityPreparation({
                 {t(`${base}.difficultyOptions.${value}`)}
               </option>
             ))}
-          </select>
+          </SelectControl>
         </FieldGroup>
         <FieldGroup>
           {t(`${base}.correctionTimingLabel`)}
-          <select
+          <SelectControl
             value={correctionTiming}
             disabled={draft.busy || preparing}
             onChange={(event) => {
@@ -198,12 +198,12 @@ export function CodexActivityPreparation({
                 {t(`${base}.correctionOptions.${value}`)}
               </option>
             ))}
-          </select>
+          </SelectControl>
         </FieldGroup>
         {kind === "speaking" && (
           <FieldGroup>
             {t("practice.speakingPace")}
-            <select
+            <SelectControl
               value={speakingPace}
               disabled={draft.busy || preparing}
               onChange={(event) => {
@@ -215,7 +215,7 @@ export function CodexActivityPreparation({
                   {t(`practice.paceOptions.${value}`)}
                 </option>
               ))}
-            </select>
+            </SelectControl>
           </FieldGroup>
         )}
       </div>

@@ -9,22 +9,38 @@ export interface BudgetSql {
   query(text: string, values: readonly (string | number)[]): Promise<{ rows: unknown[] }>;
 }
 const admissionSchema = z.strictObject({
-  outcome: z.enum(["reserved", "unavailable", "shutdown", "exhausted", "throttled", "conflict"]),
+  outcome: z.enum([
+    "reserved",
+    "forbidden",
+    "unavailable",
+    "shutdown",
+    "exhausted",
+    "throttled",
+    "conflict",
+  ]),
 });
 export class PostgresBudget {
   constructor(
     private readonly sql: BudgetSql,
     private readonly policy: ServicePolicy,
   ) {}
-  async reserve(requestId: string, networkHash: string): Promise<void> {
+  async reserve(
+    requestId: string,
+    networkHash: string,
+    userId: string,
+    operation: string,
+  ): Promise<void> {
     const result = await this.sql.query(
-      "select nina_starter.reserve($1::uuid,$2::uuid,$3,$4,$5::bigint) as outcome",
+      "select nina_starter.reserve($1::uuid,$2::uuid,$3,$4,$5::bigint,$6,$7,$8) as outcome",
       [
         this.policy.budgetId,
         requestId,
         networkHash,
         policyDigest(this.policy),
         this.policy.model.maximumAttemptMicroUsd * 2,
+        userId,
+        operation,
+        this.policy.model.id,
       ],
     );
     const parsed = admissionSchema.parse(result.rows[0]);
@@ -38,12 +54,26 @@ export class PostgresBudget {
     if (!z.strictObject({ permitted: z.boolean() }).parse(result.rows[0]).permitted)
       throw new ManagedFailure("shutdown");
   }
-  async settle(requestId: string, attempted: number): Promise<void> {
+  async settle(
+    requestId: string,
+    attempted: number,
+    outcome: string,
+    durationMs: number,
+    usage: unknown,
+  ): Promise<void> {
     // An attempted upstream dispatch is conservatively charged in full even if
     // cancelled, timed out, rejected, or returned without reliable usage.
     const result = await this.sql.query(
-      "select nina_starter.settle($1::uuid,$2::uuid,$3::bigint) as settled",
-      [this.policy.budgetId, requestId, attempted * this.policy.model.maximumAttemptMicroUsd],
+      "select nina_starter.settle($1::uuid,$2::uuid,$3::bigint,$4::integer,$5,$6::bigint,$7::jsonb) as settled",
+      [
+        this.policy.budgetId,
+        requestId,
+        attempted * this.policy.model.maximumAttemptMicroUsd,
+        attempted,
+        outcome,
+        durationMs,
+        JSON.stringify(usage),
+      ],
     );
     if (!z.strictObject({ settled: z.boolean() }).parse(result.rows[0]).settled)
       throw new ManagedFailure("unavailable");

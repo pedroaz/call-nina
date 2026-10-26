@@ -14,6 +14,8 @@ export const managedRequestSchema = z.strictObject({
   input: generationInputSchema,
 });
 export const failureCodeSchema = z.enum([
+  "unauthenticated",
+  "forbidden",
   "unavailable",
   "shutdown",
   "exhausted",

@@ -2,6 +2,7 @@ export {
   TextField,
   TextAreaField,
   SelectField,
+  SelectControl,
   CheckboxField,
   FieldGroup,
   CheckboxContainer,

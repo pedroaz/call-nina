@@ -1,4 +1,4 @@
-/* Generated from packages/design-system/src/index.ts. Regenerate with pnpm run design-tokens. */
+/* Generated from packages/design-system/src/index.ts. Regenerate with make generate design-tokens. */
 :root {
   --od-palette-wheat-50: #fff6ea;
   --od-palette-wheat-100: #fde8cc;

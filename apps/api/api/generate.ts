@@ -3,9 +3,9 @@ import {
   openBudgetSql,
   unavailableResponse,
 } from "@call-nina/managed-generation/server";
-import { selectedDeployment } from "../deployment.js";
+import { selectedDeployment, accountDeployment } from "../deployment.js";
 
-// Dedicated Vercel project only. No generic HTTP listener or localhost header
+// Selected combined website/API Vercel project only. No generic HTTP listener or localhost header
 // trust; environment identity is server configuration, never a request header.
 // Vercel overwrites x-forwarded-for at ingress; use its protected twin:
 // https://vercel.com/docs/headers/request-headers#x-vercel-forwarded-for
@@ -13,6 +13,8 @@ let active: { service: ManagedService; origin: string } | undefined;
 export async function POST(request: Request): Promise<Response> {
   try {
     const deployment = selectedDeployment(process.env);
+    const account = accountDeployment(process.env);
+    if (!account) return unavailableResponse();
     if (!deployment) return unavailableResponse();
     if (new URL(request.url).origin !== deployment.origin) return unavailableResponse();
     const address = request.headers.get("x-vercel-forwarded-for");
@@ -25,7 +27,13 @@ export async function POST(request: Request): Promise<Response> {
       const sql = openBudgetSql(connectionString);
       active = {
         origin: deployment.origin,
-        service: new ManagedService({ policy: deployment.policy, sql, apiKey, throttleKey }),
+        service: new ManagedService({
+          auth: account.auth,
+          policy: deployment.policy,
+          sql,
+          apiKey,
+          throttleKey,
+        }),
       };
     }
     if (active.origin !== deployment.origin) return unavailableResponse();

@@ -1,28 +1,60 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { copy, languages, type Locale } from "./locales";
-import { landingSections } from "./extensions";
+import { ActionLink, Button, Tabs } from "@call-nina/browser-ui";
 import ninaPhone from "@call-nina/design-system/brand/nina-phone.png";
-import { ActionLink, Button, Card } from "@call-nina/browser-ui";
+import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
+import ninaThinking from "@call-nina/design-system/brand/nina-thinking.png";
+import ninaListening from "@call-nina/design-system/brand/nina-listening.png";
+import ninaCelebration from "@call-nina/design-system/brand/nina-celebration.png";
+import { copy, featureIds, languages, type FeatureId, type Locale } from "./locales";
 
 import "@call-nina/design-system/tokens.css";
 import "@call-nina/design-system/fonts.css";
 import "./styles.css";
+
+const repository = "https://github.com/pedroaz/call-nina";
+const featureImages: Record<FeatureId, string> = {
+  exercises: ninaThinking,
+  paths: ninaWelcome,
+  writing: ninaListening,
+  vocabulary: ninaCelebration,
+};
 
 function localeFromUrl(): Locale {
   const requested = new URLSearchParams(window.location.search).get("lang");
   return languages.find(({ code }) => code === requested)?.code ?? "en";
 }
 
+function StatusRow({
+  label,
+  available,
+  yes,
+  notYet,
+}: {
+  label: string;
+  available: boolean;
+  yes: string;
+  notYet: string;
+}) {
+  return (
+    <li className="status-row">
+      <span>{label}</span>
+      <span className="status" data-available={available}>
+        {available ? yes : notYet}
+      </span>
+    </li>
+  );
+}
+
 function App() {
   const [locale, setLocale] = useState<Locale>(localeFromUrl);
+  const [feature, setFeature] = useState("exercises");
   const t = copy[locale];
 
   useEffect(() => {
     function syncLocale() {
       setLocale(localeFromUrl());
     }
-
     window.addEventListener("popstate", syncLocale);
     return () => {
       window.removeEventListener("popstate", syncLocale);
@@ -49,18 +81,9 @@ function App() {
       </a>
       <header className="site-header wrap">
         <a className="wordmark" href="#main">
-          <img className="brand-mark" src={ninaPhone} alt="" />
+          <img src={ninaPhone} alt="" width="40" height="40" />
           Call Nina
         </a>
-        <nav aria-label={t.navigation}>
-          <a href="#practice">{t.nav.practice}</a>
-          {landingSections.map((section) => (
-            <a key={section.id} href={`#${section.id}`}>
-              {section.title[locale]}
-            </a>
-          ))}
-          <a href="#downloads">{t.nav.downloads}</a>
-        </nav>
         <div className="language-switch" role="group" aria-label={t.language}>
           {languages.map(({ code, label }) => (
             <Button
@@ -81,92 +104,88 @@ function App() {
       <main id="main" tabIndex={-1}>
         <section className="hero wrap" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <p className="eyebrow">{t.prelaunch}</p>
             <h1 id="hero-title">{t.headline}</h1>
-            <p className="lead">{t.introduction}</p>
+            <p className="lead">
+              {t.introduction}
+              <br />
+              {t.free}
+            </p>
             <div className="hero-actions">
-              <ActionLink className="primary-link" href="#practice">
-                {t.explore}
+              <Button isDisabled>{t.download}</Button>
+              <ActionLink href={repository} variant="secondary">
+                {t.github}
                 <span aria-hidden="true">↗</span>
               </ActionLink>
-              <span className="availability">
-                {t.nav.downloads} · {t.downloadStatus}
-              </span>
             </div>
+            <p className="platform-note">{t.mobile}</p>
           </div>
-          <Card as="figure" className="language-card">
-            <div className="card-top">
-              <span>{t.previewLabel}</span>
-              <span aria-hidden="true">DE / 01</span>
-            </div>
-            <div className="coffee-art" aria-hidden="true">
-              <span className="steam">~ ~</span>
-              <span className="cup" />
-              <span className="saucer" />
-            </div>
-            <h2>{t.previewTitle}</h2>
-            <p className="german-example" lang="de">
-              {t.previewText}
-            </p>
-            <p>{t.previewTranslation}</p>
-            <figcaption>{t.previewNote}</figcaption>
-          </Card>
-        </section>
-        <section className="section wrap" id="practice" aria-labelledby="practice-title">
-          <div className="section-heading">
-            <p className="eyebrow">{t.practiceLabel}</p>
-            <h2 id="practice-title">{t.practiceTitle}</h2>
-            <p>{t.practiceIntro}</p>
+          <div className="hero-art">
+            <img src={ninaWelcome} alt="" width="1280" height="1280" fetchPriority="high" />
           </div>
-          <ol className="steps">
-            {t.steps.map((step, index) => (
-              <Card as="li" key={index} className="step-card">
-                <span className="step-number" aria-hidden="true">
-                  0{index + 1}
-                </span>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </Card>
-            ))}
-          </ol>
-          <Card as="aside" className="local-note" aria-labelledby="local-title">
-            <h3 id="local-title">{t.localTitle}</h3>
-            <div>
-              <p>{t.localText}</p>
-              <p>{t.aiText}</p>
-            </div>
-          </Card>
         </section>
-        {landingSections.map(({ id, title, Content }) => (
-          <section className="section wrap" id={id} aria-labelledby={`${id}-title`} key={id}>
-            <h2 id={`${id}-title`}>{title[locale]}</h2>
-            <Content locale={locale} />
+        <section className="features wrap" aria-labelledby="features-title">
+          <h2 id="features-title">{t.featuresTitle}</h2>
+          <Tabs
+            label={t.featuresTitle}
+            selectedKey={feature}
+            onSelectionChange={setFeature}
+            items={featureIds.map((id, index) => ({
+              id,
+              label: t.features[id].label,
+              children: (
+                <div className="feature-content">
+                  <div className="feature-art">
+                    <img src={featureImages[id]} alt="" width="1280" height="1280" loading="lazy" />
+                  </div>
+                  <div className="feature-copy">
+                    <span className="feature-number" aria-hidden="true">
+                      0{index + 1} / 04
+                    </span>
+                    <h3>{t.features[id].label}</h3>
+                    <p>{t.features[id].text}</p>
+                  </div>
+                </div>
+              ),
+            }))}
+          />
+        </section>
+        <div className="availability wrap">
+          <section aria-labelledby="connections-title">
+            <h2 id="connections-title">{t.connections}</h2>
+            <p className="connection-intro">{t.subscriptions}</p>
+            <ul className="status-list">
+              <StatusRow label="ChatGPT" available yes={t.yes} notYet={t.notYet} />
+              {t.providers.map((label) => (
+                <StatusRow
+                  key={label}
+                  label={label}
+                  available={false}
+                  yes={t.yes}
+                  notYet={t.notYet}
+                />
+              ))}
+            </ul>
           </section>
-        ))}
-        <section
-          className="section wrap downloads"
-          id="downloads"
-          aria-labelledby="downloads-title"
-        >
-          <p className="eyebrow">
-            {t.nav.downloads} · {t.downloadStatus}
-          </p>
-          <h2 id="downloads-title">{t.downloadsTitle}</h2>
-          <p>{t.downloadsText}</p>
-          <p className="platforms">{t.platforms}</p>
-        </section>
+          <section aria-labelledby="languages-title">
+            <h2 id="languages-title">{t.languagesTitle}</h2>
+            <ul className="status-list">
+              {t.learningLanguages.map((label) => (
+                <StatusRow key={label} label={label} available yes={t.yes} notYet={t.notYet} />
+              ))}
+              <StatusRow label={t.moreLanguages} available={false} yes={t.yes} notYet={t.notYet} />
+            </ul>
+          </section>
+        </div>
       </main>
       <footer className="site-footer wrap">
-        <div>
-          <p className="footer-brand">Call Nina</p>
-          <p>{t.footer}</p>
+        <div className="footer-copy">
+          <p>{t.local}</p>
+          <p>{t.costs}</p>
         </div>
-        <div>
-          <a href="https://github.com/pedroaz/call-nina">
-            {t.source} <span aria-hidden="true">↗</span>
-          </a>
-          <p>{t.license}</p>
-          <a href="https://github.com/pedroaz/call-nina/blob/main/LICENSE">{t.licenseLink}</a>
+        <div className="footer-links">
+          <a href="mailto:pedro.azvm@gmail.com">{t.contact}</a>
+          <a href={repository}>{t.source}</a>
+          <a href={`${repository}/blob/main/LICENSE`}>{t.license}</a>
         </div>
       </footer>
     </>

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   z,
+  ninaPublicConfiguration,
   generationInputSchema,
   type GenerationInput,
   type GenerationKind,
@@ -9,18 +10,25 @@ import {
 import { parseGenerationCandidateOutput } from "@call-nina/learning-workflows";
 import { limits, managedResponseSchema, ManagedFailure, readBounded } from "./protocol.js";
 
-export { ManagedFailure } from "./protocol.js";
+export { ManagedFailure, readBounded } from "./protocol.js";
 
 /** Main-process transport only. Null is the shipped, honestly unavailable route.
  * Endpoint/model come from approved application configuration, never renderer
  * input. This module does not import server code, database drivers or keys. */
 export type ManagedClientConfiguration = Readonly<{ endpoint: string; modelId: string }>;
-export const shippedManagedConfiguration: ManagedClientConfiguration | null = null;
+export const shippedManagedConfiguration: ManagedClientConfiguration | null =
+  ninaPublicConfiguration.serviceOrigin && ninaPublicConfiguration.modelId
+    ? {
+        endpoint: `${ninaPublicConfiguration.serviceOrigin}/api/generate`,
+        modelId: ninaPublicConfiguration.modelId,
+      }
+    : null;
 
 export async function runManagedOperation<Kind extends GenerationKind>(options: {
   configuration: ManagedClientConfiguration | null;
   input: Extract<GenerationInput, { kind: Kind }>;
   signal: AbortSignal;
+  token: string;
 }): Promise<{ output: GenerationOutputMap[Kind]; modelId: string }> {
   if (!options.configuration) throw new ManagedFailure("unavailable");
   const config = z
@@ -43,11 +51,11 @@ export async function runManagedOperation<Kind extends GenerationKind>(options: 
   const signal = AbortSignal.any([options.signal, AbortSignal.timeout(limits.deadlineMs)]);
   try {
     signal.throwIfAborted();
-    // No authorization, cookies, BYOK key, automatic retry or alternate endpoint.
+    // Only the captured Nina session; no personal provider keys or automatic retry.
     const response = await fetch(url, {
       method: "POST",
       body,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", authorization: `Bearer ${options.token}` },
       signal,
       redirect: "error",
       credentials: "omit",

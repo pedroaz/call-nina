@@ -31,8 +31,8 @@ const boundaries = [
     electron: false,
   },
   {
-    id: "managed-service",
-    prefix: "apps/managed-service/",
+    id: "api",
+    prefix: "apps/api/",
     packages: ["contracts", "managed-generation"],
     node: true,
     electron: false,

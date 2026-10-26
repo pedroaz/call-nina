@@ -3,9 +3,11 @@ import { pnpmCommand } from "../lib/package-command.mjs";
 const supported = { linux: ["x64"], darwin: ["x64", "arm64"], win32: ["x64"] };
 if (!supported[process.platform]?.includes(process.arch))
   throw new Error("OD_PLATFORM_UNSUPPORTED");
+for (const file of ["generate-third-party-notices.mjs", "build-mcp-helper.mjs"]) {
+  const child = spawnSync(process.execPath, [`scripts/build/${file}`], { stdio: "inherit" });
+  if (child.error || child.status !== 0) throw new Error("OD_PACKAGE_FAILED");
+}
 for (const args of [
-  ["run", "generate:third-party-notices"],
-  ["run", "build:mcp-helper"],
   ["--filter", "@call-nina/desktop", "run", "build"],
   [
     "--dir",

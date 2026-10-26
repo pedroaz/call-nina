@@ -1,3 +1,5 @@
+import { type NinaLoginStorage } from "./nina-login-storage.js";
+import { NinaAccount } from "./nina-account.js";
 import {
   activityIdSchema,
   aiConnectionsViewSchema,
@@ -117,6 +119,7 @@ export class DesktopBackend {
   readonly #operations: GenerationOperations;
   readonly #translations: TranslationJobs;
   readonly #secrets: ConnectionSecretStorage;
+  readonly #loginCredentials: NinaLoginStorage;
   readonly #curriculumRoot: string;
   readonly #bootstrapFile: string;
   readonly #chooseDirectory: () => Promise<string | undefined>;
@@ -136,6 +139,10 @@ export class DesktopBackend {
   #repository: CallNinaRepository | undefined;
   #requestQueue: Promise<void> = Promise.resolve();
   #closing = false;
+  readonly #nina = new NinaAccount(async () => {
+    await Promise.all([...this.#connections.managedServices].map((service) => service.shutdown()));
+    this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+  });
 
   #enqueue<T>(work: () => T | Promise<T>): Promise<T> {
     const result = this.#requestQueue.then(work);
@@ -150,6 +157,7 @@ export class DesktopBackend {
     curriculumRoot: string;
     bootstrapFile: string;
     secrets: ConnectionSecretStorage;
+    loginCredentials: NinaLoginStorage;
     offlineRuntime: OfflineRuntime;
     chooseDirectory: () => Promise<string | undefined>;
     knownInstallRoots: readonly string[];
@@ -162,6 +170,7 @@ export class DesktopBackend {
     ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>;
   }) {
     this.#secrets = options.secrets;
+    this.#loginCredentials = options.loginCredentials;
     this.#offline = options.offlineRuntime;
     this.#curriculumRoot = options.curriculumRoot;
     this.#bootstrapFile = options.bootstrapFile;
@@ -204,6 +213,7 @@ export class DesktopBackend {
       database: () => this.#database,
       closing: () => this.#closing,
       chatgpt: this.#chatgpt,
+      nina: this.#nina,
       offline: this.#offline,
       secrets: this.#secrets,
       requireActiveConnection: () => this.#requireActiveConnection(),
@@ -1271,6 +1281,10 @@ export class DesktopBackend {
       }
     }
     if (connection.routeId === "managed") {
+      if (this.#nina.state.status !== "signed-in") return unavailable("account-required");
+      if (this.#nina.state.access?.eligibility !== "approved")
+        return unavailable("account-unavailable");
+      if (!this.#nina.state.access.inferenceEnabled) return unavailable("runtime-unavailable");
       const catalog = managedCatalog();
       if (!catalog) return unavailable("runtime-unavailable");
       if (!catalog.operations.includes(operation)) return unavailable("capability-unavailable");
@@ -1460,6 +1474,17 @@ export class DesktopBackend {
   }
 
   async handle(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
+    // Account network calls have their own serialized queue and cannot stall local learning.
+    if (
+      request.channel === "nina-account/read" ||
+      request.channel === "nina-account/update" ||
+      request.channel === "nina-account/diagnostic" ||
+      request.channel === "nina-account/credentials/read" ||
+      request.channel === "nina-account/credentials/save"
+    ) {
+      if (this.#closing) return this.#failure(request, "cancellation");
+      return this.#handleRequest(request);
+    }
     return this.#handleLoggedRequest(request);
   }
 
@@ -1542,6 +1567,56 @@ export class DesktopBackend {
     integration?: CodexIntegration,
   ): Promise<DesktopIpcResponse> {
     try {
+      if (request.channel === "nina-account/credentials/read") {
+        try {
+          return this.#success(request, {
+            available: true,
+            credentials: await this.#loginCredentials.read(),
+          });
+        } catch {
+          return this.#success(request, { available: false, credentials: null });
+        }
+      }
+      if (request.channel === "nina-account/credentials/save") {
+        try {
+          await this.#loginCredentials.save(request.payload);
+          return this.#success(request, { saved: true });
+        } catch {
+          return this.#success(request, { saved: false });
+        }
+      }
+      if (request.channel === "nina-account/diagnostic") {
+        const { stage, outcome, reason } = request.payload;
+        this.#operationLog(
+          outcome === "failed" || outcome === "slow" ? "warn" : "info",
+          "NINA_LOGIN_STAGE",
+          request.requestId,
+          reason,
+          undefined,
+          "Nina sign-in stage.",
+          { action: "nina-account/login", metadata: { stage, status: outcome, reason } },
+        );
+        return this.#success(request, { recorded: true });
+      }
+      if (request.channel === "nina-account/read") return this.#success(request, this.#nina.state);
+      if (request.channel === "nina-account/update") {
+        const previous = JSON.stringify(this.#nina.state);
+        const state = await this.#nina.update(request.payload.status, request.payload.token);
+        if (JSON.stringify(state) !== previous) {
+          this.#operationLog(
+            state.status === "unavailable" || state.status === "expired" ? "warn" : "info",
+            "NINA_ACCOUNT_STATE",
+            request.requestId,
+            "account-sync",
+            undefined,
+            "Nina account state updated.",
+            { action: "nina-account/update", metadata: { status: state.status } },
+          );
+        }
+        if (JSON.stringify(state) !== previous)
+          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+        return this.#success(request, state);
+      }
       if (
         (request.channel.startsWith("vocabulary/") ||
           request.channel.startsWith("vocabulary-set/") ||
