@@ -1858,6 +1858,43 @@ export const callNinaMigrations = [
         .run(JSON.stringify(next));
     },
   },
+  {
+    version: 38,
+    name: "multilingual-learning-path-catalog",
+    sql: `
+      DROP TRIGGER prepared_activity_scope_insert;
+      ALTER TABLE language_profiles RENAME TO previous_language_profiles;
+      CREATE TABLE language_profiles (
+        target_language TEXT PRIMARY KEY CHECK(target_language IN ('en-US','pt-BR','es','de')),
+        learner_id TEXT NOT NULL REFERENCES learner_profiles(learner_id) ON DELETE RESTRICT,
+        course_id TEXT,
+        profile_json TEXT NOT NULL CHECK(json_valid(profile_json) AND json_extract(profile_json, '$.targetLanguage') = target_language AND json_extract(profile_json, '$.learnerId') = learner_id)
+      ) STRICT;
+      INSERT INTO language_profiles SELECT * FROM previous_language_profiles;
+      DROP TABLE previous_language_profiles;
+      CREATE TRIGGER prepared_activity_scope_insert BEFORE INSERT ON prepared_activities
+        WHEN NOT EXISTS (SELECT 1 FROM language_profiles WHERE learner_id = json_extract(NEW.context_json, '$.learningScope.learnerId') AND target_language = NEW.target_language)
+          OR json_extract(NEW.context_json, '$.learningScope.targetLanguage') IS NOT NEW.target_language
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_MISMATCH'); END;
+      ALTER TABLE local_learning_scope RENAME TO previous_learning_scope;
+      CREATE TABLE local_learning_scope (
+        singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+        learner_id TEXT NOT NULL UNIQUE REFERENCES learner_profiles(learner_id) ON DELETE RESTRICT,
+        course_id TEXT,
+        target_language TEXT NOT NULL CHECK(target_language IN ('en-US','pt-BR','es','de'))
+      ) STRICT;
+      INSERT INTO local_learning_scope SELECT * FROM previous_learning_scope;
+      DROP TABLE previous_learning_scope;
+      ALTER TABLE course_selection RENAME TO previous_course_selection;
+      CREATE TABLE course_selection (
+        target_language TEXT PRIMARY KEY CHECK(target_language IN ('en-US','pt-BR','es','de')),
+        selected_stage TEXT NOT NULL,
+        current_json TEXT CHECK(current_json IS NULL OR json_valid(current_json))
+      ) STRICT;
+      INSERT INTO course_selection SELECT target_language, selected_stage, current_json FROM previous_course_selection;
+      DROP TABLE previous_course_selection;
+    `,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

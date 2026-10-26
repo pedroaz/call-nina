@@ -677,7 +677,6 @@ function DesktopWorkspace({
             ) : null}
           </>
         }
-        exerciseMode={page === "practice" && Boolean(preparedActivityId)}
         helper={
           <ContextualHelper
             key={helperEpoch}

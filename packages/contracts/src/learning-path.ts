@@ -12,7 +12,43 @@ import { z } from "./schema-system.js";
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 const key = z.string().regex(/^[a-z][a-z0-9-]{0,79}$/u);
-const localized = z.strictObject({ en: text(8000), de: text(8000) });
+const localized = z
+  .strictObject({
+    en: text(8000),
+    de: text(8000),
+    es: text(8000).optional(),
+    "pt-BR": text(8000).optional(),
+  })
+  .transform((value) => ({
+    ...value,
+    es: value.es ?? value.en,
+    "pt-BR": value["pt-BR"] ?? value.en,
+  }));
+export type CourseLocale = "en" | "de" | "es" | "pt-BR";
+export const coursePathSchema = z.strictObject({
+  id: key,
+  kind: z.enum(["course", "scenario"]),
+  level: z.enum(["A1", "A2", "B1", "B2"]),
+  title: localized,
+  description: localized,
+});
+export const learningCatalogSchema = z.strictObject({
+  schemaVersion: z.literal(1),
+  languages: z
+    .array(
+      z.strictObject({
+        language: targetLanguageSchema,
+        courseId: key,
+        version: text(40),
+        files: z
+          .array(z.string().regex(/^courses\/[a-zA-Z0-9-]+\/[a-z0-9-]+\.json$/u))
+          .min(1)
+          .max(100),
+      }),
+    )
+    .min(1)
+    .max(4),
+});
 export const courseStageSchema = key;
 export const courseSkillSchema = z.enum(["reading", "writing", "listening", "speaking"]);
 export const coursePurposeSchema = z.enum([
@@ -44,7 +80,7 @@ export const courseObjectiveSchema = z.strictObject({
 export const courseTargetSchema = z.strictObject({
   id: key,
   kind: z.enum(["word", "chunk", "construction", "pronunciation", "pragmatics"]),
-  german: text(500),
+  text: text(500),
   meaning: localized,
   example: text(500),
   exampleMeaning: localized.optional(),
@@ -78,7 +114,7 @@ export const courseUnitSchema = z.strictObject({
   grammar: localized,
   explanation: localized,
   examples: z
-    .array(z.strictObject({ german: text(500), meaning: localized }))
+    .array(z.strictObject({ text: text(500), meaning: localized }))
     .min(1)
     .max(20),
   objectives: z.array(courseObjectiveSchema).min(1).max(5),
@@ -93,7 +129,7 @@ export const courseUnitSchema = z.strictObject({
 });
 export const learningCourseSchema = z
   .strictObject({
-    schemaVersion: z.literal(2),
+    schemaVersion: z.literal(3),
     courseId: key,
     targetLanguage: targetLanguageSchema,
     version: text(40),
@@ -110,6 +146,7 @@ export const learningCourseSchema = z
       )
       .min(1)
       .max(20),
+    paths: z.array(coursePathSchema).min(1).max(100),
     targets: z.array(courseTargetSchema).min(1).max(1000),
     units: z.array(courseUnitSchema).min(1).max(200),
   })
@@ -117,6 +154,12 @@ export const learningCourseSchema = z
     const issue = (message: string) => {
       ctx.addIssue({ code: "custom", message });
     };
+    const paths = new Set(course.paths.map((p) => p.id));
+    if (
+      paths.size !== course.paths.length ||
+      course.paths.some((p) => !course.units.some((u) => u.stage === p.id))
+    )
+      issue("Invalid path identity");
     const ids = new Set<string>();
     const objectives = new Set<string>();
     const targets = new Set(course.targets.map((t) => t.id));
@@ -125,6 +168,7 @@ export const learningCourseSchema = z
       issue("Lexical examples require matching meanings");
     if (targets.size !== course.targets.length) issue("Duplicate language target");
     for (const unit of course.units) {
+      if (!paths.has(unit.stage)) issue("Unknown path");
       if (ids.has(unit.id) || unit.prerequisites.some((id) => !ids.has(id)))
         issue("Invalid unit order or identity");
       ids.add(unit.id);

@@ -306,7 +306,10 @@ export class LearningResultService {
     if (operation.input.kind !== "exercise-generation")
       throw new Error("OD_GENERATED_ACTIVITY_INPUT_INVALID");
     if (operation.input.learningPath) {
-      const course = await readLearningCourse(this.#curriculumRoot);
+      const course = await readLearningCourse(
+        this.#curriculumRoot,
+        operation.input.learningContext.targetLanguage,
+      );
       if (!course) throw new Error("OD_COURSE_UNAVAILABLE");
       resolveCourseReference(course, operation.input.learningPath);
     }

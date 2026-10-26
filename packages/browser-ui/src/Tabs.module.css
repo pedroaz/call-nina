@@ -13,6 +13,9 @@
   border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--od-space-3);
   border: 0;
   background: transparent;
   flex: none;
@@ -23,6 +26,13 @@
   border-bottom: var(--od-border-outlined) solid var(--od-color-transparent, transparent);
   color: var(--od-color-text-muted);
   font-weight: var(--od-weight-medium, var(--od-font-weight-semibold));
+}
+.icon,
+.icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: none;
 }
 .tab[data-selected] {
   color: var(--od-color-brand-ink);

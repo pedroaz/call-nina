@@ -51,9 +51,10 @@ export function nextCourseActivity(
     !["completed", "skipped"].includes(courseActivityStatus(state, state.current))
   )
     return state.current;
-  const units = course.units.filter(
-    (u) => u.stage === state.selectedStage && u.kind !== "launchpad",
-  );
+  const selectedStage = course.paths.some((path) => path.id === state.selectedStage)
+    ? state.selectedStage
+    : course.paths[0]?.id;
+  const units = course.units.filter((u) => u.stage === selectedStage && u.kind !== "launchpad");
   const start = Math.max(
     0,
     units.findIndex((u) => u.id === state.current?.unitId),

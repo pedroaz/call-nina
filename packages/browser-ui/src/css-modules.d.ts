@@ -88,6 +88,7 @@ declare module "*Surface.module.css" {
 
 declare module "*Tabs.module.css" {
   const styles: {
+    readonly icon: string;
     readonly list: string;
     readonly panel: string;
     readonly tab: string;

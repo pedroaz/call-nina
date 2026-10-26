@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "courseId": "german-foundations",
   "targetLanguage": "de",
   "version": "a1-missions-2026-09",
@@ -49,7 +49,7 @@
     {
       "id": "launchpad-word-1",
       "kind": "word",
-      "german": "Hallo",
+      "text": "Hallo",
       "meaning": {
         "en": "hello",
         "de": "Begrüßung"
@@ -63,7 +63,7 @@
     {
       "id": "launchpad-word-2",
       "kind": "word",
-      "german": "Guten Tag",
+      "text": "Guten Tag",
       "meaning": {
         "en": "hello (formal)",
         "de": "höfliche Begrüßung"
@@ -77,7 +77,7 @@
     {
       "id": "launchpad-word-3",
       "kind": "word",
-      "german": "Tschüss",
+      "text": "Tschüss",
       "meaning": {
         "en": "bye",
         "de": "Abschiedsgruß"
@@ -91,7 +91,7 @@
     {
       "id": "launchpad-word-4",
       "kind": "word",
-      "german": "bitte",
+      "text": "bitte",
       "meaning": {
         "en": "please",
         "de": "Wort für eine höfliche Bitte"
@@ -105,7 +105,7 @@
     {
       "id": "launchpad-word-5",
       "kind": "word",
-      "german": "danke",
+      "text": "danke",
       "meaning": {
         "en": "thank you",
         "de": "Wort zum Bedanken"
@@ -119,7 +119,7 @@
     {
       "id": "launchpad-word-6",
       "kind": "word",
-      "german": "der Name",
+      "text": "der Name",
       "meaning": {
         "en": "name",
         "de": "Bezeichnung einer Person"
@@ -135,7 +135,7 @@
     {
       "id": "launchpad-word-7",
       "kind": "word",
-      "german": "heißen",
+      "text": "heißen",
       "meaning": {
         "en": "to be called",
         "de": "einen Namen haben"
@@ -150,7 +150,7 @@
     {
       "id": "launchpad-word-8",
       "kind": "word",
-      "german": "sein",
+      "text": "sein",
       "meaning": {
         "en": "to be",
         "de": "Verb: ich bin, du bist"
@@ -165,7 +165,7 @@
     {
       "id": "launchpad-word-9",
       "kind": "word",
-      "german": "langsam",
+      "text": "langsam",
       "meaning": {
         "en": "slowly",
         "de": "nicht schnell"
@@ -179,7 +179,7 @@
     {
       "id": "launchpad-word-10",
       "kind": "word",
-      "german": "buchstabieren",
+      "text": "buchstabieren",
       "meaning": {
         "en": "to spell",
         "de": "einzelne Buchstaben nennen"
@@ -194,7 +194,7 @@
     {
       "id": "launchpad-chunk-1",
       "kind": "chunk",
-      "german": "Wie bitte?",
+      "text": "Wie bitte?",
       "meaning": {
         "en": "Pardon?",
         "de": "Bitte wiederhole das."
@@ -210,7 +210,7 @@
     {
       "id": "launchpad-chunk-2",
       "kind": "chunk",
-      "german": "Noch einmal, bitte.",
+      "text": "Noch einmal, bitte.",
       "meaning": {
         "en": "Once more, please.",
         "de": "Bitte wiederhole es."
@@ -226,7 +226,7 @@
     {
       "id": "launchpad-chunk-3",
       "kind": "chunk",
-      "german": "Langsamer, bitte.",
+      "text": "Langsamer, bitte.",
       "meaning": {
         "en": "More slowly, please.",
         "de": "Bitte sprich langsamer."
@@ -242,7 +242,7 @@
     {
       "id": "launchpad-chunk-4",
       "kind": "chunk",
-      "german": "Wie schreibt man das?",
+      "text": "Wie schreibt man das?",
       "meaning": {
         "en": "How do you spell that?",
         "de": "Bitte buchstabiere das."
@@ -258,7 +258,7 @@
     {
       "id": "launchpad-sound",
       "kind": "pronunciation",
-      "german": "Name / Nummer",
+      "text": "Name / Nummer",
       "meaning": {
         "en": "Word stress: stress the first syllable in Name and Nummer.",
         "de": "Wortakzent: Betone die erste Silbe in Name und Nummer."
@@ -268,7 +268,7 @@
     {
       "id": "launchpad-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -278,7 +278,7 @@
     {
       "id": "launchpad-pattern",
       "kind": "construction",
-      "german": "Wie bitte?",
+      "text": "Wie bitte?",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -288,7 +288,7 @@
     {
       "id": "introductions-word-1",
       "kind": "word",
-      "german": "Hallo",
+      "text": "Hallo",
       "meaning": {
         "en": "hello",
         "de": "Begrüßung"
@@ -302,7 +302,7 @@
     {
       "id": "introductions-word-2",
       "kind": "word",
-      "german": "Guten Tag",
+      "text": "Guten Tag",
       "meaning": {
         "en": "hello (formal)",
         "de": "höfliche Begrüßung"
@@ -316,7 +316,7 @@
     {
       "id": "introductions-word-3",
       "kind": "word",
-      "german": "Tschüss",
+      "text": "Tschüss",
       "meaning": {
         "en": "bye",
         "de": "Abschiedsgruß"
@@ -330,7 +330,7 @@
     {
       "id": "introductions-word-4",
       "kind": "word",
-      "german": "bitte",
+      "text": "bitte",
       "meaning": {
         "en": "please",
         "de": "Wort für eine höfliche Bitte"
@@ -344,7 +344,7 @@
     {
       "id": "introductions-word-5",
       "kind": "word",
-      "german": "danke",
+      "text": "danke",
       "meaning": {
         "en": "thank you",
         "de": "Wort zum Bedanken"
@@ -358,7 +358,7 @@
     {
       "id": "introductions-word-6",
       "kind": "word",
-      "german": "der Name",
+      "text": "der Name",
       "meaning": {
         "en": "name",
         "de": "Bezeichnung einer Person"
@@ -374,7 +374,7 @@
     {
       "id": "introductions-word-7",
       "kind": "word",
-      "german": "heißen",
+      "text": "heißen",
       "meaning": {
         "en": "to be called",
         "de": "einen Namen haben"
@@ -389,7 +389,7 @@
     {
       "id": "introductions-word-8",
       "kind": "word",
-      "german": "sein",
+      "text": "sein",
       "meaning": {
         "en": "to be",
         "de": "Verb: ich bin, du bist"
@@ -404,7 +404,7 @@
     {
       "id": "introductions-word-9",
       "kind": "word",
-      "german": "langsam",
+      "text": "langsam",
       "meaning": {
         "en": "slowly",
         "de": "nicht schnell"
@@ -418,7 +418,7 @@
     {
       "id": "introductions-word-10",
       "kind": "word",
-      "german": "buchstabieren",
+      "text": "buchstabieren",
       "meaning": {
         "en": "to spell",
         "de": "einzelne Buchstaben nennen"
@@ -433,7 +433,7 @@
     {
       "id": "introductions-chunk-1",
       "kind": "chunk",
-      "german": "Ich heiße …",
+      "text": "Ich heiße …",
       "meaning": {
         "en": "My name is …",
         "de": "So sage ich meinen Namen."
@@ -449,7 +449,7 @@
     {
       "id": "introductions-chunk-2",
       "kind": "chunk",
-      "german": "Woher kommst du?",
+      "text": "Woher kommst du?",
       "meaning": {
         "en": "Where are you from?",
         "de": "Ich frage nach deiner Herkunft."
@@ -465,7 +465,7 @@
     {
       "id": "introductions-chunk-3",
       "kind": "chunk",
-      "german": "Freut mich.",
+      "text": "Freut mich.",
       "meaning": {
         "en": "Nice to meet you.",
         "de": "Ich freue mich über den Kontakt."
@@ -481,7 +481,7 @@
     {
       "id": "introductions-chunk-4",
       "kind": "chunk",
-      "german": "Das ist …",
+      "text": "Das ist …",
       "meaning": {
         "en": "This is …",
         "de": "Ich stelle eine Person vor."
@@ -497,7 +497,7 @@
     {
       "id": "introductions-sound",
       "kind": "pronunciation",
-      "german": "bitten / bieten",
+      "text": "bitten / bieten",
       "meaning": {
         "en": "Listen for short and long vowels; aim for an understandable distinction.",
         "de": "Achte auf kurze und lange Vokale; sprich den Unterschied verständlich."
@@ -507,7 +507,7 @@
     {
       "id": "introductions-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -517,7 +517,7 @@
     {
       "id": "introductions-pattern",
       "kind": "construction",
-      "german": "Ich heiße …",
+      "text": "Ich heiße …",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -527,7 +527,7 @@
     {
       "id": "personal-details-word-1",
       "kind": "word",
-      "german": "wohnen",
+      "text": "wohnen",
       "meaning": {
         "en": "to live",
         "de": "an einem Ort leben"
@@ -542,7 +542,7 @@
     {
       "id": "personal-details-word-2",
       "kind": "word",
-      "german": "kommen",
+      "text": "kommen",
       "meaning": {
         "en": "to come",
         "de": "hierhergehen oder eine Herkunft haben"
@@ -557,7 +557,7 @@
     {
       "id": "personal-details-word-3",
       "kind": "word",
-      "german": "wo",
+      "text": "wo",
       "meaning": {
         "en": "where",
         "de": "Frage nach einem Ort"
@@ -571,7 +571,7 @@
     {
       "id": "personal-details-word-4",
       "kind": "word",
-      "german": "woher",
+      "text": "woher",
       "meaning": {
         "en": "where from",
         "de": "Frage nach der Herkunft"
@@ -585,7 +585,7 @@
     {
       "id": "personal-details-word-5",
       "kind": "word",
-      "german": "die Nummer",
+      "text": "die Nummer",
       "meaning": {
         "en": "number",
         "de": "Folge von Ziffern"
@@ -601,7 +601,7 @@
     {
       "id": "personal-details-word-6",
       "kind": "word",
-      "german": "die Straße",
+      "text": "die Straße",
       "meaning": {
         "en": "street",
         "de": "Weg in einer Stadt mit Häusern"
@@ -617,7 +617,7 @@
     {
       "id": "personal-details-word-7",
       "kind": "word",
-      "german": "die Stadt",
+      "text": "die Stadt",
       "meaning": {
         "en": "city",
         "de": "größerer Ort"
@@ -633,7 +633,7 @@
     {
       "id": "personal-details-word-8",
       "kind": "word",
-      "german": "das Land",
+      "text": "das Land",
       "meaning": {
         "en": "country",
         "de": "zum Beispiel Peru oder Deutschland"
@@ -649,7 +649,7 @@
     {
       "id": "personal-details-word-9",
       "kind": "word",
-      "german": "das Alter",
+      "text": "das Alter",
       "meaning": {
         "en": "age",
         "de": "Zahl der Lebensjahre"
@@ -664,7 +664,7 @@
     {
       "id": "personal-details-word-10",
       "kind": "word",
-      "german": "die Adresse",
+      "text": "die Adresse",
       "meaning": {
         "en": "address",
         "de": "Angabe von Straße, Hausnummer und Ort"
@@ -680,7 +680,7 @@
     {
       "id": "personal-details-word-11",
       "kind": "word",
-      "german": "der Vorname",
+      "text": "der Vorname",
       "meaning": {
         "en": "first name",
         "de": "zum Beispiel Ana"
@@ -696,7 +696,7 @@
     {
       "id": "personal-details-word-12",
       "kind": "word",
-      "german": "der Nachname",
+      "text": "der Nachname",
       "meaning": {
         "en": "surname",
         "de": "zum Beispiel Sommer"
@@ -712,7 +712,7 @@
     {
       "id": "personal-details-word-13",
       "kind": "word",
-      "german": "die Hausnummer",
+      "text": "die Hausnummer",
       "meaning": {
         "en": "house number",
         "de": "Nummer eines Hauses"
@@ -728,7 +728,7 @@
     {
       "id": "personal-details-word-14",
       "kind": "word",
-      "german": "die Postleitzahl",
+      "text": "die Postleitzahl",
       "meaning": {
         "en": "postcode",
         "de": "Zahlen für einen Postbezirk"
@@ -744,7 +744,7 @@
     {
       "id": "personal-details-word-15",
       "kind": "word",
-      "german": "das Jahr",
+      "text": "das Jahr",
       "meaning": {
         "en": "year, years",
         "de": "zwölf Monate"
@@ -760,7 +760,7 @@
     {
       "id": "personal-details-chunk-1",
       "kind": "chunk",
-      "german": "Meine Telefonnummer ist …",
+      "text": "Meine Telefonnummer ist …",
       "meaning": {
         "en": "My phone number is …",
         "de": "So nenne ich meine Telefonnummer."
@@ -776,7 +776,7 @@
     {
       "id": "personal-details-chunk-2",
       "kind": "chunk",
-      "german": "Wie alt bist du?",
+      "text": "Wie alt bist du?",
       "meaning": {
         "en": "How old are you?",
         "de": "Ich frage nach deinem Alter."
@@ -792,7 +792,7 @@
     {
       "id": "personal-details-chunk-3",
       "kind": "chunk",
-      "german": "Das ist mein Bruder.",
+      "text": "Das ist mein Bruder.",
       "meaning": {
         "en": "This is my brother.",
         "de": "Ich stelle meinen Bruder vor."
@@ -808,7 +808,7 @@
     {
       "id": "personal-details-chunk-4",
       "kind": "chunk",
-      "german": "Können Sie das buchstabieren?",
+      "text": "Können Sie das buchstabieren?",
       "meaning": {
         "en": "Can you spell that?",
         "de": "Ich bitte höflich um die Buchstaben."
@@ -824,7 +824,7 @@
     {
       "id": "personal-details-sound",
       "kind": "pronunciation",
-      "german": "schon / schön",
+      "text": "schon / schön",
       "meaning": {
         "en": "Practise o and ö in short meaningful phrases.",
         "de": "Übe o und ö in kurzen sinnvollen Sätzen."
@@ -834,7 +834,7 @@
     {
       "id": "personal-details-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -844,7 +844,7 @@
     {
       "id": "personal-details-pattern",
       "kind": "construction",
-      "german": "Meine Telefonnummer ist …",
+      "text": "Meine Telefonnummer ist …",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -854,7 +854,7 @@
     {
       "id": "communication-repair-chunk-1",
       "kind": "chunk",
-      "german": "Was bedeutet …?",
+      "text": "Was bedeutet …?",
       "meaning": {
         "en": "What does … mean?",
         "de": "Ich frage nach einer Bedeutung."
@@ -870,7 +870,7 @@
     {
       "id": "communication-repair-chunk-2",
       "kind": "chunk",
-      "german": "Habe ich das richtig verstanden?",
+      "text": "Habe ich das richtig verstanden?",
       "meaning": {
         "en": "Did I understand that correctly?",
         "de": "Ich prüfe mein Verständnis."
@@ -886,7 +886,7 @@
     {
       "id": "communication-repair-chunk-3",
       "kind": "chunk",
-      "german": "Ist das ein Stift?",
+      "text": "Ist das ein Stift?",
       "meaning": {
         "en": "Is that a pen?",
         "de": "Ich frage nach einem Gegenstand."
@@ -902,7 +902,7 @@
     {
       "id": "communication-repair-chunk-4",
       "kind": "chunk",
-      "german": "Nein, das ist kein Stift.",
+      "text": "Nein, das ist kein Stift.",
       "meaning": {
         "en": "No, that is not a pen.",
         "de": "Ich korrigiere eine Vermutung."
@@ -918,7 +918,7 @@
     {
       "id": "communication-repair-sound",
       "kind": "pronunciation",
-      "german": "Name / Nummer",
+      "text": "Name / Nummer",
       "meaning": {
         "en": "Word stress: stress the first syllable in Name and Nummer.",
         "de": "Wortakzent: Betone die erste Silbe in Name und Nummer."
@@ -928,7 +928,7 @@
     {
       "id": "communication-repair-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -938,7 +938,7 @@
     {
       "id": "communication-repair-pattern",
       "kind": "construction",
-      "german": "Was bedeutet …?",
+      "text": "Was bedeutet …?",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -948,7 +948,7 @@
     {
       "id": "food-shopping-word-1",
       "kind": "word",
-      "german": "der Tee",
+      "text": "der Tee",
       "meaning": {
         "en": "tea",
         "de": "heißes Getränk aus Blättern"
@@ -964,7 +964,7 @@
     {
       "id": "food-shopping-word-2",
       "kind": "word",
-      "german": "der Kaffee",
+      "text": "der Kaffee",
       "meaning": {
         "en": "coffee",
         "de": "heißes Getränk aus Kaffeebohnen"
@@ -980,7 +980,7 @@
     {
       "id": "food-shopping-word-3",
       "kind": "word",
-      "german": "die Suppe",
+      "text": "die Suppe",
       "meaning": {
         "en": "soup",
         "de": "flüssiges Essen"
@@ -996,7 +996,7 @@
     {
       "id": "food-shopping-word-4",
       "kind": "word",
-      "german": "das Brot",
+      "text": "das Brot",
       "meaning": {
         "en": "bread",
         "de": "Lebensmittel aus Mehl"
@@ -1012,7 +1012,7 @@
     {
       "id": "food-shopping-word-5",
       "kind": "word",
-      "german": "essen",
+      "text": "essen",
       "meaning": {
         "en": "to eat",
         "de": "Nahrung zu sich nehmen"
@@ -1027,7 +1027,7 @@
     {
       "id": "food-shopping-word-6",
       "kind": "word",
-      "german": "trinken",
+      "text": "trinken",
       "meaning": {
         "en": "to drink",
         "de": "ein Getränk zu sich nehmen"
@@ -1042,7 +1042,7 @@
     {
       "id": "food-shopping-word-7",
       "kind": "word",
-      "german": "gern",
+      "text": "gern",
       "meaning": {
         "en": "gladly / like to",
         "de": "mit Freude"
@@ -1056,7 +1056,7 @@
     {
       "id": "food-shopping-word-8",
       "kind": "word",
-      "german": "ohne",
+      "text": "ohne",
       "meaning": {
         "en": "without",
         "de": "etwas ist nicht dabei"
@@ -1070,7 +1070,7 @@
     {
       "id": "food-shopping-word-9",
       "kind": "word",
-      "german": "die Rechnung",
+      "text": "die Rechnung",
       "meaning": {
         "en": "bill",
         "de": "Aufstellung der Kosten"
@@ -1086,7 +1086,7 @@
     {
       "id": "food-shopping-word-10",
       "kind": "word",
-      "german": "bezahlen",
+      "text": "bezahlen",
       "meaning": {
         "en": "to pay",
         "de": "Geld für etwas geben"
@@ -1101,7 +1101,7 @@
     {
       "id": "food-shopping-chunk-1",
       "kind": "chunk",
-      "german": "Ich möchte …, bitte.",
+      "text": "Ich möchte …, bitte.",
       "meaning": {
         "en": "I would like …, please.",
         "de": "Ich bestelle höflich."
@@ -1117,7 +1117,7 @@
     {
       "id": "food-shopping-chunk-2",
       "kind": "chunk",
-      "german": "Was kostet das?",
+      "text": "Was kostet das?",
       "meaning": {
         "en": "How much does that cost?",
         "de": "Ich frage nach dem Preis."
@@ -1133,7 +1133,7 @@
     {
       "id": "food-shopping-chunk-3",
       "kind": "chunk",
-      "german": "Dann nehme ich …",
+      "text": "Dann nehme ich …",
       "meaning": {
         "en": "Then I will take …",
         "de": "Ich wähle eine Alternative."
@@ -1149,7 +1149,7 @@
     {
       "id": "food-shopping-chunk-4",
       "kind": "chunk",
-      "german": "Die Rechnung, bitte.",
+      "text": "Die Rechnung, bitte.",
       "meaning": {
         "en": "The bill, please.",
         "de": "Ich möchte bezahlen."
@@ -1165,7 +1165,7 @@
     {
       "id": "food-shopping-sound",
       "kind": "pronunciation",
-      "german": "bitten / bieten",
+      "text": "bitten / bieten",
       "meaning": {
         "en": "Listen for short and long vowels; aim for an understandable distinction.",
         "de": "Achte auf kurze und lange Vokale; sprich den Unterschied verständlich."
@@ -1175,7 +1175,7 @@
     {
       "id": "food-shopping-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -1185,7 +1185,7 @@
     {
       "id": "food-shopping-pattern",
       "kind": "construction",
-      "german": "Ich möchte …, bitte.",
+      "text": "Ich möchte …, bitte.",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -1195,7 +1195,7 @@
     {
       "id": "daily-life-word-1",
       "kind": "word",
-      "german": "aufstehen",
+      "text": "aufstehen",
       "meaning": {
         "en": "to get up",
         "de": "das Bett verlassen"
@@ -1210,7 +1210,7 @@
     {
       "id": "daily-life-word-2",
       "kind": "word",
-      "german": "arbeiten",
+      "text": "arbeiten",
       "meaning": {
         "en": "to work",
         "de": "eine Tätigkeit im Beruf ausüben"
@@ -1225,7 +1225,7 @@
     {
       "id": "daily-life-word-3",
       "kind": "word",
-      "german": "lesen",
+      "text": "lesen",
       "meaning": {
         "en": "to read",
         "de": "geschriebene Wörter verstehen"
@@ -1240,7 +1240,7 @@
     {
       "id": "daily-life-word-4",
       "kind": "word",
-      "german": "heute",
+      "text": "heute",
       "meaning": {
         "en": "today",
         "de": "an diesem Tag"
@@ -1254,7 +1254,7 @@
     {
       "id": "daily-life-word-5",
       "kind": "word",
-      "german": "morgen",
+      "text": "morgen",
       "meaning": {
         "en": "tomorrow",
         "de": "am nächsten Tag"
@@ -1268,7 +1268,7 @@
     {
       "id": "daily-life-word-6",
       "kind": "word",
-      "german": "der Montag",
+      "text": "der Montag",
       "meaning": {
         "en": "Monday",
         "de": "Tag nach Sonntag"
@@ -1284,7 +1284,7 @@
     {
       "id": "daily-life-word-7",
       "kind": "word",
-      "german": "der Dienstag",
+      "text": "der Dienstag",
       "meaning": {
         "en": "Tuesday",
         "de": "Tag nach Montag"
@@ -1300,7 +1300,7 @@
     {
       "id": "daily-life-word-8",
       "kind": "word",
-      "german": "die Uhr",
+      "text": "die Uhr",
       "meaning": {
         "en": "clock / o’clock",
         "de": "zeigt die Zeit"
@@ -1316,7 +1316,7 @@
     {
       "id": "daily-life-word-9",
       "kind": "word",
-      "german": "die Zeit",
+      "text": "die Zeit",
       "meaning": {
         "en": "time",
         "de": "zum Beispiel eine Stunde"
@@ -1332,7 +1332,7 @@
     {
       "id": "daily-life-word-10",
       "kind": "word",
-      "german": "leider",
+      "text": "leider",
       "meaning": {
         "en": "unfortunately",
         "de": "drückt Bedauern aus"
@@ -1346,7 +1346,7 @@
     {
       "id": "daily-life-word-11",
       "kind": "word",
-      "german": "das Wochenende",
+      "text": "das Wochenende",
       "meaning": {
         "en": "weekend",
         "de": "Samstag und Sonntag"
@@ -1362,7 +1362,7 @@
     {
       "id": "daily-life-word-12",
       "kind": "word",
-      "german": "spielen",
+      "text": "spielen",
       "meaning": {
         "en": "to play",
         "de": "zum Beispiel Fußball spielen"
@@ -1377,7 +1377,7 @@
     {
       "id": "daily-life-word-13",
       "kind": "word",
-      "german": "die Einladung",
+      "text": "die Einladung",
       "meaning": {
         "en": "invitation",
         "de": "Bitte zu kommen"
@@ -1393,7 +1393,7 @@
     {
       "id": "daily-life-chunk-1",
       "kind": "chunk",
-      "german": "Hast du am … Zeit?",
+      "text": "Hast du am … Zeit?",
       "meaning": {
         "en": "Are you free on …?",
         "de": "Ich frage nach deiner freien Zeit."
@@ -1409,7 +1409,7 @@
     {
       "id": "daily-life-chunk-2",
       "kind": "chunk",
-      "german": "Leider kann ich da nicht.",
+      "text": "Leider kann ich da nicht.",
       "meaning": {
         "en": "Unfortunately I cannot then.",
         "de": "Ich sage einen Termin ab."
@@ -1425,7 +1425,7 @@
     {
       "id": "daily-life-chunk-3",
       "kind": "chunk",
-      "german": "Passt dir …?",
+      "text": "Passt dir …?",
       "meaning": {
         "en": "Does … work for you?",
         "de": "Ich schlage einen anderen Termin vor."
@@ -1441,7 +1441,7 @@
     {
       "id": "daily-life-chunk-4",
       "kind": "chunk",
-      "german": "Wir treffen uns um …",
+      "text": "Wir treffen uns um …",
       "meaning": {
         "en": "We are meeting at …",
         "de": "Ich bestätige die Uhrzeit."
@@ -1457,7 +1457,7 @@
     {
       "id": "daily-life-chunk-5",
       "kind": "chunk",
-      "german": "Ich stehe um sieben auf.",
+      "text": "Ich stehe um sieben auf.",
       "meaning": {
         "en": "I get up at seven.",
         "de": "Ich beschreibe meinen Tagesablauf."
@@ -1473,7 +1473,7 @@
     {
       "id": "daily-life-sound",
       "kind": "pronunciation",
-      "german": "schon / schön",
+      "text": "schon / schön",
       "meaning": {
         "en": "Practise o and ö in short meaningful phrases.",
         "de": "Übe o und ö in kurzen sinnvollen Sätzen."
@@ -1483,7 +1483,7 @@
     {
       "id": "daily-life-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -1493,7 +1493,7 @@
     {
       "id": "daily-life-pattern",
       "kind": "construction",
-      "german": "Hast du am … Zeit?",
+      "text": "Hast du am … Zeit?",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -1503,7 +1503,7 @@
     {
       "id": "home-word-1",
       "kind": "word",
-      "german": "die Wohnung",
+      "text": "die Wohnung",
       "meaning": {
         "en": "flat",
         "de": "Räume, in denen jemand wohnt"
@@ -1519,7 +1519,7 @@
     {
       "id": "home-word-2",
       "kind": "word",
-      "german": "das Zimmer",
+      "text": "das Zimmer",
       "meaning": {
         "en": "room",
         "de": "Teil einer Wohnung"
@@ -1535,7 +1535,7 @@
     {
       "id": "home-word-3",
       "kind": "word",
-      "german": "die Küche",
+      "text": "die Küche",
       "meaning": {
         "en": "kitchen",
         "de": "Raum zum Kochen"
@@ -1551,7 +1551,7 @@
     {
       "id": "home-word-4",
       "kind": "word",
-      "german": "das Bad",
+      "text": "das Bad",
       "meaning": {
         "en": "bathroom",
         "de": "Raum zum Waschen"
@@ -1567,7 +1567,7 @@
     {
       "id": "home-word-5",
       "kind": "word",
-      "german": "der Tisch",
+      "text": "der Tisch",
       "meaning": {
         "en": "table",
         "de": "Möbel zum Essen oder Arbeiten"
@@ -1583,7 +1583,7 @@
     {
       "id": "home-word-6",
       "kind": "word",
-      "german": "der Stuhl",
+      "text": "der Stuhl",
       "meaning": {
         "en": "chair",
         "de": "Möbel zum Sitzen"
@@ -1599,7 +1599,7 @@
     {
       "id": "home-word-7",
       "kind": "word",
-      "german": "das Bett",
+      "text": "das Bett",
       "meaning": {
         "en": "bed",
         "de": "Möbel zum Schlafen"
@@ -1615,7 +1615,7 @@
     {
       "id": "home-word-8",
       "kind": "word",
-      "german": "hell",
+      "text": "hell",
       "meaning": {
         "en": "bright",
         "de": "mit viel Licht"
@@ -1629,7 +1629,7 @@
     {
       "id": "home-word-9",
       "kind": "word",
-      "german": "ruhig",
+      "text": "ruhig",
       "meaning": {
         "en": "quiet",
         "de": "ohne viel Lärm"
@@ -1643,7 +1643,7 @@
     {
       "id": "home-word-10",
       "kind": "word",
-      "german": "groß",
+      "text": "groß",
       "meaning": {
         "en": "big",
         "de": "nicht klein"
@@ -1657,7 +1657,7 @@
     {
       "id": "home-word-11",
       "kind": "word",
-      "german": "das Wohnzimmer",
+      "text": "das Wohnzimmer",
       "meaning": {
         "en": "living room",
         "de": "Zimmer zum Sitzen und Zusammensein"
@@ -1673,7 +1673,7 @@
     {
       "id": "home-word-12",
       "kind": "word",
-      "german": "das Schlafzimmer",
+      "text": "das Schlafzimmer",
       "meaning": {
         "en": "bedroom",
         "de": "Zimmer zum Schlafen"
@@ -1689,7 +1689,7 @@
     {
       "id": "home-word-13",
       "kind": "word",
-      "german": "die Miete",
+      "text": "die Miete",
       "meaning": {
         "en": "rent",
         "de": "Geld für eine Wohnung"
@@ -1705,7 +1705,7 @@
     {
       "id": "home-word-14",
       "kind": "word",
-      "german": "der Monat",
+      "text": "der Monat",
       "meaning": {
         "en": "month",
         "de": "zum Beispiel Januar"
@@ -1721,7 +1721,7 @@
     {
       "id": "home-chunk-1",
       "kind": "chunk",
-      "german": "Es gibt zwei Zimmer.",
+      "text": "Es gibt zwei Zimmer.",
       "meaning": {
         "en": "There are two rooms.",
         "de": "Die Wohnung hat zwei Zimmer."
@@ -1737,7 +1737,7 @@
     {
       "id": "home-chunk-2",
       "kind": "chunk",
-      "german": "Hat die Wohnung einen Balkon?",
+      "text": "Hat die Wohnung einen Balkon?",
       "meaning": {
         "en": "Does the apartment have a balcony?",
         "de": "Ich frage nach der Ausstattung."
@@ -1753,7 +1753,7 @@
     {
       "id": "home-chunk-3",
       "kind": "chunk",
-      "german": "Ich interessiere mich für …",
+      "text": "Ich interessiere mich für …",
       "meaning": {
         "en": "I am interested in …",
         "de": "Ich zeige Interesse."
@@ -1769,7 +1769,7 @@
     {
       "id": "home-chunk-4",
       "kind": "chunk",
-      "german": "Wann kann ich kommen?",
+      "text": "Wann kann ich kommen?",
       "meaning": {
         "en": "When can I come?",
         "de": "Ich frage nach einem Termin."
@@ -1785,7 +1785,7 @@
     {
       "id": "home-sound",
       "kind": "pronunciation",
-      "german": "Name / Nummer",
+      "text": "Name / Nummer",
       "meaning": {
         "en": "Word stress: stress the first syllable in Name and Nummer.",
         "de": "Wortakzent: Betone die erste Silbe in Name und Nummer."
@@ -1795,7 +1795,7 @@
     {
       "id": "home-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -1805,7 +1805,7 @@
     {
       "id": "home-pattern",
       "kind": "construction",
-      "german": "Es gibt zwei Zimmer.",
+      "text": "Es gibt zwei Zimmer.",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -1815,7 +1815,7 @@
     {
       "id": "a1-1-checkpoint-word-1",
       "kind": "word",
-      "german": "aufstehen",
+      "text": "aufstehen",
       "meaning": {
         "en": "to get up",
         "de": "das Bett verlassen"
@@ -1830,7 +1830,7 @@
     {
       "id": "a1-1-checkpoint-word-2",
       "kind": "word",
-      "german": "arbeiten",
+      "text": "arbeiten",
       "meaning": {
         "en": "to work",
         "de": "eine Tätigkeit im Beruf ausüben"
@@ -1845,7 +1845,7 @@
     {
       "id": "a1-1-checkpoint-word-3",
       "kind": "word",
-      "german": "lesen",
+      "text": "lesen",
       "meaning": {
         "en": "to read",
         "de": "geschriebene Wörter verstehen"
@@ -1860,7 +1860,7 @@
     {
       "id": "a1-1-checkpoint-word-4",
       "kind": "word",
-      "german": "heute",
+      "text": "heute",
       "meaning": {
         "en": "today",
         "de": "an diesem Tag"
@@ -1874,7 +1874,7 @@
     {
       "id": "a1-1-checkpoint-word-5",
       "kind": "word",
-      "german": "morgen",
+      "text": "morgen",
       "meaning": {
         "en": "tomorrow",
         "de": "am nächsten Tag"
@@ -1888,7 +1888,7 @@
     {
       "id": "a1-1-checkpoint-word-6",
       "kind": "word",
-      "german": "der Montag",
+      "text": "der Montag",
       "meaning": {
         "en": "Monday",
         "de": "Tag nach Sonntag"
@@ -1904,7 +1904,7 @@
     {
       "id": "a1-1-checkpoint-word-7",
       "kind": "word",
-      "german": "der Dienstag",
+      "text": "der Dienstag",
       "meaning": {
         "en": "Tuesday",
         "de": "Tag nach Montag"
@@ -1920,7 +1920,7 @@
     {
       "id": "a1-1-checkpoint-word-8",
       "kind": "word",
-      "german": "die Uhr",
+      "text": "die Uhr",
       "meaning": {
         "en": "clock / o’clock",
         "de": "zeigt die Zeit"
@@ -1936,7 +1936,7 @@
     {
       "id": "a1-1-checkpoint-word-9",
       "kind": "word",
-      "german": "die Zeit",
+      "text": "die Zeit",
       "meaning": {
         "en": "time",
         "de": "zum Beispiel eine Stunde"
@@ -1952,7 +1952,7 @@
     {
       "id": "a1-1-checkpoint-word-10",
       "kind": "word",
-      "german": "leider",
+      "text": "leider",
       "meaning": {
         "en": "unfortunately",
         "de": "drückt Bedauern aus"
@@ -1966,7 +1966,7 @@
     {
       "id": "a1-1-checkpoint-word-11",
       "kind": "word",
-      "german": "das Wochenende",
+      "text": "das Wochenende",
       "meaning": {
         "en": "weekend",
         "de": "Samstag und Sonntag"
@@ -1982,7 +1982,7 @@
     {
       "id": "a1-1-checkpoint-word-12",
       "kind": "word",
-      "german": "spielen",
+      "text": "spielen",
       "meaning": {
         "en": "to play",
         "de": "zum Beispiel Fußball spielen"
@@ -1997,7 +1997,7 @@
     {
       "id": "a1-1-checkpoint-word-13",
       "kind": "word",
-      "german": "die Einladung",
+      "text": "die Einladung",
       "meaning": {
         "en": "invitation",
         "de": "Bitte zu kommen"
@@ -2013,7 +2013,7 @@
     {
       "id": "a1-1-checkpoint-chunk-1",
       "kind": "chunk",
-      "german": "Ich bringe die Anmeldung mit.",
+      "text": "Ich bringe die Anmeldung mit.",
       "meaning": {
         "en": "I will bring the registration.",
         "de": "Ich nehme das Formular zum Treffen mit."
@@ -2029,7 +2029,7 @@
     {
       "id": "a1-1-checkpoint-chunk-2",
       "kind": "chunk",
-      "german": "Also, am Dienstag um zehn?",
+      "text": "Also, am Dienstag um zehn?",
       "meaning": {
         "en": "So, Tuesday at ten?",
         "de": "Ich prüfe die Angaben."
@@ -2045,7 +2045,7 @@
     {
       "id": "a1-1-checkpoint-chunk-3",
       "kind": "chunk",
-      "german": "Die Wohnung kostet …",
+      "text": "Die Wohnung kostet …",
       "meaning": {
         "en": "The apartment costs …",
         "de": "Ich gebe den Preis weiter."
@@ -2061,7 +2061,7 @@
     {
       "id": "a1-1-checkpoint-sound",
       "kind": "pronunciation",
-      "german": "bitten / bieten",
+      "text": "bitten / bieten",
       "meaning": {
         "en": "Listen for short and long vowels; aim for an understandable distinction.",
         "de": "Achte auf kurze und lange Vokale; sprich den Unterschied verständlich."
@@ -2071,7 +2071,7 @@
     {
       "id": "a1-1-checkpoint-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -2081,7 +2081,7 @@
     {
       "id": "a1-1-checkpoint-pattern",
       "kind": "construction",
-      "german": "Ich bringe die Anmeldung mit.",
+      "text": "Ich bringe die Anmeldung mit.",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -2091,7 +2091,7 @@
     {
       "id": "directions-word-1",
       "kind": "word",
-      "german": "der Bahnhof",
+      "text": "der Bahnhof",
       "meaning": {
         "en": "station",
         "de": "Ort, an dem Züge halten"
@@ -2107,7 +2107,7 @@
     {
       "id": "directions-word-2",
       "kind": "word",
-      "german": "die Apotheke",
+      "text": "die Apotheke",
       "meaning": {
         "en": "pharmacy",
         "de": "Geschäft für Medikamente"
@@ -2123,7 +2123,7 @@
     {
       "id": "directions-word-3",
       "kind": "word",
-      "german": "der Bus",
+      "text": "der Bus",
       "meaning": {
         "en": "bus",
         "de": "großes Fahrzeug für viele Personen"
@@ -2139,7 +2139,7 @@
     {
       "id": "directions-word-4",
       "kind": "word",
-      "german": "die Bahn",
+      "text": "die Bahn",
       "meaning": {
         "en": "railway",
         "de": "Zugverkehr"
@@ -2155,7 +2155,7 @@
     {
       "id": "directions-word-5",
       "kind": "word",
-      "german": "das Fahrrad",
+      "text": "das Fahrrad",
       "meaning": {
         "en": "bicycle",
         "de": "Fahrzeug mit zwei Rädern und Pedalen"
@@ -2171,7 +2171,7 @@
     {
       "id": "directions-word-6",
       "kind": "word",
-      "german": "links",
+      "text": "links",
       "meaning": {
         "en": "left",
         "de": "Richtung auf der linken Seite"
@@ -2185,7 +2185,7 @@
     {
       "id": "directions-word-7",
       "kind": "word",
-      "german": "rechts",
+      "text": "rechts",
       "meaning": {
         "en": "right",
         "de": "Richtung auf der rechten Seite"
@@ -2199,7 +2199,7 @@
     {
       "id": "directions-word-8",
       "kind": "word",
-      "german": "geradeaus",
+      "text": "geradeaus",
       "meaning": {
         "en": "straight ahead",
         "de": "ohne nach links oder rechts zu gehen"
@@ -2213,7 +2213,7 @@
     {
       "id": "directions-word-9",
       "kind": "word",
-      "german": "gehen",
+      "text": "gehen",
       "meaning": {
         "en": "to go on foot",
         "de": "sich zu Fuß bewegen"
@@ -2228,7 +2228,7 @@
     {
       "id": "directions-word-10",
       "kind": "word",
-      "german": "fahren",
+      "text": "fahren",
       "meaning": {
         "en": "to travel / drive",
         "de": "ein Fahrzeug benutzen"
@@ -2243,7 +2243,7 @@
     {
       "id": "directions-word-11",
       "kind": "word",
-      "german": "neben",
+      "text": "neben",
       "meaning": {
         "en": "next to",
         "de": "an der Seite von"
@@ -2257,7 +2257,7 @@
     {
       "id": "directions-word-12",
       "kind": "word",
-      "german": "weit",
+      "text": "weit",
       "meaning": {
         "en": "far",
         "de": "nicht nah"
@@ -2271,7 +2271,7 @@
     {
       "id": "directions-word-13",
       "kind": "word",
-      "german": "die Fahrkarte",
+      "text": "die Fahrkarte",
       "meaning": {
         "en": "ticket",
         "de": "Ticket für Bus oder Bahn"
@@ -2287,7 +2287,7 @@
     {
       "id": "directions-chunk-1",
       "kind": "chunk",
-      "german": "Wie komme ich zum …?",
+      "text": "Wie komme ich zum …?",
       "meaning": {
         "en": "How do I get to …?",
         "de": "Ich frage nach dem Weg."
@@ -2303,7 +2303,7 @@
     {
       "id": "directions-chunk-2",
       "kind": "chunk",
-      "german": "Fahren Sie mit dem Bus.",
+      "text": "Fahren Sie mit dem Bus.",
       "meaning": {
         "en": "Take the bus.",
         "de": "Ich erkläre den Weg."
@@ -2319,7 +2319,7 @@
     {
       "id": "directions-chunk-3",
       "kind": "chunk",
-      "german": "Wann fährt der Bus?",
+      "text": "Wann fährt der Bus?",
       "meaning": {
         "en": "When does the bus leave?",
         "de": "Ich frage nach der Abfahrt."
@@ -2335,7 +2335,7 @@
     {
       "id": "directions-chunk-4",
       "kind": "chunk",
-      "german": "Heute fährt er von …",
+      "text": "Heute fährt er von …",
       "meaning": {
         "en": "Today it leaves from …",
         "de": "Ich gebe eine Änderung weiter."
@@ -2351,7 +2351,7 @@
     {
       "id": "directions-sound",
       "kind": "pronunciation",
-      "german": "schon / schön",
+      "text": "schon / schön",
       "meaning": {
         "en": "Practise o and ö in short meaningful phrases.",
         "de": "Übe o und ö in kurzen sinnvollen Sätzen."
@@ -2361,7 +2361,7 @@
     {
       "id": "directions-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -2371,7 +2371,7 @@
     {
       "id": "directions-pattern",
       "kind": "construction",
-      "german": "Wie komme ich zum …?",
+      "text": "Wie komme ich zum …?",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -2381,7 +2381,7 @@
     {
       "id": "work-study-word-1",
       "kind": "word",
-      "german": "der Kurs",
+      "text": "der Kurs",
       "meaning": {
         "en": "course",
         "de": "Unterrichtsangebot"
@@ -2397,7 +2397,7 @@
     {
       "id": "work-study-word-2",
       "kind": "word",
-      "german": "die Arbeit",
+      "text": "die Arbeit",
       "meaning": {
         "en": "work",
         "de": "berufliche Tätigkeit"
@@ -2413,7 +2413,7 @@
     {
       "id": "work-study-word-3",
       "kind": "word",
-      "german": "beginnen",
+      "text": "beginnen",
       "meaning": {
         "en": "to begin",
         "de": "starten"
@@ -2428,7 +2428,7 @@
     {
       "id": "work-study-word-4",
       "kind": "word",
-      "german": "erklären",
+      "text": "erklären",
       "meaning": {
         "en": "to explain",
         "de": "etwas verständlich machen"
@@ -2443,7 +2443,7 @@
     {
       "id": "work-study-word-5",
       "kind": "word",
-      "german": "verstehen",
+      "text": "verstehen",
       "meaning": {
         "en": "to understand",
         "de": "die Bedeutung erkennen"
@@ -2458,7 +2458,7 @@
     {
       "id": "work-study-word-6",
       "kind": "word",
-      "german": "die Nachricht",
+      "text": "die Nachricht",
       "meaning": {
         "en": "message",
         "de": "kurze Mitteilung"
@@ -2474,7 +2474,7 @@
     {
       "id": "work-study-word-7",
       "kind": "word",
-      "german": "später",
+      "text": "später",
       "meaning": {
         "en": "later",
         "de": "nicht jetzt, sondern danach"
@@ -2488,7 +2488,7 @@
     {
       "id": "work-study-word-8",
       "kind": "word",
-      "german": "der Raum",
+      "text": "der Raum",
       "meaning": {
         "en": "room",
         "de": "Zimmer"
@@ -2504,7 +2504,7 @@
     {
       "id": "work-study-word-9",
       "kind": "word",
-      "german": "die Aufgabe",
+      "text": "die Aufgabe",
       "meaning": {
         "en": "task",
         "de": "etwas, das man bearbeiten soll"
@@ -2520,7 +2520,7 @@
     {
       "id": "work-study-word-10",
       "kind": "word",
-      "german": "denn",
+      "text": "denn",
       "meaning": {
         "en": "because",
         "de": "verbindet einen Satz mit einer Begründung"
@@ -2534,7 +2534,7 @@
     {
       "id": "work-study-word-11",
       "kind": "word",
-      "german": "das Heft",
+      "text": "das Heft",
       "meaning": {
         "en": "notebook",
         "de": "Buch zum Schreiben"
@@ -2550,7 +2550,7 @@
     {
       "id": "work-study-word-12",
       "kind": "word",
-      "german": "mitbringen",
+      "text": "mitbringen",
       "meaning": {
         "en": "to bring along",
         "de": "etwas zum Zielort bringen"
@@ -2565,7 +2565,7 @@
     {
       "id": "work-study-word-13",
       "kind": "word",
-      "german": "schicken",
+      "text": "schicken",
       "meaning": {
         "en": "to send",
         "de": "senden"
@@ -2580,7 +2580,7 @@
     {
       "id": "work-study-chunk-1",
       "kind": "chunk",
-      "german": "Ich arbeite als …",
+      "text": "Ich arbeite als …",
       "meaning": {
         "en": "I work as …",
         "de": "Ich nenne meinen Beruf."
@@ -2596,7 +2596,7 @@
     {
       "id": "work-study-chunk-2",
       "kind": "chunk",
-      "german": "Ich kann …",
+      "text": "Ich kann …",
       "meaning": {
         "en": "I can …",
         "de": "Ich nenne eine Fähigkeit."
@@ -2612,7 +2612,7 @@
     {
       "id": "work-study-chunk-3",
       "kind": "chunk",
-      "german": "Ich muss bis … arbeiten.",
+      "text": "Ich muss bis … arbeiten.",
       "meaning": {
         "en": "I have to work until …",
         "de": "Ich erkläre meine Arbeitszeit."
@@ -2628,7 +2628,7 @@
     {
       "id": "work-study-chunk-4",
       "kind": "chunk",
-      "german": "Können wir danach …?",
+      "text": "Können wir danach …?",
       "meaning": {
         "en": "Can we … afterwards?",
         "de": "Ich schlage einen Termin vor."
@@ -2644,7 +2644,7 @@
     {
       "id": "work-study-sound",
       "kind": "pronunciation",
-      "german": "Name / Nummer",
+      "text": "Name / Nummer",
       "meaning": {
         "en": "Word stress: stress the first syllable in Name and Nummer.",
         "de": "Wortakzent: Betone die erste Silbe in Name und Nummer."
@@ -2654,7 +2654,7 @@
     {
       "id": "work-study-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -2664,7 +2664,7 @@
     {
       "id": "work-study-pattern",
       "kind": "construction",
-      "german": "Ich arbeite als …",
+      "text": "Ich arbeite als …",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -2674,7 +2674,7 @@
     {
       "id": "health-word-1",
       "kind": "word",
-      "german": "der Kopf",
+      "text": "der Kopf",
       "meaning": {
         "en": "head",
         "de": "Körperteil über dem Hals"
@@ -2690,7 +2690,7 @@
     {
       "id": "health-word-2",
       "kind": "word",
-      "german": "der Hals",
+      "text": "der Hals",
       "meaning": {
         "en": "throat / neck",
         "de": "Körperteil zwischen Kopf und Oberkörper"
@@ -2706,7 +2706,7 @@
     {
       "id": "health-word-3",
       "kind": "word",
-      "german": "der Fuß",
+      "text": "der Fuß",
       "meaning": {
         "en": "foot",
         "de": "Körperteil zum Stehen"
@@ -2722,7 +2722,7 @@
     {
       "id": "health-word-4",
       "kind": "word",
-      "german": "die Schmerzen",
+      "text": "die Schmerzen",
       "meaning": {
         "en": "pain",
         "de": "unangenehmes körperliches Gefühl"
@@ -2737,7 +2737,7 @@
     {
       "id": "health-word-5",
       "kind": "word",
-      "german": "müde",
+      "text": "müde",
       "meaning": {
         "en": "tired",
         "de": "man braucht Ruhe oder Schlaf"
@@ -2751,7 +2751,7 @@
     {
       "id": "health-word-6",
       "kind": "word",
-      "german": "krank",
+      "text": "krank",
       "meaning": {
         "en": "ill",
         "de": "nicht gesund"
@@ -2765,7 +2765,7 @@
     {
       "id": "health-word-7",
       "kind": "word",
-      "german": "seit",
+      "text": "seit",
       "meaning": {
         "en": "since / for",
         "de": "nennt den Beginn eines Zustands"
@@ -2779,7 +2779,7 @@
     {
       "id": "health-word-8",
       "kind": "word",
-      "german": "gestern",
+      "text": "gestern",
       "meaning": {
         "en": "yesterday",
         "de": "am Tag vor heute"
@@ -2793,7 +2793,7 @@
     {
       "id": "health-word-9",
       "kind": "word",
-      "german": "warten",
+      "text": "warten",
       "meaning": {
         "en": "to wait",
         "de": "an einem Ort bleiben, bis etwas passiert"
@@ -2808,7 +2808,7 @@
     {
       "id": "health-word-10",
       "kind": "word",
-      "german": "die Hilfe",
+      "text": "die Hilfe",
       "meaning": {
         "en": "help",
         "de": "Unterstützung"
@@ -2823,7 +2823,7 @@
     {
       "id": "health-word-11",
       "kind": "word",
-      "german": "die Kopfschmerzen",
+      "text": "die Kopfschmerzen",
       "meaning": {
         "en": "headache",
         "de": "Schmerzen im Kopf"
@@ -2838,7 +2838,7 @@
     {
       "id": "health-word-12",
       "kind": "word",
-      "german": "die Halsschmerzen",
+      "text": "die Halsschmerzen",
       "meaning": {
         "en": "sore throat",
         "de": "Schmerzen im Hals"
@@ -2853,7 +2853,7 @@
     {
       "id": "health-chunk-1",
       "kind": "chunk",
-      "german": "Mir tut der Hals weh.",
+      "text": "Mir tut der Hals weh.",
       "meaning": {
         "en": "My throat hurts.",
         "de": "Ich beschreibe ein Symptom."
@@ -2869,7 +2869,7 @@
     {
       "id": "health-chunk-2",
       "kind": "chunk",
-      "german": "Ich brauche einen Termin.",
+      "text": "Ich brauche einen Termin.",
       "meaning": {
         "en": "I need an appointment.",
         "de": "Ich bitte um einen Termin."
@@ -2885,7 +2885,7 @@
     {
       "id": "health-chunk-3",
       "kind": "chunk",
-      "german": "Was soll ich mitbringen?",
+      "text": "Was soll ich mitbringen?",
       "meaning": {
         "en": "What should I bring?",
         "de": "Ich frage nach den organisatorischen Hinweisen."
@@ -2901,7 +2901,7 @@
     {
       "id": "health-chunk-4",
       "kind": "chunk",
-      "german": "Ich kann heute nicht kommen.",
+      "text": "Ich kann heute nicht kommen.",
       "meaning": {
         "en": "I cannot come today.",
         "de": "Ich sage ab."
@@ -2917,7 +2917,7 @@
     {
       "id": "health-sound",
       "kind": "pronunciation",
-      "german": "bitten / bieten",
+      "text": "bitten / bieten",
       "meaning": {
         "en": "Listen for short and long vowels; aim for an understandable distinction.",
         "de": "Achte auf kurze und lange Vokale; sprich den Unterschied verständlich."
@@ -2927,7 +2927,7 @@
     {
       "id": "health-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -2937,7 +2937,7 @@
     {
       "id": "health-pattern",
       "kind": "construction",
-      "german": "Mir tut der Hals weh.",
+      "text": "Mir tut der Hals weh.",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -2947,7 +2947,7 @@
     {
       "id": "past-experiences-word-1",
       "kind": "word",
-      "german": "die Reise",
+      "text": "die Reise",
       "meaning": {
         "en": "trip",
         "de": "Fahrt zu einem anderen Ort"
@@ -2963,7 +2963,7 @@
     {
       "id": "past-experiences-word-2",
       "kind": "word",
-      "german": "der Zug",
+      "text": "der Zug",
       "meaning": {
         "en": "train",
         "de": "Fahrzeug auf Schienen"
@@ -2979,7 +2979,7 @@
     {
       "id": "past-experiences-word-3",
       "kind": "word",
-      "german": "das Hotel",
+      "text": "das Hotel",
       "meaning": {
         "en": "hotel",
         "de": "Haus mit Zimmern für Gäste"
@@ -2995,7 +2995,7 @@
     {
       "id": "past-experiences-word-4",
       "kind": "word",
-      "german": "das Wetter",
+      "text": "das Wetter",
       "meaning": {
         "en": "weather",
         "de": "zum Beispiel Sonne, Regen oder Kälte"
@@ -3010,7 +3010,7 @@
     {
       "id": "past-experiences-word-5",
       "kind": "word",
-      "german": "warm",
+      "text": "warm",
       "meaning": {
         "en": "warm",
         "de": "nicht kalt"
@@ -3024,7 +3024,7 @@
     {
       "id": "past-experiences-word-6",
       "kind": "word",
-      "german": "kalt",
+      "text": "kalt",
       "meaning": {
         "en": "cold",
         "de": "nicht warm"
@@ -3038,7 +3038,7 @@
     {
       "id": "past-experiences-word-7",
       "kind": "word",
-      "german": "zuerst",
+      "text": "zuerst",
       "meaning": {
         "en": "first",
         "de": "als Erstes"
@@ -3052,7 +3052,7 @@
     {
       "id": "past-experiences-word-8",
       "kind": "word",
-      "german": "dann",
+      "text": "dann",
       "meaning": {
         "en": "then",
         "de": "danach"
@@ -3066,7 +3066,7 @@
     {
       "id": "past-experiences-word-9",
       "kind": "word",
-      "german": "gemacht",
+      "text": "gemacht",
       "meaning": {
         "en": "done / made",
         "de": "Partizip von machen"
@@ -3080,7 +3080,7 @@
     {
       "id": "past-experiences-word-10",
       "kind": "word",
-      "german": "getrunken",
+      "text": "getrunken",
       "meaning": {
         "en": "drunk",
         "de": "Partizip von trinken"
@@ -3094,7 +3094,7 @@
     {
       "id": "past-experiences-word-11",
       "kind": "word",
-      "german": "besucht",
+      "text": "besucht",
       "meaning": {
         "en": "visited",
         "de": "Partizip von besuchen"
@@ -3108,7 +3108,7 @@
     {
       "id": "past-experiences-word-12",
       "kind": "word",
-      "german": "gegangen",
+      "text": "gegangen",
       "meaning": {
         "en": "gone / walked",
         "de": "Partizip von gehen"
@@ -3122,7 +3122,7 @@
     {
       "id": "past-experiences-word-13",
       "kind": "word",
-      "german": "die Nacht",
+      "text": "die Nacht",
       "meaning": {
         "en": "night",
         "de": "Zeit zwischen Abend und Morgen"
@@ -3138,7 +3138,7 @@
     {
       "id": "past-experiences-word-14",
       "kind": "word",
-      "german": "das Frühstück",
+      "text": "das Frühstück",
       "meaning": {
         "en": "breakfast",
         "de": "Essen am Morgen"
@@ -3153,7 +3153,7 @@
     {
       "id": "past-experiences-word-15",
       "kind": "word",
-      "german": "regnen",
+      "text": "regnen",
       "meaning": {
         "en": "to rain",
         "de": "Regen fällt"
@@ -3168,7 +3168,7 @@
     {
       "id": "past-experiences-word-16",
       "kind": "word",
-      "german": "gefahren",
+      "text": "gefahren",
       "meaning": {
         "en": "travelled",
         "de": "Partizip von fahren"
@@ -3182,7 +3182,7 @@
     {
       "id": "past-experiences-word-17",
       "kind": "word",
-      "german": "gegessen",
+      "text": "gegessen",
       "meaning": {
         "en": "eaten",
         "de": "Partizip von essen"
@@ -3196,7 +3196,7 @@
     {
       "id": "past-experiences-chunk-1",
       "kind": "chunk",
-      "german": "Gestern habe ich …",
+      "text": "Gestern habe ich …",
       "meaning": {
         "en": "Yesterday I …",
         "de": "Ich berichte von gestern."
@@ -3212,7 +3212,7 @@
     {
       "id": "past-experiences-chunk-2",
       "kind": "chunk",
-      "german": "Ich bin nach … gefahren.",
+      "text": "Ich bin nach … gefahren.",
       "meaning": {
         "en": "I travelled to …",
         "de": "Ich nenne das Reiseziel."
@@ -3228,7 +3228,7 @@
     {
       "id": "past-experiences-chunk-3",
       "kind": "chunk",
-      "german": "Und was hast du gemacht?",
+      "text": "Und was hast du gemacht?",
       "meaning": {
         "en": "And what did you do?",
         "de": "Ich frage nach."
@@ -3244,7 +3244,7 @@
     {
       "id": "past-experiences-chunk-4",
       "kind": "chunk",
-      "german": "Zuerst …, dann …",
+      "text": "Zuerst …, dann …",
       "meaning": {
         "en": "First …, then …",
         "de": "Ich ordne Ereignisse."
@@ -3260,7 +3260,7 @@
     {
       "id": "past-experiences-sound",
       "kind": "pronunciation",
-      "german": "schon / schön",
+      "text": "schon / schön",
       "meaning": {
         "en": "Practise o and ö in short meaningful phrases.",
         "de": "Übe o und ö in kurzen sinnvollen Sätzen."
@@ -3270,7 +3270,7 @@
     {
       "id": "past-experiences-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -3280,7 +3280,7 @@
     {
       "id": "past-experiences-pattern",
       "kind": "construction",
-      "german": "Gestern habe ich …",
+      "text": "Gestern habe ich …",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -3290,7 +3290,7 @@
     {
       "id": "clothes-services-chunk-1",
       "kind": "chunk",
-      "german": "Ich möchte das umtauschen.",
+      "text": "Ich möchte das umtauschen.",
       "meaning": {
         "en": "I would like to exchange this.",
         "de": "Ich bitte um einen Umtausch."
@@ -3306,7 +3306,7 @@
     {
       "id": "clothes-services-chunk-2",
       "kind": "chunk",
-      "german": "Die Jacke ist zu klein.",
+      "text": "Die Jacke ist zu klein.",
       "meaning": {
         "en": "The jacket is too small.",
         "de": "Ich beschreibe das Problem."
@@ -3322,7 +3322,7 @@
     {
       "id": "clothes-services-chunk-3",
       "kind": "chunk",
-      "german": "Haben Sie eine größere?",
+      "text": "Haben Sie eine größere?",
       "meaning": {
         "en": "Do you have a larger one?",
         "de": "Ich frage nach einer Alternative."
@@ -3338,7 +3338,7 @@
     {
       "id": "clothes-services-chunk-4",
       "kind": "chunk",
-      "german": "Diese passt besser.",
+      "text": "Diese passt besser.",
       "meaning": {
         "en": "This one fits better.",
         "de": "Ich vergleiche zwei Sachen."
@@ -3354,7 +3354,7 @@
     {
       "id": "clothes-services-sound",
       "kind": "pronunciation",
-      "german": "Name / Nummer",
+      "text": "Name / Nummer",
       "meaning": {
         "en": "Word stress: stress the first syllable in Name and Nummer.",
         "de": "Wortakzent: Betone die erste Silbe in Name und Nummer."
@@ -3364,7 +3364,7 @@
     {
       "id": "clothes-services-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -3374,7 +3374,7 @@
     {
       "id": "clothes-services-pattern",
       "kind": "construction",
-      "german": "Ich möchte das umtauschen.",
+      "text": "Ich möchte das umtauschen.",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -3384,7 +3384,7 @@
     {
       "id": "social-events-chunk-1",
       "kind": "chunk",
-      "german": "Kommst du am …?",
+      "text": "Kommst du am …?",
       "meaning": {
         "en": "Are you coming on …?",
         "de": "Ich lade dich ein."
@@ -3400,7 +3400,7 @@
     {
       "id": "social-events-chunk-2",
       "kind": "chunk",
-      "german": "Ich bringe … mit.",
+      "text": "Ich bringe … mit.",
       "meaning": {
         "en": "I will bring …",
         "de": "Ich sage, was ich mitnehme."
@@ -3416,7 +3416,7 @@
     {
       "id": "social-events-chunk-3",
       "kind": "chunk",
-      "german": "Es regnet.",
+      "text": "Es regnet.",
       "meaning": {
         "en": "It is raining.",
         "de": "Ich beschreibe das Wetter."
@@ -3432,7 +3432,7 @@
     {
       "id": "social-events-chunk-4",
       "kind": "chunk",
-      "german": "Dann treffen wir uns bei mir.",
+      "text": "Dann treffen wir uns bei mir.",
       "meaning": {
         "en": "Then we will meet at my place.",
         "de": "Ich ändere den Treffpunkt."
@@ -3448,7 +3448,7 @@
     {
       "id": "social-events-sound",
       "kind": "pronunciation",
-      "german": "bitten / bieten",
+      "text": "bitten / bieten",
       "meaning": {
         "en": "Listen for short and long vowels; aim for an understandable distinction.",
         "de": "Achte auf kurze und lange Vokale; sprich den Unterschied verständlich."
@@ -3458,7 +3458,7 @@
     {
       "id": "social-events-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -3468,7 +3468,7 @@
     {
       "id": "social-events-pattern",
       "kind": "construction",
-      "german": "Kommst du am …?",
+      "text": "Kommst du am …?",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -3478,7 +3478,7 @@
     {
       "id": "a1-capstone-word-1",
       "kind": "word",
-      "german": "der Bahnhof",
+      "text": "der Bahnhof",
       "meaning": {
         "en": "station",
         "de": "Ort, an dem Züge halten"
@@ -3494,7 +3494,7 @@
     {
       "id": "a1-capstone-word-2",
       "kind": "word",
-      "german": "die Apotheke",
+      "text": "die Apotheke",
       "meaning": {
         "en": "pharmacy",
         "de": "Geschäft für Medikamente"
@@ -3510,7 +3510,7 @@
     {
       "id": "a1-capstone-word-3",
       "kind": "word",
-      "german": "der Bus",
+      "text": "der Bus",
       "meaning": {
         "en": "bus",
         "de": "großes Fahrzeug für viele Personen"
@@ -3526,7 +3526,7 @@
     {
       "id": "a1-capstone-word-4",
       "kind": "word",
-      "german": "die Bahn",
+      "text": "die Bahn",
       "meaning": {
         "en": "railway",
         "de": "Zugverkehr"
@@ -3542,7 +3542,7 @@
     {
       "id": "a1-capstone-word-5",
       "kind": "word",
-      "german": "das Fahrrad",
+      "text": "das Fahrrad",
       "meaning": {
         "en": "bicycle",
         "de": "Fahrzeug mit zwei Rädern und Pedalen"
@@ -3558,7 +3558,7 @@
     {
       "id": "a1-capstone-word-6",
       "kind": "word",
-      "german": "links",
+      "text": "links",
       "meaning": {
         "en": "left",
         "de": "Richtung auf der linken Seite"
@@ -3572,7 +3572,7 @@
     {
       "id": "a1-capstone-word-7",
       "kind": "word",
-      "german": "rechts",
+      "text": "rechts",
       "meaning": {
         "en": "right",
         "de": "Richtung auf der rechten Seite"
@@ -3586,7 +3586,7 @@
     {
       "id": "a1-capstone-word-8",
       "kind": "word",
-      "german": "geradeaus",
+      "text": "geradeaus",
       "meaning": {
         "en": "straight ahead",
         "de": "ohne nach links oder rechts zu gehen"
@@ -3600,7 +3600,7 @@
     {
       "id": "a1-capstone-word-9",
       "kind": "word",
-      "german": "gehen",
+      "text": "gehen",
       "meaning": {
         "en": "to go on foot",
         "de": "sich zu Fuß bewegen"
@@ -3615,7 +3615,7 @@
     {
       "id": "a1-capstone-word-10",
       "kind": "word",
-      "german": "fahren",
+      "text": "fahren",
       "meaning": {
         "en": "to travel / drive",
         "de": "ein Fahrzeug benutzen"
@@ -3630,7 +3630,7 @@
     {
       "id": "a1-capstone-word-11",
       "kind": "word",
-      "german": "neben",
+      "text": "neben",
       "meaning": {
         "en": "next to",
         "de": "an der Seite von"
@@ -3644,7 +3644,7 @@
     {
       "id": "a1-capstone-word-12",
       "kind": "word",
-      "german": "weit",
+      "text": "weit",
       "meaning": {
         "en": "far",
         "de": "nicht nah"
@@ -3658,7 +3658,7 @@
     {
       "id": "a1-capstone-word-13",
       "kind": "word",
-      "german": "die Fahrkarte",
+      "text": "die Fahrkarte",
       "meaning": {
         "en": "ticket",
         "de": "Ticket für Bus oder Bahn"
@@ -3674,7 +3674,7 @@
     {
       "id": "a1-capstone-chunk-1",
       "kind": "chunk",
-      "german": "Ich komme am Freitag an.",
+      "text": "Ich komme am Freitag an.",
       "meaning": {
         "en": "I arrive on Friday.",
         "de": "Ich bestätige meinen Ankunftstag."
@@ -3690,7 +3690,7 @@
     {
       "id": "a1-capstone-chunk-2",
       "kind": "chunk",
-      "german": "Ich bestätige den Termin.",
+      "text": "Ich bestätige den Termin.",
       "meaning": {
         "en": "I confirm the appointment.",
         "de": "Ich sage verbindlich zu."
@@ -3706,7 +3706,7 @@
     {
       "id": "a1-capstone-chunk-3",
       "kind": "chunk",
-      "german": "Das Zimmer kostet … pro Nacht.",
+      "text": "Das Zimmer kostet … pro Nacht.",
       "meaning": {
         "en": "The room costs … per night.",
         "de": "Ich gebe den Preis weiter."
@@ -3722,7 +3722,7 @@
     {
       "id": "a1-capstone-sound",
       "kind": "pronunciation",
-      "german": "schon / schön",
+      "text": "schon / schön",
       "meaning": {
         "en": "Practise o and ö in short meaningful phrases.",
         "de": "Übe o und ö in kurzen sinnvollen Sätzen."
@@ -3732,7 +3732,7 @@
     {
       "id": "a1-capstone-register",
       "kind": "pragmatics",
-      "german": "du / Sie",
+      "text": "du / Sie",
       "meaning": {
         "en": "Choose du with friends and Sie for an unfamiliar adult in a service setting.",
         "de": "Benutze du mit Freunden und Sie bei unbekannten Erwachsenen in einer Servicesituation."
@@ -3742,7 +3742,7 @@
     {
       "id": "a1-capstone-pattern",
       "kind": "construction",
-      "german": "Ich komme am Freitag an.",
+      "text": "Ich komme am Freitag an.",
       "meaning": {
         "en": "Reuse this sentence frame with different details.",
         "de": "Benutze dieses Satzmuster mit anderen Angaben."
@@ -3752,7 +3752,7 @@
     {
       "id": "communication-repair-lexical-1",
       "kind": "word",
-      "german": "das Buch",
+      "text": "das Buch",
       "meaning": {
         "en": "book",
         "de": "Buch"
@@ -3768,7 +3768,7 @@
     {
       "id": "communication-repair-lexical-2",
       "kind": "word",
-      "german": "der Stift",
+      "text": "der Stift",
       "meaning": {
         "en": "pen",
         "de": "Schreibgerät"
@@ -3784,7 +3784,7 @@
     {
       "id": "communication-repair-lexical-3",
       "kind": "word",
-      "german": "die Seite",
+      "text": "die Seite",
       "meaning": {
         "en": "page",
         "de": "Seite im Buch"
@@ -3800,7 +3800,7 @@
     {
       "id": "communication-repair-lexical-4",
       "kind": "word",
-      "german": "das Wort",
+      "text": "das Wort",
       "meaning": {
         "en": "word",
         "de": "Wort"
@@ -3816,7 +3816,7 @@
     {
       "id": "communication-repair-lexical-5",
       "kind": "word",
-      "german": "die Frage",
+      "text": "die Frage",
       "meaning": {
         "en": "question",
         "de": "Frage"
@@ -3832,7 +3832,7 @@
     {
       "id": "communication-repair-lexical-6",
       "kind": "word",
-      "german": "die Antwort",
+      "text": "die Antwort",
       "meaning": {
         "en": "answer",
         "de": "Antwort"
@@ -3848,7 +3848,7 @@
     {
       "id": "communication-repair-lexical-7",
       "kind": "word",
-      "german": "verstehen",
+      "text": "verstehen",
       "meaning": {
         "en": "understand",
         "de": "verstehen"
@@ -3863,7 +3863,7 @@
     {
       "id": "communication-repair-lexical-8",
       "kind": "word",
-      "german": "wiederholen",
+      "text": "wiederholen",
       "meaning": {
         "en": "repeat",
         "de": "noch einmal sagen"
@@ -3878,7 +3878,7 @@
     {
       "id": "communication-repair-lexical-9",
       "kind": "word",
-      "german": "schreiben",
+      "text": "schreiben",
       "meaning": {
         "en": "write",
         "de": "schreiben"
@@ -3893,7 +3893,7 @@
     {
       "id": "communication-repair-lexical-10",
       "kind": "word",
-      "german": "lesen",
+      "text": "lesen",
       "meaning": {
         "en": "read",
         "de": "lesen"
@@ -3908,7 +3908,7 @@
     {
       "id": "communication-repair-lexical-11",
       "kind": "word",
-      "german": "richtig",
+      "text": "richtig",
       "meaning": {
         "en": "correct",
         "de": "richtig"
@@ -3922,7 +3922,7 @@
     {
       "id": "communication-repair-lexical-12",
       "kind": "word",
-      "german": "langsam",
+      "text": "langsam",
       "meaning": {
         "en": "slow",
         "de": "langsam"
@@ -3936,7 +3936,7 @@
     {
       "id": "clothes-services-lexical-1",
       "kind": "word",
-      "german": "die Jacke",
+      "text": "die Jacke",
       "meaning": {
         "en": "jacket",
         "de": "Kleidungsstück"
@@ -3952,7 +3952,7 @@
     {
       "id": "clothes-services-lexical-2",
       "kind": "word",
-      "german": "die Größe",
+      "text": "die Größe",
       "meaning": {
         "en": "size",
         "de": "Kleidergröße"
@@ -3968,7 +3968,7 @@
     {
       "id": "clothes-services-lexical-3",
       "kind": "word",
-      "german": "der Kassenbon",
+      "text": "der Kassenbon",
       "meaning": {
         "en": "receipt",
         "de": "Beleg für den Kauf"
@@ -3984,7 +3984,7 @@
     {
       "id": "clothes-services-lexical-4",
       "kind": "word",
-      "german": "die Farbe",
+      "text": "die Farbe",
       "meaning": {
         "en": "colour",
         "de": "Farbe"
@@ -4000,7 +4000,7 @@
     {
       "id": "clothes-services-lexical-5",
       "kind": "word",
-      "german": "das Hemd",
+      "text": "das Hemd",
       "meaning": {
         "en": "shirt",
         "de": "Kleidungsstück"
@@ -4016,7 +4016,7 @@
     {
       "id": "clothes-services-lexical-6",
       "kind": "word",
-      "german": "die Hose",
+      "text": "die Hose",
       "meaning": {
         "en": "trousers",
         "de": "Kleidungsstück"
@@ -4032,7 +4032,7 @@
     {
       "id": "clothes-services-lexical-7",
       "kind": "word",
-      "german": "umtauschen",
+      "text": "umtauschen",
       "meaning": {
         "en": "exchange",
         "de": "gegen etwas anderes tauschen"
@@ -4047,7 +4047,7 @@
     {
       "id": "clothes-services-lexical-8",
       "kind": "word",
-      "german": "passen",
+      "text": "passen",
       "meaning": {
         "en": "fit",
         "de": "die richtige Größe haben"
@@ -4062,7 +4062,7 @@
     {
       "id": "clothes-services-lexical-9",
       "kind": "word",
-      "german": "größer",
+      "text": "größer",
       "meaning": {
         "en": "larger",
         "de": "mehr Größe"
@@ -4076,7 +4076,7 @@
     {
       "id": "clothes-services-lexical-10",
       "kind": "word",
-      "german": "besser",
+      "text": "besser",
       "meaning": {
         "en": "better",
         "de": "besser"
@@ -4090,7 +4090,7 @@
     {
       "id": "clothes-services-lexical-11",
       "kind": "word",
-      "german": "kaputt",
+      "text": "kaputt",
       "meaning": {
         "en": "broken",
         "de": "nicht funktionsfähig"
@@ -4104,7 +4104,7 @@
     {
       "id": "clothes-services-lexical-12",
       "kind": "word",
-      "german": "blau",
+      "text": "blau",
       "meaning": {
         "en": "blue",
         "de": "blau"
@@ -4118,7 +4118,7 @@
     {
       "id": "social-events-lexical-1",
       "kind": "word",
-      "german": "die Einladung",
+      "text": "die Einladung",
       "meaning": {
         "en": "invitation",
         "de": "Einladung"
@@ -4134,7 +4134,7 @@
     {
       "id": "social-events-lexical-2",
       "kind": "word",
-      "german": "das Wetter",
+      "text": "das Wetter",
       "meaning": {
         "en": "weather",
         "de": "Wetter"
@@ -4149,7 +4149,7 @@
     {
       "id": "social-events-lexical-3",
       "kind": "word",
-      "german": "der Regen",
+      "text": "der Regen",
       "meaning": {
         "en": "rain",
         "de": "Regen"
@@ -4164,7 +4164,7 @@
     {
       "id": "social-events-lexical-4",
       "kind": "word",
-      "german": "die Sonne",
+      "text": "die Sonne",
       "meaning": {
         "en": "sun",
         "de": "Sonne"
@@ -4180,7 +4180,7 @@
     {
       "id": "social-events-lexical-5",
       "kind": "word",
-      "german": "der Treffpunkt",
+      "text": "der Treffpunkt",
       "meaning": {
         "en": "meeting place",
         "de": "Ort für ein Treffen"
@@ -4196,7 +4196,7 @@
     {
       "id": "social-events-lexical-6",
       "kind": "word",
-      "german": "das Picknick",
+      "text": "das Picknick",
       "meaning": {
         "en": "picnic",
         "de": "Essen im Freien"
@@ -4212,7 +4212,7 @@
     {
       "id": "social-events-lexical-7",
       "kind": "word",
-      "german": "einladen",
+      "text": "einladen",
       "meaning": {
         "en": "invite",
         "de": "zu einem Treffen bitten"
@@ -4227,7 +4227,7 @@
     {
       "id": "social-events-lexical-8",
       "kind": "word",
-      "german": "mitbringen",
+      "text": "mitbringen",
       "meaning": {
         "en": "bring along",
         "de": "zum Treffen bringen"
@@ -4242,7 +4242,7 @@
     {
       "id": "social-events-lexical-9",
       "kind": "word",
-      "german": "regnen",
+      "text": "regnen",
       "meaning": {
         "en": "rain",
         "de": "regnen"
@@ -4257,7 +4257,7 @@
     {
       "id": "social-events-lexical-10",
       "kind": "word",
-      "german": "warm",
+      "text": "warm",
       "meaning": {
         "en": "warm",
         "de": "warm"
@@ -4271,7 +4271,7 @@
     {
       "id": "social-events-lexical-11",
       "kind": "word",
-      "german": "kalt",
+      "text": "kalt",
       "meaning": {
         "en": "cold",
         "de": "kalt"
@@ -4285,7 +4285,7 @@
     {
       "id": "social-events-lexical-12",
       "kind": "word",
-      "german": "am zwölften Juni",
+      "text": "am zwölften Juni",
       "meaning": {
         "en": "on the twelfth of June",
         "de": "am 12. Juni"
@@ -4316,28 +4316,28 @@
       },
       "examples": [
         {
-          "german": "Wie bitte?",
+          "text": "Wie bitte?",
           "meaning": {
             "en": "Pardon?",
             "de": "Bitte wiederhole das."
           }
         },
         {
-          "german": "Noch einmal, bitte.",
+          "text": "Noch einmal, bitte.",
           "meaning": {
             "en": "Once more, please.",
             "de": "Bitte wiederhole es."
           }
         },
         {
-          "german": "Langsamer, bitte.",
+          "text": "Langsamer, bitte.",
           "meaning": {
             "en": "More slowly, please.",
             "de": "Bitte sprich langsamer."
           }
         },
         {
-          "german": "Wie schreibt man das?",
+          "text": "Wie schreibt man das?",
           "meaning": {
             "en": "How do you spell that?",
             "de": "Bitte buchstabiere das."
@@ -4790,28 +4790,28 @@
       },
       "examples": [
         {
-          "german": "Ich heiße …",
+          "text": "Ich heiße …",
           "meaning": {
             "en": "My name is …",
             "de": "So sage ich meinen Namen."
           }
         },
         {
-          "german": "Woher kommst du?",
+          "text": "Woher kommst du?",
           "meaning": {
             "en": "Where are you from?",
             "de": "Ich frage nach deiner Herkunft."
           }
         },
         {
-          "german": "Freut mich.",
+          "text": "Freut mich.",
           "meaning": {
             "en": "Nice to meet you.",
             "de": "Ich freue mich über den Kontakt."
           }
         },
         {
-          "german": "Das ist …",
+          "text": "Das ist …",
           "meaning": {
             "en": "This is …",
             "de": "Ich stelle eine Person vor."
@@ -5274,28 +5274,28 @@
       },
       "examples": [
         {
-          "german": "Meine Telefonnummer ist …",
+          "text": "Meine Telefonnummer ist …",
           "meaning": {
             "en": "My phone number is …",
             "de": "So nenne ich meine Telefonnummer."
           }
         },
         {
-          "german": "Wie alt bist du?",
+          "text": "Wie alt bist du?",
           "meaning": {
             "en": "How old are you?",
             "de": "Ich frage nach deinem Alter."
           }
         },
         {
-          "german": "Das ist mein Bruder.",
+          "text": "Das ist mein Bruder.",
           "meaning": {
             "en": "This is my brother.",
             "de": "Ich stelle meinen Bruder vor."
           }
         },
         {
-          "german": "Können Sie das buchstabieren?",
+          "text": "Können Sie das buchstabieren?",
           "meaning": {
             "en": "Can you spell that?",
             "de": "Ich bitte höflich um die Buchstaben."
@@ -5803,28 +5803,28 @@
       },
       "examples": [
         {
-          "german": "Was bedeutet …?",
+          "text": "Was bedeutet …?",
           "meaning": {
             "en": "What does … mean?",
             "de": "Ich frage nach einer Bedeutung."
           }
         },
         {
-          "german": "Habe ich das richtig verstanden?",
+          "text": "Habe ich das richtig verstanden?",
           "meaning": {
             "en": "Did I understand that correctly?",
             "de": "Ich prüfe mein Verständnis."
           }
         },
         {
-          "german": "Ist das ein Stift?",
+          "text": "Ist das ein Stift?",
           "meaning": {
             "en": "Is that a pen?",
             "de": "Ich frage nach einem Gegenstand."
           }
         },
         {
-          "german": "Nein, das ist kein Stift.",
+          "text": "Nein, das ist kein Stift.",
           "meaning": {
             "en": "No, that is not a pen.",
             "de": "Ich korrigiere eine Vermutung."
@@ -6305,28 +6305,28 @@
       },
       "examples": [
         {
-          "german": "Ich möchte …, bitte.",
+          "text": "Ich möchte …, bitte.",
           "meaning": {
             "en": "I would like …, please.",
             "de": "Ich bestelle höflich."
           }
         },
         {
-          "german": "Was kostet das?",
+          "text": "Was kostet das?",
           "meaning": {
             "en": "How much does that cost?",
             "de": "Ich frage nach dem Preis."
           }
         },
         {
-          "german": "Dann nehme ich …",
+          "text": "Dann nehme ich …",
           "meaning": {
             "en": "Then I will take …",
             "de": "Ich wähle eine Alternative."
           }
         },
         {
-          "german": "Die Rechnung, bitte.",
+          "text": "Die Rechnung, bitte.",
           "meaning": {
             "en": "The bill, please.",
             "de": "Ich möchte bezahlen."
@@ -6792,28 +6792,28 @@
       },
       "examples": [
         {
-          "german": "Hast du am … Zeit?",
+          "text": "Hast du am … Zeit?",
           "meaning": {
             "en": "Are you free on …?",
             "de": "Ich frage nach deiner freien Zeit."
           }
         },
         {
-          "german": "Leider kann ich da nicht.",
+          "text": "Leider kann ich da nicht.",
           "meaning": {
             "en": "Unfortunately I cannot then.",
             "de": "Ich sage einen Termin ab."
           }
         },
         {
-          "german": "Passt dir …?",
+          "text": "Passt dir …?",
           "meaning": {
             "en": "Does … work for you?",
             "de": "Ich schlage einen anderen Termin vor."
           }
         },
         {
-          "german": "Wir treffen uns um …",
+          "text": "Wir treffen uns um …",
           "meaning": {
             "en": "We are meeting at …",
             "de": "Ich bestätige die Uhrzeit."
@@ -7316,28 +7316,28 @@
       },
       "examples": [
         {
-          "german": "Es gibt zwei Zimmer.",
+          "text": "Es gibt zwei Zimmer.",
           "meaning": {
             "en": "There are two rooms.",
             "de": "Die Wohnung hat zwei Zimmer."
           }
         },
         {
-          "german": "Hat die Wohnung einen Balkon?",
+          "text": "Hat die Wohnung einen Balkon?",
           "meaning": {
             "en": "Does the apartment have a balcony?",
             "de": "Ich frage nach der Ausstattung."
           }
         },
         {
-          "german": "Ich interessiere mich für …",
+          "text": "Ich interessiere mich für …",
           "meaning": {
             "en": "I am interested in …",
             "de": "Ich zeige Interesse."
           }
         },
         {
-          "german": "Wann kann ich kommen?",
+          "text": "Wann kann ich kommen?",
           "meaning": {
             "en": "When can I come?",
             "de": "Ich frage nach einem Termin."
@@ -7836,21 +7836,21 @@
       },
       "examples": [
         {
-          "german": "Ich bringe die Anmeldung mit.",
+          "text": "Ich bringe die Anmeldung mit.",
           "meaning": {
             "en": "I will bring the registration.",
             "de": "Ich nehme das Formular zum Treffen mit."
           }
         },
         {
-          "german": "Also, am Dienstag um zehn?",
+          "text": "Also, am Dienstag um zehn?",
           "meaning": {
             "en": "So, Tuesday at ten?",
             "de": "Ich prüfe die Angaben."
           }
         },
         {
-          "german": "Die Wohnung kostet …",
+          "text": "Die Wohnung kostet …",
           "meaning": {
             "en": "The apartment costs …",
             "de": "Ich gebe den Preis weiter."
@@ -8336,28 +8336,28 @@
       },
       "examples": [
         {
-          "german": "Wie komme ich zum …?",
+          "text": "Wie komme ich zum …?",
           "meaning": {
             "en": "How do I get to …?",
             "de": "Ich frage nach dem Weg."
           }
         },
         {
-          "german": "Fahren Sie mit dem Bus.",
+          "text": "Fahren Sie mit dem Bus.",
           "meaning": {
             "en": "Take the bus.",
             "de": "Ich erkläre den Weg."
           }
         },
         {
-          "german": "Wann fährt der Bus?",
+          "text": "Wann fährt der Bus?",
           "meaning": {
             "en": "When does the bus leave?",
             "de": "Ich frage nach der Abfahrt."
           }
         },
         {
-          "german": "Heute fährt er von …",
+          "text": "Heute fährt er von …",
           "meaning": {
             "en": "Today it leaves from …",
             "de": "Ich gebe eine Änderung weiter."
@@ -8847,28 +8847,28 @@
       },
       "examples": [
         {
-          "german": "Ich arbeite als …",
+          "text": "Ich arbeite als …",
           "meaning": {
             "en": "I work as …",
             "de": "Ich nenne meinen Beruf."
           }
         },
         {
-          "german": "Ich kann …",
+          "text": "Ich kann …",
           "meaning": {
             "en": "I can …",
             "de": "Ich nenne eine Fähigkeit."
           }
         },
         {
-          "german": "Ich muss bis … arbeiten.",
+          "text": "Ich muss bis … arbeiten.",
           "meaning": {
             "en": "I have to work until …",
             "de": "Ich erkläre meine Arbeitszeit."
           }
         },
         {
-          "german": "Können wir danach …?",
+          "text": "Können wir danach …?",
           "meaning": {
             "en": "Can we … afterwards?",
             "de": "Ich schlage einen Termin vor."
@@ -9361,28 +9361,28 @@
       },
       "examples": [
         {
-          "german": "Mir tut der Hals weh.",
+          "text": "Mir tut der Hals weh.",
           "meaning": {
             "en": "My throat hurts.",
             "de": "Ich beschreibe ein Symptom."
           }
         },
         {
-          "german": "Ich brauche einen Termin.",
+          "text": "Ich brauche einen Termin.",
           "meaning": {
             "en": "I need an appointment.",
             "de": "Ich bitte um einen Termin."
           }
         },
         {
-          "german": "Was soll ich mitbringen?",
+          "text": "Was soll ich mitbringen?",
           "meaning": {
             "en": "What should I bring?",
             "de": "Ich frage nach den organisatorischen Hinweisen."
           }
         },
         {
-          "german": "Ich kann heute nicht kommen.",
+          "text": "Ich kann heute nicht kommen.",
           "meaning": {
             "en": "I cannot come today.",
             "de": "Ich sage ab."
@@ -9863,28 +9863,28 @@
       },
       "examples": [
         {
-          "german": "Gestern habe ich …",
+          "text": "Gestern habe ich …",
           "meaning": {
             "en": "Yesterday I …",
             "de": "Ich berichte von gestern."
           }
         },
         {
-          "german": "Ich bin nach … gefahren.",
+          "text": "Ich bin nach … gefahren.",
           "meaning": {
             "en": "I travelled to …",
             "de": "Ich nenne das Reiseziel."
           }
         },
         {
-          "german": "Und was hast du gemacht?",
+          "text": "Und was hast du gemacht?",
           "meaning": {
             "en": "And what did you do?",
             "de": "Ich frage nach."
           }
         },
         {
-          "german": "Zuerst …, dann …",
+          "text": "Zuerst …, dann …",
           "meaning": {
             "en": "First …, then …",
             "de": "Ich ordne Ereignisse."
@@ -10413,28 +10413,28 @@
       },
       "examples": [
         {
-          "german": "Ich möchte das umtauschen.",
+          "text": "Ich möchte das umtauschen.",
           "meaning": {
             "en": "I would like to exchange this.",
             "de": "Ich bitte um einen Umtausch."
           }
         },
         {
-          "german": "Die Jacke ist zu klein.",
+          "text": "Die Jacke ist zu klein.",
           "meaning": {
             "en": "The jacket is too small.",
             "de": "Ich beschreibe das Problem."
           }
         },
         {
-          "german": "Haben Sie eine größere?",
+          "text": "Haben Sie eine größere?",
           "meaning": {
             "en": "Do you have a larger one?",
             "de": "Ich frage nach einer Alternative."
           }
         },
         {
-          "german": "Diese passt besser.",
+          "text": "Diese passt besser.",
           "meaning": {
             "en": "This one fits better.",
             "de": "Ich vergleiche zwei Sachen."
@@ -10915,28 +10915,28 @@
       },
       "examples": [
         {
-          "german": "Kommst du am …?",
+          "text": "Kommst du am …?",
           "meaning": {
             "en": "Are you coming on …?",
             "de": "Ich lade dich ein."
           }
         },
         {
-          "german": "Ich bringe … mit.",
+          "text": "Ich bringe … mit.",
           "meaning": {
             "en": "I will bring …",
             "de": "Ich sage, was ich mitnehme."
           }
         },
         {
-          "german": "Es regnet.",
+          "text": "Es regnet.",
           "meaning": {
             "en": "It is raining.",
             "de": "Ich beschreibe das Wetter."
           }
         },
         {
-          "german": "Dann treffen wir uns bei mir.",
+          "text": "Dann treffen wir uns bei mir.",
           "meaning": {
             "en": "Then we will meet at my place.",
             "de": "Ich ändere den Treffpunkt."
@@ -11420,21 +11420,21 @@
       },
       "examples": [
         {
-          "german": "Ich komme am Freitag an.",
+          "text": "Ich komme am Freitag an.",
           "meaning": {
             "en": "I arrive on Friday.",
             "de": "Ich bestätige meinen Ankunftstag."
           }
         },
         {
-          "german": "Ich bestätige den Termin.",
+          "text": "Ich bestätige den Termin.",
           "meaning": {
             "en": "I confirm the appointment.",
             "de": "Ich sage verbindlich zu."
           }
         },
         {
-          "german": "Das Zimmer kostet … pro Nacht.",
+          "text": "Das Zimmer kostet … pro Nacht.",
           "meaning": {
             "en": "The room costs … per night.",
             "de": "Ich gebe den Preis weiter."
@@ -11901,6 +11901,42 @@
           }
         }
       ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "a1-1",
+      "kind": "course",
+      "level": "A1",
+      "title": {
+        "en": "A1.1 foundations",
+        "de": "A1.1 Grundlagen",
+        "es": "Bases A1.1",
+        "pt-BR": "Fundamentos A1.1"
+      },
+      "description": {
+        "en": "Meet people and handle everyday situations.",
+        "de": "Lerne Menschen kennen und bewältige Alltagssituationen.",
+        "es": "Conoce gente y desenvuélvete en situaciones cotidianas.",
+        "pt-BR": "Conheça pessoas e lide com situações do dia a dia."
+      }
+    },
+    {
+      "id": "a1-2",
+      "kind": "course",
+      "level": "A1",
+      "title": {
+        "en": "A1.2 foundations",
+        "de": "A1.2 Grundlagen",
+        "es": "Bases A1.2",
+        "pt-BR": "Fundamentos A1.2"
+      },
+      "description": {
+        "en": "Find your way and make everyday plans.",
+        "de": "Finde dich zurecht und plane deinen Alltag.",
+        "es": "Oriéntate y organiza tus planes cotidianos.",
+        "pt-BR": "Oriente-se e organize seus planos cotidianos."
+      }
     }
   ]
 }

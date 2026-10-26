@@ -16,6 +16,7 @@ export const providerAccessReasonSchema = z.enum([
   "capability-unavailable",
   "model-unavailable",
   "plugin-required",
+  "integration-unavailable",
 ]);
 export const providerAccessSchema = z.discriminatedUnion("status", [
   z.strictObject({

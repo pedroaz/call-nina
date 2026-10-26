@@ -1,4 +1,15 @@
 {
+  "lessonStudio": {
+    "activityDetails": "Detalles de la actividad",
+    "progress": "Progreso",
+    "resources": "Guía de la lección",
+    "transcript": "Transcripción",
+    "voiceSetup": "Cómo empezar en Codex",
+    "aboutProgress": "Cómo funciona el progreso",
+    "howItWorks": "Cómo funciona",
+    "examples": "Más ejemplos",
+    "finishAndContinue": "Entendido · Continuar"
+  },
   "app": {
     "name": "Call Nina",
     "tagline": "Un espacio para ganar confianza en el idioma que aprendes."
@@ -295,7 +306,7 @@
     "voiceHandoff": {
       "open": "Abrir en Codex",
       "opening": "Abriendo Codex…",
-      "openRequested": "Se solicitó la apertura. Envía el mensaje preparado en Codex y luego inicia Voice en esa tarea.",
+      "openRequested": "Abriendo Call Nina Practice en Codex. Envía el mensaje preparado y selecciona Iniciar chat de voz.",
       "setupRequired": "Abre Configuración → Conexiones de IA en Call Nina para instalar o actualizar el complemento Call Nina y comprobar la configuración de Codex. Luego inténtalo de nuevo.",
       "failed": "No se pudo abrir Codex. Comprueba que la aplicación de escritorio ChatGPT esté instalada y vuelve a intentar Abrir en Codex.",
       "availability": "Voice en tareas existentes depende de la aplicación, la cuenta y el espacio de trabajo. Si Start voice chat no está disponible, actualiza Codex o continúa por texto.",
@@ -352,7 +363,7 @@
     "nextHint": "Otra pista",
     "showHint": "Mostrar una pista",
     "answerFrameHint": "Estructura de la oración: {{frame}}",
-    "submit": "Enviar respuesta",
+    "submit": "Comprobar respuesta",
     "answerRequired": "Escribe una respuesta válida antes de enviarla.",
     "previous": "Ejercicio anterior",
     "forward": "Siguiente ejercicio visitado",
@@ -946,7 +957,7 @@
     },
     "connectionOptional": "Puedes terminar la configuración y practicar con actividades preparadas sin conectar ChatGPT. Conéctalo más adelante para generar contenido y recibir comentarios de IA.",
     "targetLanguage": "Idioma que quieres aprender",
-    "enrollCourse": "Usar la Ruta de aprendizaje de alemán",
+    "enrollCourse": "Usar rutas de aprendizaje",
     "pathUnavailable": "La Ruta de aprendizaje estructurada solo está disponible para alemán. Puedes seguir usando la Práctica generada.",
     "accessIntro": "Configura el acceso a la IA ahora o continúa con la práctica preparada y conéctate más tarde en Ajustes. Guardar una conexión no comprueba el acceso de pago ni inicia una generación.",
     "accessOptions": "Configurar una conexión de IA",
@@ -1000,7 +1011,7 @@
     "notReported": "El entorno actual no lo indica.",
     "privacyTitle": "Procesamiento local y de OpenAI",
     "profileTitle": "Opciones iniciales de aprendizaje",
-    "persistenceUnavailable": "La configuración no se puede editar en esta versión de la aplicación.",
+    "persistenceUnavailable": "No se pudo cargar la configuración. Intenta actualizar.",
     "teachingProfile": "Estilo de enseñanza",
     "uiLocale": "Idioma de la interfaz",
     "localeSeparate": "El idioma de las explicaciones es independiente del idioma de la interfaz.",
@@ -1284,7 +1295,7 @@
     "openHistory": "Abrir Historial",
     "preparing": "Preparando tu actividad…",
     "loading": "Cargando tu Ruta de aprendizaje…",
-    "courseUnavailable": "El curso A1.1 y A1.2 aún no está disponible. Puedes continuar en Práctica.",
+    "courseUnavailable": "Activa las rutas de aprendizaje para este idioma en Configuración para explorar cursos y escenarios.",
     "stageFinished": "Llegaste al final de esta etapa. Vuelve a las actividades omitidas o elige otra etapa.",
     "syllabus": "Programa del curso",
     "counts": "{{completed}} de {{total}} completadas · {{skipped}} omitidas",
@@ -1470,7 +1481,8 @@
       "shortcuts": "← / → Navegar · Espacio Voltear · Tab Cambiar de control",
       "saveHint": "Guarda palabras útiles para repasarlas después."
     },
-    "selectRange": "Selecciona entre 3 y 30 palabras para crear una colección."
+    "selectRange": "Selecciona entre 3 y 30 palabras para crear una colección.",
+    "studyAction": "Estudiar palabras seleccionadas"
   },
   "providerAccess": {
     "selectedRoute": "Conexión de IA: Codex",
@@ -1484,6 +1496,7 @@
       "account-unavailable": "Nina no pudo confirmar el acceso a su cuenta Codex. Comprueba la conexión en Configuración e inténtalo de nuevo.",
       "capability-unavailable": "La conexión de IA seleccionada no admite esta acción. No se elegirá otra conexión automáticamente.",
       "model-unavailable": "La conexión de IA seleccionada no tiene un modelo y razonamiento utilizables para esta acción. Comprueba la opción guardada en Configuración.",
+      "integration-unavailable": "Nina no pudo verificar la integración externa de Codex para Voice. Actualiza Configuración e inténtalo de nuevo. Esto no significa que falte el complemento.",
       "plugin-required": "Para abrir esta actividad de Voice en Codex se necesita el complemento Call Nina. Instálalo o actualízalo en Configuración e inténtalo de nuevo.",
       "connection-required": "Elige una conexión de IA en Ajustes para usar esta acción. Las actividades preparadas siguen disponibles."
     }
@@ -1774,6 +1787,57 @@
     "keepExploring": "Sigue explorando tu ruta de aprendizaje.",
     "focusedReview": "Práctica enfocada",
     "refreshReview": "Hora de refrescar",
-    "aboutReview": "Sobre el repaso"
+    "aboutReview": "Sobre el repaso",
+    "lessonProgress_one": "{{completed}} de {{total}} lección completada",
+    "lessonProgress_other": "{{completed}} de {{total}} lecciones completadas"
+  },
+  "pathFlow": {
+    "lessonProgress": "Tu progreso en esta lección",
+    "lessonDetails": "Objetivos y vocabulario de la lección",
+    "skippedRemaining": "Quedan actividades omitidas",
+    "tryCheckpoint": "Intentar el punto de control",
+    "backTrail": "Volver a la ruta",
+    "next": "Siguiente: {{activity}}",
+    "continueLearning": "Seguir aprendiendo",
+    "startLearning": "Empezar a aprender",
+    "pathSummary": "Resumen de la ruta",
+    "skippedCount": "{{count}} actividades omitidas",
+    "explorePaths": "Explorar rutas",
+    "purposeFirst": "Conoce gente y desenvuélvete en situaciones cotidianas.",
+    "purposeSecond": "Oriéntate y organiza tus planes cotidianos.",
+    "startLesson": "Empezar lección",
+    "inProgress": "En curso",
+    "libraryHint": "Elige una ruta o continúa donde lo dejaste.",
+    "reviewHint": "Repasa lo que necesita más práctica y vuelve a tu ruta de aprendizaje.",
+    "returnHint": "Continúa donde lo dejaste.",
+    "backLesson": "Volver a la lección",
+    "reviewFinished": "Repaso terminado",
+    "activityFinished": "Actividad terminada",
+    "continueReview": "Seguir repasando",
+    "nextActivity": "Siguiente actividad",
+    "reviewDue_one": "{{count}} actividad para repasar",
+    "reviewDue_other": "{{count}} actividades para repasar"
+  },
+  "pathCatalog": {
+    "search": "Buscar rutas",
+    "kind": "Tipo de ruta",
+    "allKinds": "Todos los tipos",
+    "course": "Curso",
+    "scenario": "Escenario",
+    "level": "Nivel",
+    "allLevels": "Todos los niveles",
+    "results": "{{count}} de {{total}} rutas",
+    "noResults": "No hay rutas que coincidan. Prueba otra búsqueda o elimina los filtros."
+  },
+  "activity": {
+    "task": "Actividad",
+    "reference": "Material de consulta",
+    "reading": "Lectura",
+    "lesson": "Lección",
+    "brief": "Consigna",
+    "shortcuts": "Atajos de teclado",
+    "answer": "Tu respuesta",
+    "review": "Revisión",
+    "writingViews": "Vistas de escritura"
   }
 }

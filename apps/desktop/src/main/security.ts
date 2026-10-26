@@ -1,4 +1,5 @@
 import { shell, type BrowserWindow, type Session, type WebFrameMain } from "electron";
+import { codexVoiceWorkspacePath, ensureCodexVoiceWorkspace } from "./voice-workspace.js";
 
 export const productionContentSecurityPolicy = [
   "default-src 'self'",
@@ -73,10 +74,15 @@ export async function openValidatedExternalUrl(value: string): Promise<void> {
     url.protocol === "codex:" &&
     url.hostname === "new" &&
     (url.pathname === "" || url.pathname === "/") &&
-    codexParameters.length === 1 &&
-    codexParameters[0] === "prompt" &&
+    codexParameters.length === 3 &&
+    codexParameters.includes("prompt") &&
+    codexParameters.includes("path") &&
+    codexParameters.includes("mode") &&
+    url.searchParams.get("mode") === "codex" &&
+    url.searchParams.get("path") === codexVoiceWorkspacePath() &&
     Boolean(url.searchParams.get("prompt"));
   if (!isHttps && !isCodexActivity) throw new Error("OD_EXTERNAL_URL_INVALID");
+  if (isCodexActivity) await ensureCodexVoiceWorkspace();
   await shell.openExternal(url.href);
 }
 

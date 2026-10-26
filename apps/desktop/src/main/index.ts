@@ -14,7 +14,7 @@ import {
   type ActivityId,
 } from "@call-nina/contracts";
 import { ChatgptSession } from "./chatgpt-session.js";
-import { app, BrowserWindow, dialog, ipcMain, session } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, session } from "electron";
 
 import { DesktopBackend } from "./backend.js";
 import { parseCallNinaActivityUrl } from "./deep-link.js";
@@ -63,6 +63,20 @@ function createWindow(): BrowserWindow {
     },
   });
   attachNavigationPolicy(window, rendererUrl);
+  // Keep zoom available without installing a visible application menu.
+  window.webContents.on("before-input-event", (event, input) => {
+    const modifier = process.platform === "darwin" ? input.meta : input.control;
+    if (input.type !== "keyDown" || !modifier || input.alt) return;
+    const zoomIn = input.key === "+" || input.key === "=";
+    const zoomOut = input.key === "-";
+    const reset = input.key === "0";
+    if (!zoomIn && !zoomOut && !reset) return;
+    event.preventDefault();
+    const current = window.webContents.getZoomFactor();
+    window.webContents.setZoomFactor(
+      reset ? 1 : Math.min(5, Math.max(0.25, current * (zoomIn ? 1.2 : 1 / 1.2))),
+    );
+  });
   window.webContents.on("did-start-loading", () => {
     workspaceReady = false;
   });
@@ -197,6 +211,7 @@ if (!app.requestSingleInstanceLock()) {
     });
   }
   void app.whenReady().then(() => {
+    Menu.setApplicationMenu(null);
     if (app.isPackaged) app.setAsDefaultProtocolClient("call-nina");
     handleProtocolArguments(process.argv);
     configureSessionSecurity(

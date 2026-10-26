@@ -1,4 +1,15 @@
 {
+  "lessonStudio": {
+    "activityDetails": "Activity details",
+    "progress": "Progress",
+    "resources": "Lesson guide",
+    "transcript": "Transcript",
+    "voiceSetup": "How to start in Codex",
+    "aboutProgress": "How progress works",
+    "howItWorks": "How it works",
+    "examples": "More examples",
+    "finishAndContinue": "Got it · Continue"
+  },
   "app": {
     "name": "Call Nina",
     "tagline": "A focused place to build confidence in your language."
@@ -295,7 +306,7 @@
     "voiceHandoff": {
       "open": "Open in Codex",
       "opening": "Opening Codex…",
-      "openRequested": "Opening requested. Send the prepared message in Codex, then start Voice in that task.",
+      "openRequested": "Opening Call Nina Practice in Codex. Send the prepared message, then select Start voice chat.",
       "setupRequired": "Open Settings → AI connections in Call Nina to install or refresh the Call Nina plugin and check Codex setup. Then try again.",
       "failed": "Codex could not be opened. Check that the ChatGPT desktop app is installed, then try Open in Codex again.",
       "availability": "Voice in existing tasks depends on your app, account and workspace. If Start voice chat is unavailable, update Codex or continue by text.",
@@ -352,7 +363,7 @@
     "nextHint": "Another hint",
     "showHint": "Show a hint",
     "answerFrameHint": "Sentence frame: {{frame}}",
-    "submit": "Submit answer",
+    "submit": "Check answer",
     "answerRequired": "Enter a valid answer before submitting.",
     "previous": "Previous exercise",
     "forward": "Next visited exercise",
@@ -946,7 +957,7 @@
     },
     "connectionOptional": "You can finish setup and practise prepared activities without connecting ChatGPT. Connect later for AI generation and feedback.",
     "targetLanguage": "Language to learn",
-    "enrollCourse": "Use the German Learning Path",
+    "enrollCourse": "Use learning paths",
     "pathUnavailable": "The structured Learning Path is available for German only. You can still use generated Practice.",
     "accessIntro": "Choose AI access now, or continue with prepared practice and connect later in Settings. Saving a connection does not check paid access or start generation.",
     "accessOptions": "Set up an AI connection",
@@ -1000,7 +1011,7 @@
     "notReported": "Not reported by the current runtime.",
     "privacyTitle": "Local and OpenAI processing",
     "profileTitle": "Learning defaults",
-    "persistenceUnavailable": "Settings cannot be edited in this app version.",
+    "persistenceUnavailable": "Settings could not be loaded. Try refreshing.",
     "teachingProfile": "Teaching style",
     "uiLocale": "Interface language",
     "localeSeparate": "Explanation language is independent of the interface language.",
@@ -1284,7 +1295,7 @@
     "openHistory": "Open history",
     "preparing": "Preparing your activity…",
     "loading": "Loading your learning path…",
-    "courseUnavailable": "The A1.1 and A1.2 course is not available yet. You can continue in Practice.",
+    "courseUnavailable": "Enable learning paths for this language in Settings to browse courses and scenarios.",
     "stageFinished": "You’ve reached the end of this stage. Revisit skipped activities or choose another stage.",
     "syllabus": "Course outline",
     "counts": "{{completed}} of {{total}} completed · {{skipped}} skipped",
@@ -1470,7 +1481,8 @@
       "shortcuts": "← / → Navigate · Space Flip · Tab Move between controls",
       "saveHint": "Keep useful words for later review."
     },
-    "selectRange": "Select 3–30 words to create a deck."
+    "selectRange": "Select 3–30 words to create a deck.",
+    "studyAction": "Study selected words"
   },
   "providerAccess": {
     "selectedRoute": "AI route: Codex",
@@ -1484,6 +1496,7 @@
       "account-unavailable": "Nina could not confirm its Codex account. Check the connection in Settings, then retry.",
       "capability-unavailable": "The selected AI connection does not support this action. No other connection will be selected automatically.",
       "model-unavailable": "The selected AI connection has no usable model and reasoning setting for this action. Check its saved choice in Settings, then retry.",
+      "integration-unavailable": "Nina could not verify the external Codex integration for Voice. Refresh Settings and retry. This does not mean the plugin is missing.",
       "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry.",
       "connection-required": "Choose an AI connection in Settings before using this action. Prepared practice remains available."
     }
@@ -1774,6 +1787,57 @@
     "keepExploring": "Keep exploring your learning path.",
     "focusedReview": "Focused practice",
     "refreshReview": "Time to refresh",
-    "aboutReview": "About review"
+    "aboutReview": "About review",
+    "lessonProgress_one": "{{completed}} of {{total}} lesson completed",
+    "lessonProgress_other": "{{completed}} of {{total}} lessons completed"
+  },
+  "pathFlow": {
+    "lessonProgress": "Your progress in this lesson",
+    "lessonDetails": "Lesson goals and vocabulary",
+    "skippedRemaining": "Skipped work remaining",
+    "tryCheckpoint": "Try the checkpoint",
+    "backTrail": "Back to trail",
+    "next": "Next: {{activity}}",
+    "continueLearning": "Continue learning",
+    "startLearning": "Start learning",
+    "pathSummary": "Path summary",
+    "skippedCount": "{{count}} skipped activities",
+    "explorePaths": "Explore paths",
+    "purposeFirst": "Meet people and handle everyday situations.",
+    "purposeSecond": "Find your way and make everyday plans.",
+    "startLesson": "Start lesson",
+    "inProgress": "In progress",
+    "libraryHint": "Choose a path or pick up where you left off.",
+    "reviewHint": "Revisit what needs another look, then return to your learning path.",
+    "returnHint": "Continue where you left off.",
+    "backLesson": "Back to lesson",
+    "reviewFinished": "Review finished",
+    "activityFinished": "Activity finished",
+    "continueReview": "Continue reviewing",
+    "nextActivity": "Next activity",
+    "reviewDue_one": "{{count}} activity ready to review",
+    "reviewDue_other": "{{count}} activities ready to review"
+  },
+  "pathCatalog": {
+    "search": "Search paths",
+    "kind": "Path type",
+    "allKinds": "All types",
+    "course": "Course",
+    "scenario": "Scenario",
+    "level": "Level",
+    "allLevels": "All levels",
+    "results": "{{count}} of {{total}} paths",
+    "noResults": "No paths match. Try another search or clear the filters."
+  },
+  "activity": {
+    "task": "Activity",
+    "reference": "Reference",
+    "reading": "Reading",
+    "lesson": "Lesson",
+    "brief": "Task brief",
+    "shortcuts": "Keyboard shortcuts",
+    "answer": "Your answer",
+    "review": "Review",
+    "writingViews": "Writing views"
   }
 }

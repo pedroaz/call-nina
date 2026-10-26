@@ -1,0 +1,1037 @@
+{
+  "schemaVersion": 3,
+  "courseId": "portuguese-paths",
+  "targetLanguage": "pt-BR",
+  "version": "pt-everyday-2026-10",
+  "paths": [
+    {
+      "id": "restaurant",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Order at a restaurant",
+        "de": "Im Restaurant bestellen",
+        "es": "Pedir en un restaurante",
+        "pt-BR": "Pedir em um restaurante"
+      },
+      "description": {
+        "en": "Choose a meal, ask about an ingredient, and request the bill.",
+        "de": "Wähle ein Gericht, frage nach einer Zutat und bitte um die Rechnung.",
+        "es": "Elige un plato, pregunta por un ingrediente y pide la cuenta.",
+        "pt-BR": "Escolha um prato, pergunte sobre um ingrediente e peça a conta."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "cefr-everyday-descriptors",
+      "title": "The CEFR Levels",
+      "url": "https://www.coe.int/en/web/common-european-framework-reference-languages/level-descriptions",
+      "publisher": "Council of Europe",
+      "reviewedOn": "2026-10-26",
+      "claim": "General A1/A2 scope for simple everyday exchanges. These original scenarios, their sequence and level assignments are Call Nina editorial choices, not validated CEFR tests."
+    }
+  ],
+  "targets": [
+    {
+      "id": "pt-br-restaurant-phrase-1",
+      "kind": "chunk",
+      "text": "Eu gostaria da sopa de legumes.",
+      "meaning": {
+        "en": "Could I have the vegetable soup, please?",
+        "de": "Ich hätte gern die Gemüsesuppe.",
+        "es": "Quisiera la sopa de verduras.",
+        "pt-BR": "Pedir uma sopa de legumes de forma educada."
+      },
+      "example": "Eu gostaria da sopa de legumes.",
+      "exampleMeaning": {
+        "en": "Could I have the vegetable soup, please?",
+        "de": "Ich hätte gern die Gemüsesuppe.",
+        "es": "Quisiera la sopa de verduras.",
+        "pt-BR": "Pedir uma sopa de legumes de forma educada."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "pt-br-restaurant-phrase-2",
+      "kind": "chunk",
+      "text": "A sopa leva leite?",
+      "meaning": {
+        "en": "Does the soup contain milk?",
+        "de": "Ist Milch in der Suppe?",
+        "es": "¿La sopa lleva leche?",
+        "pt-BR": "Perguntar se o leite é um ingrediente."
+      },
+      "example": "A sopa leva leite?",
+      "exampleMeaning": {
+        "en": "Does the soup contain milk?",
+        "de": "Ist Milch in der Suppe?",
+        "es": "¿La sopa lleva leche?",
+        "pt-BR": "Perguntar se o leite é um ingrediente."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "pt-br-restaurant-phrase-3",
+      "kind": "chunk",
+      "text": "A conta, por favor.",
+      "meaning": {
+        "en": "Could we have the check, please?",
+        "de": "Die Rechnung, bitte.",
+        "es": "La cuenta, por favor.",
+        "pt-BR": "Pedir a conta para pagar."
+      },
+      "example": "A conta, por favor.",
+      "exampleMeaning": {
+        "en": "Could we have the check, please?",
+        "de": "Die Rechnung, bitte.",
+        "es": "La cuenta, por favor.",
+        "pt-BR": "Pedir a conta para pagar."
+      },
+      "register": "neutral"
+    }
+  ],
+  "units": [
+    {
+      "id": "pt-br-restaurant",
+      "stage": "restaurant",
+      "kind": "module",
+      "title": {
+        "en": "Choosing lunch",
+        "de": "Das Mittagessen auswählen",
+        "es": "Elegir el almuerzo",
+        "pt-BR": "Escolher o almoço"
+      },
+      "scenario": {
+        "en": "Choose a meal, ask about an ingredient, and request the bill.",
+        "de": "Wähle ein Gericht, frage nach einer Zutat und bitte um die Rechnung.",
+        "es": "Elige un plato, pregunta por un ingrediente y pide la cuenta.",
+        "pt-BR": "Escolha um prato, pergunte sobre um ingrediente e peça a conta."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Notice the word order in “A sopa leva leite?”. Use the complete phrase as a model; change only the detail your partner gives you.",
+        "de": "Achte auf die Wortstellung in „A sopa leva leite?“. Nutze die vollständige Wendung als Muster und ändere nur die Angabe, die dein Gegenüber nennt.",
+        "es": "Observa el orden de las palabras en «A sopa leva leite?». Usa la expresión completa como modelo y cambia solo el detalle que te indique tu interlocutor.",
+        "pt-BR": "Observe a ordem das palavras em “A sopa leva leite?”. Use a expressão completa como modelo e altere apenas o detalhe informado pela outra pessoa."
+      },
+      "explanation": {
+        "en": "Start with “Eu gostaria da sopa de legumes.”. Read the examples and their meanings. Find the detail you need in the message, then make your request. Check the response and confirm the final arrangement. Cover the examples before trying to recall the phrases.",
+        "de": "Beginne mit „Eu gostaria da sopa de legumes.“. Lies die Beispiele und ihre Bedeutungen. Finde die nötige Information in der Nachricht und formuliere dann deine Bitte. Prüfe die Antwort und bestätige die Vereinbarung. Decke die Beispiele ab, bevor du die Wendungen aus dem Gedächtnis abrufst.",
+        "es": "Empieza con «Eu gostaria da sopa de legumes.». Lee los ejemplos y sus significados. Busca el dato que necesitas en el mensaje y formula tu petición. Comprueba la respuesta y confirma lo acordado. Tapa los ejemplos antes de intentar recordar las expresiones.",
+        "pt-BR": "Comece com “Eu gostaria da sopa de legumes.”. Leia os exemplos e seus significados. Encontre a informação necessária na mensagem e faça seu pedido. Confira a resposta e confirme o combinado. Cubra os exemplos antes de tentar lembrar as expressões."
+      },
+      "examples": [
+        {
+          "text": "Eu gostaria da sopa de legumes.",
+          "meaning": {
+            "en": "Could I have the vegetable soup, please?",
+            "de": "Ich hätte gern die Gemüsesuppe.",
+            "es": "Quisiera la sopa de verduras.",
+            "pt-BR": "Pedir uma sopa de legumes de forma educada."
+          }
+        },
+        {
+          "text": "A sopa leva leite?",
+          "meaning": {
+            "en": "Does the soup contain milk?",
+            "de": "Ist Milch in der Suppe?",
+            "es": "¿La sopa lleva leche?",
+            "pt-BR": "Perguntar se o leite é um ingrediente."
+          }
+        },
+        {
+          "text": "A conta, por favor.",
+          "meaning": {
+            "en": "Could we have the check, please?",
+            "de": "Die Rechnung, bitte.",
+            "es": "La cuenta, por favor.",
+            "pt-BR": "Pedir a conta para pagar."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "pt-br-restaurant-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Understand the requested spoken detail.",
+            "de": "Verstehe die gesuchte gesprochene Information.",
+            "es": "Comprende el detalle solicitado al escuchar.",
+            "pt-BR": "Compreenda o detalhe solicitado ao ouvir."
+          },
+          "criterion": {
+            "en": "Recover the correct detail; record any repetition or transcript support.",
+            "de": "Erfasse die richtige Angabe; halte Wiederholungen oder Skripthilfe fest.",
+            "es": "Identifica el detalle correcto; registra las repeticiones o la ayuda del guion.",
+            "pt-BR": "Identifique o detalhe correto; registre repetições ou ajuda do roteiro."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Choose a meal, ask about an ingredient, and request the bill.",
+            "de": "Wähle ein Gericht, frage nach einer Zutat und bitte um die Rechnung.",
+            "es": "Elige un plato, pregunta por un ingrediente y pide la cuenta.",
+            "pt-BR": "Escolha um prato, pergunte sobre um ingrediente e peça a conta."
+          },
+          "criterion": {
+            "en": "Write a comprehensible message with the necessary details.",
+            "de": "Schreibe eine verständliche Nachricht mit den nötigen Angaben.",
+            "es": "Escribe un mensaje comprensible con los detalles necesarios.",
+            "pt-BR": "Escreva uma mensagem compreensível com os detalhes necessários."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Choose a meal, ask about an ingredient, and request the bill.",
+            "de": "Wähle ein Gericht, frage nach einer Zutat und bitte um die Rechnung.",
+            "es": "Elige un plato, pregunta por un ingrediente y pide la cuenta.",
+            "pt-BR": "Escolha um prato, pergunte sobre um ingrediente e peça a conta."
+          },
+          "criterion": {
+            "en": "Complete the exchange, clarify a detail, and confirm the result.",
+            "de": "Führe den Austausch durch, kläre eine Angabe und bestätige das Ergebnis.",
+            "es": "Completa el intercambio, aclara un detalle y confirma el resultado.",
+            "pt-BR": "Complete a conversa, esclareça um detalhe e confirme o resultado."
+          }
+        }
+      ],
+      "targetIds": [
+        "pt-br-restaurant-phrase-1",
+        "pt-br-restaurant-phrase-2",
+        "pt-br-restaurant-phrase-3"
+      ],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["pt-br-restaurant-reading"],
+          "targetIds": [
+            "pt-br-restaurant-phrase-1",
+            "pt-br-restaurant-phrase-2",
+            "pt-br-restaurant-phrase-3"
+          ],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "How much does the soup cost?",
+              "de": "Wie viel kostet die Suppe?",
+              "es": "¿Cuánto cuesta la sopa?",
+              "pt-BR": "Quanto custa a sopa?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "vinte reais",
+              "de": "vinte reais",
+              "es": "vinte reais",
+              "pt-BR": "vinte reais"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Hoje temos sopa de legumes e frango com arroz. A sopa custa vinte reais. Ela leva leite. A água custa cinco reais."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["pt-br-restaurant-listening"],
+          "targetIds": [
+            "pt-br-restaurant-phrase-1",
+            "pt-br-restaurant-phrase-2",
+            "pt-br-restaurant-phrase-3"
+          ],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "How much does the soup cost?",
+              "de": "Wie viel kostet die Suppe?",
+              "es": "¿Cuánto cuesta la sopa?",
+              "pt-BR": "Quanto custa a sopa?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "vinte reais",
+              "de": "vinte reais",
+              "es": "vinte reais",
+              "pt-BR": "vinte reais"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Hoje temos sopa de legumes e frango com arroz. A sopa custa vinte reais. Ela leva leite. A água custa cinco reais."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": [
+            "pt-br-restaurant-phrase-1",
+            "pt-br-restaurant-phrase-2",
+            "pt-br-restaurant-phrase-3"
+          ],
+          "instructions": {
+            "en": "Study the phrases, then cover them and explain when you would use each one.",
+            "de": "Lerne die Wendungen, decke sie ab und erkläre, wann du sie verwenden würdest.",
+            "es": "Estudia las expresiones, luego tápalas y explica cuándo usarías cada una.",
+            "pt-BR": "Estude as expressões, depois cubra-as e explique quando usaria cada uma."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["pt-br-restaurant-writing"],
+          "targetIds": [
+            "pt-br-restaurant-phrase-1",
+            "pt-br-restaurant-phrase-2",
+            "pt-br-restaurant-phrase-3"
+          ],
+          "instructions": {
+            "en": "Recall a useful phrase without seeing a model. Adapt it to one changed detail.",
+            "de": "Rufe eine nützliche Wendung ohne Vorlage ab. Passe sie an eine geänderte Angabe an.",
+            "es": "Recuerda una expresión sin ver un modelo. Adáptala a un detalle diferente.",
+            "pt-BR": "Lembre uma expressão sem ver um modelo. Adapte-a a um detalhe diferente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["pt-br-restaurant-writing"],
+          "targetIds": [
+            "pt-br-restaurant-phrase-1",
+            "pt-br-restaurant-phrase-2",
+            "pt-br-restaurant-phrase-3"
+          ],
+          "instructions": {
+            "en": "Write a short message that achieves the scenario goal. Include the important details and a polite request.",
+            "de": "Schreibe eine kurze Nachricht, die das Ziel der Situation erreicht. Nenne wichtige Angaben und eine höfliche Bitte.",
+            "es": "Escribe un mensaje breve que logre el objetivo. Incluye los detalles importantes y una petición amable.",
+            "pt-BR": "Escreva uma mensagem curta que cumpra o objetivo. Inclua os detalhes importantes e um pedido educado."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["pt-br-restaurant-speaking"],
+          "targetIds": [
+            "pt-br-restaurant-phrase-1",
+            "pt-br-restaurant-phrase-2",
+            "pt-br-restaurant-phrase-3"
+          ],
+          "instructions": {
+            "en": "Role-play the situation. Ask and answer questions, clarify one changed detail, and confirm the outcome.",
+            "de": "Spiele die Situation durch. Stelle und beantworte Fragen, kläre eine geänderte Angabe und bestätige das Ergebnis.",
+            "es": "Representa la situación. Haz y responde preguntas, aclara un detalle diferente y confirma el resultado.",
+            "pt-BR": "Simule a situação. Faça e responda perguntas, esclareça um detalhe diferente e confirme o resultado."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "first-visit",
+          "facts": {
+            "en": "Choose a meal, ask about an ingredient, and request the bill.",
+            "de": "Wähle ein Gericht, frage nach einer Zutat und bitte um die Rechnung.",
+            "es": "Elige un plato, pregunta por un ingrediente y pide la cuenta.",
+            "pt-BR": "Escolha um prato, pergunte sobre um ingrediente e peça a conta."
+          }
+        },
+        {
+          "id": "changed-detail",
+          "facts": {
+            "en": "Use the same goal, but change one name, quantity, or time. Tell the learner the new detail before assessing it.",
+            "de": "Behalte das Ziel bei, ändere aber einen Namen, eine Menge oder eine Zeit. Nenne die Änderung vor der Bewertung.",
+            "es": "Mantén el objetivo, pero cambia un nombre, una cantidad o una hora. Comunica el cambio antes de evaluarlo.",
+            "pt-BR": "Mantenha o objetivo, mas mude um nome, uma quantidade ou um horário. Informe a mudança antes de avaliar."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "pt-br-restaurant-2",
+      "stage": "restaurant",
+      "kind": "module",
+      "title": {
+        "en": "Ask about ingredients",
+        "de": "Nach Zutaten fragen",
+        "es": "Preguntar por los ingredientes",
+        "pt-BR": "Perguntar sobre os ingredientes"
+      },
+      "scenario": {
+        "en": "Ask about ingredients. Does the soup contain milk?",
+        "de": "Nach Zutaten fragen. Ist Milch in der Suppe?",
+        "es": "Preguntar por los ingredientes. ¿La sopa lleva leche?",
+        "pt-BR": "Perguntar sobre os ingredientes. Perguntar se o leite é um ingrediente."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": ["pt-br-restaurant"],
+      "grammar": {
+        "en": "Use the focus phrase as a complete model. Notice whether it is a question, statement, or short request. Keep its word order when recalling it; use a separate sentence to confirm the reply.",
+        "de": "Nutze die Wendung als vollständiges Muster. Ist sie eine Frage, Aussage oder kurze Bitte? Behalte beim Abrufen die Wortstellung bei und bestätige die Antwort in einem eigenen Satz.",
+        "es": "Usa la expresión como modelo completo. Observa si es una pregunta, afirmación o petición breve. Conserva el orden de las palabras al recordarla y confirma la respuesta en otra frase.",
+        "pt-BR": "Use a expressão como modelo completo. Observe se é uma pergunta, afirmação ou pedido breve. Mantenha a ordem das palavras ao lembrá-la e confirme a resposta em outra frase."
+      },
+      "explanation": {
+        "en": "Read the request and reply as a short exchange. Identify what is being requested and what the other person confirms. Recall the request without looking, then respond using only the supplied facts.",
+        "de": "Lies die Bitte und die Antwort als kurzen Austausch. Erkenne, worum gebeten wird und was die andere Person bestätigt. Rufe die Bitte ohne Vorlage ab und antworte nur mit den angegebenen Fakten.",
+        "es": "Lee la petición y la respuesta como un intercambio breve. Identifica qué se pide y qué confirma la otra persona. Recuerda la petición sin mirar y responde solo con los datos proporcionados.",
+        "pt-BR": "Leia o pedido e a resposta como uma conversa curta. Identifique o que é pedido e o que a outra pessoa confirma. Lembre o pedido sem olhar e responda apenas com os dados fornecidos."
+      },
+      "examples": [
+        {
+          "text": "A sopa leva leite?",
+          "meaning": {
+            "en": "Does the soup contain milk?",
+            "de": "Ist Milch in der Suppe?",
+            "es": "¿La sopa lleva leche?",
+            "pt-BR": "Perguntar se o leite é um ingrediente."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "pt-br-restaurant-reading-2",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Ask about ingredients. Find the key information in the message.",
+            "de": "Nach Zutaten fragen. Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Preguntar por los ingredientes. Encuentra la información clave del mensaje.",
+            "pt-BR": "Perguntar sobre os ingredientes. Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-listening-2",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Ask about ingredients. Understand the requested spoken detail.",
+            "de": "Nach Zutaten fragen. Verstehe die gesuchte gesprochene Information.",
+            "es": "Preguntar por los ingredientes. Comprende el detalle solicitado al escuchar.",
+            "pt-BR": "Perguntar sobre os ingredientes. Compreenda o detalhe solicitado ao ouvir."
+          },
+          "criterion": {
+            "en": "Recover the correct detail; record any repetition or transcript support.",
+            "de": "Erfasse die richtige Angabe; halte Wiederholungen oder Skripthilfe fest.",
+            "es": "Identifica el detalle correcto; registra las repeticiones o la ayuda del guion.",
+            "pt-BR": "Identifique o detalhe correto; registre repetições ou ajuda do roteiro."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-writing-2",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Ask about ingredients. Does the soup contain milk?",
+            "de": "Nach Zutaten fragen. Ist Milch in der Suppe?",
+            "es": "Preguntar por los ingredientes. ¿La sopa lleva leche?",
+            "pt-BR": "Perguntar sobre os ingredientes. Perguntar se o leite é um ingrediente."
+          },
+          "criterion": {
+            "en": "Write a comprehensible message with the necessary details.",
+            "de": "Schreibe eine verständliche Nachricht mit den nötigen Angaben.",
+            "es": "Escribe un mensaje comprensible con los detalles necesarios.",
+            "pt-BR": "Escreva uma mensagem compreensível com os detalhes necessários."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-speaking-2",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Ask about ingredients. Does the soup contain milk?",
+            "de": "Nach Zutaten fragen. Ist Milch in der Suppe?",
+            "es": "Preguntar por los ingredientes. ¿La sopa lleva leche?",
+            "pt-BR": "Perguntar sobre os ingredientes. Perguntar se o leite é um ingrediente."
+          },
+          "criterion": {
+            "en": "Complete the exchange, clarify a detail, and confirm the result.",
+            "de": "Führe den Austausch durch, kläre eine Angabe und bestätige das Ergebnis.",
+            "es": "Completa el intercambio, aclara un detalle y confirma el resultado.",
+            "pt-BR": "Complete a conversa, esclareça um detalhe e confirme o resultado."
+          }
+        }
+      ],
+      "targetIds": ["pt-br-restaurant-phrase-2"],
+      "reviewTargetIds": ["pt-br-restaurant-phrase-1", "pt-br-restaurant-phrase-3"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["pt-br-restaurant-reading-2"],
+          "targetIds": ["pt-br-restaurant-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Sim, a sopa leva leite. O molho de tomate não leva leite.",
+              "de": "Sim, a sopa leva leite. O molho de tomate não leva leite.",
+              "es": "Sim, a sopa leva leite. O molho de tomate não leva leite.",
+              "pt-BR": "Sim, a sopa leva leite. O molho de tomate não leva leite."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "A sopa leva leite?\nSim, a sopa leva leite. O molho de tomate não leva leite."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["pt-br-restaurant-listening-2"],
+          "targetIds": ["pt-br-restaurant-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Sim, a sopa leva leite. O molho de tomate não leva leite.",
+              "de": "Sim, a sopa leva leite. O molho de tomate não leva leite.",
+              "es": "Sim, a sopa leva leite. O molho de tomate não leva leite.",
+              "pt-BR": "Sim, a sopa leva leite. O molho de tomate não leva leite."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "A sopa leva leite?\nSim, a sopa leva leite. O molho de tomate não leva leite."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["pt-br-restaurant-phrase-2"],
+          "instructions": {
+            "en": "Study the phrases, then cover them and explain when you would use each one.",
+            "de": "Lerne die Wendungen, decke sie ab und erkläre, wann du sie verwenden würdest.",
+            "es": "Estudia las expresiones, luego tápalas y explica cuándo usarías cada una.",
+            "pt-BR": "Estude as expressões, depois cubra-as e explique quando usaria cada uma."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["pt-br-restaurant-writing-2"],
+          "targetIds": ["pt-br-restaurant-phrase-2"],
+          "instructions": {
+            "en": "Recall a useful phrase without seeing a model. Adapt it to one changed detail.",
+            "de": "Rufe eine nützliche Wendung ohne Vorlage ab. Passe sie an eine geänderte Angabe an.",
+            "es": "Recuerda una expresión sin ver un modelo. Adáptala a un detalle diferente.",
+            "pt-BR": "Lembre uma expressão sem ver um modelo. Adapte-a a um detalhe diferente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["pt-br-restaurant-writing-2"],
+          "targetIds": ["pt-br-restaurant-phrase-2"],
+          "instructions": {
+            "en": "Write a two-line exchange: make the focused request or statement, then confirm the information in the supplied reply. Do not invent additional arrangements.",
+            "de": "Schreibe einen Austausch mit zwei Zeilen: Formuliere die passende Bitte oder Aussage und bestätige dann die Angaben der vorgegebenen Antwort. Erfinde keine zusätzlichen Vereinbarungen.",
+            "es": "Escribe un intercambio de dos líneas: formula la petición o afirmación y confirma la información de la respuesta dada. No inventes otros acuerdos.",
+            "pt-BR": "Escreva uma conversa de duas linhas: faça o pedido ou a afirmação e confirme as informações da resposta fornecida. Não invente outros acordos."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Sim, a sopa leva leite. O molho de tomate não leva leite."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["pt-br-restaurant-speaking-2"],
+          "targetIds": ["pt-br-restaurant-phrase-2"],
+          "instructions": {
+            "en": "Role-play this focused exchange. Make your request or statement without reading the model. Your partner replies using the supplied facts; confirm the important details and close politely.",
+            "de": "Spiele diesen Austausch. Formuliere deine Bitte oder Aussage ohne Vorlage. Dein Gegenüber antwortet mit den vorgegebenen Fakten; bestätige wichtige Angaben und beende das Gespräch höflich.",
+            "es": "Representa este intercambio. Formula tu petición o afirmación sin leer el modelo. Tu interlocutor responde con los datos proporcionados; confirma los detalles importantes y termina con amabilidad.",
+            "pt-BR": "Simule esta conversa. Faça seu pedido ou afirmação sem ler o modelo. A outra pessoa responde com os dados fornecidos; confirme os detalhes importantes e encerre com educação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Sim, a sopa leva leite. O molho de tomate não leva leite."
+        }
+      ],
+      "variants": [
+        {
+          "id": "focused-exchange",
+          "facts": {
+            "en": "Ask about ingredients. Does the soup contain milk?\nSim, a sopa leva leite. O molho de tomate não leva leite.",
+            "de": "Nach Zutaten fragen. Ist Milch in der Suppe?\nSim, a sopa leva leite. O molho de tomate não leva leite.",
+            "es": "Preguntar por los ingredientes. ¿La sopa lleva leche?\nSim, a sopa leva leite. O molho de tomate não leva leite.",
+            "pt-BR": "Perguntar sobre os ingredientes. Perguntar se o leite é um ingrediente.\nSim, a sopa leva leite. O molho de tomate não leva leite."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "pt-br-restaurant-3",
+      "stage": "restaurant",
+      "kind": "module",
+      "title": {
+        "en": "Ask for the bill",
+        "de": "Um die Rechnung bitten",
+        "es": "Pedir la cuenta",
+        "pt-BR": "Pedir a conta"
+      },
+      "scenario": {
+        "en": "Ask for the bill. Could we have the check, please?",
+        "de": "Um die Rechnung bitten. Die Rechnung, bitte.",
+        "es": "Pedir la cuenta. La cuenta, por favor.",
+        "pt-BR": "Pedir a conta. Pedir a conta para pagar."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": ["pt-br-restaurant-2"],
+      "grammar": {
+        "en": "Use the focus phrase as a complete model. Notice whether it is a question, statement, or short request. Keep its word order when recalling it; use a separate sentence to confirm the reply.",
+        "de": "Nutze die Wendung als vollständiges Muster. Ist sie eine Frage, Aussage oder kurze Bitte? Behalte beim Abrufen die Wortstellung bei und bestätige die Antwort in einem eigenen Satz.",
+        "es": "Usa la expresión como modelo completo. Observa si es una pregunta, afirmación o petición breve. Conserva el orden de las palabras al recordarla y confirma la respuesta en otra frase.",
+        "pt-BR": "Use a expressão como modelo completo. Observe se é uma pergunta, afirmação ou pedido breve. Mantenha a ordem das palavras ao lembrá-la e confirme a resposta em outra frase."
+      },
+      "explanation": {
+        "en": "Read the request and reply as a short exchange. Identify what is being requested and what the other person confirms. Recall the request without looking, then respond using only the supplied facts.",
+        "de": "Lies die Bitte und die Antwort als kurzen Austausch. Erkenne, worum gebeten wird und was die andere Person bestätigt. Rufe die Bitte ohne Vorlage ab und antworte nur mit den angegebenen Fakten.",
+        "es": "Lee la petición y la respuesta como un intercambio breve. Identifica qué se pide y qué confirma la otra persona. Recuerda la petición sin mirar y responde solo con los datos proporcionados.",
+        "pt-BR": "Leia o pedido e a resposta como uma conversa curta. Identifique o que é pedido e o que a outra pessoa confirma. Lembre o pedido sem olhar e responda apenas com os dados fornecidos."
+      },
+      "examples": [
+        {
+          "text": "A conta, por favor.",
+          "meaning": {
+            "en": "Could we have the check, please?",
+            "de": "Die Rechnung, bitte.",
+            "es": "La cuenta, por favor.",
+            "pt-BR": "Pedir a conta para pagar."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "pt-br-restaurant-reading-3",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the bill. Find the key information in the message.",
+            "de": "Um die Rechnung bitten. Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Pedir la cuenta. Encuentra la información clave del mensaje.",
+            "pt-BR": "Pedir a conta. Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-listening-3",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the bill. Understand the requested spoken detail.",
+            "de": "Um die Rechnung bitten. Verstehe die gesuchte gesprochene Information.",
+            "es": "Pedir la cuenta. Comprende el detalle solicitado al escuchar.",
+            "pt-BR": "Pedir a conta. Compreenda o detalhe solicitado ao ouvir."
+          },
+          "criterion": {
+            "en": "Recover the correct detail; record any repetition or transcript support.",
+            "de": "Erfasse die richtige Angabe; halte Wiederholungen oder Skripthilfe fest.",
+            "es": "Identifica el detalle correcto; registra las repeticiones o la ayuda del guion.",
+            "pt-BR": "Identifique o detalhe correto; registre repetições ou ajuda do roteiro."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-writing-3",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the bill. Could we have the check, please?",
+            "de": "Um die Rechnung bitten. Die Rechnung, bitte.",
+            "es": "Pedir la cuenta. La cuenta, por favor.",
+            "pt-BR": "Pedir a conta. Pedir a conta para pagar."
+          },
+          "criterion": {
+            "en": "Write a comprehensible message with the necessary details.",
+            "de": "Schreibe eine verständliche Nachricht mit den nötigen Angaben.",
+            "es": "Escribe un mensaje comprensible con los detalles necesarios.",
+            "pt-BR": "Escreva uma mensagem compreensível com os detalhes necessários."
+          }
+        },
+        {
+          "id": "pt-br-restaurant-speaking-3",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the bill. Could we have the check, please?",
+            "de": "Um die Rechnung bitten. Die Rechnung, bitte.",
+            "es": "Pedir la cuenta. La cuenta, por favor.",
+            "pt-BR": "Pedir a conta. Pedir a conta para pagar."
+          },
+          "criterion": {
+            "en": "Complete the exchange, clarify a detail, and confirm the result.",
+            "de": "Führe den Austausch durch, kläre eine Angabe und bestätige das Ergebnis.",
+            "es": "Completa el intercambio, aclara un detalle y confirma el resultado.",
+            "pt-BR": "Complete a conversa, esclareça um detalhe e confirme o resultado."
+          }
+        }
+      ],
+      "targetIds": ["pt-br-restaurant-phrase-3"],
+      "reviewTargetIds": ["pt-br-restaurant-phrase-1", "pt-br-restaurant-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["pt-br-restaurant-reading-3"],
+          "targetIds": ["pt-br-restaurant-phrase-3"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Claro. São vinte reais. Pode pagar com cartão.",
+              "de": "Claro. São vinte reais. Pode pagar com cartão.",
+              "es": "Claro. São vinte reais. Pode pagar com cartão.",
+              "pt-BR": "Claro. São vinte reais. Pode pagar com cartão."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "A conta, por favor.\nClaro. São vinte reais. Pode pagar com cartão."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["pt-br-restaurant-listening-3"],
+          "targetIds": ["pt-br-restaurant-phrase-3"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Claro. São vinte reais. Pode pagar com cartão.",
+              "de": "Claro. São vinte reais. Pode pagar com cartão.",
+              "es": "Claro. São vinte reais. Pode pagar com cartão.",
+              "pt-BR": "Claro. São vinte reais. Pode pagar com cartão."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "A conta, por favor.\nClaro. São vinte reais. Pode pagar com cartão."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["pt-br-restaurant-phrase-3"],
+          "instructions": {
+            "en": "Study the phrases, then cover them and explain when you would use each one.",
+            "de": "Lerne die Wendungen, decke sie ab und erkläre, wann du sie verwenden würdest.",
+            "es": "Estudia las expresiones, luego tápalas y explica cuándo usarías cada una.",
+            "pt-BR": "Estude as expressões, depois cubra-as e explique quando usaria cada uma."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["pt-br-restaurant-writing-3"],
+          "targetIds": ["pt-br-restaurant-phrase-3"],
+          "instructions": {
+            "en": "Recall a useful phrase without seeing a model. Adapt it to one changed detail.",
+            "de": "Rufe eine nützliche Wendung ohne Vorlage ab. Passe sie an eine geänderte Angabe an.",
+            "es": "Recuerda una expresión sin ver un modelo. Adáptala a un detalle diferente.",
+            "pt-BR": "Lembre uma expressão sem ver um modelo. Adapte-a a um detalhe diferente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["pt-br-restaurant-writing-3"],
+          "targetIds": ["pt-br-restaurant-phrase-3"],
+          "instructions": {
+            "en": "Write a two-line exchange: make the focused request or statement, then confirm the information in the supplied reply. Do not invent additional arrangements.",
+            "de": "Schreibe einen Austausch mit zwei Zeilen: Formuliere die passende Bitte oder Aussage und bestätige dann die Angaben der vorgegebenen Antwort. Erfinde keine zusätzlichen Vereinbarungen.",
+            "es": "Escribe un intercambio de dos líneas: formula la petición o afirmación y confirma la información de la respuesta dada. No inventes otros acuerdos.",
+            "pt-BR": "Escreva uma conversa de duas linhas: faça o pedido ou a afirmação e confirme as informações da resposta fornecida. Não invente outros acordos."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Claro. São vinte reais. Pode pagar com cartão."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["pt-br-restaurant-speaking-3"],
+          "targetIds": ["pt-br-restaurant-phrase-3"],
+          "instructions": {
+            "en": "Role-play this focused exchange. Make your request or statement without reading the model. Your partner replies using the supplied facts; confirm the important details and close politely.",
+            "de": "Spiele diesen Austausch. Formuliere deine Bitte oder Aussage ohne Vorlage. Dein Gegenüber antwortet mit den vorgegebenen Fakten; bestätige wichtige Angaben und beende das Gespräch höflich.",
+            "es": "Representa este intercambio. Formula tu petición o afirmación sin leer el modelo. Tu interlocutor responde con los datos proporcionados; confirma los detalles importantes y termina con amabilidad.",
+            "pt-BR": "Simule esta conversa. Faça seu pedido ou afirmação sem ler o modelo. A outra pessoa responde com os dados fornecidos; confirme os detalhes importantes e encerre com educação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Claro. São vinte reais. Pode pagar com cartão."
+        }
+      ],
+      "variants": [
+        {
+          "id": "focused-exchange",
+          "facts": {
+            "en": "Ask for the bill. Could we have the check, please?\nClaro. São vinte reais. Pode pagar com cartão.",
+            "de": "Um die Rechnung bitten. Die Rechnung, bitte.\nClaro. São vinte reais. Pode pagar com cartão.",
+            "es": "Pedir la cuenta. La cuenta, por favor.\nClaro. São vinte reais. Pode pagar com cartão.",
+            "pt-BR": "Pedir a conta. Pedir a conta para pagar.\nClaro. São vinte reais. Pode pagar com cartão."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    }
+  ]
+}

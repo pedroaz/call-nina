@@ -88,8 +88,10 @@ textarea {
   outline-offset: var(--od-space-2);
 }
 
-/* Headings receive programmatic focus for reading order, not as controls. */
-:is(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus {
+/* Reading anchors retain focus for announcements and navigation without a control ring.
+   Mark only passive programmatic destinations; interactive controls keep their rings. */
+:is(h1, h2, h3, h4, h5, h6, caption)[tabindex="-1"]:focus,
+[data-focus-anchor]:focus {
   outline: none;
 }
 

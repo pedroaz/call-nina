@@ -1,4 +1,15 @@
 {
+  "lessonStudio": {
+    "activityDetails": "Detalhes da atividade",
+    "progress": "Progresso",
+    "resources": "Guia da lição",
+    "transcript": "Transcrição",
+    "voiceSetup": "Como começar no Codex",
+    "aboutProgress": "Como funciona o progresso",
+    "howItWorks": "Como funciona",
+    "examples": "Mais exemplos",
+    "finishAndContinue": "Entendi · Continuar"
+  },
   "app": {
     "name": "Call Nina",
     "tagline": "Um espaço para aprender seu idioma com mais confiança."
@@ -295,7 +306,7 @@
     "voiceHandoff": {
       "open": "Abrir no Codex",
       "opening": "Abrindo o Codex…",
-      "openRequested": "A abertura foi solicitada. Envie a mensagem preparada no Codex e inicie a conversa por voz nessa tarefa.",
+      "openRequested": "Abrindo Call Nina Practice no Codex. Envie a mensagem preparada e selecione Iniciar conversa por voz.",
       "setupRequired": "Abra Configurações → Conexões de IA no Call Nina para instalar ou atualizar o plugin do Call Nina e conferir a configuração do Codex. Depois, tente novamente.",
       "failed": "Não foi possível abrir o Codex. Verifique se o aplicativo ChatGPT para computador está instalado e tente Abrir no Codex novamente.",
       "availability": "A conversa por voz em tarefas existentes depende do aplicativo, da conta e do espaço de trabalho. Se Iniciar conversa por voz não estiver disponível, atualize o Codex ou continue por texto.",
@@ -352,7 +363,7 @@
     "nextHint": "Outra dica",
     "showHint": "Mostrar uma dica",
     "answerFrameHint": "Estrutura da frase: {{frame}}",
-    "submit": "Enviar resposta",
+    "submit": "Conferir resposta",
     "answerRequired": "Digite uma resposta válida antes de enviar.",
     "previous": "Exercício anterior",
     "forward": "Próximo exercício visitado",
@@ -946,7 +957,7 @@
     },
     "connectionOptional": "Você pode concluir a configuração e praticar atividades preparadas sem conectar o ChatGPT. Conecte-o depois para gerar conteúdo e receber avaliações por IA.",
     "targetLanguage": "Idioma que você quer aprender",
-    "enrollCourse": "Usar a Trilha de aprendizagem de alemão",
+    "enrollCourse": "Usar trilhas de aprendizagem",
     "pathUnavailable": "A Trilha de aprendizagem estruturada está disponível apenas para alemão. Você ainda pode usar a Prática gerada.",
     "accessIntro": "Configure o acesso à IA agora ou continue com a prática preparada e conecte-se depois nas Configurações. Salvar uma conexão não verifica o acesso pago nem inicia uma geração.",
     "accessOptions": "Configurar uma conexão de IA",
@@ -1000,7 +1011,7 @@
     "notReported": "Não informado pela versão atual.",
     "privacyTitle": "Processamento local e pela OpenAI",
     "profileTitle": "Preferências de aprendizagem",
-    "persistenceUnavailable": "As configurações não podem ser editadas nesta versão do aplicativo.",
+    "persistenceUnavailable": "Não foi possível carregar as configurações. Tente atualizar.",
     "teachingProfile": "Estilo de ensino",
     "uiLocale": "Idioma da interface",
     "localeSeparate": "O idioma das explicações é independente do idioma da interface.",
@@ -1284,7 +1295,7 @@
     "openHistory": "Abrir histórico",
     "preparing": "Preparando sua atividade…",
     "loading": "Carregando sua trilha de aprendizagem…",
-    "courseUnavailable": "O curso A1.1 e A1.2 ainda não está disponível. Você pode continuar em Prática.",
+    "courseUnavailable": "Ative as trilhas de aprendizagem para este idioma nas Configurações para explorar cursos e cenários.",
     "stageFinished": "Você chegou ao fim desta etapa. Revisite as atividades puladas ou escolha outra etapa.",
     "syllabus": "Visão geral do curso",
     "counts": "{{completed}} de {{total}} concluídas · {{skipped}} puladas",
@@ -1470,7 +1481,8 @@
       "shortcuts": "← / → Navegar · Espaço Virar · Tab Mudar de controle",
       "saveHint": "Salve palavras úteis para revisar depois."
     },
-    "selectRange": "Selecione de 3 a 30 palavras para criar um conjunto."
+    "selectRange": "Selecione de 3 a 30 palavras para criar um conjunto.",
+    "studyAction": "Estudar palavras selecionadas"
   },
   "providerAccess": {
     "selectedRoute": "Rota de IA: Codex",
@@ -1484,6 +1496,7 @@
       "account-unavailable": "A Nina não conseguiu confirmar o acesso à sua conta Codex. Confira a conexão nas Configurações e tente novamente.",
       "capability-unavailable": "A conexão de IA selecionada não oferece suporte a esta ação. Nenhuma outra conexão será selecionada automaticamente.",
       "model-unavailable": "A conexão de IA selecionada não tem um modelo e raciocínio disponíveis para esta ação. Confira a escolha salva nas Configurações.",
+      "integration-unavailable": "A Nina não conseguiu verificar a integração externa do Codex para o Voice. Atualize as Configurações e tente novamente. Isso não significa que o plugin esteja ausente.",
       "plugin-required": "Para abrir esta atividade do Voice no Codex, é necessário o plugin do Call Nina. Instale ou atualize o plugin nas Configurações e tente novamente.",
       "connection-required": "Escolha uma conexão de IA nas configurações para usar esta ação. As atividades preparadas continuam disponíveis."
     }
@@ -1774,6 +1787,57 @@
     "keepExploring": "Continue explorando sua trilha de aprendizagem.",
     "focusedReview": "Prática focada",
     "refreshReview": "Hora de relembrar",
-    "aboutReview": "Sobre a revisão"
+    "aboutReview": "Sobre a revisão",
+    "lessonProgress_one": "{{completed}} de {{total}} lição concluída",
+    "lessonProgress_other": "{{completed}} de {{total}} lições concluídas"
+  },
+  "pathFlow": {
+    "lessonProgress": "Seu progresso nesta lição",
+    "lessonDetails": "Objetivos e vocabulário da lição",
+    "skippedRemaining": "Há atividades puladas pendentes",
+    "tryCheckpoint": "Tentar o checkpoint",
+    "backTrail": "Voltar à trilha",
+    "next": "A seguir: {{activity}}",
+    "continueLearning": "Continuar aprendendo",
+    "startLearning": "Começar a aprender",
+    "pathSummary": "Resumo da trilha",
+    "skippedCount": "{{count}} atividades puladas",
+    "explorePaths": "Explorar trilhas",
+    "purposeFirst": "Conheça pessoas e lide com situações do dia a dia.",
+    "purposeSecond": "Encontre seu caminho e faça planos para o dia a dia.",
+    "startLesson": "Começar lição",
+    "inProgress": "Em andamento",
+    "libraryHint": "Escolha uma trilha ou continue de onde parou.",
+    "reviewHint": "Revise o que precisa de mais prática e volte à sua trilha de aprendizagem.",
+    "returnHint": "Continue de onde parou.",
+    "backLesson": "Voltar à lição",
+    "reviewFinished": "Revisão concluída",
+    "activityFinished": "Atividade concluída",
+    "continueReview": "Continuar revisando",
+    "nextActivity": "Próxima atividade",
+    "reviewDue_one": "{{count}} atividade para revisar",
+    "reviewDue_other": "{{count}} atividades para revisar"
+  },
+  "pathCatalog": {
+    "search": "Buscar trilhas",
+    "kind": "Tipo de trilha",
+    "allKinds": "Todos os tipos",
+    "course": "Curso",
+    "scenario": "Cenário",
+    "level": "Nível",
+    "allLevels": "Todos os níveis",
+    "results": "{{count}} de {{total}} trilhas",
+    "noResults": "Nenhuma trilha encontrada. Tente outra busca ou remova os filtros."
+  },
+  "activity": {
+    "task": "Atividade",
+    "reference": "Material de apoio",
+    "reading": "Leitura",
+    "lesson": "Lição",
+    "brief": "Enunciado",
+    "shortcuts": "Atalhos de teclado",
+    "answer": "Sua resposta",
+    "review": "Revisão",
+    "writingViews": "Visualizações de escrita"
   }
 }

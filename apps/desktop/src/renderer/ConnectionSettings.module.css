@@ -1,7 +1,5 @@
 .panel,
-.list,
 .editor,
-.items,
 .secret,
 .offline,
 .confirm,
@@ -12,7 +10,75 @@
   min-width: 0;
 }
 .panel {
+  gap: var(--od-space-5);
+}
+.connectionPicker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+  gap: var(--od-space-3);
+  padding-bottom: var(--od-space-5);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.connectionHeading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: var(--od-space-4);
+}
+.connectionHeading h3 {
+  flex: 1;
+  font-size: var(--od-type-section-title-size);
+  line-height: var(--od-type-section-title-line);
+}
+.connectionIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--od-radius-md);
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+}
+.connectionIcon svg {
+  width: 24px;
+  height: 24px;
+}
+.modelHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-3);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+}
+.modelHeading h3 {
+  font-size: var(--od-font-size-md);
+}
+.modelHeading svg {
+  width: 20px;
+  height: 20px;
+  color: var(--od-color-brand-ink);
+}
+.modelControls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--od-space-5);
+}
+.detailsBody {
+  display: grid;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.notice {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  font-size: var(--od-font-size-sm);
+}
+.notice > svg {
+  width: 20px;
+  height: 20px;
+  color: var(--od-color-text-muted);
 }
 .panel p,
 .panel h3 {
@@ -22,7 +88,6 @@
 .panel h4 {
   margin: 0;
 }
-.list,
 .editor,
 .secret {
   align-content: start;
@@ -35,25 +100,6 @@
   border-radius: var(--od-radius-md);
   padding: var(--od-space-4);
 }
-.item {
-  justify-content: flex-start;
-  text-align: left;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  width: 100%;
-}
-.item[aria-current="true"] {
-  background: var(--od-color-state-selected-soft);
-  border-color: var(--od-color-state-selected);
-}
-.item:focus-visible,
-.items:focus-visible,
-.offline:focus-visible,
-.editor summary:focus-visible,
-.management summary:focus-visible {
-  outline: var(--od-border-outlined) solid var(--od-color-focus);
-  outline-offset: var(--od-space-1);
-}
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -63,30 +109,29 @@
   border-top: var(--od-border-thin) solid var(--od-color-border-default);
   padding-top: var(--od-space-3);
 }
-.editor details {
-  min-width: 0;
-}
-.editor details[open],
-.management[open] {
-  display: grid;
-  gap: var(--od-space-3);
-}
-
 .editor {
-  gap: var(--od-space-4);
+  gap: var(--od-space-5);
 }
 .editor > button,
 .remove > button {
   justify-self: start;
 }
-.connectionDetails {
-  color: var(--od-color-text-muted);
-}
-
-.management {
-  min-width: 0;
-}
-.list > button,
 .notice > button {
   justify-self: start;
+}
+
+@container workspace (max-width: 35rem) {
+  .modelControls,
+  .connectionPicker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .connectionPicker > button {
+    justify-self: start;
+  }
+  .notice {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .notice > button {
+    grid-column: 2;
+  }
 }

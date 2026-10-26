@@ -1,5 +1,15 @@
 .settingsPage {
+  gap: var(--od-space-7);
   padding-bottom: var(--od-space-10);
+}
+
+.settingsSection + .settingsSection {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-6);
+}
+
+.settingsSection > button {
+  justify-self: start;
 }
 
 .switchConfirmation {
@@ -15,7 +25,7 @@
 
 .settingsControls {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
 }
@@ -59,24 +69,18 @@
 }
 
 .settingsActions {
-  bottom: var(--od-space-4);
-  margin-top: var(--od-space-4);
-  box-shadow: var(--od-shadow-card);
   display: flex;
   flex-wrap: wrap;
   gap: var(--od-space-4);
   justify-content: flex-end;
-  position: sticky;
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
-  padding: var(--od-space-4);
-  z-index: 1;
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
 }
 
 .coursePreference {
   grid-column: 1 / -1;
-  padding-top: var(--od-space-3);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
 }
 
 .aiSetup,
@@ -84,6 +88,9 @@
   display: grid;
   gap: var(--od-space-4);
   min-width: 0;
+}
+.aiSetup {
+  gap: var(--od-space-6);
 }
 .aiSetup section {
   min-width: 0;
@@ -93,6 +100,36 @@
 }
 .connectionStatus {
   font-weight: var(--od-weight-strong);
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-3);
+}
+.connectionStatus svg,
+.tabLabel svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--od-color-brand-ink);
+}
+.tabLabel,
+.accountSummary,
+.accountTools {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-3);
+}
+.accountSummary {
+  justify-content: space-between;
+  padding: var(--od-space-4) var(--od-space-5);
+  background: var(--od-color-surface-brand);
+  border-radius: var(--od-radius-md);
+}
+.accountTools {
+  flex-wrap: wrap;
+}
+.accountOptions {
+  display: grid;
+  gap: var(--od-space-5);
 }
 .accountOptions,
 .optionalIntegration {

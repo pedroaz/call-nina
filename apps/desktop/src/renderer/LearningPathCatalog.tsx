@@ -1,9 +1,16 @@
 import type { CourseUnit, LearningCourse, LearningPathState } from "@call-nina/contracts";
-import { courseActivityStatus } from "@call-nina/domain";
+import { resolveCourseReference } from "@call-nina/domain";
 import { ArrowRight, BookOpen, Check, Flag } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, Muted } from "./components/ui/index.js";
-import { ContentGrid, Section } from "./components/layout/index.js";
+import { Button, Card, Muted, TextField, SelectField } from "./components/ui/index.js";
+import { ContentRow, Section } from "./components/layout/index.js";
+import {
+  lessonCounts,
+  lessonStateKey,
+  lessonActionKey,
+  nextLessonActivity,
+  nextPathActivity,
+} from "./learningPathNavigation.js";
 import styles from "./LearningPathPage.module.css";
 
 export function LearningPathCatalog({
@@ -17,10 +24,14 @@ export function LearningPathCatalog({
   onStage,
   onSelect,
   onOpen,
+  reviewCount,
+  onReview,
+  filter,
+  onFilter,
 }: {
   course: LearningCourse;
   state: LearningPathState;
-  locale: "en" | "de";
+  locale: "en" | "de" | "es" | "pt-BR";
   view: "library" | "trail";
   stage: string;
   selectedUnit: string | undefined;
@@ -28,166 +39,280 @@ export function LearningPathCatalog({
   onStage: (stage: string) => void;
   onSelect: (id: string) => void;
   onOpen: (unit: CourseUnit) => void;
+  reviewCount: number;
+  onReview: () => void;
+  filter: { query: string; kind: string; level: string };
+  onFilter: (filter: { query: string; kind: string; level: string }) => void;
 }) {
   const { t } = useTranslation();
-  const stages = [...new Set(course.units.map((unit) => unit.stage))];
-  const title = (value: string) => t("pathLibrary.stage", { stage: value.replace("a1-", "A1.") });
-  const statuses = (unit: CourseUnit) =>
-    unit.activities.map((activity) =>
-      courseActivityStatus(state, {
-        version: course.version,
-        unitId: unit.id,
-        activityKey: activity.id,
-        mode: "course",
-      }),
-    );
-  const complete = (unit: CourseUnit) => statuses(unit).every((status) => status === "completed");
-  const counts = (unit: CourseUnit) => ({
-    completed: statuses(unit).filter((status) => status === "completed").length,
-    skipped: statuses(unit).filter((status) => status === "skipped").length,
-    total: unit.activities.length,
-  });
-  const resume = (value: string) => {
-    const units = course.units.filter((unit) => unit.stage === value);
-    const saved = units.find(
-      (unit) =>
-        unit.id === state.current?.unitId &&
-        statuses(unit).some((status) => !["completed", "skipped"].includes(status)),
-    );
-    return (
-      saved ??
-      units.find((unit) => statuses(unit).includes("started")) ??
-      units.find(
-        (unit) =>
-          unit.kind !== "launchpad" &&
-          statuses(unit).some((status) => !["completed", "skipped"].includes(status)),
-      )
-    );
-  };
-  const activeStages = stages.filter((value) =>
-    course.units.some(
-      (unit) => unit.stage === value && statuses(unit).some((status) => status !== "not-started"),
-    ),
+  const { query, kind, level } = filter;
+  const normalized = query.trim().toLocaleLowerCase();
+  const paths = course.paths.filter(
+    (path) =>
+      (kind === "all" || path.kind === kind) &&
+      (level === "all" || path.level === level) &&
+      (!normalized ||
+        `${path.title[locale]} ${path.description[locale]}`
+          .toLocaleLowerCase()
+          .includes(normalized)),
   );
-  if (view === "library")
-    return (
-      <>
-        {activeStages.length > 0 && (
-          <Section title={t("pathLibrary.resume")}>
-            {activeStages.map((value) => {
-              const unit = resume(value);
-              return (
-                <Card key={value} variant="brand" className={styles.recommendation}>
-                  <div>
-                    <Muted as="p">{title(value)}</Muted>
-                    <h2>{unit?.title[locale] ?? t("pathLibrary.pathFinished")}</h2>
-                  </div>
-                  <Button
-                    variant="primary"
-                    isDisabled={busy}
-                    trailingIcon={<ArrowRight aria-hidden="true" />}
-                    onPress={() => (unit ? onOpen(unit) : onStage(value))}
-                  >
-                    {t(unit ? "pathLibrary.continueLesson" : "pathLibrary.explore")}
-                  </Button>
-                </Card>
-              );
-            })}
-          </Section>
-        )}
-        <Section title={t("pathLibrary.foundations")}>
-          <ContentGrid>
-            {stages.map((value) => {
-              const units = course.units.filter((unit) => unit.stage === value);
-              return (
-                <Card key={value} className={styles.pathCard}>
-                  <BookOpen aria-hidden="true" />
-                  <h2>{title(value)}</h2>
-                  <Muted as="p">{t("pathLibrary.lessonCount", { count: units.length })}</Muted>
-                  <p>
-                    {t("pathLibrary.lessonProgress", {
-                      completed: units.filter(complete).length,
-                      total: units.length,
-                    })}
-                  </p>
-                  <Button
-                    variant="secondary"
-                    isDisabled={busy}
-                    onPress={() => onStage(value)}
-                    trailingIcon={<ArrowRight aria-hidden="true" />}
-                  >
-                    {t("pathLibrary.explore")}
-                  </Button>
-                </Card>
-              );
-            })}
-          </ContentGrid>
-        </Section>
-      </>
-    );
-  const units = course.units.filter((unit) => unit.stage === stage);
-  const selected = units.find((unit) => unit.id === selectedUnit) ?? resume(stage) ?? units[0];
-  return (
-    <>
-      <Muted as="p">
+  const title = (value: string) =>
+    course.paths.find((path) => path.id === value)?.title[locale] ?? value;
+  const counts = (unit: CourseUnit) => lessonCounts(course, state, unit);
+  const complete = (unit: CourseUnit) => counts(unit).completed === counts(unit).total;
+  const next = nextPathActivity(course, state);
+  const recommendation = next ? resolveCourseReference(course, next) : null;
+  const review =
+    reviewCount > 0 ? (
+      <div className={styles.reviewEntry}>
+        <span>{t("pathFlow.reviewDue", { count: reviewCount })}</span>
+        <Button
+          variant="quiet"
+          density="compact"
+          isDisabled={busy}
+          onPress={onReview}
+          data-path-focus="review-entry"
+          trailingIcon={<ArrowRight aria-hidden="true" />}
+        >
+          {t("ui.review")}
+        </Button>
+      </div>
+    ) : null;
+  const progress = (units: CourseUnit[]) => (
+    <div className={styles.pathProgress}>
+      <span>
         {t("pathLibrary.lessonProgress", {
           completed: units.filter(complete).length,
           total: units.length,
+          count: units.length,
         })}
-      </Muted>
-      <div className={styles.trailLayout}>
-        <ol className={styles.trail} aria-label={title(stage)}>
-          {units.map((unit, index) => (
-            <li key={unit.id}>
-              <Button
-                variant={unit.id === selected?.id ? "primary" : "secondary"}
-                aria-pressed={unit.id === selected?.id}
-                isDisabled={busy}
-                onPress={() => onSelect(unit.id)}
-                leadingIcon={
-                  complete(unit) ? (
-                    <Check aria-hidden="true" />
-                  ) : unit.kind === "checkpoint" ? (
-                    <Flag aria-hidden="true" />
-                  ) : undefined
-                }
-              >
-                <span className={styles.trailStop}>
-                  <span>
-                    {index + 1}. {unit.title[locale]}
-                  </span>
-                  <span className={styles.trailMeta}>
-                    {unit.kind === "launchpad" ? `${t("missions.optional")} · ` : ""}
-                    {t("learningPath.counts", counts(unit))}
-                  </span>
-                </span>
-              </Button>
-            </li>
-          ))}
-        </ol>
-        {selected && (
-          <Card variant="brand" className={styles.lessonPreview}>
-            <Muted as="p">
-              {t(
-                selected.kind === "checkpoint"
-                  ? "missions.checkpoints"
-                  : "pathLibrary.selectedLesson",
-              )}
-            </Muted>
-            <h2>{selected.title[locale]}</h2>
-            <p>{selected.scenario[locale]}</p>
-            <Muted as="p">{t("learningPath.counts", counts(selected))}</Muted>
-            <Button
-              variant="primary"
-              isDisabled={busy}
-              onPress={() => onOpen(selected)}
-              trailingIcon={<ArrowRight aria-hidden="true" />}
-            >
-              {t(complete(selected) ? "pathLibrary.revisitLesson" : "pathLibrary.openLesson")}
-            </Button>
+      </span>
+      <progress
+        value={units.filter(complete).length}
+        max={units.length}
+        aria-label={t("pathLibrary.yourProgress")}
+      />
+    </div>
+  );
+  if (view === "library") {
+    const started = course.units.some((unit) => {
+      const c = counts(unit);
+      return c.started || c.completed || c.skipped;
+    });
+    return (
+      <>
+        <div className={styles.librarySummary}>
+          <Card variant="brand" density="compact" className={styles.recommendation}>
+            {recommendation ? (
+              <>
+                <div className={styles.summaryText}>
+                  <Muted>{title(recommendation.unit.stage)}</Muted>
+                  <h2>{recommendation.unit.title[locale]}</h2>
+                  <p>{t("pathFlow.next", { activity: recommendation.activity.title[locale] })}</p>
+                  <Muted className={styles.summaryMeta}>
+                    {t("learningPath.counts", counts(recommendation.unit))}
+                  </Muted>
+                </div>
+                <Button
+                  variant="primary"
+                  isDisabled={busy}
+                  data-path-focus="continue-learning"
+                  onPress={() => {
+                    onOpen(recommendation.unit);
+                  }}
+                  trailingIcon={<ArrowRight aria-hidden="true" />}
+                >
+                  {t(started ? "pathFlow.continueLearning" : "pathFlow.startLearning")}
+                </Button>
+              </>
+            ) : (
+              <div className={styles.summaryText}>
+                <h2>{t("pathFlow.pathSummary")}</h2>
+                {progress(course.units)}
+                <p>
+                  {t("pathFlow.skippedCount", {
+                    count: course.units.reduce((sum, unit) => sum + counts(unit).skipped, 0),
+                  })}
+                </p>
+              </div>
+            )}
           </Card>
-        )}
-      </div>
+          {review}
+        </div>
+        <Section
+          title={t("pathFlow.explorePaths")}
+          actions={
+            <Muted as="span" className={styles.resultCount} role="status">
+              {t("pathCatalog.results", { count: paths.length, total: course.paths.length })}
+            </Muted>
+          }
+        >
+          <div className={styles.catalogFilters}>
+            <TextField
+              density="compact"
+              type="search"
+              label={t("pathCatalog.search")}
+              value={query}
+              onChange={(event) => {
+                onFilter({ ...filter, query: event.target.value });
+              }}
+            />
+            <SelectField
+              density="compact"
+              label={t("pathCatalog.kind")}
+              value={kind}
+              onChange={(event) => {
+                onFilter({ ...filter, kind: event.target.value });
+              }}
+            >
+              <option value="all">{t("pathCatalog.allKinds")}</option>
+              <option value="course">{t("pathCatalog.course")}</option>
+              <option value="scenario">{t("pathCatalog.scenario")}</option>
+            </SelectField>
+            <SelectField
+              density="compact"
+              label={t("pathCatalog.level")}
+              value={level}
+              onChange={(event) => {
+                onFilter({ ...filter, level: event.target.value });
+              }}
+            >
+              <option value="all">{t("pathCatalog.allLevels")}</option>
+              {[...new Set(course.paths.map((path) => path.level))].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </SelectField>
+          </div>
+          {!paths.length && <p>{t("pathCatalog.noResults")}</p>}
+          <div className={styles.pathList}>
+            {paths.map((path) => {
+              const value = path.id;
+              const units = course.units.filter((unit) => unit.stage === value);
+              return (
+                <ContentRow
+                  key={value}
+                  className={styles.clickablePath}
+                  leading={
+                    <span className={styles.pathIcon}>
+                      <BookOpen aria-hidden="true" />
+                    </span>
+                  }
+                  metadata={progress(units)}
+                  actions={
+                    <Button
+                      variant="quiet"
+                      className={styles.pathOpen}
+                      density="compact"
+                      isDisabled={busy}
+                      aria-label={title(value)}
+                      data-path-focus={`explore:${value}`}
+                      onPress={() => {
+                        onStage(value);
+                      }}
+                    >
+                      <span className={styles.pathOpenAffordance}>
+                        <ArrowRight aria-hidden="true" />
+                      </span>
+                    </Button>
+                  }
+                >
+                  <div className={styles.pathHeading}>
+                    <h3>{title(value)}</h3>
+                    <Muted as="span" className={styles.pathMeta}>
+                      {path.level} · {t(`pathCatalog.${path.kind}`)}
+                    </Muted>
+                  </div>
+                  <p>{path.description[locale]}</p>
+                </ContentRow>
+              );
+            })}
+          </div>
+        </Section>
+      </>
+    );
+  }
+  const units = course.units.filter((unit) => unit.stage === stage);
+  const selected =
+    units.find((unit) => unit.id === selectedUnit) ??
+    units.find((unit) => unit.id === next?.unitId) ??
+    units.find((unit) => unit.kind !== "launchpad" && nextLessonActivity(course, state, unit)) ??
+    units[0];
+  return (
+    <>
+      {progress(units)}
+      {review}
+      <ol className={styles.trail} aria-label={title(stage)}>
+        {units.map((unit, index) => (
+          <li key={unit.id} className={styles.trailItem}>
+            <Button
+              className={styles.trailButton}
+              variant="secondary"
+              aria-pressed={unit.id === selected?.id}
+              data-path-focus={`trail:${unit.id}`}
+              isDisabled={busy}
+              onPress={() => {
+                onSelect(unit.id);
+              }}
+            >
+              <span className={styles.trailMarker}>
+                {complete(unit) ? (
+                  <Check aria-hidden="true" />
+                ) : unit.kind === "checkpoint" ? (
+                  <Flag aria-hidden="true" />
+                ) : (
+                  index + 1
+                )}
+              </span>
+              <span className={styles.trailStop}>
+                <strong>{unit.title[locale]}</strong>
+                <span className={styles.trailMeta}>
+                  {unit.kind === "launchpad"
+                    ? `${t("missions.optional")} · `
+                    : unit.kind === "checkpoint"
+                      ? `${t("missions.checkpoints")} · `
+                      : ""}
+                  {t(lessonStateKey(course, state, unit))}
+                </span>
+                <span className={styles.trailMeta}>{t("learningPath.counts", counts(unit))}</span>
+              </span>
+            </Button>
+            {selected?.id === unit.id && (
+              <Card variant="brand" className={styles.lessonPreview}>
+                <Muted>
+                  {t(
+                    unit.kind === "checkpoint"
+                      ? "missions.checkpoints"
+                      : "pathLibrary.selectedLesson",
+                  )}
+                </Muted>
+                <h2>{unit.title[locale]}</h2>
+                <p>{unit.scenario[locale]}</p>
+                <Muted>{t("learningPath.counts", counts(unit))}</Muted>
+                <Button
+                  variant="primary"
+                  isDisabled={busy}
+                  data-path-focus={`open:${unit.id}`}
+                  onPress={() => {
+                    onOpen(unit);
+                  }}
+                  trailingIcon={<ArrowRight aria-hidden="true" />}
+                >
+                  {t(lessonActionKey(course, state, unit))}
+                </Button>
+                {nextLessonActivity(course, state, unit) && (
+                  <Muted>
+                    {t("pathFlow.next", {
+                      activity: nextLessonActivity(course, state, unit)?.title[locale],
+                    })}
+                  </Muted>
+                )}
+              </Card>
+            )}
+          </li>
+        ))}
+      </ol>
     </>
   );
 }

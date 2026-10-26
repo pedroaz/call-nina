@@ -10,9 +10,9 @@ export type Language = z.infer<typeof languageSchema>;
 
 // Registration and storage support do not imply implemented teaching or UI policies.
 export const languageDefinitions = {
-  "en-US": { name: "English", structuredCourseId: null },
-  "pt-BR": { name: "Português brasileiro", structuredCourseId: null },
-  es: { name: "Español", structuredCourseId: null },
+  "en-US": { name: "English", structuredCourseId: "english-paths" },
+  "pt-BR": { name: "Português brasileiro", structuredCourseId: "portuguese-paths" },
+  es: { name: "Español", structuredCourseId: "spanish-paths" },
   de: { name: "Deutsch", structuredCourseId: "german-foundations" },
 } as const satisfies Record<Language, { name: string; structuredCourseId: string | null }>;
 export const courseEnrollmentSchema = z
@@ -53,21 +53,21 @@ export const languageCapabilities: Readonly<Record<Language, LanguageCapabilitie
     evaluation: true,
     vocabulary: true,
     interface: true,
-    structuredPath: false,
+    structuredPath: true,
   },
   "pt-BR": {
     generation: true,
     evaluation: true,
     vocabulary: true,
     interface: true,
-    structuredPath: false,
+    structuredPath: true,
   },
   es: {
     generation: true,
     evaluation: true,
     vocabulary: true,
     interface: true,
-    structuredPath: false,
+    structuredPath: true,
   },
   de: {
     generation: true,

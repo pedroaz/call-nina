@@ -13,7 +13,13 @@ export function OverflowMenu({
   label: string;
   triggerRef?: Ref<HTMLButtonElement>;
   disabled?: boolean;
-  items: ReadonlyArray<{ id: string; label: string; onAction: () => void; destructive?: boolean }>;
+  items: ReadonlyArray<{
+    id: string;
+    label: string;
+    onAction: () => void;
+    destructive?: boolean;
+    isDisabled?: boolean;
+  }>;
 }) {
   return (
     <MenuTrigger>
@@ -32,6 +38,7 @@ export function OverflowMenu({
               key={item.id}
               id={item.id}
               textValue={item.label}
+              isDisabled={item.isDisabled ?? false}
               onAction={item.onAction}
               className={styles.item}
               data-destructive={item.destructive || undefined}

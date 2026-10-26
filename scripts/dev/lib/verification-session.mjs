@@ -449,29 +449,23 @@ export class VerificationSession {
       .click();
     const tab = this.page.getByRole("tabpanel");
     this.phase = "settings-management";
-    const management = tab.locator("details[data-connection-management]");
-    const active = tab.locator('button[data-active-connection="true"]');
-    // Loading replaces the initially open empty-connection disclosure. Wait for
-    // its saved entries before opening it, so that refresh cannot close it.
+    const management = tab.locator("[data-connection-management]");
+    const active = management.locator('option[data-active-connection="true"]');
     await active.waitFor({ state: "attached" });
-    if ((await management.getAttribute("open")) === null)
-      await management.locator("summary").click();
-    this.phase = "settings-active";
-    await active.waitFor();
-    if ((await active.getAttribute("aria-current")) !== "true") await active.click();
-    await management.locator("summary").click();
+    const connectionId = await active.getAttribute("value");
+    if (!connectionId) throw failure("VERIFY_AI_CONNECTION_UNAVAILABLE");
+    const picker = management.getByRole("combobox", {
+      name: await this.t("connectionSettings.savedConnections"),
+      exact: true,
+    });
+    if ((await picker.inputValue()) !== connectionId) await picker.selectOption(connectionId);
     const panel = tab.locator("[data-ai-connection]");
     await panel.waitFor();
     if ((await panel.getAttribute("data-dirty")) !== "false")
       throw failure("VERIFY_SETTINGS_UNRESTORABLE");
-    this.phase = "settings-advanced";
-    const advanced = panel.locator("details").filter({
-      has: this.page.getByText(await this.t("connectionSettings.advanced"), { exact: true }),
-    });
-    await advanced.waitFor().catch(() => {
-      throw failure("VERIFY_AI_ADVANCED_UNAVAILABLE");
-    });
-    if ((await advanced.getAttribute("open")) === null) await advanced.locator("summary").click();
+    await panel
+      .getByRole("heading", { name: await this.t("connectionSettings.advanced"), exact: true })
+      .waitFor();
     this.phase = "settings-ready";
     return panel;
   }
@@ -918,10 +912,14 @@ export class VerificationSession {
     await this.assertScope(await this.library(record.kind), record);
     const open = this.page.locator(`[id="activity-open-${id}"]`);
     if (await open.count()) {
-      const card = open.locator("..");
+      const card = this.page.getByRole("article").filter({ has: open });
       const buttons = card.getByRole("button");
       if ((await buttons.count()) !== 2) throw failure("VERIFY_RECORD_CLEANUP_BLOCKED");
       await buttons.nth(1).click();
+      const menu = this.page.getByRole("menu");
+      if ((await menu.getByRole("menuitem").count()) !== 1)
+        throw failure("VERIFY_RECORD_CLEANUP_BLOCKED");
+      await menu.getByRole("menuitem").click();
       const dialog = this.page.getByRole("dialog");
       const confirm = await this.button("practice.library.deleteConfirm", dialog);
       if (!(await confirm.isVisible())) {

@@ -53,6 +53,8 @@ function Diagnostic({ error }: { error: CallNinaError }) {
 
 export function OperationError({ error }: { error: CallNinaError }) {
   const { t } = useTranslation();
+  if (error.kind === "cancellation")
+    return <Feedback live="polite">{t(error.messageKey)}</Feedback>;
   return (
     <Feedback live="assertive" tone="error">
       <div>

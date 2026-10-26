@@ -150,7 +150,11 @@ export class CallNinaRepository {
     return readLearningPathState(this.#database);
   }
 
-  async updateLearningPath(course: LearningCourse, input: unknown, locale: "en" | "de") {
+  async updateLearningPath(
+    course: LearningCourse,
+    input: unknown,
+    locale: "en" | "de" | "es" | "pt-BR",
+  ) {
     return updateLearningPath(this.#database, course, input, locale);
   }
 

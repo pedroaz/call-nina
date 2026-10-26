@@ -29,17 +29,21 @@ import { PreparedActivityWorkspace } from "./PreparedActivityWorkspace.js";
 import { useActivityLibrary } from "./useActivityLibrary.js";
 import { reusePracticeActivity } from "./generatePracticeActivity.js";
 import { OperationError } from "./Startup.js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { materializeContentExercises } from "@call-nina/domain";
 import { FilePenLine, BookOpen, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import {
+  ActivityWorkspace,
+  ActivityReference,
+  type ActivityReferenceItem,
+} from "./components/activity/index.js";
 import { ExerciseEngine } from "./ExerciseEngine.js";
 import styles from "./PracticePage.module.css";
 import {
   Button,
   Tabs,
-  Card,
   ConfirmDialog,
   FieldGroup,
   InfoHint,
@@ -74,6 +78,9 @@ export function PracticePage({
   autoStart = false,
   initialPreparation,
   parentLabel,
+  activityBreadcrumbs,
+  activityTitle,
+  courseCompletionActions,
   activityId,
   requestAiAccess,
   onOpenActivity,
@@ -88,6 +95,9 @@ export function PracticePage({
   targetLanguage?: Language | undefined;
   autoStart?: boolean;
   parentLabel?: string;
+  activityBreadcrumbs?: ReadonlyArray<{ label: string; onPress: () => void }> | undefined;
+  activityTitle?: string | undefined;
+  courseCompletionActions?: ReactNode;
   initialPreparation?: Extract<PracticeLaunch, { destination: "preparation" }>;
   activityId?: PreparedActivityId;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
@@ -343,6 +353,8 @@ export function PracticePage({
   ) {
     return (
       <FlashcardWorkspace
+        activityBreadcrumbs={activityBreadcrumbs}
+        activityTitle={activityTitle}
         key={activityId}
         activityId={activityId}
         parentLabel={parentLabel ?? t("practice.title")}
@@ -355,6 +367,7 @@ export function PracticePage({
         onNina={() => {
           onNina(prepared.activity.context.learningScope.targetLanguage, prepared.rootGeneration);
         }}
+        courseCompletionActions={courseCompletionActions}
         onClose={onCloseActivity}
         onVocabulary={onVocabulary ?? onCloseActivity}
       />
@@ -368,8 +381,11 @@ export function PracticePage({
   ) {
     return (
       <PreparedActivityWorkspace
+        activityBreadcrumbs={activityBreadcrumbs}
+        activityTitle={activityTitle}
         parentLabel={parentLabel ?? t("practice.title")}
         prepared={prepared}
+        courseCompletionActions={courseCompletionActions}
         onClose={onCloseActivity}
         onOpenActivity={onOpenActivity}
         requestAiAccess={requestAiAccess}
@@ -389,16 +405,74 @@ export function PracticePage({
         setDeleting(false);
       }
     };
+    const references: ActivityReferenceItem[] = [];
+    const reading = generated?.content.payload.readingMaterial;
+    const lesson = generated?.content.payload.lesson;
+    if (reading)
+      references.push({
+        id: "reading",
+        label: t("activity.reading"),
+        content: (
+          <article>
+            <h2>{reading.title}</h2>
+            <p className={styles.readingPassage}>{reading.passage}</p>
+          </article>
+        ),
+      });
+    if (generated?.missionFacts)
+      references.push({
+        id: "facts",
+        label: t("missions.sharedFacts"),
+        content: (
+          <article>
+            <h2>{t("missions.sharedFacts")}</h2>
+            <p className={styles.readingPassage}>{generated.missionFacts}</p>
+          </article>
+        ),
+      });
+    if (lesson)
+      references.push({
+        id: "lesson",
+        label: t("activity.lesson"),
+        content: (
+          <article className={styles.practiceLessonBody}>
+            <h2>{lesson.title}</h2>
+            <p>{lesson.explanation}</p>
+            {lesson.sections.map((section) => (
+              <section key={section.heading}>
+                <h3>{section.heading}</h3>
+                <p>{section.content}</p>
+              </section>
+            ))}
+            {lesson.vocabularyFoundations.length > 0 && (
+              <section>
+                <h3>{t("exercises.custom.vocabulary")}</h3>
+                <ItemList>
+                  {lesson.vocabularyFoundations.map((item) => (
+                    <li key={`${item.term}:${item.example}`}>
+                      <strong>{item.term}</strong> — {item.explanation}
+                      <Muted as="span">{item.example}</Muted>
+                    </li>
+                  ))}
+                </ItemList>
+              </section>
+            )}
+          </article>
+        ),
+      });
     return (
-      <Page
-        className={styles.practiceSession}
+      <ActivityWorkspace
         data-activity-id={activityId}
         data-activity-material-id={generated?.content.materials[0]?.materialId}
         data-activity-material-revision={generated?.content.materials[0]?.revisionId}
         data-root-generation={prepared?.rootGeneration}
         data-learning-language={prepared?.activity.context.learningScope.targetLanguage}
-        title={generated?.title ?? t("exercises.loading")}
-        breadcrumbs={[{ label: parentLabel ?? t("practice.title"), onPress: onCloseActivity }]}
+        title={activityTitle ?? generated?.title ?? t("exercises.loading")}
+        breadcrumbs={
+          activityBreadcrumbs ?? [
+            { label: parentLabel ?? t("practice.title"), onPress: onCloseActivity },
+          ]
+        }
         actions={
           generated &&
           generated.deletionStatus !== "retained-data" && (
@@ -420,162 +494,112 @@ export function PracticePage({
         }
       >
         {error && <OperationError error={error} />}
-        {generated?.content.payload.readingMaterial && (
-          <Card as="article">
-            <h2>{generated.content.payload.readingMaterial.title}</h2>
-            <p className={styles.readingPassage}>
-              {generated.content.payload.readingMaterial.passage}
-            </p>
-          </Card>
-        )}
-        {generated?.content.payload.lesson && !generated.missionFacts && (
-          <Disclosure
-            className={styles.practiceLessonDisclosure}
-            variant="plain"
-            label={
-              <>
-                <span className={styles.lessonHeading}>
-                  <BookOpen aria-hidden="true" />
-                  <span className={styles.lessonCopy}>
-                    <strong>{generated.content.payload.lesson.title}</strong>
-                    <small>{t("practice.session.lessonHint")}</small>
-                  </span>
-                </span>
-              </>
-            }
-          >
-            <div className={styles.practiceLessonBody}>
-              <p>{generated.content.payload.lesson.explanation}</p>
-              {generated.content.payload.lesson.sections.map((section) => (
-                <section key={section.heading}>
-                  <h3>{section.heading}</h3>
-                  <p>{section.content}</p>
-                </section>
-              ))}
-              {generated.content.payload.lesson.vocabularyFoundations.length > 0 && (
-                <section>
-                  <h3>{t("exercises.custom.vocabulary")}</h3>
-                  <ItemList>
-                    {generated.content.payload.lesson.vocabularyFoundations.map((item) => (
-                      <li key={`${item.term}:${item.example}`}>
-                        <strong>{item.term}</strong> — {item.explanation}
-                        <Muted as="span">{item.example}</Muted>
-                      </li>
-                    ))}
-                  </ItemList>
-                </section>
-              )}
-            </div>
-          </Disclosure>
-        )}
         {generated && (
-          <div className={styles.practiceRunner}>
-            {generated.missionFacts && (
-              <Card>
-                <h2>{t("missions.sharedFacts")}</h2>
-                <p>{generated.missionFacts}</p>
-              </Card>
-            )}
-            <ExerciseEngine
-              autoStart={autoStart}
-              completionActions={
-                prepared && (
-                  <CompletionActions
-                    targetLanguage={generated.learningScope.targetLanguage}
-                    rootGeneration={prepared.rootGeneration}
-                    parentLabel={parentLabel ?? t("practice.title")}
-                    onReturn={onCloseActivity}
-                    onHistory={() => {
-                      onHistory(generated.learningScope.targetLanguage, prepared.rootGeneration);
-                    }}
-                    onNina={() => {
-                      onNina(generated.learningScope.targetLanguage, prepared.rootGeneration);
-                    }}
-                  />
-                )
+          <ExerciseEngine
+            reference={
+              references.length > 0 ? (
+                <ActivityReference label={t("activity.reference")} items={references} />
+              ) : undefined
+            }
+            autoStart={autoStart}
+            completionActions={
+              courseCompletionActions ??
+              (prepared && (
+                <CompletionActions
+                  targetLanguage={generated.learningScope.targetLanguage}
+                  rootGeneration={prepared.rootGeneration}
+                  parentLabel={parentLabel ?? t("practice.title")}
+                  onReturn={onCloseActivity}
+                  onHistory={() => {
+                    onHistory(generated.learningScope.targetLanguage, prepared.rootGeneration);
+                  }}
+                  onNina={() => {
+                    onNina(generated.learningScope.targetLanguage, prepared.rootGeneration);
+                  }}
+                />
+              ))
+            }
+            targetLanguage={generated.learningScope.targetLanguage}
+            {...(feedback.busy ? { onCancelAiEvaluation: feedback.cancel } : {})}
+            key={activityId}
+            exercises={exercises}
+            evaluationProgress={<OperationProgress progress={feedback.progress} />}
+            {...(generated.activeSet ? { progress: generated.activeSet.progress } : {})}
+            onStarted={async () => {
+              if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
+              const started = await invokeDesktop("exercise-set/start", {
+                activityId,
+                intent: "resume",
+                launchId: launchIds.current.resume,
+                expectedGeneration: prepared.rootGeneration,
+              });
+              setStartedAttemptIds(started.attemptIds);
+            }}
+            onNewAttempt={async () => {
+              if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
+              const started = await invokeDesktop("exercise-set/start", {
+                activityId,
+                intent: "new-attempt",
+                launchId: launchIds.current.newAttempt,
+                expectedGeneration: prepared.rootGeneration,
+              });
+              setStartedAttemptIds(started.attemptIds);
+            }}
+            onAnswerSubmitted={async (answer, position) => {
+              const attemptId = startedAttemptIds?.[position];
+              if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+              if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
+              const saved = await invokeDesktop("exercise-set/answer", {
+                activityId,
+                attemptId,
+                answer,
+                expectedGeneration: prepared.rootGeneration,
+              });
+              return saved.feedback;
+            }}
+            onAiEvaluationRequested={async (evaluation, exercisePosition) => {
+              if (!(await requestAiAccess("exercise-feedback")))
+                throw new Error("OD_AI_DISCLOSURE_REQUIRED");
+              if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
+              const attemptId = startedAttemptIds?.[exercisePosition];
+              if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+              if (
+                evaluation.answer.kind !== "free-writing" &&
+                evaluation.answer.kind !== "short-answer" &&
+                evaluation.answer.kind !== "sentence-correction"
+              ) {
+                throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
               }
-              targetLanguage={generated.learningScope.targetLanguage}
-              {...(feedback.busy ? { onCancelAiEvaluation: feedback.cancel } : {})}
-              key={activityId}
-              exercises={exercises}
-              evaluationProgress={<OperationProgress progress={feedback.progress} />}
-              {...(generated.activeSet ? { progress: generated.activeSet.progress } : {})}
-              onStarted={async () => {
-                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
-                const started = await invokeDesktop("exercise-set/start", {
-                  activityId,
-                  intent: "resume",
-                  launchId: launchIds.current.resume,
-                  expectedGeneration: prepared.rootGeneration,
-                });
-                setStartedAttemptIds(started.attemptIds);
-              }}
-              onNewAttempt={async () => {
-                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
-                const started = await invokeDesktop("exercise-set/start", {
-                  activityId,
-                  intent: "new-attempt",
-                  launchId: launchIds.current.newAttempt,
-                  expectedGeneration: prepared.rootGeneration,
-                });
-                setStartedAttemptIds(started.attemptIds);
-              }}
-              onAnswerSubmitted={async (answer, position) => {
-                const attemptId = startedAttemptIds?.[position];
-                if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
-                const saved = await invokeDesktop("exercise-set/answer", {
-                  activityId,
-                  attemptId,
-                  answer,
-                  expectedGeneration: prepared.rootGeneration,
-                });
-                return saved.feedback;
-              }}
-              onAiEvaluationRequested={async (evaluation, exercisePosition) => {
-                if (!(await requestAiAccess("exercise-feedback")))
-                  throw new Error("OD_AI_DISCLOSURE_REQUIRED");
-                if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
-                const attemptId = startedAttemptIds?.[exercisePosition];
-                if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-                if (
-                  evaluation.answer.kind !== "free-writing" &&
-                  evaluation.answer.kind !== "short-answer" &&
-                  evaluation.answer.kind !== "sentence-correction"
-                ) {
-                  throw new Error("OD_EXERCISE_AI_FEEDBACK_NOT_REQUIRED");
-                }
-                const result = await feedback.run({
-                  kind: "exercise-feedback",
-                  expectedGeneration: prepared.rootGeneration,
-                  activityId,
-                  attemptId,
-                  answer: evaluation.answer,
-                });
-                return exerciseFeedbackCandidateSchema.parse(result.output);
-              }}
-              onSupportUsed={async (position) => {
-                const attemptId = startedAttemptIds?.[position];
-                if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-                await invokeDesktop("exercise-set/support", { activityId, attemptId });
-              }}
-              onCompleted={async (evaluations) => {
-                if (!startedAttemptIds || startedAttemptIds.length !== evaluations.length) {
-                  throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-                }
-                await invokeDesktop("exercise-set/complete", {
-                  activityId,
-                  answers: evaluations.map((evaluation, position) => {
-                    const attemptId = startedAttemptIds[position];
-                    if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
-                    return { attemptId, answer: evaluation.answer };
-                  }),
-                });
-              }}
-            />
-          </div>
+              const result = await feedback.run({
+                kind: "exercise-feedback",
+                expectedGeneration: prepared.rootGeneration,
+                activityId,
+                attemptId,
+                answer: evaluation.answer,
+              });
+              return exerciseFeedbackCandidateSchema.parse(result.output);
+            }}
+            onSupportUsed={async (position) => {
+              const attemptId = startedAttemptIds?.[position];
+              if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+              await invokeDesktop("exercise-set/support", { activityId, attemptId });
+            }}
+            onCompleted={async (evaluations) => {
+              if (!startedAttemptIds || startedAttemptIds.length !== evaluations.length) {
+                throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+              }
+              await invokeDesktop("exercise-set/complete", {
+                activityId,
+                answers: evaluations.map((evaluation, position) => {
+                  const attemptId = startedAttemptIds[position];
+                  if (!attemptId) throw new Error("OD_EXERCISE_ATTEMPT_SET_INVALID");
+                  return { attemptId, answer: evaluation.answer };
+                }),
+              });
+            }}
+          />
         )}
-      </Page>
+      </ActivityWorkspace>
     );
   }
   const generateCustomLesson = async (

@@ -33,6 +33,6 @@ coverage:
 
 # B2: Work
 
-This topic records intended learning scope. See learning-path.json for available course lessons linked to this topic.
+This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
 
 The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.

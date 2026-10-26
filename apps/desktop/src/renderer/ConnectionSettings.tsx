@@ -1,4 +1,4 @@
-import { Disclosure } from "./components/ui/Disclosure.js";
+import { Bot, Plus, SlidersHorizontal, Settings2, Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type {
   AiConnection,
@@ -9,8 +9,17 @@ import type {
 } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { resolveModelPreference } from "@call-nina/domain";
-import { Button, Card, Feedback, SelectField, TextField } from "./components/ui/index.js";
+import {
+  Button,
+  Card,
+  Feedback,
+  SelectField,
+  TextField,
+  InfoHint,
+  ModalDialog,
+} from "./components/ui/index.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
+import { Section } from "./components/layout/index.js";
 import styles from "./ConnectionSettings.module.css";
 
 type View = Extract<DesktopIpcResponse, { status: "ok"; channel: "ai-connections/read" }>["result"];
@@ -42,12 +51,14 @@ const withoutCredential = (credentials: Record<string, CredentialDraft>, id: str
 export function ConnectionSettings({
   active,
   disabled = false,
+  surface = true,
   onPendingChange,
   authHelp,
   chatgptAccess,
 }: {
   active: boolean;
   disabled?: boolean;
+  surface?: boolean;
   onPendingChange?: (pending: boolean) => void;
   authHelp?: string;
   chatgptAccess?: (context: { active: boolean; saved: boolean; dirty: boolean }) => ReactNode;
@@ -67,7 +78,7 @@ export function ConnectionSettings({
   const [offlineBusy, setOfflineBusy] = useState(false);
   const [confirmOfflineRemove, setConfirmOfflineRemove] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-  const managementRef = useRef<HTMLDetailsElement>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const editorHeading = useRef<HTMLHeadingElement>(null);
   const offlineRef = useRef<HTMLDivElement>(null);
   const rootEpoch = useRef(0);
@@ -328,7 +339,6 @@ export function ConnectionSettings({
       setConfirmRemove(false);
       setSuccessor("");
       window.setTimeout(() => {
-        if (managementRef.current) managementRef.current.open = true;
         listRef.current?.focus();
       }, 0);
     }
@@ -357,81 +367,63 @@ export function ConnectionSettings({
 
   return (
     <div className={styles.panel} aria-busy={busy}>
-      <p>{t("connectionSettings.localPractice")}</p>
-      <Disclosure
-        ref={managementRef}
+      <div
+        className={styles.connectionPicker}
+        ref={listRef}
+        tabIndex={-1}
+        data-focus-anchor
         data-connection-management
-        className={styles.management}
-        open={!view?.settings.connections.length || undefined}
-        variant="plain"
-        label={<> {t("connectionSettings.manage")} </>}
       >
-        <div className={styles.list}>
-          <div
-            ref={listRef}
-            className={styles.items}
-            role="group"
-            tabIndex={-1}
-            aria-label={t("connectionSettings.savedConnections")}
-          >
-            {view?.settings.connections.map((entry) => (
-              <Button
-                variant="secondary"
-                key={entry.id}
-                isDisabled={busy}
-                className={styles.item}
-                data-active-connection={entry.id === view.settings.activeConnectionId}
-                aria-current={selectedId === entry.id}
-                onPress={() => {
-                  select(entry.id);
-                }}
-              >
-                {entry.label}
-                {entry.id === view.settings.activeConnectionId
-                  ? ` · ${t("connections.active")}`
-                  : ""}
-              </Button>
+        <SelectField
+          label={t("connectionSettings.savedConnections")}
+          value={selectedId ?? ""}
+          disabled={busy || !view}
+          onChange={(event) => select(event.currentTarget.value)}
+        >
+          {!selectedId && <option value="">{t("connections.none")}</option>}
+          {view?.settings.connections.map((entry) => (
+            <option
+              key={entry.id}
+              value={entry.id}
+              data-active-connection={entry.id === view.settings.activeConnectionId || undefined}
+            >
+              {entry.label}
+              {entry.id === view.settings.activeConnectionId ? ` · ${t("connections.active")}` : ""}
+            </option>
+          ))}
+          {Object.values(drafts)
+            .filter(
+              (entry) =>
+                !view?.settings.connections.some((savedEntry) => savedEntry.id === entry.id),
+            )
+            .map((entry) => (
+              <option key={entry.id} value={entry.id}>
+                {entry.label || t("connectionSettings.newConnection")}
+              </option>
             ))}
-            {Object.values(drafts)
-              .filter(
+        </SelectField>
+        <Button
+          variant="secondary"
+          isDisabled={
+            busy ||
+            !view ||
+            view.settings.connections.length +
+              Object.values(drafts).filter(
                 (entry) =>
-                  !view?.settings.connections.some((savedEntry) => savedEntry.id === entry.id),
-              )
-              .map((entry) => (
-                <Button
-                  variant="secondary"
-                  key={entry.id}
-                  isDisabled={busy}
-                  className={styles.item}
-                  aria-current={selectedId === entry.id}
-                  onPress={() => {
-                    select(entry.id);
-                  }}
-                >
-                  {entry.label || t("connectionSettings.newConnection")}
-                </Button>
-              ))}
-          </div>
-          <Button
-            variant="secondary"
-            isDisabled={
-              busy ||
-              !view ||
-              view.settings.connections.length +
-                Object.values(drafts).filter(
-                  (entry) =>
-                    !view.settings.connections.some((savedEntry) => savedEntry.id === entry.id),
-                ).length >=
-                50
-            }
-            onPress={add}
-          >
-            {t("connectionSettings.add")}
-          </Button>
-        </div>
-      </Disclosure>
+                  !view.settings.connections.some((savedEntry) => savedEntry.id === entry.id),
+              ).length >=
+              50
+          }
+          onPress={add}
+        >
+          <Plus aria-hidden="true" />
+          {t("connectionSettings.add")}
+        </Button>
+        <InfoHint label={t("settings.aiTitle")}>{t("connectionSettings.localPractice")}</InfoHint>
+      </div>
       {draft ? (
-        <Card
+        <Section
+          surface={surface}
           className={styles.editor}
           aria-busy={busy}
           data-ai-connection={saved?.id ?? ""}
@@ -447,11 +439,20 @@ export function ConnectionSettings({
           }
           data-default-effort={effectiveModel?.defaultReasoningEffort ?? ""}
         >
-          <h3 ref={editorHeading} tabIndex={-1}>
-            {isNew
-              ? t("connectionSettings.newConnection")
-              : t(`connectionSettings.routes.${draft.routeId}`)}
-          </h3>
+          <div className={styles.connectionHeading}>
+            <span className={styles.connectionIcon}>
+              <Bot aria-hidden="true" />
+            </span>
+            <h3 ref={editorHeading} tabIndex={-1}>
+              {isNew
+                ? t("connectionSettings.newConnection")
+                : t(`connectionSettings.routes.${draft.routeId}`)}
+            </h3>
+            <Button variant="quiet" onPress={() => setDetailsOpen(true)}>
+              <Settings2 aria-hidden="true" />
+              {t("connectionSettings.details")}
+            </Button>
+          </div>
           {isNew && (
             <SelectField
               label={t("connectionSettings.route")}
@@ -516,38 +517,43 @@ export function ConnectionSettings({
               <p>{authHelp ?? t("connectionSettings.chatgptAuth")}</p>
             ))}
           {draft.routeId !== "chatgpt" && <p>{t(`connectionSettings.cost.${draft.routeId}`)}</p>}
-          <SelectField
-            label={t("modelControl.model")}
-            disabled={busy}
-            value={
-              draft.preference.model.mode === "automatic"
-                ? "automatic"
-                : draft.preference.model.modelId
-            }
-            onChange={(event) => {
-              updateDraft({
-                preference: {
-                  ...draft.preference,
-                  model:
-                    event.target.value === "automatic"
-                      ? { mode: "automatic" }
-                      : { mode: "exact", modelId: event.target.value },
-                },
-              });
-            }}
-          >
-            <option value="automatic">{t("connections.runtimeDefault")}</option>
-            {selectedModelId &&
-              !modelCatalog?.models.some((entry) => entry.id === selectedModelId) && (
-                <option value={selectedModelId}>{selectedModelId}</option>
-              )}
-            {modelCatalog?.models.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.displayName}
-              </option>
-            ))}
-          </SelectField>
-          <Disclosure variant="plain" label={<> {t("connectionSettings.advanced")} </>}>
+          <div className={styles.modelHeading}>
+            <SlidersHorizontal aria-hidden="true" />
+            <h3>{t("connectionSettings.advanced")}</h3>
+          </div>
+          <div className={styles.modelControls}>
+            <SelectField
+              label={t("modelControl.model")}
+              disabled={busy}
+              value={
+                draft.preference.model.mode === "automatic"
+                  ? "automatic"
+                  : draft.preference.model.modelId
+              }
+              onChange={(event) => {
+                updateDraft({
+                  preference: {
+                    ...draft.preference,
+                    model:
+                      event.target.value === "automatic"
+                        ? { mode: "automatic" }
+                        : { mode: "exact", modelId: event.target.value },
+                  },
+                });
+              }}
+            >
+              <option value="automatic">{t("connections.runtimeDefault")}</option>
+              {selectedModelId &&
+                !modelCatalog?.models.some((entry) => entry.id === selectedModelId) && (
+                  <option value={selectedModelId}>{selectedModelId}</option>
+                )}
+              {modelCatalog?.models.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.displayName}
+                </option>
+              ))}
+            </SelectField>
+
             <SelectField
               label={t("settings.effort")}
               disabled={busy}
@@ -589,7 +595,7 @@ export function ConnectionSettings({
                 </option>
               ))}
             </SelectField>
-          </Disclosure>
+          </div>
           {isDirect && (
             <Card variant="muted" className={styles.secret}>
               {view?.secureStorage.status === "unavailable" && (
@@ -635,7 +641,7 @@ export function ConnectionSettings({
             </Card>
           )}
           {draft.routeId === "local" && offline && (
-            <div ref={offlineRef} className={styles.offline} tabIndex={-1}>
+            <div ref={offlineRef} className={styles.offline} tabIndex={-1} data-focus-anchor>
               <h4>{t("connectionSettings.offlineTitle")}</h4>
               <p>{t("connectionSettings.offlineScope")}</p>
               <p>{t("connectionSettings.offlineLimits")}</p>
@@ -725,97 +731,102 @@ export function ConnectionSettings({
             </div>
           )}
           {draft.routeId === "managed" && <p>{t("connectionSettings.managedUnavailable")}</p>}
-          <Disclosure
-            className={styles.connectionDetails}
-            variant="plain"
-            label={<> {t("connectionSettings.details")} </>}
+          <ModalDialog
+            isOpen={detailsOpen}
+            onOpenChange={setDetailsOpen}
+            title={t("connectionSettings.details")}
           >
-            <TextField
-              label={t("connectionSettings.name")}
-              maxLength={120}
-              disabled={busy}
-              value={draft.label}
-              onChange={(event) => {
-                updateDraft({ label: event.target.value });
-              }}
-            />
-            <p>{t(`connectionSettings.destination.${draft.routeId}`)}</p>
-            {directCatalog && <p>{t("connectionSettings.directCatalogNotice")}</p>}
-            {availability?.status === "inactive" &&
-            !isDirect &&
-            draft.routeId !== "local" ? null : listedOperations?.length ? (
-              <p>
-                {t("connectionSettings.operations", {
-                  operations: listedOperations
-                    .map((operation) => t(`connectionSettings.operation.${operation}`))
-                    .join(", "),
-                })}
-              </p>
-            ) : (
-              <p>{t("connectionSettings.noOperations")}</p>
-            )}
-            {saved && (
-              <div className={styles.remove}>
-                <Button
-                  variant="quiet"
-                  isDisabled={busy || dirty}
-                  onPress={() => {
-                    setConfirmRemove(true);
-                  }}
-                >
-                  {t("connectionSettings.remove")}
-                </Button>
-                {confirmRemove && (
-                  <div className={styles.confirm}>
-                    <p>{t("connectionSettings.removeWarning")}</p>
-                    {view?.settings.activeConnectionId === saved.id &&
-                      view.settings.connections.length > 1 && (
-                        <SelectField
-                          label={t("connectionSettings.successor")}
-                          disabled={busy}
-                          value={successor}
-                          onChange={(event) => {
-                            setSuccessor(event.target.value);
+            <div className={styles.detailsBody}>
+              <TextField
+                label={t("connectionSettings.name")}
+                maxLength={120}
+                disabled={busy}
+                value={draft.label}
+                onChange={(event) => {
+                  updateDraft({ label: event.target.value });
+                }}
+              />
+              <p>{t(`connectionSettings.destination.${draft.routeId}`)}</p>
+              {directCatalog && <p>{t("connectionSettings.directCatalogNotice")}</p>}
+              {availability?.status === "inactive" &&
+              !isDirect &&
+              draft.routeId !== "local" ? null : listedOperations?.length ? (
+                <p>
+                  {t("connectionSettings.operations", {
+                    operations: listedOperations
+                      .map((operation) => t(`connectionSettings.operation.${operation}`))
+                      .join(", "),
+                  })}
+                </p>
+              ) : (
+                <p>{t("connectionSettings.noOperations")}</p>
+              )}
+              {saved && (
+                <div className={styles.remove}>
+                  <Button
+                    variant="quiet"
+                    isDisabled={busy || dirty}
+                    onPress={() => {
+                      setConfirmRemove(true);
+                    }}
+                  >
+                    {t("connectionSettings.remove")}
+                  </Button>
+                  {confirmRemove && (
+                    <div className={styles.confirm}>
+                      <p>{t("connectionSettings.removeWarning")}</p>
+                      {view?.settings.activeConnectionId === saved.id &&
+                        view.settings.connections.length > 1 && (
+                          <SelectField
+                            label={t("connectionSettings.successor")}
+                            disabled={busy}
+                            value={successor}
+                            onChange={(event) => {
+                              setSuccessor(event.target.value);
+                            }}
+                          >
+                            <option value="">{t("connectionSettings.selectSuccessor")}</option>
+                            {view.settings.connections
+                              .filter((entry) => entry.id !== saved.id)
+                              .map((entry) => (
+                                <option key={entry.id} value={entry.id}>
+                                  {entry.label}
+                                </option>
+                              ))}
+                          </SelectField>
+                        )}
+                      <div className={styles.actions}>
+                        <Button
+                          variant="danger"
+                          isDisabled={
+                            busy ||
+                            (view?.settings.activeConnectionId === saved.id &&
+                              view.settings.connections.length > 1 &&
+                              !successor)
+                          }
+                          onPress={() => void remove()}
+                        >
+                          {t("connectionSettings.confirmRemove")}
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          isDisabled={busy}
+                          onPress={() => {
+                            setConfirmRemove(false);
                           }}
                         >
-                          <option value="">{t("connectionSettings.selectSuccessor")}</option>
-                          {view.settings.connections
-                            .filter((entry) => entry.id !== saved.id)
-                            .map((entry) => (
-                              <option key={entry.id} value={entry.id}>
-                                {entry.label}
-                              </option>
-                            ))}
-                        </SelectField>
-                      )}
-                    <div className={styles.actions}>
-                      <Button
-                        variant="danger"
-                        isDisabled={
-                          busy ||
-                          (view?.settings.activeConnectionId === saved.id &&
-                            view.settings.connections.length > 1 &&
-                            !successor)
-                        }
-                        onPress={() => void remove()}
-                      >
-                        {t("connectionSettings.confirmRemove")}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        isDisabled={busy}
-                        onPress={() => {
-                          setConfirmRemove(false);
-                        }}
-                      >
-                        {t("actions.cancel")}
-                      </Button>
+                          {t("actions.cancel")}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </Disclosure>
+                  )}
+                </div>
+              )}
+              <Button variant="secondary" onPress={() => setDetailsOpen(false)}>
+                {t("actions.close")}
+              </Button>
+            </div>
+          </ModalDialog>
           {(dirty || saving) && (
             <div className={styles.actions}>
               <Button variant="primary" isDisabled={busy || !dirty} onPress={() => void save()}>
@@ -826,12 +837,13 @@ export function ConnectionSettings({
               </Button>
             </div>
           )}
-        </Card>
+        </Section>
       ) : (
         <p>{t(view ? "connections.none" : "settings.loading")}</p>
       )}
       {view?.settings.migrationNotice && (
         <div className={styles.notice}>
+          <Check aria-hidden="true" />
           <p>{t("connections.migrated")}</p>
           <Button
             variant="quiet"

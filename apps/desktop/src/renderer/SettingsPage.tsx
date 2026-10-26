@@ -7,10 +7,21 @@ import {
   type DesktopIpcResponse,
   type CallNinaError,
 } from "@call-nina/contracts";
-import { Save, UserRound } from "lucide-react";
+import {
+  Save,
+  UserRound,
+  CircleCheck,
+  CircleHelp,
+  Gauge,
+  LogOut,
+  AudioLines,
+  BookOpen,
+  Plug,
+  ShieldCheck,
+  Activity,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
-  Card,
   Tabs,
   InfoHint,
   DiagnosticCode,
@@ -22,8 +33,9 @@ import {
   LoadingState,
   ItemList,
   Muted,
+  ModalDialog,
 } from "./components/ui/index.js";
-import { ActionGroup, Page } from "./components/layout/index.js";
+import { ActionGroup, Page, Section } from "./components/layout/index.js";
 
 import styles from "./SettingsPage.module.css";
 import i18n from "./i18n.js";
@@ -109,6 +121,7 @@ export function SettingsPage({
   onDataRootChanged?: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
+  const [accountOptionsOpen, setAccountOptionsOpen] = useState(false);
   const [account, setAccount] = useState<Account>();
   const [loginId, setLoginId] = useState<LoginId>();
   const [accounts, setAccounts] = useState<Accounts>();
@@ -158,7 +171,6 @@ export function SettingsPage({
   const load = useCallback(async () => {
     setLoading(true);
     setError(undefined);
-    void refreshIntegration();
     try {
       const settings = adapter.available() ? await adapter.read() : undefined;
       if (settings) {
@@ -171,6 +183,7 @@ export function SettingsPage({
       setLoading(false);
     }
     // Provider failures cannot prevent local settings from loading.
+    void refreshIntegration();
     void refreshRuntime();
   }, [adapter, refreshRuntime, refreshIntegration]);
 
@@ -403,22 +416,22 @@ export function SettingsPage({
 
   return (
     <Page
+      width="form"
       className={styles.settingsPage}
       data-settings-root={persisted?.dataRoot.generation}
       data-settings-language={persisted?.settings.learningScope.targetLanguage}
       data-settings-ready={Boolean(persisted) && !loading && !busy && !dirty && !connectionPending}
-
       actions={
         <ActionGroup>
           <Button
-            variant="secondary"
+            variant="quiet"
             isDisabled={loading || busy || dirty || connectionPending || Boolean(loginId)}
             onPress={onRunSetup}
           >
             {t("onboarding.runAgain")}
           </Button>
           <Button
-            variant="secondary"
+            variant="quiet"
             isDisabled={loading || busy || dirty || connectionPending || Boolean(loginId)}
             onPress={onOpenPersonalData}
           >
@@ -455,11 +468,12 @@ export function SettingsPage({
           {
             id: "profile",
             label: t("settings.tabs.profile"),
+            icon: <BookOpen aria-hidden="true" />,
             children: (
               <>
-                <Card as="section" density="compact" aria-label={t("settings.profileTitle")}>
+                <Section title={t("settings.profileTitle")}>
                   {!draft ? (
-                    <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
+                    !loading && <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
                   ) : (
                     <div className={styles.settingsControls}>
                       <LanguageSelect
@@ -538,41 +552,43 @@ export function SettingsPage({
                         />
                       </div>
                       <div className={styles.coursePreference}>
-                        {draft.learningScope.targetLanguage === "de" ? (
+                        {
                           <CheckboxField
                             checked={
                               draft.learningScope.courseId ===
-                              languageDefinitions.de.structuredCourseId
+                              languageDefinitions[draft.learningScope.targetLanguage]
+                                .structuredCourseId
                             }
                             disabled={busy}
                             onChange={(event) => {
                               setProfile("learningScope", {
                                 ...draft.learningScope,
                                 courseId: event.currentTarget.checked
-                                  ? languageDefinitions.de.structuredCourseId
+                                  ? languageDefinitions[draft.learningScope.targetLanguage]
+                                      .structuredCourseId
                                   : null,
                               });
                             }}
                           >
                             {t("onboarding.enrollCourse")}
                           </CheckboxField>
-                        ) : (
-                          <p>{t("onboarding.pathUnavailable")}</p>
-                        )}
+                        }
                       </div>
                     </div>
                   )}
-                </Card>
+                </Section>
               </>
             ),
           },
           {
             id: "ai",
             label: t("settings.tabs.ai"),
+            icon: <Plug aria-hidden="true" />,
             children: (
               <div className={styles.aiSetup}>
                 <section aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
+                    surface={false}
                     active={selectedTab === "ai"}
                     disabled={busy || Boolean(loginId)}
                     onPendingChange={setConnectionPending}
@@ -586,12 +602,22 @@ export function SettingsPage({
                         );
                       return (
                         <div className={styles.accountAccess}>
-                          <p role="status" className={styles.connectionStatus}>
-                            {account
-                              ? t(`settings.account.${account.status}`)
-                              : t("settings.notReported")}
-                          </p>
-                          <p>{t("connectionSettings.cost.chatgpt")}</p>
+                          <div className={styles.accountSummary}>
+                            <p role="status" className={styles.connectionStatus}>
+                              {account?.status === "signed-in" ? (
+                                <CircleCheck aria-hidden="true" />
+                              ) : (
+                                <CircleHelp aria-hidden="true" />
+                              )}
+                              {account
+                                ? t(`settings.account.${account.status}`)
+                                : t("settings.notReported")}
+                            </p>
+                            <InfoHint label={t("settings.privacyTitle")}>
+                              <p>{t("connectionSettings.cost.chatgpt")}</p>
+                              <p>{t("settings.sessionPrivacy")}</p>
+                            </InfoHint>
+                          </div>
                           {account?.status !== "signed-in" && (
                             <ActionGroup>
                               <Button
@@ -624,63 +650,81 @@ export function SettingsPage({
                               {t("settings.chatgptRevocationPending")}
                             </Feedback>
                           )}
-                          <ActionGroup>
-                            <Button
-                              variant="quiet"
-                              onPress={() =>
-                                void invokeDesktop("chatgpt/usage/open", {}).catch(
-                                  (cause: unknown) => {
-                                    setError(normalizeDesktopError(cause).detail);
-                                  },
-                                )
-                              }
-                            >
-                              {t("settings.chatgptUsageLink")}
-                            </Button>
-                          </ActionGroup>
-                          <Disclosure
-                            className={styles.accountOptions}
-                            variant="plain"
-                            label={<> {t("settings.accountOptions")} </>}
-                          >
-                            {account?.status === "signed-in" && account.planType && (
-                              <p>{t("settings.plan", { plan: account.planType })}</p>
-                            )}
-                            <SelectField
-                              label={t("settings.chatgptAccount")}
-                              disabled={blocked}
-                              value={selectedRegistration ?? accounts?.selectedId ?? ""}
-                              onChange={(event) => {
-                                setSelectedRegistration(event.currentTarget.value);
-                              }}
-                            >
-                              <option value="">{t("settings.chatgptNewAccount")}</option>
-                              {accounts?.registrations.map((entry) => (
-                                <option key={entry.id} value={entry.id}>
-                                  {entry.label}
-                                </option>
-                              ))}
-                            </SelectField>
+                          <div className={styles.accountTools}>
                             <ActionGroup>
                               <Button
-                                variant="primary"
-                                isDisabled={blocked || !account || account.status === "unavailable"}
-                                onPress={() => void login()}
+                                variant="quiet"
+                                onPress={() =>
+                                  void invokeDesktop("chatgpt/usage/open", {}).catch(
+                                    (cause: unknown) => {
+                                      setError(normalizeDesktopError(cause).detail);
+                                    },
+                                  )
+                                }
                               >
-                                {t("settings.login")}
+                                <Gauge aria-hidden="true" />
+                                {t("settings.chatgptUsageLink")}
                               </Button>
-                              {account?.status === "signed-in" && (
-                                <Button
-                                  variant="quiet"
-                                  isDisabled={blocked}
-                                  onPress={() => void logout()}
-                                >
-                                  {t("settings.logout")}
-                                </Button>
-                              )}
                             </ActionGroup>
-                            <p>{t("settings.sessionPrivacy")}</p>
-                          </Disclosure>
+                            <Button variant="secondary" onPress={() => setAccountOptionsOpen(true)}>
+                              <UserRound aria-hidden="true" />
+                              {t("settings.accountOptions")}
+                            </Button>
+                          </div>
+                          <ModalDialog
+                            isOpen={accountOptionsOpen}
+                            onOpenChange={setAccountOptionsOpen}
+                            title={t("settings.accountOptions")}
+                          >
+                            <div className={styles.accountOptions}>
+                              {account?.status === "signed-in" && account.planType && (
+                                <p>{t("settings.plan", { plan: account.planType })}</p>
+                              )}
+                              <SelectField
+                                label={t("settings.chatgptAccount")}
+                                disabled={blocked}
+                                value={selectedRegistration ?? accounts?.selectedId ?? ""}
+                                onChange={(event) => {
+                                  setSelectedRegistration(event.currentTarget.value);
+                                }}
+                              >
+                                <option value="">{t("settings.chatgptNewAccount")}</option>
+                                {accounts?.registrations.map((entry) => (
+                                  <option key={entry.id} value={entry.id}>
+                                    {entry.label}
+                                  </option>
+                                ))}
+                              </SelectField>
+                              <ActionGroup>
+                                <Button
+                                  variant="primary"
+                                  isDisabled={
+                                    blocked || !account || account.status === "unavailable"
+                                  }
+                                  onPress={() => void login()}
+                                >
+                                  {t("settings.login")}
+                                </Button>
+                                {account?.status === "signed-in" && (
+                                  <Button
+                                    variant="quiet"
+                                    isDisabled={blocked}
+                                    onPress={() => void logout()}
+                                  >
+                                    <LogOut aria-hidden="true" />
+                                    {t("settings.logout")}
+                                  </Button>
+                                )}
+                              </ActionGroup>
+                              <p>{t("settings.sessionPrivacy")}</p>
+                              <Button
+                                variant="secondary"
+                                onPress={() => setAccountOptionsOpen(false)}
+                              >
+                                {t("actions.close")}
+                              </Button>
+                            </div>
+                          </ModalDialog>
                           {connectionDirty && <p>{t("settings.saveBeforeAccount")}</p>}
                         </div>
                       );
@@ -690,7 +734,12 @@ export function SettingsPage({
                 <Disclosure
                   className={styles.optionalIntegration}
                   variant="plain"
-                  label={<> {t("settings.externalIntegrationTitle")} </>}
+                  label={
+                    <span className={styles.tabLabel}>
+                      <AudioLines aria-hidden="true" />
+                      {t("settings.externalIntegrationTitle")}
+                    </span>
+                  }
                 >
                   <InfoHint label={t("settings.externalIntegrationTitle")}>
                     <p>{t("settings.externalIntegrationHelp")}</p>
@@ -743,9 +792,10 @@ export function SettingsPage({
           {
             id: "data",
             label: t("settings.tabs.data"),
+            icon: <ShieldCheck aria-hidden="true" />,
             children: (
               <>
-                <Card as="section" aria-labelledby="settings-data-title">
+                <Section className={styles.settingsSection} aria-labelledby="settings-data-title">
                   <h2 id="settings-data-title">{t("settings.dataTitle")}</h2>
                   {readiness.dataRoot.status === "ready" && (
                     <dl className={styles.detailList}>
@@ -802,8 +852,11 @@ export function SettingsPage({
                       </ActionGroup>
                     </div>
                   )}
-                </Card>
-                <Card as="section" aria-labelledby="settings-privacy-title">
+                </Section>
+                <Section
+                  className={styles.settingsSection}
+                  aria-labelledby="settings-privacy-title"
+                >
                   <h2 id="settings-privacy-title">{t("settings.privacyTitle")}</h2>
                   <p>
                     <strong>{t("folder.privacyTitle")}</strong> — {t("folder.privacyBody")}
@@ -811,16 +864,20 @@ export function SettingsPage({
                   <p>
                     <strong>{t("folder.cloudTitle")}</strong> — {t("folder.cloudBody")}
                   </p>
-                </Card>
+                </Section>
               </>
             ),
           },
           {
             id: "diagnostics",
             label: t("settings.tabs.diagnostics"),
+            icon: <Activity aria-hidden="true" />,
             children: (
               <>
-                <Card as="section" aria-labelledby="settings-diagnostics-title">
+                <Section
+                  className={styles.settingsSection}
+                  aria-labelledby="settings-diagnostics-title"
+                >
                   <h2 id="settings-diagnostics-title">{t("settings.diagnosticsTitle")}</h2>
                   <InfoHint label={t("settings.diagnosticsTitle")}>
                     {t("settings.diagnosticsPrivacy")}
@@ -864,7 +921,7 @@ export function SettingsPage({
                       {t("settings.clearLogs")}
                     </Button>
                   </ActionGroup>
-                </Card>
+                </Section>
               </>
             ),
           },
@@ -872,7 +929,11 @@ export function SettingsPage({
       />
 
       {draft && (selectedTab === "profile" || dirty) && (
-        <div className={styles.settingsActions}>
+        <div
+          className={styles.settingsActions}
+          role="group"
+          aria-label={t("settings.profileTitle")}
+        >
           <Button
             variant="secondary"
             isDisabled={busy || !persisted || !dirty}

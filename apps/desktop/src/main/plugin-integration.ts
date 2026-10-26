@@ -1,5 +1,5 @@
 import { desktopPathOption } from "./options.js";
-import { diagnosticErrorCode } from "./backend-support.js";
+import { diagnosticErrorCode, safeError } from "./backend-support.js";
 import { appendDesktopLog } from "./logging.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -42,16 +42,21 @@ function project(status: Awaited<ReturnType<ScopedPluginClient["status"]>>, code
           : ("refresh-required" as const),
   };
 }
-export async function readPluginIntegrationState(codexVersion: string) {
+export async function readPluginIntegrationState(codexVersion: string, correlationId: string) {
   try {
     return project(await (await client()).status(), codexVersion);
   } catch {
-    return { status: "available" as const, codexVersion, plugin: "refresh-required" as const };
+    return {
+      status: "unavailable" as const,
+      reason: "app-server-unavailable" as const,
+      error: safeError("app-server", correlationId),
+    };
   }
 }
 export async function runPluginIntegrationAction(
   action: "install" | "refresh" | "uninstall",
   codexVersion: string,
+  correlationId: string,
 ) {
   let sourceVersion = "unavailable";
   let stage = "client";
@@ -105,7 +110,7 @@ export async function runPluginIntegrationAction(
       action,
       result: "failed" as const,
       sourceVersion,
-      status: await readPluginIntegrationState(codexVersion),
+      status: await readPluginIntegrationState(codexVersion, correlationId),
       steps: [`The scoped integration action failed (${stage}: ${code}); no success is reported.`],
     };
   }

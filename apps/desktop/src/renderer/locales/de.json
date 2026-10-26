@@ -1,4 +1,15 @@
 {
+  "lessonStudio": {
+    "activityDetails": "Aktivitätsdetails",
+    "progress": "Fortschritt",
+    "resources": "Lektionshilfe",
+    "transcript": "Transkript",
+    "voiceSetup": "So startest du in Codex",
+    "aboutProgress": "So funktioniert der Fortschritt",
+    "howItWorks": "So funktioniert’s",
+    "examples": "Weitere Beispiele",
+    "finishAndContinue": "Verstanden · Weiter"
+  },
   "app": {
     "name": "Call Nina",
     "tagline": "Ein ruhiger Ort, um deine Sprachkenntnisse zu stärken."
@@ -295,7 +306,7 @@
     "voiceHandoff": {
       "open": "In Codex öffnen",
       "opening": "Codex wird geöffnet…",
-      "openRequested": "Öffnen angefordert. Sende die vorbereitete Nachricht in Codex und starte dann Voice in derselben Aufgabe.",
+      "openRequested": "Call Nina Practice wird in Codex geöffnet. Sende die vorbereitete Nachricht und wähle dann „Voice-Chat starten“.",
       "setupRequired": "Öffne Einstellungen → KI-Verbindungen in Call Nina, um das Call-Nina-Plugin zu installieren oder zu aktualisieren und die Codex-Einrichtung zu prüfen. Versuche es danach erneut.",
       "failed": "Codex konnte nicht geöffnet werden. Prüfe, ob die ChatGPT-Desktop-App installiert ist, und versuche erneut, die Aktivität in Codex zu öffnen.",
       "availability": "Voice in bestehenden Aufgaben hängt von App, Konto und Arbeitsbereich ab. Falls „Voice-Chat starten“ fehlt, aktualisiere Codex oder übe per Text weiter.",
@@ -352,7 +363,7 @@
     "nextHint": "Weiterer Tipp",
     "showHint": "Hinweis anzeigen",
     "answerFrameHint": "Satzgerüst: {{frame}}",
-    "submit": "Antwort absenden",
+    "submit": "Antwort prüfen",
     "answerRequired": "Gib vor dem Absenden eine gültige Antwort ein.",
     "previous": "Vorherige Übung",
     "forward": "Nächste besuchte Übung",
@@ -946,7 +957,7 @@
     },
     "connectionOptional": "Du kannst die Einrichtung abschließen und vorbereitete Aktivitäten ohne ChatGPT üben. Verbinde ChatGPT später für KI-Erstellung und Feedback.",
     "targetLanguage": "Lernsprache",
-    "enrollCourse": "Deutschen Lernpfad nutzen",
+    "enrollCourse": "Lernpfade nutzen",
     "pathUnavailable": "Der strukturierte Lernpfad ist nur für Deutsch verfügbar. Du kannst trotzdem generierte Übungen verwenden.",
     "accessIntro": "Richte den KI-Zugang jetzt ein oder nutze vorbereitete Übungen und verbinde dich später in den Einstellungen. Das Speichern einer Verbindung prüft keinen kostenpflichtigen Zugang und startet keine Generierung.",
     "accessOptions": "KI-Verbindung einrichten",
@@ -1000,7 +1011,7 @@
     "notReported": "Von der aktuellen Laufzeit nicht gemeldet.",
     "privacyTitle": "Lokale Verarbeitung und OpenAI",
     "profileTitle": "Lernvorgaben",
-    "persistenceUnavailable": "Die Einstellungen können in dieser App-Version nicht bearbeitet werden.",
+    "persistenceUnavailable": "Die Einstellungen konnten nicht geladen werden. Versuche, die Seite zu aktualisieren.",
     "teachingProfile": "Lernstil",
     "uiLocale": "Oberflächensprache",
     "localeSeparate": "Die Erklärungssprache ist unabhängig von der App-Sprache.",
@@ -1284,7 +1295,7 @@
     "openHistory": "Verlauf öffnen",
     "preparing": "Deine Aktivität wird vorbereitet …",
     "loading": "Dein Lernpfad wird geladen …",
-    "courseUnavailable": "Der Kurs A1.1 und A1.2 ist noch nicht verfügbar. Du kannst unter „Üben“ weitermachen.",
+    "courseUnavailable": "Aktiviere Lernpfade für diese Sprache in den Einstellungen, um Kurse und Szenarien zu entdecken.",
     "stageFinished": "Du bist am Ende dieser Stufe angekommen. Bearbeite übersprungene Aktivitäten oder wähle eine andere Stufe.",
     "syllabus": "Kursübersicht",
     "counts": "{{completed}} von {{total}} abgeschlossen · {{skipped}} übersprungen",
@@ -1470,7 +1481,8 @@
       "shortcuts": "← / → Navigieren · Leertaste Umdrehen · Tab Bedienelement wechseln",
       "saveHint": "Speichere nützliche Wörter zum späteren Wiederholen."
     },
-    "selectRange": "Wähle 3–30 Wörter für einen Kartensatz."
+    "selectRange": "Wähle 3–30 Wörter für einen Kartensatz.",
+    "studyAction": "Ausgewählte Wörter üben"
   },
   "providerAccess": {
     "selectedRoute": "KI-Zugang: Codex",
@@ -1484,6 +1496,7 @@
       "account-unavailable": "Nina konnte den Codex-Kontozugriff nicht bestätigen. Prüfe die Verbindung in den Einstellungen und versuche es erneut.",
       "capability-unavailable": "Die ausgewählte KI-Verbindung unterstützt diese Aktion nicht. Es wird keine andere Verbindung automatisch ausgewählt.",
       "model-unavailable": "Die ausgewählte KI-Verbindung hat für diese Aktion kein nutzbares Modell mit passender Denkleistung. Prüfe die gespeicherte Auswahl in den Einstellungen.",
+      "integration-unavailable": "Nina konnte die externe Codex-Integration für Voice nicht überprüfen. Aktualisiere die Einstellungen und versuche es erneut. Das bedeutet nicht, dass das Plugin fehlt.",
       "plugin-required": "Zum Öffnen dieser Voice-Aktivität in Codex wird das Call-Nina-Plugin benötigt. Installiere oder aktualisiere es in den Einstellungen und versuche es erneut.",
       "connection-required": "Wähle in den Einstellungen eine KI-Verbindung für diese Aktion. Vorbereitete Übungen bleiben verfügbar."
     }
@@ -1774,6 +1787,57 @@
     "keepExploring": "Entdecke deinen Lernpfad weiter.",
     "focusedReview": "Gezielt üben",
     "refreshReview": "Zeit zum Auffrischen",
-    "aboutReview": "Über das Wiederholen"
+    "aboutReview": "Über das Wiederholen",
+    "lessonProgress_one": "{{completed}} von {{total}} Lektion abgeschlossen",
+    "lessonProgress_other": "{{completed}} von {{total}} Lektionen abgeschlossen"
+  },
+  "pathFlow": {
+    "lessonProgress": "Dein Fortschritt in dieser Lektion",
+    "lessonDetails": "Lernziele und Wortschatz",
+    "skippedRemaining": "Übersprungene Aufgaben offen",
+    "tryCheckpoint": "Checkpoint ausprobieren",
+    "backTrail": "Zurück zum Lernpfad",
+    "next": "Als Nächstes: {{activity}}",
+    "continueLearning": "Weiterlernen",
+    "startLearning": "Lernen starten",
+    "pathSummary": "Lernpfadübersicht",
+    "skippedCount": "{{count}} übersprungene Aktivitäten",
+    "explorePaths": "Lernpfade entdecken",
+    "purposeFirst": "Lerne Menschen kennen und meistere Alltagssituationen.",
+    "purposeSecond": "Finde dich zurecht und plane deinen Alltag.",
+    "startLesson": "Lektion starten",
+    "inProgress": "In Bearbeitung",
+    "libraryHint": "Wähle einen Lernpfad oder mache dort weiter, wo du aufgehört hast.",
+    "reviewHint": "Wiederhole, was noch Übung braucht, und kehre dann zu deinem Lernpfad zurück.",
+    "returnHint": "Mache dort weiter, wo du aufgehört hast.",
+    "backLesson": "Zurück zur Lektion",
+    "reviewFinished": "Wiederholung beendet",
+    "activityFinished": "Aktivität beendet",
+    "continueReview": "Weiter wiederholen",
+    "nextActivity": "Nächste Aktivität",
+    "reviewDue_one": "{{count}} Aktivität zur Wiederholung",
+    "reviewDue_other": "{{count}} Aktivitäten zur Wiederholung"
+  },
+  "pathCatalog": {
+    "search": "Lernpfade suchen",
+    "kind": "Art des Lernpfads",
+    "allKinds": "Alle Arten",
+    "course": "Kurs",
+    "scenario": "Szenario",
+    "level": "Niveau",
+    "allLevels": "Alle Niveaus",
+    "results": "{{count}} von {{total}} Lernpfaden",
+    "noResults": "Keine passenden Lernpfade. Ändere die Suche oder entferne die Filter."
+  },
+  "activity": {
+    "task": "Aktivität",
+    "reference": "Material",
+    "reading": "Lesetext",
+    "lesson": "Lektion",
+    "brief": "Aufgabe",
+    "shortcuts": "Tastenkürzel",
+    "answer": "Deine Antwort",
+    "review": "Rückmeldung",
+    "writingViews": "Schreibansichten"
   }
 }

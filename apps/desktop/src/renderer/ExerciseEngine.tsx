@@ -1,603 +1,132 @@
-import { normalizeDesktopError } from "./ipc.js";
-import type {
-  Language,
-  DesktopIpcResponse,
-  GenerationCandidateOutputMap,
-} from "@call-nina/contracts";
-import {
-  evaluateExerciseAnswer,
-  type ExerciseAnswer,
-  type ExerciseDefinition,
-  type ExerciseEvaluation,
-} from "@call-nina/domain";
-import { ChevronLeft, ChevronRight, Lightbulb } from "lucide-react";
-import { useState, useEffect, useRef, type ReactNode } from "react";
-import { Heading, Popover } from "react-aria-components";
+import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button, Disclosure, Feedback } from "./components/ui/index.js";
 import {
-  Button,
-  PopoverDialog as Dialog,
-  PopoverDialogTrigger as DialogTrigger,
-  Card,
-  Disclosure,
-  Feedback,
-  FieldGroup,
-  IconButton,
-  OptionCard,
-} from "./components/ui/index.js";
-import { ActionGroup } from "./components/layout/index.js";
-
+  ActivityFrame,
+  ActivityProgress,
+  ActivityFooter,
+  ActivityCompletion,
+} from "./components/activity/index.js";
+import { useExerciseSession, type ExerciseSessionOptions } from "./useExerciseSession.js";
+import { ExerciseContent } from "./ExerciseAnswerFields.js";
+import { ExerciseHint } from "./ExerciseHint.js";
+import { Evaluation, AiFeedback } from "./ExerciseEvaluation.js";
 import styles from "./ExerciseEngine.module.css";
 
-function answerFor(definition: ExerciseDefinition, values: readonly string[]): ExerciseAnswer {
-  if (definition.kind === "free-writing") return { kind: definition.kind, text: values[0] ?? "" };
-  if (definition.kind === "short-answer") return { kind: definition.kind, text: values[0] ?? "" };
-  if (definition.kind === "fill-in-the-blank") {
-    return { kind: definition.kind, valuesByBlankPosition: [...values] };
-  }
-  if (definition.kind === "sentence-correction") {
-    return { kind: definition.kind, text: values[0] ?? "" };
-  }
-  if (definition.kind === "multiple-choice") {
-    return { kind: definition.kind, selectedOptionPosition: Number(values[0] ?? "-1") };
-  }
-  return { kind: definition.kind, text: values[0] ?? "" };
-}
-
-function incompleteSentenceFrame(answer: string, targetLanguage: Language): string {
-  const answerWords = answer.match(/[\p{L}\p{N}]+/gu) ?? [];
-  const fallbackMaskPosition = Math.max(0, answerWords.length - 1);
-  let wordPosition = 0;
-  return answer.replaceAll(/[\p{L}\p{N}]+/gu, (word) => {
-    const currentPosition = wordPosition;
-    wordPosition += 1;
-    const mask = word.length > 3 || currentPosition === fallbackMaskPosition;
-    if (!mask) return word;
-    const characters = Array.from(
-      new Intl.Segmenter(targetLanguage, { granularity: "grapheme" }).segment(word),
-      (part) => part.segment,
-    );
-    const [first = ""] = characters;
-    return `${first}${"_".repeat(Math.min(8, Math.max(1, characters.length - 1)))}`;
-  });
-}
-
-function ExerciseContent({
-  definition,
-  evaluated,
-  values,
-  setValue,
-}: {
-  definition: ExerciseDefinition;
-  evaluated: boolean;
-  values: readonly string[];
-  setValue: (position: number, value: string) => void;
-}) {
-  const { t } = useTranslation();
-  if (definition.kind === "free-writing") {
-    return (
-      <FieldGroup>
-        <span>{definition.content.prompt}</span>
-        <span className={styles.answerLabel}>{t("exercises.answer")}</span>
-        <textarea
-          aria-label={t("exercises.answer")}
-          maxLength={definition.answerContract.maximumCharacters}
-          readOnly={evaluated}
-          value={values[0] ?? ""}
-          onChange={(event) => {
-            setValue(0, event.target.value);
-          }}
-        />
-      </FieldGroup>
-    );
-  }
-  if (definition.kind === "short-answer") {
-    return (
-      <FieldGroup>
-        <span>{definition.content.question}</span>
-        <span className={styles.answerLabel}>{t("exercises.answer")}</span>
-        <textarea
-          aria-label={t("exercises.answer")}
-          readOnly={evaluated}
-          value={values[0] ?? ""}
-          onChange={(event) => {
-            setValue(0, event.target.value);
-          }}
-        />
-      </FieldGroup>
-    );
-  }
-  if (definition.kind === "fill-in-the-blank") {
-    return (
-      <div className={styles.exerciseBlanks}>
-        <span>{definition.content.leadingText}</span>
-        {definition.content.blanks.map((blank, position) => (
-          <span key={position}>
-            <label>
-              <input
-                aria-label={t("exercises.blank", { number: position + 1 })}
-                readOnly={evaluated}
-                value={values[position] ?? ""}
-                onChange={(event) => {
-                  setValue(position, event.target.value);
-                }}
-              />
-            </label>
-            {blank.followingText}
-          </span>
-        ))}
-      </div>
-    );
-  }
-  if (definition.kind === "sentence-correction") {
-    return (
-      <>
-        <blockquote className={styles.exercisePrompt}>{definition.content.sentence}</blockquote>
-        <FieldGroup>
-          {t("exercises.correctedSentence")}
-          <textarea
-            aria-label={t("exercises.correctedSentence")}
-            readOnly={evaluated}
-            value={values[0] ?? ""}
-            onChange={(event) => {
-              setValue(0, event.target.value);
-            }}
-          />
-        </FieldGroup>
-      </>
-    );
-  }
-  if (definition.kind === "multiple-choice") {
-    return (
-      <fieldset>
-        <legend>{definition.content.question}</legend>
-        <div className={styles.optionGroup} data-evaluated={evaluated || undefined}>
-          {definition.content.options.map((option, position) => (
-            <OptionCard key={`${String(position)}:${option.label}`}>
-              <input
-                checked={values[0] === String(position)}
-                disabled={evaluated}
-                name={definition.exerciseId}
-                type="radio"
-                value={position}
-                onChange={() => {
-                  setValue(0, String(position));
-                }}
-              />
-              <span>{option.label}</span>
-            </OptionCard>
-          ))}
-        </div>
-      </fieldset>
-    );
-  }
-  return (
-    <FieldGroup>
-      {definition.content.cue}
-      <small>{t(`exercises.direction.${definition.content.direction}`)}</small>
-      <textarea
-        aria-label={t("exercises.answer")}
-        readOnly={evaluated}
-        value={values[0] ?? ""}
-        onChange={(event) => {
-          setValue(0, event.target.value);
-        }}
-      />
-    </FieldGroup>
-  );
-}
-
-type ExerciseAiFeedback = GenerationCandidateOutputMap["exercise-feedback"];
-
-function Evaluation({
-  evaluation,
-  aiFeedback,
-}: {
-  evaluation: ExerciseEvaluation;
-  aiFeedback?: ExerciseAiFeedback | undefined;
-}) {
-  const { t } = useTranslation();
-  const displayedStatus =
-    evaluation.status === "requires-ai" && aiFeedback
-      ? aiFeedback.outcome === "demonstrated"
-        ? "correct"
-        : aiFeedback.outcome === "developing"
-          ? "almost-correct"
-          : "incorrect"
-      : evaluation.status;
-  const tone =
-    displayedStatus === "correct"
-      ? "success"
-      : displayedStatus === "almost-correct"
-        ? "info"
-        : displayedStatus === "incorrect"
-          ? "warning"
-          : "info";
-  return (
-    <Feedback live="polite" tone={tone}>
-      <strong>{t(`exercises.results.${displayedStatus}`)}</strong>
-      {evaluation.acceptedAnswerReveal.length > 0 && (
-        <span className={styles.acceptedAnswers}>
-          {t("exercises.acceptedAnswers")}: {evaluation.acceptedAnswerReveal.join(" / ")}
-        </span>
-      )}
-    </Feedback>
-  );
-}
-
-function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
-  const { t } = useTranslation();
-  return (
-    <div className={styles.exerciseAiFeedback}>
-      <p>{feedback.summary}</p>
-      {feedback.strengths.length > 0 && (
-        <section>
-          <h3>{t("exercises.aiFeedback.strengths")}</h3>
-          <ul>
-            {feedback.strengths.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {feedback.improvements.length > 0 && (
-        <section>
-          <h3>{t("exercises.aiFeedback.improvements")}</h3>
-          <ul>
-            {feedback.improvements.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {feedback.suggestedAnswer && (
-        <section className={styles.suggestedAnswer}>
-          <h3>{t("exercises.aiFeedback.suggestedAnswer")}</h3>
-          <p>{feedback.suggestedAnswer}</p>
-        </section>
-      )}
-    </div>
-  );
-}
-
-type ExerciseProgress = NonNullable<
-  Extract<
-    DesktopIpcResponse,
-    { status: "ok"; channel: "prepared-activity/read" }
-  >["result"]["activeSet"]
->["progress"];
-
-function resumeExerciseProgress(
-  exercises: readonly ExerciseDefinition[],
-  progress: ExerciseProgress | undefined,
-  targetLanguage: Language,
+export function ExerciseEngine(
+  props: ExerciseSessionOptions & {
+    reference?: ReactNode;
+    evaluationProgress?: ReactNode;
+    completionActions?: ReactNode;
+  },
 ) {
-  const values: Record<number, readonly string[]> = {};
-  const feedback: Record<number, ExerciseAiFeedback> = {};
-  const hints: Record<number, number> = {};
-  const submitted: Record<number, boolean> = {};
-  const evaluations: ExerciseEvaluation[] = [];
-  for (const [position, item] of (progress ?? []).entries()) {
-    hints[position] = item.hintsUsed;
-    const answer = item.answer;
-    const exercise = exercises[position];
-    if (!answer || !exercise) continue;
-    submitted[position] = true;
-    values[position] =
-      answer.kind === "fill-in-the-blank"
-        ? answer.valuesByBlankPosition
-        : answer.kind === "multiple-choice"
-          ? [String(answer.selectedOptionPosition)]
-          : [answer.text];
-    const evaluation = evaluateExerciseAnswer(exercise, answer, targetLanguage);
-    if (item.feedback) feedback[position] = item.feedback;
-    if (position === evaluations.length && (evaluation.status !== "requires-ai" || item.feedback))
-      evaluations.push(evaluation);
-  }
-  return {
-    values,
-    feedback,
-    hints,
-    submitted,
-    evaluations,
-    position: Math.min(evaluations.length, Math.max(0, exercises.length - 1)),
-  };
-}
-
-export function ExerciseEngine({
-  autoStart = false,
-  targetLanguage,
-  exercises,
-  progress,
-  onNewAttempt,
-  onAnswerSubmitted,
-  onStarted,
-  onCompleted,
-  onAbandoned,
-  onAiEvaluationRequested,
-  onCancelAiEvaluation,
-  onSupportUsed,
-  evaluationProgress,
-  completionActions,
-}: {
-  autoStart?: boolean;
-  targetLanguage: Language;
-  exercises: readonly ExerciseDefinition[];
-  progress?: ExerciseProgress;
-  onNewAttempt?: () => Promise<void>;
-  onAnswerSubmitted?: (
-    answer: ExerciseAnswer,
-    position: number,
-  ) => Promise<ExerciseAiFeedback | null>;
-  evaluationProgress?: ReactNode;
-  completionActions?: ReactNode;
-  onStarted?: () => void | Promise<void>;
-  onCompleted?: (evaluations: readonly ExerciseEvaluation[]) => void | Promise<void>;
-  onAbandoned?: () => void | Promise<void>;
-  onCancelAiEvaluation?: () => void;
-  onSupportUsed?: (position: number) => Promise<void>;
-  onAiEvaluationRequested?: (
-    evaluation: ExerciseEvaluation,
-    exercisePosition: number,
-  ) => Promise<ExerciseAiFeedback>;
-}) {
   const { t } = useTranslation();
-  const [initial] = useState(() => resumeExerciseProgress(exercises, progress, targetLanguage));
-  const [resuming, setResuming] = useState(Boolean(progress));
-  const [started, setStarted] = useState(false);
-  const [position, setPosition] = useState(initial.position);
-  const [furthestPosition, setFurthestPosition] = useState(initial.position);
-  const [values, setValues] = useState<readonly string[]>(initial.values[initial.position] ?? []);
-  const [valuesByPosition, setValuesByPosition] = useState<
-    Readonly<Record<number, readonly string[]>>
-  >(initial.values);
-  const [savingSupport, setSavingSupport] = useState(false);
-  const [supportFailed, setSupportFailed] = useState(false);
-  const [hintCount, setHintCount] = useState(initial.hints[initial.position] ?? 0);
-  const [hintOpen, setHintOpen] = useState(false);
-  const [hintCountByPosition, setHintCountByPosition] = useState<Readonly<Record<number, number>>>(
-    initial.hints,
-  );
-  const [evaluations, setEvaluations] = useState<readonly ExerciseEvaluation[]>(
-    initial.evaluations,
-  );
-  const [currentEvaluation, setCurrentEvaluation] = useState<ExerciseEvaluation | undefined>(
-    initial.evaluations[initial.position],
-  );
-  const [starting, setStarting] = useState(false);
-  const [startFailed, setStartFailed] = useState(false);
-  const [completing, setCompleting] = useState(false);
-  const [completionFailed, setCompletionFailed] = useState(false);
-  const [answerInvalid, setAnswerInvalid] = useState(false);
-  const [evaluatingWithAi, setEvaluatingWithAi] = useState(false);
-  const [aiEvaluationFailed, setAiEvaluationFailed] = useState<
-    false | "failed" | "context-missing"
-  >(false);
-  const [savingAnswer, setSavingAnswer] = useState(false);
-  const [submittedByPosition, setSubmittedByPosition] = useState<Readonly<Record<number, boolean>>>(
-    initial.submitted,
-  );
-  const [answerSaveFailed, setAnswerSaveFailed] = useState(false);
-  const [currentAiFeedback, setCurrentAiFeedback] = useState<ExerciseAiFeedback | undefined>(
-    initial.feedback[initial.position],
-  );
-  const [aiFeedbackByPosition, setAiFeedbackByPosition] = useState<
-    Readonly<Record<number, ExerciseAiFeedback>>
-  >(initial.feedback);
-  const [abandoning, setAbandoning] = useState(false);
-  const [abandonFailed, setAbandonFailed] = useState(false);
-  const [abandoned, setAbandoned] = useState(false);
-  const autoStartAttempted = useRef(false);
+  const session = useExerciseSession(props);
+  const {
+    exercises,
+    reference,
+    evaluationProgress,
+    completionActions,
+    onNewAttempt,
+    onAbandoned,
+    onCancelAiEvaluation,
+  } = props;
+  const {
+    resuming,
+    started,
+    position,
+    furthestPosition,
+    values,
+    savingSupport,
+    evaluations,
+    currentEvaluation,
+    starting,
+    startFailed,
+    completing,
+    completionFailed,
+    answerInvalid,
+    evaluatingWithAi,
+    aiEvaluationFailed,
+    savingAnswer,
+    submittedByPosition,
+    answerSaveFailed,
+    currentAiFeedback,
+    aiFeedbackByPosition,
+    abandoning,
+    abandonFailed,
+    abandoned,
+    definition,
+    setValue,
+    navigateTo,
+    advance,
+    submit,
+    start,
+    abandon,
+  } = session;
+  const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    if (!autoStart || autoStartAttempted.current || !exercises.length) return;
-    autoStartAttempted.current = true;
-    setStarting(true);
-    void Promise.resolve()
-      .then(() => onStarted?.())
-      .then(() => setStarted(true))
-      .catch(() => setStartFailed(true))
-      .finally(() => setStarting(false));
-  }, [autoStart, exercises.length, onStarted]);
-  const definition = exercises[position];
-
-  if (abandoned) {
+    heading.current?.focus({ preventScroll: true });
+    heading.current?.closest("[data-activity-task]")?.scrollTo(0, 0);
+  }, [position, started]);
+  const taskLabel = t("activity.task");
+  if (abandoned)
     return (
-      <section aria-labelledby="exercise-abandoned-heading">
-        <h2 id="exercise-abandoned-heading">{t("exercises.abandoned")}</h2>
-        <p>{t("exercises.abandonedBody")}</p>
-      </section>
+      <ActivityFrame taskLabel={taskLabel}>
+        <ActivityCompletion
+          title={t("exercises.abandoned")}
+          summary={<p>{t("exercises.abandonedBody")}</p>}
+        />
+      </ActivityFrame>
     );
-  }
-
-  if (!definition) {
-    return evaluations.length > 0 ? (
-      <section className={styles.completion} aria-labelledby="exercise-complete-heading">
-        <h2 id="exercise-complete-heading">{t("exercises.complete")}</h2>
-        {completionActions}
-        <h3>{t("exercises.reviewAnswers")}</h3>
-        <ol className={styles.answerReview}>
-          {evaluations.map((evaluation, index) => (
-            <Card as="li" key={`${evaluation.exerciseKind}:${String(index)}`}>
-              <h4 className={styles.eyebrow}>
-                {t("exercises.progress", { current: index + 1, total: exercises.length })}
-              </h4>
-              <Evaluation evaluation={evaluation} aiFeedback={aiFeedbackByPosition[index]} />
-              {exercises[index]?.explanation && (
-                <>
-                  <p>{exercises[index].explanation}</p>
-                </>
-              )}
-              {aiFeedbackByPosition[index] && <AiFeedback feedback={aiFeedbackByPosition[index]} />}
-            </Card>
-          ))}
-        </ol>
-      </section>
-    ) : null;
-  }
-
-  const displayedHints =
-    definition.kind === "short-answer"
-      ? [
-          ...definition.hints,
-          {
-            text: t("exercises.answerFrameHint", {
-              frame: incompleteSentenceFrame(
-                definition.answerContract.acceptedAnswers[0] ?? "",
-                targetLanguage,
-              ),
-            }),
-          },
-        ]
-      : definition.hints;
-  const revealHint = async () => {
-    if (
-      savingSupport ||
-      evaluatingWithAi ||
-      currentEvaluation ||
-      hintCount >= displayedHints.length
-    )
-      return;
-    setSavingSupport(true);
-    setSupportFailed(false);
-    try {
-      await onSupportUsed?.(position);
-      const next = hintCount + 1;
-      setHintCount(next);
-      setHintCountByPosition((byPosition) => ({ ...byPosition, [position]: next }));
-    } catch {
-      setSupportFailed(true);
-    } finally {
-      setSavingSupport(false);
-    }
-  };
-  const setValue = (answerPosition: number, value: string) => {
-    const next = [...values];
-    next[answerPosition] = value;
-    setValues(next);
-    setValuesByPosition((byPosition) => ({ ...byPosition, [position]: next }));
-  };
-  const navigateTo = (nextPosition: number) => {
-    if (nextPosition < 0 || nextPosition > furthestPosition) return;
-    setHintOpen(false);
-    setSupportFailed(false);
-    setPosition(nextPosition);
-    setValues(valuesByPosition[nextPosition] ?? []);
-    setHintCount(hintCountByPosition[nextPosition] ?? 0);
-    setCurrentEvaluation(evaluations[nextPosition]);
-    setCurrentAiFeedback(aiFeedbackByPosition[nextPosition]);
-    setAnswerInvalid(false);
-    setAnswerSaveFailed(false);
-    setAiEvaluationFailed(false);
-  };
-  const advance = async (nextEvaluations: readonly ExerciseEvaluation[]) => {
-    const nextPosition = position + 1;
-    if (nextPosition === exercises.length) {
-      setCompleting(true);
-      setCompletionFailed(false);
-      try {
-        await onCompleted?.(nextEvaluations);
-      } catch {
-        setCompletionFailed(true);
-        return;
-      } finally {
-        setCompleting(false);
-      }
-    }
-    setHintOpen(false);
-    setSupportFailed(false);
-    setPosition(nextPosition);
-    setFurthestPosition((current) => Math.max(current, nextPosition));
-    setValues(valuesByPosition[nextPosition] ?? []);
-    setHintCount(hintCountByPosition[nextPosition] ?? 0);
-    setCurrentEvaluation(nextEvaluations[nextPosition]);
-    setCurrentAiFeedback(aiFeedbackByPosition[nextPosition]);
-  };
-  const submit = async () => {
-    let evaluation: ExerciseEvaluation;
-    try {
-      evaluation = evaluateExerciseAnswer(
-        definition,
-        answerFor(definition, values),
-        targetLanguage,
-      );
-      setAnswerInvalid(false);
-    } catch {
-      setAnswerInvalid(true);
-      return;
-    }
-    setSavingAnswer(true);
-    setAnswerSaveFailed(false);
-    let retainedFeedback: ExerciseAiFeedback | null | undefined;
-    try {
-      retainedFeedback = await onAnswerSubmitted?.(evaluation.answer, position);
-      setSubmittedByPosition((current) => ({ ...current, [position]: true }));
-    } catch {
-      setAnswerSaveFailed(true);
-      return;
-    } finally {
-      setSavingAnswer(false);
-    }
-    if (evaluation.status === "requires-ai") {
-      if (!retainedFeedback && !onAiEvaluationRequested) {
-        setAiEvaluationFailed("failed");
-        return;
-      }
-      setEvaluatingWithAi(true);
-      setAiEvaluationFailed(false);
-      try {
-        const feedback =
-          retainedFeedback ?? (await onAiEvaluationRequested?.(evaluation, position));
-        if (!feedback) throw new Error("OD_EXERCISE_AI_FEEDBACK_REQUIRED");
-        const nextEvaluations = [...evaluations, evaluation];
-        setEvaluations(nextEvaluations);
-        setAiFeedbackByPosition((current) => ({ ...current, [position]: feedback }));
-        setCurrentAiFeedback(feedback);
-        setCurrentEvaluation(evaluation);
-      } catch (cause) {
-        setAiEvaluationFailed(
-          normalizeDesktopError(cause).detail.kind === "exercise-context-missing"
-            ? "context-missing"
-            : "failed",
-        );
-      } finally {
-        setEvaluatingWithAi(false);
-      }
-      return;
-    }
-    const nextEvaluations = [...evaluations, evaluation];
-    setEvaluations(nextEvaluations);
-    setCurrentEvaluation(evaluation);
-  };
-
-  if (!started) {
-    const start = async (newAttempt = false) => {
-      setStarting(true);
-      setStartFailed(false);
-      try {
-        if (newAttempt && onNewAttempt) {
-          await onNewAttempt();
-          setPosition(0);
-          setFurthestPosition(0);
-          setValues([]);
-          setValuesByPosition({});
-          setSubmittedByPosition({});
-          setHintCount(0);
-          setHintCountByPosition({});
-          setEvaluations([]);
-          setCurrentEvaluation(undefined);
-          setAiFeedbackByPosition({});
-          setCurrentAiFeedback(undefined);
-          setResuming(false);
-        } else await onStarted?.();
-        setStarted(true);
-      } catch {
-        setStartFailed(true);
-      } finally {
-        setStarting(false);
-      }
-    };
+  if (!definition && evaluations.length === 0) return null;
+  if (!definition)
     return (
-      <Card as="article">
+      <ActivityFrame taskLabel={taskLabel}>
+        <ActivityCompletion
+          title={t("exercises.complete")}
+          actions={completionActions}
+          reviewLabel={t("exercises.reviewAnswers")}
+          review={
+            <ol className={styles.answerReview}>
+              {evaluations.map((evaluation, index) => (
+                <li key={index}>
+                  <h3>
+                    {t("exercises.progress", { current: index + 1, total: exercises.length })}
+                  </h3>
+                  <Evaluation evaluation={evaluation} aiFeedback={aiFeedbackByPosition[index]} />
+                  {exercises[index]?.explanation && <p>{exercises[index].explanation}</p>}
+                  {aiFeedbackByPosition[index] && (
+                    <AiFeedback feedback={aiFeedbackByPosition[index]} />
+                  )}
+                </li>
+              ))}
+            </ol>
+          }
+        />
+      </ActivityFrame>
+    );
+  if (!started)
+    return (
+      <ActivityFrame
+        taskLabel={taskLabel}
+        reference={reference}
+        footer={
+          <ActivityFooter>
+            {resuming && onNewAttempt && (
+              <Button variant="secondary" isDisabled={starting} onPress={() => void start(true)}>
+                {t("exercises.startAgain")}
+              </Button>
+            )}
+            <Button variant="primary" isDisabled={starting} onPress={() => void start()}>
+              {t(
+                starting ? "exercises.starting" : resuming ? "exercises.resume" : "exercises.start",
+              )}
+            </Button>
+          </ActivityFooter>
+        }
+      >
         <h2>{t("exercises.ready")}</h2>
         <p>{t("exercises.readyBody", { count: exercises.length })}</p>
         {startFailed && (
@@ -605,116 +134,147 @@ export function ExerciseEngine({
             {t("exercises.startFailed")}
           </Feedback>
         )}
-        <ActionGroup>
-          <Button variant="primary" isDisabled={starting} onPress={() => void start()}>
-            {starting
-              ? t("exercises.starting")
-              : t(resuming ? "exercises.resume" : "exercises.start")}
-          </Button>
-          {resuming && onNewAttempt && (
-            <Button variant="secondary" isDisabled={starting} onPress={() => void start(true)}>
-              {t("exercises.startAgain")}
-            </Button>
-          )}
-        </ActionGroup>
-      </Card>
+      </ActivityFrame>
     );
-  }
-
   return (
-    <Card as="article" className={styles.activeExercise}>
-      <div className={styles.exerciseCardHeader}>
-        <p className={styles.eyebrow}>
-          {t("exercises.progress", { current: position + 1, total: exercises.length })}
-        </p>
-        <div
-          className={styles.exerciseNavigation}
-          aria-label={t("exercises.navigationLabel")}
-          role="group"
-        >
-          <IconButton
-            variant="secondary"
-            isDisabled={
-              position === 0 || evaluatingWithAi || savingAnswer || completing || savingSupport
-            }
-            label={t("exercises.previous")}
-            leadingIcon={<ChevronLeft aria-hidden="true" />}
-            onPress={() => {
-              navigateTo(position - 1);
-            }}
-          />
-          <IconButton
-            variant="secondary"
-            isDisabled={
-              position >= furthestPosition ||
-              evaluatingWithAi ||
-              savingAnswer ||
-              completing ||
-              savingSupport
-            }
-            label={t("exercises.forward")}
-            leadingIcon={<ChevronRight aria-hidden="true" />}
-            onPress={() => {
-              navigateTo(position + 1);
-            }}
-          />
-        </div>
-      </div>
-      <section className={styles.questionSection}>
-        <div className={styles.questionHeader}>
-          <h2>{definition.instructions}</h2>
-          {displayedHints.length > 0 && (
-            <DialogTrigger
-              isOpen={hintOpen}
-              onOpenChange={(open) => {
-                setHintOpen(open);
-                if (open && hintCount === 0) void revealHint();
-              }}
+    <ActivityFrame
+      taskLabel={taskLabel}
+      reference={reference}
+      progress={
+        <ActivityProgress
+          current={position + 1}
+          total={exercises.length}
+          label={t("exercises.progress", { current: position + 1, total: exercises.length })}
+        />
+      }
+      feedback={
+        <>
+          {evaluationProgress}
+          {answerInvalid && (
+            <Feedback live="assertive" tone="error">
+              {t("exercises.answerRequired")}
+            </Feedback>
+          )}
+          {answerSaveFailed && (
+            <Feedback live="assertive" tone="error">
+              {t("exercises.answerSaveFailed")}
+            </Feedback>
+          )}
+          {completionFailed && (
+            <Feedback live="assertive" tone="error">
+              {t("exercises.completionFailed")}
+            </Feedback>
+          )}
+          {abandonFailed && (
+            <Feedback live="assertive" tone="error">
+              {t("exercises.abandonFailed")}
+            </Feedback>
+          )}
+          {aiEvaluationFailed && (
+            <Feedback live="assertive" tone="error">
+              {t(
+                aiEvaluationFailed === "context-missing"
+                  ? "errors.exerciseContextMissing"
+                  : "exercises.aiFeedback.failed",
+              )}
+            </Feedback>
+          )}
+          {submittedByPosition[position] && !currentEvaluation && !aiEvaluationFailed && (
+            <Feedback live="polite">{t("exercises.aiFeedback.pending")}</Feedback>
+          )}
+          {currentEvaluation && (
+            <>
+              <Evaluation evaluation={currentEvaluation} aiFeedback={currentAiFeedback} />
+              {definition.explanation && (
+                <Disclosure label={t("exercises.explanationTitle")}>
+                  <p>{definition.explanation}</p>
+                </Disclosure>
+              )}
+            </>
+          )}
+          {currentAiFeedback && <AiFeedback feedback={currentAiFeedback} />}
+        </>
+      }
+      footer={
+        <ActivityFooter
+          previous={
+            <Button
+              variant="secondary"
+              leadingIcon={<ChevronLeft aria-hidden="true" />}
+              isDisabled={
+                position === 0 || evaluatingWithAi || savingAnswer || completing || savingSupport
+              }
+              onPress={() => navigateTo(position - 1)}
             >
+              {t("exercises.previous")}
+            </Button>
+          }
+          utilities={
+            onAbandoned && (
               <Button
                 variant="quiet"
-                leadingIcon={<Lightbulb aria-hidden="true" />}
                 isDisabled={
-                  evaluatingWithAi ||
-                  savingAnswer ||
-                  (Boolean(currentEvaluation) && hintCount === 0)
+                  abandoning || completing || evaluatingWithAi || savingAnswer || savingSupport
                 }
+                onPress={() => void abandon()}
               >
-                {t("exercises.hint")}
+                {t(abandoning ? "exercises.abandoning" : "exercises.abandon")}
               </Button>
-              <Popover className={styles.hintPopover} placement="bottom end">
-                <Dialog className={styles.hintDialog}>
-                  <Heading slot="title">{t("exercises.hint")}</Heading>
-                  <div aria-live="polite" className={styles.hintContent}>
-                    {displayedHints.slice(0, hintCount).map((hint, index) => (
-                      <div key={index}>
-                        <p>{hint.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {supportFailed && (
-                    <Feedback tone="error" live="assertive">
-                      {t("exercises.supportFailed")}
-                    </Feedback>
-                  )}
-                  <ActionGroup>
-                    {hintCount < displayedHints.length && !currentEvaluation && (
-                      <Button
-                        variant="secondary"
-                        isDisabled={savingSupport}
-                        onPress={() => void revealHint()}
-                      >
-                        {t(hintCount === 0 ? "exercises.showHint" : "exercises.nextHint")}
-                      </Button>
-                    )}
-                    <Button variant="quiet" slot="close">
-                      {t("actions.close")}
-                    </Button>
-                  </ActionGroup>
-                </Dialog>
-              </Popover>
-            </DialogTrigger>
+            )
+          }
+        >
+          {position < furthestPosition && (
+            <Button
+              variant="primary"
+              trailingIcon={<ChevronRight aria-hidden="true" />}
+              isDisabled={evaluatingWithAi || savingAnswer || completing || savingSupport}
+              onPress={() => navigateTo(position + 1)}
+            >
+              {t("exercises.forward")}
+            </Button>
           )}
+          {evaluatingWithAi && onCancelAiEvaluation && (
+            <Button variant="secondary" onPress={onCancelAiEvaluation}>
+              {t("actions.cancel")}
+            </Button>
+          )}
+          {(!currentEvaluation ||
+            ((currentEvaluation.status !== "requires-ai" || currentAiFeedback) &&
+              position === furthestPosition)) && (
+            <Button
+              variant="primary"
+              isDisabled={evaluatingWithAi || savingAnswer || savingSupport || completing}
+              onPress={() => {
+                if (currentEvaluation) void advance(evaluations);
+                else void submit();
+              }}
+            >
+              {evaluatingWithAi
+                ? t("exercises.aiFeedback.evaluating")
+                : savingAnswer
+                  ? t("exercises.savingAnswer")
+                  : completing
+                    ? t("exercises.completing")
+                    : !currentEvaluation
+                      ? t(
+                          submittedByPosition[position]
+                            ? "exercises.aiFeedback.retry"
+                            : "exercises.submit",
+                        )
+                      : position + 1 === exercises.length
+                        ? t("exercises.finish")
+                        : t("exercises.next")}
+            </Button>
+          )}
+        </ActivityFooter>
+      }
+    >
+      <section className={styles.questionSection}>
+        <div className={styles.questionHeader}>
+          <h2 ref={heading} tabIndex={-1}>
+            {definition.instructions}
+          </h2>
+          <ExerciseHint {...session} />
         </div>
         <ExerciseContent
           definition={definition}
@@ -728,121 +288,6 @@ export function ExerciseEngine({
           setValue={setValue}
         />
       </section>
-      <div
-        className={styles.feedbackArea}
-        data-visible={
-          Boolean(currentEvaluation || submittedByPosition[position] || evaluatingWithAi) ||
-          undefined
-        }
-      >
-        {(currentEvaluation || submittedByPosition[position] || evaluatingWithAi) && (
-          <h2>{t("exercises.feedbackTitle")}</h2>
-        )}
-        {evaluationProgress}
-        {answerInvalid && (
-          <Feedback live="assertive" tone="error">
-            {t("exercises.answerRequired")}
-          </Feedback>
-        )}
-        {answerSaveFailed && (
-          <Feedback live="assertive" tone="error">
-            {t("exercises.answerSaveFailed")}
-          </Feedback>
-        )}
-        {completionFailed && (
-          <Feedback live="assertive" tone="error">
-            {t("exercises.completionFailed")}
-          </Feedback>
-        )}
-        {abandonFailed && (
-          <Feedback live="assertive" tone="error">
-            {t("exercises.abandonFailed")}
-          </Feedback>
-        )}
-        {aiEvaluationFailed && (
-          <Feedback live="assertive" tone="error">
-            {t(
-              aiEvaluationFailed === "context-missing"
-                ? "errors.exerciseContextMissing"
-                : "exercises.aiFeedback.failed",
-            )}
-          </Feedback>
-        )}
-        {submittedByPosition[position] && !currentEvaluation && !aiEvaluationFailed && (
-          <Feedback live="polite">{t("exercises.aiFeedback.pending")}</Feedback>
-        )}
-        {currentEvaluation && (
-          <>
-            <Evaluation evaluation={currentEvaluation} aiFeedback={currentAiFeedback} />
-            {definition.explanation && (
-              <Disclosure label={t("exercises.explanationTitle")}>
-                <p>{definition.explanation}</p>
-              </Disclosure>
-            )}
-          </>
-        )}
-        {currentAiFeedback && <AiFeedback feedback={currentAiFeedback} />}
-      </div>
-      <ActionGroup className={styles.exerciseActions}>
-        {onAbandoned && (
-          <Button
-            variant="secondary"
-            isDisabled={
-              abandoning || completing || evaluatingWithAi || savingAnswer || savingSupport
-            }
-            onPress={() => {
-              setAbandoning(true);
-              setAbandonFailed(false);
-              void Promise.resolve(onAbandoned())
-                .then(() => {
-                  setAbandoned(true);
-                })
-                .catch(() => {
-                  setAbandonFailed(true);
-                })
-                .finally(() => {
-                  setAbandoning(false);
-                });
-            }}
-          >
-            {abandoning ? t("exercises.abandoning") : t("exercises.abandon")}
-          </Button>
-        )}
-        {(!currentEvaluation ||
-          ((currentEvaluation.status !== "requires-ai" || currentAiFeedback) &&
-            position === furthestPosition)) && (
-          <Button
-            className={styles.primaryAction}
-            variant="primary"
-            isDisabled={evaluatingWithAi || savingAnswer || savingSupport || completing}
-            onPress={() => {
-              if (currentEvaluation) void advance(evaluations);
-              else void submit();
-            }}
-          >
-            {evaluatingWithAi
-              ? t("exercises.aiFeedback.evaluating")
-              : savingAnswer
-                ? t("exercises.savingAnswer")
-                : completing
-                  ? t("exercises.completing")
-                  : !currentEvaluation
-                    ? t(
-                        submittedByPosition[position]
-                          ? "exercises.aiFeedback.retry"
-                          : "exercises.submit",
-                      )
-                    : position + 1 === exercises.length
-                      ? t("exercises.finish")
-                      : t("exercises.next")}
-          </Button>
-        )}
-        {evaluatingWithAi && onCancelAiEvaluation && (
-          <Button variant="secondary" onPress={onCancelAiEvaluation}>
-            {t("actions.cancel")}
-          </Button>
-        )}
-      </ActionGroup>
-    </Card>
+    </ActivityFrame>
   );
 }

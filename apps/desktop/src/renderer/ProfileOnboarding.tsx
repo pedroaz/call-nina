@@ -140,9 +140,7 @@ export function ProfileOnboarding({
         setPersisted(settings);
         setChoices(settings.settings);
         setTargetLanguage(settings.settings.learningScope.targetLanguage);
-        setEnrollCourse(
-          settings.settings.learningScope.courseId === languageDefinitions.de.structuredCourseId,
-        );
+        setEnrollCourse(Boolean(settings.settings.learningScope.courseId));
         await i18n.changeLanguage(settings.settings.uiLocale);
       }
     } catch (cause) {
@@ -210,9 +208,7 @@ export function ProfileOnboarding({
       setPersisted(next);
       setChoices(next.settings);
       setTargetLanguage(next.settings.learningScope.targetLanguage);
-      setEnrollCourse(
-        next.settings.learningScope.courseId === languageDefinitions.de.structuredCourseId,
-      );
+      setEnrollCourse(Boolean(next.settings.learningScope.courseId));
     });
   };
   async function save(): Promise<DesktopSettingsResult | undefined> {
@@ -233,7 +229,7 @@ export function ProfileOnboarding({
       Object.entries(choices).some(
         ([key, value]) => saved.settings[key as keyof Choices] !== value,
       ) ||
-      (targetLanguage === "de" && enrollCourse !== Boolean(saved.settings.learningScope.courseId))
+      enrollCourse !== Boolean(saved.settings.learningScope.courseId)
     ) {
       // Preserve all settings outside this wizard and let the backend reject a stale timestamp.
       current = await invokeDesktop("learner-settings/update", {
@@ -244,10 +240,7 @@ export function ProfileOnboarding({
           everydayLifeGoal: choices.everydayLifeGoal.trim(),
           learningScope: {
             ...current.settings.learningScope,
-            courseId:
-              targetLanguage === "de" && enrollCourse
-                ? languageDefinitions.de.structuredCourseId
-                : null,
+            courseId: enrollCourse ? languageDefinitions[targetLanguage].structuredCourseId : null,
           },
         },
       });
@@ -514,7 +507,7 @@ export function ProfileOnboarding({
                     disabled={busy}
                     onChange={selectTarget}
                   />
-                  {targetLanguage === "de" && (
+                  {
                     <CheckboxField
                       checked={enrollCourse}
                       onChange={(event) => {
@@ -523,8 +516,7 @@ export function ProfileOnboarding({
                     >
                       {t("onboarding.enrollCourse")}
                     </CheckboxField>
-                  )}
-                  {targetLanguage !== "de" && <p>{t("onboarding.pathUnavailable")}</p>}
+                  }
                   <FieldGroup>
                     <span>{t("onboarding.level")}</span>
                     <select

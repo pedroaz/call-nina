@@ -7,7 +7,7 @@ import {
   type PracticeSuggestion,
 } from "@call-nina/contracts";
 import { invokeDesktop } from "./ipc.js";
-import { Button, Card, Muted, Nina } from "./components/ui/index.js";
+import { Button, Muted } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import styles from "./CompletionActions.module.css";
 
@@ -47,8 +47,7 @@ export function CompletionActions({
     };
   }, [locale, rootGeneration, targetLanguage]);
   return (
-    <Card variant="muted" className={styles.summary}>
-      <Nina pose="celebration" />
+    <section className={styles.summary}>
       <h3 ref={heading} tabIndex={-1}>
         {t("completion.next")}
       </h3>
@@ -76,6 +75,6 @@ export function CompletionActions({
           {t("nav.history")}
         </Button>
       </ActionGroup>
-    </Card>
+    </section>
   );
 }

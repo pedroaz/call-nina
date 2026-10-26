@@ -13,13 +13,14 @@ import { Button, IconButton } from "../ui/Button.js";
 import { Card } from "../ui/Surface.js";
 import styles from "./Layout.module.css";
 
-type PageProps = Omit<ComponentPropsWithoutRef<"section">, "title"> & {
+export type PageProps = Omit<ComponentPropsWithoutRef<"section">, "title"> & {
   breadcrumbs?: ReadonlyArray<{ label: string; onPress: () => void }>;
   refresh?: { onRefresh: () => Promise<unknown>; busy?: boolean; disabled?: boolean };
   actions?: ReactNode;
   description?: string;
   eyebrow?: string;
   title: string;
+  presentation?: "page" | "activity";
   width?: "standard" | "form" | "reading";
 };
 
@@ -33,6 +34,7 @@ export function Page({
   eyebrow,
   title,
   width = "standard",
+  presentation = "page",
   ...props
 }: PageProps) {
   const heading = useRef<HTMLHeadingElement>(null);
@@ -41,7 +43,12 @@ export function Page({
     heading.current?.focus({ preventScroll: true });
   }, [title]);
   return (
-    <section {...props} data-width={width} className={`${styles.page} ${className ?? ""}`}>
+    <section
+      {...props}
+      data-presentation={presentation}
+      data-width={width}
+      className={`${styles.page} ${className ?? ""}`}
+    >
       {breadcrumbs && <Breadcrumbs items={breadcrumbs} current={title} />}
       <header className={`${styles.header} ${styles.stickyHeader}`}>
         <div className={styles.heading}>

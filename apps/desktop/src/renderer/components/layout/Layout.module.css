@@ -161,15 +161,11 @@
   flex: none;
 }
 
-:global([data-exercise-mode="true"]) .page {
+.page[data-presentation="activity"] {
   gap: var(--od-space-4);
 }
-:global([data-exercise-mode="true"]) .heading {
-  gap: var(--od-space-2);
-}
-:global([data-exercise-mode="true"]) .title {
-  font-size: var(--od-font-size-lg);
-  line-height: var(--od-type-section-title-line);
+.page[data-presentation="activity"] .stickyHeader {
+  position: static;
 }
 
 .page > button {

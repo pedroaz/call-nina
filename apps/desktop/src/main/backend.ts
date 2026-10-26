@@ -107,6 +107,11 @@ import {
   type PendingSelection,
 } from "./backend-support.js";
 
+type CodexIntegration = Extract<
+  DesktopIpcResponse,
+  { status: "ok"; channel: "codex/integration/read" }
+>["result"];
+
 export class DesktopBackend {
   readonly #connections: ConnectionRuntime;
   readonly #operations: GenerationOperations;
@@ -535,7 +540,10 @@ export class DesktopBackend {
     if (request.source === "learning-path") {
       if (request.expectedGeneration !== this.#database.rootGeneration)
         throw new Error("OD_DATA_ROOT_STALE");
-      const course = await readLearningCourse(this.#curriculumRoot);
+      const course = await readLearningCourse(
+        this.#curriculumRoot,
+        settings.learningContext.targetLanguage,
+      );
       resolveCourseReference(course, request.reference);
       if (!course) throw new Error("OD_COURSE_UNAVAILABLE");
       const scope = await repository.requireLearningScope(course.targetLanguage);
@@ -745,14 +753,17 @@ export class DesktopBackend {
           input.request.expectedGeneration !== this.#database.rootGeneration
         )
           throw new Error("OD_DATA_ROOT_STALE");
-        const course = await readLearningCourse(this.#curriculumRoot);
+        const course = await readLearningCourse(
+          this.#curriculumRoot,
+          settings.learningContext.targetLanguage,
+        );
         const { reference, unit, activity } = resolveCourseReference(
           course,
           input.request.reference,
         );
         if (!["practice", "reading", "writing"].includes(activity.delivery))
           throw new Error("OD_COURSE_ACTIVITY_INVALID");
-        const locale = profile.explanationLanguage === "de" ? "de" : "en";
+        const locale = profile.explanationLanguage === "en-US" ? "en" : profile.explanationLanguage;
         if (!course) throw new Error("OD_COURSE_REFERENCE_STALE");
         const teaching = await prepareCourseTeaching(
           this.#database,
@@ -764,7 +775,10 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...reviewContext,
-          calibration: { ...calibration, approximateLevel: "A1" as const },
+          calibration: {
+            ...calibration,
+            approximateLevel: course.paths.find((path) => path.id === unit.stage)?.level ?? "A1",
+          },
           learningPath: reference,
           courseTeaching: teaching,
           naturalRequest:
@@ -1022,13 +1036,7 @@ export class DesktopBackend {
     const executable = desktopPathOption("codex-executable");
     const discovery = await discoverCodex(executable === undefined ? {} : { executable });
     if (discovery.status === "available") {
-      const state = await readPluginIntegrationState(discovery.version);
-      const plugin = state.plugin;
-      return {
-        status: "available" as const,
-        codexVersion: discovery.version,
-        plugin,
-      };
+      return readPluginIntegrationState(discovery.version, correlationId);
     }
     const kind =
       discovery.reason === "unsupported-version" ? "unsupported-codex-version" : "app-server";
@@ -1165,6 +1173,7 @@ export class DesktopBackend {
     correlationId: string,
     retainedSelection?: AcceptedOperation["operation"]["modelSelection"],
     retainedConnection?: AiConnection,
+    integrationState?: CodexIntegration,
   ): Promise<ProviderAccess> {
     const connection = await this.#activeConnection();
     const unavailable = (
@@ -1177,8 +1186,8 @@ export class DesktopBackend {
     });
     if (operation === "voice-handoff") {
       if (!this.#openExternal) return unavailable("capability-unavailable");
-      const integration = await this.#codexState(correlationId);
-      if (integration.status !== "available") return unavailable("runtime-unavailable");
+      const integration = integrationState ?? (await this.#codexState(correlationId));
+      if (integration.status !== "available") return unavailable("integration-unavailable");
       if (integration.plugin !== "installed") return unavailable("plugin-required");
       return {
         routeId: connection?.routeId ?? "chatgpt",
@@ -1451,7 +1460,7 @@ export class DesktopBackend {
   }
 
   async handle(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
-    return this.#enqueue(() => this.#handleLoggedRequest(request));
+    return this.#handleLoggedRequest(request);
   }
 
   async #handleLoggedRequest(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
@@ -1469,7 +1478,25 @@ export class DesktopBackend {
         { action, phase: "started" },
       );
     }
-    const response = await this.#handleRequest(request);
+    // External discovery must settle outside the learner-data queue. Validate
+    // local state only after re-entering the queue, including Voice root leases.
+    const needsIntegration =
+      request.channel === "app/readiness" ||
+      request.channel === "codex/integration/read" ||
+      request.channel === "voice-activity/open-in-codex" ||
+      (request.channel === "provider/access/read" && request.payload.operation === "voice-handoff");
+    const integration = needsIntegration
+      ? await this.#codexState(request.requestId).catch(() => ({
+          status: "unavailable" as const,
+          reason: "app-server-unavailable" as const,
+          error: safeError("app-server", request.requestId),
+        }))
+      : undefined;
+    const response = await this.#enqueue(() =>
+      this.#closing
+        ? this.#failure(request, "cancellation")
+        : this.#handleRequest(request, integration),
+    );
     if (action) {
       const cancelled =
         response.status === "ok" &&
@@ -1510,7 +1537,10 @@ export class DesktopBackend {
     return response;
   }
 
-  async #handleRequest(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
+  async #handleRequest(
+    request: DesktopIpcRequest,
+    integration?: CodexIntegration,
+  ): Promise<DesktopIpcResponse> {
     try {
       if (
         (request.channel.startsWith("vocabulary/") ||
@@ -1668,18 +1698,11 @@ export class DesktopBackend {
         return this.#success(request, { status: job ? "cancelling" : "already-finished" });
       }
       if (request.channel === "app/readiness") {
-        const [dataRoot, codex] = await Promise.all([
-          this.#dataRootState(request.requestId),
-          this.#codexState(request.requestId).catch(() => ({
-            status: "unavailable" as const,
-            reason: "app-server-unavailable" as const,
-            error: safeError("app-server", request.requestId),
-          })),
-        ]);
+        const dataRoot = await this.#dataRootState(request.requestId);
         return this.#success(request, {
           status: dataRoot.status === "ready" ? "ready" : "degraded",
           dataRoot,
-          codex,
+          codex: integration,
         });
       }
       if (request.channel === "provider/access/read") {
@@ -1710,6 +1733,7 @@ export class DesktopBackend {
             request.requestId,
             retainedSelection,
             retainedConnection,
+            integration,
           ),
         );
       }
@@ -2168,11 +2192,13 @@ export class DesktopBackend {
           return this.#failure(request, "stale-data-root");
         const learningContext = await this.#repository.requireLearningContext();
         const course =
-          learningContext.targetLanguage === "de" &&
-          learningContext.courseId === "german-foundations"
-            ? await readLearningCourse(this.#curriculumRoot)
+          learningContext.courseId !== null
+            ? await readLearningCourse(this.#curriculumRoot, learningContext.targetLanguage)
             : null;
-        const explanationLanguage = learningContext.explanationLanguage === "de" ? "de" : "en";
+        const explanationLanguage =
+          learningContext.explanationLanguage === "en-US"
+            ? "en"
+            : learningContext.explanationLanguage;
         if (request.channel === "learning-path/read")
           return this.#success(request, {
             rootGeneration: root.generation,
@@ -2665,8 +2691,15 @@ export class DesktopBackend {
           await activities.openVoice(request.payload.activityId, {
             isCodexVoiceAvailable: async () => {
               return (
-                (await this.#providerAccess("voice-handoff", request.requestId)).status ===
-                "available"
+                (
+                  await this.#providerAccess(
+                    "voice-handoff",
+                    request.requestId,
+                    undefined,
+                    undefined,
+                    integration,
+                  )
+                ).status === "available"
               );
             },
             ...(this.#openExternal ? { openExternal: this.#openExternal } : {}),
@@ -2896,14 +2929,18 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "codex/integration/read") {
-        return this.#success(request, await this.#codexState(request.requestId));
+        return this.#success(request, integration);
       }
       if (request.channel === "codex/integration/action") {
         const current = await this.#codexState(request.requestId);
         if (current.status !== "available") return this.#failure(request, "app-server");
         return this.#success(
           request,
-          await runPluginIntegrationAction(request.payload.action, current.codexVersion),
+          await runPluginIntegrationAction(
+            request.payload.action,
+            current.codexVersion,
+            request.requestId,
+          ),
         );
       }
       if (request.channel === "chatgpt/usage/open") {

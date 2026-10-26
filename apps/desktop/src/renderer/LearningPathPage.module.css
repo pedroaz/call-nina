@@ -1,53 +1,406 @@
+.catalogFilters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  gap: var(--od-space-4);
+}
+@container (max-width: 40rem) {
+  .catalogFilters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .page,
 .unit {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-4);
   min-width: 0;
 }
-.card {
+.lessonPreview,
+.summaryText,
+.pathProgress {
+  display: grid;
+  gap: var(--od-space-4);
+  align-content: start;
   min-width: 0;
 }
-.tabIntro {
+.summaryText {
+  gap: var(--od-space-1);
+}
+.summaryText > :first-child {
+  font-size: var(--od-font-size-sm);
+}
+.lessonPreview > *,
+.summaryText > *,
+.recommendation h2,
+.recommendation p {
+  margin: 0;
+}
+.librarySummary {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
+}
+.pathList {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+.clickablePath {
+  position: relative;
+  border-radius: var(--od-radius-md);
+  padding-inline: var(--od-space-4) 4rem;
+}
+.clickablePath:has(.pathOpen:not([data-disabled])):hover {
+  background: var(--od-color-surface-brand);
+}
+.clickablePath:has(.pathOpen[data-focus-visible]) {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: 2px;
+}
+.pathOpen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: flex-end;
+  padding: var(--od-space-4);
+}
+.pathOpen:hover,
+.pathOpen[data-pressed] {
+  background: transparent;
+}
+.pathOpenAffordance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--od-space-2);
+  max-width: 10rem;
+}
+.pathOpenAffordance svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+}
+.pathIcon {
+  display: grid;
+  place-items: center;
+  width: var(--od-control-min);
+  height: var(--od-control-min);
+  border-radius: var(--od-radius-md);
+  color: var(--od-color-brand-ink);
+  background: var(--od-color-surface-brand);
+}
+.pathIcon svg {
+  width: 24px;
+  height: 24px;
+}
+.pathHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--od-space-2) var(--od-space-3);
+}
+.pathHeading h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.pathMeta,
+.resultCount,
+.summaryMeta,
+.reviewEntry {
+  font-size: var(--od-font-size-sm);
+  line-height: var(--od-type-supporting-line, 1.4286);
+}
+.pathList .pathProgress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--od-space-3);
 }
-.progressSummary {
-  display: flex;
-  align-items: center;
-  gap: var(--od-space-6);
-}
-.progressHeadline {
-  display: grid;
-  gap: var(--od-space-2);
-}
-.progressHeadline h2 {
-  margin: 0;
-}
-.progressHeadline p {
-  margin: 0;
-}
-.reviewCount {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--od-space-2);
-  flex-shrink: 0;
+.pathList .pathProgress progress {
   width: 6rem;
-  height: 6rem;
+  max-width: 100%;
+  height: var(--od-space-1);
+}
+.reviewEntry {
+  padding-inline: var(--od-space-5);
+}
+.recommendation,
+.reviewEntry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.recommendation > div,
+.recommendation > p {
+  flex: 1;
+  min-width: min(100%, 15rem);
+}
+.pathProgress progress,
+.completion progress {
+  appearance: none;
+  width: 100%;
+  height: var(--od-space-2);
+  border: 0;
   border-radius: var(--od-radius-pill);
-  background: var(--od-color-surface-card);
-  color: var(--od-color-brand-ink);
+  background: var(--od-color-border-default);
 }
-.reviewCount strong {
-  font-size: var(--od-font-size-xl);
-  line-height: 1;
+.pathProgress progress::-webkit-progress-bar,
+.completion progress::-webkit-progress-bar {
+  background: var(--od-color-border-default);
+  border-radius: var(--od-radius-pill);
 }
-.reviewCount svg {
+.pathProgress progress::-webkit-progress-value,
+.completion progress::-webkit-progress-value {
+  background: var(--od-color-action-primary);
+  border-radius: var(--od-radius-pill);
+}
+.trail {
+  position: relative;
+  list-style: none;
+  display: grid;
+  gap: var(--od-space-3);
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.trailItem {
+  display: grid;
+  gap: var(--od-space-4);
+  width: 55%;
+  min-width: 0;
+}
+.trailButton {
+  position: relative;
+  justify-content: flex-start;
+  width: 100%;
+  height: auto;
+  padding: var(--od-space-4);
+  white-space: normal;
+  text-align: start;
+}
+.trailButton[aria-pressed="true"] {
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-action-primary);
+}
+.trailItem:not(:last-child) .trailButton::after {
+  content: "";
+  position: absolute;
+  top: calc(100% + 1px);
+  left: calc(var(--od-space-4) + 22px);
+  height: var(--od-space-3);
+  border-inline-start: 2px dashed var(--od-color-border-default);
+  pointer-events: none;
+}
+.trailMarker {
+  display: grid;
+  place-items: center;
+  width: var(--od-control-min);
+  height: var(--od-control-min);
+  flex-shrink: 0;
+  border-radius: var(--od-radius-md);
+  background: var(--od-color-surface-brand);
+}
+.trailMarker svg {
   width: var(--od-icon-md);
   height: var(--od-icon-md);
 }
-.reviewGrid {
+.trailStop {
+  display: grid;
+  gap: var(--od-space-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.trailMeta {
+  font-size: var(--od-font-size-sm);
+  font-weight: var(--od-weight-regular, 400);
+}
+.lessonPreview {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  width: calc(45% - var(--od-space-6));
+}
+.lessonProgressHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--od-space-4);
+  font-size: var(--od-font-size-sm);
+}
+.lessonProgressHeader .activityTrack {
+  flex: 1;
+  min-width: min(100%, 12rem);
+}
+.lessonWorkspace {
+  display: grid;
+  grid-template-columns: minmax(13rem, 1fr) minmax(0, 2.4fr);
+  align-items: start;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.activityNavigation {
+  display: grid;
+  gap: var(--od-space-2);
+  min-width: 0;
+}
+.activityChoice {
+  width: 100%;
+  padding: var(--od-space-3);
+  justify-content: flex-start;
+  text-align: start;
+  white-space: normal;
+  gap: var(--od-space-3);
+}
+.activityChoice[aria-current="step"] {
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+}
+.activityChoiceText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.activityStatus {
+  display: inline-flex;
+  flex: none;
+  color: var(--od-color-text-muted);
+}
+.activityStatus svg {
+  width: 16px;
+  height: 16px;
+}
+.activityStatus[data-status="completed"] {
+  color: var(--od-color-action-primary);
+}
+.learningPanel {
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.learningPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.learningPanelHeader h2 {
+  font-size: var(--od-font-size-lg);
+  line-height: var(--od-type-section-title-line);
+}
+.learningPanelContent {
   display: grid;
   gap: var(--od-space-4);
+  min-width: 0;
+}
+.activityInstruction {
+  margin: 0;
+  max-width: 60ch;
+}
+.phraseSpotlight {
+  display: grid;
+  gap: var(--od-space-3);
+  padding: var(--od-space-7) var(--od-space-5);
+  text-align: center;
+  background: var(--od-color-surface-brand);
+  border-radius: var(--od-radius-lg);
+  overflow-wrap: anywhere;
+}
+.phraseSpotlight > p {
+  margin: 0;
+}
+.phraseSpotlight > p:first-child {
+  font-size: var(--od-font-size-xl);
+  line-height: var(--od-type-h1-line);
+  font-weight: var(--od-font-weight-semibold);
+}
+.lessonPassage {
+  padding: var(--od-space-5);
+  background: var(--od-color-surface-sunken);
+  border-radius: var(--od-radius-lg);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lessonDisclosureLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--od-space-2);
+}
+.lessonDisclosureLabel svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+}
+.lessonExamples {
+  display: grid;
+  gap: var(--od-space-4);
+  margin: 0;
+}
+.lessonExamples > div {
+  display: grid;
+  gap: var(--od-space-1);
+}
+.lessonExamples dt {
+  font-weight: var(--od-font-weight-semibold);
+}
+.lessonExamples dd {
+  margin: 0;
+  color: var(--od-color-text-muted);
+}
+.activityInvitation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--od-space-5);
+  padding-block: var(--od-space-5);
+}
+.lessonFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-3);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+}
+@container workspace (max-width: 48rem) {
+  .lessonWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .activityNavigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container workspace (max-width: 28rem) {
+  .activityNavigation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .phraseSpotlight {
+    padding: var(--od-space-5);
+  }
+}
+.activityTrack {
+  display: flex;
+  gap: var(--od-space-1);
+}
+.activityTrack > span {
+  flex: 1;
+  height: var(--od-space-2);
+  border-radius: var(--od-radius-pill);
+  background: var(--od-color-border-default);
+}
+.activityTrack > span[data-status="completed"] {
+  background: var(--od-color-action-primary);
+}
+.activityTrack > span[data-status="skipped"] {
+  background: transparent;
+  border: 1px dashed var(--od-color-text-muted);
+}
+.activityTrack > span[data-status="started"] {
+  background: var(--od-color-surface-brand);
+  border: 1px solid var(--od-color-action-primary);
 }
 .reviewActions {
   display: flex;
@@ -71,212 +424,6 @@
   width: 1rem;
   height: 1rem;
 }
-.progressHeadline > span:last-child {
-  font-size: var(--od-font-size-sm);
-}
-.progressRing {
-  position: relative;
-  width: 7rem;
-  height: 7rem;
-  flex-shrink: 0;
-}
-.progressRing svg {
-  width: 100%;
-  height: 100%;
-  fill: none;
-  stroke-width: 7;
-}
-.ringTrack {
-  stroke: var(--od-color-border-default);
-}
-.ringValue {
-  stroke: var(--od-color-action-primary);
-}
-.progressRing > span {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--od-space-1);
-}
-.progressRing strong {
-  font-size: var(--od-font-size-xl);
-}
-.progressRing small {
-  font-size: var(--od-font-size-sm);
-}
-.progressGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--od-space-4);
-  align-items: start;
-}
-.progressCard {
-  min-width: 0;
-}
-.progressCardHeading {
-  display: flex;
-  align-items: center;
-  gap: var(--od-space-3);
-  min-height: var(--od-control-min);
-}
-.progressCardHeading h2 {
-  margin: 0;
-}
-.progressCardHeading p {
-  margin: 0;
-  font-size: var(--od-font-size-xs);
-}
-.lessonNumber {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: var(--od-control-min);
-  height: var(--od-control-min);
-  border-radius: var(--od-radius-md);
-  background: var(--od-color-surface-brand);
-  color: var(--od-color-brand-ink);
-  font-weight: var(--od-weight-strong);
-}
-.lessonNumber svg {
-  width: var(--od-icon-md);
-  height: var(--od-icon-md);
-}
-.activityTrack {
-  display: flex;
-  gap: var(--od-space-1);
-  padding-top: var(--od-space-3);
-}
-.activityTrack > span {
-  flex: 1;
-  height: var(--od-space-2);
-  border-radius: var(--od-radius-pill);
-  background: var(--od-color-border-default);
-}
-.activityTrack > span[data-status="completed"] {
-  background: var(--od-color-action-primary);
-}
-.activityTrack > span[data-status="skipped"] {
-  background: transparent;
-  border: 1px dashed var(--od-color-text-muted);
-}
-.activityTrack > span[data-status="started"] {
-  background: var(--od-color-surface-brand);
-  border: 1px solid var(--od-color-action-primary);
-}
-.progressCardMeta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--od-space-2);
-  font-size: var(--od-font-size-sm);
-  color: var(--od-color-text-muted);
-}
-@container workspace (max-width: 45rem) {
-  .progressGrid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.checkpointIcon {
-  display: grid;
-  place-items: center;
-  width: var(--od-control-min);
-  height: var(--od-control-min);
-  border-radius: var(--od-radius-md);
-  background: var(--od-color-surface-brand);
-  color: var(--od-color-brand-ink);
-}
-.checkpointIcon svg,
-.recommendation > svg {
-  width: var(--od-icon-md);
-  height: var(--od-icon-md);
-}
-.pathCard,
-.lessonPreview {
-  display: grid;
-  gap: var(--od-space-4);
-  align-content: start;
-  min-width: 0;
-}
-.pathCard > *,
-.lessonPreview > *,
-.recommendation h2,
-.recommendation p {
-  margin: 0;
-}
-.pathCard > svg {
-  width: var(--od-space-6);
-  height: var(--od-space-6);
-  color: var(--od-color-action-primary);
-}
-.trailLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(14rem, 19rem);
-  gap: var(--od-space-6);
-  align-items: start;
-}
-.trail {
-  list-style: none;
-  margin: 0;
-  padding: var(--od-space-3) 0;
-  display: grid;
-  gap: var(--od-space-7);
-  min-width: 0;
-}
-.trail > li {
-  display: grid;
-  position: relative;
-  width: 82%;
-  margin-inline-start: 4%;
-}
-.trail > li:nth-child(even) {
-  margin-inline-start: 14%;
-}
-.trail > li:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  height: var(--od-space-7);
-  left: 45%;
-  width: 12%;
-  border-inline-start: 3px solid var(--od-color-border-default);
-  border-bottom: 3px solid var(--od-color-border-default);
-  border-end-start-radius: var(--od-radius-lg);
-  pointer-events: none;
-}
-.trail > li:nth-child(even)::after {
-  transform: scaleX(-1);
-}
-.trailStop {
-  display: grid;
-  gap: var(--od-space-2);
-  text-align: start;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.trailMeta {
-  font-size: var(--od-font-size-xs);
-  font-weight: var(--od-weight-regular, 400);
-}
-.activitySummary {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--od-space-3);
-}
-.activitySummary > span:nth-child(2) {
-  flex: 1;
-}
-@container workspace (max-width: 45rem) {
-  .trailLayout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .lessonPreview {
-    grid-row: 1;
-  }
-}
 .cardActions {
   padding-top: 0;
 }
@@ -288,22 +435,11 @@
   margin: 0;
   color: var(--od-color-text-muted);
 }
-.eyebrow {
-  color: var(--od-color-text-muted);
-  font-size: var(--od-font-size-xs);
-  font-weight: var(--od-weight-strong);
-  letter-spacing: normal;
-  text-transform: none;
-}
 .scenario {
   display: grid;
   gap: var(--od-space-3);
-  border-radius: var(--od-radius-md);
-  padding: 0;
-  background: transparent;
 }
-.scenario > *,
-.activitiesHeading {
+.scenario > * {
   margin: 0;
 }
 .explanation {
@@ -321,45 +457,62 @@
 .words dd {
   margin-inline-start: 0;
 }
-
-.recommendation {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--od-space-4);
-  background: var(--od-color-surface-brand);
-}
-.recommendation > p {
-  flex: 1;
-  min-width: 12rem;
-}
-
 .unitDetails {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.progressSummary {
+  display: grid;
+  gap: var(--od-space-3);
+  padding: var(--od-space-4);
+  background: var(--od-color-surface-sunken);
+  border-radius: var(--od-radius-md);
+}
+.progressStatus {
   display: flex;
-  flex-wrap: wrap;
-  align-items: start;
-  gap: var(--od-space-3) var(--od-space-6);
+  align-items: center;
+  gap: var(--od-space-2);
+  font-size: var(--od-font-size-sm);
 }
-.unitDetails > details {
-  border: 0;
+.lessonGoals {
+  display: grid;
+  gap: var(--od-space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-
-.unitDetails > details[open] {
-  flex-basis: 100%;
+.lessonGoals li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--od-space-3);
+  padding: var(--od-space-3);
+  background: var(--od-color-surface-sunken);
+  border-radius: var(--od-radius-md);
 }
-
-.unit {
-  gap: var(--od-space-4);
+.lessonGoals svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+  color: var(--od-color-brand-ink);
+}
+.unitOverview .words {
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+}
+.unitOverview .words > div {
+  display: grid;
+  gap: var(--od-space-1);
+  padding: var(--od-space-3);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-md);
+}
+.unitOverview .words dd {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
 }
 .unitOverview {
-  padding: var(--od-space-5);
-  gap: var(--od-space-3);
-  background: transparent;
-  border: 0;
-  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: 0;
-  padding-inline: 0;
+  display: grid;
+  gap: var(--od-space-4);
 }
 .completion {
   display: flex;
@@ -370,18 +523,17 @@
   color: var(--od-color-text-muted);
 }
 .completion progress {
-  appearance: none;
   width: 8rem;
-  height: 0.5rem;
-  border: 0;
-  border-radius: var(--od-radius-pill);
-  overflow: hidden;
-  background: var(--od-color-surface-brand);
 }
-.completion progress::-webkit-progress-bar {
-  background: var(--od-color-surface-brand);
-}
-.completion progress::-webkit-progress-value {
-  background: var(--od-color-action-primary);
-  border-radius: inherit;
+@container workspace (max-width: 45rem) {
+  .trailItem {
+    width: 100%;
+  }
+  .lessonPreview {
+    position: static;
+    width: auto;
+  }
+  .trailItem:not(:last-child) .trailButton::after {
+    display: none;
+  }
 }

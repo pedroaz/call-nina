@@ -1,4 +1,4 @@
-import { useState, useRef, type ReactNode } from "react";
+import { useState, useRef, type ReactNode, type ComponentProps } from "react";
 import {
   Dialog as AriaDialog,
   DialogTrigger,
@@ -62,6 +62,7 @@ export function ModalDialog(props: {
 export function ConfirmDialog(props: {
   trigger: string;
   menuLabel?: string;
+  menuItems?: ComponentProps<typeof OverflowMenu>["items"];
   triggerNode?: ReactNode;
   triggerVariant?: ButtonVariant;
   density?: "compact" | "comfortable";
@@ -91,6 +92,7 @@ export function ConfirmDialog(props: {
           label={props.menuLabel}
           disabled={pending}
           items={[
+            ...(props.menuItems ?? []),
             {
               id: "delete",
               label: props.trigger,

@@ -27,7 +27,6 @@ export function AppShell<Page extends string>(props: {
   helperOpen: boolean;
   helperTitle: string;
   helperToggleLabel: string;
-  exerciseMode?: boolean;
   content: ReactNode;
   helper: ReactNode;
   navFooter?: ReactNode;
@@ -132,7 +131,6 @@ export function AppShell<Page extends string>(props: {
   return (
     <div
       className={`${styles.shell} ${props.navCollapsed ? styles.navCollapsed : ""} ${props.helperOpen ? "" : styles.helperCollapsed}`}
-      data-exercise-mode={props.exerciseMode || undefined}
       data-nav-collapsed={props.navCollapsed || undefined}
     >
       <nav ref={navigation} className={styles.nav} aria-label={props.navigationLabel}>
@@ -216,6 +214,7 @@ export function AppShell<Page extends string>(props: {
         ref={helper}
         id="context-helper"
         tabIndex={-1}
+        data-focus-anchor
         className={styles.helper}
         hidden={!props.helperOpen}
         aria-label={props.helperTitle}

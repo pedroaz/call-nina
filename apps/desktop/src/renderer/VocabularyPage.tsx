@@ -353,7 +353,7 @@ function VocabularyWorkspace({
                     isDisabled={waiting || selected.length < 3 || selected.length > 30}
                     onPress={() => void studyFlashcards()}
                   >
-                    {t("flashcards.study")}
+                    {t("flashcards.studyAction")}
                   </Button>
                   {selected.length < 3 && <span>{t("flashcards.selectRange")}</span>}
                   <Button
