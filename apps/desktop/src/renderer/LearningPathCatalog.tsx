@@ -2,8 +2,9 @@ import type { CourseUnit, LearningCourse, LearningPathState } from "@call-nina/c
 import { resolveCourseReference } from "@call-nina/domain";
 import { ArrowRight, BookOpen, Check, Flag } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useRef } from "react";
 import { Button, Card, Muted, TextField, SelectField } from "./components/ui/index.js";
-import { ContentRow, Section } from "./components/layout/index.js";
+import { ActionGroup, ContentRow, Section } from "./components/layout/index.js";
 import {
   lessonCounts,
   lessonStateKey,
@@ -45,6 +46,7 @@ export function LearningPathCatalog({
   onFilter: (filter: { query: string; kind: string; level: string }) => void;
 }) {
   const { t } = useTranslation();
+  const filters = useRef<HTMLDivElement>(null);
   const { query, kind, level } = filter;
   const normalized = query.trim().toLocaleLowerCase();
   const paths = course.paths.filter(
@@ -142,12 +144,26 @@ export function LearningPathCatalog({
         <Section
           title={t("pathFlow.explorePaths")}
           actions={
-            <Muted as="span" className={styles.resultCount} role="status">
-              {t("pathCatalog.results", { count: paths.length, total: course.paths.length })}
-            </Muted>
+            <ActionGroup>
+              <Muted as="span" className={styles.resultCount} role="status">
+                {t("pathCatalog.results", { count: paths.length, total: course.paths.length })}
+              </Muted>
+              {(query || kind !== "all" || level !== "all") && (
+                <Button
+                  variant="quiet"
+                  density="compact"
+                  onPress={() => {
+                    onFilter({ query: "", kind: "all", level: "all" });
+                    filters.current?.querySelector("input")?.focus();
+                  }}
+                >
+                  {t("vocabulary.flow.clearFilters")}
+                </Button>
+              )}
+            </ActionGroup>
           }
         >
-          <div className={styles.catalogFilters}>
+          <div ref={filters} className={styles.catalogFilters}>
             <TextField
               density="compact"
               type="search"

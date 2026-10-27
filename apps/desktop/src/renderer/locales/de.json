@@ -105,8 +105,8 @@
     "library": {
       "title": "Gespeicherte Aktivitäten",
       "body": "Öffne gespeicherte Aktivitäten und erstellte Übungen.",
-      "count_one": "{{count}} bereit",
-      "count_other": "{{count}} bereit",
+      "count_one": "{{count}} Aktivität",
+      "count_other": "{{count}} Aktivitäten",
       "loading": "Deine Übungen werden geladen…",
       "empty": "Noch keine gespeicherten Übungen. Öffne „Neue Übung“, um zu beginnen.",
       "filterLabel": "Aktivitäten nach Art filtern",
@@ -401,7 +401,7 @@
       "countOption_one": "{{count}} Übung",
       "countOption_other": "{{count}} Übungen",
       "generate": "Quiz erstellen",
-      "generating": "Quiz wird erstellt…",
+      "generating": "Aktivität wird erstellt…",
       "failed": "Das Quiz konnte nicht erstellt werden. Deine Anfrage bleibt für einen neuen Versuch erhalten.",
       "vocabulary": "Wortschatzgrundlagen"
     },
@@ -486,7 +486,8 @@
       "selectWord": "{{word}} auswählen",
       "selected": "{{count}} ausgewählt",
       "clearSelection": "Auswahl aufheben",
-      "resultCount": "{{count}} passende Wörter",
+      "resultCount_one": "{{count}} passendes Wort",
+      "resultCount_other": "{{count}} passende Wörter",
       "noMatches": "Keine Wörter passen zu dieser Suche und diesem Filter.",
       "previous": "Zurück",
       "next": "Weiter",
@@ -505,7 +506,8 @@
       "next": "Nächstes Wort",
       "skip": "Geändertes Wort überspringen",
       "complete": "Wiederholung abgeschlossen",
-      "reviewed": "{{count}} Wörter wiederholt.",
+      "reviewed_one": "{{count}} Wort wiederholt.",
+      "reviewed_other": "{{count}} Wörter wiederholt.",
       "noneDue": "Aktuell sind keine Wörter fällig.",
       "another": "Weitere Wörter wiederholen",
       "failed": "Das Ergebnis konnte nicht bestätigt werden. Überspringe dieses Wort oder aktualisiere den Wortschatz.",
@@ -780,7 +782,6 @@
     "delete": "Diesen Eintrag löschen",
     "deleteTitle": "Diesen Verlaufseintrag löschen?",
     "deleteBody": "Dadurch werden Versuch, Antwort, Korrektur und Rückmeldung dauerhaft gelöscht. Die Aktion kann nicht rückgängig gemacht werden.",
-    "referenceOnly": "Dieser Eintrag enthält einen portablen Verweis; die Detailansicht gehört zu einem späteren Aktivitätsbereich.",
     "patterns": {
       "title": "Fehlerbelege",
       "intro": "Muster werden nach wirksamer Grammatik- oder Wortschatzkategorie und Datum gruppiert. Wiederholung ist ein beschreibender Beleg, keine Beherrschungswertung.",
@@ -807,7 +808,8 @@
         "failed": "Die gezielte Übung konnte nicht erstellt werden. Deine Belege wurden nicht verändert."
       }
     },
-    "laterFeedback": "Späteres Feedback"
+    "laterFeedback": "Späteres Feedback",
+    "deleteReviewBody": "Diese Wiederholung aus dem Verlauf entfernen? Das Wort und sein Wiederholungsplan bleiben unverändert."
   },
   "pages": {
     "writing": "Schreiben",
@@ -1101,6 +1103,7 @@
     "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst."
   },
   "ui": {
+    "about": "Informationen zu {{topic}}",
     "newPractice": "Neu",
     "moreFilters": "Weitere Filter",
     "details": "Details",
@@ -1170,7 +1173,7 @@
       "action": "Aktion"
     },
     "supporting": "Die App speichert außerdem Verknüpfungen zwischen Datensätzen, deine Datenschutzbestätigung und kleine Speicher- und Löschvermerke zur Duplikatvermeidung. Sie unterstützen die oben genannten Funktionen.",
-    "privacy": "Deine Lerndaten werden lokal gespeichert. Bei KI-Aktionen werden ausgewählte Texte und Lernkontext über Codex gesendet. Codex verwaltet Konto und Gespräche separat; Call Nina speichert kein Audio.",
+    "privacy": "Deine Lerndaten werden lokal gespeichert. KI-Aktionen senden ausgewählten Text und Lernkontext an die von dir gewählte KI-Verbindung. Sprachaktivitäten öffnen sich in Codex, das sein Konto und seine Unterhaltungen separat verwaltet. Call Nina speichert keine Audiodaten.",
     "storageHelp": "Deine Lerndatensätze liegen in einer gemeinsamen lokalen Datenbank. Größere Dateien und Recherchematerial haben eigene Ordner.",
     "storageCaption": "Wo deine Daten liegen",
     "status": {
@@ -1207,7 +1210,7 @@
         "success": "Wortschatz, Sammlungen und Wiederholungsverlauf gelöscht."
       },
       "learning": {
-        "title": "Für Tests neu anfangen",
+        "title": "Neu anfangen",
         "action": "Alle Lerndaten löschen",
         "removes": "Entfernt alle Übungen, Lektionen, Antworten, Feedback, Fehler, Lernerkenntnisse, Wortschatz, Voice-Zusammenfassungen und den Lernverlauf in diesem Datenordner.",
         "keeps": "Behält deine Profildaten, Einstellungen und den ausgewählten Datenordner, damit du ohne erneute Einrichtung weiterüben kannst.",
@@ -1324,6 +1327,7 @@
     },
     "status": {
       "not-started": "Noch nicht begonnen",
+      "ready-to-retry": "Bereit für einen neuen Versuch",
       "started": "Begonnen",
       "completed": "Abgeschlossen",
       "skipped": "Übersprungen"

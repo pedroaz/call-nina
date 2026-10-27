@@ -155,7 +155,13 @@ export function VocabularyDetails(props: {
       {entry && !editing && (
         <>
           <VocabularyInformation entry={entry} />
-          <p>{t(`vocabulary.filters.${entry.state.status}`)}</p>
+          <p
+            data-vocabulary-id={entry.vocabularyId}
+            data-root-generation={props.rootGeneration}
+            data-learning-language={entry.targetLanguage}
+          >
+            {t(`vocabulary.filters.${entry.state.status}`)}
+          </p>
           {entry.state.status !== "candidate" && (
             <>
               <p>{t("vocabulary.due", { date: entry.state.dueOn, stage: entry.state.stage })}</p>

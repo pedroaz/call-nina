@@ -1,5 +1,5 @@
 import { useContext, useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Tabs } from "../ui/index.js";
 import { ActivityLayoutContext } from "./ActivityWorkspace.js";
 import styles from "./Activity.module.css";
@@ -25,7 +25,7 @@ export function ActivityReference({
       }}
     >
       <summary>
-        <ChevronDown aria-hidden="true" />
+        <ChevronRight aria-hidden="true" />
         {label}
       </summary>
       <div className={styles.referenceContent}>

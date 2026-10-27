@@ -439,7 +439,6 @@ export function SettingsPage({
           >
             {t("nav.personalData")}
           </Button>
-          {(dirty || connectionPending) && <span>{t("onboarding.saveSettingsFirst")}</span>}
         </ActionGroup>
       }
       title={t("settings.title")}
@@ -449,6 +448,9 @@ export function SettingsPage({
         disabled: dirty || connectionPending || Boolean(loginId),
       }}
     >
+      {(dirty || connectionPending) && (
+        <Muted role="status">{t("onboarding.saveSettingsFirst")}</Muted>
+      )}
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
       {error && <SettingsError error={error} />}
       {integrationFailure && (

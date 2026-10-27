@@ -362,6 +362,7 @@ export function useExerciseSession({
     position,
     furthestPosition,
     values,
+    valuesByPosition,
     savingSupport,
     supportFailed,
     hintCount,

@@ -99,6 +99,18 @@ export function LearningPathLesson({
       sameCourseActivity(a.reference, ref) &&
       (!selectedMission || a.missionId === selectedMission.id),
   );
+  const statusLabel = (item: CourseActivity) => {
+    const itemReference = reference(selected, item);
+    const itemStatus = courseActivityStatus(state, itemReference);
+    const hasPreviousAttempt = state.activities.some(
+      (attempt) =>
+        sameCourseActivity(attempt.reference, itemReference) &&
+        (!selectedMission || attempt.missionId === selectedMission.id),
+    );
+    return t(
+      `learningPath.status.${itemStatus === "not-started" && hasPreviousAttempt ? "ready-to-retry" : itemStatus}`,
+    );
+  };
   const explanation = activity.delivery === "explanation";
   const firstExample = selected.examples[0];
   const finished = counts(selected).completed === counts(selected).total;
@@ -153,7 +165,7 @@ export function LearningPathLesson({
                           variant="quiet"
                           className={styles.activityChoice}
                           {...(item.id === activity.id ? { "aria-current": "step" as const } : {})}
-                          aria-label={`${item.title[locale]} — ${t(`learningPath.status.${itemStatus}`)}`}
+                          aria-label={`${item.title[locale]} — ${statusLabel(item)}`}
                           aria-controls="lesson-activity-panel"
                           data-path-activity={item.id}
                           data-path-focus={`select-activity:${item.id}`}
@@ -189,7 +201,7 @@ export function LearningPathLesson({
                   >
                     <header className={styles.learningPanelHeader}>
                       <div className={styles.summaryText}>
-                        <Muted as="span">{t(`learningPath.status.${status}`)}</Muted>
+                        <Muted as="span">{statusLabel(activity)}</Muted>
                         <h2 id="lesson-activity-heading">{activity.title[locale]}</h2>
                       </div>
                       {explanation && (
@@ -440,15 +452,11 @@ export function LearningPathLesson({
                     </Disclosure>
                     <Disclosure density="compact" label={t("missions.language")}>
                       <p>{selected.grammar[locale]}</p>
-                      <Button
-                        variant="primary"
-                        isDisabled={busy}
-                        onPress={() => {
-                          onAddVocabulary();
-                        }}
-                      >
-                        {t("missions.addVocabulary")}
-                      </Button>
+                      <ActionGroup>
+                        <Button variant="secondary" isDisabled={busy} onPress={onAddVocabulary}>
+                          {t("missions.addVocabulary")}
+                        </Button>
+                      </ActionGroup>
                       {vocabularyAdded !== undefined && (
                         <Feedback live="polite">
                           {t("missions.vocabularyAdded", { count: vocabularyAdded })}
@@ -459,7 +467,7 @@ export function LearningPathLesson({
                           .filter((target) => selected.targetIds.includes(target.id))
                           .map((target) => (
                             <div key={target.id}>
-                              <dt>{target.text}</dt>
+                              <dt lang={snapshot.learningContext.targetLanguage}>{target.text}</dt>
                               <dd>{target.meaning[locale]}</dd>
                             </div>
                           ))}
@@ -469,7 +477,9 @@ export function LearningPathLesson({
                         {course.targets
                           .filter((target) => selected.reviewTargetIds.includes(target.id))
                           .map((target) => (
-                            <li key={target.id}>{target.text}</li>
+                            <li key={target.id} lang={snapshot.learningContext.targetLanguage}>
+                              {target.text}
+                            </li>
                           ))}
                       </ItemList>
                     </Disclosure>

@@ -39,6 +39,7 @@ export function ExerciseEngine(
     position,
     furthestPosition,
     values,
+    valuesByPosition,
     savingSupport,
     evaluations,
     currentEvaluation,
@@ -75,6 +76,7 @@ export function ExerciseEngine(
     return (
       <ActivityFrame taskLabel={taskLabel}>
         <ActivityCompletion
+          companion="listening"
           title={t("exercises.abandoned")}
           summary={<p>{t("exercises.abandonedBody")}</p>}
         />
@@ -85,24 +87,39 @@ export function ExerciseEngine(
     return (
       <ActivityFrame taskLabel={taskLabel}>
         <ActivityCompletion
+          companion="celebration"
           title={t("exercises.complete")}
           actions={completionActions}
           reviewLabel={t("exercises.reviewAnswers")}
           review={
-            <ol className={styles.answerReview}>
-              {evaluations.map((evaluation, index) => (
-                <li key={index}>
-                  <h3>
-                    {t("exercises.progress", { current: index + 1, total: exercises.length })}
-                  </h3>
-                  <Evaluation evaluation={evaluation} aiFeedback={aiFeedbackByPosition[index]} />
-                  {exercises[index]?.explanation && <p>{exercises[index].explanation}</p>}
-                  {aiFeedbackByPosition[index] && (
-                    <AiFeedback feedback={aiFeedbackByPosition[index]} />
-                  )}
-                </li>
-              ))}
-            </ol>
+            <>
+              {reference}
+              <ol className={styles.answerReview}>
+                {evaluations.map((evaluation, index) => (
+                  <li key={index}>
+                    <h3>
+                      {t("exercises.progress", { current: index + 1, total: exercises.length })}
+                    </h3>
+                    {exercises[index] && (
+                      <div className={styles.questionSection}>
+                        <p>{exercises[index].instructions}</p>
+                        <ExerciseContent
+                          definition={exercises[index]}
+                          evaluated
+                          values={valuesByPosition[index] ?? []}
+                          setValue={() => {}}
+                        />
+                      </div>
+                    )}
+                    <Evaluation evaluation={evaluation} aiFeedback={aiFeedbackByPosition[index]} />
+                    {exercises[index]?.explanation && <p>{exercises[index].explanation}</p>}
+                    {aiFeedbackByPosition[index] && (
+                      <AiFeedback feedback={aiFeedbackByPosition[index]} />
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </>
           }
         />
       </ActivityFrame>

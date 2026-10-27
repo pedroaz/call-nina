@@ -3,6 +3,7 @@ declare module "*Activity.module.css" {
   const styles: {
     readonly body: string;
     readonly completion: string;
+    readonly completionHeading: string;
     readonly feedback: string;
     readonly footer: string;
     readonly footerLeading: string;
@@ -167,6 +168,7 @@ declare module "*ExerciseEngine.module.css" {
     readonly optionGroup: string;
     readonly questionHeader: string;
     readonly questionSection: string;
+    readonly submittedBlank: string;
   };
   export default styles;
 }
@@ -350,10 +352,8 @@ declare module "*PracticePage.module.css" {
     readonly historyDetail: string;
     readonly libraryFilterButton: string;
     readonly libraryFilters: string;
-    readonly practiceContent: string;
     readonly practiceControls: string;
     readonly practiceLessonBody: string;
-    readonly practiceSectionHeader: string;
     readonly quizLength: string;
     readonly quizLengthButton: string;
     readonly quizLengthOptions: string;
@@ -470,7 +470,6 @@ declare module "*VocabularyPage.module.css" {
     readonly table: string;
     readonly tableRegion: string;
     readonly toolbar: string;
-    readonly welcome: string;
     readonly word: string;
   };
   export default styles;

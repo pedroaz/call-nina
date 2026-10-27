@@ -327,7 +327,7 @@ async function serve(resume = false) {
       }
       if (
         action === "cleanup" &&
-        (!/^(activity|material)_[0-9a-z]{16,64}$/.test(request.id ?? "") ||
+        (!/^(activity|material|vocabulary)_[0-9a-z]{16,64}$/.test(request.id ?? "") ||
           !session.journal.records.some((entry) => entry.id === request.id))
       )
         throw failure("VERIFY_RECORD_NOT_OWNED");
@@ -447,6 +447,11 @@ async function serve(resume = false) {
             .locator("[data-material-id]")
             .first()
             .getAttribute("data-material-id", { timeout: 500 })
+            .catch(() => null),
+          openedVocabularyId: await page
+            .locator("[data-vocabulary-id]:visible")
+            .first()
+            .getAttribute("data-vocabulary-id", { timeout: 500 })
             .catch(() => null),
           openedActivityId: await page
             .locator("[data-activity-id]")

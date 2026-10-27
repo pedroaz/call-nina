@@ -19,6 +19,7 @@ import {
   Feedback,
   FieldGroup,
   LoadingState,
+  TextAreaField,
 } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
@@ -538,26 +539,29 @@ export function ProfileOnboarding({
                     </SelectControl>
                   </FieldGroup>
                   <p>{t("onboarding.levelHint")}</p>
-                  <FieldGroup>
-                    <span>{t("onboarding.goal")}</span>
-                    <textarea
-                      aria-label={t("onboarding.goal")}
-                      required
-                      maxLength={500}
-                      rows={4}
-                      value={choices.everydayLifeGoal}
-                      onChange={(event) => {
-                        change("everydayLifeGoal", event.currentTarget.value);
-                      }}
-                    />
-                    <small>{t("onboarding.goalHint")}</small>
-                  </FieldGroup>
-                  {!choices.everydayLifeGoal.trim() && <p>{t("onboarding.goalRequired")}</p>}
+                  <TextAreaField
+                    label={t("onboarding.goal")}
+                    aria-label={t("onboarding.goal")}
+                    description={t("onboarding.goalHint")}
+                    error={
+                      choices.everydayLifeGoal.trim() ? undefined : t("onboarding.goalRequired")
+                    }
+                    required
+                    maxLength={500}
+                    rows={4}
+                    value={choices.everydayLifeGoal}
+                    onChange={(event) => {
+                      change("everydayLifeGoal", event.currentTarget.value);
+                    }}
+                  />
                 </fieldset>
               )}
               {step === 2 && (
-                <fieldset disabled={busy} className={styles.onboardingSection}>
-                  <legend>{t("onboarding.teachingTitle")}</legend>
+                <fieldset
+                  disabled={busy}
+                  className={styles.onboardingSection}
+                  aria-labelledby="setup-title"
+                >
                   <FieldGroup>
                     <span>{t("onboarding.teachingTitle")}</span>
                     <SelectControl
@@ -586,22 +590,15 @@ export function ProfileOnboarding({
                       change("explanationLanguage", language);
                     }}
                   />
-                  <LanguageSelect
-                    label={t("onboarding.interfaceLanguage")}
-                    value={choices.uiLocale}
-                    interfaceOnly
-                    disabled={busy}
-                    onChange={(language) => {
-                      change("uiLocale", language);
-                      void i18n.changeLanguage(language);
-                    }}
-                  />
                   <p>{t("onboarding.localeIndependent")}</p>
                 </fieldset>
               )}
               {step === 3 && (
-                <fieldset disabled={busy} className={styles.onboardingSection}>
-                  <legend>{t("onboarding.steps.review")}</legend>
+                <fieldset
+                  disabled={busy}
+                  className={styles.onboardingSection}
+                  aria-labelledby="setup-title"
+                >
                   {connectionStatus}
                   <p>
                     <strong>{t("onboarding.targetLanguage")}: </strong>

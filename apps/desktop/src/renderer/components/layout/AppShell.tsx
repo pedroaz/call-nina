@@ -43,6 +43,35 @@ export function AppShell<Page extends string>(props: {
   const helper = useRef<HTMLElement>(null);
   const { onToggleNavigation, onToggleHelper, navCollapsed, helperOpen } = props;
   useEffect(() => {
+    // A non-modal companion may cover content, but never the learner's keyboard focus.
+    const revealFocusedControl = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement) || !target.closest("#main-content")) return;
+      const bounds = target.getBoundingClientRect();
+      if (
+        helperOpen &&
+        window.matchMedia("(max-width: 80rem)").matches &&
+        helper.current &&
+        bounds.right > helper.current.getBoundingClientRect().left
+      )
+        onToggleHelper();
+      if (
+        !navCollapsed &&
+        window.matchMedia("(max-width: 68rem)").matches &&
+        navigation.current &&
+        bounds.left < navigation.current.getBoundingClientRect().right
+      )
+        onToggleNavigation();
+    };
+    const onFocus = (event: FocusEvent) => revealFocusedControl(event.target);
+    const onResize = () => revealFocusedControl(document.activeElement);
+    document.addEventListener("focusin", onFocus);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.removeEventListener("focusin", onFocus);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [helperOpen, navCollapsed, onToggleHelper, onToggleNavigation]);
+  useEffect(() => {
     if (helperOpen && focusHelperOnOpen.current) {
       helper.current?.focus();
       focusHelperOnOpen.current = false;
@@ -63,6 +92,18 @@ export function AppShell<Page extends string>(props: {
   };
   useEffect(() => {
     const handleShortcut = (event: globalThis.KeyboardEvent) => {
+      if (
+        !event.defaultPrevented &&
+        event.key === "Escape" &&
+        !navCollapsed &&
+        navigation.current?.contains(document.activeElement) &&
+        !document.querySelector('[role="dialog"][aria-modal="true"]')
+      ) {
+        event.preventDefault();
+        navigationToggle.current?.focus();
+        onToggleNavigation();
+        return;
+      }
       if (
         !event.defaultPrevented &&
         event.key === "Escape" &&

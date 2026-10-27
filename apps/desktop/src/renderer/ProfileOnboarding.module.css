@@ -11,10 +11,9 @@
 }
 
 .onboardingSection {
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-lg);
+  border: 0;
   min-width: 0;
-  padding: var(--od-space-6);
+  padding: 0;
   display: grid;
   gap: var(--od-space-4);
   margin-top: 0;
@@ -23,7 +22,8 @@
 .onboardingSection legend {
   font-size: var(--od-font-size-lg);
   font-weight: var(--od-weight-medium);
-  padding: 0 var(--od-space-3);
+  padding: 0;
+  margin-bottom: var(--od-space-4);
 }
 
 .controlLegend {

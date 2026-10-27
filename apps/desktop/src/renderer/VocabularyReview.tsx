@@ -146,6 +146,7 @@ export function VocabularyReview({
         )}
         {queue && !entry && (
           <ActivityCompletion
+            companion={reviewed > 0 ? "celebration" : "listening"}
             title={t("vocabulary.review.complete")}
             summary={
               <>

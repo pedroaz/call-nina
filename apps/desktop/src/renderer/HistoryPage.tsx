@@ -100,6 +100,8 @@ export function HistoryPage({
   const [toDate, setToDate] = useState("");
   const [curriculumTopicId, setCurriculumTopicId] = useState("");
   const [mistakeCategory, setMistakeCategory] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState<HistoryPayload>({ maximum: 100 });
+  const skillFilter = useRef<HTMLSelectElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
   const [practiceState, setPracticeState] = useState<
@@ -122,14 +124,7 @@ export function HistoryPage({
       setSnapshot(
         await invokeDesktop("history/read", {
           ...(entryIds?.length ? { historyEntryIds: entryIds } : {}),
-          ...(skill ? { skill } : {}),
-          ...(activityType ? { activityType } : {}),
-          ...(fromDate ? { fromDate: calendarDateSchema.parse(fromDate) } : {}),
-          ...(toDate ? { toDate: calendarDateSchema.parse(toDate) } : {}),
-          ...(curriculumTopicId.trim()
-            ? { curriculumTopicId: curriculumTopicIdSchema.parse(curriculumTopicId.trim()) }
-            : {}),
-          ...(mistakeCategory.trim() ? { mistakeCategory: mistakeCategory.trim() } : {}),
+          ...appliedFilters,
           maximum: 100,
         }),
       );
@@ -138,7 +133,45 @@ export function HistoryPage({
     } finally {
       setBusy(false);
     }
-  }, [entryIds, activityType, curriculumTopicId, fromDate, mistakeCategory, skill, toDate]);
+  }, [entryIds, appliedFilters]);
+
+  const applyFilters = () => {
+    try {
+      setAppliedFilters({
+        ...(skill ? { skill } : {}),
+        ...(activityType ? { activityType } : {}),
+        ...(fromDate ? { fromDate: calendarDateSchema.parse(fromDate) } : {}),
+        ...(toDate ? { toDate: calendarDateSchema.parse(toDate) } : {}),
+        ...(curriculumTopicId.trim()
+          ? { curriculumTopicId: curriculumTopicIdSchema.parse(curriculumTopicId.trim()) }
+          : {}),
+        ...(mistakeCategory.trim() ? { mistakeCategory: mistakeCategory.trim() } : {}),
+        maximum: 100,
+      });
+      setError(undefined);
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+    }
+  };
+  const clearFilters = () => {
+    setSkill("");
+    setActivityType("");
+    setFromDate("");
+    setToDate("");
+    setCurriculumTopicId("");
+    setMistakeCategory("");
+    setAppliedFilters({ maximum: 100 });
+    skillFilter.current?.focus();
+  };
+  const hasFilters = Boolean(
+    skill ||
+    activityType ||
+    fromDate ||
+    toDate ||
+    curriculumTopicId ||
+    mistakeCategory ||
+    Object.keys(appliedFilters).length > 1,
+  );
 
   useEffect(() => {
     const initial = window.setTimeout(() => void refresh(), 0);
@@ -341,12 +374,13 @@ export function HistoryPage({
         label={t("history.title")}
         onSubmit={(event) => {
           event.preventDefault();
-          void refresh();
+          applyFilters();
         }}
       >
         <FieldGroup>
           {t("history.filters.skill")}
           <SelectControl
+            ref={skillFilter}
             value={skill}
             onChange={(event) => {
               setSkill(event.target.value as Skill | "");
@@ -376,9 +410,16 @@ export function HistoryPage({
             ))}
           </SelectControl>
         </FieldGroup>
-        <Button variant="primary" isDisabled={busy} type="submit">
-          {t("history.filters.apply")}
-        </Button>
+        <ActionGroup>
+          <Button variant="secondary" isDisabled={busy} type="submit">
+            {t("history.filters.apply")}
+          </Button>
+          {hasFilters && (
+            <Button variant="quiet" isDisabled={busy} onPress={clearFilters}>
+              {t("vocabulary.flow.clearFilters")}
+            </Button>
+          )}
+        </ActionGroup>
         <Disclosure className={styles.advancedFilters} label={t("ui.moreFilters")}>
           <div className={styles.advancedGrid}>
             <FieldGroup>
@@ -534,6 +575,12 @@ export function HistoryPage({
             variant="bordered"
             key={entry.historyEntryId}
             data-history-entry-id={entry.historyEntryId}
+            data-history-vocabulary-id={
+              entry.entityKind === "vocabulary-review" &&
+              entry.evidence?.ownership.source.kind === "vocabulary-review"
+                ? entry.evidence.ownership.source.vocabularyId
+                : undefined
+            }
             data-history-activity-id={
               entry.detail.kind === "exercise-attempt" &&
               entry.evidence?.ownership.source.kind === "exercise" &&
@@ -556,7 +603,15 @@ export function HistoryPage({
             {entry.evidence && (
               <Muted as="p">{t(`history.evidenceBasis.${entry.evidence.basis}`)}</Muted>
             )}
-            <Disclosure label={t("ui.details")}>
+            <Disclosure
+              label={t("ui.details")}
+              hidden={
+                entry.detail.kind === "reference" &&
+                entry.entityKind !== "vocabulary-review" &&
+                entry.curriculumTopicIds.length === 0 &&
+                entry.mistakeCategories.length === 0
+              }
+            >
               {entry.curriculumTopicIds.length > 0 && (
                 <Muted as="p">
                   {t("history.topics")}: {entry.curriculumTopicIds.join(", ")}
@@ -925,9 +980,17 @@ export function HistoryPage({
                     />
                   </ActionGroup>
                 </div>
-              ) : (
-                <Muted as="p">{t("history.referenceOnly")}</Muted>
-              )}
+              ) : entry.entityKind === "vocabulary-review" ? (
+                <ConfirmDialog
+                  body={t("history.deleteReviewBody")}
+                  cancel={t("actions.cancel")}
+                  confirm={t("actions.delete")}
+                  onConfirm={() => deleteEntry(entry)}
+                  title={t("history.deleteTitle")}
+                  triggerVariant="quiet"
+                  trigger={t("history.delete")}
+                />
+              ) : null}
             </Disclosure>
           </ContentRow>
         ))}

@@ -55,16 +55,19 @@ function BlankAnswer({ definition, evaluated, values, setValue }: AnswerProps) {
       <span>{definition.content.leadingText}</span>
       {definition.content.blanks.map((blank, position) => (
         <span key={position}>
-          <label>
-            <input
-              aria-label={t("exercises.blank", { number: position + 1 })}
-              readOnly={evaluated}
-              value={values[position] ?? ""}
-              onChange={(event) => {
-                setValue(position, event.target.value);
-              }}
-            />
-          </label>
+          {evaluated ? (
+            <span className={styles.submittedBlank}>{values[position] ?? ""}</span>
+          ) : (
+            <label>
+              <input
+                aria-label={t("exercises.blank", { number: position + 1 })}
+                value={values[position] ?? ""}
+                onChange={(event) => {
+                  setValue(position, event.target.value);
+                }}
+              />
+            </label>
+          )}
           {blank.followingText}
         </span>
       ))}

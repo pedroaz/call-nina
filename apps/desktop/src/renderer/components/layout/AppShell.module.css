@@ -175,59 +175,61 @@
   background: var(--od-color-surface-brand);
   color: var(--od-color-text-strong);
 }
-@media (max-width: 68rem) {
-  .workspace {
-    padding-inline: var(--od-space-5);
+/* Keep the task usable when both companion panels cannot fit beside it. */
+@media (max-width: 80rem) {
+  .shell,
+  .helperCollapsed {
+    grid-template-columns: var(--od-nav-width) minmax(0, 1fr);
+  }
+  .navCollapsed,
+  .navCollapsed.helperCollapsed {
+    grid-template-columns: var(--od-nav-collapsed-width) minmax(0, 1fr);
+  }
+  .workspace,
+  .helperCollapsed .workspace {
+    padding-inline: calc(var(--helper-rail-width) + var(--od-space-3));
+  }
+  .helper {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(var(--od-helper-width), calc(100vw - var(--od-nav-collapsed-width)));
+    z-index: 5;
+    box-shadow: var(--od-shadow-pop);
   }
 }
-@media (max-width: 52rem) {
+@media (max-width: 68rem) {
   .shell,
   .navCollapsed,
   .helperCollapsed,
   .navCollapsed.helperCollapsed {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .helper {
-    border-left: 0;
-    border-top: var(--od-border-thin) solid var(--od-color-border-default);
-  }
-  .helperInner {
-    position: static;
-    height: min(42rem, 100dvh);
+    grid-template-columns: var(--od-nav-collapsed-width) minmax(0, 1fr);
   }
   .nav {
-    border-right: 0;
-    border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+    grid-column: 1;
+    grid-row: 1;
+    z-index: 7;
+  }
+  .shell:not(.navCollapsed) .nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--od-nav-width);
+    box-shadow: var(--od-shadow-pop);
+  }
+  .workspace {
+    grid-column: 2;
+    grid-row: 1;
   }
   .navInner {
-    height: auto;
-    position: static;
-    gap: var(--od-space-3);
-    padding-inline-end: var(--helper-rail-width);
-  }
-  .navList {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: var(--od-space-2);
-  }
-  .navList li {
-    flex: none;
-  }
-  .navButton {
-    white-space: nowrap;
-  }
-  .settingsNavigation {
-    margin-top: 0;
-  }
-  .workspace,
-  .helperCollapsed .workspace {
-    padding: var(--od-space-5);
-  }
-  .navCollapsed .brand {
-    justify-content: flex-start;
+    padding-inline: var(--od-space-2);
   }
 }
-@media (max-height: 48rem) and (min-width: 52.01rem) {
+@media (max-width: 52rem) {
+  .workspace,
+  .helperCollapsed .workspace {
+    padding: calc(var(--od-control-min) + var(--od-space-7)) var(--od-space-5) var(--od-space-5);
+  }
+}
+@media (max-height: 48rem) {
   .navInner {
     gap: var(--od-space-4);
   }

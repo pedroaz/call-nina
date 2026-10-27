@@ -17,6 +17,7 @@ import {
   ActivityCompletion,
   RecallCard,
 } from "./components/activity/index.js";
+import { ActionGroup } from "./components/layout/index.js";
 import { CompletionActions } from "./CompletionActions.js";
 import { useFlashcardSession } from "./useFlashcardSession.js";
 import { OperationError } from "./Startup.js";
@@ -53,6 +54,7 @@ export function FlashcardWorkspace({
   return (
     <ActivityWorkspace
       data-activity-id={activityId}
+      data-current-vocabulary-id={saved?.vocabularyId}
       data-activity-material-id={deck?.content.materials[0]?.materialId}
       data-activity-material-revision={deck?.content.materials[0]?.revisionId}
       data-root-generation={deck?.rootGeneration}
@@ -186,6 +188,7 @@ export function FlashcardWorkspace({
         >
           {deck.progress.completed ? (
             <ActivityCompletion
+              companion="celebration"
               title={t("flashcards.complete")}
               summary={<p>{t("flashcards.completeBody", { count: deck.content.cards.length })}</p>}
               actions={
@@ -201,9 +204,11 @@ export function FlashcardWorkspace({
                       onNina={onNina}
                     />
                   )}
-                  <Button variant="secondary" isDisabled={busy} onPress={() => move(0)}>
-                    {t("flashcards.restart")}
-                  </Button>
+                  <ActionGroup>
+                    <Button variant="quiet" isDisabled={busy} onPress={() => move(0)}>
+                      {t("flashcards.restart")}
+                    </Button>
+                  </ActionGroup>
                 </>
               }
             />

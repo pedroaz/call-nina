@@ -173,6 +173,10 @@
 }
 
 @media (max-width: 52rem) {
+  .stickyHeader {
+    position: static;
+  }
+
   .header,
   .sectionHeading {
     flex-wrap: wrap;

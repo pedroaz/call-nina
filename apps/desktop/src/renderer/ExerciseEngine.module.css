@@ -62,6 +62,14 @@
   max-width: 100%;
   margin-inline: var(--od-space-2);
 }
+.submittedBlank {
+  background: var(--od-color-surface-sunken);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-inline: var(--od-space-2);
+  margin-inline: var(--od-space-2);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
 .exercisePrompt {
   border-inline-start: var(--od-border-outlined) solid var(--od-color-brand);
   margin: 0;
@@ -94,6 +102,15 @@
 .answerReview > li + li {
   border-top: var(--od-border-thin) solid var(--od-color-border-default);
   padding-top: var(--od-space-4);
+}
+.answerReview > li {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.answerReview h3,
+.answerReview p {
+  margin: 0;
 }
 .hintPopover {
   background: var(--od-color-surface-card);

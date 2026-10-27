@@ -871,7 +871,8 @@ export class HistoryRepository {
         if (result.changes !== 1) throw new Error("OD_VOICE_SUMMARY_NOT_FOUND");
         return;
       }
-      if (entry.entity_kind === "placement") {
+      if (entry.entity_kind === "placement" || entry.entity_kind === "vocabulary-review") {
+        // Removing a review from History must not rewind the word's review schedule.
         const result = connection
           .prepare(`DELETE FROM history_entries WHERE history_entry_id = ?`)
           .run(historyEntryId);

@@ -31,6 +31,7 @@ import {
 import styles from "./LearningPathPage.module.css";
 
 type Props = {
+  onLanguageSwitchBlockedChange?: (blocked: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onNina: () => void;
   onOpenHistory: (
@@ -66,6 +67,7 @@ export function LearningPathPage(props: Props) {
   );
 }
 function LearningPathWorkspace({
+  onLanguageSwitchBlockedChange,
   snapshot,
   refresh,
   readError,
@@ -92,6 +94,11 @@ function LearningPathWorkspace({
   const [launchOrigin, setLaunchOrigin] = useState<string>();
   const [changingSituation, setChangingSituation] = useState(false);
   const [changedUnit, setChangedUnit] = useState<string>();
+  const languageSwitchBlocked = Boolean(active || busy || generation.busy || changingSituation);
+  useEffect(() => {
+    onLanguageSwitchBlockedChange?.(languageSwitchBlocked);
+    return () => onLanguageSwitchBlockedChange?.(false);
+  }, [languageSwitchBlocked, onLanguageSwitchBlockedChange]);
   const [error, setError] = useState<CallNinaError>();
   const navigationPositions = useRef(
     new Map<string, { scroll: number; focus: string | undefined }>(),

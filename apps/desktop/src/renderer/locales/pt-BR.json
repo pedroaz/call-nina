@@ -105,8 +105,8 @@
     "library": {
       "title": "Atividades salvas",
       "body": "Abra atividades salvas e exercícios gerados.",
-      "count_one": "{{count}} pronta",
-      "count_other": "{{count}} prontas",
+      "count_one": "{{count}} atividade",
+      "count_other": "{{count}} atividades",
       "loading": "Carregando seus exercícios…",
       "empty": "Ainda não há atividades salvas. Abra Nova prática para começar.",
       "filterLabel": "Filtrar atividades por tipo",
@@ -401,7 +401,7 @@
       "countOption_one": "{{count}} exercício",
       "countOption_other": "{{count}} exercícios",
       "generate": "Criar questionário",
-      "generating": "Criando questionário…",
+      "generating": "Criando atividade…",
       "failed": "Não foi possível criar o questionário. Seu pedido continua disponível para tentar novamente.",
       "vocabulary": "Fundamentos de vocabulário"
     },
@@ -486,7 +486,8 @@
       "selectWord": "Selecionar {{word}}",
       "selected": "{{count}} selecionadas",
       "clearSelection": "Limpar seleção",
-      "resultCount": "{{count}} palavras encontradas",
+      "resultCount_one": "{{count}} palavra encontrada",
+      "resultCount_other": "{{count}} palavras encontradas",
       "noMatches": "Nenhuma palavra corresponde à busca e ao filtro.",
       "previous": "Anterior",
       "next": "Próxima",
@@ -505,7 +506,8 @@
       "next": "Próxima palavra",
       "skip": "Pular palavra alterada",
       "complete": "Revisão concluída",
-      "reviewed": "{{count}} palavras revisadas.",
+      "reviewed_one": "{{count}} palavra revisada.",
+      "reviewed_other": "{{count}} palavras revisadas.",
       "noneDue": "Não há palavras para revisar agora.",
       "another": "Revisar outro grupo",
       "failed": "Não foi possível confirmar o resultado. Pule esta palavra ou volte à biblioteca para atualizar.",
@@ -780,7 +782,6 @@
     "delete": "Excluir este registro",
     "deleteTitle": "Excluir este registro do histórico?",
     "deleteBody": "Isso exclui permanentemente a tentativa, resposta, correção e avaliação salvas. Esta ação não pode ser desfeita.",
-    "referenceOnly": "Esta entrada mantém uma referência portátil; a visualização detalhada ficará disponível em outra área de atividades futuramente.",
     "patterns": {
       "title": "Evidências de erros",
       "intro": "Os padrões são agrupados por categoria efetiva de gramática ou vocabulário e por data. A repetição é uma evidência descritiva, não uma pontuação de domínio.",
@@ -807,7 +808,8 @@
         "failed": "Não foi possível criar a prática direcionada. Suas evidências não foram alteradas."
       }
     },
-    "laterFeedback": "Avaliação posterior"
+    "laterFeedback": "Avaliação posterior",
+    "deleteReviewBody": "Remover esta revisão do histórico? A palavra e seu cronograma de revisão permanecerão iguais."
   },
   "pages": {
     "writing": "Escrita",
@@ -1101,6 +1103,7 @@
     "dataRootBusy": "Conclua ou cancele a operação de IA ativa antes de mudar a pasta de dados."
   },
   "ui": {
+    "about": "Sobre {{topic}}",
     "newPractice": "Nova",
     "moreFilters": "Mais filtros",
     "details": "Detalhes",
@@ -1170,7 +1173,7 @@
       "action": "Ação"
     },
     "supporting": "O aplicativo também mantém vínculos entre registros, seu aceite do aviso de privacidade e pequenos registros de salvamento e exclusão que evitam duplicatas. Isso dá suporte aos recursos acima.",
-    "privacy": "Seus registros de aprendizagem são armazenados localmente. Quando você usa uma ação de IA, o texto selecionado e o contexto de aprendizagem são enviados pelo Codex. O Codex gerencia sua conta e suas conversas separadamente; o Call Nina não armazena áudio.",
+    "privacy": "Seus registros de aprendizagem são armazenados localmente. As ações de IA enviam o texto selecionado e o contexto de aprendizagem para a conexão de IA que você escolher. As atividades de voz abrem no Codex, que gerencia sua conta e suas conversas separadamente. O Call Nina não armazena áudio.",
     "storageHelp": "Seus registros de aprendizagem ficam em um único banco de dados local. Arquivos maiores e materiais de pesquisa ficam em pastas separadas.",
     "storageCaption": "Onde seus dados ficam",
     "status": {
@@ -1207,7 +1210,7 @@
         "success": "Conjunto de vocabulário, conjuntos e histórico de revisões apagados."
       },
       "learning": {
-        "title": "Recomeçar para testes",
+        "title": "Começar de novo",
         "action": "Apagar todos os dados de aprendizagem",
         "removes": "Exclui todas as práticas, lições, respostas, avaliações, erros, percepções sobre a aprendizagem, vocabulário, resumos do Voice e histórico de aprendizagem desta pasta de dados.",
         "keeps": "Mantém os dados do seu perfil, suas preferências e a pasta de dados selecionada, para que você possa voltar a praticar sem refazer a configuração inicial.",
@@ -1324,6 +1327,7 @@
     },
     "status": {
       "not-started": "Não iniciada",
+      "ready-to-retry": "Pronto para tentar novamente",
       "started": "Iniciada",
       "completed": "Concluída",
       "skipped": "Pulada"

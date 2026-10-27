@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useLayoutEffect,
   useRef,
   useState,
@@ -35,6 +36,32 @@ export function ActivityFrame({
   const header = useRef<HTMLDivElement>(null);
   const actions = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number>();
+  const keepFocusVisible = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      const element = frame.current;
+      const footer = actions.current;
+      const focused = document.activeElement;
+      if (
+        !element ||
+        !footer ||
+        element.hasAttribute("data-bounded") ||
+        !(focused instanceof HTMLElement) ||
+        !element.contains(focused) ||
+        footer.contains(focused)
+      )
+        return;
+      const control = focused.getBoundingClientRect();
+      const cover = footer.getBoundingClientRect();
+      if (
+        cover.top < window.innerHeight &&
+        control.bottom > cover.top &&
+        control.top < cover.bottom &&
+        control.right > cover.left &&
+        control.left < cover.right
+      )
+        focused.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+    });
+  }, []);
   useLayoutEffect(() => {
     const element = frame.current;
     if (!element) return;
@@ -50,6 +77,7 @@ export function ActivityFrame({
           ? Math.floor(available)
           : undefined;
       setHeight((current) => (current === next ? current : next));
+      keepFocusVisible();
     };
     const observer = new ResizeObserver(measure);
     observer.observe(page);
@@ -61,11 +89,12 @@ export function ActivityFrame({
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, []);
+  }, [keepFocusVisible]);
   return (
     <ActivityLayoutContext.Provider value={height !== undefined}>
       <div
         ref={frame}
+        onFocusCapture={keepFocusVisible}
         className={styles.frame}
         data-bounded={height !== undefined || undefined}
         data-reference={Boolean(reference) || undefined}

@@ -42,17 +42,6 @@
   display: grid;
   gap: var(--od-space-5);
 }
-.practiceSectionHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--od-space-5);
-  justify-content: space-between;
-}
-.practiceSectionHeader h2,
-.practiceSectionHeader p {
-  margin: 0;
-}
 .countBadge {
   color: var(--od-color-text-muted);
   font-size: var(--od-font-size-sm);
@@ -89,13 +78,6 @@
 }
 .libraryFilterButton {
   font-size: var(--od-font-size-sm);
-}
-.practiceContent {
-  min-width: 0;
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-lg);
-  padding: var(--od-space-7);
 }
 .practiceControls {
   display: flex;
@@ -169,9 +151,6 @@
   .voiceSetupGrid,
   .voiceSettingsGrid {
     grid-template-columns: 1fr;
-  }
-  .practiceContent {
-    padding: var(--od-space-5);
   }
 }
 .voiceQuestions h3,

@@ -42,6 +42,7 @@ import {
 import { ExerciseEngine } from "./ExerciseEngine.js";
 import styles from "./PracticePage.module.css";
 import {
+  Card,
   SelectControl,
   Button,
   Tabs,
@@ -73,6 +74,7 @@ type PracticeLibraryFilter =
 type PracticeLevel = "a1" | "a2" | "b1" | "b2";
 
 export function PracticePage({
+  onLanguageSwitchBlockedChange,
   selectedTab,
   onTabChange,
   targetLanguage,
@@ -91,6 +93,7 @@ export function PracticePage({
   onHistory,
   onNina,
 }: {
+  onLanguageSwitchBlockedChange?: (blocked: boolean) => void;
   selectedTab?: "new" | "saved";
   onTabChange?: (tab: "new" | "saved") => void;
   targetLanguage?: Language | undefined;
@@ -234,6 +237,28 @@ export function PracticePage({
     useState<
       Extract<DesktopIpcResponse, { status: "ok"; channel: "activity/resolve" }>["result"]
     >();
+
+  const languageSwitchBlocked = Boolean(
+    activityId ||
+    prepared ||
+    formBusy ||
+    deleting ||
+    [
+      customRequest,
+      grammarRequest,
+      flashcardTopic,
+      listeningTopic,
+      speakingTopic,
+      readingTopic,
+    ].some((text) => text.trim().length > 0) ||
+    [vocabularyMaterialState, readingMaterialState].some(
+      (state) => state.selected || state.view === "edit" || Object.keys(state.drafts).length > 0,
+    ),
+  );
+  useEffect(() => {
+    onLanguageSwitchBlockedChange?.(languageSwitchBlocked);
+    return () => onLanguageSwitchBlockedChange?.(false);
+  }, [languageSwitchBlocked, onLanguageSwitchBlockedChange]);
 
   const generated = prepared?.activity.activityId === activityId ? generatedResult : undefined;
   useEffect(() => {
@@ -759,7 +784,7 @@ export function PracticePage({
                 )}
 
                 {generationError && <OperationError error={generationError} />}
-                <div className={styles.practiceContent}>
+                <Card>
                   <div hidden={selectedKind !== "flashcards"}>
                     <Section as="article">
                       <Disclosure label={t("ui.practiceOptions")} variant="plain">
@@ -860,9 +885,7 @@ export function PracticePage({
                   <div hidden={selectedKind !== "reading"}>
                     <ReadingPractice
                       hideTopic
-                      settings=<Disclosure label={t("ui.practiceOptions")} variant="plain">
-                        {practiceSettings}
-                      </Disclosure>
+                      settings={practiceSettings}
                       topic={readingTopic}
                       setTopic={setReadingTopic}
                       materialState={readingMaterialState}
@@ -897,7 +920,7 @@ export function PracticePage({
                       onOpenActivity={onOpenActivity}
                     />
                   </div>
-                </div>
+                </Card>
               </div>
             ),
           },
@@ -912,16 +935,11 @@ export function PracticePage({
                 data-learning-language={library.learningScope?.targetLanguage}
                 data-library-ready={library.loaded && !libraryBusy && !libraryError}
               >
-                <div className={styles.practiceSectionHeader}>
-                  <div>
-                    <h2>{t("practice.library.title")}</h2>
-                  </div>
-                  {preparedActivities.length > 0 && (
-                    <span className={styles.countBadge}>
-                      {t("practice.library.count", { count: preparedActivities.length })}
-                    </span>
-                  )}
-                </div>
+                {preparedActivities.length > 0 && (
+                  <span className={styles.countBadge}>
+                    {t("practice.library.count", { count: preparedActivities.length })}
+                  </span>
+                )}
                 {(preparedActivities.length > 0 || libraryFilter !== "all") && (
                   <div
                     aria-label={t("practice.library.filterLabel")}

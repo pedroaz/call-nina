@@ -16,7 +16,7 @@ import {
   SelectField,
   ToggleButtonGroup,
 } from "./components/ui/index.js";
-import { ActionGroup, Page } from "./components/layout/index.js";
+import { ActionGroup, Page, Section } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import {
   useVocabularyLibrary,
@@ -32,6 +32,7 @@ import { VocabularyReview } from "./VocabularyReview.js";
 import styles from "./VocabularyPage.module.css";
 
 type Props = Readonly<{
+  onLanguageSwitchBlockedChange?: (blocked: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   targetLanguage?: Language | undefined;
   initialDueOnly?: boolean;
@@ -40,6 +41,7 @@ type Props = Readonly<{
 }>;
 
 export function VocabularyPage({
+  onLanguageSwitchBlockedChange,
   targetLanguage,
   initialDueOnly = false,
   onNavigate,
@@ -51,6 +53,7 @@ export function VocabularyPage({
     <VocabularyWorkspace
       key={library.rootGeneration ?? "unconfigured"}
       library={library}
+      onLanguageSwitchBlockedChange={onLanguageSwitchBlockedChange}
       targetLanguage={targetLanguage}
       onNavigate={onNavigate}
       onOpenActivity={onOpenActivity}
@@ -60,6 +63,7 @@ export function VocabularyPage({
 }
 
 function VocabularyWorkspace({
+  onLanguageSwitchBlockedChange,
   library,
   targetLanguage,
   onNavigate,
@@ -67,6 +71,7 @@ function VocabularyWorkspace({
   requestAiAccess,
 }: {
   library: ReturnType<typeof useVocabularyLibrary>;
+  onLanguageSwitchBlockedChange: Props["onLanguageSwitchBlockedChange"];
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   targetLanguage?: Language | undefined;
   onNavigate: Props["onNavigate"];
@@ -75,11 +80,17 @@ function VocabularyWorkspace({
   const { t } = useTranslation();
   const { result, query } = library;
   const [search, setSearch] = useState(query.search);
+  const filters = useRef<HTMLDivElement>(null);
   const [selection, setSelected] = useState<VocabularySummary[]>([]);
   const [detailId, setDetailId] = useState<VocabularyId>();
   const [reviewing, setReviewing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
+  const languageSwitchBlocked = reviewing || creating || Boolean(detailId) || busy;
+  useEffect(() => {
+    onLanguageSwitchBlockedChange?.(languageSwitchBlocked);
+    return () => onLanguageSwitchBlockedChange?.(false);
+  }, [languageSwitchBlocked, onLanguageSwitchBlockedChange]);
   const [error, setError] = useState<CallNinaError>();
   const [notice, setNotice] = useState("");
   const operation = useRef(0);
@@ -242,7 +253,13 @@ function VocabularyWorkspace({
           }}
         />
       )}
-      <div hidden={reviewing}>
+      <div
+        hidden={reviewing}
+        data-vocabulary-ready={Boolean(result && !waiting && !error && !library.error)}
+        data-vocabulary-total={result?.counts.all}
+        data-root-generation={result?.rootGeneration}
+        data-learning-language={targetLanguage}
+      >
         <Page
           title={t("vocabulary.title")}
           refresh={{ onRefresh: library.refresh, busy: waiting }}
@@ -287,8 +304,7 @@ function VocabularyWorkspace({
             </Feedback>
           )}
           {result && result.counts.all === 0 && !library.busy && (
-            <section className={styles.welcome}>
-              <h2>{t("vocabulary.flow.emptyTitle")}</h2>
+            <Section surface title={t("vocabulary.flow.emptyTitle")}>
               <p>{t("vocabulary.flow.previewHint")}</p>
               <ActionGroup>
                 <Button
@@ -300,16 +316,16 @@ function VocabularyWorkspace({
                   {t("vocabulary.flow.generate")}
                 </Button>
               </ActionGroup>
-            </section>
+            </Section>
           )}
           {result && result.counts.candidate > 0 && (
             <Feedback live="polite">
               {t("vocabulary.flow.suggestions", { count: result.counts.candidate })}
             </Feedback>
           )}
-          {result && (
+          {result && result.counts.all > 0 && (
             <>
-              <div className={styles.toolbar}>
+              <div ref={filters} className={styles.toolbar}>
                 <TextField
                   label={t("vocabulary.library.search")}
                   type="search"
@@ -397,7 +413,7 @@ function VocabularyWorkspace({
             </>
           )}
           {library.busy && <LoadingState live>{t("ui.loading")}</LoadingState>}
-          {result && (
+          {result && result.counts.all > 0 && (
             <>
               <div className={styles.tableRegion} aria-busy={waiting}>
                 <table className={`${tableStyles.table} ${styles.table}`}>
@@ -450,6 +466,7 @@ function VocabularyWorkspace({
                         </td>
                         <td>
                           <Button
+                            id={`vocabulary-open-${entry.vocabularyId}`}
                             variant="quiet"
                             className={styles.word}
                             ref={(node) => {
@@ -475,7 +492,9 @@ function VocabularyWorkspace({
                         </td>
                         <td>
                           <span>{t(`vocabulary.filters.${entry.status}`)}</span>
-                          <span className={styles.compactDue}>{nextReview(entry)}</span>
+                          {entry.status !== "suspended" && (
+                            <span className={styles.compactDue}>{nextReview(entry)}</span>
+                          )}
                         </td>
                         <td className={styles.dueColumn}>{nextReview(entry)}</td>
                       </tr>
@@ -497,6 +516,7 @@ function VocabularyWorkspace({
                         onPress={() => {
                           setSearch("");
                           changeQuery({ search: "", filter: "all", page: 0 });
+                          filters.current?.querySelector("input")?.focus();
                         }}
                       >
                         {t("vocabulary.flow.clearFilters")}

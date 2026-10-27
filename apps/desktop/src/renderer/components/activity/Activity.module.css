@@ -64,7 +64,7 @@
 }
 .task > h2,
 .task > p,
-.completion > h2 {
+.completionHeading > h2 {
   margin: 0;
 }
 .reference {
@@ -81,6 +81,9 @@
 .referenceDisclosure > summary svg {
   width: var(--od-icon-md);
   height: var(--od-icon-md);
+}
+.referenceDisclosure[open] > summary svg {
+  transform: rotate(90deg);
 }
 .referenceContent {
   padding-top: var(--od-space-4);
@@ -125,6 +128,16 @@
 .completion {
   display: grid;
   gap: var(--od-space-4);
+}
+/* Nina acknowledges a saved transition; learning evidence stays in the summary. */
+.completionHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.completionHeading h2 {
+  min-width: 0;
 }
 .recall {
   min-height: 19rem;

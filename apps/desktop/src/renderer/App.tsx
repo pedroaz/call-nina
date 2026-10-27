@@ -151,6 +151,15 @@ function DesktopWorkspace({
   const [ninaDrafts, setNinaDrafts] = useState<Record<string, NinaHomeDraft>>({});
   const ninaScopeKey = JSON.stringify(learningScope ?? null);
   const [switchingLanguage, setSwitchingLanguage] = useState(false);
+  const [practiceLanguageBlocked, setPracticeLanguageBlocked] = useState(false);
+  const [vocabularyLanguageBlocked, setVocabularyLanguageBlocked] = useState(false);
+  const [pathLanguageBlocked, setPathLanguageBlocked] = useState(false);
+  const languageSwitchBlocked =
+    page === "writing" ||
+    page === "settings" ||
+    (page === "practice" && practiceLanguageBlocked) ||
+    (page === "vocabulary" && vocabularyLanguageBlocked) ||
+    (page === "learningPath" && pathLanguageBlocked);
   const refreshScope = useCallback(async () => {
     const settings = await invokeDesktop("learner-settings/read", {});
     setLearningScope(settings.settings.learningScope);
@@ -158,7 +167,7 @@ function DesktopWorkspace({
   const selectTarget = async (targetLanguage: Language) => {
     if (
       switchingLanguage ||
-      page === "vocabulary" ||
+      languageSwitchBlocked ||
       !learningScope ||
       targetLanguage === learningScope.targetLanguage
     )
@@ -179,15 +188,15 @@ function DesktopWorkspace({
       setSwitchingLanguage(false);
     }
   };
-  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [navPreference, setNavPreference] = useState<boolean>();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [page]);
   const [wideHelper, setWideHelper] = useState(
-    () => window.matchMedia("(min-width: 68.01rem)").matches,
+    () => window.matchMedia("(min-width: 80.01rem)").matches,
   );
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 68.01rem)");
+    const media = window.matchMedia("(min-width: 80.01rem)");
     const update = () => {
       setWideHelper(media.matches);
     };
@@ -196,6 +205,7 @@ function DesktopWorkspace({
       media.removeEventListener("change", update);
     };
   }, []);
+  const navCollapsed = navPreference ?? !wideHelper;
   const [helperPreference, setHelperPreference] = useState<boolean>();
   const helperOpen = helperPreference ?? (page === "writing" && wideHelper);
   const [reminderOpen, setReminderOpen] = useState(false);
@@ -511,6 +521,7 @@ function DesktopWorkspace({
             {page === "practice" || (page === "writing" && writingOrigin === "practice") ? (
               <div ref={practiceContainer} hidden={page !== "practice"}>
                 <PracticePage
+                  onLanguageSwitchBlockedChange={setPracticeLanguageBlocked}
                   selectedTab={practiceTab}
                   onTabChange={setPracticeTab}
                   onWriting={() => {
@@ -583,6 +594,7 @@ function DesktopWorkspace({
             learningScope.courseId ===
               languageDefinitions[learningScope.targetLanguage].structuredCourseId ? (
               <LearningPathPage
+                onLanguageSwitchBlockedChange={setPathLanguageBlocked}
                 onNina={() => {
                   navigate("nina");
                 }}
@@ -630,6 +642,7 @@ function DesktopWorkspace({
             ) : null}
             {page === "vocabulary" ? (
               <VocabularyPage
+                onLanguageSwitchBlockedChange={setVocabularyLanguageBlocked}
                 requestAiAccess={openAi}
                 targetLanguage={learningScope?.targetLanguage}
                 onOpenActivity={(activityId) => {
@@ -681,6 +694,7 @@ function DesktopWorkspace({
           <ContextualHelper
             key={helperEpoch}
             selection={helperSelection}
+            targetLanguage={learningScope?.targetLanguage}
             requestAiAccess={openAi}
           />
         }
@@ -710,16 +724,10 @@ function DesktopWorkspace({
                 <LanguageSelect
                   label={t("onboarding.targetLanguage")}
                   value={learningScope.targetLanguage}
-                  disabled={
-                    switchingLanguage ||
-                    page === "writing" ||
-                    page === "practice" ||
-                    page === "vocabulary" ||
-                    page === "settings"
-                  }
+                  disabled={switchingLanguage || languageSwitchBlocked}
                   onChange={(language) => void selectTarget(language)}
                 />
-                {(page === "writing" || page === "practice" || page === "vocabulary") && (
+                {languageSwitchBlocked && page !== "settings" && (
                   <small>{t("settings.finishBeforeSwitch")}</small>
                 )}
               </>
@@ -736,12 +744,15 @@ function DesktopWorkspace({
           navCollapsed ? t("actions.expandNavigation") : t("actions.collapseNavigation")
         }
         onMoveNavFocus={moveNavFocus}
-        onNavigate={navigate}
+        onNavigate={(destination) => {
+          navigate(destination);
+          if (!wideHelper) setNavPreference(true);
+        }}
         onToggleHelper={() => {
           setHelperPreference(!helperOpen);
         }}
         onToggleNavigation={() => {
-          setNavCollapsed((current) => !current);
+          setNavPreference(!navCollapsed);
         }}
       />
       {reminderOpen && (

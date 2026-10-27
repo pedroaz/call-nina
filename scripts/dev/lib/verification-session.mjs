@@ -60,6 +60,14 @@ export const mutatingActions = [
   "restore",
   "stop",
 ];
+const recordKinds = ["practice", "speaking", "listening", "material", "vocabulary"];
+function recordIdPattern(kind) {
+  return kind === "material"
+    ? /^material_[0-9a-z]{16,64}$/
+    : kind === "vocabulary"
+      ? /^vocabulary_[0-9a-z]{16,64}$/
+      : /^activity_[0-9a-z]{16,64}$/;
+}
 export function validateVerificationJournal(previous) {
   if (
     !previous ||
@@ -93,9 +101,9 @@ export function validateVerificationJournal(previous) {
   if (
     previous.records.some(
       (r) =>
-        !(r.kind === "material" ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/).test(
-          r.id,
-        ) || !["practice", "speaking", "listening", "material"].includes(r.kind),
+        !recordIdPattern(r.kind).test(r.id) ||
+        !recordKinds.includes(r.kind) ||
+        (r.kind === "vocabulary" && !/^activity_[0-9a-z]{16,64}$/.test(r.sourceActivityId ?? "")),
     )
   )
     throw failure("VERIFY_RECOVERY_INVALID");
@@ -139,15 +147,8 @@ export function validateVerificationJournal(previous) {
   if (
     previous.baseline &&
     (!Array.isArray(previous.baseline.ids) ||
-      !["practice", "speaking", "listening", "material"].includes(previous.baseline.kind) ||
-      previous.baseline.ids.some(
-        (id) =>
-          !(
-            previous.baseline.kind === "material"
-              ? /^material_[0-9a-z]{16,64}$/
-              : /^activity_[0-9a-z]{16,64}$/
-          ).test(id),
-      ))
+      !recordKinds.includes(previous.baseline.kind) ||
+      previous.baseline.ids.some((id) => !recordIdPattern(previous.baseline.kind).test(id)))
   )
     throw failure("VERIFY_RECOVERY_INVALID");
   return { journal: previous, needsRecovery };
@@ -569,6 +570,30 @@ export class VerificationSession {
     return { model: "gpt-6-luna", effort: "runtime-default" };
   }
   async library(kind = "practice") {
+    if (kind === "vocabulary") {
+      await this.navigate(await this.t("nav.nina"));
+      await this.navigate(await this.t("nav.vocabulary"));
+      const section = this.page.locator("[data-vocabulary-ready]");
+      await until(
+        async () => (await section.getAttribute("data-vocabulary-ready")) === "true",
+        "VERIFY_LIBRARY_UNAVAILABLE",
+      );
+      const clear = await this.button("vocabulary.flow.clearFilters", section);
+      if (await clear.isVisible()) await clear.click();
+      await until(
+        async () => (await section.getAttribute("data-vocabulary-ready")) === "true",
+        "VERIFY_LIBRARY_UNAVAILABLE",
+      );
+      const total = Number(await section.getAttribute("data-vocabulary-total"));
+      if (
+        !Number.isSafeInteger(total) ||
+        total < 0 ||
+        total > 30 ||
+        (await section.locator('[id^="vocabulary-open-"]').count()) !== total
+      )
+        throw failure("VERIFY_VOCABULARY_BASELINE_INCOMPLETE");
+      return section;
+    }
     await this.navigate(await this.t("practice.title"));
     await this.page
       .getByRole("tab", { name: await this.t("practice.library.title"), exact: true })
@@ -577,12 +602,7 @@ export class VerificationSession {
       `practice.library.filters.${kind === "speaking" ? "voice-speaking" : kind === "listening" ? "codex-listening" : "all"}`,
     );
     if (await filter.isVisible()) await filter.click();
-    const section = this.page.locator("main section[aria-busy]").filter({
-      has: this.page.getByRole("heading", {
-        name: await this.t("practice.library.title"),
-        exact: true,
-      }),
-    });
+    const section = this.page.locator("main section[data-library-ready]");
     await until(
       async () => (await section.getAttribute("data-library-ready")) === "true",
       "VERIFY_LIBRARY_UNAVAILABLE",
@@ -634,7 +654,12 @@ export class VerificationSession {
   }
   async activityIds(kind = "practice") {
     const section = kind === "material" ? await this.materialLibrary() : await this.library(kind);
-    const prefix = kind === "material" ? "material-open-" : "activity-open-";
+    const prefix =
+      kind === "material"
+        ? "material-open-"
+        : kind === "vocabulary"
+          ? "vocabulary-open-"
+          : "activity-open-";
     const buttons = await section.locator(`[id^="${prefix}"]`).all();
     return Promise.all(
       buttons.map(async (button) => (await button.getAttribute("id")).slice(prefix.length)),
@@ -643,13 +668,13 @@ export class VerificationSession {
   async beginRecords(kind = "practice") {
     if (this.journal.notes.includes("UNCONFIRMED_CREATION"))
       throw failure("VERIFY_RECORD_BASELINE_UNRESOLVED");
-    if (!["practice", "speaking", "listening", "material"].includes(kind))
-      throw failure("VERIFY_RECORD_KIND_INVALID");
-    const materialIds = kind === "material" ? undefined : await this.activityIds("material");
-    const materialScope =
-      kind === "material"
-        ? undefined
-        : await this.scopeOf(this.page.locator("[data-material-workspace]:visible"));
+    if (!recordKinds.includes(kind)) throw failure("VERIFY_RECORD_KIND_INVALID");
+    const materialIds = ["material", "vocabulary"].includes(kind)
+      ? undefined
+      : await this.activityIds("material");
+    const materialScope = ["material", "vocabulary"].includes(kind)
+      ? undefined
+      : await this.scopeOf(this.page.locator("[data-material-workspace]:visible"));
     const ids = await this.activityIds(kind);
     const scope = await this.scopeOf(
       kind === "material" ? await this.materialLibrary() : await this.library(kind),
@@ -743,7 +768,8 @@ export class VerificationSession {
   }
   async trackActivity(id) {
     const material = this.baseline?.kind === "material";
-    if (!(material ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/).test(id ?? ""))
+    const vocabulary = this.baseline?.kind === "vocabulary";
+    if (!recordIdPattern(this.baseline?.kind).test(id ?? ""))
       throw failure("VERIFY_INVALID_ACTIVITY_ID");
     const owned = this.journal.records.find((record) => record.id === id);
     if (
@@ -752,10 +778,13 @@ export class VerificationSession {
         !(material && owned && this.baseline.revisions?.[id] === owned.revision))
     )
       throw failure("VERIFY_RECORD_NOT_NEW");
-    const visible = this.page.locator(
-      material ? "[data-material-id]:visible" : "[data-activity-id]:visible",
-    );
-    if ((await visible.getAttribute(material ? "data-material-id" : "data-activity-id")) !== id)
+    const identityAttribute = material
+      ? "data-material-id"
+      : vocabulary
+        ? "data-current-vocabulary-id"
+        : "data-activity-id";
+    const visible = this.page.locator(`[${identityAttribute}]:visible`);
+    if ((await visible.getAttribute(identityAttribute)) !== id)
       throw failure("VERIFY_RECORD_NOT_VISIBLE");
     await this.assertScope(
       material
@@ -763,6 +792,21 @@ export class VerificationSession {
         : visible,
       this.baseline,
     );
+    const sourceActivityId = vocabulary
+      ? await visible.getAttribute("data-activity-id")
+      : undefined;
+    if (
+      vocabulary &&
+      !this.journal.records.some(
+        (record) =>
+          record.id === sourceActivityId &&
+          record.kind !== "vocabulary" &&
+          record.kind !== "material" &&
+          record.language === this.baseline.language &&
+          record.rootGeneration === this.baseline.rootGeneration,
+      )
+    )
+      throw failure("VERIFY_VOCABULARY_SOURCE_NOT_OWNED");
     const revision = material ? await visible.getAttribute("data-material-revision") : undefined;
     if (material && !/^material-revision_[0-9a-z]{16,64}$/.test(revision ?? ""))
       throw failure("VERIFY_RECORD_NOT_VISIBLE");
@@ -792,8 +836,9 @@ export class VerificationSession {
         language: this.baseline.language,
         rootGeneration: this.baseline.rootGeneration,
         ...(material ? { revision } : {}),
+        ...(vocabulary ? { sourceActivityId } : {}),
       });
-    if (!material) {
+    if (!material && !vocabulary) {
       const materialId = await visible.getAttribute("data-activity-material-id");
       const materialRevision = await visible.getAttribute("data-activity-material-revision");
       if (materialId) {
@@ -830,7 +875,9 @@ export class VerificationSession {
       await history.waitFor();
       if ((await history.getAttribute("data-root-generation")) !== record.rootGeneration)
         throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
-      const candidate = history.locator(`[data-history-activity-id="${record.id}"]`).first();
+      const ownershipAttribute =
+        record.kind === "vocabulary" ? "data-history-vocabulary-id" : "data-history-activity-id";
+      const candidate = history.locator(`[${ownershipAttribute}="${record.id}"]`).first();
       if (!(await candidate.count())) return;
       const historyEntryId = await candidate.getAttribute("data-history-entry-id");
       if (!/^history-entry_[0-9a-z]{16,64}$/.test(historyEntryId ?? ""))
@@ -843,9 +890,12 @@ export class VerificationSession {
       await entry.waitFor({ state: "detached" });
       this.journal.receipts ??= [];
       this.journal.receipts.push({
-        code: "OWNED_ACTIVITY_HISTORY_REMOVED",
+        code:
+          record.kind === "vocabulary"
+            ? "OWNED_VOCABULARY_HISTORY_REMOVED"
+            : "OWNED_ACTIVITY_HISTORY_REMOVED",
         at: new Date().toISOString(),
-        activityId: record.id,
+        ...(record.kind === "vocabulary" ? { vocabularyId: record.id } : { activityId: record.id }),
         historyEntryId,
         language: record.language,
         rootGeneration: record.rootGeneration,
@@ -884,6 +934,29 @@ export class VerificationSession {
     )
       throw failure("VERIFY_ACTIVITY_CLEANUP_REQUIRED");
     await this.selectLanguage(record.language);
+    if (record.kind === "vocabulary") {
+      await this.cleanupActivityHistory(record);
+      const library = await this.library("vocabulary");
+      await this.assertScope(library, record);
+      const open = library.locator(`[id="vocabulary-open-${id}"]`);
+      if (await open.count()) {
+        await open.click();
+        const detail = this.page.locator(`[data-vocabulary-id="${id}"]:visible`);
+        await this.assertScope(detail, record);
+        await (await this.button("vocabulary.delete", this.page.getByRole("dialog"))).click();
+        await (
+          await this.button("vocabulary.delete", this.page.getByRole("dialog").last())
+        ).click();
+        await detail.waitFor({ state: "detached" });
+      }
+      await this.assertScope(await this.library("vocabulary"), record);
+      if ((await this.activityIds("vocabulary")).includes(id))
+        throw failure("VERIFY_RECORD_RETAINED");
+      this.recordCleanupReadback(record);
+      this.journal.records = this.journal.records.filter((entry) => entry.id !== id);
+      await this.persist();
+      return;
+    }
     if (record.kind === "material") {
       const workspace = await this.materialLibrary();
       await this.assertScope(workspace, record);
@@ -1026,7 +1099,9 @@ export class VerificationSession {
         throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
     }
     for (const record of [...this.journal.records].sort(
-      (a, b) => Number(a.kind === "material") - Number(b.kind === "material"),
+      (a, b) =>
+        (a.kind === "vocabulary" ? 0 : a.kind === "material" ? 2 : 1) -
+        (b.kind === "vocabulary" ? 0 : b.kind === "material" ? 2 : 1),
     )) {
       try {
         await this.cleanupActivity(record.id);

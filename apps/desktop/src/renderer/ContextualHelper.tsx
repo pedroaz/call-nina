@@ -52,9 +52,11 @@ export type ContextualHelperSelection = Readonly<{
 
 export function ContextualHelper({
   selection,
+  targetLanguage,
   requestAiAccess,
 }: {
   selection: ContextualHelperSelection | undefined;
+  targetLanguage: string | undefined;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
 }) {
   const { t } = useTranslation();
@@ -226,7 +228,7 @@ export function ContextualHelper({
                     <ItemList>
                       {turn.output.translations.map((translation) => (
                         <li key={`${translation.sourceText}:${translation.translatedText}`}>
-                          <span lang="de">{translation.sourceText}</span> —{" "}
+                          <span lang={targetLanguage}>{translation.sourceText}</span> —{" "}
                           {translation.translatedText}
                         </li>
                       ))}
