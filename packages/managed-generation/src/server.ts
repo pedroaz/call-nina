@@ -202,7 +202,7 @@ export async function accountResponse(
     const result = await sql.query("select * from nina_starter.access($1)", [userId]);
     const account = z
       .object({
-        status: z.enum(["approved", "unapproved", "suspended"]),
+        hosted_ai_enabled: z.boolean(),
         remaining_actions: z.coerce.number().int().nonnegative(),
       })
       .optional()
@@ -210,10 +210,7 @@ export async function accountResponse(
     return response(
       ninaAccessSchema.parse({
         userId,
-        eligibility:
-          account?.status === "approved" && account.remaining_actions === 0
-            ? "exhausted"
-            : (account?.status ?? "unapproved"),
+        hostedAiEnabled: account?.hosted_ai_enabled ?? false,
         remainingActions: account?.remaining_actions ?? 0,
         inferenceEnabled,
       }),

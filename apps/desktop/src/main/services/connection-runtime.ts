@@ -93,7 +93,7 @@ export class ConnectionRuntime {
         rootGeneration: database.rootGeneration,
         // Connection mutations wait for settlement; root/account changes invalidate the lease.
         assertActive: () => {
-          this.#dependencies.nina.assert(epoch);
+          this.#dependencies.nina.assertAi(epoch);
           if (this.#closing || database !== this.#database || database.closed)
             throw new Error("OD_DATA_ROOT_STALE");
         },

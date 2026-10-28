@@ -40,6 +40,8 @@
     "react-dom": "19.2.8",
     "react-i18next": "17.0.11",
     "typescript": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "@call-nina/mobile-sync": "workspace:*",
+    "@call-nina/learning-ui": "workspace:*"
   }
 }

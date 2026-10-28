@@ -41,7 +41,8 @@
     "progress": "Progreso",
     "settings": "Configuración",
     "personalData": "Datos personales",
-    "learningPath": "Ruta de aprendizaje"
+    "learningPath": "Ruta de aprendizaje",
+    "mobile": "Móvil"
   },
   "practice": {
     "eyebrow": "Elige en qué centrarte",
@@ -1498,45 +1499,6 @@
     "nextReview": "Próxima comprobación: {{date}}",
     "practiseMode": "Practicar {{mode}}"
   },
-  "flashcards": {
-    "title": "Tarjetas de estudio",
-    "count": "Número de tarjetas",
-    "description": "Explora el vocabulario a tu ritmo. Da vuelta a cada tarjeta para ver su significado y un ejemplo.",
-    "placeholder": "Por ejemplo: comprar en un supermercado",
-    "generate": "Generar tarjetas de estudio",
-    "complete": "Colección completada",
-    "completeBody": "Llegaste al final de esta colección de {{count}} tarjetas.",
-    "restart": "Reiniciar colección",
-    "back": "Volver a Práctica",
-    "position": "Tarjeta {{current}} de {{total}}",
-    "meaning": "Significado y ejemplos",
-    "plural": "Plural",
-    "pluralUnchanged": "Plural: sin cambios",
-    "previous": "Anterior",
-    "front": "Mostrar anverso",
-    "flip": "Dar vuelta a la tarjeta",
-    "finish": "Terminar",
-    "next": "Siguiente",
-    "saved": "En Vocabulario",
-    "saveWord": "Guardar palabra",
-    "saveAll": "Guardar todo en Vocabulario",
-    "openVocabulary": "Abrir Vocabulario",
-    "suspended": "Esta palabra está en pausa. Puedes reanudar los repasos programados en Vocabulario.",
-    "saveNotice": "Palabras guardadas. Se conservaron los calendarios de repaso existentes y las palabras en pausa.",
-    "delete": "Eliminar colección",
-    "deleteBody": "¿Eliminar esta colección y su progreso? También podría eliminarse el material de origen creado con ella que no se use y no se haya modificado. Las palabras guardadas en Vocabulario permanecerán.",
-    "vocabularyDeck": "Mis tarjetas de vocabulario",
-    "study": {
-      "word": "Palabra",
-      "progress": "Progreso de tarjetas",
-      "recall": "Recuerda el significado antes de voltear la tarjeta.",
-      "space": "Espacio",
-      "shortcuts": "← / → Navegar · Espacio Voltear · Tab Cambiar de control",
-      "saveHint": "Guarda palabras útiles para repasarlas después."
-    },
-    "selectRange": "Selecciona entre 3 y 30 palabras para crear una colección.",
-    "studyAction": "Estudiar palabras seleccionadas"
-  },
   "providerAccess": {
     "selectedRoute": "Conexión de IA: Codex",
     "preferences": "Estas opciones de modelo y razonamiento solo se aplican a Codex. Se conservan las opciones guardadas que no estén disponibles.",
@@ -1740,7 +1702,7 @@
       "removing": "Eliminando archivos del modelo…",
       "unavailable": "La gestión del modelo local no está disponible en este dispositivo."
     },
-    "managedUnavailable": "La IA gestionada requiere una cuenta Nina aprobada y acciones disponibles. El administrador del piloto controla la activación.",
+    "managedUnavailable": "La IA alojada de Nina requiere acceso a IA activado y acciones disponibles.",
     "remove": "Eliminar configuración del proveedor",
     "removeWarning": "¿Eliminar esta configuración? Las acciones asignadas requerirán configuración. Se conservan el aprendizaje y las sesiones de cuenta.",
     "successor": "Siguiente conexión activa",
@@ -1915,10 +1877,6 @@
     "signed-in": "Cuenta conectada",
     "expired": "Sesión caducada. Inicia sesión de nuevo.",
     "unavailable": "Servicio de cuentas no disponible temporalmente.",
-    "approved": "Acceso gestionado aprobado",
-    "unapproved": "Pendiente de aprobación",
-    "suspended": "Acceso gestionado suspendido",
-    "exhausted": "Cuota de IA agotada",
     "loginStage": {
       "initialization": "Preparando el acceso",
       "desktop": "Conectando con Nina",
@@ -1945,7 +1903,10 @@
     "diagnosticDetails": "Detalles de diagnóstico",
     "loginFailedTitle": "No se pudo iniciar sesión",
     "cancellingRequest": "Cancelado. Esperando a que termine la solicitud anterior antes de reintentar.",
-    "initializationFailed": "No se pudo iniciar el acceso. Vuelve a intentarlo en un momento."
+    "initializationFailed": "No se pudo iniciar el acceso. Vuelve a intentarlo en un momento.",
+    "aiEnabled": "IA alojada activada",
+    "aiDisabled": "IA alojada desactivada",
+    "noActions": "No quedan acciones de IA"
   },
   "providers": {
     "signInRequired": "Inicio de sesión necesario",
@@ -1980,5 +1941,19 @@
     "selectedDefault": "Predeterminado seleccionado",
     "checkingConnection": "Comprobando acceso…",
     "signInIncomplete": "Inicio de sesión incompleto"
+  },
+  "mobile": {
+    "download": "Descargar app móvil",
+    "sync": "Sincronizar datos móviles",
+    "syncing": "Sincronizando…",
+    "synced": "Datos móviles sincronizados.",
+    "lastSync": "Última carga: {{time}}",
+    "errors": {
+      "sign-in": "Inicia sesión para sincronizar.",
+      "unavailable": "Sincronización no disponible. Inténtalo de nuevo.",
+      "too-large": "La biblioteca supera el límite de 100 MiB.",
+      "changed": "La cuenta o biblioteca cambió. Inténtalo de nuevo.",
+      "busy": "Ya hay una sincronización en curso."
+    }
   }
 }

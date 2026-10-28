@@ -81,12 +81,16 @@ export function ProviderStatus({
         nina.identity.signedIn &&
         !nina.identity.pending &&
         nina.status === "signed-in" &&
-        (!nina.access?.inferenceEnabled || nina.access.eligibility !== "approved") && (
+        (!nina.access?.inferenceEnabled ||
+          !nina.access.hostedAiEnabled ||
+          nina.access.remainingActions <= 0) && (
           <span className={styles.statusIssue}>
             {t(
-              nina.access?.eligibility === "approved"
-                ? "ninaAccount.pending"
-                : "providers.accessRequired",
+              !nina.access?.hostedAiEnabled
+                ? "ninaAccount.aiDisabled"
+                : nina.access.remainingActions <= 0
+                  ? "ninaAccount.noActions"
+                  : "ninaAccount.pending",
             )}
           </span>
         )}

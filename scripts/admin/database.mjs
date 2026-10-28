@@ -46,7 +46,7 @@ export async function database(work) {
 export async function migrate() {
   await database(async (sql) => {
     requireMigrationPermissions(await migrationPermissions(sql));
-    for (const name of ["001-budget.sql", "002-accounts.sql"]) {
+    for (const name of ["001-budget.sql", "002-accounts.sql", "003-ai-access.sql", "004-mobile-sync.sql"]) {
       const source = await readFile(
         new URL(`../../packages/managed-generation/sql/${name}`, here),
         "utf8",

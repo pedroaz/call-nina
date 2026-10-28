@@ -77,3 +77,13 @@ export function accountSql(): BudgetSql {
     database = openBudgetSql(z.string().min(1).parse(process.env["NINA_STARTER_DATABASE_URL"]));
   return database;
 }
+
+// Keep snapshot transfers from occupying the account/generation connection pool.
+let mobileDatabase: ReturnType<typeof openBudgetSql> | undefined;
+export function mobileSql(): BudgetSql {
+  mobileDatabase ??= openBudgetSql(
+    z.string().min(1).parse(process.env["NINA_STARTER_DATABASE_URL"]),
+    "mobile-sync",
+  );
+  return mobileDatabase;
+}

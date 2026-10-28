@@ -290,3 +290,4 @@ export { chatgptRegistrationIdSchema, chatgptAccountsSchema } from "./chatgpt.js
 export * from "./nina-account.js";
 
 export * from "./vocabulary-learning.js";
+export * from "./mobile-sync.js";

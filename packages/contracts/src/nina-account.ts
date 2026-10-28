@@ -17,7 +17,7 @@ export const ninaPublicConfiguration = z
   .parse(configuration);
 export const ninaAccessSchema = z.strictObject({
   userId: z.string().min(1).max(256),
-  eligibility: z.enum(["approved", "unapproved", "suspended", "exhausted"]),
+  hostedAiEnabled: z.boolean(),
   remainingActions: z.int().nonnegative(),
   inferenceEnabled: z.boolean(),
 });

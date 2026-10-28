@@ -41,7 +41,8 @@
     "progress": "Progresso",
     "settings": "Configurações",
     "personalData": "Dados pessoais",
-    "learningPath": "Trilha de aprendizagem"
+    "learningPath": "Trilha de aprendizagem",
+    "mobile": "Celular"
   },
   "practice": {
     "eyebrow": "Escolha seu foco",
@@ -1498,45 +1499,6 @@
     "nextReview": "Próxima verificação: {{date}}",
     "practiseMode": "Praticar {{mode}}"
   },
-  "flashcards": {
-    "title": "Cartões de estudo",
-    "count": "Número de cartões",
-    "description": "Explore o vocabulário no seu ritmo. Vire cada cartão para ver o significado e um exemplo.",
-    "placeholder": "Por exemplo: fazer compras no supermercado",
-    "generate": "Gerar cartões de estudo",
-    "complete": "Conjunto concluído",
-    "completeBody": "Você chegou ao fim deste conjunto de {{count}} cartões.",
-    "restart": "Reiniciar conjunto",
-    "back": "Voltar à Prática",
-    "position": "Cartão {{current}} de {{total}}",
-    "meaning": "Significado e exemplos",
-    "plural": "Plural",
-    "pluralUnchanged": "Plural: sem alteração",
-    "previous": "Anterior",
-    "front": "Mostrar frente",
-    "flip": "Virar cartão",
-    "finish": "Concluir",
-    "next": "Próximo",
-    "saved": "No Vocabulário",
-    "saveWord": "Salvar palavra",
-    "saveAll": "Salvar tudo no Vocabulário",
-    "openVocabulary": "Abrir Vocabulário",
-    "suspended": "Esta palavra está pausada. Você pode retomar as revisões programadas em Vocabulário.",
-    "saveNotice": "Palavras salvas. As programações de revisão existentes e as palavras pausadas foram preservadas.",
-    "delete": "Excluir conjunto",
-    "deleteBody": "Excluir este conjunto e seu progresso? Materiais de origem não utilizados e não modificados, criados com ele, também podem ser excluídos. As palavras salvas em Vocabulário permanecerão.",
-    "vocabularyDeck": "Meus cartões de vocabulário",
-    "study": {
-      "word": "Palavra",
-      "progress": "Progresso dos cartões",
-      "recall": "Tente lembrar o significado antes de virar.",
-      "space": "Espaço",
-      "shortcuts": "← / → Navegar · Espaço Virar · Tab Mudar de controle",
-      "saveHint": "Salve palavras úteis para revisar depois."
-    },
-    "selectRange": "Selecione de 3 a 30 palavras para criar um conjunto.",
-    "studyAction": "Estudar palavras selecionadas"
-  },
   "providerAccess": {
     "selectedRoute": "Rota de IA: Codex",
     "preferences": "Estas escolhas de modelo e raciocínio se aplicam apenas ao Codex. Escolhas salvas que estejam indisponíveis são preservadas.",
@@ -1740,7 +1702,7 @@
       "removing": "Removendo arquivos do modelo…",
       "unavailable": "O gerenciamento do modelo local não está disponível neste dispositivo."
     },
-    "managedUnavailable": "A IA gerenciada exige uma conta Nina aprovada e ações disponíveis. O administrador do piloto controla a ativação.",
+    "managedUnavailable": "A IA hospedada da Nina requer acesso à IA ativado e ações disponíveis.",
     "remove": "Remover configuração do provedor",
     "removeWarning": "Remover esta configuração? As ações atribuídas precisarão de configuração. Os registros de aprendizagem e sessões de conta permanecem.",
     "successor": "Próxima conexão ativa",
@@ -1915,10 +1877,6 @@
     "signed-in": "Conta conectada",
     "expired": "Sessão expirada. Entre novamente.",
     "unavailable": "Serviço de contas temporariamente indisponível.",
-    "approved": "Acesso gerenciado aprovado",
-    "unapproved": "Aguardando aprovação",
-    "suspended": "Acesso gerenciado suspenso",
-    "exhausted": "Cota de IA esgotada",
     "loginStage": {
       "initialization": "Preparando o login",
       "desktop": "Conectando à Nina",
@@ -1945,7 +1903,10 @@
     "diagnosticDetails": "Detalhes do diagnóstico",
     "loginFailedTitle": "Não foi possível entrar",
     "cancellingRequest": "Cancelado. Aguardando a solicitação anterior terminar antes de tentar novamente.",
-    "initializationFailed": "Não foi possível iniciar o login. Tente novamente em instantes."
+    "initializationFailed": "Não foi possível iniciar o login. Tente novamente em instantes.",
+    "aiEnabled": "IA hospedada ativada",
+    "aiDisabled": "IA hospedada desativada",
+    "noActions": "Nenhuma ação de IA restante"
   },
   "providers": {
     "signInRequired": "Login necessário",
@@ -1980,5 +1941,19 @@
     "selectedDefault": "Padrão selecionado",
     "checkingConnection": "Verificando acesso…",
     "signInIncomplete": "Login incompleto"
+  },
+  "mobile": {
+    "download": "Baixar app móvel",
+    "sync": "Sincronizar dados móveis",
+    "syncing": "Sincronizando…",
+    "synced": "Dados móveis sincronizados.",
+    "lastSync": "Último envio: {{time}}",
+    "errors": {
+      "sign-in": "Entre para sincronizar.",
+      "unavailable": "Sincronização indisponível. Tente novamente.",
+      "too-large": "A biblioteca excede o limite de 100 MiB.",
+      "changed": "A conta ou biblioteca mudou. Tente novamente.",
+      "busy": "Uma sincronização já está em andamento."
+    }
   }
 }

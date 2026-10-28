@@ -41,7 +41,8 @@
     "progress": "Progress",
     "settings": "Settings",
     "personalData": "Personal Data",
-    "learningPath": "Learning path"
+    "learningPath": "Learning path",
+    "mobile": "Mobile"
   },
   "practice": {
     "eyebrow": "Choose your focus",
@@ -1498,45 +1499,6 @@
     "nextReview": "Next check: {{date}}",
     "practiseMode": "Practise {{mode}}"
   },
-  "flashcards": {
-    "title": "Flashcards",
-    "count": "Number of cards",
-    "description": "Explore vocabulary at your own pace. Flip each card to see its meaning and example.",
-    "placeholder": "For example: shopping at a supermarket",
-    "generate": "Generate flashcards",
-    "complete": "Deck complete",
-    "completeBody": "You reached the end of this {{count}}-card deck.",
-    "restart": "Restart deck",
-    "back": "Back to Practice",
-    "position": "Card {{current}} of {{total}}",
-    "meaning": "Meaning and examples",
-    "plural": "Plural",
-    "pluralUnchanged": "Plural: unchanged",
-    "previous": "Previous",
-    "front": "Show front",
-    "flip": "Flip card",
-    "finish": "Finish",
-    "next": "Next",
-    "saved": "In Vocabulary",
-    "saveWord": "Save word",
-    "saveAll": "Save all to Vocabulary",
-    "openVocabulary": "Open Vocabulary",
-    "suspended": "This word is suspended. You can resume scheduled reviews in Vocabulary.",
-    "saveNotice": "Words saved. Existing review schedules and suspended words were kept.",
-    "delete": "Delete deck",
-    "deleteBody": "Delete this deck and its progress? Unused, unchanged source material created with this deck may also be removed. Words saved to Vocabulary will remain.",
-    "vocabularyDeck": "My vocabulary flashcards",
-    "study": {
-      "word": "Word",
-      "progress": "Card progress",
-      "recall": "Recall the meaning before you flip.",
-      "space": "Space",
-      "shortcuts": "← / → Navigate · Space Flip · Tab Move between controls",
-      "saveHint": "Keep useful words for later review."
-    },
-    "selectRange": "Select 3–30 words to create a deck.",
-    "studyAction": "Study selected words"
-  },
   "providerAccess": {
     "selectedRoute": "AI route: Codex",
     "preferences": "These model and reasoning choices apply only to Codex. Unavailable saved choices are retained.",
@@ -1740,7 +1702,7 @@
       "removing": "Removing model files…",
       "unavailable": "Local model management is unavailable on this device."
     },
-    "managedUnavailable": "Nina-managed AI requires an approved Nina account and available AI actions. Service activation is controlled by the pilot administrator.",
+    "managedUnavailable": "Nina-hosted AI requires enabled AI access and available AI actions.",
     "remove": "Remove provider configuration",
     "removeWarning": "Remove this provider configuration? Assigned actions will require setup. Learning records and account sessions remain.",
     "successor": "Next active connection",
@@ -1915,10 +1877,6 @@
     "signed-in": "Account connected",
     "expired": "Session expired. Sign in again.",
     "unavailable": "Account service temporarily unavailable.",
-    "approved": "Managed access approved",
-    "unapproved": "Awaiting approval",
-    "suspended": "Managed access suspended",
-    "exhausted": "AI allowance exhausted",
     "loginStage": {
       "initialization": "Preparing sign-in",
       "desktop": "Connecting to Nina",
@@ -1945,7 +1903,10 @@
     "diagnosticDetails": "Diagnostic details",
     "loginFailedTitle": "Unable to sign in",
     "cancellingRequest": "Cancelled. Waiting for the previous request to finish before retrying.",
-    "initializationFailed": "Sign-in could not start. Try again in a moment."
+    "initializationFailed": "Sign-in could not start. Try again in a moment.",
+    "aiEnabled": "Hosted AI enabled",
+    "aiDisabled": "Hosted AI disabled",
+    "noActions": "No AI actions remaining"
   },
   "providers": {
     "signInRequired": "Sign-in required",
@@ -1980,5 +1941,19 @@
     "selectedDefault": "Selected default",
     "checkingConnection": "Checking access…",
     "signInIncomplete": "Sign-in incomplete"
+  },
+  "mobile": {
+    "download": "Download mobile",
+    "sync": "Sync Mobile Data",
+    "syncing": "Syncing…",
+    "synced": "Mobile data synced.",
+    "lastSync": "Last upload: {{time}}",
+    "errors": {
+      "sign-in": "Sign in to sync.",
+      "unavailable": "Sync unavailable. Try again.",
+      "too-large": "The library exceeds the 100 MiB limit.",
+      "changed": "Account or library changed. Try again.",
+      "busy": "A sync is already running."
+    }
   }
 }

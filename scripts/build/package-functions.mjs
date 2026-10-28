@@ -7,13 +7,14 @@ const output = path.join(root, "build/hosting/.vercel/output/functions/api");
 for (const [name, method] of [
   ["account", "GET"],
   ["generate", "POST"],
+  ["mobile-sync", "handle"],
 ]) {
   const directory = path.join(output, `${name}.func`);
   await mkdir(directory, { recursive: true });
   await build({
     stdin: {
       contents: `import { ${method} } from './api/${name}.ts';
-export default { fetch(request) { return request.method === '${method}' ? ${method}(request) : new Response(null, { status: 405, headers: { allow: '${method}' } }); } };`,
+export default { fetch(request) { ${method === "handle" ? "return handle(request);" : `return request.method === '${method}' ? ${method}(request) : new Response(null, { status: 405, headers: { allow: '${method}' } });`} } };`,
       resolveDir: path.join(root, "apps/api"),
       sourcefile: `${name}-entry.ts`,
       loader: "ts",

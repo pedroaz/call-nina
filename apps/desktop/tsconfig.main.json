@@ -6,7 +6,9 @@
     "skipLibCheck": true,
     "tsBuildInfoFile": "build/tsconfig.main.tsbuildinfo"
   },
-  "include": ["src/main/**/*.ts"],
+  "include": [
+    "src/main/**/*.ts"
+  ],
   "references": [
     {
       "path": "../../packages/contracts"
@@ -31,6 +33,9 @@
     },
     {
       "path": "../../packages/managed-generation"
+    },
+    {
+      "path": "../../packages/mobile-sync"
     }
   ]
 }

@@ -16,7 +16,7 @@ export async function deploy() {
   await project();
   await checkPublicConfiguration();
   runNode("scripts/build/package-hosting.mjs");
-  for (const name of ["account", "generate"]) {
+  for (const name of ["account", "generate", "mobile-sync"]) {
     const metadata = JSON.parse(
       await readFile(
         new URL(`build/hosting/.vercel/output/functions/api/${name}.func/.vc-config.json`, root),

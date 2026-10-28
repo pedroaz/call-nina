@@ -16,7 +16,14 @@ export default defineConfig({
     {
       name: "bundled-font-notices",
       generateBundle() {
-        for (const family of ["Fredoka", "Figtree", "JetBrainsMono", "NotoSansMono"]) {
+        for (const family of [
+          "Fredoka",
+          "Figtree",
+          "JetBrainsMono",
+          "NotoSansMono",
+          "SourceSans3",
+          "SourceSerif4",
+        ]) {
           this.emitFile({
             type: "asset",
             fileName: `notices/fonts/OFL-${family}.txt`,

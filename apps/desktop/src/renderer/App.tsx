@@ -1,3 +1,4 @@
+import { MobilePage } from "./MobilePage.js";
 import { openProviderSettingsEvent } from "./ProviderActionSummary.js";
 import { VocabularyLearningNotice } from "./VocabularyLearning.js";
 import i18n from "./i18n.js";
@@ -15,7 +16,7 @@ import {
   type Language,
   type DataRootGeneration,
 } from "@call-nina/contracts";
-import { Gauge, History, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
+import { Smartphone, Gauge, History, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -60,6 +61,7 @@ type Page =
   | "practice"
   | "writing"
   | "vocabulary"
+  | "mobile"
   | "history"
   | "learningPath"
   | "personalData"
@@ -83,6 +85,7 @@ const navigation: ReadonlyArray<{
   { page: "learningPath", icon: Route },
   { page: "vocabulary", icon: LibraryBig },
   { page: "history", icon: History },
+  { page: "mobile", icon: Smartphone },
 ];
 
 function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) {
@@ -592,6 +595,7 @@ function DesktopWorkspace({
                 requestAiAccess={openAi}
               />
             ) : null}
+            {page === "mobile" && <MobilePage />}
             {page === "history" ? (
               <HistoryPage
                 onReturn={

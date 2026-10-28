@@ -25,7 +25,15 @@
     "./brand/nina-welcome.png": "./assets/brand/nina-welcome.png",
     "./brand/nina-listening.png": "./assets/brand/nina-listening.png",
     "./brand/nina-thinking.png": "./assets/brand/nina-thinking.png",
-    "./brand/nina-celebration.png": "./assets/brand/nina-celebration.png"
+    "./brand/nina-celebration.png": "./assets/brand/nina-celebration.png",
+    "./fonts/SourceSans3-variable.ttf": "./assets/fonts/SourceSans3-variable.ttf",
+    "./fonts/SourceSerif4-variable.ttf": "./assets/fonts/SourceSerif4-variable.ttf",
+    "./fonts/SourceSans3-400.ttf": "./assets/fonts/SourceSans3-400.ttf",
+    "./fonts/SourceSans3-600.ttf": "./assets/fonts/SourceSans3-600.ttf",
+    "./fonts/SourceSans3-700.ttf": "./assets/fonts/SourceSans3-700.ttf",
+    "./fonts/SourceSerif4-400.ttf": "./assets/fonts/SourceSerif4-400.ttf",
+    "./fonts/SourceSerif4-600.ttf": "./assets/fonts/SourceSerif4-600.ttf",
+    "./fonts/SourceSerif4-700.ttf": "./assets/fonts/SourceSerif4-700.ttf"
   },
   "scripts": {
     "build": "node ../../scripts/build/generate-design-tokens.mjs --check && tsc -b"

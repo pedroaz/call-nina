@@ -3,7 +3,10 @@
     "name": "Call Nina",
     "slug": "call-nina",
     "version": "0.2.0",
-    "platforms": ["android", "ios"],
+    "platforms": [
+      "android",
+      "ios"
+    ],
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.callnina.mobile",
@@ -14,7 +17,17 @@
     },
     "plugins": [
       "expo-system-ui",
-      ["expo-build-properties", { "ios": { "enableSceneSupport": true } }]
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-localization"
     ]
   }
 }

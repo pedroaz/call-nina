@@ -80,7 +80,7 @@ async function execute(tokens) {
     const details =
       name === "infra migrate"
         ? {
-            migrations: ["001-budget.sql", "002-accounts.sql"],
+            migrations: ["001-budget.sql", "002-accounts.sql", "003-ai-access.sql", "004-mobile-sync.sql"],
             operation: "Check supplied PG role permissions and apply missing migrations only",
           }
         : name === "infra runtime-setup"
@@ -133,7 +133,7 @@ async function execute(tokens) {
         ? { retry: `node scripts/admin/index.mjs quota top-up ${username} ${actions} ${grantId}` }
         : {}),
       ...(name === "users onboard"
-        ? { steps: ["create user", "approve access", "grant initial actions"] }
+        ? { steps: ["create user", "enable hosted AI", "grant initial actions"] }
         : {}),
     },
     yes,
@@ -144,8 +144,8 @@ async function execute(tokens) {
     try {
       ({ user, password } = await passwordOperation(username, "create", user));
       completed.push("create");
-      await changeAccess(user, "approve");
-      completed.push("approve");
+      await changeAccess(user, "enable-ai");
+      completed.push("enable-ai");
       await database((sql) => topup(sql, user.id, actions, grantId));
       completed.push("top-up");
       output({ username, userId: user.id, password, completed, grantId });
@@ -155,7 +155,7 @@ async function execute(tokens) {
         userId: user?.id,
         password,
         completed,
-        uncertainOrPending: ["create", "approve", "top-up"].filter(
+        uncertainOrPending: ["create", "enable-ai", "top-up"].filter(
           (step) => !completed.includes(step),
         ),
         grantId,

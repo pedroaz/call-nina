@@ -258,7 +258,17 @@ export class VerificationSession {
         "utf8",
       ),
     );
-    const label = key.split(".").reduce((value, part) => value?.[part], this.catalogs[locale]);
+    const catalog = this.catalogs[locale];
+    if (!catalog.flashcards) {
+      const shared = JSON.parse(
+        await readFile(
+          path.join(this.context.targetRoot, "packages/learning-ui/src/flashcards.json"),
+          "utf8",
+        ),
+      );
+      catalog.flashcards = shared[locale === "en" ? "en-US" : locale];
+    }
+    const label = key.split(".").reduce((value, part) => value?.[part], catalog);
     if (typeof label !== "string") throw failure("VERIFY_LABEL_UNAVAILABLE");
     return label;
   }
@@ -524,9 +534,12 @@ export class VerificationSession {
   }
   async prepareAI(route = "chatgpt") {
     if (route === "managed") {
-      const configuration = JSON.parse(await readFile(
-        path.join(this.context.targetRoot, "packages/contracts/src/nina-public.json"), "utf8",
-      ));
+      const configuration = JSON.parse(
+        await readFile(
+          path.join(this.context.targetRoot, "packages/contracts/src/nina-public.json"),
+          "utf8",
+        ),
+      );
       if (!configuration.modelId) throw failure("VERIFY_MANAGED_MODEL_UNAVAILABLE");
       // The operator selects routing in Settings first. Verify the actual action's
       // resolved UI selection without changing unrelated capability assignments.
@@ -534,7 +547,11 @@ export class VerificationSession {
         hasText: configuration.modelId,
       });
       await summary.first().waitFor();
-      if (!(await summary.first().innerText()).includes(await this.t("connectionSettings.routes.managed")))
+      if (
+        !(await summary.first().innerText()).includes(
+          await this.t("connectionSettings.routes.managed"),
+        )
+      )
         throw failure("VERIFY_MANAGED_ROUTE_REQUIRED");
       this.aiPrepared = true;
       return { route: "managed", model: configuration.modelId, effort: "runtime-default" };

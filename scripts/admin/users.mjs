@@ -21,8 +21,8 @@ export async function findUser(username) {
 export async function changeAccess(user, action) {
   await database((sql) =>
     sql.query(
-      "INSERT INTO nina_starter.account(user_id,status) VALUES($1,$2) ON CONFLICT(user_id) DO UPDATE SET status=excluded.status,updated_at=clock_timestamp()",
-      [user.id, action === "approve" ? "approved" : "suspended"],
+      "INSERT INTO nina_starter.account(user_id,hosted_ai_enabled) VALUES($1,$2::boolean) ON CONFLICT(user_id) DO UPDATE SET hosted_ai_enabled=excluded.hosted_ai_enabled,updated_at=clock_timestamp()",
+      [user.id, action === "enable-ai" ? "true" : "false"],
     ),
   );
 }

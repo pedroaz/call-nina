@@ -1,3 +1,4 @@
+import { mobileSyncResultSchema } from "./mobile-sync.js";
 import { vocabularyImageSchema, vocabularyLearningSnapshotSchema } from "./vocabulary-learning.js";
 import {
   ninaAccountStateSchema,
@@ -100,6 +101,8 @@ export const desktopIpcChannels = [
   "nina-account/credentials/read",
   "nina-account/credentials/save",
   "nina-account/diagnostic",
+  "mobile-sync/publish",
+  "mobile-sync/read",
   "nina-account/read",
   "nina-account/update",
   "offline-model/read",
@@ -774,6 +777,8 @@ export const desktopIpcRequestSchema = boundaryUnion([
   request("nina-account/credentials/read", emptyPayload),
   request("nina-account/credentials/save", ninaLoginCredentialsSchema),
   request("nina-account/diagnostic", ninaLoginDiagnosticSchema),
+  request("mobile-sync/publish", emptyPayload),
+  request("mobile-sync/read", emptyPayload),
   request("nina-account/read", emptyPayload),
   request("nina-account/update", ninaAccountUpdateSchema),
   request("offline-model/read", emptyPayload),
@@ -1777,6 +1782,8 @@ export const desktopIpcResponseSchema = boundaryUnion([
   ),
   response("nina-account/credentials/save", z.strictObject({ saved: z.boolean() })),
   response("nina-account/diagnostic", z.strictObject({ recorded: z.boolean() })),
+  response("mobile-sync/publish", mobileSyncResultSchema),
+  response("mobile-sync/read", mobileSyncResultSchema),
   response("nina-account/read", ninaAccountStateSchema),
   response("nina-account/update", ninaAccountStateSchema),
   response("offline-model/read", offlineModelViewSchema),

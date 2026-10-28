@@ -123,6 +123,12 @@ export const nativeDesignTokens = {
     styles: designTokens.typography.styles,
     families: {
       displayBold: "Fredoka700",
+      interface400: "SourceSans3400",
+      interface600: "SourceSans3600",
+      interface700: "SourceSans3700",
+      editorial400: "SourceSerif4400",
+      editorial600: "SourceSerif4600",
+      editorial700: "SourceSerif4700",
       bodyRegular: "Figtree400",
       bodyBold: "Figtree700",
       phoneticRegular: "JetBrainsMono400",

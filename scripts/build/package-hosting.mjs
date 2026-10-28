@@ -26,7 +26,7 @@ function help() {
   make deploy                   Review the production deployment target.
   make deploy production        Build and manually publish the combined artifact.
 
-The artifact includes /api/account and /api/generate even while inference is disabled.
+The artifact includes /api/account, /api/generate and /api/mobile-sync even while inference is disabled.
 Never deploy static website output alone to the shared project.
 Git-triggered deployments remain disabled. Packaging does not publish anything.
 `);
@@ -49,7 +49,7 @@ async function filesIn(directory, prefix = "") {
     } else if (
       entry.isFile() &&
       (relative === "index.html" ||
-        /^notices\/fonts\/OFL-(?:Fredoka|Figtree|JetBrainsMono|NotoSansMono)\.txt$/.test(
+        /^notices\/fonts\/OFL-(?:Fredoka|Figtree|JetBrainsMono|NotoSansMono|SourceSans3|SourceSerif4)\.txt$/.test(
           relative,
         ) ||
         /^assets\/[a-zA-Z0-9_-]+\.(?:js|css|svg|png|jpg|jpeg|webp|avif|ico|woff2?|ttf)$/.test(
@@ -106,7 +106,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   for (const file of [
     "vercel.json",
     ".vercel/output/config.json",
-    ...["account", "generate"].flatMap((name) => [
+    ...["account", "generate", "mobile-sync"].flatMap((name) => [
       `.vercel/output/functions/api/${name}.func/index.mjs`,
       `.vercel/output/functions/api/${name}.func/.vc-config.json`,
     ]),
@@ -116,7 +116,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
     process.stdout.write(`${createHash("sha256").update(bytes).digest("hex")}  ${file}\n`);
   }
   process.stdout.write(
-    `Packaged ${files.length} static website files and 2 API functions in ${destination}.\n`,
+    `Packaged ${files.length} static website files and 3 API functions in ${destination}.\n`,
   );
   process.stdout.write(
     "No remote actions. Use $nina-admin for an explicitly requested deployment.\n",

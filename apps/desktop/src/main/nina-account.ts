@@ -48,15 +48,13 @@ export class NinaAccount {
       const exp =
         typeof claims === "object" && claims !== null && "exp" in claims ? claims.exp : undefined;
       if (typeof exp !== "number" || exp * 1000 <= Date.now()) return this.#update("expired", null);
-      if (
-        access.userId !== this.state.access?.userId ||
-        ["suspended", "unapproved"].includes(access.eligibility)
-      ) {
+      if (access.userId !== this.state.access?.userId) {
         this.epoch++;
         this.#token = null;
         this.state = { status: "signing-in", access: null };
         await this.invalidate();
       }
+      if (this.state.access?.hostedAiEnabled && !access.hostedAiEnabled) await this.invalidate();
       this.#token = token;
       this.#expires = exp * 1000;
       this.state = { status: "signed-in", access };
@@ -70,13 +68,13 @@ export class NinaAccount {
     if (!this.#token || Date.now() >= this.#expires) throw new Error("OD_NINA_SESSION_EXPIRED");
     return this.#token;
   }
+  assertAi(epoch: number): void {
+    this.assert(epoch);
+    if (!this.state.access?.hostedAiEnabled || !this.state.access.inferenceEnabled)
+      throw new Error("OD_NINA_AI_DISABLED");
+  }
   assert(epoch: number): void {
-    if (
-      epoch !== this.epoch ||
-      this.state.status !== "signed-in" ||
-      !this.state.access ||
-      ["suspended", "unapproved"].includes(this.state.access.eligibility)
-    )
+    if (epoch !== this.epoch || this.state.status !== "signed-in" || !this.state.access)
       throw new Error("OD_NINA_ACCOUNT_UNAVAILABLE");
   }
 }

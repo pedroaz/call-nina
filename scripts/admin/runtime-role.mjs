@@ -77,7 +77,10 @@ export async function setupRuntime() {
       REVOKE ALL ON ALL TABLES IN SCHEMA nina_starter FROM ${role};
       REVOKE ALL ON ALL SEQUENCES IN SCHEMA nina_starter FROM ${role};
       REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nina_starter FROM ${role};
-      GRANT USAGE ON SCHEMA nina_starter TO ${role};
+      REVOKE ALL ON SCHEMA nina_sync FROM ${role};
+      REVOKE ALL ON ALL TABLES IN SCHEMA nina_sync FROM ${role};
+      REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nina_sync FROM ${role};
+      GRANT USAGE ON SCHEMA nina_starter,nina_sync TO ${role};
       GRANT EXECUTE ON FUNCTION ${functions.join(", ")} TO ${role}; COMMIT;`,
       [],
     );

@@ -3,18 +3,18 @@ export const commands = [
   {
     name: "users onboard",
     category: "Users",
-    label: "Create, approve and grant initial actions (live write)",
+    label: "Create, enable hosted AI and grant initial actions (live write)",
     args: ["USERNAME", "ACTIONS", "GRANT_UUID?"],
     mutation: true,
   },
-  ...["create", "reset-password", "approve", "suspend"].map((action) => ({
+  ...["create", "reset-password", "enable-ai", "disable-ai"].map((action) => ({
     name: `users ${action}`,
     category: "Users",
     label: {
       create: "Create a Clerk user (live write; no allowance)",
       "reset-password": "Reset a user password (live write)",
-      approve: "Approve managed AI access (live write)",
-      suspend: "Suspend managed AI access (live write)",
+      "enable-ai": "Enable hosted AI (live write)",
+      "disable-ai": "Disable hosted AI (live write)",
     }[action],
     args: ["USERNAME"],
     mutation: true,

@@ -3,6 +3,7 @@ import { need } from "./credentials.mjs";
 import { runtimeRole } from "./database-config.mjs";
 
 export const functions = [
+  "nina_sync.exchange(text,jsonb)",
   "nina_starter.access(text)",
   "nina_starter.reserve(uuid,uuid,text,text,bigint,text,text,text)",
   "nina_starter.permit(uuid,uuid,text)",
@@ -16,11 +17,11 @@ export async function migrationPermissions(sql) {
     NOT pg_is_in_recovery() AND current_setting('transaction_read_only') = 'off' AS writable_primary,
     has_database_privilege(current_user,current_database(),'CREATE') AS create_schema,
     has_schema_privilege(current_user,'public','USAGE') AND has_schema_privilege(current_user,'public','CREATE') AS migration_ledger_access,
-    NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname='nina_starter' AND NOT pg_has_role(nspowner,'USAGE')) AS owns_schema,
+    NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname IN ('nina_starter','nina_sync') AND NOT pg_has_role(nspowner,'USAGE')) AS owns_schema,
     NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-      WHERE (n.nspname='nina_starter' OR (n.nspname='public' AND c.relname='nina_migration')) AND NOT pg_has_role(c.relowner,'USAGE')) AS owns_tables,
+      WHERE (n.nspname IN ('nina_starter','nina_sync') OR (n.nspname='public' AND c.relname='nina_migration')) AND NOT pg_has_role(c.relowner,'USAGE')) AS owns_tables,
     NOT EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-      WHERE n.nspname='nina_starter' AND NOT pg_has_role(p.proowner,'USAGE')) AS owns_functions,
+      WHERE n.nspname IN ('nina_starter','nina_sync') AND NOT pg_has_role(p.proowner,'USAGE')) AS owns_functions,
     (SELECT rolcreaterole OR rolsuper FROM pg_roles WHERE rolname=current_user) AS can_create_roles,
     EXISTS(SELECT 1 FROM pg_roles WHERE rolname=$3) AS runtime_role_exists,
     coalesce((SELECT pg_has_role(current_user,oid,'MEMBER WITH ADMIN OPTION') FROM pg_roles WHERE rolname=$3),false) AS can_manage_existing_runtime_role`,
@@ -58,8 +59,8 @@ export async function runtimePermissions(sql) {
     NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname NOT LIKE 'pg_%' AND has_schema_privilege(r.oid,oid,'CREATE')) AS cannot_create_objects,
     NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname NOT LIKE 'pg_toast%' AND n.nspname NOT LIKE 'pg_temp_%' AND
       ((c.relkind IN ('r','p','v','m','f') AND (has_table_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR has_any_column_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,REFERENCES'))) OR (c.relkind='S' AND has_sequence_privilege(r.oid,c.oid,'USAGE,SELECT,UPDATE')))) AS no_direct_data_access,
-    has_schema_privilege(r.oid,'nina_starter','USAGE') AS schema_usage,
-    NOT EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='nina_starter' AND has_function_privilege(r.oid,p.oid,'EXECUTE') AND p.oid NOT IN (${functions.map((_, i) => `to_regprocedure($${i + 2})`).join(",")})) AS no_internal_function_access
+    has_schema_privilege(r.oid,'nina_starter','USAGE') AND has_schema_privilege(r.oid,'nina_sync','USAGE') AS schema_usage,
+    NOT EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname IN ('nina_starter','nina_sync') AND has_function_privilege(r.oid,p.oid,'EXECUTE') AND p.oid NOT IN (${functions.map((_, i) => `to_regprocedure($${i + 2})`).join(",")})) AS no_internal_function_access
     FROM pg_roles r WHERE r.rolname=$1`,
     [role, ...functions],
   );

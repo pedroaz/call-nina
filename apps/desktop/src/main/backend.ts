@@ -1,3 +1,7 @@
+import { createHash, randomUUID } from "node:crypto";
+import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
+import { ninaPublicConfiguration } from "@call-nina/contracts";
+import { exportMobileFlashcards, assertCallNinaDatabaseLease } from "@call-nina/persistence";
 import { recommendedRouting } from "@call-nina/domain";
 import { routedProvider, type AiAction } from "@call-nina/contracts";
 import { nativeImage } from "electron";
@@ -286,6 +290,7 @@ export class DesktopBackend {
     this.#connections.chatgptServices.clear();
     this.#connections.operationServices.clear();
     this.#translations.translationReveals.clear();
+    this.#mobileAbort?.abort();
     this.#database?.close();
     this.#database = undefined;
     this.#repository = undefined;
@@ -1086,6 +1091,7 @@ export class DesktopBackend {
         this.#database.closed ||
         this.#database.rootGeneration !== state.rootGeneration
       ) {
+        this.#mobileAbort?.abort();
         this.#database?.close();
         this.#database = await openCallNinaDatabase({
           bootstrapFile: this.#bootstrapFile,
@@ -1237,7 +1243,8 @@ export class DesktopBackend {
           entry.status =
             this.#nina.state.status !== "signed-in"
               ? "account-required"
-              : this.#nina.state.access?.eligibility !== "approved" ||
+              : !this.#nina.state.access?.hostedAiEnabled ||
+                  this.#nina.state.access.remainingActions <= 0 ||
                   !this.#nina.state.access.inferenceEnabled
                 ? "runtime-unavailable"
                 : resolveModelPreference(connection.preference, catalog.models).status ===
@@ -1383,7 +1390,10 @@ export class DesktopBackend {
     }
     if (connection.routeId === "managed") {
       if (this.#nina.state.status !== "signed-in") return unavailable("account-required");
-      if (this.#nina.state.access?.eligibility !== "approved")
+      if (
+        !this.#nina.state.access?.hostedAiEnabled ||
+        this.#nina.state.access.remainingActions <= 0
+      )
         return unavailable("account-unavailable");
       if (!this.#nina.state.access.inferenceEnabled) return unavailable("runtime-unavailable");
       const catalog = managedCatalog();
@@ -1591,9 +1601,14 @@ export class DesktopBackend {
     return this.#failure(request, kind);
   }
 
+  #mobilePublishing = false;
+  #mobileAbort: AbortController | undefined;
+
   async handle(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
     // Account network calls have their own serialized queue and cannot stall local learning.
     if (
+      request.channel === "mobile-sync/publish" ||
+      request.channel === "mobile-sync/read" ||
       request.channel === "nina-account/read" ||
       request.channel === "nina-account/update" ||
       request.channel === "nina-account/diagnostic" ||
@@ -1716,10 +1731,73 @@ export class DesktopBackend {
         );
         return this.#success(request, { recorded: true });
       }
+      if (request.channel === "mobile-sync/publish" || request.channel === "mobile-sync/read") {
+        const publishing = request.channel === "mobile-sync/publish";
+        if (publishing) await this.#enqueue(() => this.#dataRootState(request.requestId));
+        if (publishing && this.#mobilePublishing)
+          return this.#success(request, { status: "failed", reason: "busy" });
+        if (!ninaPublicConfiguration.serviceOrigin || this.#nina.state.status !== "signed-in")
+          return this.#success(request, { status: "failed", reason: "sign-in" });
+        const epoch = this.#nina.epoch;
+        const database = this.#database;
+        if (publishing && !database)
+          return this.#success(request, { status: "failed", reason: "changed" });
+        const controller = new AbortController();
+        if (publishing) {
+          this.#mobilePublishing = true;
+          this.#mobileAbort = controller;
+        }
+        try {
+          const connection = {
+            origin: ninaPublicConfiguration.serviceOrigin,
+            token: () => this.#nina.token(epoch),
+            hash: async (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex"),
+            signal: controller.signal,
+            assertCurrent: async () => {
+              if (database) await assertCallNinaDatabaseLease(database);
+              this.#nina.assert(epoch);
+              if (
+                controller.signal.aborted ||
+                this.#closing ||
+                database !== this.#database ||
+                database?.closed
+              )
+                throw new SyncError("changed");
+            },
+          };
+          const result =
+            publishing && database
+              ? await publishSnapshot(
+                  connection,
+                  await exportMobileFlashcards(database),
+                  randomUUID(),
+                )
+              : await readPublished(connection);
+          return this.#success(
+            request,
+            result ? { status: "synced", publishedAt: result.publishedAt } : { status: "empty" },
+          );
+        } catch (error) {
+          return this.#success(request, {
+            status: "failed",
+            reason:
+              error instanceof SyncError && error.reason !== "update-required"
+                ? error.reason
+                : "unavailable",
+          });
+        } finally {
+          if (publishing) {
+            this.#mobilePublishing = false;
+            this.#mobileAbort = undefined;
+          }
+        }
+      }
       if (request.channel === "nina-account/read") return this.#success(request, this.#nina.state);
       if (request.channel === "nina-account/update") {
         const previous = JSON.stringify(this.#nina.state);
+        const beforeEpoch = this.#nina.epoch;
         const state = await this.#nina.update(request.payload.status, request.payload.token);
+        if (beforeEpoch !== this.#nina.epoch) this.#mobileAbort?.abort();
         if (JSON.stringify(state) !== previous) {
           this.#operationLog(
             state.status === "unavailable" || state.status === "expired" ? "warn" : "info",
@@ -1995,6 +2073,7 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "data-root/confirm") {
+        this.#mobileAbort?.abort();
         if (this.#operations.activeOperations.size > 0)
           return this.#failure(request, "data-root-busy");
         const pending = this.#pending.get(request.payload.selectionId);

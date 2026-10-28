@@ -41,7 +41,8 @@
     "progress": "Fortschritt",
     "settings": "Einstellungen",
     "personalData": "Persönliche Daten",
-    "learningPath": "Lernpfad"
+    "learningPath": "Lernpfad",
+    "mobile": "Mobil"
   },
   "practice": {
     "eyebrow": "Wähle deinen Schwerpunkt",
@@ -1498,45 +1499,6 @@
     "nextReview": "Nächster Check: {{date}}",
     "practiseMode": "{{mode}} üben"
   },
-  "flashcards": {
-    "title": "Lernkarten",
-    "count": "Anzahl der Karten",
-    "description": "Entdecke Wortschatz in deinem Tempo. Drehe jede Karte um, um Bedeutung und Beispiel zu sehen.",
-    "placeholder": "Zum Beispiel: Einkaufen im Supermarkt",
-    "generate": "Lernkarten erstellen",
-    "complete": "Kartensatz abgeschlossen",
-    "completeBody": "Du hast das Ende dieses Kartensatzes mit {{count}} Karten erreicht.",
-    "restart": "Neu beginnen",
-    "back": "Zurück zu Übungen",
-    "position": "Karte {{current}} von {{total}}",
-    "meaning": "Bedeutung und Beispiele",
-    "plural": "Plural",
-    "pluralUnchanged": "Plural: unverändert",
-    "previous": "Zurück",
-    "front": "Vorderseite zeigen",
-    "flip": "Karte umdrehen",
-    "finish": "Abschließen",
-    "next": "Weiter",
-    "saved": "Im Wortschatz",
-    "saveWord": "Wort speichern",
-    "saveAll": "Alle im Wortschatz speichern",
-    "openVocabulary": "Wortschatz öffnen",
-    "suspended": "Dieses Wort ist pausiert. Du kannst die Wiederholungen im Wortschatz fortsetzen.",
-    "saveNotice": "Wörter gespeichert. Bestehende Wiederholungstermine und pausierte Wörter bleiben erhalten.",
-    "delete": "Kartensatz löschen",
-    "deleteBody": "Diesen Kartensatz und seinen Fortschritt löschen? Ungenutztes, unverändertes Ausgangsmaterial, das mit diesem Kartensatz erstellt wurde, kann ebenfalls gelöscht werden. Im Wortschatz gespeicherte Wörter bleiben erhalten.",
-    "vocabularyDeck": "Meine Wortschatzkarten",
-    "study": {
-      "word": "Wort",
-      "progress": "Kartenfortschritt",
-      "recall": "Erinnere dich an die Bedeutung, bevor du die Karte umdrehst.",
-      "space": "Leertaste",
-      "shortcuts": "← / → Navigieren · Leertaste Umdrehen · Tab Bedienelement wechseln",
-      "saveHint": "Speichere nützliche Wörter zum späteren Wiederholen."
-    },
-    "selectRange": "Wähle 3–30 Wörter für einen Kartensatz.",
-    "studyAction": "Ausgewählte Wörter üben"
-  },
   "providerAccess": {
     "selectedRoute": "KI-Zugang: Codex",
     "preferences": "Diese Modell- und Denkleistungseinstellungen gelten nur für Codex. Nicht verfügbare gespeicherte Einstellungen bleiben erhalten.",
@@ -1740,7 +1702,7 @@
       "removing": "Modelldateien werden entfernt…",
       "unavailable": "Lokale Modellverwaltung ist auf diesem Gerät nicht verfügbar."
     },
-    "managedUnavailable": "Die von Nina verwaltete KI benötigt ein genehmigtes Nina-Konto und verfügbare KI-Aktionen. Die Pilotverwaltung aktiviert den Dienst.",
+    "managedUnavailable": "Die gehostete Nina-KI benötigt aktivierten KI-Zugriff und verfügbare KI-Aktionen.",
     "remove": "Anbieterkonfiguration entfernen",
     "removeWarning": "Diese Anbieterkonfiguration entfernen? Zugeordnete Aktionen erfordern danach eine Einrichtung. Lernaufzeichnungen und Kontositzungen bleiben erhalten.",
     "successor": "Nächste aktive Verbindung",
@@ -1915,10 +1877,6 @@
     "signed-in": "Konto verbunden",
     "expired": "Sitzung abgelaufen. Melde dich erneut an.",
     "unavailable": "Kontodienst vorübergehend nicht verfügbar.",
-    "approved": "Verwalteter Zugang genehmigt",
-    "unapproved": "Genehmigung ausstehend",
-    "suspended": "Verwalteter Zugang gesperrt",
-    "exhausted": "KI-Kontingent aufgebraucht",
     "loginStage": {
       "initialization": "Anmeldung vorbereiten",
       "desktop": "Verbindung mit Nina",
@@ -1945,7 +1903,10 @@
     "diagnosticDetails": "Diagnosedetails",
     "loginFailedTitle": "Anmeldung nicht möglich",
     "cancellingRequest": "Abgebrochen. Vor einem neuen Versuch muss die vorherige Anfrage beendet werden.",
-    "initializationFailed": "Die Anmeldung konnte nicht starten. Versuche es gleich erneut."
+    "initializationFailed": "Die Anmeldung konnte nicht starten. Versuche es gleich erneut.",
+    "aiEnabled": "Gehostete KI aktiviert",
+    "aiDisabled": "Gehostete KI deaktiviert",
+    "noActions": "Keine KI-Aktionen mehr verfügbar"
   },
   "providers": {
     "signInRequired": "Anmeldung erforderlich",
@@ -1980,5 +1941,19 @@
     "selectedDefault": "Ausgewählter Standard",
     "checkingConnection": "Zugriff wird geprüft…",
     "signInIncomplete": "Anmeldung unvollständig"
+  },
+  "mobile": {
+    "download": "Mobile App herunterladen",
+    "sync": "Mobile Daten synchronisieren",
+    "syncing": "Synchronisierung…",
+    "synced": "Mobile Daten synchronisiert.",
+    "lastSync": "Letzter Upload: {{time}}",
+    "errors": {
+      "sign-in": "Zum Synchronisieren anmelden.",
+      "unavailable": "Synchronisierung nicht verfügbar. Erneut versuchen.",
+      "too-large": "Die Bibliothek überschreitet das Limit von 100 MiB.",
+      "changed": "Konto oder Bibliothek geändert. Erneut versuchen.",
+      "busy": "Eine Synchronisierung läuft bereits."
+    }
   }
 }
