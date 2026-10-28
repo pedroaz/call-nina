@@ -1,0 +1,95 @@
+name: Publish
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful complete Build run from main (or an existing complete Release dry run)
+        type: string
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: release-production
+  cancel-in-progress: false
+env:
+  RELEASE_TARGET: all
+  RELEASE_OPERATION: publish
+  RELEASE_BUILD_RUN_ID: ${{ inputs.build_run_id }}
+jobs:
+  source:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+      version: ${{ steps.source.outputs.version }}
+      artifacts: ${{ steps.source.outputs.artifacts }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
+      - id: source
+        name: Validate source build
+        run: node scripts/ci/release.mjs source
+        env:
+          GH_TOKEN: ${{ github.token }}
+  publish:
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment:
+      name: Production
+      url: ${{ steps.deploy.outputs.url }}
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RELEASE_SOURCE_COMMIT: ${{ needs.source.outputs.commit }}
+      RELEASE_SOURCE_VERSION: ${{ needs.source.outputs.version }}
+      RELEASE_SOURCE_ARTIFACTS: ${{ needs.source.outputs.artifacts }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
+      - name: Download selected build artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.source.outputs.artifacts }}
+          run-id: ${{ inputs.build_run_id }}
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: build/release-artifacts
+      - name: Verify all artifacts before publication
+        run: node scripts/ci/release.mjs verify-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Prepare desktop draft
+        run: node scripts/ci/release.mjs prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Install deployment CLI
+        run: npm install --global vercel@65.5.0
+      - id: deploy
+        name: Deploy existing hosting artifact
+        run: node scripts/ci/release.mjs deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - id: desktop
+        name: Publish desktop release
+        run: node scripts/ci/release.mjs publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Report publication outcome
+        if: always()
+        run: node scripts/ci/release.mjs summary
+        env:
+          RELEASE_RESULTS: ${{ toJSON(steps) }}

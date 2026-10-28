@@ -1,0 +1,113 @@
+name: Build
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Artifacts to build
+        type: choice
+        options: [all, desktop, hosting]
+        default: all
+      build_linux:
+        description: "Build: Linux x64"
+        type: boolean
+        default: true
+      build_windows:
+        description: "Build: Windows x64"
+        type: boolean
+        default: true
+      build_macos_intel:
+        description: "Build: macOS Intel"
+        type: boolean
+        default: true
+      build_macos_arm:
+        description: "Build: macOS Apple Silicon"
+        type: boolean
+        default: true
+permissions:
+  contents: read
+concurrency:
+  group: build-${{ github.run_id }}
+  cancel-in-progress: false
+env:
+  RELEASE_TARGET: ${{ inputs.target }}
+  RELEASE_OPERATION: build-only
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      sha: ${{ steps.validate.outputs.sha }}
+      desktop_matrix: ${{ steps.validate.outputs.desktop_matrix }}
+      has_desktop: ${{ steps.validate.outputs.has_desktop }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
+      - id: validate
+        run: node scripts/ci/release.mjs preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_INPUTS: ${{ toJSON(inputs) }}
+  desktop:
+    needs: preflight
+    if: needs.preflight.outputs.has_desktop == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.preflight.outputs.desktop_matrix) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.preflight.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+      - name: Package desktop
+        run: node scripts/ci/release.mjs desktop
+        env:
+          RELEASE_PLATFORM: ${{ matrix.platform }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desktop-${{ matrix.platform }}
+          path: build/release-artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+  hosting:
+    needs: preflight
+    if: inputs.target != 'desktop'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.preflight.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+      - run: node scripts/ci/release.mjs hosting
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: hosting
+          path: build/release-artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+  summary:
+    needs: [preflight, desktop, hosting]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - run: node scripts/ci/release.mjs summary
+        env:
+          RELEASE_RESULTS: ${{ toJSON(needs) }}

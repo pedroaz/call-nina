@@ -5,17 +5,9 @@ async function preflight() {
   const current = context();
   const target = process.env.RELEASE_TARGET;
   const operation = process.env.RELEASE_OPERATION;
-  if (
-    !["desktop", "hosting", "all"].includes(target) ||
-    !["build-only", "publish"].includes(operation)
-  )
+  if (!["desktop", "hosting", "all"].includes(target) || operation !== "build-only")
     throw new Error("Invalid release inputs");
-  if (operation === "publish") context(true);
-  const desktop = selectDesktopBuilds(
-    target,
-    operation,
-    JSON.parse(process.env.RELEASE_INPUTS ?? "{}"),
-  );
+  const desktop = selectDesktopBuilds(target, JSON.parse(process.env.RELEASE_INPUTS ?? "{}"));
   const { version } = await readJson("package.json");
   if (!/^\d+\.\d+\.\d+$/.test(version))
     throw new Error("Desktop release requires a stable numeric version");
@@ -23,26 +15,25 @@ async function preflight() {
   node("scripts/diagnostics/check-versions.mjs");
   if (target !== "desktop")
     await (await import("../admin/configuration.mjs")).checkPublicConfiguration();
-  if (operation === "publish") await (await import("./desktop-release.mjs")).inspectRelease();
   await setOutput("sha", current.commit);
   await setOutput("desktop_matrix", JSON.stringify({ include: desktop }));
   await setOutput("has_desktop", String(desktop.length > 0));
   await summary(
-    `Release preflight: **${target} / ${operation}**\nDesktop builds: ${desktop.map(({ platform }) => platform).join(", ") || "none"}\nHosting build: ${target !== "desktop" ? "yes" : "no"}\nCommit: ${current.commit}\nVersion: ${version}\nRun: https://github.com/${current.repository}/actions/runs/${current.runId}`,
+    `Build preflight: **${target}**\nDesktop builds: ${desktop.map(({ platform }) => platform).join(", ") || "none"}\nHosting build: ${target !== "desktop" ? "yes" : "no"}\nCommit: ${current.commit}\nVersion: ${version}\nRun: https://github.com/${current.repository}/actions/runs/${current.runId}`,
   );
 }
 async function report() {
   const jobs = JSON.parse(process.env.RELEASE_RESULTS ?? "{}");
   await summary(
-    `## Release result\n\nCommit: ${process.env.GITHUB_SHA}\n\n| Job | Result |\n| --- | --- |\n${Object.entries(
+    `## Release result\n\nCommit: ${context().commit}\nSource run: ${context().runId}\n\n| Stage | Result |\n| --- | --- |\n${Object.entries(
       jobs,
     )
-      .map(([name, job]) => `| ${name} | ${job.result} |`)
+      .map(([name, job]) => `| ${name} | ${job.result ?? job.conclusion} |`)
       .join(
         "\n",
-      )}\n\nDownloads are in this run's Artifacts section (30-day retention). Published desktop assets remain on GitHub Releases.\n\n${workflowUrl}`,
+      )}\n\nDownloads are in the source build's Artifacts section (30-day retention). Published desktop assets remain on GitHub Releases.\n\n${workflowUrl}`,
   );
-  if (jobs.deploy?.result === "success" && ["failure", "cancelled"].includes(jobs.publish?.result))
+  if (jobs.deploy?.conclusion === "success" && jobs.desktop?.conclusion !== "success")
     await summary(
       "Hosting succeeded but desktop publication failed. Inspect the deployment and retained draft before retrying; no automatic rollback occurred.",
     );
@@ -56,6 +47,12 @@ try {
       break;
     case "preflight":
       await preflight();
+      break;
+    case "source":
+      await (await import("./promotion.mjs")).source();
+      break;
+    case "verify-source":
+      await (await import("./promotion.mjs")).verifySource();
       break;
     case "desktop":
       await (await import("./artifacts.mjs")).desktop();

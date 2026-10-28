@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { context, github, output, readJson, digest, summary } from "./common.mjs";
+import { context, github, output, releaseVersion, digest, summary } from "./common.mjs";
 import { desktopTargets, verify } from "./artifacts.mjs";
 
 async function identity() {
   const current = context(true);
-  const { version } = await readJson("package.json");
+  const version = await releaseVersion();
   return {
     ...current,
     version,

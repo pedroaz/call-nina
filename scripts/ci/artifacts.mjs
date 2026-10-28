@@ -1,6 +1,16 @@
 import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { context, root, output, readJson, digest, node, run, cleanSource } from "./common.mjs";
+import {
+  context,
+  root,
+  output,
+  readJson,
+  digest,
+  node,
+  run,
+  cleanSource,
+  releaseVersion,
+} from "./common.mjs";
 
 import { desktopTargets } from "./targets.mjs";
 export { desktopTargets } from "./targets.mjs";
@@ -82,7 +92,7 @@ export async function hosting() {
 export async function verify(id) {
   const manifest = await readJson(path.join(output, `${id}.json`));
   const current = context();
-  const version = (await readJson("package.json")).version;
+  const version = await releaseVersion();
   if (
     manifest.schemaVersion !== 1 ||
     manifest.id !== id ||
