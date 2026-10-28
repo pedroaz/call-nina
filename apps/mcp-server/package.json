@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/mcp-server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Separately launchable local STDIO MCP entry point for Call Nina.",
   "type": "module",

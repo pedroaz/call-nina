@@ -3,6 +3,7 @@
 import { unlink } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
+import { stopAndroidEmulators } from "./lib/android-emulators.mjs";
 
 import {
   applicationLogFiles,
@@ -189,6 +190,7 @@ try {
   } else if (action === "stop" || action === "kill") {
     if (mode) throw new Error("Stop does not accept arguments.");
     await kill();
+    if (action === "kill") await stopAndroidEmulators();
   } else if (action === "logs") {
     if (flags.includes("--clear") || mode === "--clear") {
       if (mode !== "--clear" || flags.length) throw new Error("Use logs --clear alone.");

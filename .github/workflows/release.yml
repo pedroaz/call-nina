@@ -2,29 +2,23 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      target:
-        description: Release unit (hosting includes website and API)
+      dry_run:
+        description: Dry run (build artifacts without publishing or deploying)
+        type: boolean
+        default: true
+      dry_run_target:
+        description: Dry-run target (ignored when dry run is unchecked; publishes everything)
         type: choice
         options: [all, desktop, hosting]
         default: all
-      operation:
-        description: Build downloads only, or publish the selected units
-        type: choice
-        options: [build-only, publish]
-        default: build-only
-      desktop_version:
-        description: Committed version confirmation for desktop publication
-        type: string
-        default: ""
 permissions:
   contents: read
 concurrency:
-  group: release-${{ inputs.operation == 'publish' && 'production' || github.run_id }}
+  group: release-${{ inputs.dry_run == false && 'production' || github.run_id }}
   cancel-in-progress: false
 env:
-  RELEASE_TARGET: ${{ inputs.target }}
-  RELEASE_OPERATION: ${{ inputs.operation }}
-  RELEASE_VERSION: ${{ inputs.desktop_version }}
+  RELEASE_TARGET: ${{ inputs.dry_run == false && 'all' || inputs.dry_run_target }}
+  RELEASE_OPERATION: ${{ inputs.dry_run == false && 'publish' || 'build-only' }}
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
 jobs:
   preflight:
@@ -46,7 +40,7 @@ jobs:
         run: node scripts/commands.mjs check
   desktop:
     needs: preflight
-    if: inputs.target != 'hosting'
+    if: inputs.dry_run == false || inputs.dry_run_target != 'hosting'
     strategy:
       fail-fast: false
       matrix:
@@ -79,7 +73,7 @@ jobs:
           retention-days: 30
   hosting:
     needs: preflight
-    if: inputs.target != 'desktop'
+    if: inputs.dry_run == false || inputs.dry_run_target != 'desktop'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -98,9 +92,9 @@ jobs:
   prepare:
     needs: [preflight, desktop, hosting]
     if: >-
-      always() && !cancelled() && inputs.operation == 'publish' && inputs.target != 'hosting' &&
+      always() && !cancelled() && inputs.dry_run == false &&
       needs.preflight.result == 'success' && needs.desktop.result == 'success' &&
-      (needs.hosting.result == 'success' || needs.hosting.result == 'skipped')
+      needs.hosting.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: Production
@@ -125,9 +119,9 @@ jobs:
   deploy:
     needs: [preflight, desktop, hosting, prepare]
     if: >-
-      always() && !cancelled() && inputs.operation == 'publish' && inputs.target != 'desktop' &&
+      always() && !cancelled() && inputs.dry_run == false &&
       needs.preflight.result == 'success' && needs.hosting.result == 'success' &&
-      (inputs.target == 'hosting' || (needs.desktop.result == 'success' && needs.prepare.result == 'success'))
+      needs.desktop.result == 'success' && needs.prepare.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
@@ -154,9 +148,9 @@ jobs:
   publish:
     needs: [preflight, prepare, deploy]
     if: >-
-      always() && !cancelled() && inputs.operation == 'publish' && inputs.target != 'hosting' &&
+      always() && !cancelled() && inputs.dry_run == false &&
       needs.preflight.result == 'success' && needs.prepare.result == 'success' &&
-      (inputs.target == 'desktop' || needs.deploy.result == 'success')
+      needs.deploy.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: Production
