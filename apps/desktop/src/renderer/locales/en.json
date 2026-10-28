@@ -37,7 +37,7 @@
     "practice": "Practice",
     "writing": "Writing",
     "vocabulary": "Vocabulary",
-    "history": "History",
+    "history": "Results",
     "progress": "Progress",
     "settings": "Settings",
     "personalData": "Personal Data",
@@ -125,7 +125,7 @@
       "deleteAction": "Delete {{title}}",
       "deleteTitle": "Delete “{{title}}”?",
       "deleteBody": "This permanently removes the activity and its unconfirmed vocabulary candidates. Unused, unchanged source material created with this activity may also be removed.",
-      "deleteCascadeBody": "This permanently removes the quiz, its attempts, answers, feedback, related History entries, and unconfirmed vocabulary candidates. Unused, unchanged source material created with this activity may also be removed.",
+      "deleteCascadeBody": "This permanently removes the quiz, its attempts, answers, feedback, related results, and unconfirmed vocabulary candidates. Unused, unchanged source material created with this activity may also be removed.",
       "deleteConfirm": "Delete exercise",
       "deleteBlocked": {
         "retained-data": "{{title}} has completed results, retained feedback or confirmed vocabulary and cannot be deleted here."
@@ -284,7 +284,7 @@
       "finish": "Save diagnostic evidence",
       "saving": "Saving evidence…",
       "completedTitle": "Diagnostic evidence saved",
-      "completedBody": "Saved in History. Your learning level is unchanged.",
+      "completedBody": "Result saved. Your learning level is unchanged.",
       "noAdditionalUncertainty": "No additional uncertainty was reported.",
       "outcomes": {
         "demonstrated": "demonstrated",
@@ -376,13 +376,13 @@
     "abandoning": "Abandoning set…",
     "abandonFailed": "The set could not be abandoned. Your current answer remains visible.",
     "abandoned": "Practice set abandoned",
-    "abandonedBody": "Completed answers were not added to History. You can start this generated set again later.",
+    "abandonedBody": "Completed answers were not saved as results. You can start this generated set again later.",
     "delete": {
       "trigger": "Delete quiz",
       "deleting": "Deleting quiz…",
       "title": "Delete this quiz?",
       "body": "This permanently removes the quiz and its unconfirmed vocabulary candidates. Confirmed vocabulary blocks deletion.",
-      "cascadeBody": "This permanently removes the quiz, its attempts, answers, feedback, related History entries, and unconfirmed vocabulary candidates.",
+      "cascadeBody": "This permanently removes the quiz, its attempts, answers, feedback, related results, and unconfirmed vocabulary candidates.",
       "confirm": "Delete quiz"
     },
     "aiFeedback": {
@@ -615,7 +615,7 @@
     "openWriting": "Open writing",
     "correctionItem": "{{count}} changed segments · {{date}}",
     "emptyCorrections": "No corrections yet.",
-    "openHistory": "Open history",
+    "openHistory": "Results",
     "mistakeItem": "{{category}} · {{count}} occurrences",
     "emptyMistakes": "No recurring patterns yet.",
     "emptyVocabulary": "No words due today.",
@@ -746,11 +746,11 @@
       "unknown": "Independence not recorded"
     },
     "eyebrow": "Learning record",
-    "title": "History",
+    "title": "Results",
     "intro": "Review saved attempts and feedback, then choose what to practise again.",
-    "refresh": "Refresh history",
+    "refresh": "Refresh results",
     "refreshing": "Refreshing…",
-    "empty": "No saved activity matches these filters.",
+    "empty": "No results match these filters.",
     "filters": {
       "skill": "Skill",
       "activityType": "Activity type",
@@ -826,7 +826,7 @@
     },
     "practiceAgain": "Practice this again",
     "delete": "Delete this record",
-    "deleteTitle": "Delete this history record?",
+    "deleteTitle": "Delete this result?",
     "deleteBody": "This permanently removes the saved attempt, answer, correction, and feedback. This action cannot be undone.",
     "patterns": {
       "title": "Mistake evidence",
@@ -855,12 +855,12 @@
       }
     },
     "laterFeedback": "Later feedback",
-    "deleteReviewBody": "Remove this review from History? The word and its review schedule will stay unchanged."
+    "deleteReviewBody": "Remove this review result? The word and its review schedule will stay unchanged."
   },
   "pages": {
     "writing": "Writing",
     "vocabulary": "Vocabulary",
-    "history": "History",
+    "history": "Results",
     "settings": "Settings and account",
     "placeholder": "This workspace is ready for the next implementation block."
   },
@@ -1344,7 +1344,7 @@
     "reopen": "Revisit",
     "skip": "Skip for now",
     "evidence": "Saved feedback",
-    "openHistory": "Open history",
+    "openHistory": "Results",
     "preparing": "Preparing your activity…",
     "loading": "Loading your learning path…",
     "courseUnavailable": "Enable learning paths for this language in Settings to browse courses and scenarios.",
@@ -1394,8 +1394,8 @@
     },
     "skillParticipation": "{{count}} linked activities completed",
     "noEvidence": "Not yet assessed. Completing lessons does not establish this skill.",
-    "historyAndPatterns": "Review history and recurring mistakes",
-    "allHistory": "Show all history",
+    "historyAndPatterns": "Results and recurring mistakes",
+    "allHistory": "Show all",
     "languageUnavailable": "A structured Learning Path is currently available for German only. You can practise in your chosen language.",
     "enrollRequired": "The German Learning Path is optional. Enable it in Settings to use the course, or continue in Practice."
   },
@@ -1513,6 +1513,7 @@
       "model-unavailable": "The selected AI connection has no usable model and reasoning setting for this action. Check its saved choice in Settings, then retry.",
       "integration-unavailable": "Nina could not verify the external Codex integration for Voice. Refresh Settings and retry. This does not mean the plugin is missing.",
       "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry.",
+      "secure-storage-unavailable": "Secure key storage is unavailable on this device.",
       "connection-required": "Choose an AI connection in Settings before using this action. Prepared practice remains available."
     }
   },
@@ -1954,6 +1955,30 @@
       "too-large": "The library exceeds the 100 MiB limit.",
       "changed": "Account or library changed. Try again.",
       "busy": "A sync is already running."
+    }
+  },
+  "savedResults": {
+    "activities": "Activities",
+    "results": "Results",
+    "selection": "Selected results",
+    "clearScope": "Show all",
+    "filters": "Filters",
+    "search": "Search results",
+    "searchActivities": "Search saved activities",
+    "mistakes": "Mistakes to practise",
+    "openPractice": "Open practice",
+    "occurrences_one": "Seen {{count}} time",
+    "occurrences_other": "Seen {{count}} times",
+    "viewAll": "View all",
+    "practise": "Practise",
+    "count_one": "{{count}} result",
+    "count_other": "{{count}} results",
+    "basis": {
+      "independent": "Independent",
+      "supported": "With support",
+      "self-assessment": "Self-assessed",
+      "participation": "Participation",
+      "unknown": "Unclassified"
     }
   }
 }

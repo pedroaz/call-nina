@@ -28,7 +28,7 @@ export function LearningPathLesson({
   launch,
   launchFeedback,
   mutate,
-  onOpenHistory,
+  onOpenResults,
   openLesson,
   onTrail,
   vocabularyAdded,
@@ -50,7 +50,7 @@ export function LearningPathLesson({
     ref: CourseReference,
     action: "select" | "complete-explanation" | "skip" | "reopen" | "new-mission",
   ) => Promise<void>;
-  onOpenHistory: (ids: HistoryEntryId[]) => void;
+  onOpenResults: (ids: HistoryEntryId[]) => void;
   openLesson: (unit: CourseUnit) => void;
   onTrail: () => void;
   vocabularyAdded: number | undefined;
@@ -301,7 +301,7 @@ export function LearningPathLesson({
                         <Button
                           variant="quiet"
                           onPress={() =>
-                            onOpenHistory(attempts.flatMap((a) => a.historyEntryIds).slice(0, 100))
+                            onOpenResults(attempts.flatMap((a) => a.historyEntryIds).slice(0, 100))
                           }
                         >
                           {t("learningPath.evidence")}
@@ -400,7 +400,7 @@ export function LearningPathLesson({
                   launchOrigin={launchOrigin}
                   launch={launch}
                   launchFeedback={launchFeedback}
-                  onOpenHistory={onOpenHistory}
+                  onOpenResults={onOpenResults}
                 />
               </Card>
             ),

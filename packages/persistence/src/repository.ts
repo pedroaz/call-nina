@@ -44,8 +44,8 @@ import {
   type GeneratedExerciseSetComplete,
   type GeneratedExerciseSetStart,
   type GeneratedPracticeActivity,
-  type HistoryEntryRecord,
   type HistoryFilter,
+  type HistoryPageRecord,
   type LearnerSettingsRecord,
   type LearnerSettingsUpdate,
   type MistakePatternRecord,
@@ -85,8 +85,8 @@ export {
   type GeneratedExerciseSetComplete,
   type GeneratedExerciseSetStart,
   type GeneratedPracticeActivity,
-  type HistoryEntryRecord,
   type HistoryFilter,
+  type HistoryEntryRecord,
   type LearnerSettingsRecord,
   type LearnerSettingsUpdate,
   type MistakePatternRecord,
@@ -549,7 +549,7 @@ export class CallNinaRepository {
     return this.#history.readHistorySkillTotals();
   }
 
-  async listHistory(filterValue: HistoryFilter = {}): Promise<readonly HistoryEntryRecord[]> {
+  async listHistory(filterValue: HistoryFilter = {}): Promise<HistoryPageRecord> {
     return this.#history.listHistory(filterValue);
   }
 

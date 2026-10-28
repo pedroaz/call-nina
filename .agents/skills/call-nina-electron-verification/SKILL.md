@@ -13,6 +13,8 @@ Identify the running Call Nina development window, checkout/build and data root,
 
 Observe the screen/accessibility tree, perform an action, then inspect the result. Verify behavior through the real UI; direct data changes may prepare/reset development state but are not evidence that a UI workflow works. Use the development skill's real-connection/model policy for AI checks. Identify exact processes before restarting the development app and leave it usable afterward. Source edits may proceed while it runs; reload/restart when needed and tie observations to the build actually inspected. Keep screenshots out of Git and diagnostic logs.
 
+For direct controller launches, inherit the desktop session environment, including `DBUS_SESSION_BUS_ADDRESS`, `XDG_RUNTIME_DIR`, display variables and `KDE_SESSION_VERSION` on KDE. Omitting the KDE version can select the obsolete KWallet backend even when KWallet 6 is available. Diagnose storage with the real session before changing credential code; never force plaintext storage or import another application’s authentication.
+
 If available tools cannot attach to or operate the running Electron app, report that concrete tool limitation and use a supported launch/attachment route. A tool limitation is not a policy requirement for a separate session.
 
 ## Optional repository controller session

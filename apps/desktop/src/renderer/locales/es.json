@@ -37,7 +37,7 @@
     "practice": "Práctica",
     "writing": "Escritura",
     "vocabulary": "Vocabulario",
-    "history": "Historial",
+    "history": "Resultados",
     "progress": "Progreso",
     "settings": "Configuración",
     "personalData": "Datos personales",
@@ -125,7 +125,7 @@
       "deleteAction": "Eliminar {{title}}",
       "deleteTitle": "¿Eliminar «{{title}}»?",
       "deleteBody": "Esto elimina permanentemente la actividad y sus posibles palabras aún sin confirmar. También podría eliminarse el material de origen creado con esta actividad que no se use y no se haya modificado.",
-      "deleteCascadeBody": "Esto elimina permanentemente el cuestionario, sus intentos, respuestas y comentarios, las entradas relacionadas del Historial y las posibles palabras aún sin confirmar. También podría eliminarse el material de origen creado con esta actividad que no se use y no se haya modificado.",
+      "deleteCascadeBody": "Esto elimina permanentemente el cuestionario, sus intentos, respuestas y comentarios, los resultados relacionados y las posibles palabras aún sin confirmar. También podría eliminarse el material de origen creado con esta actividad que no se use y no se haya modificado.",
       "deleteConfirm": "Eliminar ejercicio",
       "deleteBlocked": {
         "retained-data": "{{title}} tiene resultados completados, comentarios conservados o vocabulario confirmado y no se puede eliminar aquí."
@@ -284,7 +284,7 @@
       "finish": "Guardar evidencia del diagnóstico",
       "saving": "Guardando evidencia…",
       "completedTitle": "Evidencia del diagnóstico guardada",
-      "completedBody": "Guardada en el Historial. Tu nivel de aprendizaje no ha cambiado.",
+      "completedBody": "Resultado guardado. Tu nivel de aprendizaje no ha cambiado.",
       "noAdditionalUncertainty": "No se indicó ninguna incertidumbre adicional.",
       "outcomes": {
         "demonstrated": "demostrado",
@@ -376,13 +376,13 @@
     "abandoning": "Abandonando serie…",
     "abandonFailed": "No se pudo abandonar la serie. Tu respuesta actual sigue visible.",
     "abandoned": "Serie de práctica abandonada",
-    "abandonedBody": "Las respuestas completadas no se añadieron al Historial. Puedes volver a iniciar esta serie generada más adelante.",
+    "abandonedBody": "Las respuestas completadas no se guardaron como resultados. Puedes volver a iniciar esta serie generada más adelante.",
     "delete": {
       "trigger": "Eliminar cuestionario",
       "deleting": "Eliminando cuestionario…",
       "title": "¿Eliminar este cuestionario?",
       "body": "Esto elimina permanentemente el cuestionario y sus posibles palabras aún sin confirmar. El vocabulario confirmado impide eliminarlo.",
-      "cascadeBody": "Esto elimina permanentemente el cuestionario, sus intentos, respuestas y comentarios, las entradas relacionadas del Historial y las posibles palabras aún sin confirmar.",
+      "cascadeBody": "Esto elimina permanentemente el cuestionario, sus intentos, respuestas y comentarios, los resultados relacionados y las posibles palabras aún sin confirmar.",
       "confirm": "Eliminar cuestionario"
     },
     "aiFeedback": {
@@ -615,7 +615,7 @@
     "openWriting": "Abrir Escritura",
     "correctionItem": "{{count}} segmentos modificados · {{date}}",
     "emptyCorrections": "Aún no hay correcciones.",
-    "openHistory": "Abrir Historial",
+    "openHistory": "Resultados",
     "mistakeItem": "{{category}} · {{count}} incidencias",
     "emptyMistakes": "Aún no hay patrones recurrentes.",
     "emptyVocabulary": "No hay palabras pendientes para hoy.",
@@ -746,11 +746,11 @@
       "unknown": "No se registró si hubo ayuda"
     },
     "eyebrow": "Registro de aprendizaje",
-    "title": "Historial",
+    "title": "Resultados",
     "intro": "Revisa los intentos y comentarios guardados, y elige qué volver a practicar.",
-    "refresh": "Actualizar historial",
+    "refresh": "Actualizar resultados",
     "refreshing": "Actualizando…",
-    "empty": "Ninguna actividad guardada coincide con estos filtros.",
+    "empty": "Ningún resultado coincide con estos filtros.",
     "filters": {
       "skill": "Destreza",
       "activityType": "Tipo de actividad",
@@ -826,7 +826,7 @@
     },
     "practiceAgain": "Volver a practicar esto",
     "delete": "Eliminar este registro",
-    "deleteTitle": "¿Eliminar este registro del historial?",
+    "deleteTitle": "¿Eliminar este resultado?",
     "deleteBody": "Esto elimina permanentemente el intento, la respuesta, la corrección y los comentarios guardados. No se puede deshacer.",
     "patterns": {
       "title": "Evidencia de errores",
@@ -855,12 +855,12 @@
       }
     },
     "laterFeedback": "Comentarios posteriores",
-    "deleteReviewBody": "¿Eliminar este repaso del historial? La palabra y su calendario de repaso no cambiarán."
+    "deleteReviewBody": "¿Eliminar este resultado de repaso? La palabra y su calendario de repaso no cambiarán."
   },
   "pages": {
     "writing": "Escritura",
     "vocabulary": "Vocabulario",
-    "history": "Historial",
+    "history": "Resultados",
     "settings": "Configuración y cuenta",
     "placeholder": "Este espacio está listo para la siguiente fase de implementación."
   },
@@ -1344,7 +1344,7 @@
     "reopen": "Volver a ver",
     "skip": "Omitir por ahora",
     "evidence": "Comentarios guardados",
-    "openHistory": "Abrir Historial",
+    "openHistory": "Resultados",
     "preparing": "Preparando tu actividad…",
     "loading": "Cargando tu Ruta de aprendizaje…",
     "courseUnavailable": "Activa las rutas de aprendizaje para este idioma en Configuración para explorar cursos y escenarios.",
@@ -1394,8 +1394,8 @@
     },
     "skillParticipation": "{{count}} actividades vinculadas completadas",
     "noEvidence": "Aún no se ha evaluado. Completar lecciones no demuestra esta destreza.",
-    "historyAndPatterns": "Revisar el historial y los errores recurrentes",
-    "allHistory": "Mostrar todo el historial",
+    "historyAndPatterns": "Resultados y errores recurrentes",
+    "allHistory": "Mostrar todos",
     "languageUnavailable": "Por ahora, la Ruta de aprendizaje estructurada solo está disponible para alemán. Puedes practicar en el idioma que elijas.",
     "enrollRequired": "La Ruta de aprendizaje de alemán es opcional. Actívala en Configuración para usar el curso o continúa en Práctica."
   },
@@ -1513,6 +1513,7 @@
       "model-unavailable": "La conexión de IA seleccionada no tiene un modelo y razonamiento utilizables para esta acción. Comprueba la opción guardada en Configuración.",
       "integration-unavailable": "Nina no pudo verificar la integración externa de Codex para Voice. Actualiza Configuración e inténtalo de nuevo. Esto no significa que falte el complemento.",
       "plugin-required": "Para abrir esta actividad de Voice en Codex se necesita el complemento Call Nina. Instálalo o actualízalo en Configuración e inténtalo de nuevo.",
+      "secure-storage-unavailable": "El almacenamiento seguro de claves no está disponible en este dispositivo.",
       "connection-required": "Elige una conexión de IA en Ajustes para usar esta acción. Las actividades preparadas siguen disponibles."
     }
   },
@@ -1954,6 +1955,30 @@
       "too-large": "La biblioteca supera el límite de 100 MiB.",
       "changed": "La cuenta o biblioteca cambió. Inténtalo de nuevo.",
       "busy": "Ya hay una sincronización en curso."
+    }
+  },
+  "savedResults": {
+    "activities": "Actividades",
+    "results": "Resultados",
+    "selection": "Resultados seleccionados",
+    "clearScope": "Mostrar todos",
+    "filters": "Filtros",
+    "search": "Buscar resultados",
+    "searchActivities": "Buscar actividades guardadas",
+    "mistakes": "Errores para practicar",
+    "openPractice": "Abrir práctica",
+    "occurrences_one": "Observado {{count}} vez",
+    "occurrences_other": "Observado {{count}} veces",
+    "viewAll": "Ver todos",
+    "practise": "Practicar",
+    "count_one": "{{count}} resultado",
+    "count_other": "{{count}} resultados",
+    "basis": {
+      "independent": "Independiente",
+      "supported": "Con ayuda",
+      "self-assessment": "Autoevaluación",
+      "participation": "Participación",
+      "unknown": "Sin clasificar"
     }
   }
 }

@@ -3133,7 +3133,7 @@ export class DesktopBackend {
         if (dataRoot.status !== "ready" || !this.#repository) {
           return this.#failure(request, "stale-data-root");
         }
-        const [entries, mistakePatterns, allTimeSkillTotals] = await Promise.all([
+        const [history, mistakePatterns, allTimeSkillTotals] = await Promise.all([
           this.#repository.listHistory(request.payload),
           this.#repository.listMistakePatterns({
             ...(request.payload.fromDate ? { fromDate: request.payload.fromDate } : {}),
@@ -3144,7 +3144,7 @@ export class DesktopBackend {
             ...(request.payload.mistakeCategory
               ? { mistakeCategory: request.payload.mistakeCategory }
               : {}),
-            maximum: Math.min(request.payload.maximum ?? 50, 50),
+            maximum: 50,
           }),
           this.#repository.readHistorySkillTotals(),
         ]);
@@ -3152,7 +3152,8 @@ export class DesktopBackend {
           rootGeneration: dataRoot.generation,
           mistakePatterns,
           allTimeSkillTotals,
-          entries: entries.map((entry) => {
+          nextCursor: history.nextCursor,
+          entries: history.entries.map((entry) => {
             const detail =
               entry.detail.kind === "reference" || entry.detail.kind === "attempt-feedback"
                 ? entry.detail
@@ -3223,6 +3224,7 @@ export class DesktopBackend {
                       };
             return {
               historyEntryId: entry.historyEntryId,
+              activityAvailable: entry.activityAvailable,
               evidence: entry.evidence,
               entityKind: entry.entityKind,
               skill: entry.skill,

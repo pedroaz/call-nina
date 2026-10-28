@@ -50,6 +50,23 @@
   display: grid;
   gap: 0;
 }
+.generatedActivityActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem;
+  align-items: center;
+  gap: var(--od-space-3);
+  width: 17rem;
+  max-width: 100%;
+}
+.generatedActivityResults {
+  display: grid;
+  min-width: 0;
+}
+.generatedActivityMenu {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
 .generatedActivityOpen {
   width: 100%;
   gap: var(--od-space-5);
@@ -72,14 +89,6 @@
   color: var(--od-color-text-muted);
   font-size: var(--od-font-size-sm);
   font-weight: normal;
-}
-.libraryFilters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--od-space-3);
-}
-.libraryFilterButton {
-  font-size: var(--od-font-size-sm);
 }
 .practiceControls {
   display: flex;

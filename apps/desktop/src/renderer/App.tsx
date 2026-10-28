@@ -16,7 +16,7 @@ import {
   type Language,
   type DataRootGeneration,
 } from "@call-nina/contracts";
-import { Smartphone, Gauge, History, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
+import { Smartphone, Gauge, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -32,7 +32,7 @@ import styles from "./Startup.module.css";
 import { NinaHome, emptyNinaHomeDraft, type NinaHomeDraft } from "./Dashboard.js";
 import { useHelperSelection } from "./useHelperSelection.js";
 import { ContextualHelper } from "./ContextualHelper.js";
-import { HistoryPage, type HistoryPracticeSeed } from "./HistoryPage.js";
+import { type SavedResultsScope, type HistoryPracticeSeed } from "./SavedResults.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import { ProfileOnboarding } from "./ProfileOnboarding.js";
 import { LearningPathPage } from "./LearningPathPage.js";
@@ -62,7 +62,6 @@ type Page =
   | "writing"
   | "vocabulary"
   | "mobile"
-  | "history"
   | "learningPath"
   | "personalData"
   | "settings";
@@ -84,7 +83,6 @@ const navigation: ReadonlyArray<{
   { page: "practice", icon: Gauge },
   { page: "learningPath", icon: Route },
   { page: "vocabulary", icon: LibraryBig },
-  { page: "history", icon: History },
   { page: "mobile", icon: Smartphone },
 ];
 
@@ -149,14 +147,13 @@ function DesktopWorkspace({
   initialPage: Page;
 }) {
   const { t } = useTranslation();
-  const [historyEntryIds, setHistoryEntryIds] =
-    useState<
-      NonNullable<
-        Extract<DesktopIpcRequest, { channel: "history/read" }>["payload"]["historyEntryIds"]
-      >
-    >();
+  const [resultsRequest, setResultsRequest] = useState<{
+    scope?: SavedResultsScope;
+    requestId: number;
+  }>();
   const [page, setPage] = useState<Page>(initialPage);
-  const pathHistory = useDetailNavigation<"history">();
+  const [resultsOrigin, setResultsOrigin] = useState<"learningPath" | "vocabulary">();
+  const pathHistory = useDetailNavigation<"results">();
   const [writingOrigin, setWritingOrigin] = useState<Page>("practice");
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
@@ -194,6 +191,9 @@ function DesktopWorkspace({
         targetLanguage,
       });
       setLearningScope(next.settings.learningScope);
+      setResultsRequest(undefined);
+      setResultsOrigin(undefined);
+      pathHistory.back();
       setPage("nina");
     } catch (cause) {
       setOperationError(normalizeDesktopError(cause).detail);
@@ -201,9 +201,12 @@ function DesktopWorkspace({
       setSwitchingLanguage(false);
     }
   };
+  const savedResultsScroll = useRef<number | undefined>(undefined);
   const [navPreference, setNavPreference] = useState<boolean>();
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const y = page === "practice" ? (savedResultsScroll.current ?? 0) : 0;
+    window.scrollTo(0, y);
+    if (page === "practice") savedResultsScroll.current = undefined;
   }, [page]);
   const [wideHelper, setWideHelper] = useState(
     () => window.matchMedia("(min-width: 80.01rem)").matches,
@@ -406,7 +409,8 @@ function DesktopWorkspace({
   const applyNavigation = (target: Page | NavigationTarget) => {
     const destination = typeof target === "string" ? target : target.destination;
     if (pathHistory.view) pathHistory.back();
-    if (destination === "history") setHistoryEntryIds(undefined);
+    setResultsOrigin(undefined);
+
     if (destination === "writing" && page !== "writing") {
       setWritingOrigin(page);
       setWritingSeed(undefined);
@@ -435,8 +439,20 @@ function DesktopWorkspace({
     if (mode === "return") returnTo(destination);
     else applyNavigation(destination);
   };
+  const openSavedResults = (scope?: SavedResultsScope, origin?: "learningPath" | "vocabulary") => {
+    setResultsOrigin(origin);
+    setPreparedActivityId(undefined);
+    setPracticeSeed(undefined);
+    setActivityOrigin(undefined);
+    setPracticeTab("saved");
+    setResultsRequest((current) => ({
+      ...(scope ? { scope } : {}),
+      requestId: (current?.requestId ?? 0) + 1,
+    }));
+    setPage("practice");
+  };
   const openCompletionPage = async (
-    destination: "history" | "nina",
+    destination: "results" | "nina",
     language: Language,
     rootGeneration: DataRootGeneration,
   ) => {
@@ -450,8 +466,8 @@ function DesktopWorkspace({
         });
         setLearningScope(next.settings.learningScope);
       }
-      setHistoryEntryIds(undefined);
-      navigate(destination);
+      if (destination === "results") openSavedResults();
+      else navigate(destination);
     } catch (cause) {
       setOperationError(normalizeDesktopError(cause).detail);
     }
@@ -548,13 +564,38 @@ function DesktopWorkspace({
               <div ref={practiceContainer} hidden={page !== "practice"}>
                 <PracticePage
                   onLanguageSwitchBlockedChange={setPracticeLanguageBlocked}
+                  key={ninaScopeKey}
+                  resultsRequest={resultsRequest}
+                  onReturnToSource={
+                    resultsOrigin
+                      ? () => {
+                          setPage(resultsOrigin);
+                          pathHistory.back();
+                          setResultsOrigin(undefined);
+                        }
+                      : undefined
+                  }
+                  resultsReturnLabel={resultsOrigin ? t(`nav.${resultsOrigin}`) : undefined}
+                  onPracticeAgain={(seed) => {
+                    if (seed.kind === "writing") savedResultsScroll.current = window.scrollY;
+                    if (seed.kind === "exercise") {
+                      setActivityOrigin("practice");
+                      setPracticeSeed(undefined);
+                      setPreparedActivityId(seed.activityId as PreparedActivityId);
+                    } else {
+                      setWritingOrigin("practice");
+                      setWritingSeed(seed);
+                      setWritingDirty(false);
+                      setPage("writing");
+                    }
+                  }}
                   selectedTab={practiceTab}
                   onTabChange={setPracticeTab}
                   onWriting={() => {
                     navigate("writing");
                   }}
-                  onHistory={(language, rootGeneration) =>
-                    void openCompletionPage("history", language, rootGeneration)
+                  onResults={(language, rootGeneration) =>
+                    void openCompletionPage("results", language, rootGeneration)
                   }
                   onNina={(language, rootGeneration) =>
                     void openCompletionPage("nina", language, rootGeneration)
@@ -596,34 +637,7 @@ function DesktopWorkspace({
               />
             ) : null}
             {page === "mobile" && <MobilePage />}
-            {page === "history" ? (
-              <HistoryPage
-                onReturn={
-                  pathHistory.view
-                    ? () => {
-                        setPage("learningPath");
-                        pathHistory.back();
-                      }
-                    : undefined
-                }
-                {...(historyEntryIds ? { initialHistoryEntryIds: historyEntryIds } : {})}
-                requestAiAccess={openAi}
-                onPracticeAgain={(seed) => {
-                  if (seed.kind === "exercise") {
-                    setActivityOrigin("history");
-                    setPracticeSeed(undefined);
-                    setPreparedActivityId(seed.activityId as PreparedActivityId);
-                    setPage("practice");
-                  } else {
-                    setWritingOrigin("history");
-                    setWritingSeed(seed);
-                    setWritingDirty(false);
-                    setPage("writing");
-                  }
-                }}
-              />
-            ) : null}
-            {(page === "learningPath" || (page === "history" && pathHistory.view === "history")) &&
+            {(page === "learningPath" || pathHistory.view === "results") &&
             learningScope &&
             languageCapabilities[learningScope.targetLanguage].structuredPath &&
             learningScope.courseId ===
@@ -635,10 +649,12 @@ function DesktopWorkspace({
                     navigate("nina");
                   }}
                   requestAiAccess={openAi}
-                  onOpenHistory={(ids) => {
-                    pathHistory.open("history");
-                    setHistoryEntryIds(ids);
-                    setPage("history");
+                  onOpenResults={(ids) => {
+                    pathHistory.open("results");
+                    openSavedResults(
+                      ids?.length ? { historyEntryIds: ids } : undefined,
+                      "learningPath",
+                    );
                   }}
                 />
               </div>
@@ -678,23 +694,27 @@ function DesktopWorkspace({
                 )}
               </Page>
             ) : null}
-            {page === "vocabulary" ? (
-              <VocabularyPage
-                onLanguageSwitchBlockedChange={setVocabularyLanguageBlocked}
-                requestAiAccess={openAi}
-                targetLanguage={learningScope?.targetLanguage}
-                onOpenActivity={(activityId) => {
-                  setActivityOrigin("vocabulary");
-                  setPreparedActivityId(activityId);
-                  setPracticeSeed(undefined);
-                  setPage("practice");
-                }}
-                initialDueOnly={vocabularyDue}
-                viewRequest={vocabularyViewRequest}
-                onNavigate={(destination) => {
-                  navigate(destination);
-                }}
-              />
+            {page === "vocabulary" || resultsOrigin === "vocabulary" ? (
+              <div hidden={page !== "vocabulary"}>
+                <VocabularyPage
+                  onLanguageSwitchBlockedChange={setVocabularyLanguageBlocked}
+                  requestAiAccess={openAi}
+                  targetLanguage={learningScope?.targetLanguage}
+                  onOpenActivity={(activityId) => {
+                    setActivityOrigin("vocabulary");
+                    setPreparedActivityId(activityId);
+                    setPracticeSeed(undefined);
+                    setPage("practice");
+                  }}
+                  initialDueOnly={vocabularyDue}
+                  viewRequest={vocabularyViewRequest}
+                  onNavigate={(destination, scope) => {
+                    if (destination === "results") openSavedResults(scope, "vocabulary");
+                    else if (scope?.activityId) openExternalActivity(scope.activityId);
+                    else navigate(destination);
+                  }}
+                />
+              </div>
             ) : null}
             {page === "personalData" ? (
               <PersonalDataPage

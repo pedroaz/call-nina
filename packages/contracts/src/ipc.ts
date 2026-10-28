@@ -548,6 +548,12 @@ const historyReadRequest = request(
   "history/read",
   z.strictObject({
     historyEntryIds: z.array(historyEntryIdSchema).min(1).max(100).optional(),
+    search: text(160).optional(),
+    activityId: activityIdSchema.optional(),
+    correctionId: correctionIdSchema.optional(),
+    cursor: z
+      .strictObject({ occurredAt: utcInstantSchema, historyEntryId: historyEntryIdSchema })
+      .optional(),
     skill: z.enum(["writing", "reading", "listening", "speaking"]).optional(),
     activityType: historyActivityTypeSchema.optional(),
     fromDate: calendarDateSchema.optional(),
@@ -1663,6 +1669,9 @@ const historyReadResponse = response(
   "history/read",
   z.strictObject({
     rootGeneration: dataRootGenerationSchema,
+    nextCursor: z
+      .strictObject({ occurredAt: utcInstantSchema, historyEntryId: historyEntryIdSchema })
+      .nullable(),
     allTimeSkillTotals: z.strictObject({
       writing: z.int().nonnegative(),
       reading: z.int().nonnegative(),
@@ -1674,6 +1683,7 @@ const historyReadResponse = response(
       .array(
         z.strictObject({
           historyEntryId: historyEntryIdSchema,
+          activityAvailable: z.boolean(),
           evidence: attemptEvidenceSchema.nullable(),
           entityKind: z.enum([
             "attempt",

@@ -1,3 +1,4 @@
+import { historyActivitySql } from "./history-activity.js";
 import {
   activityIdSchema,
   attemptFeedbackSaveInputSchema,
@@ -45,6 +46,7 @@ import {
   type DashboardSnapshot,
   type HistoryEntryRecord,
   type HistoryFilter,
+  type HistoryPageRecord,
   type MistakePatternRecord,
   generatedExerciseHistorySchema,
   historyActivityTypeSchema,
@@ -577,7 +579,7 @@ export class HistoryRepository {
     });
   }
 
-  async listHistory(filterValue: HistoryFilter = {}): Promise<readonly HistoryEntryRecord[]> {
+  async listHistory(filterValue: HistoryFilter = {}): Promise<HistoryPageRecord> {
     const filter = historyFilterSchema.parse(filterValue);
     if (filter.fromDate && filter.toDate && filter.fromDate > filter.toDate) {
       throw new Error("OD_HISTORY_DATE_RANGE_INVALID");
@@ -616,15 +618,37 @@ export class HistoryRepository {
       clauses.push(`history_entry_id IN (${filter.historyEntryIds.map(() => "?").join(",")})`);
       parameters.push(...filter.historyEntryIds);
     }
+    if (filter.search) {
+      clauses.push("instr(lower(title), lower(?)) > 0");
+      parameters.push(filter.search);
+    }
+    if (filter.activityId) {
+      clauses.push(`${historyActivitySql("history_entries")} = ?`);
+      parameters.push(filter.activityId);
+    }
+    if (filter.correctionId) {
+      clauses.push(
+        "EXISTS (SELECT 1 FROM corrections c WHERE c.correction_id = ? AND (c.attempt_id = history_entries.entity_id OR c.correction_id = history_entries.entity_id))",
+      );
+      parameters.push(filter.correctionId);
+    }
+    if (filter.cursor) {
+      clauses.push("(occurred_at < ? OR (occurred_at = ? AND history_entry_id > ?))");
+      parameters.push(
+        filter.cursor.occurredAt,
+        filter.cursor.occurredAt,
+        filter.cursor.historyEntryId,
+      );
+    }
     const where = clauses.length === 0 ? "" : `WHERE ${clauses.join(" AND ")}`;
-    return withLeasedConnection(this.#database, (connection) =>
-      connection
+    return withLeasedConnection(this.#database, (connection) => {
+      const entries = connection
         .prepare(
-          `SELECT target_language, history_entry_id, entity_kind, entity_id, skill, activity_type, title,
+          `SELECT EXISTS (SELECT 1 FROM prepared_activities p WHERE p.activity_id = ${historyActivitySql("history_entries")} AND p.target_language = history_entries.target_language) AS activity_available, target_language, history_entry_id, entity_kind, entity_id, skill, activity_type, title,
             occurred_at, reconstruction_json, root_generation
-           FROM (SELECT * FROM history_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) history_entries ${where} ORDER BY occurred_at DESC LIMIT ?`,
+           FROM (SELECT * FROM history_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) history_entries ${where} ORDER BY occurred_at DESC, history_entry_id ASC LIMIT ?`,
         )
-        .all(...parameters, filter.maximum)
+        .all(...parameters, filter.maximum + 1)
         .map((row) => {
           const record = row as Record<string, unknown>;
           const historyEntryId = historyEntryIdSchema.parse(record["history_entry_id"]);
@@ -823,6 +847,7 @@ export class HistoryRepository {
             }
           }
           return Object.freeze({
+            activityAvailable: record["activity_available"] === 1,
             targetLanguage: languageSchema.parse(record["target_language"]),
             historyEntryId,
             evidence: historyAttemptEvidence(connection, historyEntryId),
@@ -839,8 +864,17 @@ export class HistoryRepository {
             detail,
             rootGeneration: z.int().positive().parse(record["root_generation"]),
           }) satisfies HistoryEntryRecord;
-        }),
-    );
+        });
+      const page = entries.slice(0, filter.maximum);
+      const last = page.at(-1);
+      return {
+        entries: page,
+        nextCursor:
+          entries.length > filter.maximum && last
+            ? { occurredAt: last.occurredAt, historyEntryId: last.historyEntryId }
+            : null,
+      };
+    });
   }
 
   async deleteHistoryEntry(historyEntryIdValue: string, deletedAtValue: string): Promise<void> {

@@ -1,3 +1,4 @@
+import { historyActivitySql } from "./history-activity.js";
 import {
   activityIdSchema,
   activityLibraryFilterSchema,
@@ -368,6 +369,10 @@ export class ActivitiesRepository {
         clauses.push(`p.activity_type IN (${filter.activityTypes.map(() => "?").join(", ")})`);
         parameters.push(...filter.activityTypes);
       }
+      if (filter.search) {
+        clauses.push("instr(lower(p.title), lower(?)) > 0");
+        parameters.push(filter.search);
+      }
       if (filter.material) {
         clauses.push(`p.activity_type IN ('reading', 'vocabulary-review') AND EXISTS (
           SELECT 1 FROM activity_content_revisions c JOIN material_revisions m
@@ -387,7 +392,9 @@ export class ActivitiesRepository {
       const rows = connection
         .prepare(
           `
-        SELECT p.*, EXISTS (SELECT 1 FROM generated_activity_payloads g
+        SELECT p.*, (SELECT count(*) FROM history_entries h WHERE h.target_language = p.target_language
+          AND ${historyActivitySql("h")} = p.activity_id) AS result_count,
+          EXISTS (SELECT 1 FROM generated_activity_payloads g
           WHERE g.activity_id = p.activity_id) AS generated,
           ${preparedActivityDeletionStatusSql} AS deletion_status
         FROM (SELECT * FROM prepared_activities WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) p WHERE ${clauses.join(" AND ")}
@@ -403,6 +410,7 @@ export class ActivitiesRepository {
           originSurface: row["origin_surface"],
           preparedAt: row["prepared_at"],
           generated: row["generated"] === 1,
+          resultCount: Number(row["result_count"]),
           deletionStatus: row["deletion_status"],
         }),
       );

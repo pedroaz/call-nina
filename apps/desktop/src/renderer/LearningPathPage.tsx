@@ -38,7 +38,7 @@ type Props = {
   onLanguageSwitchBlockedChange?: (blocked: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onNina: () => void;
-  onOpenHistory: (
+  onOpenResults: (
     ids?: NonNullable<
       Extract<DesktopIpcRequest, { channel: "history/read" }>["payload"]["historyEntryIds"]
     >,
@@ -76,7 +76,7 @@ function LearningPathWorkspace({
   refresh,
   readError,
   requestAiAccess,
-  onOpenHistory,
+  onOpenResults,
   onNina,
 }: Props & {
   snapshot: LearningPathSnapshot;
@@ -385,8 +385,8 @@ function LearningPathWorkspace({
               : (course?.units.find((unit) => unit.id === active.reference.unitId)?.title[locale] ??
                 t("pathLibrary.title"))
           }
-          onHistory={() => {
-            onOpenHistory();
+          onResults={() => {
+            onOpenResults();
           }}
           onNina={onNina}
           requestAiAccess={requestAiAccess}
@@ -543,7 +543,7 @@ function LearningPathWorkspace({
               launch={launch}
               launchFeedback={launchFeedback}
               mutate={mutate}
-              onOpenHistory={onOpenHistory}
+              onOpenResults={onOpenResults}
               openLesson={openLesson}
               onTrail={onTrail}
               vocabularyAdded={vocabularyAdded}

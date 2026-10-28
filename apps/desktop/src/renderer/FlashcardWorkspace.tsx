@@ -31,7 +31,7 @@ export function FlashcardWorkspace({
   courseCompletionActions,
   onClose,
   onVocabulary,
-  onHistory,
+  onResults,
   onNina,
 }: {
   activityId: ActivityId;
@@ -41,7 +41,7 @@ export function FlashcardWorkspace({
   courseCompletionActions?: ReactNode;
   onClose: () => void;
   onVocabulary: () => void;
-  onHistory: () => void;
+  onResults: () => void;
   onNina: () => void;
 }) {
   const { t } = useTranslation();
@@ -200,7 +200,7 @@ export function FlashcardWorkspace({
                       evidence="self-assessment"
                       parentLabel={parentLabel}
                       onReturn={onClose}
-                      onHistory={onHistory}
+                      onResults={onResults}
                       onNina={onNina}
                     />
                   )}

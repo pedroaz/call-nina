@@ -1,3 +1,4 @@
+import type { SavedResultsScope } from "./savedResultsTypes.js";
 import { VocabularyLearning } from "./VocabularyLearning.js";
 import tableStyles from "./components/layout/Table.module.css";
 import { useEffect, useRef, useState } from "react";
@@ -38,7 +39,7 @@ type Props = Readonly<{
   initialDueOnly?: boolean;
   viewRequest?: number;
   onOpenActivity: (activityId: ActivityId) => void;
-  onNavigate: (page: "history" | "practice") => void;
+  onNavigate: (page: "results" | "practice", scope?: SavedResultsScope) => void;
 }>;
 
 export function VocabularyPage({

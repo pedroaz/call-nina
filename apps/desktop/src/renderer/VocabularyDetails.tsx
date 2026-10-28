@@ -1,3 +1,4 @@
+import type { SavedResultsScope } from "./savedResultsTypes.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CallNinaError, VocabularyId, DataRootGeneration } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
@@ -61,7 +62,7 @@ export function VocabularyDetails(props: {
   rootGeneration: DataRootGeneration;
   onClose: () => void;
   onChanged: () => void;
-  onNavigate: (page: "history" | "practice") => void;
+  onNavigate: (page: "results" | "practice", scope?: SavedResultsScope) => void;
 }) {
   const { t } = useTranslation();
   const [entry, setEntry] = useState<VocabularyEntry>();
@@ -229,7 +230,10 @@ export function VocabularyDetails(props: {
                 isDisabled={busy}
                 onPress={() => {
                   props.onClose();
-                  props.onNavigate(entry.source.kind === "activity" ? "practice" : "history");
+                  if (entry.source.kind === "activity")
+                    props.onNavigate("practice", { activityId: entry.source.activityId });
+                  else if (entry.source.kind === "correction")
+                    props.onNavigate("results", { correctionId: entry.source.correctionId });
                 }}
               >
                 {t("vocabulary.openSource")}

@@ -24,7 +24,7 @@ export function LearningPathProgress({
   launchOrigin,
   launch,
   launchFeedback,
-  onOpenHistory,
+  onOpenResults,
 }: {
   snapshot: LearningPathSnapshot;
   unit: CourseUnit;
@@ -32,7 +32,7 @@ export function LearningPathProgress({
   launchOrigin: string | undefined;
   launch: (ref: CourseReference, origin: string) => Promise<void>;
   launchFeedback: (origin: string) => ReactNode;
-  onOpenHistory: (ids: HistoryEntryId[]) => void;
+  onOpenResults: (ids: HistoryEntryId[]) => void;
 }) {
   const { t } = useTranslation();
   const { course, state } = snapshot;
@@ -170,7 +170,7 @@ export function LearningPathProgress({
           <Button
             variant="secondary"
             onPress={() => {
-              onOpenHistory(
+              onOpenResults(
                 state.activities
                   .filter((a) => a.reference.unitId === unit.id)
                   .flatMap((a) => a.historyEntryIds)

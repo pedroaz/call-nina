@@ -5,6 +5,7 @@ import {
   calendarDateSchema,
   capturedTeachingContextSchema,
   curriculumTopicIdSchema,
+  correctionIdSchema,
   exerciseFeedbackCandidateSchema,
   exerciseGenerationCandidateSchema,
   generationProvenanceSchema,
@@ -107,6 +108,12 @@ export const historyActivityTypeSchema = z.enum([
 ]);
 
 export const historyFilterSchema = z.strictObject({
+  correctionId: correctionIdSchema.optional(),
+  search: z.string().trim().max(160).optional(),
+  activityId: activityIdSchema.optional(),
+  cursor: z
+    .strictObject({ occurredAt: utcInstantSchema, historyEntryId: historyEntryIdSchema })
+    .optional(),
   historyEntryIds: z.array(historyEntryIdSchema).min(1).max(100).optional(),
   skill: z.enum(["writing", "reading", "listening", "speaking"]).optional(),
   activityType: historyActivityTypeSchema.optional(),
@@ -129,7 +136,13 @@ export type PreparedActivityRecord = z.infer<typeof preparedActivitySchema>;
 
 export type HistoryFilter = z.input<typeof historyFilterSchema>;
 
+export type HistoryPageRecord = Readonly<{
+  entries: readonly HistoryEntryRecord[];
+  nextCursor: NonNullable<HistoryFilter["cursor"]> | null;
+}>;
+
 export type HistoryEntryRecord = Readonly<{
+  activityAvailable: boolean;
   targetLanguage: Language;
   historyEntryId: string;
   evidence: AttemptEvidence | null;

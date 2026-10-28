@@ -18,7 +18,7 @@ export function CompletionActions({
   rootGeneration,
   parentLabel,
   onReturn,
-  onHistory,
+  onResults,
   onNina,
 }: {
   targetLanguage: Language;
@@ -26,7 +26,7 @@ export function CompletionActions({
   rootGeneration: DataRootGeneration;
   parentLabel: string;
   onReturn: () => void;
-  onHistory: () => void;
+  onResults: () => void;
   onNina: () => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -71,7 +71,7 @@ export function CompletionActions({
         <Button variant="secondary" onPress={onNina}>
           {t("nav.nina")}
         </Button>
-        <Button variant="secondary" onPress={onHistory}>
+        <Button variant="secondary" onPress={onResults}>
           {t("nav.history")}
         </Button>
       </ActionGroup>

@@ -37,7 +37,7 @@
     "practice": "Üben",
     "writing": "Schreiben",
     "vocabulary": "Wortschatz",
-    "history": "Verlauf",
+    "history": "Ergebnisse",
     "progress": "Fortschritt",
     "settings": "Einstellungen",
     "personalData": "Persönliche Daten",
@@ -125,7 +125,7 @@
       "deleteAction": "{{title}} löschen",
       "deleteTitle": "„{{title}}“ löschen?",
       "deleteBody": "Die Aktivität und ihre unbestätigten Wortschatzvorschläge werden dauerhaft gelöscht. Ungenutztes, unverändertes Ausgangsmaterial, das mit dieser Aktivität erstellt wurde, kann ebenfalls gelöscht werden.",
-      "deleteCascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Verlaufseinträge und unbestätigten Wortschatzkandidaten dauerhaft gelöscht. Ungenutztes, unverändertes Ausgangsmaterial, das mit dieser Aktivität erstellt wurde, kann ebenfalls gelöscht werden.",
+      "deleteCascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Ergebnisse und unbestätigten Wortschatzkandidaten dauerhaft gelöscht. Ungenutztes, unverändertes Ausgangsmaterial, das mit dieser Aktivität erstellt wurde, kann ebenfalls gelöscht werden.",
       "deleteConfirm": "Übung löschen",
       "deleteBlocked": {
         "retained-data": "{{title}} enthält abgeschlossene Ergebnisse, aufbewahrtes Feedback oder bestätigten Wortschatz und kann hier nicht gelöscht werden."
@@ -284,7 +284,7 @@
       "finish": "Einstufungsbelege speichern",
       "saving": "Belege werden gespeichert…",
       "completedTitle": "Einstufungsbelege gespeichert",
-      "completedBody": "Im Verlauf gespeichert. Dein Lernniveau bleibt unverändert.",
+      "completedBody": "Ergebnis gespeichert. Dein Lernniveau bleibt unverändert.",
       "noAdditionalUncertainty": "Keine zusätzliche Unsicherheit gemeldet.",
       "outcomes": {
         "demonstrated": "gezeigt",
@@ -376,13 +376,13 @@
     "abandoning": "Set wird abgebrochen…",
     "abandonFailed": "Das Set konnte nicht abgebrochen werden. Deine aktuelle Antwort bleibt sichtbar.",
     "abandoned": "Übungsset abgebrochen",
-    "abandonedBody": "Abgeschlossene Antworten wurden nicht im Verlauf gespeichert. Du kannst dieses erzeugte Set später erneut starten.",
+    "abandonedBody": "Abgeschlossene Antworten wurden nicht als Ergebnisse gespeichert. Du kannst dieses erzeugte Set später erneut starten.",
     "delete": {
       "trigger": "Quiz löschen",
       "deleting": "Quiz wird gelöscht…",
       "title": "Dieses Quiz löschen?",
       "body": "Dadurch werden das Quiz und seine unbestätigten Wortschatzkandidaten dauerhaft gelöscht. Bestätigter Wortschatz verhindert das Löschen.",
-      "cascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Verlaufseinträge und unbestätigten Wortschatzkandidaten dauerhaft gelöscht.",
+      "cascadeBody": "Dadurch werden das Quiz, seine Versuche, Antworten, Rückmeldungen, zugehörigen Ergebnisse und unbestätigten Wortschatzkandidaten dauerhaft gelöscht.",
       "confirm": "Quiz löschen"
     },
     "aiFeedback": {
@@ -615,7 +615,7 @@
     "openWriting": "Schreiben öffnen",
     "correctionItem": "{{count}} geänderte Abschnitte · {{date}}",
     "emptyCorrections": "Noch keine Korrekturen.",
-    "openHistory": "Verlauf öffnen",
+    "openHistory": "Ergebnisse",
     "mistakeItem": "{{category}} · {{count}} Vorkommen",
     "emptyMistakes": "Noch keine wiederkehrenden Muster.",
     "emptyVocabulary": "Heute sind keine Wörter fällig.",
@@ -746,11 +746,11 @@
       "unknown": "Selbstständigkeit nicht erfasst"
     },
     "eyebrow": "Lernnachweis",
-    "title": "Verlauf",
+    "title": "Ergebnisse",
     "intro": "Sieh dir gespeicherte Versuche und Rückmeldungen an und wähle, was du erneut üben möchtest.",
-    "refresh": "Verlauf aktualisieren",
+    "refresh": "Ergebnisse aktualisieren",
     "refreshing": "Wird aktualisiert…",
-    "empty": "Keine gespeicherte Aktivität passt zu diesen Filtern.",
+    "empty": "Keine Ergebnisse passen zu diesen Filtern.",
     "filters": {
       "skill": "Fertigkeit",
       "activityType": "Aktivitätstyp",
@@ -826,7 +826,7 @@
     },
     "practiceAgain": "Erneut üben",
     "delete": "Diesen Eintrag löschen",
-    "deleteTitle": "Diesen Verlaufseintrag löschen?",
+    "deleteTitle": "Dieses Ergebnis löschen?",
     "deleteBody": "Dadurch werden Versuch, Antwort, Korrektur und Rückmeldung dauerhaft gelöscht. Die Aktion kann nicht rückgängig gemacht werden.",
     "patterns": {
       "title": "Fehlerbelege",
@@ -855,12 +855,12 @@
       }
     },
     "laterFeedback": "Späteres Feedback",
-    "deleteReviewBody": "Diese Wiederholung aus dem Verlauf entfernen? Das Wort und sein Wiederholungsplan bleiben unverändert."
+    "deleteReviewBody": "Dieses Wiederholungsergebnis entfernen? Das Wort und sein Wiederholungsplan bleiben unverändert."
   },
   "pages": {
     "writing": "Schreiben",
     "vocabulary": "Wortschatz",
-    "history": "Verlauf",
+    "history": "Ergebnisse",
     "settings": "Einstellungen und Konto",
     "placeholder": "Dieser Bereich ist für den nächsten Implementierungsblock bereit."
   },
@@ -1344,7 +1344,7 @@
     "reopen": "Erneut bearbeiten",
     "skip": "Vorerst überspringen",
     "evidence": "Gespeichertes Feedback",
-    "openHistory": "Verlauf öffnen",
+    "openHistory": "Ergebnisse",
     "preparing": "Deine Aktivität wird vorbereitet …",
     "loading": "Dein Lernpfad wird geladen …",
     "courseUnavailable": "Aktiviere Lernpfade für diese Sprache in den Einstellungen, um Kurse und Szenarien zu entdecken.",
@@ -1394,8 +1394,8 @@
     },
     "skillParticipation": "{{count}} verknüpfte Aktivitäten abgeschlossen",
     "noEvidence": "Noch nicht bewertet. Abgeschlossene Lektionen belegen diese Fertigkeit nicht.",
-    "historyAndPatterns": "Verlauf und wiederkehrende Fehler ansehen",
-    "allHistory": "Gesamten Verlauf anzeigen",
+    "historyAndPatterns": "Ergebnisse und wiederkehrende Fehler",
+    "allHistory": "Alle anzeigen",
     "languageUnavailable": "Ein strukturierter Lernpfad ist derzeit nur für Deutsch verfügbar. Du kannst in deiner gewählten Sprache üben.",
     "enrollRequired": "Der deutsche Lernpfad ist optional. Aktiviere ihn in den Einstellungen oder übe weiter."
   },
@@ -1513,6 +1513,7 @@
       "model-unavailable": "Die ausgewählte KI-Verbindung hat für diese Aktion kein nutzbares Modell mit passender Denkleistung. Prüfe die gespeicherte Auswahl in den Einstellungen.",
       "integration-unavailable": "Nina konnte die externe Codex-Integration für Voice nicht überprüfen. Aktualisiere die Einstellungen und versuche es erneut. Das bedeutet nicht, dass das Plugin fehlt.",
       "plugin-required": "Zum Öffnen dieser Voice-Aktivität in Codex wird das Call-Nina-Plugin benötigt. Installiere oder aktualisiere es in den Einstellungen und versuche es erneut.",
+      "secure-storage-unavailable": "Sichere Schlüsselspeicherung ist auf diesem Gerät nicht verfügbar.",
       "connection-required": "Wähle in den Einstellungen eine KI-Verbindung für diese Aktion. Vorbereitete Übungen bleiben verfügbar."
     }
   },
@@ -1954,6 +1955,30 @@
       "too-large": "Die Bibliothek überschreitet das Limit von 100 MiB.",
       "changed": "Konto oder Bibliothek geändert. Erneut versuchen.",
       "busy": "Eine Synchronisierung läuft bereits."
+    }
+  },
+  "savedResults": {
+    "activities": "Aktivitäten",
+    "results": "Ergebnisse",
+    "selection": "Ausgewählte Ergebnisse",
+    "clearScope": "Alle anzeigen",
+    "filters": "Filter",
+    "search": "Ergebnisse suchen",
+    "searchActivities": "Gespeicherte Aktivitäten suchen",
+    "mistakes": "Fehler üben",
+    "openPractice": "Übung öffnen",
+    "occurrences_one": "{{count}}-mal beobachtet",
+    "occurrences_other": "{{count}}-mal beobachtet",
+    "viewAll": "Alle anzeigen",
+    "practise": "Üben",
+    "count_one": "{{count}} Ergebnis",
+    "count_other": "{{count}} Ergebnisse",
+    "basis": {
+      "independent": "Selbstständig",
+      "supported": "Mit Unterstützung",
+      "self-assessment": "Selbsteinschätzung",
+      "participation": "Teilnahme",
+      "unknown": "Nicht eingeordnet"
     }
   }
 }

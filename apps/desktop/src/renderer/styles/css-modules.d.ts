@@ -205,6 +205,8 @@ declare module "*HistoryPage.module.css" {
     readonly historyList: string;
     readonly historyMistakeGrid: string;
     readonly page: string;
+    readonly patternTitle: string;
+    readonly resultsBody: string;
   };
   export default styles;
 }
@@ -358,13 +360,14 @@ declare module "*PracticePage.module.css" {
     readonly countBadge: string;
     readonly creationPage: string;
     readonly creationStudio: string;
+    readonly generatedActivityActions: string;
     readonly generatedActivityCopy: string;
     readonly generatedActivityList: string;
+    readonly generatedActivityMenu: string;
     readonly generatedActivityOpen: string;
+    readonly generatedActivityResults: string;
     readonly generatedLibrary: string;
     readonly historyDetail: string;
-    readonly libraryFilterButton: string;
-    readonly libraryFilters: string;
     readonly practiceControls: string;
     readonly practiceLessonBody: string;
     readonly quizLength: string;
