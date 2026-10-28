@@ -59,7 +59,7 @@ const checks = {
     pnpm("--filter", "@call-nina/mobile", "run", "check:dependencies"),
   ),
 };
-const aliases = { h: "help", d: "dev", b: "build", l: "logs", kill: "stop" };
+const aliases = { h: "help", d: "dev", b: "build", l: "logs" };
 const registry = {
   help: leaf("Show commands and shortcuts", (args) => help(args[0])),
   folder: leaf("Open the repository folder", openRepositoryFolder),
@@ -90,13 +90,14 @@ const registry = {
     "dev",
   ),
   ...Object.fromEntries(
-    ["dev", "start", "stop", "status", "logs"].map((name) => [
+    ["dev", "start", "stop", "kill", "status", "logs"].map((name) => [
       name,
       leaf(
         {
           dev: "Build and start desktop development",
           start: "Start built desktop",
           stop: "Stop desktop and watchers",
+          kill: "Stop desktop, watchers and local Android emulators",
           status: "Desktop process status",
           logs: "Desktop logs; --follow / --errors / --clear",
         }[name],
@@ -233,7 +234,7 @@ function help(name) {
   const sections = name
     ? { Commands: Object.keys(entries) }
     : {
-        "Daily desktop": ["dev", "start", "stop", "status", "logs", "folder"],
+        "Daily desktop": ["dev", "start", "stop", "kill", "status", "logs", "folder"],
         Development: [
           "setup",
           "build",

@@ -17,11 +17,7 @@ async function preflight() {
   node("scripts/diagnostics/check-versions.mjs");
   if (target !== "desktop")
     await (await import("../admin/configuration.mjs")).checkPublicConfiguration();
-  if (target !== "hosting" && operation === "publish") {
-    if (process.env.RELEASE_VERSION !== version)
-      throw new Error("desktop_version must match the committed version");
-    await (await import("./desktop-release.mjs")).inspectRelease();
-  }
+  if (operation === "publish") await (await import("./desktop-release.mjs")).inspectRelease();
   await setOutput("sha", current.commit);
   await summary(
     `Release preflight: **${target} / ${operation}**\nCommit: ${current.commit}\nVersion: ${version}\nRun: https://github.com/${current.repository}/actions/runs/${current.runId}`,

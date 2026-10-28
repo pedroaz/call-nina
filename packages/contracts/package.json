@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/contracts",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Runtime-validated IPC, MCP, AI-output, and persisted-data contracts.",
   "type": "module",

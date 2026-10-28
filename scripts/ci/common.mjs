@@ -41,9 +41,11 @@ export function context(publishing = false) {
     throw new Error("Release tooling requires this repository's manual GitHub workflow");
   if (
     publishing &&
-    (process.env.GITHUB_REF !== "refs/heads/main" || process.env.RELEASE_OPERATION !== "publish")
+    (process.env.GITHUB_REF !== "refs/heads/main" ||
+      process.env.RELEASE_OPERATION !== "publish" ||
+      process.env.RELEASE_TARGET !== "all")
   )
-    throw new Error("Publication requires an explicit publish run from main");
+    throw new Error("Publication requires an explicit publish-all run from main");
   const head = run("git", ["rev-parse", "HEAD"], { stdio: "pipe" });
   if (head !== GITHUB_SHA) throw new Error("Checkout does not match dispatch commit");
   return { commit: GITHUB_SHA, runId: GITHUB_RUN_ID, repository };
@@ -89,6 +91,6 @@ export async function github(
 }
 export function help() {
   process.stdout.write(
-    `Manual release: ${workflowUrl}\nChoose branch (normally main), target desktop/hosting/all, and build-only/publish.\nDesktop publication requires desktop_version matching committed manifests.\nBuild-only downloads expire after 30 days. Publishing requires main.\nNo local build or deployment is performed by this command.\n`,
+    `Manual release: ${workflowUrl}\nDry run is enabled by default; choose dry_run_target=all/desktop/hosting for build downloads.\nUncheck dry run to publish desktop and deploy website/API together from main, using the committed version.\nDry-run downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
   );
 }
