@@ -126,7 +126,9 @@ export function LearningPathLesson({
       <Tabs
         key={selected.id}
         selectedKey={lessonTab.lesson === selected.id ? lessonTab.tab : "activities"}
-        onSelectionChange={(tab) => setLessonTab({ lesson: selected.id, tab })}
+        onSelectionChange={(tab) => {
+          setLessonTab({ lesson: selected.id, tab });
+        }}
         label={selected.title[locale]}
         density="compact"
         items={[
@@ -174,7 +176,9 @@ export function LearningPathLesson({
                           data-path-activity={item.id}
                           data-path-focus={`select-activity:${item.id}`}
                           isDisabled={busy}
-                          onPress={() => setExpandedActivity(item.id)}
+                          onPress={() => {
+                            setExpandedActivity(item.id);
+                          }}
                         >
                           <ActivityVisual
                             kind={
@@ -300,9 +304,9 @@ export function LearningPathLesson({
                       {attempts.some((a) => a.evidence.length) && (
                         <Button
                           variant="quiet"
-                          onPress={() =>
-                            onOpenResults(attempts.flatMap((a) => a.historyEntryIds).slice(0, 100))
-                          }
+                          onPress={() => {
+                            onOpenResults(attempts.flatMap((a) => a.historyEntryIds).slice(0, 100));
+                          }}
                         >
                           {t("learningPath.evidence")}
                         </Button>

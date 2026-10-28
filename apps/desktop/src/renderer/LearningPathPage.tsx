@@ -351,7 +351,9 @@ function LearningPathWorkspace({
           <Button
             variant="secondary"
             leadingIcon={<BookOpen aria-hidden="true" />}
-            onPress={() => setGuideOpen(true)}
+            onPress={() => {
+              setGuideOpen(true);
+            }}
           >
             {t("lessonStudio.resources")}
           </Button>
@@ -462,7 +464,9 @@ function LearningPathWorkspace({
             changingSituation={changingSituation}
             situationChanged={changedUnit === activeUnit.id}
             vocabularyAdded={vocabularyAdded}
-            onAddVocabulary={() => addVocabulary(activeUnit)}
+            onAddVocabulary={() => {
+              addVocabulary(activeUnit);
+            }}
             onChangeSituation={() => {}}
           />
         </ModalDialog>
@@ -549,7 +553,9 @@ function LearningPathWorkspace({
               vocabularyAdded={vocabularyAdded}
               changingSituation={changingSituation}
               situationChanged={changedUnit === selected.id}
-              onAddVocabulary={() => addVocabulary(selected)}
+              onAddVocabulary={() => {
+                addVocabulary(selected);
+              }}
             />
           )}
           {navigation.kind === "review" && (

@@ -8,6 +8,7 @@ import {
   type MobileSnapshot,
   type MobilePublished,
 } from "@call-nina/contracts";
+
 export type Hash = (bytes: Uint8Array) => Promise<string>;
 export class SyncError extends Error {
   constructor(
@@ -28,7 +29,9 @@ async function request(connection: SyncConnection, query: string, body?: unknown
   const token = await connection.token();
   await connection.assertCurrent();
   const controller = new AbortController();
-  const abort = () => controller.abort();
+  const abort = () => {
+    controller.abort();
+  };
   if (connection.signal?.aborted) throw new SyncError("changed");
   connection.signal?.addEventListener("abort", abort, { once: true });
   const timer = setTimeout(abort, 30_000);
@@ -93,7 +96,7 @@ export async function downloadSnapshot(
   const { manifest } = published;
   const bytes = new Uint8Array(manifest.byteLength);
   for (const [index, expected] of manifest.chunkHashes.entries()) {
-    const raw = await request(connection, `?id=${manifest.id}&index=${index}`);
+    const raw = await request(connection, `?id=${manifest.id}&index=${String(index)}`);
     if (typeof raw !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/u.test(raw))
       throw new SyncError("unavailable");
     const chunk = toByteArray(raw);

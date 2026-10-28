@@ -1,6 +1,6 @@
 import "./i18n";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AppState, BackHandler } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ClerkProvider, useClerk, useSession, useSignIn, useUser } from "@clerk/expo";
@@ -33,7 +33,6 @@ import {
   NativeField,
   NativeRow,
   NativeScreen,
-  NativeStack,
   NativeText,
   NinaMark,
 } from "./ui/primitives";
@@ -48,13 +47,16 @@ import {
   readPreference,
   writePreference,
 } from "./storage";
+
 async function timed<T>(work: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       work,
       new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error("timeout")), 10000);
+        timer = setTimeout(() => {
+          reject(new Error("timeout"));
+        }, 10000);
       }),
     ]);
   } finally {
@@ -77,7 +79,7 @@ function Login() {
   const [error, setError] = useState<"loginError" | "incomplete">();
   const submitting = useRef(false);
   const submit = async () => {
-    if (submitting.current || !signIn) return;
+    if (submitting.current) return;
     submitting.current = true;
     setBusy(true);
     setError(undefined);
@@ -126,7 +128,9 @@ function Login() {
       <NativeButton
         label={t(visible ? "mobile.hidePassword" : "mobile.showPassword")}
         variant="quiet"
-        onPress={() => setVisible((v) => !v)}
+        onPress={() => {
+          setVisible((v) => !v);
+        }}
       />
       {error && <NativeText accessibilityRole="alert">{t(`mobile.${error}`)}</NativeText>}
       <NativeButton
@@ -145,13 +149,13 @@ function AccountGate() {
   const { t, i18n } = useTranslation();
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState(false);
-  // Synchronously invalidate child work before clearing any persisted data.
-  const epoch = useRef(0);
-  const lastSession = useRef(session?.id);
-  if (lastSession.current !== session?.id) {
-    epoch.current++;
-    lastSession.current = session?.id;
-  }
+  const currentSession = useRef<string | undefined>(session?.id);
+  useLayoutEffect(() => {
+    currentSession.current = session?.id;
+    return () => {
+      currentSession.current = undefined;
+    };
+  }, [session?.id]);
   useEffect(() => {
     void readPreference("language")
       .then((lang) => {
@@ -160,7 +164,7 @@ function AccountGate() {
       .catch(() => undefined);
   }, [i18n]);
   const logout = async () => {
-    epoch.current++;
+    currentSession.current = undefined;
     setSigningOut(true);
     setError(false);
     try {
@@ -200,7 +204,7 @@ function AccountGate() {
         <NativeButton label={t("mobile.signOut")} onPress={() => void logout()} />
       </NativeScreen>
     );
-  const captured = epoch.current;
+  const capturedSession = session.id;
   return (
     <Library
       key={`${user.id}:${session.id}`}
@@ -208,7 +212,7 @@ function AccountGate() {
       username={user.username ?? ""}
       getToken={() => timed(session.getToken({ skipCache: true }))}
       assertCurrent={() => {
-        if (epoch.current !== captured) throw new SyncError("changed");
+        if (currentSession.current !== capturedSession) throw new SyncError("changed");
       }}
       logout={() => void logout()}
     />
@@ -244,7 +248,16 @@ function Library({
   const activeDeck = useRef<MobileDeck | undefined>(undefined);
   const staged = useRef<{ id: string; snapshot: MobileSnapshot } | undefined>(undefined);
   const latest = useRef({ getToken, assertCurrent });
-  latest.current = { getToken, assertCurrent };
+  useLayoutEffect(() => {
+    latest.current = { getToken, assertCurrent };
+  }, [getToken, assertCurrent]);
+  useLayoutEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const isMounted = () => mounted.current;
   const assert = useCallback(() => {
     if (!mounted.current) throw new SyncError("changed");
     latest.current.assertCurrent();
@@ -260,11 +273,16 @@ function Library({
   );
   const refresh = useCallback(async () => {
     if (locked.current) return;
+    const origin = ninaPublicConfiguration.serviceOrigin;
+    if (!origin) {
+      setMessage("offline");
+      return;
+    }
     locked.current = true;
     setBusy(true);
     setMessage(undefined);
     const connection: SyncConnection = {
-      origin: ninaPublicConfiguration.serviceOrigin!,
+      origin,
       hash,
       assertCurrent: assert,
       token: async () => {
@@ -307,14 +325,14 @@ function Library({
         else await apply(downloaded);
       }
     } catch (error) {
-      if (mounted.current) {
+      if (isMounted()) {
         if (error instanceof SyncError && error.reason === "sign-in") {
           setAllowed(false);
           activeDeck.current = undefined;
           setDeck(undefined);
           staged.current = undefined;
           await clearVerifiedUser().catch(() => undefined);
-          if (mounted.current) {
+          if (isMounted()) {
             setAllowed(false);
             activeDeck.current = undefined;
             setDeck(undefined);
@@ -354,7 +372,7 @@ function Library({
         setReady(true);
         await refresh();
       } catch {
-        if (mounted.current) {
+        if (isMounted()) {
           setReady(true);
           setMessage("storageError");
         }
@@ -376,14 +394,19 @@ function Library({
       }
       return false;
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+    };
   }, [tab]);
   const closeDeck = () => {
     activeDeck.current = undefined;
     setDeck(undefined);
     const pending = staged.current;
     staged.current = undefined;
-    if (pending) void apply(pending).catch(() => setMessage("storageError"));
+    if (pending)
+      void apply(pending).catch(() => {
+        setMessage("storageError");
+      });
   };
   if (deck && allowed)
     return <FlashcardPlayer user={userId} deck={deck} onClose={closeDeck} assertCurrent={assert} />;
@@ -404,13 +427,17 @@ function Library({
               label={t("mobile.library")}
               selected={tab === "library"}
               icon={icon(BookOpen)}
-              onPress={() => setTab("library")}
+              onPress={() => {
+                setTab("library");
+              }}
             />
             <NativeButton
               label={t("mobile.account")}
               selected={tab === "account"}
               icon={icon(UserRound)}
-              onPress={() => setTab("account")}
+              onPress={() => {
+                setTab("account");
+              }}
             />
           </NativeRow>
         }
@@ -431,14 +458,18 @@ function Library({
                   selected={i18n.language === lang}
                   onPress={() => {
                     void i18n.changeLanguage(lang);
-                    void writePreference("language", lang).catch(() => setMessage("storageError"));
+                    void writePreference("language", lang).catch(() => {
+                      setMessage("storageError");
+                    });
                   }}
                 />
               ))}
             </NativeRow>
             <NativeButton
               label={t("mobile.licenses")}
-              onPress={() => setLicenses(true)}
+              onPress={() => {
+                setLicenses(true);
+              }}
               variant="quiet"
             />
           </>
@@ -458,14 +489,18 @@ function Library({
                   <NativeButton
                     label={t("mobile.all")}
                     selected={language === "all"}
-                    onPress={() => setLanguage("all")}
+                    onPress={() => {
+                      setLanguage("all");
+                    }}
                   />
                   {languageIds.map((lang) => (
                     <NativeButton
                       key={lang}
                       label={languageDefinitions[lang].name}
                       selected={language === lang}
-                      onPress={() => setLanguage(lang)}
+                      onPress={() => {
+                        setLanguage(lang);
+                      }}
                     />
                   ))}
                 </NativeRow>
@@ -504,7 +539,12 @@ function Library({
           <NativeText accessibilityLiveRegion="polite">{t(`mobile.${message}`)}</NativeText>
         )}
       </NativeScreen>
-      <FontLicenses open={licenses} onClose={() => setLicenses(false)} />
+      <FontLicenses
+        open={licenses}
+        onClose={() => {
+          setLicenses(false);
+        }}
+      />
     </>
   );
 }
@@ -516,7 +556,7 @@ export default function App() {
         {ninaPublicConfiguration.publishableKey && ninaPublicConfiguration.serviceOrigin ? (
           <ClerkProvider
             publishableKey={ninaPublicConfiguration.publishableKey}
-            tokenCache={tokenCache!}
+            {...(tokenCache ? { tokenCache } : {})}
             __experimental_resourceCache={resourceCache}
             __experimental_disableNativeClientSync
             telemetry={false}

@@ -12,6 +12,7 @@ import {
 } from "@call-nina/domain";
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+
 export type ExerciseAiFeedback = GenerationCandidateOutputMap["exercise-feedback"];
 function answerFor(definition: ExerciseDefinition, values: readonly string[]): ExerciseAnswer {
   if (definition.kind === "free-writing") return { kind: definition.kind, text: values[0] ?? "" };
@@ -177,9 +178,15 @@ export function useExerciseSession({
     setStarting(true);
     void Promise.resolve()
       .then(() => onStarted?.())
-      .then(() => setStarted(true))
-      .catch(() => setStartFailed(true))
-      .finally(() => setStarting(false));
+      .then(() => {
+        setStarted(true);
+      })
+      .catch(() => {
+        setStartFailed(true);
+      })
+      .finally(() => {
+        setStarting(false);
+      });
   }, [autoStart, exercises.length, onStarted]);
   const definition = exercises[position];
 

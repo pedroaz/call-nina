@@ -21,6 +21,7 @@ import {
 import { ActionGroup, Page, ContentRow } from "./components/layout/index.js";
 import { OperationProgress } from "./OperationProgress.js";
 import styles from "./VocabularyLearning.module.css";
+
 type Snapshot = Extract<
   DesktopIpcResponse,
   { status: "ok"; channel: "vocabulary/learning-read" }
@@ -30,17 +31,18 @@ function useVocabularyLearning() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const requestVersion = useRef(0);
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(() => {
     const version = ++requestVersion.current;
-    try {
-      const next = await invokeDesktop("vocabulary/learning-read", {});
-      if (version !== requestVersion.current) return;
-      setSnapshot(next);
-      setError("");
-    } catch (cause) {
-      if (version === requestVersion.current)
-        setError(normalizeDesktopError(cause).detail.messageKey);
-    }
+    return invokeDesktop("vocabulary/learning-read", {})
+      .then((next) => {
+        if (version !== requestVersion.current) return;
+        setSnapshot(next);
+        setError("");
+      })
+      .catch((cause: unknown) => {
+        if (version === requestVersion.current)
+          setError(normalizeDesktopError(cause).detail.messageKey);
+      });
   }, []);
   useEffect(() => {
     void refresh();
@@ -99,7 +101,9 @@ export function VocabularyLearningNotice({
       onPress={onView}
       aria-label={t("vocabulary.learning.added", { count })}
     >
-      <span role="status">{compact ? `+${count}` : t("vocabulary.learning.badge", { count })}</span>
+      <span role="status">
+        {compact ? `+${String(count)}` : t("vocabulary.learning.badge", { count })}
+      </span>
     </Button>
   );
 }
@@ -135,13 +139,11 @@ export function VocabularyLearning({
   const operation = useLearningOperation();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState(initialTab);
-  const previousViewRequest = useRef(viewRequest);
-  useEffect(() => {
-    if (viewRequest !== previousViewRequest.current) {
-      previousViewRequest.current = viewRequest;
-      setTab("learning");
-    }
-  }, [viewRequest]);
+  const [previousViewRequest, setPreviousViewRequest] = useState(viewRequest);
+  if (viewRequest !== previousViewRequest) {
+    setPreviousViewRequest(viewRequest);
+    setTab("learning");
+  }
   const [focusId, setFocusId] = useState<string>();
   const [focusTitle, setFocusTitle] = useState("");
   const [focusText, setFocusText] = useState("");
@@ -175,19 +177,43 @@ export function VocabularyLearning({
   const busy = checking || operation.busy;
   useEffect(() => {
     onBusyChange(busy || saving || open || Boolean(focusId) || Boolean(wordId));
-    return () => onBusyChange(false);
+    return () => {
+      onBusyChange(false);
+    };
   }, [busy, saving, open, focusId, wordId, onBusyChange]);
   useEffect(() => {
     if (!addedBatchId) return;
-    const timer = window.setTimeout(() => setAddedBatchId(undefined), 8000);
-    return () => window.clearTimeout(timer);
+    const timer = window.setTimeout(() => {
+      setAddedBatchId(undefined);
+    }, 8000);
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [addedBatchId]);
+  const unreadBatch =
+    tab === "learning"
+      ? snapshot?.batches.find((batch) => !batch.read && !batch.undone && batch.added > 0)
+      : undefined;
+  const [noticedBatchId, setNoticedBatchId] = useState<string>();
+  if (unreadBatch && unreadBatch.id !== noticedBatchId) {
+    setNoticedBatchId(unreadBatch.id);
+    setAddedBatchId(unreadBatch.id);
+  }
   useEffect(() => {
-    if (tab !== "learning") return;
-    const added = snapshot?.batches.find((b) => !b.read && !b.undone && b.added > 0);
-    if (added) setAddedBatchId(added.id);
-    if (snapshot?.batches.some((b) => !b.read)) void update({ kind: "read" });
-  }, [snapshot, tab]);
+    if (tab !== "learning" || !snapshot?.batches.some((batch) => !batch.read)) return;
+    let active = true;
+    void invokeDesktop("vocabulary/learning-update", {
+      rootGeneration: snapshot.rootGeneration,
+      action: { kind: "read" },
+    })
+      .then(() => {
+        if (active) void refresh();
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [snapshot, tab, refresh]);
   const acceptImage = async (file: File | undefined) => {
     if (!file) return;
     setError("");
@@ -201,7 +227,13 @@ export function VocabularyLearning({
     try {
       const data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+        reader.onload = () => {
+          if (typeof reader.result !== "string") {
+            reject(new Error("OD_IMAGE_INVALID"));
+            return;
+          }
+          resolve(reader.result.split(",")[1] ?? "");
+        };
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
@@ -257,7 +289,9 @@ export function VocabularyLearning({
           variant="secondary"
           leadingIcon={<BookPlus />}
           isDisabled={busy || !snapshot}
-          onPress={() => setOpen(true)}
+          onPress={() => {
+            setOpen(true);
+          }}
         >
           {t("vocabulary.learning.addContent")}
         </Button>
@@ -323,7 +357,12 @@ export function VocabularyLearning({
                   <div className={styles.sectionHeading}>
                     <h2 id="vocabulary-recent-title">{t("vocabulary.learning.recent")}</h2>
                     {recent.length > 3 && (
-                      <Button variant="quiet" onPress={() => setShowAllRecent((value) => !value)}>
+                      <Button
+                        variant="quiet"
+                        onPress={() => {
+                          setShowAllRecent((value) => !value);
+                        }}
+                      >
                         {t(
                           showAllRecent
                             ? "vocabulary.learning.showLess"
@@ -341,7 +380,9 @@ export function VocabularyLearning({
                         <Button
                           variant="quiet"
                           className={styles.wordButton}
-                          onPress={() => setWordId(word.vocabularyId)}
+                          onPress={() => {
+                            setWordId(word.vocabularyId);
+                          }}
                         >
                           <span lang={snapshot?.language}>{word.lemma}</span>
                         </Button>
@@ -454,7 +495,9 @@ export function VocabularyLearning({
               required
               maxLength={160}
               disabled={saving}
-              onChange={(event) => setFocusTitle(event.target.value)}
+              onChange={(event) => {
+                setFocusTitle(event.target.value);
+              }}
             />
             {focus.guidance && <p>{focus.guidance}</p>}
             <label>
@@ -464,7 +507,9 @@ export function VocabularyLearning({
                 maxLength={12000}
                 rows={6}
                 disabled={saving}
-                onChange={(event) => setFocusText(event.target.value)}
+                onChange={(event) => {
+                  setFocusText(event.target.value);
+                }}
               />
             </label>
             {readError && (
@@ -558,7 +603,9 @@ export function VocabularyLearning({
               event.preventDefault();
               void run();
             }}
-            onDragOver={(event) => event.preventDefault()}
+            onDragOver={(event) => {
+              event.preventDefault();
+            }}
             onDrop={(event) => {
               event.preventDefault();
               if (!busy) void acceptImage(event.dataTransfer.files[0]);
@@ -576,7 +623,9 @@ export function VocabularyLearning({
               value={guidance}
               maxLength={2000}
               disabled={busy}
-              onChange={(event) => setGuidance(event.target.value)}
+              onChange={(event) => {
+                setGuidance(event.target.value);
+              }}
             />
             <label>
               {t("vocabulary.learning.source")}
@@ -585,7 +634,9 @@ export function VocabularyLearning({
                 maxLength={12000}
                 disabled={busy}
                 value={text}
-                onChange={(event) => setText(event.target.value)}
+                onChange={(event) => {
+                  setText(event.target.value);
+                }}
               />
             </label>
             <ProviderActionSummary

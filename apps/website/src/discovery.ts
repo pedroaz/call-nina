@@ -53,9 +53,10 @@ export function readDiscovery(): DiscoveryState {
     if (
       v.version !== 1 ||
       typeof v.seen !== "boolean" ||
+      typeof v.step !== "number" ||
       !Number.isInteger(v.step) ||
-      v.step! < 0 ||
-      v.step! > 3 ||
+      v.step < 0 ||
+      v.step > 3 ||
       typeof v.complete !== "boolean" ||
       !v.answers ||
       typeof v.answers !== "object"
@@ -73,7 +74,7 @@ export function readDiscovery(): DiscoveryState {
     return {
       version: 1,
       seen: v.seen,
-      step: Math.min(v.step!, firstMissing),
+      step: Math.min(v.step, firstMissing),
       complete: v.complete && firstMissing === 4,
       answers: {
         ...(a.role && { role: a.role }),
@@ -132,7 +133,7 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     back: "Back",
     restart: "Start over",
     finish: "See my recommendation",
-    step: (n) => `Step ${n} of 4`,
+    step: (n) => `Step ${String(n)} of 4`,
     roleQuestion: "First, a little about you.",
     languageQuestion: {
       student: "What are you learning?",
@@ -159,14 +160,14 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     connections: {
       chatgpt: "ChatGPT",
-      local: "Local AI — not yet",
-      nina: "Nina account — not yet",
+      local: "Local AI — limited",
+      nina: "Nina account",
       unsure: "Not sure yet",
     },
     guidance: {
       chatgpt: "Bring your ChatGPT account. Provider terms and limits apply.",
-      local: "Local AI: not publicly available yet.",
-      nina: "Nina accounts and funded AI: not publicly available yet.",
+      local: "Local AI supports writing prompts and contextual help on Linux x64.",
+      nina: "Nina AI requires a provisioned account, AI access, and an available allowance.",
       unsure: "Choose your AI later. ChatGPT is available.",
     },
     summary: "Your Nina",
@@ -201,8 +202,8 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     vocabularyPrompt: "A word to keep. A sentence to remember it by.",
     lessonPrompt: "A small lesson: introduce yourself. Then try it.",
     call: "Call Nina",
-    contact: "Discuss professional use",
-    professional: "Teaching and institutional use require separate permission.",
+    contact: "Discuss enterprise support",
+    professional: "Commercial and institutional use are permitted under the MIT License.",
     ready: "Here’s your Nina.",
     readyText: "Explore your recommendation, or change an answer to try another direction.",
     edit: (label) => `Change: ${label}`,
@@ -214,7 +215,7 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     back: "Zurück",
     restart: "Neu beginnen",
     finish: "Meine Empfehlung ansehen",
-    step: (n) => `Schritt ${n} von 4`,
+    step: (n) => `Schritt ${String(n)} von 4`,
     roleQuestion: "Zuerst ein wenig über dich.",
     languageQuestion: {
       student: "Welche Sprache lernst du?",
@@ -241,14 +242,14 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     connections: {
       chatgpt: "ChatGPT",
-      local: "Lokale KI — noch nicht",
-      nina: "Nina-Konto — noch nicht",
+      local: "Lokale KI — eingeschränkt",
+      nina: "Nina-Konto",
       unsure: "Noch unsicher",
     },
     guidance: {
       chatgpt: "Nutze dein ChatGPT-Konto. Anbieterbedingungen und Limits gelten.",
-      local: "Lokale KI: noch nicht öffentlich verfügbar.",
-      nina: "Nina-Konten und finanzierte KI: noch nicht öffentlich verfügbar.",
+      local: "Lokale KI unterstützt Schreibimpulse und kontextbezogene Hilfe unter Linux x64.",
+      nina: "Nina-KI erfordert ein eingerichtetes Konto, KI-Zugriff und ein verfügbares Kontingent.",
       unsure: "Wähle deine KI später. ChatGPT ist verfügbar.",
     },
     summary: "Deine Nina",
@@ -283,8 +284,8 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     vocabularyPrompt: "Ein Wort zum Behalten. Ein Satz als Merkhilfe.",
     lessonPrompt: "Eine kleine Lektion: Stell dich vor. Dann bist du dran.",
     call: "Call Nina",
-    contact: "Professionelle Nutzung besprechen",
-    professional: "Unterricht und institutionelle Nutzung erfordern eine gesonderte Erlaubnis.",
+    contact: "Support für Unternehmen besprechen",
+    professional: "Kommerzielle und institutionelle Nutzung sind unter der MIT-Lizenz erlaubt.",
     ready: "Hier ist deine Nina.",
     readyText:
       "Entdecke deine Empfehlung oder ändere eine Antwort, um etwas anderes auszuprobieren.",
@@ -323,14 +324,14 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     connections: {
       chatgpt: "ChatGPT",
-      local: "IA local — todavía no",
-      nina: "Cuenta de Nina — todavía no",
+      local: "IA local — limitada",
+      nina: "Cuenta de Nina",
       unsure: "Aún no lo sé",
     },
     guidance: {
       chatgpt: "Usa tu cuenta de ChatGPT. Se aplican sus términos y límites.",
-      local: "IA local: aún no disponible públicamente.",
-      nina: "Cuentas de Nina e IA financiada: aún no disponibles públicamente.",
+      local: "La IA local permite generar consignas de escritura y ayuda contextual en Linux x64.",
+      nina: "La IA de Nina requiere una cuenta habilitada, acceso a IA y saldo disponible.",
       unsure: "Elige tu IA después. ChatGPT está disponible.",
     },
     summary: "Tu Nina",
@@ -355,11 +356,11 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     vocabularyPrompt: "Una palabra para guardar. Una frase para recordarla.",
     lessonPrompt: "Una pequeña lección: preséntate. Luego inténtalo.",
     call: "Call Nina",
-    contact: "Consultar sobre el uso profesional",
-    professional: "El uso docente e institucional requiere un permiso por separado.",
+    contact: "Consultar sobre soporte empresarial",
+    professional: "El uso comercial e institucional está permitido bajo la licencia MIT.",
     ready: "Aquí está tu Nina.",
     readyText: "Explora tu recomendación o cambia una respuesta para probar otra opción.",
-    step: (n) => `Paso ${n} de 4`,
+    step: (n) => `Paso ${String(n)} de 4`,
     edit: (label) => `Cambiar: ${label}`,
     recommendation: (language, use) =>
       ({
@@ -405,14 +406,14 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     connections: {
       chatgpt: "ChatGPT",
-      local: "IA local — ainda não",
-      nina: "Conta da Nina — ainda não",
+      local: "IA local — limitada",
+      nina: "Conta da Nina",
       unsure: "Ainda não sei",
     },
     guidance: {
       chatgpt: "Use sua conta do ChatGPT. Os termos e limites do provedor se aplicam.",
-      local: "IA local: ainda não disponível publicamente.",
-      nina: "Contas da Nina e IA financiada: ainda não disponíveis publicamente.",
+      local: "A IA local oferece propostas de escrita e ajuda contextual no Linux x64.",
+      nina: "A IA da Nina requer uma conta provisionada, acesso à IA e saldo disponível.",
       unsure: "Escolha sua IA depois. O ChatGPT está disponível.",
     },
     summary: "Sua Nina",
@@ -437,11 +438,11 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     vocabularyPrompt: "Uma palavra para guardar. Uma frase para lembrar.",
     lessonPrompt: "Uma pequena lição: apresente-se. Depois, tente você.",
     call: "Call Nina",
-    contact: "Conversar sobre uso profissional",
-    professional: "O uso no ensino e em instituições exige uma autorização específica.",
+    contact: "Conversar sobre suporte empresarial",
+    professional: "O uso comercial e institucional é permitido sob a licença MIT.",
     ready: "Aqui está sua Nina.",
     readyText: "Explore sua recomendação ou mude uma resposta para experimentar outra opção.",
-    step: (n) => `Etapa ${n} de 4`,
+    step: (n) => `Etapa ${String(n)} de 4`,
     edit: (label) => `Alterar: ${label}`,
     recommendation: (language, use) =>
       ({

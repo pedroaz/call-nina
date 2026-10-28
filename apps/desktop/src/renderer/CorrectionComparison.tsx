@@ -205,7 +205,12 @@ export function CorrectionComparison({
                 </p>
               ) : null}
             </section>
-            <Button variant="quiet" onPress={() => setComparisonOpen(true)}>
+            <Button
+              variant="quiet"
+              onPress={() => {
+                setComparisonOpen(true);
+              }}
+            >
               {t("writing.sideBySide")}
             </Button>
           </>

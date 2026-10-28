@@ -1,6 +1,7 @@
 import { z } from "./schema-system.js";
 import { activityIdSchema, utcInstantSchema } from "./common.js";
 import { portableFlashcardContentSchema } from "./flashcards.js";
+
 export const mobileChunkBytes = 1024 * 1024;
 export const mobileSnapshotBytes = 100 * mobileChunkBytes;
 export const mobileHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);

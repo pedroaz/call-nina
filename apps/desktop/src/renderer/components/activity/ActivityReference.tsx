@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { Tabs } from "../ui/index.js";
 import { ActivityLayoutContext } from "./ActivityWorkspace.js";
 import styles from "./Activity.module.css";
+
 export type ActivityReferenceItem = { id: string; label: string; content: ReactNode };
 export function ActivityReference({
   label,
@@ -18,7 +19,6 @@ export function ActivityReference({
     <details
       className={styles.referenceDisclosure}
       aria-label={label}
-      tabIndex={bounded ? 0 : undefined}
       open={bounded || open}
       onToggle={(event) => {
         if (!bounded) setOpen(event.currentTarget.open);
@@ -28,7 +28,12 @@ export function ActivityReference({
         <ChevronRight aria-hidden="true" />
         {label}
       </summary>
-      <div className={styles.referenceContent}>
+      <div
+        className={styles.referenceContent}
+        role="region"
+        aria-label={label}
+        tabIndex={bounded ? 0 : undefined}
+      >
         {items.length === 1 ? (
           items[0]?.content
         ) : (

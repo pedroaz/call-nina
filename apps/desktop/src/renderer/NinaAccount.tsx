@@ -13,9 +13,11 @@ import { Button, TextField, CheckboxField, Muted, DiagnosticCode } from "./compo
 import { ActionGroup, Section } from "./components/layout/index.js";
 import styles from "./SettingsPage.module.css";
 
+const isAborted = (signal: AbortSignal) => signal.aborted;
 function loginReason(cause: unknown): NinaLoginDiagnostic["reason"] {
   if (typeof cause !== "object" || cause === null) return "unknown";
-  const errors = "errors" in cause && Array.isArray(cause.errors) ? cause.errors : [cause];
+  const errors: unknown[] =
+    "errors" in cause && Array.isArray(cause.errors) ? cause.errors : [cause];
   for (const error of errors) {
     if (typeof error !== "object" || error === null || !("code" in error)) continue;
     switch (error.code) {
@@ -71,6 +73,7 @@ function SessionObserver({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     let running = false;
+    const isCurrent = (version: number) => !cancelled && version === transitionVersion;
     const sync = async () => {
       if (running || !isLoaded || changingAccount) return;
       const version = transitionVersion;
@@ -81,14 +84,16 @@ function SessionObserver({ children }: { children: ReactNode }) {
             status: "signing-in",
             token: null,
           });
-          if (!cancelled && version === transitionVersion) setState(next);
+          if (isCurrent(version)) setState(next);
           return;
         }
         let timer: ReturnType<typeof setTimeout> | undefined;
         const token = await Promise.race([
           session ? session.getToken({ skipCache: true }) : Promise.resolve(null),
           new Promise<never>((_, reject) => {
-            timer = setTimeout(() => reject(new Error("OD_NINA_TOKEN_TIMEOUT")), 10000);
+            timer = setTimeout(() => {
+              reject(new Error("OD_NINA_TOKEN_TIMEOUT"));
+            }, 10000);
           }),
         ]).finally(() => {
           if (timer) clearTimeout(timer);
@@ -99,9 +104,9 @@ function SessionObserver({ children }: { children: ReactNode }) {
           status: token ? "signed-in" : "signed-out",
           token,
         });
-        if (!cancelled && version === transitionVersion) setState(result);
+        if (isCurrent(version)) setState(result);
       } catch {
-        if (!cancelled && version === transitionVersion) {
+        if (isCurrent(version)) {
           setState({ status: "unavailable", access: null });
           await invokeDesktop("nina-account/update", { status: "unavailable", token: null }).catch(
             () => undefined,
@@ -113,13 +118,16 @@ function SessionObserver({ children }: { children: ReactNode }) {
     };
     void sync();
     const timer = window.setInterval(() => void sync(), 30000);
-    window.addEventListener("focus", sync);
-    window.addEventListener(syncEvent, sync);
+    const onSync = () => {
+      void sync();
+    };
+    window.addEventListener("focus", onSync);
+    window.addEventListener(syncEvent, onSync);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
-      window.removeEventListener("focus", sync);
-      window.removeEventListener(syncEvent, sync);
+      window.removeEventListener("focus", onSync);
+      window.removeEventListener(syncEvent, onSync);
     };
   }, [isLoaded, session, session?.status]);
   return (
@@ -190,7 +198,9 @@ function AccountForm() {
   const attempt = useRef<AbortController | null>(null);
   const readyWait = useRef<(() => void) | null>(null);
   const loaded = useRef(isLoaded);
-  loaded.current = isLoaded;
+  useEffect(() => {
+    loaded.current = isLoaded;
+  }, [isLoaded]);
   const draftEdited = useRef(draftChanged);
   const saveVersion = useRef(0);
   useEffect(() => {
@@ -250,7 +260,9 @@ function AccountForm() {
     if (isLoaded) readyWait.current?.();
   }, [isLoaded]);
   useEffect(() => {
-    const syncPending = () => setSettling(loginRequestPending);
+    const syncPending = () => {
+      setSettling(loginRequestPending);
+    };
     window.addEventListener(syncEvent, syncPending);
     return () => {
       window.removeEventListener(syncEvent, syncPending);
@@ -277,9 +289,15 @@ function AccountForm() {
         if (failure) reject(failure);
         else resolve();
       };
-      const abort = () => finish(new Error("OD_NINA_LOGIN_CANCELLED"));
-      const timer = window.setTimeout(() => finish(new Error("OD_NINA_LOGIN_NOT_READY")), 15000);
-      readyWait.current = () => finish();
+      const abort = () => {
+        finish(new Error("OD_NINA_LOGIN_CANCELLED"));
+      };
+      const timer = window.setTimeout(() => {
+        finish(new Error("OD_NINA_LOGIN_NOT_READY"));
+      }, 15000);
+      readyWait.current = () => {
+        finish();
+      };
       signal.addEventListener("abort", abort, { once: true });
       if (signal.aborted) abort();
     });
@@ -288,7 +306,7 @@ function AccountForm() {
     work: () => Promise<T>,
     signal: AbortSignal,
   ): Promise<T> => {
-    if (signal.aborted) throw new Error("OD_NINA_LOGIN_CANCELLED");
+    signal.throwIfAborted();
     const started = { stage, outcome: "started", reason: "none" } as const;
     setProgress(started);
     reportLogin(started);
@@ -300,13 +318,13 @@ function AccountForm() {
     }, 15000);
     try {
       const result = await work();
-      if (signal.aborted) throw new Error("OD_NINA_LOGIN_CANCELLED");
+      signal.throwIfAborted();
       const completed = { stage, outcome: "completed", reason: "none" } as const;
       setProgress(completed);
       reportLogin(completed);
       return result;
     } catch (cause) {
-      if (signal.aborted) throw cause;
+      if (isAborted(signal)) throw cause;
       const failed = { stage, outcome: "failed", reason: loginReason(cause) } as const;
       setProgress(failed);
       reportLogin(failed);
@@ -345,7 +363,7 @@ function AccountForm() {
               "needs_first_factor",
               "needs_second_factor",
               "needs_new_password",
-            ].includes(signIn.status ?? "");
+            ].includes(signIn.status);
             throw Object.assign(new Error("OD_NINA_LOGIN_INCOMPLETE"), {
               code: needsVerification ? "additional-step" : "unknown",
             });
@@ -488,7 +506,9 @@ function AccountForm() {
           </div>
           <CheckboxField
             checked={showPassword}
-            onChange={(event) => setShowPassword(event.target.checked)}
+            onChange={(event) => {
+              setShowPassword(event.target.checked);
+            }}
           >
             {t("ninaAccount.showPassword")}
           </CheckboxField>

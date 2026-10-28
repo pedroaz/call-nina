@@ -232,7 +232,7 @@ export function PreparedActivityWorkspace({
                 <h3>{t(`${base}.questions`)}</h3>
                 <ol>
                   {voice.questions.map((question, index) => (
-                    <li key={`${index}:${question}`}>
+                    <li key={`${String(index)}:${question}`}>
                       <span aria-hidden="true">{index + 1}</span>
                       <p>{question}</p>
                     </li>

@@ -17,7 +17,9 @@ export function LanguageSelector({
           variant="quiet"
           lang={code}
           aria-pressed={locale === code}
-          onPress={() => onChange(code)}
+          onPress={() => {
+            onChange(code);
+          }}
         >
           {label}
         </Button>

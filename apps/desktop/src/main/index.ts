@@ -1,8 +1,14 @@
 import { NinaLoginStorage } from "./nina-login-storage.js";
 import { createClerkBridge } from "@clerk/electron";
 import { storage } from "@clerk/electron/storage";
-import { ninaPublicConfiguration } from "@call-nina/contracts";
-import { pathToFileURL } from "node:url";
+import {
+  ninaPublicConfiguration,
+  desktopIpcEventSchema,
+  desktopIpcRequestSchema,
+  desktopIpcResponseSchema,
+  type ActivityId,
+} from "@call-nina/contracts";
+import { pathToFileURL, fileURLToPath } from "node:url";
 import { OfflineRuntime } from "@call-nina/offline-runtime";
 import { ConnectionSecretStorage } from "./secret-storage.js";
 import { desktopPathOption } from "./options.js";
@@ -10,14 +16,7 @@ import { writeFile } from "node:fs/promises";
 import { mkdirSync, lstatSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-import {
-  desktopIpcEventSchema,
-  desktopIpcRequestSchema,
-  desktopIpcResponseSchema,
-  type ActivityId,
-} from "@call-nina/contracts";
 import { ChatgptSession } from "./chatgpt-session.js";
 import { app, BrowserWindow, dialog, ipcMain, Menu, session, net, protocol } from "electron";
 
@@ -202,7 +201,7 @@ const clerkBridge = ninaPublicConfiguration.publishableKey
     })
   : undefined;
 app.on("will-quit", () => clerkBridge?.cleanup());
-app.whenReady().then(() => {
+void app.whenReady().then(() => {
   if (!clerkBridge) return;
   const directory = path.resolve(fileURLToPath(new URL("../renderer/", import.meta.url)));
   protocol.handle("call-nina-ui", (request) => {

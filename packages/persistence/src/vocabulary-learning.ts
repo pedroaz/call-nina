@@ -16,6 +16,7 @@ import {
   activityLearningScope,
 } from "./learning-context.js";
 import { vocabularyEntryFromRow } from "./repository-support.js";
+
 const id = (prefix: string) => `${prefix}_${randomUUID().replaceAll("-", "")}`;
 const identity = (
   word: { lemma: string; meaning: string; lexeme: z.infer<typeof vocabularyLexemeSchema> },
@@ -83,12 +84,14 @@ export async function ingestVocabulary(
           String(r["lemma"]).toLocaleLowerCase() === word.lemma.toLocaleLowerCase() &&
           String(r["meaning"]).toLocaleLowerCase() === word.meaning.toLocaleLowerCase(),
       );
+      const singleMeaning = sameMeaning.length === 1 ? sameMeaning[0] : undefined;
       const old =
         exact ??
-        (sameMeaning.length === 1 &&
+        (singleMeaning &&
         (word.lexeme.partOfSpeech === "other" ||
-          JSON.parse(String(sameMeaning[0]!["lexeme_json"])).partOfSpeech === "other")
-          ? sameMeaning[0]
+          vocabularyLexemeSchema.parse(JSON.parse(String(singleMeaning["lexeme_json"])))
+            .partOfSpeech === "other")
+          ? singleMeaning
           : undefined);
       if (old?.["status"] === "suspended" || (!old && word.outcome === "success")) continue;
       const wordId = old ? String(old["vocabulary_id"]) : id("vocabulary");
@@ -109,12 +112,11 @@ export async function ingestVocabulary(
             now,
             now,
           );
-        existing.set(
-          key,
-          connection
-            .prepare("SELECT * FROM vocabulary_entries WHERE vocabulary_id = ?")
-            .get(wordId)!,
-        );
+        const inserted = connection
+          .prepare("SELECT * FROM vocabulary_entries WHERE vocabulary_id = ?")
+          .get(wordId);
+        if (!inserted) throw new Error("OD_VOCABULARY_INSERT_MISSING");
+        existing.set(key, inserted);
       }
       if (added)
         connection
@@ -187,7 +189,7 @@ export async function readVocabularyLearning(database: CallNinaDatabase) {
             lemma: w["lemma"],
             meaning: w["meaning"],
             reason: w["reason"],
-            examples: JSON.parse(String(w["examples_json"])),
+            examples: JSON.parse(String(w["examples_json"])) as unknown,
             added: w["was_added"] === 1,
           })),
         };
@@ -329,9 +331,9 @@ export async function queueVocabularyAnalysis(
     const sourceText = JSON.stringify(
       rows.map((r) => ({
         attemptId: r["attempt_id"],
-        exercise: JSON.parse(String(r["exercise_snapshot_json"])),
-        answer: JSON.parse(String(r["answer_json"])),
-        feedback: JSON.parse(String(r["feedback_json"])),
+        exercise: JSON.parse(String(r["exercise_snapshot_json"])) as unknown,
+        answer: JSON.parse(String(r["answer_json"])) as unknown,
+        feedback: JSON.parse(String(r["feedback_json"])) as unknown,
         assisted: Boolean(
           r["hints"] ||
           r["helper"] ||

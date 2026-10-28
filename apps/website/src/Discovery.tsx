@@ -65,7 +65,9 @@ function ExamplePreview({ answers, locale }: { answers: Answers; locale: Locale 
             density="compact"
             aria-expanded={revealed}
             aria-controls="discovery-answer"
-            onPress={() => setRevealed(!revealed)}
+            onPress={() => {
+              setRevealed(!revealed);
+            }}
           >
             {revealed ? t.hide : t.reveal}
           </Button>
@@ -222,10 +224,12 @@ export function Discovery({
                       <label key={option.value} className="discovery-choice">
                         <input
                           type="radio"
-                          name={`discovery-${step}`}
+                          name={`discovery-${String(step)}`}
                           value={option.value}
                           checked={selected === option.value}
-                          onChange={() => choose(option.value)}
+                          onChange={() => {
+                            choose(option.value);
+                          }}
                         />
                         <span>{option.label}</span>
                       </label>
@@ -235,7 +239,12 @@ export function Discovery({
               )}
               <div className="discovery-navigation">
                 {(step > 0 || complete) && (
-                  <Button variant="quiet" onPress={() => goTo(complete ? 3 : step - 1)}>
+                  <Button
+                    variant="quiet"
+                    onPress={() => {
+                      goTo(complete ? 3 : step - 1);
+                    }}
+                  >
                     {t.back}
                   </Button>
                 )}
@@ -289,7 +298,9 @@ export function Discovery({
                       density="compact"
                       variant="quiet"
                       aria-label={t.edit(label)}
-                      onPress={() => goTo(index)}
+                      onPress={() => {
+                        goTo(index);
+                      }}
                     >
                       {label}
                     </Button>
@@ -299,7 +310,7 @@ export function Discovery({
             </div>
             <div className="discovery-preview-slot">
               <ExamplePreview
-                key={`${answers.language}-${answers.use}`}
+                key={`${answers.language ?? ""}-${answers.use ?? ""}`}
                 answers={answers}
                 locale={locale}
               />

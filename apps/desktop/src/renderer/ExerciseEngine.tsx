@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button, Disclosure, Feedback } from "./components/ui/index.js";
@@ -205,7 +204,7 @@ export function ExerciseEngine(
               {definition.explanation && (
                 <Disclosure
                   variant="inline"
-                  key={`${position}:${currentAiFeedback?.outcome ?? currentEvaluation.status}`}
+                  key={`${String(position)}:${currentAiFeedback?.outcome ?? currentEvaluation.status}`}
                   defaultOpen={
                     currentAiFeedback
                       ? currentAiFeedback.outcome !== "demonstrated"
@@ -231,7 +230,9 @@ export function ExerciseEngine(
               isDisabled={
                 position === 0 || evaluatingWithAi || savingAnswer || completing || savingSupport
               }
-              onPress={() => navigateTo(position - 1)}
+              onPress={() => {
+                navigateTo(position - 1);
+              }}
             >
               {t("exercises.previous")}
             </Button>
@@ -255,7 +256,9 @@ export function ExerciseEngine(
               variant="primary"
               trailingIcon={<ChevronRight aria-hidden="true" />}
               isDisabled={evaluatingWithAi || savingAnswer || completing || savingSupport}
-              onPress={() => navigateTo(position + 1)}
+              onPress={() => {
+                navigateTo(position + 1);
+              }}
             >
               {t("exercises.forward")}
             </Button>

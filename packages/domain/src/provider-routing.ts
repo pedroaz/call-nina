@@ -8,6 +8,7 @@ import {
   type z,
 } from "@call-nina/contracts";
 import { resolveModelPreference } from "./model-preference.js";
+
 type View = z.infer<typeof aiConnectionsViewSchema>;
 export function providerSupports(
   view: View,

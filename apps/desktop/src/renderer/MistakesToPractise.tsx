@@ -5,6 +5,7 @@ import { Button, Feedback, ModalDialog, Muted } from "./components/ui/index.js";
 import { ActionGroup, Section, ContentRow } from "./components/layout/index.js";
 import type { Snapshot, PracticeState, HistoryPracticeSeed } from "./savedResultsTypes.js";
 import styles from "./HistoryPage.module.css";
+
 export function MistakesToPractise({
   patterns,
   isOpen,
@@ -36,15 +37,15 @@ export function MistakesToPractise({
                   pattern.targetedPractice.status === "created" ? (
                     <Button
                       variant="secondary"
-                      onPress={() =>
+                      onPress={() => {
                         onPracticeAgain({
                           kind: "exercise",
                           activityId:
                             pattern.targetedPractice.status === "created"
                               ? pattern.targetedPractice.activityId
                               : "",
-                        })
-                      }
+                        });
+                      }}
                     >
                       {t("savedResults.openPractice")}
                     </Button>
@@ -62,7 +63,12 @@ export function MistakesToPractise({
                 }
               >
                 <h3 className={styles.patternTitle}>
-                  <Button variant="quiet" onPress={() => onOpenChange(true)}>
+                  <Button
+                    variant="quiet"
+                    onPress={() => {
+                      onOpenChange(true);
+                    }}
+                  >
                     {pattern.category.kind === "vocabulary"
                       ? `${pattern.category.lemma} · ${pattern.category.categoryKey}`
                       : pattern.category.categoryKey}
@@ -71,7 +77,12 @@ export function MistakesToPractise({
               </ContentRow>
             ))}
             {patterns.length > 3 && (
-              <Button variant="quiet" onPress={() => onOpenChange(true)}>
+              <Button
+                variant="quiet"
+                onPress={() => {
+                  onOpenChange(true);
+                }}
+              >
                 {t("savedResults.viewAll")}
               </Button>
             )}

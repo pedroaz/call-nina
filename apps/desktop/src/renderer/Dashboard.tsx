@@ -99,6 +99,7 @@ export function NinaHome({
       if (mounted.current) setBusy(false);
     }
   };
+  const isMounted = () => mounted.current;
   const start = async () => {
     if (!snapshot || active.current || !draft.naturalRequest.trim()) return;
     active.current = true;
@@ -111,9 +112,9 @@ export function NinaHome({
           : draft.kind === "listening" || draft.kind === "speaking"
             ? "voice-activity-draft"
             : "exercise-generation";
-      if (!(await requestAiAccess(providerOperation)) || !mounted.current) return;
+      if (!(await requestAiAccess(providerOperation)) || !isMounted()) return;
       const profile = await invokeDesktop("learner-profile/read", {});
-      if (!mounted.current) return;
+      if (!isMounted()) return;
       if (
         profile.status !== "ready" ||
         profile.profile.learningContext.targetLanguage !==
@@ -129,7 +130,7 @@ export function NinaHome({
         },
         operation.run,
       );
-      if (mounted.current) onLaunch({ destination: "activity", activityId, autoStart: true });
+      if (isMounted()) onLaunch({ destination: "activity", activityId, autoStart: true });
     } catch (cause) {
       if (mounted.current) setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -179,8 +180,12 @@ export function NinaHome({
           topic={draft.naturalRequest}
           kind={draft.kind}
           disabled={busy}
-          onTopicChange={(naturalRequest) => onDraftChange({ ...draft, naturalRequest })}
-          onKindChange={(kind) => onDraftChange({ ...draft, kind })}
+          onTopicChange={(naturalRequest) => {
+            onDraftChange({ ...draft, naturalRequest });
+          }}
+          onKindChange={(kind) => {
+            onDraftChange({ ...draft, kind });
+          }}
         />
         <ProviderActionSummary
           operation={
@@ -196,13 +201,13 @@ export function NinaHome({
           <Button
             variant="quiet"
             isDisabled={busy}
-            onPress={() =>
+            onPress={() => {
               onLaunch({
                 destination: "preparation",
                 kind: draft.kind,
                 prompt: draft.naturalRequest,
-              })
-            }
+              });
+            }}
           >
             {t("ninaHome.moreOptions")}
           </Button>

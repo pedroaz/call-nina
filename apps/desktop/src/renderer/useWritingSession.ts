@@ -13,6 +13,7 @@ import {
   normalizeDesktopError,
   subscribeDesktop,
 } from "./ipc.js";
+
 export type TeachingProfileChoice = "profile-default" | "conversation-partner" | "strict-corrector";
 export type FeedbackChoice = "all-meaningful" | "priority-only";
 

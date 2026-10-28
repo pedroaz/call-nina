@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import styles from "./ContentRow.module.css";
+
 export function ContentRow({
   leading,
   metadata,

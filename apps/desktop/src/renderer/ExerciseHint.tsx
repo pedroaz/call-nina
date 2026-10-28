@@ -10,6 +10,7 @@ import {
 import { ActionGroup } from "./components/layout/index.js";
 import type { useExerciseSession } from "./useExerciseSession.js";
 import styles from "./ExerciseEngine.module.css";
+
 type HintState = Pick<
   ReturnType<typeof useExerciseSession>,
   | "displayedHints"

@@ -1,5 +1,7 @@
+import { createElement } from "react";
 import { BookOpen, Layers, Blocks, ListChecks, Mic, Headphones, PencilLine } from "lucide-react";
 import styles from "./PracticeComposer.module.css";
+
 export const activityIcons = {
   custom: ListChecks,
   flashcards: Layers,
@@ -43,7 +45,7 @@ export function ActivityVisual({ kind }: { kind: string }) {
   const Icon = activityIcon(kind);
   return (
     <span className={styles.activityVisual} aria-hidden="true">
-      <Icon />
+      {createElement(Icon)}
     </span>
   );
 }

@@ -10,14 +10,15 @@ type Result = Extract<
 >["result"];
 
 export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataRootGeneration }) {
+  return <LessonSets key={rootGeneration} rootGeneration={rootGeneration} />;
+}
+function LessonSets({ rootGeneration }: { rootGeneration: DataRootGeneration }) {
   const { t } = useTranslation();
   const [result, setResult] = useState<Result>();
   const [error, setError] = useState<CallNinaError>();
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let active = true;
-    setResult(undefined);
-    setError(undefined);
     void invokeDesktop("vocabulary-set/list", { rootGeneration })
       .then((next) => {
         if (active) setResult(next);
@@ -40,6 +41,7 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
           <Button
             variant="secondary"
             onPress={() => {
+              setResult(undefined);
               setError(undefined);
               setRetry((value) => value + 1);
             }}

@@ -64,8 +64,8 @@ export function ModalDialog(props: {
     },
     [container],
   );
+  if (props.isOpen && !activated) setActivated(true);
   useLayoutEffect(() => {
-    if (props.isOpen) setActivated(true);
     if (props.keepMounted) {
       const destination = props.isOpen ? host.current : parking.current;
       destination?.appendChild(container);
@@ -90,7 +90,12 @@ export function ModalDialog(props: {
             {props.closeLabel ? (
               <div className={styles.header}>
                 <Heading slot="title">{props.title}</Heading>
-                <Button variant="quiet" onPress={() => props.onOpenChange(false)}>
+                <Button
+                  variant="quiet"
+                  onPress={() => {
+                    props.onOpenChange(false);
+                  }}
+                >
                   {props.closeLabel}
                 </Button>
               </div>
@@ -145,7 +150,9 @@ export function ConfirmDialog(props: {
               id: "delete",
               label: props.trigger,
               destructive: true,
-              onAction: () => setOpen(true),
+              onAction: () => {
+                setOpen(true);
+              },
             },
           ]}
         />

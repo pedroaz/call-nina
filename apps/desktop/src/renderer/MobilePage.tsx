@@ -1,22 +1,34 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, RefreshCw } from "lucide-react";
 import { Page, Section, ActionGroup } from "./components/layout/index.js";
 import { Button, Feedback } from "./components/ui/index.js";
 import { NinaAccountSettings, useNinaAccountState } from "./NinaAccount.js";
 import { invokeDesktop } from "./ipc.js";
+
 export function MobilePage() {
-  const { t, i18n } = useTranslation();
   const account = useNinaAccountState();
+  return (
+    <MobileAccountPage
+      key={`${account.status}:${account.access?.userId ?? ""}`}
+      account={account}
+    />
+  );
+}
+function MobileAccountPage({ account }: { account: ReturnType<typeof useNinaAccountState> }) {
+  const { t, i18n } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [published, setPublished] = useState<string>();
   const [message, setMessage] = useState<string>();
-  const identity = useRef(account.access?.userId);
-  identity.current = account.access?.userId;
+  const mounted = useRef(true);
+  useLayoutEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   useEffect(() => {
     let cancelled = false;
-    setPublished(undefined);
-    setMessage(undefined);
     if (account.status === "signed-in")
       void invokeDesktop("mobile-sync/read", {})
         .then((result) => {
@@ -29,20 +41,19 @@ export function MobilePage() {
   }, [account.access?.userId, account.status]);
   const sync = async () => {
     if (busy) return;
-    const user = identity.current;
     setBusy(true);
     setMessage(undefined);
     try {
       const result = await invokeDesktop("mobile-sync/publish", {});
-      if (identity.current !== user) return;
+      if (!mounted.current) return;
       if (result.status === "synced") {
         setPublished(result.publishedAt);
         setMessage(t("mobile.synced"));
       } else if (result.status === "failed") setMessage(t(`mobile.errors.${result.reason}`));
     } catch {
-      if (identity.current === user) setMessage(t("mobile.errors.unavailable"));
+      if (mounted.current) setMessage(t("mobile.errors.unavailable"));
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   };
   return (

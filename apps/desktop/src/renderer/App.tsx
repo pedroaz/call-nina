@@ -355,15 +355,6 @@ function DesktopWorkspace({
     };
   }, [reload, refreshScope, writingDirty]);
 
-  useEffect(() => {
-    const open = () => {
-      setSettingsTab("ai");
-      navigate("settings");
-    };
-    window.addEventListener(openProviderSettingsEvent, open);
-    return () => window.removeEventListener(openProviderSettingsEvent, open);
-  });
-
   const openAi = async (
     operation: ProviderOperation,
     previousOperationId?: DesktopIpcRequest["requestId"],
@@ -439,6 +430,17 @@ function DesktopWorkspace({
     if (mode === "return") returnTo(destination);
     else applyNavigation(destination);
   };
+  useEffect(() => {
+    const open = () => {
+      setSettingsTab("ai");
+      navigate("settings");
+    };
+    window.addEventListener(openProviderSettingsEvent, open);
+    return () => {
+      window.removeEventListener(openProviderSettingsEvent, open);
+    };
+  });
+
   const openSavedResults = (scope?: SavedResultsScope, origin?: "learningPath" | "vocabulary") => {
     setResultsOrigin(origin);
     setPreparedActivityId(undefined);
@@ -550,7 +552,9 @@ function DesktopWorkspace({
             )}
             {page === "nina" && learningScope ? (
               <NinaHome
-                onLearningPaths={() => navigate("learningPath")}
+                onLearningPaths={() => {
+                  navigate("learningPath");
+                }}
                 key={ninaScopeKey}
                 draft={ninaDrafts[ninaScopeKey] ?? emptyNinaHomeDraft}
                 onDraftChange={(draft) => {

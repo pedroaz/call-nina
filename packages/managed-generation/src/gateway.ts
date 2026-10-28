@@ -76,7 +76,7 @@ export async function generateGatewayAttempt(options: {
       telemetry: { isEnabled: false, recordInputs: false, recordOutputs: false, integrations: [] },
       include: { requestBody: false, responseBody: false },
     });
-    const metadata = result.providerMetadata?.["gateway"];
+    const metadata = result.finalStep.providerMetadata?.["gateway"];
     const cost = metadata?.["cost"];
     options.recordUsage({
       inputTokens: result.usage.inputTokens ?? null,

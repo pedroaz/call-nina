@@ -63,8 +63,12 @@ export function AppShell<Page extends string>(props: {
       )
         onToggleNavigation();
     };
-    const onFocus = (event: FocusEvent) => revealFocusedControl(event.target);
-    const onResize = () => revealFocusedControl(document.activeElement);
+    const onFocus = (event: FocusEvent) => {
+      revealFocusedControl(event.target);
+    };
+    const onResize = () => {
+      revealFocusedControl(document.activeElement);
+    };
     document.addEventListener("focusin", onFocus);
     window.addEventListener("resize", onResize);
     return () => {

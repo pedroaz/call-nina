@@ -11,7 +11,6 @@ import type {
   HistoryPracticeSeed,
   PracticeState,
 } from "./savedResultsTypes.js";
-export type { SavedResultsScope, HistoryPracticeSeed } from "./savedResultsTypes.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import {
   type ProviderOperation,
@@ -46,6 +45,8 @@ import {
   normalizeDesktopError,
   subscribeDesktop,
 } from "./ipc.js";
+
+export type { SavedResultsScope, HistoryPracticeSeed } from "./savedResultsTypes.js";
 
 const skills: readonly Skill[] = ["writing", "reading", "listening", "speaking"];
 const activityTypes: readonly ActivityType[] = [
@@ -213,6 +214,9 @@ export function SavedResults({
   );
 
   useEffect(() => {
+    const invalidateRequests = () => {
+      version.current++;
+    };
     retainedCount.current = 50;
     const initial = window.setTimeout(() => {
       setSnapshot(undefined);
@@ -260,16 +264,12 @@ export function SavedResults({
       }
     });
     return () => {
-      version.current++;
+      invalidateRequests();
       window.clearTimeout(initial);
       window.removeEventListener("focus", onFocus);
       unsubscribe();
     };
-  }, [refresh]);
-
-  useEffect(() => {
-    if (refreshRequest) void refresh();
-  }, [refreshRequest, refresh]);
+  }, [refresh, refreshRequest]);
 
   const dateFormatter = useMemo(
     () =>
@@ -439,12 +439,22 @@ export function SavedResults({
               {scope.label ?? t("savedResults.selection")} · {t("savedResults.clearScope")}
             </Button>
           )}
-          <Button variant="secondary" onPress={() => setFiltersOpen(true)}>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              setFiltersOpen(true);
+            }}
+          >
             {t("savedResults.filters")}{" "}
             {Object.keys(appliedFilters).filter((key) => key !== "maximum").length || ""}
           </Button>
           {snapshot && snapshot.mistakePatterns.length > 0 && (
-            <Button variant="quiet" onPress={() => setDetail("patterns")}>
+            <Button
+              variant="quiet"
+              onPress={() => {
+                setDetail("patterns");
+              }}
+            >
               {t("savedResults.mistakes")}
             </Button>
           )}
@@ -492,7 +502,9 @@ export function SavedResults({
               <input
                 value={search}
                 maxLength={160}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                }}
               />
             </FieldGroup>
             <FieldGroup>
@@ -622,7 +634,9 @@ export function SavedResults({
         <MistakesToPractise
           patterns={view === "activities" ? patterns : (snapshot?.mistakePatterns ?? [])}
           isOpen={detail === "patterns"}
-          onOpenChange={(open) => setDetail(open ? "patterns" : undefined)}
+          onOpenChange={(open) => {
+            setDetail(open ? "patterns" : undefined);
+          }}
           operationStatus={operationStatus}
           practiceState={practiceState}
           onPracticeAgain={onPracticeAgain}
@@ -668,7 +682,12 @@ export function SavedResults({
                     {t(`history.activityTypes.${entry.activityType}`)}
                   </p>
                   <h2>
-                    <Button variant="quiet" onPress={() => setDetail(entry.historyEntryId)}>
+                    <Button
+                      variant="quiet"
+                      onPress={() => {
+                        setDetail(entry.historyEntryId);
+                      }}
+                    >
                       {entry.title}
                     </Button>
                   </h2>
@@ -680,7 +699,9 @@ export function SavedResults({
               <SavedResultDetail
                 entry={entry}
                 isOpen={detail === entry.historyEntryId}
-                onClose={() => setDetail(undefined)}
+                onClose={() => {
+                  setDetail(undefined);
+                }}
                 operationStatus={operationStatus}
                 dateFormatter={dateFormatter}
                 deleteEntry={deleteEntry}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { aiConnectionsViewSchema, z } from "@call-nina/contracts";
 import { invokeDesktop, subscribeDesktop } from "./ipc.js";
+
 export type ProviderView = z.infer<typeof aiConnectionsViewSchema>;
 export function useProviderView() {
   const [view, setView] = useState<ProviderView>();

@@ -413,14 +413,18 @@ export function ConnectionSettings({
                       <Button
                         variant="secondary"
                         isDisabled={busy || view?.secureStorage.status !== "available"}
-                        onPress={() => updateCredential({ action: "replace", secret: "" })}
+                        onPress={() => {
+                          updateCredential({ action: "replace", secret: "" });
+                        }}
                       >
                         {t("connectionSettings.replaceKey")}
                       </Button>
                       <Button
                         variant="quiet"
                         isDisabled={busy}
-                        onPress={() => updateCredential({ action: "remove", secret: "" })}
+                        onPress={() => {
+                          updateCredential({ action: "remove", secret: "" });
+                        }}
                       >
                         {t("connectionSettings.removeKey")}
                       </Button>
@@ -432,7 +436,9 @@ export function ConnectionSettings({
                     <Button
                       variant="secondary"
                       isDisabled={busy}
-                      onPress={() => updateCredential({ action: "keep", secret: "" })}
+                      onPress={() => {
+                        updateCredential({ action: "keep", secret: "" });
+                      }}
                     >
                       {t("actions.cancel")}
                     </Button>
@@ -450,15 +456,17 @@ export function ConnectionSettings({
                       disabled={busy || view?.secureStorage.status !== "available"}
                       autoComplete="off"
                       value={credential}
-                      onChange={(event) =>
-                        updateCredential({ action: "replace", secret: event.target.value })
-                      }
+                      onChange={(event) => {
+                        updateCredential({ action: "replace", secret: event.target.value });
+                      }}
                     />
                     {saved?.secretRef && (
                       <Button
                         variant="quiet"
                         isDisabled={busy}
-                        onPress={() => updateCredential({ action: "keep", secret: "" })}
+                        onPress={() => {
+                          updateCredential({ action: "keep", secret: "" });
+                        }}
                       >
                         {t("actions.cancel")}
                       </Button>

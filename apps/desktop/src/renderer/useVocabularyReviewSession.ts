@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { DataRootGeneration, CallNinaError, DesktopIpcResponse } from "@call-nina/contracts";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 import { vocabularyVersion } from "./useVocabularyLibrary.js";
+
 export function useVocabularyReviewSession(
   rootGeneration: DataRootGeneration,
   onChanged: () => void,

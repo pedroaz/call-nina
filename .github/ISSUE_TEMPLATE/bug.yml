@@ -1,5 +1,5 @@
 name: Bug
-description: Record an evidenced defect for triage; filing does not approve implementation.
+description: Report a reproducible problem with Call Nina.
 title: "[Bug] "
 labels: [bug]
 body:
@@ -10,26 +10,20 @@ body:
     validations:
       required: true
   - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, app version or commit, and installation method.
+    validations:
+      required: true
+  - type: textarea
     id: evidence
     attributes:
-      label: Evidence and affected revision
-      description: Reproduction steps or precise source evidence. State what is unverified. Exclude learner data, secrets and private paths.
-    validations:
-      required: true
-  - type: textarea
-    id: impact
-    attributes:
-      label: Impact and acceptance blocking
-      description: Who is affected? Does this block the current task or result from its changes?
-    validations:
-      required: true
-  - type: textarea
-    id: scheduling
-    attributes:
-      label: Deferral or independent work
-      description: Why handle separately? Include likely owned files, dependencies, related issue/PR and any parent epic.
-  - type: textarea
-    id: acceptance
-    attributes:
-      label: Fix acceptance criteria
-      description: Describe observable corrected behavior; no automated application tests or saved journeys.
+      label: Additional evidence
+      description: Include relevant redacted diagnostic codes. Exclude learner content, credentials, private paths, and databases from text and attachments.

@@ -1,6 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import { openDatabaseAsync } from "expo-sqlite";
 import { mobileSnapshotSchema, type MobileSnapshot, type MobileDeck } from "@call-nina/contracts";
+
 let queue: Promise<unknown> = Promise.resolve();
 const opening = openDatabaseAsync("nina-mobile.db").then(async (db) => {
   await db.execAsync(`PRAGMA journal_mode=WAL;

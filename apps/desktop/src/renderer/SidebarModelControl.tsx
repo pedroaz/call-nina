@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "./components/ui/index.js";
 import { useProviderView } from "./useProviderView.js";
 import styles from "./SidebarModelControl.module.css";
+
 export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { t } = useTranslation();
   const view = useProviderView();

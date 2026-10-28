@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import styles from "./Activity.module.css";
+
 export function RecallCard({
   cue,
   answer,

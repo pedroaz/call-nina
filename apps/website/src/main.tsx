@@ -160,12 +160,12 @@ function App() {
             <p className="connection-intro">{t.subscriptions}</p>
             <ul className="status-list">
               <StatusRow label="ChatGPT" available yes={t.yes} notYet={t.notYet} />
-              {t.providers.map((label) => (
+              {t.providers.map(({ label, status }) => (
                 <StatusRow
                   key={label}
                   label={label}
-                  available={false}
-                  yes={t.yes}
+                  available
+                  yes={status ?? t.yes}
                   notYet={t.notYet}
                 />
               ))}

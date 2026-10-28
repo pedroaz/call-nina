@@ -1,6 +1,15 @@
-import { ingestVocabulary, readVocabularyAnalysis } from "@call-nina/persistence";
-import { vocabularyAnalysisOutputSchema } from "@call-nina/contracts";
 import {
+  ingestVocabulary,
+  readVocabularyAnalysis,
+  assertCallNinaDatabaseLease,
+  readLearningCourse,
+  saveGeneratedFlashcards,
+  writingAttemptPersistenceSchema,
+  type CallNinaDatabase,
+  type CallNinaRepository,
+} from "@call-nina/persistence";
+import {
+  vocabularyAnalysisOutputSchema,
   type GenerationProvenance,
   activityIdSchema,
   attemptIdSchema,
@@ -10,20 +19,11 @@ import {
   mistakeIdSchema,
   modelRequestIdSchema,
   utcInstantSchema,
-  vocabularyIdSchema,
   flashcardGenerationCandidateSchema,
   type exerciseGenerationCandidateSchema,
   type DesktopIpcEvent,
 } from "@call-nina/contracts";
 import { alignCorrectionTexts, resolveCourseReference } from "@call-nina/domain";
-import {
-  assertCallNinaDatabaseLease,
-  readLearningCourse,
-  saveGeneratedFlashcards,
-  writingAttemptPersistenceSchema,
-  type CallNinaDatabase,
-  type CallNinaRepository,
-} from "@call-nina/persistence";
 import {
   opaqueId,
   type AcceptedOperation,

@@ -83,7 +83,12 @@ export function VocabularyReview({
           entry && (
             <ActivityFooter>
               {!revealed && (
-                <Button variant="primary" onPress={() => setRevealed(true)}>
+                <Button
+                  variant="primary"
+                  onPress={() => {
+                    setRevealed(true);
+                  }}
+                >
                   {t("vocabulary.review.reveal")}
                 </Button>
               )}
@@ -116,7 +121,9 @@ export function VocabularyReview({
               <SelectControl
                 value={retrieval}
                 disabled={revealed || busy}
-                onChange={(event) => setRetrieval(event.target.value as typeof retrieval)}
+                onChange={(event) => {
+                  setRetrieval(event.target.value as typeof retrieval);
+                }}
               >
                 {(["recognition", "recall", "use"] as const).map((mode) => (
                   <option

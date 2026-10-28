@@ -46,7 +46,7 @@ The product name is Call Nina. Existing brand assets and UI commitments are main
 - Reusable learning content: `../../content/curriculum/`.
 - Shared brand assets: `../../packages/design-system/`.
 
-These sources establish product content and implementation, not measured learning outcomes. This initialization establishes no testimonials, efficacy benchmarks, or certification claims.
+These sources establish product content and implementation, not measured learning outcomes. No testimonials, efficacy benchmarks, or certification claims are established by these sources.
 
 ## Product Principles
 

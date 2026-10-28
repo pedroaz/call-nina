@@ -44,7 +44,7 @@ Operator environment: `CLERK_SECRET_KEY` for the selected instance, `VERCEL_TOKE
 
 One action covers an admitted request and its repair; only zero-attempt requests refund it. Explicit retries spend another action. Unknown/process-loss outcomes retain both reservations. `usage USERNAME` distinguishes conservative charges from reported Gateway costs; missing usage is unknown, not zero. Do not reset balances or active budget epochs on reruns.
 
-Live provisioning/authenticated verification requires configured credentials. When deferred by the user, report it separately from successful local builds/packaging. The website describes direct private distribution of the app and credentials, with managed inference pending activation until actually verified. No public signup or download is implied.
+Live provisioning/authenticated verification requires configured credentials. When deferred by the user, report it separately from successful local builds/packaging. Private distribution of the app and credentials does not imply public signup or downloads. Determine managed inference availability from current configuration and live readback; do not preserve a past activation status as a standing instruction.
 
 ## Existing Marketplace database
 

@@ -124,15 +124,16 @@ export function ActivityFrame({
         </div>
         <div className={styles.body}>
           {reference && <aside className={styles.reference}>{reference}</aside>}
-          <section
+          <div
             className={styles.task}
             data-activity-task
+            role="region"
             aria-label={taskLabel}
             tabIndex={height === undefined ? undefined : 0}
           >
             {children}
             {feedback && <div className={styles.feedback}>{feedback}</div>}
-          </section>
+          </div>
         </div>
         <div ref={actions} className={styles.footerSlot}>
           {footer}

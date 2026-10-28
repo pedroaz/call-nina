@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import { getLocales } from "expo-localization";
 import { flashcardMessages } from "@call-nina/learning-ui";
 import { languageIds } from "@call-nina/contracts";
+
 const en = {
   library: "Flashcards",
   account: "Account",
@@ -135,7 +136,7 @@ const pt: typeof en = {
   signOutError: "Não foi possível sair. Tente novamente.",
   storageError: "Não foi possível abrir os dados locais. Reinicie o app.",
 };
-const device = getLocales()[0]?.languageCode;
+const device = getLocales()[0].languageCode;
 const initial = device === "pt" ? "pt-BR" : device === "de" || device === "es" ? device : "en-US";
 const copy = { "en-US": en, "pt-BR": pt, de, es };
 void i18n.use(initReactI18next).init({

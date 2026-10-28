@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalFonts } from "./NativeFonts";
+
 const variants = {
   title: { metrics: tokens.typography.styles.pageTitle, serif: true, weight: "700" },
   heading: { metrics: tokens.typography.styles.sectionTitle, serif: true, weight: "600" },
@@ -126,8 +127,12 @@ export function NativeButton({
       accessibilityState={{ disabled, ...(selected === undefined ? {} : { selected }) }}
       disabled={disabled}
       onPress={onPress}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onFocus={() => {
+        setFocused(true);
+      }}
+      onBlur={() => {
+        setFocused(false);
+      }}
       style={({ pressed }) => [
         styles.button,
         variant === "primary" && styles.primary,

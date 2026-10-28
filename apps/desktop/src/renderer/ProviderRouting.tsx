@@ -11,6 +11,7 @@ import { ChevronRight, Check, CircleCheck, CircleMinus, CircleAlert, Clock3 } fr
 import { useTranslation } from "react-i18next";
 import { Button, Disclosure, SelectField } from "./components/ui/index.js";
 import styles from "./ConnectionSettings.module.css";
+
 type View = z.infer<typeof aiConnectionsViewSchema>;
 type Action = Extract<DesktopIpcRequest, { channel: "ai-connections/update" }>["payload"]["action"];
 export function ProviderRouting({
@@ -70,7 +71,7 @@ export function ProviderRouting({
             <option value="">{t("providers.unassigned")}</option>
             {routing[capability] &&
               !view.settings.connections.some((entry) => entry.routeId === routing[capability]) && (
-                <option value={routing[capability]!}>
+                <option value={routing[capability]}>
                   {t(`connectionSettings.routes.${routing[capability]}`)}
                 </option>
               )}
@@ -102,7 +103,9 @@ export function ProviderRouting({
                       aria-haspopup="dialog"
                       trailingIcon={<ChevronRight aria-hidden="true" />}
                       isDisabled={busy}
-                      onPress={() => select(route)}
+                      onPress={() => {
+                        select(route);
+                      }}
                     >
                       {t(`connectionSettings.routes.${route}`)}
                     </Button>
@@ -168,7 +171,12 @@ export function ProviderRouting({
                 const actions = { ...routing.actions };
                 if (event.target.value)
                   actions[action] = event.target.value as (typeof aiProviderOrder)[number];
-                else delete actions[action];
+                else {
+                  const { [action]: removed, ...remaining } = actions;
+                  void removed;
+                  void mutate({ kind: "routing", routing: { ...routing, actions: remaining } });
+                  return;
+                }
                 void mutate({ kind: "routing", routing: { ...routing, actions } });
               }}
             >

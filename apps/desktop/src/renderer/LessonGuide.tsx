@@ -60,7 +60,9 @@ export function LessonGuide({
                   variant="secondary"
                   isPending={changingSituation}
                   isDisabled={busy || scenarioLocked}
-                  onPress={() => onChangeSituation()}
+                  onPress={() => {
+                    onChangeSituation();
+                  }}
                 >
                   {t("missions.newContext")}
                 </Button>

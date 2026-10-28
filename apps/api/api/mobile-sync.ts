@@ -8,6 +8,7 @@ import {
   z,
 } from "@call-nina/contracts";
 import { accountDeployment, mobileSql } from "../deployment.js";
+
 const hash = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const json = (value: unknown, status = 200) =>
   Response.json(value, { status, headers: { "cache-control": "no-store" } });
@@ -20,8 +21,12 @@ async function readBody(request: Request) {
   let size = 0;
   try {
     for (;;) {
-      const { done, value } = await reader.read();
+      const chunk: unknown = await reader.read();
+      const { done, value } = z
+        .object({ done: z.boolean(), value: z.unknown().optional() })
+        .parse(chunk);
       if (done) break;
+      if (!(value instanceof Uint8Array)) throw new Error("invalid");
       size += value.length;
       if (size > limit) throw new Error("large");
       chunks.push(value);

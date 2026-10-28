@@ -1,9 +1,10 @@
 import styles from "./ProviderActionSummary.module.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ProviderAccess, ProviderOperation, CorrelationId } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { invokeDesktop, subscribeDesktop } from "./ipc.js";
 import { Button } from "./components/ui/index.js";
+
 export const openProviderSettingsEvent = "nina-open-provider-settings";
 export function ProviderActionSummary({
   operation,
@@ -18,9 +19,8 @@ export function ProviderActionSummary({
 }) {
   const { t } = useTranslation();
   const [access, setAccess] = useState<ProviderAccess>();
-  const frozen = useRef<ProviderAccess | undefined>(undefined);
-  // Keep the displayed selection stable while the owning action is running.
-  if (!busy) frozen.current = access;
+  const [idleAccess, setIdleAccess] = useState<ProviderAccess>();
+  if (!busy && idleAccess !== access) setIdleAccess(access);
   useEffect(() => {
     let alive = true;
     let serial = 0;
@@ -51,7 +51,7 @@ export function ProviderActionSummary({
       unsubscribe();
     };
   }, [operation, hasImage, busy, previousOperationId]);
-  const shown = busy ? (frozen.current ?? access) : access;
+  const shown = busy ? (idleAccess ?? access) : access;
   return (
     <div className={styles.summary} role="status" aria-live="polite">
       <span>

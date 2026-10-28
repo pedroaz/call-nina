@@ -1,5 +1,4 @@
-import type { ActivityId } from "@call-nina/contracts";
-import { vocabularyLemma } from "@call-nina/contracts";
+import { type ActivityId, vocabularyLemma } from "@call-nina/contracts";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,6 +22,7 @@ import { useFlashcardSession } from "./useFlashcardSession.js";
 import { OperationError } from "./Startup.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 import styles from "./FlashcardWorkspace.module.css";
+
 export function FlashcardWorkspace({
   activityId,
   parentLabel,
@@ -77,7 +77,9 @@ export function FlashcardWorkspace({
                       id: "save-all",
                       label: t("flashcards.saveAll"),
                       isDisabled: busy || Boolean(allSaved),
-                      onAction: () => save(deck.content.cards.map((_, index) => index)),
+                      onAction: () => {
+                        save(deck.content.cards.map((_, index) => index));
+                      },
                     },
                   ]
                 : []),
@@ -130,7 +132,9 @@ export function FlashcardWorkspace({
                       variant="secondary"
                       aria-keyshortcuts="ArrowLeft"
                       isDisabled={busy || deck.progress.position === 0}
-                      onPress={() => move(deck.progress.position - 1)}
+                      onPress={() => {
+                        move(deck.progress.position - 1);
+                      }}
                     >
                       {t("flashcards.previous")}
                     </Button>
@@ -140,7 +144,9 @@ export function FlashcardWorkspace({
                       <Button
                         variant="quiet"
                         isDisabled={busy || Boolean(saved && saved.status !== "candidate")}
-                        onPress={() => save([deck.progress.position])}
+                        onPress={() => {
+                          save([deck.progress.position]);
+                        }}
                       >
                         {t(
                           saved && saved.status !== "candidate"
@@ -168,12 +174,12 @@ export function FlashcardWorkspace({
                         : undefined
                     }
                     isDisabled={busy}
-                    onPress={() =>
+                    onPress={() => {
                       move(
                         Math.min(deck.content.cards.length - 1, deck.progress.position + 1),
                         deck.progress.position === deck.content.cards.length - 1,
-                      )
-                    }
+                      );
+                    }}
                   >
                     {t(
                       deck.progress.position === deck.content.cards.length - 1
@@ -205,7 +211,13 @@ export function FlashcardWorkspace({
                     />
                   )}
                   <ActionGroup>
-                    <Button variant="quiet" isDisabled={busy} onPress={() => move(0)}>
+                    <Button
+                      variant="quiet"
+                      isDisabled={busy}
+                      onPress={() => {
+                        move(0);
+                      }}
+                    >
                       {t("flashcards.restart")}
                     </Button>
                   </ActionGroup>

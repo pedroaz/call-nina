@@ -65,8 +65,9 @@ export class NinaLoginStorage {
         await mkdir(this.directory, { recursive: true, mode: 0o700 });
         await this.#checkDirectory();
         // Discard only this store's interrupted temporary file, never the saved draft.
-        await unlink(temporary).catch((cause: NodeJS.ErrnoException) => {
-          if (cause.code !== "ENOENT") throw cause;
+        await unlink(temporary).catch((cause: unknown) => {
+          if (!(cause instanceof Error) || !("code" in cause) || cause.code !== "ENOENT")
+            throw cause;
         });
         const file = await open(temporary, "wx", 0o600);
         try {

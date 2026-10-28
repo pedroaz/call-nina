@@ -30,7 +30,7 @@ export class NinaAccount {
       return this.state;
     }
     const origin = ninaPublicConfiguration.serviceOrigin;
-    if (!origin) return this.#update("unavailable", null);
+    if (!origin) return await this.#update("unavailable", null);
     try {
       const signal = AbortSignal.timeout(10000);
       const response = await fetch(`${origin}/api/account`, {
@@ -39,15 +39,16 @@ export class NinaAccount {
         credentials: "omit",
         signal,
       });
-      if (response.status === 401) return this.#update("expired", null);
-      if (!response.ok) return this.#update("unavailable", null);
+      if (response.status === 401) return await this.#update("expired", null);
+      if (!response.ok) return await this.#update("unavailable", null);
       const body = await readBounded(response.body, 4096, signal);
       const access = ninaAccessSchema.parse(JSON.parse(body));
       const encoded = token.split(".")[1];
       const claims: unknown = JSON.parse(Buffer.from(encoded ?? "", "base64url").toString("utf8"));
       const exp =
         typeof claims === "object" && claims !== null && "exp" in claims ? claims.exp : undefined;
-      if (typeof exp !== "number" || exp * 1000 <= Date.now()) return this.#update("expired", null);
+      if (typeof exp !== "number" || exp * 1000 <= Date.now())
+        return await this.#update("expired", null);
       if (access.userId !== this.state.access?.userId) {
         this.epoch++;
         this.#token = null;
@@ -60,13 +61,13 @@ export class NinaAccount {
       this.state = { status: "signed-in", access };
       return this.state;
     } catch {
-      return this.#update("unavailable", null);
+      return await this.#update("unavailable", null);
     }
   }
-  async token(epoch: number): Promise<string> {
+  token(epoch: number): Promise<string> {
     this.assert(epoch);
     if (!this.#token || Date.now() >= this.#expires) throw new Error("OD_NINA_SESSION_EXPIRED");
-    return this.#token;
+    return Promise.resolve(this.#token);
   }
   assertAi(epoch: number): void {
     this.assert(epoch);

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { TextField } from "./components/ui/index.js";
 import { PracticeTypeChooser, type PracticeKind } from "./PracticeTypeChooser.js";
 import styles from "./PracticeComposer.module.css";
+
 export function PracticeComposer({
   topic,
   kind,
@@ -24,7 +25,9 @@ export function PracticeComposer({
         value={topic}
         maxLength={2000}
         disabled={disabled}
-        onChange={(event) => onTopicChange(event.target.value)}
+        onChange={(event) => {
+          onTopicChange(event.target.value);
+        }}
       />
       <PracticeTypeChooser value={kind} onChange={onKindChange} disabled={disabled} />
     </div>

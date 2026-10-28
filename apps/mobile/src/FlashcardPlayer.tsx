@@ -11,6 +11,7 @@ import {
   NativeText,
 } from "./ui/primitives";
 import { readProgress, saveProgress, type Progress } from "./storage";
+
 export function FlashcardPlayer({
   user,
   deck,
@@ -47,7 +48,9 @@ export function FlashcardPlayer({
       if (!locked.current) onClose();
       return true;
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+    };
   }, [onClose]);
   const move = async (position: number, completed = false) => {
     if (locked.current) return;
@@ -146,7 +149,9 @@ export function FlashcardPlayer({
               <NativeButton
                 label={t(revealed ? "flashcards.front" : "flashcards.flip")}
                 disabled={busy}
-                onPress={() => setRevealed((v) => !v)}
+                onPress={() => {
+                  setRevealed((v) => !v);
+                }}
                 variant="primary"
               />
               <NativeButton

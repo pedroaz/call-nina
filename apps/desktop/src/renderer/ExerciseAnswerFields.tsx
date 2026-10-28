@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { FieldGroup, OptionCard } from "./components/ui/index.js";
 import { AnswerTextarea } from "./components/activity/AnswerTextarea.js";
 import styles from "./ExerciseEngine.module.css";
+
 type AnswerProps = {
   definition: ExerciseDefinition;
   evaluated: boolean;

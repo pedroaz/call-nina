@@ -7,6 +7,7 @@ import {
 } from "@call-nina/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createDesktopSubmissionId, invokeDesktop, normalizeDesktopError } from "./ipc.js";
+
 export function useFlashcardSession(activityId: ActivityId) {
   const [deck, setDeck] = useState<FlashcardDeck>();
   const [flipped, setFlipped] = useState(false);

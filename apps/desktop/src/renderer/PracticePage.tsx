@@ -193,7 +193,7 @@ export function PracticePage({
   const formBusy = generating || voiceBusy || readingBusy || materialBusy;
   const [generationError, setGenerationError] = useState<CallNinaError>();
   const [deleting, setDeleting] = useState(false);
-  const [localLibraryView, setLocalLibraryView] = useState(false);
+  const [localLibraryView, setLocalLibraryView] = useState(Boolean(resultsRequest));
   const libraryView = selectedTab ? selectedTab === "saved" : localLibraryView;
   const setLibraryView = (saved: boolean) => {
     setLocalLibraryView(saved);
@@ -225,16 +225,25 @@ export function PracticePage({
   const [selectedKind, setSelectedKind] = useState<PracticeKind>(
     initialPreparation?.kind ?? "custom",
   );
-  const [savedView, setSavedView] = useState<"activities" | "results">("activities");
-  const [resultsScope, setResultsScope] = useState<SavedResultsScope>();
+  const [savedView, setSavedView] = useState<"activities" | "results">(
+    resultsRequest ? "results" : "activities",
+  );
+  const [resultsScope, setResultsScope] = useState<SavedResultsScope | undefined>(
+    resultsRequest?.scope,
+  );
   const [resultsRefresh, setResultsRefresh] = useState(0);
   const [librarySearch, setLibrarySearch] = useState("");
+  const [previousResultsRequest, setPreviousResultsRequest] = useState(resultsRequest);
+  if (resultsRequest !== previousResultsRequest) {
+    setPreviousResultsRequest(resultsRequest);
+    if (resultsRequest) {
+      setSavedView("results");
+      setResultsScope(resultsRequest.scope);
+      setLocalLibraryView(true);
+    }
+  }
   useEffect(() => {
-    if (!resultsRequest) return;
-    setSavedView("results");
-    setResultsScope(resultsRequest.scope);
-    setLocalLibraryView(true);
-    onTabChange?.("saved");
+    if (resultsRequest) onTabChange?.("saved");
   }, [resultsRequest, onTabChange]);
   const [libraryFilter, setLibraryFilter] = useState<PracticeLibraryFilter>("all");
   const library = useActivityLibrary(
@@ -992,7 +1001,9 @@ export function PracticePage({
                           density="compact"
                           variant="secondary"
                           aria-pressed={savedView === view}
-                          onPress={() => setSavedView(view)}
+                          onPress={() => {
+                            setSavedView(view);
+                          }}
                         >
                           {t(`savedResults.${view}`)}
                         </Button>
@@ -1006,16 +1017,18 @@ export function PracticePage({
                             type="search"
                             value={librarySearch}
                             maxLength={160}
-                            onChange={(event) => setLibrarySearch(event.target.value)}
+                            onChange={(event) => {
+                              setLibrarySearch(event.target.value);
+                            }}
                           />
                         </FieldGroup>
                         <FieldGroup>
                           {t("history.filters.activityType")}
                           <SelectControl
                             value={libraryFilter}
-                            onChange={(event) =>
-                              setLibraryFilter(event.target.value as PracticeLibraryFilter)
-                            }
+                            onChange={(event) => {
+                              setLibraryFilter(event.target.value as PracticeLibraryFilter);
+                            }}
                           >
                             {(
                               [
@@ -1169,11 +1182,15 @@ export function PracticePage({
                     </div>
                     <SavedResults
                       scope={resultsScope}
-                      onClearScope={() => setResultsScope(undefined)}
+                      onClearScope={() => {
+                        setResultsScope(undefined);
+                      }}
                       view={savedView}
                       refreshRequest={resultsRefresh}
                       requestAiAccess={requestAiAccess}
-                      onChanged={library.refresh}
+                      onChanged={() => {
+                        void library.refresh();
+                      }}
                       onPracticeAgain={(seed) => {
                         returnPosition.current = {
                           y: window.scrollY,

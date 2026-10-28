@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { ActivityChoice } from "./components/ui/index.js";
 import { activityIcons, practiceKinds, type PracticeKind } from "./activityPresentation.js";
 import styles from "./PracticeComposer.module.css";
+
 export type { PracticeKind } from "./activityPresentation.js";
 export function PracticeTypeChooser({
   value,
@@ -24,7 +25,9 @@ export function PracticeTypeChooser({
             icon={<Icon aria-hidden="true" />}
             isDisabled={disabled}
             aria-pressed={value === kind}
-            onPress={() => onChange(kind)}
+            onPress={() => {
+              onChange(kind);
+            }}
           >
             {t(`practice.types.${kind}.title`)}
           </ActivityChoice>

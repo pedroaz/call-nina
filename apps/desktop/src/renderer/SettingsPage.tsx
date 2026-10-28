@@ -662,7 +662,12 @@ export function SettingsPage({
                               <Gauge aria-hidden="true" />
                               {t("settings.chatgptUsageLink")}
                             </Button>
-                            <Button variant="secondary" onPress={() => setAccountOptionsOpen(true)}>
+                            <Button
+                              variant="secondary"
+                              onPress={() => {
+                                setAccountOptionsOpen(true);
+                              }}
+                            >
                               <UserRound aria-hidden="true" />
                               {t("settings.accountOptions")}
                             </Button>
@@ -715,7 +720,9 @@ export function SettingsPage({
                               <p>{t("settings.sessionPrivacy")}</p>
                               <Button
                                 variant="secondary"
-                                onPress={() => setAccountOptionsOpen(false)}
+                                onPress={() => {
+                                  setAccountOptionsOpen(false);
+                                }}
                               >
                                 {t("actions.close")}
                               </Button>

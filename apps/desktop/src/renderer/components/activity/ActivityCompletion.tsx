@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, ModalDialog, Nina } from "../ui/index.js";
 import styles from "./Activity.module.css";
+
 export function ActivityCompletion({
   title,
   companion,
@@ -35,7 +36,12 @@ export function ActivityCompletion({
         {summary}
         {actions}
         {review && reviewLabel && (
-          <Button variant="secondary" onPress={() => setReviewOpen(true)}>
+          <Button
+            variant="secondary"
+            onPress={() => {
+              setReviewOpen(true);
+            }}
+          >
             {reviewLabel}
           </Button>
         )}

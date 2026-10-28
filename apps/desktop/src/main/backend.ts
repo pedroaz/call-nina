@@ -1,20 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
 import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
-import { ninaPublicConfiguration } from "@call-nina/contracts";
-import { exportMobileFlashcards, assertCallNinaDatabaseLease } from "@call-nina/persistence";
-import { recommendedRouting } from "@call-nina/domain";
-import { routedProvider, type AiAction } from "@call-nina/contracts";
-import { nativeImage } from "electron";
 import {
-  readVocabularyLearning,
-  updateVocabularyLearning,
-  vocabularyPracticeContext,
-  readVocabularyAnalysis,
-  queueVocabularyAnalysis,
-} from "@call-nina/persistence";
-import { type NinaLoginStorage } from "./nina-login-storage.js";
-import { NinaAccount } from "./nina-account.js";
-import {
+  ninaPublicConfiguration,
+  routedProvider,
+  type AiAction,
   desktopIpcRequestSchema,
   activityIdSchema,
   aiConnectionsViewSchema,
@@ -41,14 +30,13 @@ import {
   type ProviderOperation,
 } from "@call-nina/contracts";
 import {
-  directApiCatalog,
-  directApiCatalogs,
-  directApiSelection,
-  isDirectApiRoute,
-} from "@call-nina/direct-api";
-import { managedCatalog } from "@call-nina/managed-generation/service";
-import { offlineCatalog, offlineSelection, type OfflineRuntime } from "@call-nina/offline-runtime";
-import {
+  exportMobileFlashcards,
+  assertCallNinaDatabaseLease,
+  readVocabularyLearning,
+  updateVocabularyLearning,
+  vocabularyPracticeContext,
+  readVocabularyAnalysis,
+  queueVocabularyAnalysis,
   CallNinaRepository,
   addCourseVocabulary,
   createVocabularyFlashcards,
@@ -74,6 +62,26 @@ import {
   type CallNinaDatabase,
   type LearnerSettingsRecord,
 } from "@call-nina/persistence";
+import {
+  recommendedRouting,
+  assertExerciseGenerationContext,
+  buildPracticeSuggestions,
+  createInitialLearnerProfile,
+  evaluateExerciseAnswer,
+  resolveCourseReference,
+  resolveModelPreference,
+} from "@call-nina/domain";
+import { nativeImage } from "electron";
+import { type NinaLoginStorage } from "./nina-login-storage.js";
+import { NinaAccount } from "./nina-account.js";
+import {
+  directApiCatalog,
+  directApiCatalogs,
+  directApiSelection,
+  isDirectApiRoute,
+} from "@call-nina/direct-api";
+import { managedCatalog } from "@call-nina/managed-generation/service";
+import { offlineCatalog, offlineSelection, type OfflineRuntime } from "@call-nina/offline-runtime";
 import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
 import path from "node:path";
 import { type ChatgptSession } from "./chatgpt-session.js";
@@ -92,14 +100,6 @@ import { LearningResultService } from "./services/learning-results.js";
 import { TranslationJobs, type TranslationJob } from "./services/translation-jobs.js";
 
 import { discoverCodex, type AppServerLogRecord } from "@call-nina/codex-client";
-import {
-  assertExerciseGenerationContext,
-  buildPracticeSuggestions,
-  createInitialLearnerProfile,
-  evaluateExerciseAnswer,
-  resolveCourseReference,
-  resolveModelPreference,
-} from "@call-nina/domain";
 import { readPluginIntegrationState, runPluginIntegrationAction } from "./plugin-integration.js";
 
 import {
@@ -1751,7 +1751,8 @@ export class DesktopBackend {
           const connection = {
             origin: ninaPublicConfiguration.serviceOrigin,
             token: () => this.#nina.token(epoch),
-            hash: async (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex"),
+            hash: (bytes: Uint8Array) =>
+              Promise.resolve(createHash("sha256").update(bytes).digest("hex")),
             signal: controller.signal,
             assertCurrent: async () => {
               if (database) await assertCallNinaDatabaseLease(database);

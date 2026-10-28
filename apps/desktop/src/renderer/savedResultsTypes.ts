@@ -1,4 +1,5 @@
 import type { DesktopIpcRequest, DesktopIpcResponse } from "@call-nina/contracts";
+
 export type Snapshot = Extract<
   DesktopIpcResponse,
   { status: "ok"; channel: "history/read" }

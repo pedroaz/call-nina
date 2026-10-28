@@ -3,6 +3,7 @@ import { z, strictBoundaryObject } from "./schema-system.js";
 import { vocabularyExampleSchema } from "./vocabulary-content.js";
 import { targetLanguageSchema } from "./learning-context.js";
 import { dataRootGenerationSchema } from "./common.js";
+
 const text = (max: number) => z.string().min(1).max(max).regex(/\S/u);
 export const vocabularyImageSchema = z.strictObject({
   mediaType: z.enum(["image/png", "image/jpeg", "image/webp"]),

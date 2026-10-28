@@ -6,7 +6,7 @@ export function AnswerTextarea({ rows = 2, value, ...props }: ComponentProps<"te
     const element = field.current;
     if (!element) return;
     element.style.height = "auto";
-    element.style.height = `${element.scrollHeight + 2}px`;
+    element.style.height = `${String(element.scrollHeight + 2)}px`;
   }, [value]);
   return <textarea {...props} ref={field} rows={rows} value={value} />;
 }

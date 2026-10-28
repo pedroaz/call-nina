@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import styles from "./Activity.module.css";
+
 export function ActivityFooter({
   previous,
   utilities,

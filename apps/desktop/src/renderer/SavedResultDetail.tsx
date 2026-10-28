@@ -12,6 +12,7 @@ import {
 import { ActionGroup } from "./components/layout/index.js";
 import type { Entry, HistoryPracticeSeed, PracticeState } from "./savedResultsTypes.js";
 import styles from "./HistoryPage.module.css";
+
 function practiceSeed(entry: Entry): HistoryPracticeSeed {
   if (entry.detail.kind !== "writing-correction") throw new Error("OD_HISTORY_DETAIL_INVALID");
   return {

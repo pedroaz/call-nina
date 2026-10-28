@@ -1,8 +1,8 @@
 # Call Nina
 
-A local-first desktop companion for practising US English, Brazilian Portuguese, Spanish, and German. Practice, vocabulary, materials, and learning history live in a selected local data folder. Learning, interface, and explanation languages are independent; the structured Learning Path is German-only.
+A local-first desktop companion for practising US English, Brazilian Portuguese, Spanish, and German. Practice, vocabulary, materials, and learning history live in a selected local data folder. Learning, interface, and explanation languages are independent. The Learning Path includes German foundations and everyday scenarios in all four languages.
 
-The development app includes direct ChatGPT sign-in and personal API-key connections. Cloud AI receives the context needed for the selected activity. Optional Voice handoff uses the separate Codex app and Call Nina plugin. Local onboarding and prepared practice do not require provider sign-in. Managed AI is disabled; the mobile companion includes authenticated flashcard sync, while native mobile release distribution is not configured. Source availability does not establish a verified public release.
+The desktop app includes direct ChatGPT sign-in and personal API-key connections. Cloud AI receives the context needed for the selected activity. Optional Voice handoff uses the separate Codex app and Call Nina plugin. Local onboarding and prepared practice do not require provider sign-in. Optional managed AI requires a provisioned Nina account with AI access and an available service allowance. The mobile companion includes authenticated flashcard sync; native mobile release distribution is not configured. Source availability does not establish a verified public release.
 
 ## Install from source
 
@@ -19,10 +19,40 @@ Use the same command with `status`, `update`, or `uninstall` instead of `install
 
 ## Development
 
-Run `make setup`, then `make dev`; use `make help` for commands. Use the [nina-admin skill](.agents/skills/nina-admin/SKILL.md) for hosted account and infrastructure administration; `make verify`, `make package`, `make deploy help`, and `make install` list their subcommands. Release builds and deployments run manually through [GitHub Actions → Release](https://github.com/pedroaz/call-nina/actions/workflows/release.yml). Select `desktop`, `hosting` (website + API), or `all`; `build-only` creates downloads retained for 30 days, and `publish` releases from `main`. Desktop publication requires a version matching the committed workspace manifests and uses `desktop-vX.Y.Z`. Initial desktop assets are unsigned Linux x64 AppImage, Windows x64 ZIP, and macOS Intel/Apple Silicon app archives. Native mobile distribution is deferred. `make release` displays instructions; `make deploy production` also displays instructions without uploading locally. Local development and packaging primitives remain available. CI and native-platform verification must succeed before a build is described as verified. Admin credentials belong in ignored root `.env` (see `.env.example`); edit that file directly rather than passing credentials on the command line. Read [AGENTS.md](AGENTS.md) and the [development skill](.agents/skills/call-nina-development/SKILL.md) for repository work. Skills own technical guidance; source and observed behavior establish implementation status.
+Install the supported Node and pnpm versions from `package.json` and `toolchain.json`, plus Make. Run `make setup`, then `make dev`; use `make help` for commands.
 
-Bug reports are welcome. Include the OS, revision, reproduction steps, and bounded redacted diagnostic codes; exclude learner content, credentials, private paths, and databases. Outside feature contributions are not currently a project priority.
+| Location                                 | Purpose                                                      |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| `apps/desktop/`                          | Electron and React desktop app                               |
+| `apps/mobile/`                           | Expo flashcard companion                                     |
+| `apps/website/`, `apps/api/`             | Website and hosted account, generation, and sync endpoints   |
+| `apps/mcp-server/`, `plugins/call-nina/` | Local MCP server and Codex learner plugin                    |
+| `packages/`                              | Shared contracts, learning logic, storage, providers, and UI |
+| `content/curriculum/`                    | Authored lessons and source inventory                        |
+| `install/`, `scripts/`                   | Source installers, development commands, and release tooling |
+| `.agents/skills/`                        | Maintainer and agent development guidance                    |
+| `docs/`                                  | Licensing and third-party notices                            |
 
-## License
+Read [AGENTS.md](AGENTS.md) and the [development skill](.agents/skills/call-nina-development/SKILL.md) before changing the repository. Use `make check` for static verification when preparing a pull request. Application behavior is verified interactively; the repository does not use automated application test suites.
 
-New original material uses the [Call Nina Personal Learning Source License 1.0](LICENSE): independent personal self-study is free; professional teaching and organizational use require separate written permission. This is source available, not open source. Previously MIT-licensed material retains its MIT permissions. See [licensing and provenance](docs/licensing.md) and [third-party notices](docs/third-party-notices.md).
+Hosted administration is optional for local desktop development. Its credentials belong in ignored root `.env` (see [.env.example](.env.example)); follow the [nina-admin skill](.agents/skills/nina-admin/SKILL.md) for account and infrastructure operations.
+
+## Builds and releases
+
+Release builds and deployments use the manually dispatched [GitHub Actions → Release](https://github.com/pedroaz/call-nina/actions/workflows/release.yml) workflow. `make release` displays its instructions. Select `desktop`, `hosting` (website + API), or `all`. `build-only` creates downloads retained for 30 days; `publish` releases from `main`. Desktop publication requires the committed workspace version and creates `desktop-vX.Y.Z`.
+
+Desktop artifacts are unsigned Linux x64 AppImage, Windows x64 ZIP, and macOS Intel/Apple Silicon app archives. Native mobile distribution is not configured. Successful CI builds and native-platform checks are required before describing artifacts as verified. Pushes and pull requests do not publish releases, and automatic Vercel Git deployments are disabled. See the [release delivery policy](.agents/skills/call-nina-development/SKILL.md#release-delivery-policy) for details.
+
+## Reporting problems and contributing
+
+[Report a bug](https://github.com/pedroaz/call-nina/issues/new?template=bug.yml) with your OS, revision, reproduction steps, and expected and actual behavior. Exclude learner content, credentials, private paths, and databases from reports and attachments.
+
+This is maintained as a solo project. Outside feature contributions are not currently a priority; discuss substantial changes in an issue before preparing a pull request. See the license below for permitted uses and modifications.
+
+## License and enterprise services
+
+Call Nina's original code, documentation, curriculum, and artwork are available under the [MIT License](LICENSE), to the extent the maintainer holds the relevant rights. Commercial use, modification, redistribution, and independent hosting are permitted. Third-party components retain their own licenses; see [licensing and provenance](docs/licensing.md) and [third-party notices](docs/third-party-notices.md).
+
+The software license does not provide access to hosted infrastructure or an AI allowance. Hosted Nina access uses separately provisioned accounts and service allowances. Independent deployment currently requires adapting the repository's maintainer-specific configuration; turnkey self-hosting is not provided.
+
+For optional paid enterprise setup, customization, and support, contact [Pedro Azevedo Minutetnag](mailto:pedro.azvm@gmail.com). These services are optional; commercial use of the MIT-licensed software does not require purchasing them.

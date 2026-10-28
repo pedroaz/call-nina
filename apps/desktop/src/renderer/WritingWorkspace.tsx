@@ -1,7 +1,7 @@
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type { ProviderOperation } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MousePointer2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -89,9 +89,11 @@ export function WritingWorkspace({
     retryCorrection,
     updateSelection,
   } = useWritingSession({ initialContext, initialDraft, onDirtyChange, requestAiAccess });
-  useEffect(() => {
+  const [previousContext, setPreviousContext] = useState(context);
+  if (context !== previousContext) {
+    setPreviousContext(context);
     if (context) setContextOpen(true);
-  }, [context]);
+  }
   const references: ActivityReferenceItem[] = [];
   if (prompt)
     references.push({
