@@ -33,8 +33,8 @@ This inventory covers the 134 package versions bundled into, or providing the El
 | `@internationalized/date` | `3.12.3` | Apache-2.0 | — |
 | `@internationalized/number` | `3.6.7` | Apache-2.0 | — |
 | `@internationalized/string` | `3.2.10` | Apache-2.0 | — |
-| `@modelcontextprotocol/core` | `2.0.0` | MIT | [upstream](https://modelcontextprotocol.io) |
-| `@modelcontextprotocol/server` | `2.0.0` | MIT | [upstream](https://modelcontextprotocol.io) |
+| `@modelcontextprotocol/core` | `2.3.0` | Apache-2.0 | [upstream](https://modelcontextprotocol.io) |
+| `@modelcontextprotocol/server` | `2.3.0` | Apache-2.0 | [upstream](https://modelcontextprotocol.io) |
 | `@noble/ciphers` | `1.3.0` | MIT | [upstream](https://paulmillr.com/noble/) |
 | `@noble/curves` | `1.9.1` | MIT | [upstream](https://paulmillr.com/noble/) |
 | `@noble/curves` | `1.9.7` | MIT | [upstream](https://paulmillr.com/noble/) |

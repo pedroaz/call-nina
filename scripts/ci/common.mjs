@@ -9,7 +9,8 @@ import { childEnvironment } from "../lib/environment.mjs";
 export const root = fileURLToPath(new URL("../../", import.meta.url));
 export const output = path.join(root, "build/release-artifacts");
 export const repository = "pedroaz/call-nina";
-export const workflowUrl = `https://github.com/${repository}/actions/workflows/release.yml`;
+export const workflowUrl = `https://github.com/${repository}/actions/workflows/build.yml`;
+export const publishUrl = `https://github.com/${repository}/actions/workflows/publish.yml`;
 export const readJson = async (file) =>
   JSON.parse(await readFile(path.resolve(root, file), "utf8"));
 export async function digest(file) {
@@ -48,7 +49,28 @@ export function context(publishing = false) {
     throw new Error("Publication requires an explicit publish-all run from main");
   const head = run("git", ["rev-parse", "HEAD"], { stdio: "pipe" });
   if (head !== GITHUB_SHA) throw new Error("Checkout does not match dispatch commit");
+  if (process.env.RELEASE_SOURCE_COMMIT) {
+    if (
+      process.env.RELEASE_OPERATION !== "publish" ||
+      process.env.GITHUB_REF !== "refs/heads/main" ||
+      !/^[a-f0-9]{40}$/.test(process.env.RELEASE_SOURCE_COMMIT) ||
+      !/^[1-9]\d*$/.test(process.env.RELEASE_BUILD_RUN_ID ?? "")
+    )
+      throw new Error("Invalid publication source identity");
+    return {
+      commit: process.env.RELEASE_SOURCE_COMMIT,
+      runId: process.env.RELEASE_BUILD_RUN_ID,
+      repository,
+    };
+  }
   return { commit: GITHUB_SHA, runId: GITHUB_RUN_ID, repository };
+}
+export async function releaseVersion() {
+  if (process.env.RELEASE_OPERATION !== "publish") return (await readJson("package.json")).version;
+  const version = process.env.RELEASE_SOURCE_VERSION;
+  if (!process.env.RELEASE_SOURCE_COMMIT || !/^\d+\.\d+\.\d+$/.test(version ?? ""))
+    throw new Error("Missing verified build version");
+  return version;
 }
 export async function summary(message) {
   if (process.env.GITHUB_STEP_SUMMARY)
@@ -91,6 +113,6 @@ export async function github(
 }
 export function help() {
   process.stdout.write(
-    `Manual release: ${workflowUrl}\nDry run is enabled by default; choose dry_run_target=all/desktop/hosting for build downloads. Desktop dry runs use the Linux, Windows, macOS Intel and Apple Silicon checkboxes.\nUncheck dry run to publish desktop and deploy website/API together from main, using the committed version; dry-run platform selections are ignored.\nDry-run downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
+    `Build: ${workflowUrl}\nChoose target=all/desktop/hosting and desktop platform checkboxes. Build never publishes.\nPublish: ${publishUrl}\nFrom main, enter a successful complete main-branch build run ID to publish its exact artifacts without rebuilding. Complete Release dry runs are also accepted.\nBuild downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
   );
 }

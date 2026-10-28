@@ -8,10 +8,10 @@
     "build": "tsc -b && vite build --config vite.config.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.0.0",
     "@call-nina/contracts": "workspace:*",
     "@call-nina/domain": "workspace:*",
     "@call-nina/persistence": "workspace:*",
+    "@modelcontextprotocol/server": "2.3.0",
     "yaml": "catalog:",
     "zod": "catalog:"
   },

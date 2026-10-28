@@ -124,6 +124,6 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
     `Packaged ${files.length} static website files and 3 API functions in ${destination}.\n`,
   );
   process.stdout.write(
-    "No remote actions. Publication uses the manual GitHub Release workflow; see make release.\n",
+    "No remote actions. Publication uses the manual GitHub Publish workflow; see make release.\n",
   );
 }
