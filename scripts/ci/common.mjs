@@ -25,7 +25,10 @@ export function run(command, args, options = {}) {
     stdio: "inherit",
     ...options,
   });
-  if (result.error || result.status !== 0) throw new Error(`Command failed: ${command}`);
+  if (result.error || result.status !== 0)
+    throw new Error(
+      `Command failed: ${path.basename(command)}; exit=${result.status ?? "none"}; signal=${result.signal ?? "none"}; code=${result.error?.code ?? "none"}`,
+    );
   return result.stdout?.toString().trim();
 }
 export const node = (file, ...args) => run(process.execPath, [file, ...args]);
@@ -83,33 +86,98 @@ export async function setOutput(name, value) {
 export function cleanSource() {
   run("git", ["diff", "--exit-code", "HEAD", "--", "."]);
 }
+// Only bounded, single-line diagnostics cross the CI logging boundary.
+export function diagnostic(value) {
+  let text = String(value);
+  for (const [name, secret] of Object.entries(process.env)) {
+    if (secret && /TOKEN|SECRET|PASSWORD|API_KEY|PRIVATE_KEY/.test(name))
+      text = text.split(secret).join("[redacted]");
+  }
+  for (const directory of [root, process.env.HOME, process.env.USERPROFILE]) {
+    if (directory) text = text.split(directory).join("[path]");
+  }
+  return text
+    .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+    .replace(/(?:github_pat_|gh[pousr]_)[A-Za-z0-9_]+/g, "[redacted]")
+    .split("")
+    .map((character) => {
+      const code = character.charCodeAt(0);
+      return code < 32 || (code >= 127 && code <= 159) ? " " : character;
+    })
+    .join("")
+    .slice(0, 1000);
+}
+export function progress(message) {
+  process.stdout.write(`[release] ${diagnostic(message)}\n`);
+}
 export async function github(
   endpoint,
   { method = "GET", body, missing = false, raw = false, headers = {} } = {},
 ) {
   if (!process.env.GH_TOKEN) throw new Error("Missing GitHub job token");
-  const response = await fetch(
+  const url = new URL(
     endpoint.startsWith("https://")
       ? endpoint
       : `https://api.github.com/repos/${repository}/${endpoint}`,
-    {
+  );
+  if (!["https://api.github.com", "https://uploads.github.com"].includes(url.origin))
+    throw new Error("Unexpected GitHub endpoint");
+  // Exclude query parameters, credentials, bodies and authorization headers.
+  const label = `${method} ${url.origin}${url.pathname}`;
+  const started = Date.now();
+  progress(`GitHub ${label}: started`);
+  let response;
+  try {
+    response = await fetch(url, {
       method,
       headers: {
         Authorization: `Bearer ${process.env.GH_TOKEN}`,
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
-        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
         ...headers,
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    },
-  );
-  if (missing && response.status === 404) return null;
-  if (!response.ok)
+      body: body === undefined ? undefined : Buffer.isBuffer(body) ? body : JSON.stringify(body),
+    });
+  } catch (error) {
     throw new Error(
-      `GitHub request failed (${response.status}); inspect remote state before retrying`,
+      `GitHub ${label}: network failure after ${Date.now() - started}ms (${diagnostic(error.cause?.code ?? error.name)}); inspect remote state before retrying`,
     );
-  return raw ? response : response.json();
+  }
+  const details = [
+    `HTTP ${response.status}`,
+    `${Date.now() - started}ms`,
+    ...[
+      "x-github-request-id",
+      "x-ratelimit-remaining",
+      "x-ratelimit-reset",
+      "retry-after",
+      "x-accepted-github-permissions",
+    ].flatMap((name) =>
+      response.headers.has(name) ? [`${name}=${diagnostic(response.headers.get(name))}`] : [],
+    ),
+  ].join("; ");
+  if (missing && response.status === 404) {
+    progress(`GitHub ${label}: absent as expected (${details})`);
+    return null;
+  }
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    const message =
+      typeof payload?.message === "string" ? diagnostic(payload.message) : "No JSON error message";
+    throw new Error(
+      `GitHub ${label}: ${details}; ${message}; inspect remote state before retrying`,
+    );
+  }
+  progress(`GitHub ${label}: succeeded (${details})`);
+  if (raw) return response;
+  try {
+    return await response.json();
+  } catch {
+    throw new Error(
+      `GitHub ${label}: invalid JSON response (${details}); inspect remote state before retrying`,
+    );
+  }
 }
 export function help() {
   process.stdout.write(

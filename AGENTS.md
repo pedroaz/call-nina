@@ -4,7 +4,7 @@ Local-first language learning: Electron/React desktop, validated preload/IPC, SQ
 
 ## Working boundaries
 
-- Work directly with the user as one agent using their selected model and effort; delegate only when asked. Inspect branch, worktrees, and tracked/untracked changes before editing. Preserve concurrent source work; development app data is disposable for verification.
+- Work directly with the user as one agent using their selected model and effort; delegate only when asked. Inspect branch, worktrees, and tracked/untracked changes before editing. When starting implementation from `main`, follow the Development skill’s branch-first and feature-minor/bugfix-patch version procedure before source edits. Preserve concurrent source work; development app data is disposable for verification.
 - Implement requested scope and necessary small fixes; report unrelated findings. Keep delivery local unless the user requests commits, pushes, issues, PRs, merges, deployment, or release. One action does not authorize the others.
 - Do not add unsolicited explanatory, reassurance, implementation, or diagnostic text to the app. Add such UI copy only when the user explicitly requests it; otherwise use credential-free logs. Keep requested controls and essential status/error feedback concise.
 - No automated application tests, fixtures, mocks, saved journeys, or regression suites. Verify real behavior interactively unless the user explicitly takes ownership of verification; in that case leave checks to them and report unverified behavior. Run `make check` only when static verification is requested or preparing/updating a PR. Independent review is optional.

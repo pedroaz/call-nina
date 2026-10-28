@@ -1,4 +1,14 @@
-import { context, help, node, readJson, setOutput, summary, workflowUrl } from "./common.mjs";
+import {
+  context,
+  help,
+  node,
+  readJson,
+  setOutput,
+  summary,
+  workflowUrl,
+  progress,
+  diagnostic,
+} from "./common.mjs";
 import { selectDesktopBuilds } from "./targets.mjs";
 
 async function preflight() {
@@ -38,8 +48,10 @@ async function report() {
       "Hosting succeeded but desktop publication failed. Inspect the deployment and retained draft before retrying; no automatic rollback occurred.",
     );
 }
+const action = process.argv[2] ?? "help";
+const started = Date.now();
 try {
-  const action = process.argv[2] ?? "help";
+  if (action !== "help") progress(`Command ${action}: started`);
   if (process.argv.length > 3) throw new Error("Unexpected release arguments");
   switch (action) {
     case "help":
@@ -75,7 +87,10 @@ try {
     default:
       throw new Error("Unknown release command");
   }
+  if (action !== "help") progress(`Command ${action}: completed in ${Date.now() - started}ms`);
 } catch (error) {
-  process.stderr.write(`${error.message}\n`);
+  process.stderr.write(
+    `[release] Command ${diagnostic(action)} failed after ${Date.now() - started}ms: ${diagnostic(error.message)}\n`,
+  );
   process.exitCode = 1;
 }
