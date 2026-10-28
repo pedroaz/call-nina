@@ -43,6 +43,7 @@ export function ActivityFrame({
   footer,
   children,
   taskLabel,
+  fillViewport = true,
 }: {
   progress?: ReactNode;
   reference?: ReactNode;
@@ -50,6 +51,7 @@ export function ActivityFrame({
   footer?: ReactNode;
   children: ReactNode;
   taskLabel: string;
+  fillViewport?: boolean;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const header = useRef<HTMLDivElement>(null);
@@ -82,6 +84,10 @@ export function ActivityFrame({
     });
   }, []);
   useLayoutEffect(() => {
+    if (!fillViewport) {
+      setHeight(undefined);
+      return;
+    }
     const element = frame.current;
     if (!element) return;
     const page = element.closest('[data-presentation="activity"]');
@@ -108,7 +114,7 @@ export function ActivityFrame({
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [keepFocusVisible]);
+  }, [fillViewport, keepFocusVisible]);
   return (
     <ActivityLayoutContext.Provider value={height !== undefined}>
       <div

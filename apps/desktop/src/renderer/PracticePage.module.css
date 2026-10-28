@@ -93,7 +93,7 @@
 .practiceControls {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: start;
   gap: var(--od-space-5);
 }
 .practiceControls > * {
@@ -126,8 +126,13 @@
 .quizLengthOptions {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
   gap: var(--od-space-3);
+}
+.quizLength > p {
+  margin: var(--od-space-3) 0 0;
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
 }
 .quizLengthButton {
   min-width: var(--od-control-wide);

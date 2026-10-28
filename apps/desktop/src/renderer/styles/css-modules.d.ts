@@ -170,6 +170,10 @@ declare module "*ExerciseEngine.module.css" {
     readonly answerLabel: string;
     readonly answerReview: string;
     readonly choiceFieldset: string;
+    readonly correctedText: string;
+    readonly correctionAnswer: string;
+    readonly correctionNotes: string;
+    readonly correctionSection: string;
     readonly exerciseAiFeedback: string;
     readonly exerciseBlanks: string;
     readonly exercisePrompt: string;
@@ -428,6 +432,11 @@ declare module "*SettingsPage.module.css" {
     readonly connectionStatus: string;
     readonly coursePreference: string;
     readonly detailList: string;
+    readonly integrationCopy: string;
+    readonly integrationDetail: string;
+    readonly integrationFeedback: string;
+    readonly integrationHeading: string;
+    readonly integrationStatus: string;
     readonly loginStatus: string;
     readonly modelRow: string;
     readonly ninaAccount: string;

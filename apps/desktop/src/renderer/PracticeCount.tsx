@@ -34,7 +34,7 @@ export function PracticeCount({
             isDisabled={disabled}
             aria-pressed={!custom && valid && Number(value) === count}
             className={styles.quizLengthButton}
-            density="compact"
+            density="comfortable"
             data-selected={(!custom && valid && Number(value) === count) || undefined}
             onPress={() => {
               if (custom) setCustomValue(value);
@@ -47,7 +47,7 @@ export function PracticeCount({
         ))}
         <Button
           variant="secondary"
-          density="compact"
+          density="comfortable"
           aria-pressed={custom}
           isDisabled={disabled}
           onPress={() => {

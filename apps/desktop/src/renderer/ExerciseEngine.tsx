@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button, Disclosure, Feedback } from "./components/ui/index.js";
+import { Button, Feedback } from "./components/ui/index.js";
 import {
   ActivityFrame,
   ActivityProgress,
@@ -11,7 +11,7 @@ import {
 import { useExerciseSession, type ExerciseSessionOptions } from "./useExerciseSession.js";
 import { ExerciseContent } from "./ExerciseAnswerFields.js";
 import { ExerciseHint } from "./ExerciseHint.js";
-import { Evaluation, AiFeedback } from "./ExerciseEvaluation.js";
+import { Evaluation } from "./ExerciseEvaluation.js";
 import styles from "./ExerciseEngine.module.css";
 
 export function ExerciseEngine(
@@ -110,11 +110,11 @@ export function ExerciseEngine(
                         />
                       </div>
                     )}
-                    <Evaluation evaluation={evaluation} aiFeedback={aiFeedbackByPosition[index]} />
-                    {exercises[index]?.explanation && <p>{exercises[index].explanation}</p>}
-                    {aiFeedbackByPosition[index] && (
-                      <AiFeedback feedback={aiFeedbackByPosition[index]} />
-                    )}
+                    <Evaluation
+                      evaluation={evaluation}
+                      aiFeedback={aiFeedbackByPosition[index]}
+                      explanation={exercises[index]?.explanation}
+                    />
                   </li>
                 ))}
               </ol>
@@ -126,6 +126,7 @@ export function ExerciseEngine(
   if (!started)
     return (
       <ActivityFrame
+        fillViewport={false}
         taskLabel={taskLabel}
         reference={reference}
         footer={
@@ -143,7 +144,15 @@ export function ExerciseEngine(
           </ActivityFooter>
         }
       >
-        <h2>{t("exercises.ready")}</h2>
+        <h2>
+          {t(
+            starting
+              ? "exercises.starting"
+              : resuming
+                ? "exercises.resume"
+                : "exercises.ready",
+          )}
+        </h2>
         <p>{t("exercises.readyBody", { count: exercises.length })}</p>
         {startFailed && (
           <Feedback live="assertive" tone="error">
@@ -154,6 +163,7 @@ export function ExerciseEngine(
     );
   return (
     <ActivityFrame
+      fillViewport={Boolean(reference)}
       taskLabel={taskLabel}
       reference={reference}
       progress={
@@ -199,26 +209,12 @@ export function ExerciseEngine(
             <Feedback live="polite">{t("exercises.aiFeedback.pending")}</Feedback>
           )}
           {currentEvaluation && (
-            <>
-              <Evaluation evaluation={currentEvaluation} aiFeedback={currentAiFeedback} />
-              {definition.explanation && (
-                <Disclosure
-                  variant="inline"
-                  key={`${String(position)}:${currentAiFeedback?.outcome ?? currentEvaluation.status}`}
-                  defaultOpen={
-                    currentAiFeedback
-                      ? currentAiFeedback.outcome !== "demonstrated"
-                      : currentEvaluation.status === "incorrect" ||
-                        currentEvaluation.status === "almost-correct"
-                  }
-                  label={t("exercises.explanationTitle")}
-                >
-                  <p>{definition.explanation}</p>
-                </Disclosure>
-              )}
-            </>
+            <Evaluation
+              evaluation={currentEvaluation}
+              aiFeedback={currentAiFeedback}
+              explanation={definition.explanation}
+            />
           )}
-          {currentAiFeedback && <AiFeedback feedback={currentAiFeedback} />}
         </>
       }
       footer={

@@ -194,20 +194,7 @@ export function ProviderRouting({
           ))}
         </div>
       </Disclosure>
-      <section className={styles.detailsSection}>
-        <h3>{t("providers.supportedActions")}</h3>
-        {view.settings.connections.map((connection) => (
-          <div key={connection.id}>
-            <strong>{t(`connectionSettings.routes.${connection.routeId}`)}</strong>
-            <p>
-              {aiActionSchema.options
-                .filter((action) => providerSupports(view, connection, "text", action))
-                .map((action) => t(`connectionSettings.operation.${action}`))
-                .join(" · ") || t("providers.unsupported")}
-            </p>
-          </div>
-        ))}
-      </section>
+
     </section>
   );
 }

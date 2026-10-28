@@ -57,11 +57,14 @@
   border-radius: var(--od-radius-sm);
   color: var(--od-color-text-strong);
   font: inherit;
+  line-height: var(--od-type-body-line);
+  min-height: var(--od-control-min);
   padding: var(--od-space-3);
   min-width: 0;
   width: 10ch;
   max-width: 100%;
   margin-inline: var(--od-space-2);
+  vertical-align: baseline;
 }
 .submittedBlank {
   background: var(--od-color-surface-sunken);
@@ -82,18 +85,64 @@
 }
 .exerciseAiFeedback {
   display: grid;
+  gap: var(--od-space-6);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.correctionSection,
+.correctionAnswer {
+  display: grid;
+  align-content: start;
   gap: var(--od-space-3);
+  min-width: 0;
+}
+.correctionAnswer {
+  padding: var(--od-space-5);
+  background: var(--od-color-bg-app);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-md);
+}
+.exerciseAiFeedback[data-correction-tone="warning"] [data-feedback-kind="improvements"] h3,
+.exerciseAiFeedback[data-correction-tone="warning"] [data-feedback-kind="improvements"] li::marker {
+  color: var(--od-color-state-streak);
+}
+.exerciseAiFeedback[data-correction-tone="error"] [data-feedback-kind="improvements"] h3,
+.exerciseAiFeedback[data-correction-tone="error"] [data-feedback-kind="improvements"] li::marker {
+  color: var(--od-color-state-wrong);
+}
+.exerciseAiFeedback h3 {
+  margin: 0;
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  font-weight: var(--od-weight-medium);
+}
+.correctedText {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  white-space: pre-wrap;
+}
+.correctionNotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: var(--od-space-6);
+  padding-top: var(--od-space-5);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .exerciseAiFeedback p,
 .exerciseAiFeedback ul {
   margin: 0;
 }
+.exerciseAiFeedback ul {
+  padding-inline-start: var(--od-space-5);
+}
 .exerciseAiFeedback li + li {
   margin-top: var(--od-space-2);
 }
 .acceptedAnswers {
-  display: block;
-  margin-top: var(--od-space-2);
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
   overflow-wrap: anywhere;
 }
 .answerReview {

@@ -1,4 +1,3 @@
-import { Disclosure } from "./components/ui/Disclosure.js";
 import { ConnectionSettings } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -135,6 +134,7 @@ export function SettingsPage({
   const [error, setError] = useState<CallNinaError>();
   const [notice, setNotice] = useState<string>();
   const [integrationFailure, setIntegrationFailure] = useState<string>();
+  const [integrationNotice, setIntegrationNotice] = useState<string>();
   const [dataRootSelection, setDataRootSelection] = useState<DataRootSelection>();
   const [diagnostics, setDiagnostics] = useState<Diagnostics>();
   const [integration, setIntegration] = useState<Integration>();
@@ -325,13 +325,14 @@ export function SettingsPage({
     setError(undefined);
     setNotice(undefined);
     setIntegrationFailure(undefined);
+    setIntegrationNotice(undefined);
     try {
       const result = await invokeDesktop("codex/integration/action", { action });
       setIntegration(result.status);
       if (result.result === "failed") setIntegrationFailure(t("settings.plugin.actionFailed"));
-      else setNotice(result.steps.at(-1));
+      else setIntegrationNotice(result.steps.at(-1));
     } catch (cause) {
-      setError(normalizeDesktopError(cause).detail);
+      setIntegrationFailure(normalizeDesktopError(cause).detail);
     } finally {
       integrationActionPending.current = false;
       setBusy(false);
@@ -452,11 +453,6 @@ export function SettingsPage({
       )}
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
       {error && <SettingsError error={error} />}
-      {integrationFailure && (
-        <Feedback live="assertive" tone="error">
-          {integrationFailure}
-        </Feedback>
-      )}
       {notice && (
         <Feedback live="polite" tone="success">
           {notice}
@@ -734,31 +730,28 @@ export function SettingsPage({
                     }}
                   />
                 </Section>
-                <Disclosure
-                  className={styles.optionalIntegration}
-                  variant="plain"
-                  label={
-                    <span className={styles.tabLabel}>
+                <section className={styles.optionalIntegration} aria-labelledby="codex-integration-title">
+                  <div className={styles.integrationCopy}>
+                    <div className={styles.integrationHeading}>
                       <AudioLines aria-hidden="true" />
-                      {t("settings.externalIntegrationTitle")} ·{" "}
+                      <h3 id="codex-integration-title">{t("settings.externalIntegrationTitle")}</h3>
+                      <InfoHint label={t("settings.externalIntegrationTitle")}>
+                        <p>{t("settings.externalIntegrationHelp")}</p>
+                      </InfoHint>
+                    </div>
+                    <p className={styles.integrationStatus} role="status">
                       {integration === undefined
                         ? t("settings.notReported")
                         : integration.status === "available"
                           ? t(`settings.plugin.${integration.plugin}`)
                           : t("settings.codexUnavailable")}
-                    </span>
-                  }
-                >
-                  <InfoHint label={t("settings.externalIntegrationTitle")}>
-                    <p>{t("settings.externalIntegrationHelp")}</p>
-                  </InfoHint>
-                  <p>
-                    {integration === undefined
-                      ? t("settings.notReported")
-                      : integration.status === "available"
-                        ? t("settings.codexVersion", { version: integration.codexVersion })
-                        : t("settings.codexUnavailable")}
-                  </p>
+                    </p>
+                    {integration?.status === "available" && (
+                      <p className={styles.integrationDetail}>
+                        {t("settings.codexVersion", { version: integration.codexVersion })}
+                      </p>
+                    )}
+                  </div>
                   {integration?.status === "available" && (
                     <>
                       <ActionGroup>
@@ -773,7 +766,7 @@ export function SettingsPage({
                         )}
                         {integration.plugin !== "not-installed" && (
                           <Button
-                            variant="primary"
+                            variant="secondary"
                             isDisabled={busy}
                             onPress={() => void manageIntegration("refresh")}
                           >
@@ -782,7 +775,7 @@ export function SettingsPage({
                         )}
                         {integration.plugin === "installed" && (
                           <Button
-                            variant="primary"
+                            variant="quiet"
                             isDisabled={busy}
                             onPress={() => void manageIntegration("uninstall")}
                           >
@@ -792,7 +785,20 @@ export function SettingsPage({
                       </ActionGroup>
                     </>
                   )}
-                </Disclosure>
+                  {(integrationFailure || integrationNotice) && (
+                    <div className={styles.integrationFeedback}>
+                      {integrationFailure ? (
+                        <Feedback live="assertive" tone="error">
+                          {integrationFailure}
+                        </Feedback>
+                      ) : (
+                        <Feedback live="polite" tone="success">
+                          {integrationNotice}
+                        </Feedback>
+                      )}
+                    </div>
+                  )}
+                </section>
               </div>
             ),
           },

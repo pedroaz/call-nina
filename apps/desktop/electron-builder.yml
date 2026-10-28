@@ -1,7 +1,7 @@
 appId: dev.callnina.app
 productName: Call Nina
 artifactName: Call-Nina-${version}-${arch}.${ext}
-icon: assets/call-nina.svg
+icon: assets/call-nina.png
 npmRebuild: false
 electronLanguages:
   - de
