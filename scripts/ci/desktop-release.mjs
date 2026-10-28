@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { context, github, output, releaseVersion, digest, summary } from "./common.mjs";
+import { context, github, output, releaseVersion, digest, summary, progress } from "./common.mjs";
 import { desktopTargets, verify } from "./artifacts.mjs";
 
 async function identity() {
@@ -71,8 +71,12 @@ async function verifyRemote(asset, expected) {
     throw new Error(`Existing release asset differs: ${expected.name}`);
 }
 export async function prepare() {
+  progress("Verifying desktop artifact checksums");
   const expected = await expectedAssets();
   let { info, release, commit } = await inspectRelease();
+  progress(
+    `Preparing ${info.tag}; commit=${info.commit}; build=${info.runId}; tag=${commit ? "existing" : "new"}; draft=${release ? "existing" : "new"}`,
+  );
   if (!commit)
     await github("git/refs", {
       method: "POST",
@@ -112,6 +116,7 @@ export async function prepare() {
   for (const item of expected) {
     const asset = existing.find((entry) => entry.name === item.name);
     if (asset) {
+      progress(`Verifying existing asset ${item.name}`);
       await verifyRemote(asset, item);
       continue;
     }
@@ -120,23 +125,21 @@ export async function prepare() {
     if (url.origin !== "https://uploads.github.com")
       throw new Error("Unexpected GitHub upload endpoint");
     url.searchParams.set("name", item.name);
-    const response = await fetch(url, {
+    progress(`Uploading asset ${item.name}; bytes=${bytes.length}`);
+    const uploaded = await github(url.href, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.GH_TOKEN}`,
-        "Content-Type": "application/octet-stream",
-      },
+      headers: { "Content-Type": "application/octet-stream" },
       body: bytes,
     });
-    if (!response.ok)
-      throw new Error(`Asset upload failed (${response.status}); inspect draft before retrying`);
-    await verifyRemote(await response.json(), item);
+    await verifyRemote(uploaded, item);
+    progress(`Verified uploaded asset ${item.name}`);
   }
   await summary(`Desktop draft prepared: ${release.html_url}\nCommit: ${info.commit}`);
 }
 export async function publish() {
   const { release, info, commit } = await inspectRelease({ finalizing: true });
   if (!release || commit !== info.commit) throw new Error("Prepared desktop release is missing");
+  progress("Verifying desktop artifact checksums");
   const expected = await expectedAssets();
   const existing = await assets(release);
   if (existing.length !== expected.length) throw new Error("Release asset set is incomplete");
@@ -145,6 +148,7 @@ export async function publish() {
     if (!asset) throw new Error(`Missing release asset: ${item.name}`);
     await verifyRemote(asset, item);
   }
+  progress(`Publishing ${info.tag}; release=${release.id}; assets=${existing.length}`);
   if (release.draft)
     await github(`releases/${release.id}`, { method: "PATCH", body: { draft: false } });
   await summary(`Desktop published: ${release.html_url}\nCommit: ${info.commit}`);
