@@ -13,7 +13,7 @@
   "devDependencies": {
     "@call-nina/managed-generation": "workspace:*",
     "@eslint/js": "9.39.5",
-    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/client": "2.3.0",
     "@types/node": "catalog:",
     "electron": "catalog:",
     "esbuild": "^0.28.2",
