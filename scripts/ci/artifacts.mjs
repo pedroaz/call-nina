@@ -2,7 +2,8 @@ import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { context, root, output, readJson, digest, node, run, cleanSource } from "./common.mjs";
 
-export const desktopTargets = ["linux-x64", "win32-x64", "darwin-x64", "darwin-arm64"];
+import { desktopTargets } from "./targets.mjs";
+export { desktopTargets } from "./targets.mjs";
 export async function record(kind, id, filename, extra = {}) {
   const version = (await readJson("package.json")).version;
   const sha256 = await digest(path.join(output, filename));

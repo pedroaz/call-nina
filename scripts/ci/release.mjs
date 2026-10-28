@@ -1,4 +1,5 @@
 import { context, help, node, readJson, setOutput, summary, workflowUrl } from "./common.mjs";
+import { selectDesktopBuilds } from "./targets.mjs";
 
 async function preflight() {
   const current = context();
@@ -10,6 +11,11 @@ async function preflight() {
   )
     throw new Error("Invalid release inputs");
   if (operation === "publish") context(true);
+  const desktop = selectDesktopBuilds(
+    target,
+    operation,
+    JSON.parse(process.env.RELEASE_INPUTS ?? "{}"),
+  );
   const { version } = await readJson("package.json");
   if (!/^\d+\.\d+\.\d+$/.test(version))
     throw new Error("Desktop release requires a stable numeric version");
@@ -19,8 +25,10 @@ async function preflight() {
     await (await import("../admin/configuration.mjs")).checkPublicConfiguration();
   if (operation === "publish") await (await import("./desktop-release.mjs")).inspectRelease();
   await setOutput("sha", current.commit);
+  await setOutput("desktop_matrix", JSON.stringify({ include: desktop }));
+  await setOutput("has_desktop", String(desktop.length > 0));
   await summary(
-    `Release preflight: **${target} / ${operation}**\nCommit: ${current.commit}\nVersion: ${version}\nRun: https://github.com/${current.repository}/actions/runs/${current.runId}`,
+    `Release preflight: **${target} / ${operation}**\nDesktop builds: ${desktop.map(({ platform }) => platform).join(", ") || "none"}\nHosting build: ${target !== "desktop" ? "yes" : "no"}\nCommit: ${current.commit}\nVersion: ${version}\nRun: https://github.com/${current.repository}/actions/runs/${current.runId}`,
   );
 }
 async function report() {

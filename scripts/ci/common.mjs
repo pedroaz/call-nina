@@ -91,6 +91,6 @@ export async function github(
 }
 export function help() {
   process.stdout.write(
-    `Manual release: ${workflowUrl}\nDry run is enabled by default; choose dry_run_target=all/desktop/hosting for build downloads.\nUncheck dry run to publish desktop and deploy website/API together from main, using the committed version.\nDry-run downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
+    `Manual release: ${workflowUrl}\nDry run is enabled by default; choose dry_run_target=all/desktop/hosting for build downloads. Desktop dry runs use the Linux, Windows, macOS Intel and Apple Silicon checkboxes.\nUncheck dry run to publish desktop and deploy website/API together from main, using the committed version; dry-run platform selections are ignored.\nDry-run downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
   );
 }

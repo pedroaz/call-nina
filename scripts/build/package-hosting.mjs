@@ -6,6 +6,7 @@ import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promi
 import path from "node:path";
 import { checkPublicConfiguration } from "../admin/configuration.mjs";
 import { pnpmCommand } from "../lib/package-command.mjs";
+import { runStage } from "../lib/run-stage.mjs";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const source = path.join(root, "apps/website/dist");
@@ -35,7 +36,7 @@ Git-triggered deployments remain disabled. Packaging does not publish anything.
 function run(command, args) {
   const result = spawnSync(command, args, { cwd: root, stdio: "inherit" });
   if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  if (result.status !== 0) throw new Error("Hosting build command failed");
 }
 
 async function filesIn(directory, prefix = "") {
@@ -74,9 +75,13 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   // Invalidate the old upload artifact before building, so failure cannot leave
   // a previous successful package looking current. This directory is ours alone.
   await rm(staging, { recursive: true, force: true });
-  run(...pnpmCommand(["--filter", "@call-nina/website", "run", "build"]));
-  run(...pnpmCommand(["--filter", "@call-nina/api", "run", "build"]));
-  run(process.execPath, ["scripts/build/package-functions.mjs"]);
+  runStage("Build website", () =>
+    run(...pnpmCommand(["--filter", "@call-nina/website", "run", "build"])),
+  );
+  runStage("Build API", () => run(...pnpmCommand(["--filter", "@call-nina/api", "run", "build"])));
+  runStage("Package API functions", () =>
+    run(process.execPath, ["scripts/build/package-functions.mjs"]),
+  );
   const files = await filesIn(source);
   if (!files.includes("index.html")) throw new Error("Website build is missing its landing index");
   const vercelConfig = await readFile(path.join(root, "vercel.json"), "utf8");

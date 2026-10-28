@@ -11,6 +11,22 @@ on:
         type: choice
         options: [all, desktop, hosting]
         default: all
+      dry_run_linux:
+        description: "Dry run: Linux x64"
+        type: boolean
+        default: true
+      dry_run_windows:
+        description: "Dry run: Windows x64"
+        type: boolean
+        default: true
+      dry_run_macos_intel:
+        description: "Dry run: macOS Intel"
+        type: boolean
+        default: true
+      dry_run_macos_arm:
+        description: "Dry run: macOS Apple Silicon"
+        type: boolean
+        default: true
 permissions:
   contents: read
 concurrency:
@@ -26,33 +42,27 @@ jobs:
     timeout-minutes: 20
     outputs:
       sha: ${{ steps.validate.outputs.sha }}
+      desktop_matrix: ${{ steps.validate.outputs.desktop_matrix }}
+      has_desktop: ${{ steps.validate.outputs.has_desktop }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
       - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
       - id: validate
         run: node scripts/ci/release.mjs preflight
         env:
           GH_TOKEN: ${{ github.token }}
-      - name: Static checks
-        run: node scripts/commands.mjs check
+          RELEASE_INPUTS: ${{ toJSON(inputs) }}
   desktop:
     needs: preflight
-    if: inputs.dry_run == false || inputs.dry_run_target != 'hosting'
+    if: needs.preflight.outputs.has_desktop == 'true'
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - runner: ubuntu-24.04
-            platform: linux-x64
-          - runner: windows-2022
-            platform: win32-x64
-          - runner: macos-15-intel
-            platform: darwin-x64
-          - runner: macos-15
-            platform: darwin-arm64
+      matrix: ${{ fromJSON(needs.preflight.outputs.desktop_matrix) }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
