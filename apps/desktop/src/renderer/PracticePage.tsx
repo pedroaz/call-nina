@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { PracticeComposer } from "./PracticeComposer.js";
 import { ActivityVisual } from "./activityPresentation.js";
 import type { PracticeKind } from "./PracticeTypeChooser.js";
@@ -547,7 +548,12 @@ export function PracticePage({
             {...(feedback.busy ? { onCancelAiEvaluation: feedback.cancel } : {})}
             key={activityId}
             exercises={exercises}
-            evaluationProgress={<OperationProgress progress={feedback.progress} />}
+            evaluationProgress={
+              <>
+                <ProviderActionSummary operation="exercise-feedback" busy={feedback.busy} />
+                <OperationProgress progress={feedback.progress} />
+              </>
+            }
             {...(generated.activeSet ? { progress: generated.activeSet.progress } : {})}
             onStarted={async () => {
               if (!prepared) throw new Error("OD_ACTIVITY_NOT_FOUND");
@@ -782,6 +788,7 @@ export function PracticePage({
                   <div hidden={selectedKind !== "flashcards"}>
                     <Section as="article">
                       {practiceSettings}
+                      <ProviderActionSummary operation="flashcard-generation" busy={generating} />
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button
@@ -816,6 +823,7 @@ export function PracticePage({
                   <div hidden={selectedKind !== "custom"}>
                     <Section as="article">
                       {practiceSettings}
+                      <ProviderActionSummary operation="exercise-generation" busy={generating} />
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button
@@ -850,6 +858,7 @@ export function PracticePage({
                       >
                         {t("practice.useExample")}
                       </Button>
+                      <ProviderActionSummary operation="exercise-generation" busy={generating} />
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button

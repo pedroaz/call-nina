@@ -308,12 +308,18 @@ export function ProfileOnboarding({
             ? t("onboarding.accountUnsupported")
             : t("onboarding.accountUnavailable");
   const activeRoute = connections?.settings.connections.find(
-    (entry) => entry.id === connections.settings.activeConnectionId,
+    (entry) => entry.routeId === connections.settings.routing.text,
   )?.routeId;
   const activeConnection = connections?.availability.find(
-    (entry) => entry.connectionId === connections.settings.activeConnectionId,
+    (entry) =>
+      entry.connectionId ===
+      connections.settings.connections.find(
+        (connection) => connection.routeId === connections.settings.routing.text,
+      )?.id,
   );
-  const connected = !connectionFailed && activeConnection?.status === "available";
+  const connected =
+    !connectionFailed &&
+    Boolean(activeConnection && ["available", "configured"].includes(activeConnection.status));
   const connectionStatus = (
     <Feedback
       className={styles.connectionStatus}
@@ -335,7 +341,7 @@ export function ProfileOnboarding({
             <p>
               {connectionFailed
                 ? t("onboarding.checkFailed")
-                : !connections?.settings.activeConnectionId
+                : !connections?.settings.routing.text
                   ? t("providerAccess.reasons.connection-required")
                   : activeRoute === "chatgpt" && account.status !== "signed-in"
                     ? accountSummary
@@ -664,7 +670,7 @@ export function ProfileOnboarding({
                     }}
                   >
                     {t(
-                      step === 0 && !connections?.settings.activeConnectionId
+                      step === 0 && !connections?.settings.routing.text
                         ? "onboarding.skipAccess"
                         : "onboarding.next",
                     )}

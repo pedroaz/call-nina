@@ -307,7 +307,7 @@
       "open": "In Codex öffnen",
       "opening": "Codex wird geöffnet…",
       "openRequested": "Call Nina Practice wird in Codex geöffnet. Sende die vorbereitete Nachricht und wähle dann „Voice-Chat starten“.",
-      "setupRequired": "Öffne Einstellungen → KI-Verbindungen in Call Nina, um das Call-Nina-Plugin zu installieren oder zu aktualisieren und die Codex-Einrichtung zu prüfen. Versuche es danach erneut.",
+      "setupRequired": "Öffne Einstellungen → KI-Anbieter in Call Nina, um das Call-Nina-Plugin zu installieren oder zu aktualisieren und die Codex-Einrichtung zu prüfen. Versuche es danach erneut.",
       "failed": "Codex konnte nicht geöffnet werden. Prüfe, ob die ChatGPT-Desktop-App installiert ist, und versuche erneut, die Aktivität in Codex zu öffnen.",
       "availability": "Voice in bestehenden Aufgaben hängt von App, Konto und Arbeitsbereich ab. Falls „Voice-Chat starten“ fehlt, aktualisiere Codex oder übe per Text weiter.",
       "resume": "Kehre zum Fortsetzen eines Gesprächs zu seiner Aufgabe in Codex zurück. Diese Schaltfläche bereitet einen neuen Chat vor."
@@ -546,6 +546,51 @@
       "saveHint": "Speichere ein Wort oder alle Karten für die aktive Wortschatzwiederholung. Du kannst jederzeit zum Wortschatz zurückkehren.",
       "exerciseSources": "Schreibkorrekturen können hier Wörter vorschlagen. Du kannst auch Wörter aus Lerneinheiten im Lernpfad hinzufügen oder Wörter aus Lernkarten speichern.",
       "emptyLibrary": "Noch keine gespeicherten oder vorgeschlagenen Wörter."
+    },
+    "learning": {
+      "title": "Lernschwerpunkte",
+      "addFocus": "Lernschwerpunkt hinzufügen",
+      "view": "Ansehen",
+      "undo": "Rückgängig",
+      "paused": "Pausiert",
+      "name": "Name",
+      "source": "Text",
+      "pause": "Pausieren",
+      "resume": "Fortsetzen",
+      "pending": "Ausstehende Wortschatzaktualisierungen",
+      "retry": "Erneut versuchen",
+      "recent": "Zuletzt hinzugefügt",
+      "guidance": "Was möchtest du lernen?",
+      "image": "Bild (hochladen, ablegen oder einfügen)",
+      "removeImage": "Bild entfernen",
+      "imageInvalid": "Wähle ein PNG-, JPEG- oder WebP-Bild bis 10 MB.",
+      "unreadable": "Das Bild konnte nicht gelesen werden. Versuche ein schärferes Bild.",
+      "progress": "Wortschatz wird aktualisiert",
+      "library": "Wortsammlung",
+      "added_one": "1 Wort hinzugefügt",
+      "added_other": "{{count}} Wörter hinzugefügt",
+      "save": "Speichern",
+      "tab": "Lernen",
+      "allWords": "Alle Wörter",
+      "addContent": "Inhalte hinzufügen",
+      "ready_one": "1 Wort zum Wiederholen",
+      "ready_other": "{{count}} Wörter zum Wiederholen",
+      "upToDate": "Du bist auf dem neuesten Stand",
+      "review": "Wörter wiederholen",
+      "viewAll": "Alle anzeigen",
+      "showLess": "Weniger anzeigen",
+      "emptyRecent": "Wörter aus Übungen und deinen Inhalten erscheinen hier.",
+      "emptyFocus": "Füge ein Thema, einen Text oder ein Bild für deinen Wortschatz hinzu.",
+      "whyAdded": "Warum dieses Wort hinzugefügt wurde",
+      "undoBatch_one": "Diese Ergänzung rückgängig machen",
+      "undoBatch_other": "Diese {{count}} Ergänzungen rückgängig machen",
+      "badge_one": "+1 Wort",
+      "badge_other": "+{{count}} Wörter",
+      "sources": {
+        "practice": "Aus Übungen",
+        "writing": "Aus Schreibübungen",
+        "content": "Aus deinen Inhalten"
+      }
     }
   },
   "dashboard": {
@@ -1061,7 +1106,7 @@
     "automaticFallback": "{{model}} ist nicht verfügbar. Derzeit wird {{effective}} verwendet.",
     "tabs": {
       "profile": "Lernen",
-      "ai": "KI-Verbindungen",
+      "ai": "KI-Anbieter",
       "data": "Daten & Datenschutz",
       "diagnostics": "Diagnose"
     },
@@ -1072,7 +1117,7 @@
     "chatgptRevocationPending": "Lokal abgemeldet. Der Widerruf beim Anbieter wurde nicht bestätigt. Trenne Call Nina bei Bedarf in den ChatGPT-Einstellungen.",
     "chatgptUsageHelp": "Diese Verbindung nutzt deinen ChatGPT-Tarif. App-Limits und die gemeinsame Tarifnutzung verwaltest du in den ChatGPT-Einstellungen.",
     "chatgptUsageLink": "Nutzung & Limits",
-    "aiTitle": "KI-Verbindungen",
+    "aiTitle": "KI-Anbieter",
     "accountOptions": "Kontooptionen",
     "activateBeforeLogin": "Verwende diese Verbindung, um die ChatGPT-Anmeldung zu verwalten.",
     "sessionPrivacy": "Deine Anmeldung wird auf diesem Gerät geschützt. Das Entfernen einer Verbindung meldet dich nicht ab.",
@@ -1092,14 +1137,14 @@
     "aiTimeout": "Die KI-Anfrage wurde nicht rechtzeitig abgeschlossen. Versuche eine kürzere Anfrage oder eine kleinere Übung.",
     "modelUnavailable": "Das gewählte Modell oder die Denkeinstellung ist nicht verfügbar. Wähle in der Modellauswahl Automatisch oder eine andere verfügbare Option und versuche es erneut.",
     "appServer": "Die KI-Aktion konnte nicht abgeschlossen werden. Prüfe die ausgewählte Verbindung in den Einstellungen und versuche es erneut.",
-    "authentication": "Verbinde deinen Anbieter erneut oder prüfe die ausgewählte Verbindung unter Einstellungen → KI-Verbindungen.",
-    "unsupportedCodexVersion": "Call Nina konnte diese Codex-Installation nicht verwenden. Prüfe den Status unter Einstellungen → KI-Verbindungen und aktualisiere oder installiere Codex bei Bedarf neu.",
+    "authentication": "Verbinde deinen Anbieter erneut oder prüfe die ausgewählte Verbindung unter Einstellungen → KI-Anbieter.",
+    "unsupportedCodexVersion": "Call Nina konnte diese Codex-Installation nicht verwenden. Prüfe den Status unter Einstellungen → KI-Anbieter und aktualisiere oder installiere Codex bei Bedarf neu.",
     "rateLimit": "Das Nutzungslimit des Anbieters wurde erreicht. Prüfe vor dem nächsten Versuch die Nutzungseinstellungen des Anbieters.",
     "cancellation": "Die Aktion wurde abgebrochen.",
     "modelOutput": "Das KI-Ergebnis war unvollständig oder unbrauchbar. Versuche es erneut oder wähle ein anderes verfügbares Modell.",
-    "mcp": "Die Codex-Integration konnte diese Aktion nicht abschließen. Prüfe den Status unter Einstellungen → KI-Verbindungen und installiere oder aktualisiere die Integration bei Bedarf.",
-    "handoff": "Call Nina konnte die zugehörige Aktivität nicht öffnen. Prüfe die Codex-Integration unter Einstellungen → KI-Verbindungen und versuche es erneut.",
-    "unsupportedOperation": "Diese Aktion ist in der aktuellen Einrichtung nicht verfügbar. Prüfe die verfügbaren Optionen unter Einstellungen → KI-Verbindungen.",
+    "mcp": "Die Codex-Integration konnte diese Aktion nicht abschließen. Prüfe den Status unter Einstellungen → KI-Anbieter und installiere oder aktualisiere die Integration bei Bedarf.",
+    "handoff": "Call Nina konnte die zugehörige Aktivität nicht öffnen. Prüfe die Codex-Integration unter Einstellungen → KI-Anbieter und versuche es erneut.",
+    "unsupportedOperation": "Diese Aktion ist in der aktuellen Einrichtung nicht verfügbar. Prüfe die verfügbaren Optionen unter Einstellungen → KI-Anbieter.",
     "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst."
   },
   "ui": {
@@ -1369,7 +1414,8 @@
       "saving": "Ergebnis wird gespeichert",
       "cancelling": "Wird abgebrochen",
       "refiningExercises": "Übungen werden überarbeitet",
-      "flashcard-generation": "Lernkarten werden erstellt"
+      "flashcard-generation": "Lernkarten werden erstellt",
+      "vocabulary-analysis": "Wortschatz wird aktualisiert"
     },
     "messages": {
       "0": "Längere Anfragen können etwas Zeit brauchen.",
@@ -1643,7 +1689,9 @@
       "contextual-help": "kontextbezogene Hilfe",
       "flashcard-generation": "Lernkarten",
       "exercise-generation": "Übungen erstellen",
-      "exercise-feedback": "Übungsfeedback"
+      "exercise-feedback": "Übungsfeedback",
+      "vocabulary-analysis": "Wortschatz wird aktualisiert",
+      "translation": "Übersetzung"
     },
     "savedConnections": "Gespeicherte Verbindungen",
     "newConnection": "Neue Verbindung",
@@ -1651,13 +1699,13 @@
     "name": "Verbindungsname",
     "nameRequired": "Gib einen Verbindungsnamen ein.",
     "route": "Verbindungstyp",
-    "saved": "Verbindungseinstellungen gespeichert.",
+    "saved": "Anbietereinstellungen gespeichert.",
     "localPractice": "Wähle die KI für neue Übungen und Feedback. Vorbereitete Übungen funktionieren ohne KI.",
     "makeActive": "Diese Verbindung verwenden",
     "saveBeforeActivate": "Speichere oder verwerfe diese Änderungen, bevor du diese Verbindung verwendest.",
     "operations": "Unterstützte Aktionen: {{operations}}",
     "noOperations": "Über diese Verbindung sind derzeit keine KI-Aktionen verfügbar.",
-    "advanced": "Erweiterte Modelleinstellungen",
+    "advanced": "Modelleinstellungen",
     "keySaved": "Ein Schlüssel ist auf diesem Gerät gespeichert. Sein Wert kann hier nicht angezeigt werden.",
     "keyMissing": "Auf diesem Gerät ist kein Schlüssel gespeichert.",
     "keyAction": "API-Schlüssel",
@@ -1693,8 +1741,8 @@
       "unavailable": "Lokale Modellverwaltung ist auf diesem Gerät nicht verfügbar."
     },
     "managedUnavailable": "Die von Nina verwaltete KI benötigt ein genehmigtes Nina-Konto und verfügbare KI-Aktionen. Die Pilotverwaltung aktiviert den Dienst.",
-    "remove": "Verbindung entfernen",
-    "removeWarning": "Diese gespeicherte Verbindung entfernen? Lerndaten bleiben erhalten. Ein gespeicherter API-Schlüssel dieser Verbindung wird von diesem Gerät entfernt. Das Entfernen einer ChatGPT-Verbindung behält Ninas Anmeldung bei.",
+    "remove": "Anbieterkonfiguration entfernen",
+    "removeWarning": "Diese Anbieterkonfiguration entfernen? Zugeordnete Aktionen erfordern danach eine Einrichtung. Lernaufzeichnungen und Kontositzungen bleiben erhalten.",
     "successor": "Nächste aktive Verbindung",
     "selectSuccessor": "Nachfolger wählen",
     "successorRequired": "Wähle vor dem Entfernen der aktiven Verbindung einen Nachfolger.",
@@ -1704,9 +1752,9 @@
       "openai": "OpenAI-API",
       "anthropic": "Anthropic-API",
       "google": "Google-API",
-      "local": "Heruntergeladenes Modell",
-      "managed": "Nina-KI",
-      "chatgpt": "ChatGPT"
+      "local": "Lokal",
+      "managed": "Nina",
+      "chatgpt": "ChatGPT-Abonnement"
     },
     "destination": {
       "claude-code": "KI-Anfragen würden an Claude Code und seinen Dienst gehen.",
@@ -1738,7 +1786,7 @@
       "secure-storage-unavailable": "Sichere Schlüsselspeicherung ist auf diesem Gerät nicht verfügbar."
     },
     "details": "Verbindungsdetails",
-    "chatgptAuth": "Verbinde oder wechsle dein ChatGPT-Konto unter Einstellungen → KI-Verbindungen.",
+    "chatgptAuth": "Verbinde oder wechsle dein ChatGPT-Konto unter Einstellungen → KI-Anbieter.",
     "chatgptLoginUnavailable": "Die ChatGPT-Anmeldung ist nicht verfügbar. Prüfe, ob auf diesem Gerät ein sicherer Anmeldedatenspeicher verfügbar ist.",
     "manage": "Verbindungen verwalten"
   },
@@ -1754,7 +1802,7 @@
     "dismiss": "Ausblenden",
     "cleanupPending": "Das Entfernen der Zugangsdaten steht noch aus. Öffne diese Einstellungen erneut, um es noch einmal zu versuchen.",
     "wait": "Die Verbindung wurde geändert oder eine KI-Aktion läuft. Prüfe die aktuellen Einstellungen und versuche es erneut.",
-    "officialAuth": "Verbinde oder wechsle dein ChatGPT-Konto unter Einstellungen → KI-Verbindungen.",
+    "officialAuth": "Verbinde oder wechsle dein ChatGPT-Konto unter Einstellungen → KI-Anbieter.",
     "connectChatgpt": "Mit ChatGPT fortfahren"
   },
   "pathLibrary": {
@@ -1848,8 +1896,9 @@
     "writingViews": "Schreibansichten"
   },
   "ninaAccount": {
+    "signInAgain": "Erneut anmelden",
     "title": "Nina-Konto",
-    "description": "Melde dich für Nina-finanzierte KI an. Deine eigenen KI-Verbindungen funktionieren unabhängig davon.",
+    "description": "Melde dich für Nina-finanzierte KI an. Deine eigenen KI-Anbieter funktionieren unabhängig davon.",
     "unconfigured": "Die Pilotanmeldung ist noch nicht eingerichtet.",
     "error": "Aktion fehlgeschlagen. Prüfe deine Zugangsdaten oder kontaktiere die Pilotverwaltung.",
     "signedIn": "Angemeldet als {{username}}",
@@ -1857,6 +1906,7 @@
     "pending": "Die verwaltete KI wartet auf die Aktivierung.",
     "username": "Benutzername",
     "password": "Passwort",
+    "showPassword": "Passwort anzeigen",
     "recovery": "Zugangsdaten und Passwortzurücksetzungen erhältst du von der Pilotverwaltung.",
     "signIn": "Anmelden",
     "signOut": "Abmelden",
@@ -1896,5 +1946,39 @@
     "loginFailedTitle": "Anmeldung nicht möglich",
     "cancellingRequest": "Abgebrochen. Vor einem neuen Versuch muss die vorherige Anfrage beendet werden.",
     "initializationFailed": "Die Anmeldung konnte nicht starten. Versuche es gleich erneut."
+  },
+  "providers": {
+    "signInRequired": "Anmeldung erforderlich",
+    "connectionUnavailable": "Verbindung nicht verfügbar",
+    "routing": "KI-Zuordnung",
+    "recommend": "Empfohlene Auswahl verwenden",
+    "text": "Texterzeugung",
+    "image": "Bildverständnis",
+    "audio": "Audioerzeugung",
+    "unassigned": "Nicht zugeordnet",
+    "actionDefaults": "Aktionsstandards (erweitert)",
+    "useDefault": "Funktionsstandard verwenden",
+    "capabilities": "Anbieterfunktionen",
+    "provider": "Anbieter",
+    "status": "Status",
+    "notImplemented": "Nicht implementiert",
+    "setupRequired": "Einrichtung erforderlich",
+    "supported": "Unterstützt",
+    "unsupported": "Nicht unterstützt",
+    "default": "Standard",
+    "supportedActions": "Unterstützte Lernaktionen",
+    "voice": "Voice in Codex",
+    "back": "Zurück zu den Anbietern",
+    "connected": "Verbunden",
+    "disconnected": "Nicht verbunden",
+    "configured": "Konfiguriert",
+    "keyRequired": "API-Schlüssel erforderlich",
+    "installed": "Installiert",
+    "notInstalled": "Nicht installiert",
+    "accessRequired": "Zugriff erforderlich",
+    "keyRemovalPending": "Der API-Schlüssel wird beim Speichern entfernt.",
+    "selectedDefault": "Ausgewählter Standard",
+    "checkingConnection": "Zugriff wird geprüft…",
+    "signInIncomplete": "Anmeldung unvollständig"
   }
 }

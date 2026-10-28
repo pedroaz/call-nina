@@ -1,3 +1,4 @@
+import { vocabularyImageSchema, vocabularyLearningSnapshotSchema } from "./vocabulary-learning.js";
 import {
   ninaAccountStateSchema,
   ninaAccountUpdateSchema,
@@ -145,6 +146,8 @@ export const desktopIpcChannels = [
   "flashcards/read",
   "flashcards/progress",
   "flashcards/save-vocabulary",
+  "vocabulary/learning-read",
+  "vocabulary/learning-update",
   "vocabulary/read",
   "vocabulary/detail",
   "vocabulary/review-queue",
@@ -206,6 +209,7 @@ const providerAccessReadRequest = request(
   "provider/access/read",
   z.strictObject({
     operation: providerOperationSchema,
+    hasImage: z.boolean().optional(),
     previousOperationId: correlationIdSchema.optional(),
   }),
 );
@@ -341,6 +345,24 @@ const learningPathPrepareVoiceRequest = request(
   z.strictObject({
     expectedGeneration: dataRootGenerationSchema,
     reference: courseReferenceSchema,
+  }),
+);
+const vocabularyLearningReadRequest = request("vocabulary/learning-read", emptyPayload);
+const vocabularyLearningUpdateRequest = request(
+  "vocabulary/learning-update",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    action: z.discriminatedUnion("kind", [
+      z.strictObject({ kind: z.literal("read") }),
+      z.strictObject({ kind: z.literal("undo"), batchId: text(100) }),
+      z.strictObject({
+        kind: z.literal("focus"),
+        focusId: text(100),
+        title: text(160),
+        active: z.boolean(),
+        text: z.string().max(12000),
+      }),
+    ]),
   }),
 );
 const vocabularyReadRequest = request("vocabulary/read", vocabularyLibraryFilterSchema);
@@ -585,6 +607,7 @@ const usageOpenRequest = request("chatgpt/usage/open", emptyPayload);
 const accountsReadRequest = request("chatgpt/accounts/read", emptyPayload);
 
 export const learningOperationKinds = [
+  "vocabulary-analysis",
   "writing-prompt",
   "voice-activity-draft",
   "writing-correction",
@@ -596,6 +619,19 @@ export const learningOperationKinds = [
 export const learningOperationKindSchema = z.enum(learningOperationKinds);
 
 export const learningOperationInputSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: z.literal("vocabulary-analysis"),
+    rootGeneration: dataRootGenerationSchema,
+    source: z.discriminatedUnion("kind", [
+      z.strictObject({
+        kind: z.literal("import"),
+        guidance: z.string().max(2000),
+        text: z.string().max(12000),
+        image: vocabularyImageSchema.optional(),
+      }),
+      z.strictObject({ kind: z.literal("activity"), activityId: activityIdSchema }),
+    ]),
+  }),
   z.strictObject({
     kind: z.literal("flashcard-generation"),
     topic: text(2_000),
@@ -784,6 +820,8 @@ export const desktopIpcRequestSchema = boundaryUnion([
   request("flashcards/read", flashcardReadRequestSchema),
   request("flashcards/progress", flashcardProgressRequestSchema),
   request("flashcards/save-vocabulary", flashcardSaveRequestSchema),
+  vocabularyLearningReadRequest,
+  vocabularyLearningUpdateRequest,
   vocabularyReadRequest,
   vocabularyDetailRequest,
   vocabularyQueueRequest,
@@ -1197,6 +1235,14 @@ const vocabularyProjectionSchema = z.strictObject({
   revision: z.int().nonnegative(),
   updatedAt: utcInstantSchema,
 });
+const vocabularyLearningReadResponse = response(
+  "vocabulary/learning-read",
+  vocabularyLearningSnapshotSchema,
+);
+const vocabularyLearningUpdateResponse = response(
+  "vocabulary/learning-update",
+  vocabularyLearningSnapshotSchema,
+);
 const vocabularyReadResponse = response(
   "vocabulary/read",
   z.strictObject({
@@ -1783,6 +1829,8 @@ export const desktopIpcResponseSchema = boundaryUnion([
   response("flashcards/read", flashcardDeckSchema),
   response("flashcards/progress", flashcardDeckSchema),
   response("flashcards/save-vocabulary", flashcardDeckSchema),
+  vocabularyLearningReadResponse,
+  vocabularyLearningUpdateResponse,
   vocabularyReadResponse,
   vocabularyDetailResponse,
   vocabularyQueueResponse,

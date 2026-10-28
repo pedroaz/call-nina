@@ -57,8 +57,17 @@
   gap: var(--od-space-5);
 }
 
+.dialog[data-size="default"] .header {
+  margin-bottom: var(--od-space-5);
+}
+
 .header h2 {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.header > button {
+  flex: none;
 }
 
 .dialog[data-size="large"] {

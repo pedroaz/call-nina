@@ -98,10 +98,11 @@ function validateRequest(request) {
     click: ["target"],
     "double-click": ["target"],
     fill: ["target", "value"],
+    "upload-image": ["target", "path"],
     select: ["target", "value"],
     press: ["target", "key"],
     wait: ["target", "state", "timeoutMs"],
-    "prepare-ai": [],
+    "prepare-ai": ["route"],
     "begin-records": ["kind"],
     "confirm-no-creation": ["confirmation"],
     track: ["id"],
@@ -289,7 +290,7 @@ async function serve(resume = false) {
     try {
       if (action === "restore" && request.languageSelection !== undefined)
         await session.historicalLanguageSelection(request.languageSelection);
-      if (["click", "double-click", "fill", "select", "press"].includes(action)) {
+      if (["click", "double-click", "fill", "select", "press", "upload-image"].includes(action)) {
         if (["fill", "select"].includes(action) && typeof request.value !== "string")
           throw failure("VERIFY_REQUEST_INVALID");
         if (action === "press" && (typeof request.key !== "string" || !request.key.length))
@@ -350,7 +351,7 @@ async function serve(resume = false) {
     session.journal.pendingAction = { ...identity, phase: "dispatch-may-have-started" };
     await session.persist();
     const result = await operation(target);
-    if (["click", "double-click", "fill", "select", "press"].includes(action))
+    if (["click", "double-click", "fill", "select", "press", "upload-image"].includes(action))
       await session.observeSettingsAfterAction(
         profileSave,
         identity.learningLanguageSelection,
@@ -499,6 +500,27 @@ async function serve(resume = false) {
       case "double-click":
         await target.dblclick();
         break;
+      case "upload-image": {
+        if (typeof request.path !== "string" || !path.isAbsolute(request.path))
+          throw failure("VERIFY_REQUEST_INVALID");
+        const info = await lstat(request.path);
+        const extension = path.extname(request.path).toLowerCase();
+        const mimeType = {
+          ".png": "image/png",
+          ".jpg": "image/jpeg",
+          ".jpeg": "image/jpeg",
+          ".webp": "image/webp",
+        }[extension];
+        if (!info.isFile() || info.size > 10 * 1024 * 1024 || !mimeType)
+          throw failure("VERIFY_IMAGE_INVALID");
+        await target.setInputFiles({
+          name: `learning-image${extension}`,
+          mimeType,
+          buffer: await readFile(request.path),
+        });
+        result = { attached: true };
+        break;
+      }
       case "fill":
         if (typeof request.value !== "string") throw failure("VERIFY_REQUEST_INVALID");
         await target.fill(request.value);
@@ -518,7 +540,9 @@ async function serve(resume = false) {
         });
         break;
       case "prepare-ai":
-        result = await session.prepareAI();
+        if (request.route !== undefined && !["chatgpt", "managed"].includes(request.route))
+          throw failure("VERIFY_REQUEST_INVALID");
+        result = await session.prepareAI(request.route);
         break;
       case "begin-records":
         result = await session.beginRecords(request.kind);

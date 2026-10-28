@@ -1,5 +1,8 @@
+import { ProviderStatus } from "./ProviderStatus.js";
+import { ProviderRouting } from "./ProviderRouting.js";
+import { NinaAccountSettings } from "./NinaAccount.js";
 import { createPortal } from "react-dom";
-import { Bot, Plus, SlidersHorizontal, Settings2, Check } from "lucide-react";
+import { SlidersHorizontal, Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type {
   AiConnection,
@@ -10,15 +13,7 @@ import type {
 } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { resolveModelPreference } from "@call-nina/domain";
-import {
-  Button,
-  Card,
-  Feedback,
-  SelectField,
-  TextField,
-  InfoHint,
-  ModalDialog,
-} from "./components/ui/index.js";
+import { Button, Feedback, SelectField, TextField, ModalDialog } from "./components/ui/index.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import { Section } from "./components/layout/index.js";
 import styles from "./ConnectionSettings.module.css";
@@ -30,15 +25,6 @@ type CredentialDraft = { action: "keep" | "replace" | "remove"; secret: string }
 type Route = Draft["routeId"];
 type OfflineView = View["offlineModel"];
 const activeOfflineStates: OfflineSnapshot["state"][] = ["downloading", "verifying", "removing"];
-const routes: Route[] = [
-  "chatgpt",
-  "claude-code",
-  "openai",
-  "anthropic",
-  "google",
-  "local",
-  "managed",
-];
 const directRoutes: Route[] = ["openai", "anthropic", "google"];
 const defaultPreference: AiModelPreference = {
   model: { mode: "automatic" },
@@ -52,14 +38,15 @@ const withoutCredential = (credentials: Record<string, CredentialDraft>, id: str
 export function ConnectionSettings({
   active,
   disabled = false,
-  surface = true,
   onPendingChange,
   authHelp,
   chatgptAccess,
+  chatgptConnected,
   feedbackTarget,
 }: {
   feedbackTarget?: HTMLElement | null;
   active: boolean;
+  chatgptConnected?: boolean | undefined;
   disabled?: boolean;
   surface?: boolean;
   onPendingChange?: (pending: boolean) => void;
@@ -71,7 +58,6 @@ export function ConnectionSettings({
   const [selectedId, setSelectedId] = useState<string>();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [credentials, setCredentials] = useState<Record<string, CredentialDraft>>({});
-  const [successor, setSuccessor] = useState("");
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [saving, setBusy] = useState(false);
   const busy = saving || disabled;
@@ -81,8 +67,6 @@ export function ConnectionSettings({
   const [offlineBusy, setOfflineBusy] = useState(false);
   const [confirmOfflineRemove, setConfirmOfflineRemove] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const editorHeading = useRef<HTMLHeadingElement>(null);
   const offlineRef = useRef<HTMLDivElement>(null);
   const rootEpoch = useRef(0);
   const readSerial = useRef(0);
@@ -96,10 +80,6 @@ export function ConnectionSettings({
       if (!mounted.current || epoch !== rootEpoch.current || serial !== readSerial.current) return;
       setView(next);
       setOffline(next.offlineModel);
-      setSelectedId(
-        (current) =>
-          current ?? next.settings.activeConnectionId ?? next.settings.connections[0]?.id,
-      );
     } catch (cause) {
       if (!mounted.current || epoch !== rootEpoch.current || serial !== readSerial.current) return;
       setError(normalizeDesktopError(cause).detail.messageKey);
@@ -124,7 +104,6 @@ export function ConnectionSettings({
         setSelectedId(undefined);
         setConfirmOfflineRemove(false);
         setConfirmRemove(false);
-        setSuccessor("");
         void load();
       } else if (
         event.event === "state-invalidated" &&
@@ -222,7 +201,6 @@ export function ConnectionSettings({
   const listedOperations =
     directCatalog?.operations ??
     (draft?.routeId === "local" ? offline?.catalog.operations : availability?.operations);
-  const isNew = Boolean(draft && !saved);
   const isDirect = Boolean(draft && directRoutes.includes(draft.routeId));
   const selectedModelId =
     draft?.preference.model.mode === "exact" ? draft.preference.model.modelId : undefined;
@@ -242,14 +220,13 @@ export function ConnectionSettings({
   const pending =
     saving ||
     offlineBusy ||
-    Object.values(drafts).some(hasChanges) ||
+    Object.values(drafts).some((entry) => entry.routeId !== "claude-code" && hasChanges(entry)) ||
     Object.values(credentials).some((entry) => entry.action !== "keep");
   useEffect(() => {
     onPendingChange?.(pending);
   }, [pending, onPendingChange]);
   const select = (id: string) => {
     setSelectedId(id);
-    setSuccessor("");
     setConfirmRemove(false);
     setConfirmOfflineRemove(false);
     setError(undefined);
@@ -297,7 +274,7 @@ export function ConnectionSettings({
       setError("connectionSettings.nameRequired");
       return;
     }
-    if (credentialAction === "replace" && !credential) {
+    if ((credentialAction === "replace" || (isDirect && !saved?.secretRef)) && !credential) {
       setError("connectionSettings.keyRequired");
       return;
     }
@@ -317,533 +294,438 @@ export function ConnectionSettings({
     if (ok) {
       setDrafts((current) => withoutDraft(current, draft.id));
       setCredentials((current) => withoutCredential(current, draft.id));
+      setSelectedId(undefined);
     }
   };
   const remove = async () => {
     if (!saved || !view) return;
-    const active = view.settings.activeConnectionId === saved.id;
-    const nextActiveConnectionId = active
-      ? view.settings.connections.length === 1
-        ? null
-        : successor
-      : view.settings.activeConnectionId;
-    if (active && view.settings.connections.length > 1 && !successor) {
-      setError("connectionSettings.successorRequired");
-      return;
-    }
-    const ok = await mutate({ kind: "remove", connectionId: saved.id, nextActiveConnectionId });
+    const ok = await mutate({ kind: "remove", connectionId: saved.id });
     if (ok) {
       setDrafts((current) => withoutDraft(current, saved.id));
       setCredentials((current) => withoutCredential(current, saved.id));
-      setSelectedId(
-        nextActiveConnectionId ??
-          view.settings.connections.find((entry) => entry.id !== saved.id)?.id,
-      );
+      setSelectedId(undefined);
       setConfirmRemove(false);
-      setSuccessor("");
       window.setTimeout(() => {
         listRef.current?.focus();
       }, 0);
     }
   };
-  const add = () => {
+  const add = (routeId: Route) => {
+    const existing =
+      view?.settings.connections.find((entry) => entry.routeId === routeId) ??
+      Object.values(drafts).find((entry) => entry.routeId === routeId);
+    if (existing) {
+      select(existing.id);
+      return;
+    }
     const id = crypto.randomUUID();
     setDrafts((current) => ({
       ...current,
       [id]: {
         id,
-        label: t("connectionSettings.routes.chatgpt"),
-        routeId: "chatgpt",
+        label: t(`connectionSettings.routes.${routeId}`),
+        routeId,
         preference: defaultPreference,
       },
     }));
     select(id);
-    window.setTimeout(() => editorHeading.current?.focus(), 0);
   };
   const discard = () => {
     if (!draft) return;
     setDrafts((current) => withoutDraft(current, draft.id));
     setCredentials((current) => withoutCredential(current, draft.id));
-    if (isNew)
-      setSelectedId(view?.settings.activeConnectionId ?? view?.settings.connections[0]?.id);
+    setSelectedId(undefined);
   };
 
   return (
-    <div className={styles.panel} aria-busy={busy}>
-      <div
-        className={styles.connectionPicker}
-        ref={listRef}
-        tabIndex={-1}
-        data-focus-anchor
-        data-connection-management
-      >
-        <SelectField
-          label={t("connectionSettings.savedConnections")}
-          value={selectedId ?? ""}
-          disabled={busy || !view}
-          onChange={(event) => select(event.currentTarget.value)}
-        >
-          {!selectedId && <option value="">{t("connections.none")}</option>}
-          {view?.settings.connections.map((entry) => (
-            <option
-              key={entry.id}
-              value={entry.id}
-              data-active-connection={entry.id === view.settings.activeConnectionId || undefined}
-            >
-              {entry.label}
-              {entry.id === view.settings.activeConnectionId ? ` · ${t("connections.active")}` : ""}
-            </option>
-          ))}
-          {Object.values(drafts)
-            .filter(
-              (entry) =>
-                !view?.settings.connections.some((savedEntry) => savedEntry.id === entry.id),
-            )
-            .map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.label || t("connectionSettings.newConnection")}
-              </option>
-            ))}
-        </SelectField>
-        <Button
-          variant="secondary"
-          isDisabled={
-            busy ||
-            !view ||
-            view.settings.connections.length +
-              Object.values(drafts).filter(
-                (entry) =>
-                  !view.settings.connections.some((savedEntry) => savedEntry.id === entry.id),
-              ).length >=
-              50
-          }
-          onPress={add}
-        >
-          <Plus aria-hidden="true" />
-          {t("connectionSettings.add")}
-        </Button>
-        <InfoHint label={t("settings.aiTitle")}>{t("connectionSettings.localPractice")}</InfoHint>
+    <div className={styles.panel} aria-busy={busy} data-provider-detail={Boolean(draft)}>
+      <div className={styles.providerOverview} ref={listRef} tabIndex={-1} data-focus-anchor>
+        {view && (
+          <ProviderRouting
+            view={view}
+            busy={busy}
+            mutate={mutate}
+            select={add}
+            chatgptConnected={chatgptConnected}
+          />
+        )}
       </div>
       {draft ? (
-        <Section
-          surface={surface}
-          className={styles.editor}
-          aria-busy={busy}
-          data-ai-connection={saved?.id ?? ""}
-          data-route={saved?.routeId ?? ""}
-          data-root-generation={view?.expectedGeneration}
-          data-connection-revision={view?.settings.revision}
-          data-dirty={dirty}
-          data-effective-model={
-            resolution?.status === "available" ? resolution.effectiveModelId : ""
-          }
-          data-effective-effort={
-            resolution?.status === "available" ? resolution.effectiveEffortId : ""
-          }
-          data-default-effort={effectiveModel?.defaultReasoningEffort ?? ""}
+        <ModalDialog
+          isOpen
+          title={t(`connectionSettings.routes.${draft.routeId}`)}
+          closeLabel={t("actions.close")}
+          isDismissable
+          onOpenChange={(open) => {
+            if (!open) setSelectedId(undefined);
+          }}
         >
-          <div className={styles.connectionHeading}>
-            <span className={styles.connectionIcon}>
-              <Bot aria-hidden="true" />
-            </span>
-            <h3 ref={editorHeading} tabIndex={-1}>
-              {isNew
-                ? t("connectionSettings.newConnection")
-                : t(`connectionSettings.routes.${draft.routeId}`)}
-            </h3>
-            <Button variant="quiet" onPress={() => setDetailsOpen(true)}>
-              <Settings2 aria-hidden="true" />
-              {t("connectionSettings.details")}
-            </Button>
-          </div>
-          {isNew && (
-            <SelectField
-              label={t("connectionSettings.route")}
-              value={draft.routeId}
-              disabled={busy}
-              onChange={(event) => {
-                const routeId = event.target.value as Route;
-                updateDraft({
-                  routeId,
-                  label:
-                    draft.label === t(`connectionSettings.routes.${draft.routeId}`)
-                      ? t(`connectionSettings.routes.${routeId}`)
-                      : draft.label,
-                  preference: defaultPreference,
-                });
-                updateCredential({ action: "keep", secret: "" });
-                setConfirmOfflineRemove(false);
-              }}
-            >
-              {routes.map((route) => (
-                <option key={route} value={route}>
-                  {t(`connectionSettings.routes.${route}`)}
-                </option>
-              ))}
-            </SelectField>
-          )}
-          {draft.routeId === "claude-code" ? (
-            <p>{t("connectionSettings.claudeUnavailable")}</p>
-          ) : availability?.status === "adapter-unavailable" ? (
-            <p>{t("connectionSettings.routeUnavailable")}</p>
-          ) : null}
-          {saved &&
-            !(
-              draft.routeId === "chatgpt" &&
-              chatgptAccess &&
-              ["available", "account-required"].includes(availability?.status ?? "")
-            ) && (
-              <p role="status">
-                {t(`connectionSettings.status.${availability?.status ?? "inactive"}`)}
-              </p>
+          <Section
+            surface={false}
+            className={styles.editor}
+            aria-busy={busy}
+            data-ai-connection={saved?.id ?? ""}
+            data-route={saved?.routeId ?? ""}
+            data-root-generation={view?.expectedGeneration}
+            data-connection-revision={view?.settings.revision}
+            data-dirty={dirty}
+            data-effective-model={
+              resolution?.status === "available" ? resolution.effectiveModelId : ""
+            }
+            data-effective-effort={
+              resolution?.status === "available" ? resolution.effectiveEffortId : ""
+            }
+            data-default-effort={effectiveModel?.defaultReasoningEffort ?? ""}
+          >
+            {draft.routeId === "claude-code" ? (
+              <p>{t("connectionSettings.claudeUnavailable")}</p>
+            ) : availability?.status === "adapter-unavailable" ? (
+              <p>{t("connectionSettings.routeUnavailable")}</p>
+            ) : null}
+            {view && draft.routeId !== "chatgpt" && (
+              <ProviderStatus
+                route={draft.routeId}
+                view={view}
+                chatgptConnected={chatgptConnected}
+              />
             )}
-          {!isNew && view?.settings.activeConnectionId !== draft.id && (
-            <Button
-              variant="primary"
-              isDisabled={busy || dirty}
-              onPress={() => void mutate({ kind: "activate", connectionId: draft.id })}
-            >
-              {t("connectionSettings.makeActive")}
-            </Button>
-          )}
-          {dirty && !isNew && view?.settings.activeConnectionId !== draft.id && (
-            <p>{t("connectionSettings.saveBeforeActivate")}</p>
-          )}
-          {draft.routeId === "chatgpt" &&
-            (chatgptAccess ? (
-              chatgptAccess({
-                active: Boolean(saved && view?.settings.activeConnectionId === saved.id),
-                saved: Boolean(saved),
-                dirty: pending,
-              })
-            ) : (
-              <p>{authHelp ?? t("connectionSettings.chatgptAuth")}</p>
-            ))}
-          {draft.routeId !== "chatgpt" && <p>{t(`connectionSettings.cost.${draft.routeId}`)}</p>}
-          <div className={styles.modelHeading}>
-            <SlidersHorizontal aria-hidden="true" />
-            <h3>{t("connectionSettings.advanced")}</h3>
-          </div>
-          <div className={styles.modelControls}>
-            <SelectField
-              label={t("modelControl.model")}
-              disabled={busy}
-              value={
-                draft.preference.model.mode === "automatic"
-                  ? "automatic"
-                  : draft.preference.model.modelId
-              }
-              onChange={(event) => {
-                updateDraft({
-                  preference: {
-                    ...draft.preference,
-                    model:
-                      event.target.value === "automatic"
-                        ? { mode: "automatic" }
-                        : { mode: "exact", modelId: event.target.value },
-                  },
-                });
-              }}
-            >
-              <option value="automatic">{t("connections.runtimeDefault")}</option>
-              {selectedModelId &&
-                !modelCatalog?.models.some((entry) => entry.id === selectedModelId) && (
-                  <option value={selectedModelId}>{selectedModelId}</option>
-                )}
-              {modelCatalog?.models.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.displayName}
-                </option>
+            {draft.routeId === "chatgpt" &&
+              (chatgptAccess ? (
+                chatgptAccess({
+                  active: true,
+                  saved: Boolean(saved),
+                  dirty: Boolean(saved) && dirty,
+                })
+              ) : (
+                <p>{authHelp ?? t("connectionSettings.chatgptAuth")}</p>
               ))}
-            </SelectField>
-
-            <SelectField
-              label={t("settings.effort")}
-              disabled={busy}
-              value={
-                draft.preference.effort.mode === "semantic"
-                  ? `semantic:${draft.preference.effort.effort}`
-                  : draft.preference.effort.effortId
-              }
-              onChange={(event) => {
-                updateDraft({
-                  preference: {
-                    ...draft.preference,
-                    effort: event.target.value.startsWith("semantic:")
-                      ? {
-                          mode: "semantic",
-                          effort: event.target.value.slice(9) as "fast" | "balanced" | "deep",
-                        }
-                      : { mode: "exact", effortId: event.target.value },
-                  },
-                });
-              }}
-            >
-              {(["fast", "balanced", "deep"] as const).map((effort) => (
-                <option key={effort} value={`semantic:${effort}`}>
-                  {t(`settings.semanticEfforts.${effort}`)}
-                </option>
-              ))}
-              {draft.preference.effort.mode === "exact" &&
-                !draftModel?.supportedReasoningEfforts.includes(
-                  draft.preference.effort.effortId,
-                ) && (
-                  <option value={draft.preference.effort.effortId}>
-                    {draft.preference.effort.effortId}
-                  </option>
+            {draft.routeId !== "chatgpt" && <p>{t(`connectionSettings.cost.${draft.routeId}`)}</p>}
+            {draft.routeId === "managed" && <NinaAccountSettings />}
+            {isDirect && (
+              <section className={styles.secret}>
+                {view?.secureStorage.status === "unavailable" && (
+                  <p>{t("connectionSettings.secureStorageUnavailable")}</p>
                 )}
-              {draftModel?.supportedReasoningEfforts.map((effort) => (
-                <option key={effort} value={effort}>
-                  {effort}
-                </option>
-              ))}
-            </SelectField>
-          </div>
-          {isDirect && (
-            <Card variant="muted" className={styles.secret}>
-              {view?.secureStorage.status === "unavailable" && (
-                <p>{t("connectionSettings.secureStorageUnavailable")}</p>
-              )}
-              <p>
-                {saved?.secretRef
-                  ? t("connectionSettings.keySaved")
-                  : t("connectionSettings.keyMissing")}
-              </p>
-              <SelectField
-                label={t("connectionSettings.keyAction")}
-                disabled={busy}
-                value={credentialAction}
-                onChange={(event) => {
-                  updateCredential({
-                    action: event.target.value as CredentialDraft["action"],
-                    secret: "",
-                  });
-                }}
-              >
-                <option value="keep">{t("connectionSettings.keepKey")}</option>
-                <option value="replace" disabled={view?.secureStorage.status !== "available"}>
-                  {t("connectionSettings.replaceKey")}
-                </option>
-                {saved?.secretRef && (
-                  <option value="remove">{t("connectionSettings.removeKey")}</option>
-                )}
-              </SelectField>
-              {credentialAction === "replace" && (
-                <TextField
-                  label={t("connectionSettings.keyEntry")}
-                  type="password"
-                  maxLength={8192}
-                  disabled={busy}
-                  autoComplete="off"
-                  value={credential}
-                  onChange={(event) => {
-                    updateCredential({ secret: event.target.value });
-                  }}
-                />
-              )}
-            </Card>
-          )}
-          {draft.routeId === "local" && offline && (
-            <div ref={offlineRef} className={styles.offline} tabIndex={-1} data-focus-anchor>
-              <h4>{t("connectionSettings.offlineTitle")}</h4>
-              <p>{t("connectionSettings.offlineScope")}</p>
-              <p>{t("connectionSettings.offlineLimits")}</p>
-              <p role="status">{t(`connectionSettings.offlineState.${offline.snapshot.state}`)}</p>
-              {offline.snapshot.errorCode && (
-                <p role="alert">{t("connectionSettings.offlineFailure")}</p>
-              )}
-              {offline.snapshot.preflight && !offline.snapshot.preflight.platformSupported && (
-                <p>{t("connectionSettings.offlinePlatform")}</p>
-              )}
-              {offline.snapshot.preflight && !offline.snapshot.preflight.memorySufficient && (
-                <p>{t("connectionSettings.offlineMemory")}</p>
-              )}
-              {offline.snapshot.preflight && !offline.snapshot.preflight.diskSufficient && (
-                <p>{t("connectionSettings.offlineDiskEstimate")}</p>
-              )}
-              {(offline.snapshot.state === "downloading" ||
-                offline.snapshot.state === "verifying") && (
-                <p>
-                  {t("connectionSettings.offlineProgress", {
-                    downloaded: (offline.snapshot.downloadedBytes / 1_000_000_000).toFixed(2),
-                    total: (offline.snapshot.downloadBytes / 1_000_000_000).toFixed(2),
-                  })}
-                </p>
-              )}
-              <div className={styles.actions}>
-                {(offline.snapshot.state === "absent" || offline.snapshot.state === "partial") && (
-                  <Button
-                    variant="primary"
-                    isDisabled={
-                      busy || offlineBusy || !offline.snapshot.preflight?.platformSupported
-                    }
-                    onPress={() => void manageOffline("install")}
-                  >
-                    {t(
-                      offline.snapshot.state === "partial"
-                        ? "connectionSettings.offlineResume"
-                        : "connectionSettings.offlineInstall",
-                    )}
-                  </Button>
-                )}
-                {offline.snapshot.state === "downloading" && (
-                  <Button
-                    variant="primary"
-                    isDisabled={busy || offlineBusy}
-                    onPress={() => void manageOffline("cancel")}
-                  >
-                    {t("connectionSettings.offlineCancelDownload")}
-                  </Button>
-                )}
-                {(offline.snapshot.state === "installed" ||
-                  offline.snapshot.state === "partial") && (
-                  <Button
-                    variant="primary"
-                    isDisabled={busy || offlineBusy}
-                    onPress={() => {
-                      setConfirmOfflineRemove(true);
-                    }}
-                  >
-                    {t("connectionSettings.offlineRemove")}
-                  </Button>
-                )}
-              </div>
-              {confirmOfflineRemove && (
-                <div className={styles.confirm}>
-                  <p>{t("connectionSettings.offlineRemoveWarning")}</p>
-                  <div className={styles.actions}>
-                    <Button
-                      variant="primary"
-                      isDisabled={busy || offlineBusy}
-                      onPress={() => void manageOffline("remove")}
-                    >
-                      {t("connectionSettings.offlineConfirmRemove")}
-                    </Button>
+                {saved?.secretRef && credentialAction === "keep" ? (
+                  <div className={styles.keySummary}>
+                    <p>{t("connectionSettings.keySaved")}</p>
+                    <div className={styles.actions}>
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy || view?.secureStorage.status !== "available"}
+                        onPress={() => updateCredential({ action: "replace", secret: "" })}
+                      >
+                        {t("connectionSettings.replaceKey")}
+                      </Button>
+                      <Button
+                        variant="quiet"
+                        isDisabled={busy}
+                        onPress={() => updateCredential({ action: "remove", secret: "" })}
+                      >
+                        {t("connectionSettings.removeKey")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : credentialAction === "remove" ? (
+                  <div className={styles.keySummary}>
+                    <p>{t("providers.keyRemovalPending")}</p>
                     <Button
                       variant="secondary"
-                      isDisabled={busy || offlineBusy}
-                      onPress={() => {
-                        setConfirmOfflineRemove(false);
-                      }}
+                      isDisabled={busy}
+                      onPress={() => updateCredential({ action: "keep", secret: "" })}
                     >
                       {t("actions.cancel")}
                     </Button>
                   </div>
+                ) : (
+                  <>
+                    <TextField
+                      label={t(
+                        saved?.secretRef
+                          ? "connectionSettings.keyEntry"
+                          : "connectionSettings.keyAction",
+                      )}
+                      type="password"
+                      maxLength={8192}
+                      disabled={busy || view?.secureStorage.status !== "available"}
+                      autoComplete="off"
+                      value={credential}
+                      onChange={(event) =>
+                        updateCredential({ action: "replace", secret: event.target.value })
+                      }
+                    />
+                    {saved?.secretRef && (
+                      <Button
+                        variant="quiet"
+                        isDisabled={busy}
+                        onPress={() => updateCredential({ action: "keep", secret: "" })}
+                      >
+                        {t("actions.cancel")}
+                      </Button>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
+            {draft.routeId !== "claude-code" && (
+              <>
+                <div className={styles.modelHeading}>
+                  <SlidersHorizontal aria-hidden="true" />
+                  <h3>{t("connectionSettings.advanced")}</h3>
                 </div>
-              )}
-            </div>
-          )}
-          {draft.routeId === "managed" && <p>{t("connectionSettings.managedUnavailable")}</p>}
-          <ModalDialog
-            isOpen={detailsOpen}
-            onOpenChange={setDetailsOpen}
-            title={t("connectionSettings.details")}
-          >
-            <div className={styles.detailsBody}>
-              <TextField
-                label={t("connectionSettings.name")}
-                maxLength={120}
-                disabled={busy}
-                value={draft.label}
-                onChange={(event) => {
-                  updateDraft({ label: event.target.value });
-                }}
-              />
-              <p>{t(`connectionSettings.destination.${draft.routeId}`)}</p>
-              {directCatalog && <p>{t("connectionSettings.directCatalogNotice")}</p>}
-              {availability?.status === "inactive" &&
-              !isDirect &&
-              draft.routeId !== "local" ? null : listedOperations?.length ? (
-                <p>
-                  {t("connectionSettings.operations", {
-                    operations: listedOperations
-                      .map((operation) => t(`connectionSettings.operation.${operation}`))
-                      .join(", "),
-                  })}
-                </p>
-              ) : (
-                <p>{t("connectionSettings.noOperations")}</p>
-              )}
-              {saved && (
-                <div className={styles.remove}>
-                  <Button
-                    variant="quiet"
-                    isDisabled={busy || dirty}
-                    onPress={() => {
-                      setConfirmRemove(true);
+                <div className={styles.modelControls}>
+                  <SelectField
+                    label={t("modelControl.model")}
+                    disabled={busy || !modelCatalog}
+                    value={
+                      draft.preference.model.mode === "automatic"
+                        ? "automatic"
+                        : draft.preference.model.modelId
+                    }
+                    onChange={(event) => {
+                      updateDraft({
+                        preference: {
+                          ...draft.preference,
+                          effort: { mode: "semantic", effort: "balanced" },
+                          model:
+                            event.target.value === "automatic"
+                              ? { mode: "automatic" }
+                              : { mode: "exact", modelId: event.target.value },
+                        },
+                      });
                     }}
                   >
-                    {t("connectionSettings.remove")}
-                  </Button>
-                  {confirmRemove && (
-                    <div className={styles.confirm}>
-                      <p>{t("connectionSettings.removeWarning")}</p>
-                      {view?.settings.activeConnectionId === saved.id &&
-                        view.settings.connections.length > 1 && (
-                          <SelectField
-                            label={t("connectionSettings.successor")}
-                            disabled={busy}
-                            value={successor}
-                            onChange={(event) => {
-                              setSuccessor(event.target.value);
-                            }}
-                          >
-                            <option value="">{t("connectionSettings.selectSuccessor")}</option>
-                            {view.settings.connections
-                              .filter((entry) => entry.id !== saved.id)
-                              .map((entry) => (
-                                <option key={entry.id} value={entry.id}>
-                                  {entry.label}
-                                </option>
-                              ))}
-                          </SelectField>
+                    <option value="automatic">{t("connections.runtimeDefault")}</option>
+                    {selectedModelId &&
+                      !modelCatalog?.models.some((entry) => entry.id === selectedModelId) && (
+                        <option value={selectedModelId}>{selectedModelId}</option>
+                      )}
+                    {modelCatalog?.models.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.displayName}
+                      </option>
+                    ))}
+                  </SelectField>
+
+                  {Boolean(draftModel && draftModel.supportedReasoningEfforts.length > 1) && (
+                    <SelectField
+                      label={t("settings.effort")}
+                      disabled={busy}
+                      value={
+                        draft.preference.effort.mode === "semantic"
+                          ? `semantic:${draft.preference.effort.effort}`
+                          : draft.preference.effort.effortId
+                      }
+                      onChange={(event) => {
+                        updateDraft({
+                          preference: {
+                            ...draft.preference,
+                            effort: event.target.value.startsWith("semantic:")
+                              ? {
+                                  mode: "semantic",
+                                  effort: event.target.value.slice(9) as
+                                    "fast" | "balanced" | "deep",
+                                }
+                              : { mode: "exact", effortId: event.target.value },
+                          },
+                        });
+                      }}
+                    >
+                      {(["fast", "balanced", "deep"] as const).map((effort) => (
+                        <option key={effort} value={`semantic:${effort}`}>
+                          {t(`settings.semanticEfforts.${effort}`)}
+                        </option>
+                      ))}
+                      {draft.preference.effort.mode === "exact" &&
+                        !draftModel?.supportedReasoningEfforts.includes(
+                          draft.preference.effort.effortId,
+                        ) && (
+                          <option value={draft.preference.effort.effortId}>
+                            {draft.preference.effort.effortId}
+                          </option>
                         )}
-                      <div className={styles.actions}>
-                        <Button
-                          variant="danger"
-                          isDisabled={
-                            busy ||
-                            (view?.settings.activeConnectionId === saved.id &&
-                              view.settings.connections.length > 1 &&
-                              !successor)
-                          }
-                          onPress={() => void remove()}
-                        >
-                          {t("connectionSettings.confirmRemove")}
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          isDisabled={busy}
-                          onPress={() => {
-                            setConfirmRemove(false);
-                          }}
-                        >
-                          {t("actions.cancel")}
-                        </Button>
-                      </div>
-                    </div>
+                      {draftModel?.supportedReasoningEfforts.map((effort) => (
+                        <option key={effort} value={effort}>
+                          {effort}
+                        </option>
+                      ))}
+                    </SelectField>
                   )}
                 </div>
-              )}
-              <Button variant="secondary" onPress={() => setDetailsOpen(false)}>
-                {t("actions.close")}
-              </Button>
-            </div>
-          </ModalDialog>
-          {(dirty || saving) && (
-            <div className={styles.actions}>
-              <Button variant="primary" isDisabled={busy || !dirty} onPress={() => void save()}>
-                {t("settings.save")}
-              </Button>
-              <Button variant="secondary" isDisabled={busy || !dirty} onPress={discard}>
-                {t("settings.discard")}
-              </Button>
-            </div>
-          )}
-        </Section>
-      ) : (
-        <p>{t(view ? "connections.none" : "settings.loading")}</p>
-      )}
+              </>
+            )}
+            {draft.routeId === "local" && offline && (
+              <div ref={offlineRef} className={styles.offline} tabIndex={-1} data-focus-anchor>
+                <h4>{t("connectionSettings.offlineTitle")}</h4>
+                <p>{t("connectionSettings.offlineScope")}</p>
+                <p>{t("connectionSettings.offlineLimits")}</p>
+                <p role="status">
+                  {t(`connectionSettings.offlineState.${offline.snapshot.state}`)}
+                </p>
+                {offline.snapshot.errorCode && (
+                  <p role="alert">{t("connectionSettings.offlineFailure")}</p>
+                )}
+                {offline.snapshot.preflight && !offline.snapshot.preflight.platformSupported && (
+                  <p>{t("connectionSettings.offlinePlatform")}</p>
+                )}
+                {offline.snapshot.preflight && !offline.snapshot.preflight.memorySufficient && (
+                  <p>{t("connectionSettings.offlineMemory")}</p>
+                )}
+                {offline.snapshot.preflight && !offline.snapshot.preflight.diskSufficient && (
+                  <p>{t("connectionSettings.offlineDiskEstimate")}</p>
+                )}
+                {(offline.snapshot.state === "downloading" ||
+                  offline.snapshot.state === "verifying") && (
+                  <p>
+                    {t("connectionSettings.offlineProgress", {
+                      downloaded: (offline.snapshot.downloadedBytes / 1_000_000_000).toFixed(2),
+                      total: (offline.snapshot.downloadBytes / 1_000_000_000).toFixed(2),
+                    })}
+                  </p>
+                )}
+                <div className={styles.actions}>
+                  {(offline.snapshot.state === "absent" ||
+                    offline.snapshot.state === "partial" ||
+                    offline.snapshot.state === "unavailable") && (
+                    <Button
+                      variant="primary"
+                      isDisabled={
+                        busy ||
+                        offlineBusy ||
+                        !offline.snapshot.preflight?.platformSupported ||
+                        !offline.snapshot.preflight.memorySufficient
+                      }
+                      onPress={() => void manageOffline("install")}
+                    >
+                      {t(
+                        offline.snapshot.state === "partial"
+                          ? "connectionSettings.offlineResume"
+                          : "connectionSettings.offlineInstall",
+                      )}
+                    </Button>
+                  )}
+                  {(offline.snapshot.state === "downloading" ||
+                    offline.snapshot.state === "verifying") && (
+                    <Button
+                      variant="primary"
+                      isDisabled={busy || offlineBusy}
+                      onPress={() => void manageOffline("cancel")}
+                    >
+                      {t("connectionSettings.offlineCancelDownload")}
+                    </Button>
+                  )}
+                  {(offline.snapshot.state === "installed" ||
+                    offline.snapshot.state === "partial" ||
+                    offline.snapshot.state === "unavailable") && (
+                    <Button
+                      variant="primary"
+                      isDisabled={busy || offlineBusy}
+                      onPress={() => {
+                        setConfirmOfflineRemove(true);
+                      }}
+                    >
+                      {t("connectionSettings.offlineRemove")}
+                    </Button>
+                  )}
+                </div>
+                {confirmOfflineRemove && (
+                  <div className={styles.confirm}>
+                    <p>{t("connectionSettings.offlineRemoveWarning")}</p>
+                    <div className={styles.actions}>
+                      <Button
+                        variant="primary"
+                        isDisabled={busy || offlineBusy}
+                        onPress={() => void manageOffline("remove")}
+                      >
+                        {t("connectionSettings.offlineConfirmRemove")}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy || offlineBusy}
+                        onPress={() => {
+                          setConfirmOfflineRemove(false);
+                        }}
+                      >
+                        {t("actions.cancel")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <section className={styles.detailsSection}>
+              <h3>{t("connectionSettings.details")}</h3>
+              <div className={styles.detailsBody}>
+                <p>{t(`connectionSettings.destination.${draft.routeId}`)}</p>
+                {directCatalog && <p>{t("connectionSettings.directCatalogNotice")}</p>}
+                {availability?.status === "inactive" &&
+                !isDirect &&
+                draft.routeId !== "local" ? null : listedOperations?.length ? (
+                  <p>
+                    {t("connectionSettings.operations", {
+                      operations: listedOperations
+                        .map((operation) => t(`connectionSettings.operation.${operation}`))
+                        .join(", "),
+                    })}
+                  </p>
+                ) : (
+                  <p>{t("connectionSettings.noOperations")}</p>
+                )}
+                {saved && (
+                  <div className={styles.remove}>
+                    <Button
+                      variant="quiet"
+                      isDisabled={busy || dirty}
+                      onPress={() => {
+                        setConfirmRemove(true);
+                      }}
+                    >
+                      {t("connectionSettings.remove")}
+                    </Button>
+                    {confirmRemove && (
+                      <div className={styles.confirm}>
+                        <p>{t("connectionSettings.removeWarning")}</p>
+                        <div className={styles.actions}>
+                          <Button variant="danger" isDisabled={busy} onPress={() => void remove()}>
+                            {t("connectionSettings.confirmRemove")}
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            isDisabled={busy}
+                            onPress={() => {
+                              setConfirmRemove(false);
+                            }}
+                          >
+                            {t("actions.cancel")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </section>
+            {error && (
+              <Feedback tone="error" live="assertive">
+                {t(error)}
+              </Feedback>
+            )}
+            {(dirty || saving) && draft.routeId !== "claude-code" && (
+              <div className={styles.editorActions}>
+                <Button variant="secondary" isDisabled={busy || !dirty} onPress={discard}>
+                  {t("settings.discard")}
+                </Button>
+                <Button variant="primary" isDisabled={busy || !dirty} onPress={() => void save()}>
+                  {t("settings.save")}
+                </Button>
+              </div>
+            )}
+          </Section>
+        </ModalDialog>
+      ) : !view ? (
+        <p>{t("settings.loading")}</p>
+      ) : null}
       {view?.settings.migrationNotice && (
         <div className={styles.notice}>
           <Check aria-hidden="true" />
@@ -860,8 +742,20 @@ export function ConnectionSettings({
       {view && view.settings.retiredSecretRefs.length > 0 && (
         <p>{t("connections.cleanupPending")}</p>
       )}
-      {feedbackTarget ? (
-        createPortal(
+      {!draft &&
+        (feedbackTarget ? (
+          createPortal(
+            <>
+              {error && (
+                <Feedback tone="error" live="assertive">
+                  {t(error)}
+                </Feedback>
+              )}
+              {notice && <Feedback live="polite">{notice}</Feedback>}{" "}
+            </>,
+            feedbackTarget,
+          )
+        ) : (
           <>
             {error && (
               <Feedback tone="error" live="assertive">
@@ -869,19 +763,8 @@ export function ConnectionSettings({
               </Feedback>
             )}
             {notice && <Feedback live="polite">{notice}</Feedback>}{" "}
-          </>,
-          feedbackTarget,
-        )
-      ) : (
-        <>
-          {error && (
-            <Feedback tone="error" live="assertive">
-              {t(error)}
-            </Feedback>
-          )}
-          {notice && <Feedback live="polite">{notice}</Feedback>}{" "}
-        </>
-      )}
+          </>
+        ))}
     </div>
   );
 }

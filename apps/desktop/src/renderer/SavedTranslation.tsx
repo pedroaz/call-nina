@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -136,7 +137,7 @@ function TranslationControls({
     setBusy(true);
     setNotice(undefined);
     try {
-      if (!(await requestAiAccess("contextual-help"))) {
+      if (!(await requestAiAccess("translation"))) {
         if (isAlive()) setNotice("unavailable");
         return;
       }
@@ -184,6 +185,7 @@ function TranslationControls({
             <p lang={saved.language}>{saved.text}</p>
           </section>
         )}
+        {!saved && <ProviderActionSummary operation="translation" busy={busy} />}
         <ActionGroup>
           {!saved && (
             <Button

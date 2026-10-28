@@ -1,10 +1,15 @@
 {
   "requirements": {
-    "identifiers": ["username"],
-    "authentication": ["password"],
+    "identifiers": [
+      "username"
+    ],
+    "authentication": [
+      "password"
+    ],
     "signup": "restricted",
     "nativeApi": true,
-    "passwordRecovery": "administrator"
+    "passwordRecovery": "administrator",
+    "organizationSelection": "optional"
   },
   "platformConfig": {
     "auth_username": {
@@ -24,6 +29,9 @@
     },
     "auth_access_control": {
       "sign_up_mode": "restricted"
+    },
+    "organization_settings": {
+      "force_organization_selection": false
     }
   },
   "configuration": "Existing instance only. Authenticate using npx clerk auth login. Set CLERK_APPLICATION_ID in private root .env. Review infra clerk-apply and execute with --yes. Partial authentication patches preserve unrelated settings; Native API and origins are read back separately."

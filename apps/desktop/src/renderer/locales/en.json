@@ -307,7 +307,7 @@
       "open": "Open in Codex",
       "opening": "Opening Codex…",
       "openRequested": "Opening Call Nina Practice in Codex. Send the prepared message, then select Start voice chat.",
-      "setupRequired": "Open Settings → AI connections in Call Nina to install or refresh the Call Nina plugin and check Codex setup. Then try again.",
+      "setupRequired": "Open Settings → AI providers in Call Nina to install or refresh the Call Nina plugin and check Codex setup. Then try again.",
       "failed": "Codex could not be opened. Check that the ChatGPT desktop app is installed, then try Open in Codex again.",
       "availability": "Voice in existing tasks depends on your app, account and workspace. If Start voice chat is unavailable, update Codex or continue by text.",
       "resume": "To resume a conversation, return to its task in Codex. This button prepares a new chat."
@@ -546,6 +546,51 @@
       "saveHint": "Save a word or the whole deck to add it to active vocabulary review. You can return to Vocabulary at any time.",
       "exerciseSources": "Writing corrections can suggest words here. You can also add unit vocabulary from Learning path or save words from flashcards.",
       "emptyLibrary": "No saved or suggested words yet."
+    },
+    "learning": {
+      "title": "Learning focuses",
+      "addFocus": "Add a learning focus",
+      "view": "View",
+      "undo": "Undo",
+      "paused": "Paused",
+      "name": "Name",
+      "source": "Text",
+      "pause": "Pause",
+      "resume": "Resume",
+      "pending": "Pending vocabulary updates",
+      "retry": "Retry",
+      "recent": "Recently added",
+      "guidance": "What would you like to learn?",
+      "image": "Image (upload, drop, or paste)",
+      "removeImage": "Remove image",
+      "imageInvalid": "Choose a PNG, JPEG, or WebP image up to 10 MB.",
+      "unreadable": "The image could not be read. Try a clearer image.",
+      "progress": "Updating vocabulary",
+      "library": "Word library",
+      "added_one": "1 word added",
+      "added_other": "{{count}} words added",
+      "save": "Save",
+      "tab": "Learning",
+      "allWords": "All words",
+      "addContent": "Add content",
+      "ready_one": "1 word ready to review",
+      "ready_other": "{{count}} words ready to review",
+      "upToDate": "You’re up to date",
+      "review": "Review words",
+      "viewAll": "View all",
+      "showLess": "Show less",
+      "emptyRecent": "Words added from practice and your content will appear here.",
+      "emptyFocus": "Add a topic, text or image to guide your vocabulary learning.",
+      "whyAdded": "Why this word was added",
+      "undoBatch_one": "Undo this addition",
+      "undoBatch_other": "Undo these {{count}} additions",
+      "badge_one": "+1 word",
+      "badge_other": "+{{count}} words",
+      "sources": {
+        "practice": "From practice",
+        "writing": "From writing",
+        "content": "From your content"
+      }
     }
   },
   "dashboard": {
@@ -1061,7 +1106,7 @@
     "automaticFallback": "{{model}} is unavailable. Using {{effective}} for now.",
     "tabs": {
       "profile": "Learning",
-      "ai": "AI connections",
+      "ai": "AI providers",
       "data": "Data & privacy",
       "diagnostics": "Diagnostics"
     },
@@ -1072,7 +1117,7 @@
     "chatgptRevocationPending": "Signed out locally. Remote revocation was not confirmed; disconnect Call Nina in ChatGPT settings if needed.",
     "chatgptUsageHelp": "This connection uses your ChatGPT plan. App limits and shared plan usage are managed in ChatGPT settings.",
     "chatgptUsageLink": "Usage & limits",
-    "aiTitle": "AI connections",
+    "aiTitle": "AI providers",
     "accountOptions": "Account options",
     "activateBeforeLogin": "Use this connection to manage its ChatGPT sign-in.",
     "sessionPrivacy": "Your sign-in is protected on this device. Removing a connection keeps you signed in.",
@@ -1092,14 +1137,14 @@
     "aiTimeout": "The AI request did not finish within the time limit. Try a shorter request or a smaller activity.",
     "modelUnavailable": "The selected model or reasoning setting is unavailable. Choose Automatic or another available option in the model selector, then retry.",
     "appServer": "The AI action could not finish. Check the selected connection in Settings and retry.",
-    "authentication": "Reconnect your provider or check the selected connection in Settings → AI connections.",
-    "unsupportedCodexVersion": "Call Nina could not use this Codex installation. Check its status in Settings → AI connections and update or reinstall Codex if needed.",
+    "authentication": "Reconnect your provider or check the selected connection in Settings → AI providers.",
+    "unsupportedCodexVersion": "Call Nina could not use this Codex installation. Check its status in Settings → AI providers and update or reinstall Codex if needed.",
     "rateLimit": "The provider’s usage limit was reached. Check its usage settings before trying again.",
     "cancellation": "The action was cancelled.",
     "modelOutput": "The AI result was incomplete or unusable. Try again or choose another available model.",
-    "mcp": "The Codex integration could not complete this action. Check its status in Settings → AI connections and install or refresh the integration if needed.",
-    "handoff": "Call Nina could not open the related activity. Check the Codex integration in Settings → AI connections, then try again.",
-    "unsupportedOperation": "This action is unavailable in the current setup. Check Settings → AI connections for supported options.",
+    "mcp": "The Codex integration could not complete this action. Check its status in Settings → AI providers and install or refresh the integration if needed.",
+    "handoff": "Call Nina could not open the related activity. Check the Codex integration in Settings → AI providers, then try again.",
+    "unsupportedOperation": "This action is unavailable in the current setup. Check Settings → AI providers for supported options.",
     "dataRootBusy": "Finish or cancel the active AI operation before changing the data folder."
   },
   "ui": {
@@ -1369,7 +1414,8 @@
       "saving": "Saving your result",
       "cancelling": "Cancelling",
       "refiningExercises": "Refining exercises",
-      "flashcard-generation": "Creating flashcards"
+      "flashcard-generation": "Creating flashcards",
+      "vocabulary-analysis": "Updating vocabulary"
     },
     "messages": {
       "0": "Longer requests can take a little time.",
@@ -1643,7 +1689,9 @@
       "contextual-help": "contextual help",
       "flashcard-generation": "flashcards",
       "exercise-generation": "exercise creation",
-      "exercise-feedback": "exercise feedback"
+      "exercise-feedback": "exercise feedback",
+      "vocabulary-analysis": "Updating vocabulary",
+      "translation": "Translation"
     },
     "savedConnections": "Saved connections",
     "newConnection": "New connection",
@@ -1651,13 +1699,13 @@
     "name": "Connection name",
     "nameRequired": "Enter a connection name.",
     "route": "Connection type",
-    "saved": "Connection settings saved.",
+    "saved": "Provider settings saved.",
     "localPractice": "Choose the AI used for new practice and feedback. Prepared practice works without AI.",
     "makeActive": "Use this connection",
     "saveBeforeActivate": "Save or discard these changes before using this connection.",
     "operations": "Supported actions: {{operations}}",
     "noOperations": "No AI actions are currently available through this connection.",
-    "advanced": "Advanced model settings",
+    "advanced": "Model settings",
     "keySaved": "A key is saved on this device. Its value cannot be viewed here.",
     "keyMissing": "No key is saved on this device.",
     "keyAction": "API key",
@@ -1693,8 +1741,8 @@
       "unavailable": "Local model management is unavailable on this device."
     },
     "managedUnavailable": "Nina-managed AI requires an approved Nina account and available AI actions. Service activation is controlled by the pilot administrator.",
-    "remove": "Remove connection",
-    "removeWarning": "Remove this saved connection? Learning records stay. A saved API key for this connection will be removed from this device. Removing a ChatGPT connection keeps Nina’s sign-in.",
+    "remove": "Remove provider configuration",
+    "removeWarning": "Remove this provider configuration? Assigned actions will require setup. Learning records and account sessions remain.",
     "successor": "Next active connection",
     "selectSuccessor": "Choose a successor",
     "successorRequired": "Choose a successor before removing the active connection.",
@@ -1704,9 +1752,9 @@
       "openai": "OpenAI API",
       "anthropic": "Anthropic API",
       "google": "Google API",
-      "local": "Downloaded model",
-      "managed": "Nina-managed AI",
-      "chatgpt": "ChatGPT"
+      "local": "Local",
+      "managed": "Nina",
+      "chatgpt": "ChatGPT subscription"
     },
     "destination": {
       "claude-code": "AI requests would go to Claude Code and its service.",
@@ -1738,7 +1786,7 @@
       "secure-storage-unavailable": "Secure key storage is unavailable on this device."
     },
     "details": "Connection details",
-    "chatgptAuth": "Connect or change your ChatGPT account in Settings → AI connections.",
+    "chatgptAuth": "Connect or change your ChatGPT account in Settings → AI providers.",
     "chatgptLoginUnavailable": "ChatGPT sign-in is unavailable. Check that secure credential storage is available on this device.",
     "manage": "Manage connections"
   },
@@ -1754,7 +1802,7 @@
     "dismiss": "Dismiss",
     "cleanupPending": "Credential removal is pending. Reopen these settings to retry.",
     "wait": "The connection changed or an AI action is running. Review the current settings, then retry.",
-    "officialAuth": "Connect or change your ChatGPT account in Settings → AI connections.",
+    "officialAuth": "Connect or change your ChatGPT account in Settings → AI providers.",
     "connectChatgpt": "Continue with ChatGPT"
   },
   "pathLibrary": {
@@ -1848,8 +1896,9 @@
     "writingViews": "Writing views"
   },
   "ninaAccount": {
+    "signInAgain": "Sign in again",
     "title": "Nina account",
-    "description": "Sign in for Nina-funded AI. Your personal AI connections work independently.",
+    "description": "Sign in for Nina-funded AI. Your personal AI providers work independently.",
     "unconfigured": "Pilot login has not been configured yet.",
     "error": "Could not complete this action. Check your credentials or contact the pilot administrator.",
     "signedIn": "Signed in as {{username}}",
@@ -1857,6 +1906,7 @@
     "pending": "Managed AI is awaiting activation.",
     "username": "Username",
     "password": "Password",
+    "showPassword": "Show password",
     "recovery": "Your pilot administrator provides credentials and password resets.",
     "signIn": "Sign in",
     "signOut": "Sign out",
@@ -1896,5 +1946,39 @@
     "loginFailedTitle": "Unable to sign in",
     "cancellingRequest": "Cancelled. Waiting for the previous request to finish before retrying.",
     "initializationFailed": "Sign-in could not start. Try again in a moment."
+  },
+  "providers": {
+    "signInRequired": "Sign-in required",
+    "connectionUnavailable": "Connection unavailable",
+    "routing": "AI routing",
+    "recommend": "Use recommended",
+    "text": "Text generation",
+    "image": "Image understanding",
+    "audio": "Audio generation",
+    "unassigned": "Not assigned",
+    "actionDefaults": "Action defaults (advanced)",
+    "useDefault": "Use capability default",
+    "capabilities": "Provider capabilities",
+    "provider": "Provider",
+    "status": "Status",
+    "notImplemented": "Not implemented",
+    "setupRequired": "Setup required",
+    "supported": "Supported",
+    "unsupported": "Unsupported",
+    "default": "Default",
+    "supportedActions": "Supported learning actions",
+    "voice": "Voice in Codex",
+    "back": "Back to providers",
+    "connected": "Connected",
+    "disconnected": "Not connected",
+    "configured": "Configured",
+    "keyRequired": "API key required",
+    "installed": "Installed",
+    "notInstalled": "Not installed",
+    "accessRequired": "Access required",
+    "keyRemovalPending": "The API key will be removed when you save.",
+    "selectedDefault": "Selected default",
+    "checkingConnection": "Checking access…",
+    "signInIncomplete": "Sign-in incomplete"
   }
 }

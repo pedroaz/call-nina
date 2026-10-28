@@ -42,6 +42,11 @@ export const personalDataGroups = {
   ],
   vocabulary: [
     "vocabulary_entries",
+    "vocabulary_focuses",
+    "vocabulary_batches",
+    "vocabulary_observations",
+    "vocabulary_analysis_queue",
+    "vocabulary_suppressions",
     "vocabulary_reviews",
     "course_vocabulary_links",
     "vocabulary_lesson_sets",

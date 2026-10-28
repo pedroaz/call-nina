@@ -1,4 +1,5 @@
 import {
+  vocabularyIdentity,
   activityIdSchema,
   calendarDateSchema,
   curriculumTopicIdSchema,
@@ -672,6 +673,15 @@ export class VocabularyRepository {
     const vocabularyId = vocabularyIdSchema.parse(vocabularyIdValue);
     const deletedAt = utcInstantSchema.parse(deletedAtValue);
     await withLeasedTransaction(this.#database, (connection) => {
+      const removed = connection
+        .prepare("SELECT * FROM vocabulary_entries WHERE vocabulary_id=?")
+        .get(vocabularyId);
+      if (removed) {
+        const entry = vocabularyEntryFromRow(removed);
+        connection
+          .prepare("INSERT OR IGNORE INTO vocabulary_suppressions VALUES (?,?)")
+          .run(entry.targetLanguage, vocabularyIdentity(entry, entry.targetLanguage));
+      }
       connection
         .prepare(`INSERT INTO vocabulary_deletions (vocabulary_id, deleted_at) VALUES (?, ?)`)
         .run(vocabularyId, deletedAt);

@@ -1,4 +1,3 @@
-import { Disclosure } from "./components/ui/Disclosure.js";
 import { useEffect, useState } from "react";
 import type { DataRootGeneration, DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
@@ -51,10 +50,8 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
       )}
       {!result && !error && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {result && (
-        <Disclosure
-          variant="inline"
-          label={`${t("vocabulary.lessonSets")} · ${result.entries.length}`}
-        >
+        <section aria-label={t("vocabulary.lessonSets")}>
+          <h2>{t("vocabulary.lessonSets")}</h2>
           <ul>
             {result.entries.map((set) => (
               <li key={set.setId}>
@@ -63,7 +60,7 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
               </li>
             ))}
           </ul>
-        </Disclosure>
+        </section>
       )}
     </>
   );

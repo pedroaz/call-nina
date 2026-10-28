@@ -23,7 +23,7 @@ interface Dependencies {
   nina: NinaAccount;
   offline: OfflineRuntime;
   secrets: ConnectionSecretStorage;
-  requireActiveConnection: () => Promise<AiConnection>;
+  connectionById: (id: string) => Promise<AiConnection>;
   projectGenerationEvent: (event: GenerationEvent) => void;
   providerAccess: (
     operation: ProviderOperation,
@@ -65,7 +65,7 @@ export class ConnectionRuntime {
       const assertActive = async () => {
         if (this.#closing || database !== this.#database || database.closed)
           throw new Error("OD_DATA_ROOT_STALE");
-        const current = await this.#dependencies.requireActiveConnection();
+        const current = await this.#dependencies.connectionById(captured.id);
         if (
           current.id !== captured.id ||
           current.routeId !== "chatgpt" ||
@@ -138,7 +138,7 @@ export class ConnectionRuntime {
     const assertActive = async () => {
       if (this.#closing || database !== this.#database || database.closed)
         throw new Error("OD_DATA_ROOT_STALE");
-      const current = await this.#dependencies.requireActiveConnection();
+      const current = await this.#dependencies.connectionById(captured.id);
       if (
         current.id !== captured.id ||
         current.routeId !== captured.routeId ||

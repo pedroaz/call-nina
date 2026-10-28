@@ -44,17 +44,20 @@ export async function mutateConnections(
     next.connections = prior
       ? next.connections.map((entry) => (entry.id === prior.id ? connection : entry))
       : [...next.connections, connection];
-    if (next.activeConnectionId === null) next.activeConnectionId = connection.id;
-  } else if (action.kind === "activate") next.activeConnectionId = action.connectionId;
+  } else if (action.kind === "routing") {
+    next.routing = action.routing;
+    if (action.resetModelDefaults)
+      for (const connection of next.connections)
+        connection.preference = {
+          model: { mode: "automatic" },
+          effort: { mode: "semantic", effort: "balanced" },
+        };
+  } else if (action.kind === "recommend") throw new Error("OD_RECOMMENDATION_NOT_RESOLVED");
   else if (action.kind === "remove") {
     const prior = next.connections.find((entry) => entry.id === action.connectionId);
     if (!prior) throw new Error("OD_CONNECTION_NOT_FOUND");
     if (prior.secretRef) next.retiredSecretRefs.push(prior.secretRef);
     next.connections = next.connections.filter((entry) => entry.id !== prior.id);
-    if (next.activeConnectionId === prior.id)
-      next.activeConnectionId = action.nextActiveConnectionId;
-    else if (action.nextActiveConnectionId !== next.activeConnectionId)
-      throw new Error("OD_CONNECTION_CONFLICT");
   } else next.migrationNotice = false;
   // Validate both prospective writes before runtime/login or storage effects.
   // The same schema used by persistence checks targets, successors and limits.

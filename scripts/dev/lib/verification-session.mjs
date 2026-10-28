@@ -53,6 +53,7 @@ export const mutatingActions = [
   "click",
   "double-click",
   "fill",
+  "upload-image",
   "select",
   "press",
   "prepare-ai",
@@ -521,7 +522,23 @@ export class VerificationSession {
     await save.click();
     await this.page.locator('[data-settings-ready="true"]').waitFor();
   }
-  async prepareAI() {
+  async prepareAI(route = "chatgpt") {
+    if (route === "managed") {
+      const configuration = JSON.parse(await readFile(
+        path.join(this.context.targetRoot, "packages/contracts/src/nina-public.json"), "utf8",
+      ));
+      if (!configuration.modelId) throw failure("VERIFY_MANAGED_MODEL_UNAVAILABLE");
+      // The operator selects routing in Settings first. Verify the actual action's
+      // resolved UI selection without changing unrelated capability assignments.
+      const summary = this.page.getByRole("status").filter({
+        hasText: configuration.modelId,
+      });
+      await summary.first().waitFor();
+      if (!(await summary.first().innerText()).includes(await this.t("connectionSettings.routes.managed")))
+        throw failure("VERIFY_MANAGED_ROUTE_REQUIRED");
+      this.aiPrepared = true;
+      return { route: "managed", model: configuration.modelId, effort: "runtime-default" };
+    }
     this.phase = "select-luna";
     const panel = await this.settings();
     const current = await this.preferences();

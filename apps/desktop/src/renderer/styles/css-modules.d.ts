@@ -60,19 +60,29 @@ declare module "*CompletionActions.module.css" {
 declare module "*ConnectionSettings.module.css" {
   const styles: {
     readonly actions: string;
+    readonly capabilityLabel: string;
     readonly confirm: string;
     readonly connectionHeading: string;
     readonly connectionIcon: string;
-    readonly connectionPicker: string;
     readonly detailsBody: string;
+    readonly detailsSection: string;
     readonly editor: string;
+    readonly editorActions: string;
+    readonly keySummary: string;
+    readonly matrix: string;
     readonly modelControls: string;
     readonly modelHeading: string;
     readonly notice: string;
     readonly offline: string;
     readonly panel: string;
+    readonly providerButton: string;
+    readonly providerOverview: string;
+    readonly providerStatus: string;
     readonly remove: string;
     readonly secret: string;
+    readonly selectedCapability: string;
+    readonly statusIssue: string;
+    readonly statusLabel: string;
   };
   export default styles;
 }
@@ -389,6 +399,13 @@ declare module "*ProfileOnboarding.module.css" {
   export default styles;
 }
 
+declare module "*ProviderActionSummary.module.css" {
+  const styles: {
+    readonly summary: string;
+  };
+  export default styles;
+}
+
 declare module "*SavedTranslation.module.css" {
   const styles: {
     readonly controls: string;
@@ -417,6 +434,7 @@ declare module "*SettingsPage.module.css" {
     readonly ninaAccountIntro: string;
     readonly ninaAccountSummary: string;
     readonly optionalIntegration: string;
+    readonly pendingSession: string;
     readonly settingsActions: string;
     readonly settingsControls: string;
     readonly settingsPage: string;
@@ -429,9 +447,12 @@ declare module "*SettingsPage.module.css" {
 
 declare module "*SidebarModelControl.module.css" {
   const styles: {
-    readonly navModelError: string;
+    readonly assignment: string;
+    readonly assignmentText: string;
+    readonly assignments: string;
+    readonly capabilityIcon: string;
     readonly navModelPanel: string;
-    readonly navModelStatus: string;
+    readonly summaryTrigger: string;
   };
   export default styles;
 }
@@ -456,6 +477,30 @@ declare module "*Table.module.css" {
   export default styles;
 }
 
+declare module "*VocabularyLearning.module.css" {
+  const styles: {
+    readonly added: string;
+    readonly focusButton: string;
+    readonly focusIcon: string;
+    readonly focusRow: string;
+    readonly form: string;
+    readonly muted: string;
+    readonly notice: string;
+    readonly overview: string;
+    readonly preview: string;
+    readonly review: string;
+    readonly reviewIcon: string;
+    readonly reviewText: string;
+    readonly row: string;
+    readonly sectionHeading: string;
+    readonly source: string;
+    readonly translation: string;
+    readonly wordButton: string;
+    readonly wordRow: string;
+  };
+  export default styles;
+}
+
 declare module "*VocabularyPage.module.css" {
   const styles: {
     readonly caption: string;
@@ -464,6 +509,7 @@ declare module "*VocabularyPage.module.css" {
     readonly dueColumn: string;
     readonly editForm: string;
     readonly empty: string;
+    readonly library: string;
     readonly meaningColumn: string;
     readonly muted: string;
     readonly reviewCard: string;

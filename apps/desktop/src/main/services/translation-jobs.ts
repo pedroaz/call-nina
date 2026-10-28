@@ -138,7 +138,7 @@ export class TranslationJobs {
             input: savedTranslationInput(job.request, part, context),
           });
           translated.push(contextualHelpCandidateSchema.parse(result.output).answer);
-          provenance = { ...result.provenance, connectionId: connection.id };
+          provenance = { ...result.provenance, connectionId: connection.id, capability: "text" };
         } finally {
           this.translationProviderOperations.delete(operationId);
           this.#dependencies.releaseOperation(operationId);

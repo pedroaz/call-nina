@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useEffect, useRef, useState } from "react";
 import type { ActivityId, CallNinaError, ProviderOperation } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
@@ -128,6 +129,7 @@ export function VocabularyGenerator({
           </Feedback>
         )}
         <OperationProgress progress={generation.progress} />
+        <ProviderActionSummary operation="flashcard-generation" busy={busy} />
         <ActionGroup align="end">
           <Button
             variant="secondary"

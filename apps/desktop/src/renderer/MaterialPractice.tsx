@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -396,6 +397,7 @@ export function MaterialPractice({
                 {t("materialPractice.source")}: {selected.source.url}
               </p>
             )}
+            <ProviderActionSummary operation="exercise-generation" busy={generation.busy} />
             <ActionGroup>
               <Button
                 variant="secondary"

@@ -1,5 +1,6 @@
 import {
   aiModelPreferenceSchema,
+  vocabularyIdSchema,
   activityIdSchema,
   contentReferenceSchema,
   contentExerciseRevisionSchema,
@@ -129,6 +130,7 @@ const sharedExerciseShape = {
   hints: z.array(hintSchema).max(5),
   feedbackMode: feedbackModeSchema,
   curriculumTopicIds: z.array(curriculumTopicIdSchema).max(20),
+  targetedVocabularyIds: z.array(vocabularyIdSchema).max(3).default([]),
   vocabularySetLinks: z.array(vocabularySetLinkSchema).max(20),
 } as const;
 

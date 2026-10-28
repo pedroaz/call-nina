@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type {
   ProviderOperation,
   ActivityId,
@@ -209,6 +210,10 @@ export function PreparedActivityWorkspace({
           </ActivityFooter>
         }
       >
+        <ProviderActionSummary
+          operation={voice ? "voice-handoff" : "exercise-generation"}
+          busy={busy || opening}
+        />
         <OperationProgress progress={generation.progress} />
         {!voice && <p>{activity.context.instructions ?? activity.context.naturalRequest}</p>}
         {voice ? (

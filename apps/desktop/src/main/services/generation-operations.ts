@@ -39,7 +39,10 @@ interface Dependencies {
   >;
   learningResults: () => Pick<
     LearningResultService,
-    "persistWritingCorrection" | "persistFlashcards" | "persistTargetedPractice"
+    | "persistWritingCorrection"
+    | "persistFlashcards"
+    | "persistTargetedPractice"
+    | "persistVocabulary"
   >;
 }
 export class GenerationOperations {
@@ -151,7 +154,11 @@ export class GenerationOperations {
         let savedActivityId: ReturnType<typeof activityIdSchema.parse> | undefined;
         const acceptedOperation = this.operationsBySubmission.get(state.submissionId);
         if (acceptedOperation)
-          state.provenance = { ...state.provenance, connectionId: acceptedOperation.connection.id };
+          state.provenance = {
+            ...state.provenance,
+            connectionId: acceptedOperation.connection.id,
+            capability: acceptedOperation.operation.capability ?? "text",
+          };
         const root = await this.#dependencies.dataRootState(state.operationId);
         if (
           !acceptedOperation ||
@@ -185,6 +192,11 @@ export class GenerationOperations {
             stage: "persisting",
             attempt: acceptedOperation.attempt ?? 1,
           });
+        }
+        if (state.kind === "vocabulary-analysis") {
+          await this.#dependencies
+            .learningResults()
+            .persistVocabulary(acceptedOperation, state.output);
         }
         if (state.kind === "writing-correction") {
           const accepted = [...this.operationsBySubmission.values()].find(

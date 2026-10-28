@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { MaterialPractice, type MaterialPracticeState } from "./MaterialPractice.js";
 import type { ProviderOperation, ActivityId, CallNinaError } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
@@ -81,6 +82,7 @@ export function ReadingPractice({
         </FieldGroup>
       )}
       {settings}
+      <ProviderActionSummary operation="exercise-generation" busy={generation.busy} />
       <ActionGroup>
         <Button
           variant="secondary"

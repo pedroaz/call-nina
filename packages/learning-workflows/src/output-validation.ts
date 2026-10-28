@@ -123,6 +123,23 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
       throw new GenerationOutputValidationError("OD_VOICE_ACTIVITY_DRAFT_INVALID");
     }
   }
+  if (kind === "vocabulary-analysis") {
+    const output = parsed.data as GenerationCandidateOutputMap["vocabulary-analysis"];
+    const request = input as Extract<GenerationInput, { kind: "vocabulary-analysis" }>;
+    if (
+      output.words.some(
+        (w) => !vocabularyLexemeMatchesLanguage(w.lexeme, input.learningContext.targetLanguage),
+      ) ||
+      (!output.readable && output.words.length > 0)
+    )
+      throw new GenerationOutputValidationError("OD_VOCABULARY_LANGUAGE_INVALID");
+    output.words = output.words.map((w) => ({
+      ...w,
+      lemma: vocabularyLemma(w, input.learningContext.targetLanguage),
+    }));
+    if (request.mode === "import" && !request.image && output.extractedText !== request.sourceText)
+      throw new GenerationOutputValidationError("OD_READING_PASSAGE_MISMATCH");
+  }
   if (kind === "flashcard-generation") {
     const output = parsed.data as GenerationCandidateOutputMap["flashcard-generation"];
     const language = input.learningContext.targetLanguage;
@@ -144,6 +161,13 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
   }
   if (kind === "exercise-generation") {
     const output = parsed.data as GenerationCandidateOutputMap["exercise-generation"];
+    const request = input as Extract<GenerationInput, { kind: "exercise-generation" }>;
+    const targets = new Set(output.exercises.flatMap((e) => e.targetedVocabularyIds));
+    if (
+      targets.size > 3 ||
+      [...targets].some((id) => !request.vocabularyToReview.some((w) => w.vocabularyId === id))
+    )
+      throw new GenerationOutputValidationError("OD_VOCABULARY_TARGET_INVALID");
     const issues: SafeOutputValidationIssue[] = [];
     const report: ReportIssue = (code, location) => {
       const issue = { code, path: [], ...(location ? { location } : {}) };

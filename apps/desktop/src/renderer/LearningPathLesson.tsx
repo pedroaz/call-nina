@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type {
   CourseActivity,
   CourseReference,
@@ -325,6 +326,16 @@ export function LearningPathLesson({
                             : "learningPath.skip",
                         )}
                       </Button>
+                      {!explanation && (
+                        <ProviderActionSummary
+                          operation={
+                            activity.delivery === "listening" || activity.delivery === "speaking"
+                              ? "voice-handoff"
+                              : "exercise-generation"
+                          }
+                          busy={busy}
+                        />
+                      )}
                       <ActionGroup align="end">
                         {!lessonNext && !explanation && (
                           <Button

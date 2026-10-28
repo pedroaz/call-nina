@@ -64,7 +64,7 @@ export class PostgresBudget {
     // An attempted upstream dispatch is conservatively charged in full even if
     // cancelled, timed out, rejected, or returned without reliable usage.
     const result = await this.sql.query(
-      "select nina_starter.settle($1::uuid,$2::uuid,$3::bigint,$4::integer,$5,$6::bigint,$7::jsonb) as settled",
+      "select nina_starter.settle($1::uuid,$2::uuid,$3::bigint,$4::integer,$5,$6::bigint,$7::text::jsonb) as settled",
       [
         this.policy.budgetId,
         requestId,

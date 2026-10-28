@@ -6,6 +6,8 @@ import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
 import ninaThinking from "@call-nina/design-system/brand/nina-thinking.png";
 import ninaListening from "@call-nina/design-system/brand/nina-listening.png";
 import ninaCelebration from "@call-nina/design-system/brand/nina-celebration.png";
+import { Discovery } from "./Discovery";
+import { LanguageSelector } from "./LanguageSelector";
 import { copy, featureIds, languages, type FeatureId, type Locale } from "./locales";
 
 import "@call-nina/design-system/tokens.css";
@@ -84,22 +86,7 @@ function App() {
           <img src={ninaPhone} alt="" width="40" height="40" />
           Call Nina
         </a>
-        <div className="language-switch" role="group" aria-label={t.language}>
-          {languages.map(({ code, label }) => (
-            <Button
-              key={code}
-              density="compact"
-              variant="quiet"
-              lang={code}
-              aria-pressed={locale === code}
-              onPress={() => {
-                changeLanguage(code);
-              }}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
+        <LanguageSelector locale={locale} onChange={changeLanguage} />
       </header>
       <main id="main" tabIndex={-1}>
         <section className="hero wrap" aria-labelledby="hero-title">
@@ -111,6 +98,22 @@ function App() {
               {t.free}
             </p>
             <div className="hero-actions">
+              <Discovery
+                locale={locale}
+                onLocaleChange={changeLanguage}
+                onExplore={(next) => {
+                  if (next) setFeature(next);
+                  requestAnimationFrame(() => {
+                    const target = next
+                      ? document.querySelector<HTMLElement>(
+                          '.features [role="tab"][aria-selected="true"]',
+                        )
+                      : document.getElementById("features-title");
+                    target?.focus({ preventScroll: true });
+                    target?.scrollIntoView({ block: "center" });
+                  });
+                }}
+              />
               <Button isDisabled>{t.download}</Button>
               <ActionLink href={repository} variant="secondary">
                 {t.github}
@@ -124,7 +127,9 @@ function App() {
           </div>
         </section>
         <section className="features wrap" aria-labelledby="features-title">
-          <h2 id="features-title">{t.featuresTitle}</h2>
+          <h2 id="features-title" tabIndex={-1}>
+            {t.featuresTitle}
+          </h2>
           <Tabs
             label={t.featuresTitle}
             selectedKey={feature}

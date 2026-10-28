@@ -14,6 +14,7 @@ export type ShellNavigationItem<Page extends string> = Readonly<{
   page: Page;
   label: string;
   icon: LucideIcon;
+  feedback?: ReactNode;
 }>;
 
 export function AppShell<Page extends string>(props: {
@@ -195,7 +196,7 @@ export function AppShell<Page extends string>(props: {
             />
           </div>
           <ul className={styles.navList}>
-            {props.navigation.map(({ page, label, icon: Icon }) => {
+            {props.navigation.map(({ page, label, icon: Icon, feedback }) => {
               const control = (
                 <Button
                   aria-label={label}
@@ -216,6 +217,7 @@ export function AppShell<Page extends string>(props: {
               return (
                 <li key={page}>
                   {props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}
+                  {feedback}
                 </li>
               );
             })}

@@ -5,6 +5,7 @@ export const root = new URL("../../", here);
 export const read = async (name) => JSON.parse(await readFile(new URL(name, here), "utf8"));
 export const config = await read("infrastructure.json");
 export const clerkPolicy = await read("clerk-policy.json");
+const desired = await read("../../apps/api/desired.json");
 export const results = [];
 export const output = (value) => results.push(value);
 const runtimeKeys = ["projectId", "teamId", "origin", "clerkIssuer", "allowedOrigins"];
@@ -28,7 +29,11 @@ export function publicConfiguration() {
     throw new ControlError("Invalid Clerk publishable key");
   return {
     runtime: Object.fromEntries(runtimeKeys.map((key) => [key, config[key]])),
-    client: { publishableKey: config.publishableKey, serviceOrigin: config.origin, modelId: null },
+    client: {
+      publishableKey: config.publishableKey,
+      serviceOrigin: config.origin,
+      modelId: desired.production.enabled ? desired.production.policy.model.id : null,
+    },
   };
 }
 export async function configureClient() {

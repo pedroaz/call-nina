@@ -12,14 +12,6 @@
 .panel {
   gap: var(--od-space-4);
 }
-.connectionPicker {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: end;
-  gap: var(--od-space-3);
-  padding-bottom: var(--od-space-5);
-  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
-}
 .connectionHeading {
   display: flex;
   align-items: center;
@@ -123,12 +115,8 @@
 }
 
 @container workspace (max-width: 42rem) {
-  .modelControls,
-  .connectionPicker {
+  .modelControls {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .connectionPicker > button {
-    justify-self: start;
   }
   .notice {
     grid-template-columns: auto minmax(0, 1fr);
@@ -136,4 +124,161 @@
   .notice > button {
     grid-column: 2;
   }
+}
+
+.matrix {
+  overflow-x: auto;
+  min-width: 0;
+}
+.matrix table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: start;
+}
+.matrix caption {
+  text-align: start;
+  font-weight: 600;
+  padding-bottom: var(--od-space-3);
+}
+.matrix th,
+.matrix td {
+  padding: var(--od-space-3);
+  border-bottom: 1px solid var(--od-color-border-default);
+  vertical-align: middle;
+  text-align: start;
+}
+.matrix th {
+  font-weight: 600;
+}
+.matrix th:first-child {
+  width: 26%;
+}
+.matrix th[scope="row"] {
+  padding-inline: 0 var(--od-space-3);
+}
+.matrix thead th:first-child {
+  padding-inline-start: var(--od-space-3);
+}
+
+.providerOverview {
+  min-width: 0;
+}
+.providerButton {
+  width: 100%;
+  justify-content: space-between;
+  text-align: start;
+  padding-inline: var(--od-space-3);
+}
+.editor {
+  container: provider-editor / inline-size;
+}
+.editor p,
+.editor h3,
+.editor h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.editorActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--od-space-3);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+}
+@container provider-editor (max-width: 28rem) {
+  .modelControls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.detailsSection {
+  display: grid;
+  gap: var(--od-space-4);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+  min-width: 0;
+}
+.detailsSection h3 {
+  font-size: var(--od-type-subsection-title-size);
+  line-height: var(--od-type-subsection-title-line);
+  font-weight: var(--od-weight-medium);
+  margin: 0;
+}
+
+.modelControls > :only-child {
+  grid-column: 1 / -1;
+}
+.secret {
+  padding-block: var(--od-space-2);
+}
+.secret > button {
+  justify-self: start;
+}
+.keySummary {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.keySummary > button {
+  justify-self: start;
+}
+.providerStatus {
+  display: grid;
+  gap: var(--od-space-2);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+}
+.statusLabel,
+.statusIssue {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+}
+.statusLabel {
+  font-weight: var(--od-weight-medium);
+  color: var(--od-color-text-muted);
+}
+.statusLabel[data-tone="ready"] {
+  color: var(--od-color-state-correct);
+}
+.statusLabel svg,
+.statusIssue svg {
+  flex: none;
+  width: var(--od-icon-sm);
+  height: var(--od-icon-sm);
+}
+.statusIssue {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-caption-size);
+  line-height: var(--od-type-caption-line);
+}
+
+.capabilityLabel,
+.selectedCapability {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  color: var(--od-color-text-muted);
+}
+.capabilityLabel svg,
+.selectedCapability svg {
+  width: var(--od-icon-sm);
+  height: var(--od-icon-sm);
+  flex: none;
+}
+.capabilityLabel[data-supported] {
+  color: var(--od-color-state-correct);
+}
+.selectedCapability {
+  white-space: nowrap;
+  border-radius: var(--od-radius-sm);
+  padding: var(--od-space-1) var(--od-space-2);
+  font-weight: var(--od-weight-medium);
+  background: var(--od-color-surface-brand);
+}
+.selectedCapability[data-ready="true"] {
+  color: var(--od-color-state-correct);
+  background: var(--od-color-state-correct-soft);
 }

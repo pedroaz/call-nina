@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import {
   type ProviderOperation,
   type DesktopIpcRequest,
@@ -355,6 +356,10 @@ export function HistoryPage({
 
   const operationStatus = (
     <>
+      <ProviderActionSummary
+        operation="exercise-generation"
+        busy={practiceState?.status === "queued" || practiceState?.status === "running"}
+      />
       <OperationProgress
         progress={
           practiceState?.status === "queued" || practiceState?.status === "running"

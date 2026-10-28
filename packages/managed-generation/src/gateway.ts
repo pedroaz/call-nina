@@ -52,7 +52,9 @@ export async function generateGatewayAttempt(options: {
   try {
     const result = await generateText({
       model: createGateway({ apiKey, baseURL, fetch: boundedFetch })(policy.model.id),
-      system: `${attempt.instructions}\n${attempt.teachingInstructions}`,
+      // Some Gateway providers accept JSON mode without enforcing its schema.
+      // Supply the same contract in instructions; workflow validation remains authoritative.
+      system: `${attempt.instructions}\n${attempt.teachingInstructions}\nReturn one JSON object matching this output schema exactly, including every required field and no extra fields:\n${JSON.stringify(attempt.outputSchema)}`,
       prompt: attempt.prompt,
       output: Output.object({
         schema: jsonSchema(attempt.outputSchema as Parameters<typeof jsonSchema>[0]),
@@ -64,9 +66,11 @@ export async function generateGatewayAttempt(options: {
           only: [policy.model.provider],
           order: [policy.model.provider],
           models: [],
+          byok: {},
         },
       },
       maxOutputTokens: limits.outputTokens,
+      reasoning: "none",
       maxRetries: 0,
       abortSignal: signal,
       telemetry: { isEnabled: false, recordInputs: false, recordOutputs: false, integrations: [] },

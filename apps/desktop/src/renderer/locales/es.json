@@ -307,7 +307,7 @@
       "open": "Abrir en Codex",
       "opening": "Abriendo Codex…",
       "openRequested": "Abriendo Call Nina Practice en Codex. Envía el mensaje preparado y selecciona Iniciar chat de voz.",
-      "setupRequired": "Abre Configuración → Conexiones de IA en Call Nina para instalar o actualizar el complemento Call Nina y comprobar la configuración de Codex. Luego inténtalo de nuevo.",
+      "setupRequired": "Abre Configuración → Proveedores de IA en Call Nina para instalar o actualizar el complemento Call Nina y comprobar la configuración de Codex. Luego inténtalo de nuevo.",
       "failed": "No se pudo abrir Codex. Comprueba que la aplicación de escritorio ChatGPT esté instalada y vuelve a intentar Abrir en Codex.",
       "availability": "Voice en tareas existentes depende de la aplicación, la cuenta y el espacio de trabajo. Si Start voice chat no está disponible, actualiza Codex o continúa por texto.",
       "resume": "Para reanudar una conversación, vuelve a su tarea en Codex. Este botón prepara un chat nuevo."
@@ -546,6 +546,51 @@
       "saveHint": "Guarda una palabra o todas las tarjetas para añadirlas al repaso activo. Puedes volver a Vocabulario en cualquier momento.",
       "exerciseSources": "Las correcciones de escritura pueden sugerir palabras aquí. También puedes añadir vocabulario de unidades desde la ruta de aprendizaje o guardar palabras de tarjetas.",
       "emptyLibrary": "Todavía no hay palabras guardadas ni sugeridas."
+    },
+    "learning": {
+      "title": "Temas de aprendizaje",
+      "addFocus": "Añadir un tema de aprendizaje",
+      "view": "Ver",
+      "undo": "Deshacer",
+      "paused": "En pausa",
+      "name": "Nombre",
+      "source": "Texto",
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "pending": "Actualizaciones de vocabulario pendientes",
+      "retry": "Reintentar",
+      "recent": "Añadidas recientemente",
+      "guidance": "¿Qué te gustaría aprender?",
+      "image": "Imagen (subir, arrastrar o pegar)",
+      "removeImage": "Quitar imagen",
+      "imageInvalid": "Elige una imagen PNG, JPEG o WebP de hasta 10 MB.",
+      "unreadable": "No se pudo leer la imagen. Prueba con una más clara.",
+      "progress": "Actualizando vocabulario",
+      "library": "Biblioteca de palabras",
+      "added_one": "1 palabra añadida",
+      "added_other": "{{count}} palabras añadidas",
+      "save": "Guardar",
+      "tab": "Aprendizaje",
+      "allWords": "Todas las palabras",
+      "addContent": "Añadir contenido",
+      "ready_one": "1 palabra para repasar",
+      "ready_other": "{{count}} palabras para repasar",
+      "upToDate": "Estás al día",
+      "review": "Repasar palabras",
+      "viewAll": "Ver todas",
+      "showLess": "Ver menos",
+      "emptyRecent": "Aquí aparecerán las palabras añadidas de tus prácticas y contenidos.",
+      "emptyFocus": "Añade un tema, texto o imagen para orientar tu vocabulario.",
+      "whyAdded": "Por qué se añadió esta palabra",
+      "undoBatch_one": "Deshacer esta incorporación",
+      "undoBatch_other": "Deshacer estas {{count}} incorporaciones",
+      "badge_one": "+1 palabra",
+      "badge_other": "+{{count}} palabras",
+      "sources": {
+        "practice": "De la práctica",
+        "writing": "De la escritura",
+        "content": "De tu contenido"
+      }
     }
   },
   "dashboard": {
@@ -1061,7 +1106,7 @@
     "automaticFallback": "{{model}} no está disponible. Se usa {{effective}} por ahora.",
     "tabs": {
       "profile": "Aprendizaje",
-      "ai": "Conexiones de IA",
+      "ai": "Proveedores de IA",
       "data": "Datos y privacidad",
       "diagnostics": "Diagnósticos"
     },
@@ -1072,7 +1117,7 @@
     "chatgptRevocationPending": "Se cerró la sesión local. No se confirmó la revocación remota; desconecta Call Nina en los ajustes de ChatGPT si es necesario.",
     "chatgptUsageHelp": "Esta conexión usa tu plan de ChatGPT. Gestiona los límites de la aplicación y el uso compartido del plan en los ajustes de ChatGPT.",
     "chatgptUsageLink": "Uso y límites",
-    "aiTitle": "Conexiones de IA",
+    "aiTitle": "Proveedores de IA",
     "accountOptions": "Opciones de cuenta",
     "activateBeforeLogin": "Usa esta conexión para gestionar su inicio de sesión en ChatGPT.",
     "sessionPrivacy": "Tu sesión está protegida en este dispositivo. Eliminar una conexión no cierra la sesión.",
@@ -1092,14 +1137,14 @@
     "aiTimeout": "La solicitud de IA no terminó a tiempo. Prueba una solicitud más corta o una actividad más pequeña.",
     "modelUnavailable": "El modelo o nivel de razonamiento seleccionado no está disponible. Elige Automático u otra opción disponible en el selector de modelos e inténtalo de nuevo.",
     "appServer": "La acción de IA no pudo completarse. Revisa la conexión seleccionada en Ajustes e inténtalo de nuevo.",
-    "authentication": "Vuelve a conectar tu proveedor o revisa la conexión seleccionada en Configuración → Conexiones de IA.",
-    "unsupportedCodexVersion": "Call Nina no pudo usar esta instalación de Codex. Comprueba su estado en Configuración → Conexiones de IA y actualiza o reinstala Codex si hace falta.",
+    "authentication": "Vuelve a conectar tu proveedor o revisa la conexión seleccionada en Configuración → Proveedores de IA.",
+    "unsupportedCodexVersion": "Call Nina no pudo usar esta instalación de Codex. Comprueba su estado en Configuración → Proveedores de IA y actualiza o reinstala Codex si hace falta.",
     "rateLimit": "Se alcanzó el límite de uso del proveedor. Revisa sus ajustes de uso antes de volver a intentarlo.",
     "cancellation": "Se canceló la acción.",
     "modelOutput": "El resultado de IA estaba incompleto o no era válido. Inténtalo de nuevo o elige otro modelo disponible.",
-    "mcp": "La integración con Codex no pudo completar esta acción. Comprueba su estado en Configuración → Conexiones de IA e instálala o actualízala si hace falta.",
-    "handoff": "Call Nina no pudo abrir la actividad relacionada. Comprueba la integración con Codex en Configuración → Conexiones de IA e inténtalo de nuevo.",
-    "unsupportedOperation": "Esta acción no está disponible con la configuración actual. Consulta las opciones compatibles en Configuración → Conexiones de IA.",
+    "mcp": "La integración con Codex no pudo completar esta acción. Comprueba su estado en Configuración → Proveedores de IA e instálala o actualízala si hace falta.",
+    "handoff": "Call Nina no pudo abrir la actividad relacionada. Comprueba la integración con Codex en Configuración → Proveedores de IA e inténtalo de nuevo.",
+    "unsupportedOperation": "Esta acción no está disponible con la configuración actual. Consulta las opciones compatibles en Configuración → Proveedores de IA.",
     "dataRootBusy": "Termina o cancela la acción de IA activa antes de cambiar la carpeta de datos."
   },
   "ui": {
@@ -1192,7 +1237,7 @@
       "clearing": "Borrando…",
       "confirmLabel": "Escribe CLEAR para confirmar",
       "confirmWord": "CLEAR",
-      "retained": "El borrado conserva la conexión de tu cuenta, la aceptación del aviso de privacidad y los marcadores de duplicados o eliminaciones. No elimina archivos adjuntos, archivos de investigación, la configuración de la aplicación ni los registros de diagnóstico. Los controles de diagnóstico permanecen en Configuración → Conexiones de IA.",
+      "retained": "El borrado conserva la conexión de tu cuenta, la aceptación del aviso de privacidad y los marcadores de duplicados o eliminaciones. No elimina archivos adjuntos, archivos de investigación, la configuración de la aplicación ni los registros de diagnóstico. Los controles de diagnóstico permanecen en Configuración → Proveedores de IA.",
       "blocked": {
         "busy": "Todavía hay una acción de IA en curso. Termínala o cancélala antes de borrar los datos.",
         "linked-vocabulary": "Algunas palabras de vocabulario están vinculadas a esta práctica. Borra primero ese vocabulario o elige «Borrar todos los datos de aprendizaje». No se cambió ningún dato.",
@@ -1369,7 +1414,8 @@
       "saving": "Guardando tu resultado",
       "cancelling": "Cancelando",
       "refiningExercises": "Mejorando los ejercicios",
-      "flashcard-generation": "Creando tarjetas de estudio"
+      "flashcard-generation": "Creando tarjetas de estudio",
+      "vocabulary-analysis": "Actualizando vocabulario"
     },
     "messages": {
       "0": "Las solicitudes más largas pueden tardar un poco.",
@@ -1643,7 +1689,9 @@
       "contextual-help": "ayuda contextual",
       "flashcard-generation": "tarjetas",
       "exercise-generation": "creación de ejercicios",
-      "exercise-feedback": "comentarios sobre ejercicios"
+      "exercise-feedback": "comentarios sobre ejercicios",
+      "vocabulary-analysis": "Actualizando vocabulario",
+      "translation": "Traducción"
     },
     "savedConnections": "Conexiones guardadas",
     "newConnection": "Nueva conexión",
@@ -1651,13 +1699,13 @@
     "name": "Nombre de la conexión",
     "nameRequired": "Escribe un nombre para la conexión.",
     "route": "Tipo de conexión",
-    "saved": "Configuración de conexión guardada.",
+    "saved": "Configuración del proveedor guardada.",
     "localPractice": "Elige la IA para nuevas actividades y comentarios. La práctica preparada funciona sin IA.",
     "makeActive": "Usar esta conexión",
     "saveBeforeActivate": "Guarda o descarta estos cambios antes de usar esta conexión.",
     "operations": "Acciones disponibles: {{operations}}",
     "noOperations": "Actualmente no hay acciones de IA disponibles con esta conexión.",
-    "advanced": "Ajustes avanzados del modelo",
+    "advanced": "Ajustes del modelo",
     "keySaved": "Hay una clave guardada en este dispositivo. Su valor no se puede ver aquí.",
     "keyMissing": "No hay ninguna clave guardada en este dispositivo.",
     "keyAction": "Clave API",
@@ -1693,8 +1741,8 @@
       "unavailable": "La gestión del modelo local no está disponible en este dispositivo."
     },
     "managedUnavailable": "La IA gestionada requiere una cuenta Nina aprobada y acciones disponibles. El administrador del piloto controla la activación.",
-    "remove": "Eliminar conexión",
-    "removeWarning": "¿Eliminar esta conexión guardada? Los datos de aprendizaje permanecen. Una clave API guardada para esta conexión se eliminará del dispositivo. Eliminar una conexión ChatGPT mantiene la sesión de Nina.",
+    "remove": "Eliminar configuración del proveedor",
+    "removeWarning": "¿Eliminar esta configuración? Las acciones asignadas requerirán configuración. Se conservan el aprendizaje y las sesiones de cuenta.",
     "successor": "Siguiente conexión activa",
     "selectSuccessor": "Elige la siguiente",
     "successorRequired": "Elige otra conexión activa antes de eliminar esta.",
@@ -1704,9 +1752,9 @@
       "openai": "API de OpenAI",
       "anthropic": "API de Anthropic",
       "google": "API de Google",
-      "local": "Modelo descargado",
-      "managed": "IA de Nina",
-      "chatgpt": "ChatGPT"
+      "local": "Local",
+      "managed": "Nina",
+      "chatgpt": "Suscripción a ChatGPT"
     },
     "destination": {
       "claude-code": "Las solicitudes de IA irían a Claude Code y su servicio.",
@@ -1738,7 +1786,7 @@
       "secure-storage-unavailable": "El almacenamiento seguro de claves no está disponible en este dispositivo."
     },
     "details": "Detalles de la conexión",
-    "chatgptAuth": "Conecta o cambia tu cuenta de ChatGPT en Configuración → Conexiones de IA.",
+    "chatgptAuth": "Conecta o cambia tu cuenta de ChatGPT en Configuración → Proveedores de IA.",
     "chatgptLoginUnavailable": "El inicio de sesión de ChatGPT no está disponible. Comprueba que el dispositivo tenga almacenamiento seguro de credenciales.",
     "manage": "Gestionar conexiones"
   },
@@ -1754,7 +1802,7 @@
     "dismiss": "Descartar",
     "cleanupPending": "La eliminación de la credencial está pendiente. Abre de nuevo esta configuración para reintentarlo.",
     "wait": "La conexión cambió o hay una acción de IA en curso. Revisa la configuración actual y vuelve a intentarlo.",
-    "officialAuth": "Conecta o cambia tu cuenta de ChatGPT en Configuración → Conexiones de IA.",
+    "officialAuth": "Conecta o cambia tu cuenta de ChatGPT en Configuración → Proveedores de IA.",
     "connectChatgpt": "Continuar con ChatGPT"
   },
   "pathLibrary": {
@@ -1848,6 +1896,7 @@
     "writingViews": "Vistas de escritura"
   },
   "ninaAccount": {
+    "signInAgain": "Volver a iniciar sesión",
     "title": "Cuenta de Nina",
     "description": "Accede a la IA financiada por Nina. Tus conexiones personales de IA funcionan de forma independiente.",
     "unconfigured": "El inicio de sesión del piloto aún no está configurado.",
@@ -1857,6 +1906,7 @@
     "pending": "La IA gestionada está pendiente de activación.",
     "username": "Nombre de usuario",
     "password": "Contraseña",
+    "showPassword": "Mostrar contraseña",
     "recovery": "El administrador del piloto proporciona credenciales y restablece contraseñas.",
     "signIn": "Iniciar sesión",
     "signOut": "Cerrar sesión",
@@ -1896,5 +1946,39 @@
     "loginFailedTitle": "No se pudo iniciar sesión",
     "cancellingRequest": "Cancelado. Esperando a que termine la solicitud anterior antes de reintentar.",
     "initializationFailed": "No se pudo iniciar el acceso. Vuelve a intentarlo en un momento."
+  },
+  "providers": {
+    "signInRequired": "Inicio de sesión necesario",
+    "connectionUnavailable": "Conexión no disponible",
+    "routing": "Asignación de IA",
+    "recommend": "Usar recomendaciones",
+    "text": "Generación de texto",
+    "image": "Comprensión de imágenes",
+    "audio": "Generación de audio",
+    "unassigned": "Sin asignar",
+    "actionDefaults": "Valores por acción (avanzado)",
+    "useDefault": "Usar valor de la capacidad",
+    "capabilities": "Capacidades de proveedores",
+    "provider": "Proveedor",
+    "status": "Estado",
+    "notImplemented": "No implementado",
+    "setupRequired": "Requiere configuración",
+    "supported": "Compatible",
+    "unsupported": "No compatible",
+    "default": "Predeterminado",
+    "supportedActions": "Acciones de aprendizaje compatibles",
+    "voice": "Voz en Codex",
+    "back": "Volver a proveedores",
+    "connected": "Conectado",
+    "disconnected": "Sin conectar",
+    "configured": "Configurado",
+    "keyRequired": "Se requiere una clave API",
+    "installed": "Instalado",
+    "notInstalled": "No instalado",
+    "accessRequired": "Se requiere acceso",
+    "keyRemovalPending": "La clave API se eliminará al guardar.",
+    "selectedDefault": "Predeterminado seleccionado",
+    "checkingConnection": "Comprobando acceso…",
+    "signInIncomplete": "Inicio de sesión incompleto"
   }
 }

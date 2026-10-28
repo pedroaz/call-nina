@@ -46,7 +46,7 @@ export const aiConnectionSchema = aiConnectionInputSchema
     { message: "OD_CONNECTION_SECRET_OWNER_INVALID" },
   );
 // Root-owned intent survives portability; device-owned key material never travels with it.
-export const aiConnectionsSchema = z
+export const legacyAiConnectionsSchema = z
   .strictObject({
     schemaVersion: z.literal(2),
     revision: z.int().min(0),
@@ -70,7 +70,7 @@ export const aiConnectionsSchema = z
       ctx.addIssue({ code: "custom", message: "OD_CONNECTION_STATE_INVALID" });
     }
   });
-export const emptyAiConnections = {
+export const legacyEmptyAiConnections = {
   schemaVersion: 2,
   revision: 0,
   connections: [],
@@ -78,6 +78,63 @@ export const emptyAiConnections = {
   migrationNotice: false,
   retiredSecretRefs: [],
 } as const;
+export const aiCapabilitySchema = z.enum(["text", "image", "audio"]);
+export const aiActionSchema = z.enum([...generationKindSchema.options, "translation"]);
+export const aiRoutingSchema = z.strictObject({
+  text: aiRouteSchema.nullable(),
+  image: aiRouteSchema.nullable(),
+  actions: z.partialRecord(aiActionSchema, aiRouteSchema),
+});
+export const aiConnectionsSchema = z
+  .strictObject({
+    schemaVersion: z.literal(3),
+    revision: z.int().min(0),
+    connections: z.array(aiConnectionSchema).max(7),
+    routing: aiRoutingSchema,
+    migrationNotice: z.boolean(),
+    retiredSecretRefs: z.array(aiSecretReferenceSchema).max(200),
+  })
+  .superRefine((value, ctx) => {
+    const ids = value.connections.map((entry) => entry.id);
+    const routes = value.connections.map((entry) => entry.routeId);
+    const refs = value.connections.flatMap((entry) => (entry.secretRef ? [entry.secretRef] : []));
+    if (
+      new Set(ids).size !== ids.length ||
+      new Set(routes).size !== routes.length ||
+      new Set(refs).size !== refs.length ||
+      new Set(value.retiredSecretRefs).size !== value.retiredSecretRefs.length ||
+      refs.some((ref) => value.retiredSecretRefs.includes(ref))
+    )
+      ctx.addIssue({ code: "custom", message: "OD_CONNECTION_STATE_INVALID" });
+  });
+export const emptyAiConnections = {
+  schemaVersion: 3,
+  revision: 0,
+  connections: [],
+  routing: { text: null, image: null, actions: {} },
+  migrationNotice: false,
+  retiredSecretRefs: [],
+} as const;
+export type AiCapability = z.infer<typeof aiCapabilitySchema>;
+export type AiRouting = z.infer<typeof aiRoutingSchema>;
+export type AiAction = z.infer<typeof aiActionSchema>;
+export const aiProviderOrder = [
+  "managed",
+  "chatgpt",
+  "openai",
+  "anthropic",
+  "google",
+  "local",
+  "claude-code",
+] as const;
+export function routedProvider(
+  routing: AiRouting,
+  action: AiAction,
+  capability: "text" | "image" = "text",
+) {
+  return routing.actions[action] ?? routing[capability];
+}
+
 export const aiSecretInputSchema = z
   .string()
   .min(1)
@@ -96,12 +153,16 @@ export const aiConnectionMutationSchema = z.strictObject({
         z.strictObject({ action: z.literal("replace"), secret: aiSecretInputSchema }),
       ]),
     }),
-    z.strictObject({ kind: z.literal("activate"), connectionId: aiConnectionIdSchema }),
-    // Removing an active connection requires an explicit successor, never automatic fallback.
+    z.strictObject({
+      kind: z.literal("routing"),
+      routing: aiRoutingSchema,
+      resetModelDefaults: z.boolean().optional(),
+    }),
+    z.strictObject({ kind: z.literal("recommend") }),
+    // Keep assignments to a removed provider explicit and unavailable; never fall back.
     z.strictObject({
       kind: z.literal("remove"),
       connectionId: aiConnectionIdSchema,
-      nextActiveConnectionId: aiConnectionIdSchema.nullable(),
     }),
     z.strictObject({ kind: z.literal("dismiss-migration") }),
   ]),

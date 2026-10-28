@@ -1,6 +1,8 @@
 export const languages = [
   { code: "en", label: "English" },
   { code: "de", label: "Deutsch" },
+  { code: "es", label: "Español" },
+  { code: "pt-BR", label: "Português" },
 ] as const;
 export type Locale = (typeof languages)[number]["code"];
 export const featureIds = ["exercises", "paths", "writing", "vocabulary"] as const;
@@ -133,5 +135,108 @@ export const copy: Record<Locale, Copy> = {
     contact: "Kontakt",
     source: "Quellcode auf GitHub",
     license: "Lizenz",
+  },
+  es: {
+    title: "Call Nina — Aprende un idioma con IA",
+    description:
+      "Una aplicación de escritorio para practicar idiomas. Gratis para el aprendizaje personal. Ejercicios con IA, rutas de aprendizaje, comentarios sobre textos y práctica de vocabulario con Call Nina.",
+    skip: "Saltar al contenido",
+    language: "Idioma del sitio",
+    headline: "Aprende un idioma con IA.",
+    introduction: "Una aplicación de escritorio para practicar idiomas.",
+    free: "Gratis para el aprendizaje personal.",
+    mobile: "Aplicación móvil — próximamente",
+    subscriptions: "Aprende con tus suscripciones de IA, empezando por ChatGPT.",
+    download: "Descargar — próximamente",
+    github: "Ver en GitHub",
+    featuresTitle: "Tu práctica, con Nina.",
+    features: {
+      exercises: { label: "Ejercicios con IA", text: "Genera ejercicios según tu tema y nivel." },
+      paths: {
+        label: "Rutas de aprendizaje",
+        text: "Sigue lecciones estructuradas para alcanzar tus objetivos.",
+      },
+      writing: {
+        label: "Comentarios sobre tus textos",
+        text: "Recibe correcciones y explicaciones de la IA sobre lo que escribes.",
+      },
+      vocabulary: {
+        label: "Práctica de vocabulario",
+        text: "Guarda palabras y vuelve a practicarlas.",
+      },
+    },
+    connections: "Trae tu IA.",
+    providers: [
+      "API de OpenAI",
+      "API de Anthropic",
+      "API de Google Gemini",
+      "Claude Code",
+      "IA local",
+      "IA financiada por Nina",
+    ],
+    languagesTitle: "Elige tu idioma.",
+    learningLanguages: ["Inglés de Estados Unidos", "Portugués de Brasil", "Español", "Alemán"],
+    moreLanguages: "Más idiomas",
+    yes: "sí",
+    notYet: "todavía no",
+    local: "Tus registros de aprendizaje se guardan en tu dispositivo.",
+    costs:
+      "La IA en la nube recibe el contenido de aprendizaje relevante. Pueden aplicarse tarifas y condiciones del proveedor.",
+    contact: "Contacto",
+    source: "Código en GitHub",
+    license: "Licencia",
+  },
+  "pt-BR": {
+    title: "Call Nina — Aprenda um idioma com IA",
+    description:
+      "Um aplicativo de desktop para praticar idiomas. Gratuito para aprendizado pessoal. Exercícios com IA, trilhas de aprendizagem, feedback de escrita e prática de vocabulário com Call Nina.",
+    skip: "Pular para o conteúdo",
+    language: "Idioma do site",
+    headline: "Aprenda um idioma com IA.",
+    introduction: "Um aplicativo de desktop para praticar idiomas.",
+    free: "Gratuito para aprendizado pessoal.",
+    mobile: "Aplicativo móvel — em breve",
+    subscriptions: "Use suas assinaturas de IA para aprender, começando pelo ChatGPT.",
+    download: "Baixar — em breve",
+    github: "Ver no GitHub",
+    featuresTitle: "Sua prática, com a Nina.",
+    features: {
+      exercises: {
+        label: "Exercícios com IA",
+        text: "Gere exercícios de acordo com seu tema e nível.",
+      },
+      paths: {
+        label: "Trilhas de aprendizagem",
+        text: "Siga lições estruturadas para alcançar seus objetivos.",
+      },
+      writing: {
+        label: "Feedback de escrita",
+        text: "Receba feedback e explicações da IA sobre seus textos.",
+      },
+      vocabulary: {
+        label: "Prática de vocabulário",
+        text: "Salve palavras e volte para praticá-las.",
+      },
+    },
+    connections: "Traga sua IA.",
+    providers: [
+      "API da OpenAI",
+      "API da Anthropic",
+      "API do Google Gemini",
+      "Claude Code",
+      "IA local",
+      "IA financiada pela Nina",
+    ],
+    languagesTitle: "Escolha seu idioma.",
+    learningLanguages: ["Inglês dos Estados Unidos", "Português do Brasil", "Espanhol", "Alemão"],
+    moreLanguages: "Mais idiomas",
+    yes: "sim",
+    notYet: "ainda não",
+    local: "Seus registros de aprendizagem ficam no seu dispositivo.",
+    costs:
+      "A IA na nuvem recebe o conteúdo de aprendizagem relevante. Taxas e termos do provedor podem se aplicar.",
+    contact: "Contato",
+    source: "Código no GitHub",
+    license: "Licença",
   },
 };

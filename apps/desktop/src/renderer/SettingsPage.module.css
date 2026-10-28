@@ -96,8 +96,7 @@
   min-width: 0;
 }
 .aiConnections {
-  border-top: var(--od-border-thin) solid var(--od-color-border-default);
-  padding-top: var(--od-space-6);
+  padding-top: var(--od-space-4);
 }
 .accountAccess p {
   margin: 0;
@@ -198,7 +197,12 @@
   min-width: 0;
 }
 .accountTools {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  align-items: stretch;
+}
+.accountOptions > button {
+  justify-self: end;
 }
 .accountOptions {
   display: grid;
@@ -242,4 +246,13 @@
     align-items: start;
     flex-direction: column;
   }
+}
+
+.pendingSession {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.pendingSession > div {
+  max-width: 100%;
 }

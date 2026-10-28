@@ -7,6 +7,9 @@
   min-width: 0;
   border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
+.row[data-density="compact"] {
+  padding-block: var(--od-space-2);
+}
 .row[data-variant="bordered"] {
   padding: var(--od-space-5);
   border: var(--od-border-thin) solid var(--od-color-border-default);

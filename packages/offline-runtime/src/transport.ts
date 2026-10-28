@@ -138,12 +138,33 @@ export class OfflineTransport {
   async generate(attempt: LearningAttempt, active: () => boolean): Promise<string> {
     if (!active()) fail("INACTIVE");
     if (this.child) fail("BUSY");
+    if (attempt.image) fail("INPUT_UNSUPPORTED");
     const budget = attempt.deadline - Date.now();
     if (budget <= 0 || budget > 120_000) fail("DEADLINE_INVALID");
     const signal = AbortSignal.any([
       AbortSignal.timeout(budget),
       ...(attempt.signal ? [attempt.signal] : []),
     ]);
+    const body = JSON.stringify({
+      model: offlineCandidate.modelId,
+      messages: [
+        { role: "system", content: `${attempt.instructions}\n${attempt.teachingInstructions}` },
+        { role: "user", content: attempt.prompt },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "nina_learning_result",
+          strict: true,
+          schema: attempt.outputSchema,
+        },
+      },
+      max_tokens: offlineCandidate.outputTokens,
+      temperature: 0.2,
+      stream: false,
+      cache_prompt: false,
+    });
+    if (Buffer.byteLength(body) > 32 * 1024) fail("INPUT_TOO_LARGE");
     const flight = await this.store.preflight();
     if (!flight.platformSupported) fail("PLATFORM_UNSUPPORTED");
     if (!flight.memorySufficient) fail("MEMORY_INSUFFICIENT");
@@ -266,26 +287,6 @@ export class OfflineTransport {
           await delay(200, undefined, { signal });
         }
         if (!active()) fail("INACTIVE");
-        const body = JSON.stringify({
-          model: offlineCandidate.modelId,
-          messages: [
-            { role: "system", content: `${attempt.instructions}\n${attempt.teachingInstructions}` },
-            { role: "user", content: attempt.prompt },
-          ],
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "nina_learning_result",
-              strict: true,
-              schema: attempt.outputSchema,
-            },
-          },
-          max_tokens: offlineCandidate.outputTokens,
-          temperature: 0.2,
-          stream: false,
-          cache_prompt: false,
-        });
-        if (Buffer.byteLength(body) > 32 * 1024) fail("INPUT_TOO_LARGE");
         const result = completionSchema.parse(
           await localRequest(socket, key, "/v1/chat/completions", body, signal),
         );

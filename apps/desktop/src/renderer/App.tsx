@@ -1,3 +1,5 @@
+import { openProviderSettingsEvent } from "./ProviderActionSummary.js";
+import { VocabularyLearningNotice } from "./VocabularyLearning.js";
 import i18n from "./i18n.js";
 import type { PracticeLaunch } from "./usePracticeSuggestion.js";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -283,6 +285,7 @@ function DesktopWorkspace({
     setPage("practice");
   };
   const [vocabularyDue, setVocabularyDue] = useState(false);
+  const [vocabularyViewRequest, setVocabularyViewRequest] = useState(0);
   const [quickStartId, setQuickStartId] = useState<PreparedActivityId>();
   const launchPractice = (intent: PracticeLaunch) => {
     setQuickStartId(
@@ -346,15 +349,26 @@ function DesktopWorkspace({
     };
   }, [reload, refreshScope, writingDirty]);
 
+  useEffect(() => {
+    const open = () => {
+      setSettingsTab("ai");
+      navigate("settings");
+    };
+    window.addEventListener(openProviderSettingsEvent, open);
+    return () => window.removeEventListener(openProviderSettingsEvent, open);
+  });
+
   const openAi = async (
     operation: ProviderOperation,
     previousOperationId?: DesktopIpcRequest["requestId"],
+    hasImage = false,
   ) => {
     setOperationError(undefined);
     setProviderUnavailable(undefined);
     try {
       const access = await invokeDesktop("provider/access/read", {
         operation,
+        hasImage,
         ...(previousOperationId ? { previousOperationId } : {}),
       });
       if (access.status === "unavailable") {
@@ -672,6 +686,7 @@ function DesktopWorkspace({
                   setPage("practice");
                 }}
                 initialDueOnly={vocabularyDue}
+                viewRequest={vocabularyViewRequest}
                 onNavigate={(destination) => {
                   navigate(destination);
                 }}
@@ -726,6 +741,19 @@ function DesktopWorkspace({
           page: destination,
           icon,
           label: t(`nav.${destination}`),
+          ...(destination === "vocabulary"
+            ? {
+                feedback: (
+                  <VocabularyLearningNotice
+                    compact={navCollapsed}
+                    onView={() => {
+                      navigate("vocabulary");
+                      setVocabularyViewRequest((value) => value + 1);
+                    }}
+                  />
+                ),
+              }
+            : {}),
         }))}
         settingsNavigation={{ page: "settings", icon: Settings, label: t("nav.settings") }}
         navigationLabel={t("nav.label")}

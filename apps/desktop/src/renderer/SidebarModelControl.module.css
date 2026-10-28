@@ -5,18 +5,54 @@
   display: grid;
   gap: var(--od-space-3);
   min-width: 0;
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-3);
   font-size: var(--od-type-body-small-size);
   line-height: var(--od-type-body-small-line);
 }
-.navModelStatus,
-.navModelError {
-  font-size: var(--od-font-size-sm);
-  margin: 0;
-  overflow-wrap: anywhere;
+.summaryTrigger {
+  width: 100%;
+  justify-content: flex-start;
+  gap: var(--od-space-2);
+  padding-inline: var(--od-space-3);
 }
-.navModelStatus {
+.assignments {
+  display: grid;
+  gap: var(--od-space-4);
+  margin: 0;
+  min-width: 0;
+}
+.assignments {
+  padding: 0 var(--od-space-3) var(--od-space-2);
+}
+.assignment {
+  display: grid;
+  grid-template-columns: var(--od-icon-md) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--od-space-2);
+}
+.capabilityIcon {
+  width: var(--od-icon-sm);
+  height: var(--od-icon-sm);
+  margin-top: var(--od-space-1);
+  justify-self: center;
   color: var(--od-color-text-muted);
 }
-.navModelError {
-  color: var(--od-color-state-wrong);
+.assignmentText {
+  display: grid;
+  gap: var(--od-space-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.assignmentText dt {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-caption-size);
+  line-height: var(--od-type-caption-line);
+}
+.assignmentText dd {
+  margin: 0;
+  color: var(--od-color-text-strong);
+}
+.assignmentText dd[data-unassigned] {
+  color: var(--od-color-text-muted);
 }

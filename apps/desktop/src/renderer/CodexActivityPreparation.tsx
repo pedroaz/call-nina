@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import {
   type ProviderOperation,
   voiceActivityContextSchema,
@@ -226,6 +227,7 @@ export function CodexActivityPreparation({
           </FieldGroup>
         )}
       </div>
+      <ProviderActionSummary operation="voice-activity-draft" busy={draft.busy} />
       <ActionGroup>
         <Button
           variant="secondary"

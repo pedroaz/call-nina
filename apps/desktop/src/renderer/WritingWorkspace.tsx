@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type { ProviderOperation } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
 import { useEffect, useState } from "react";
@@ -171,6 +172,15 @@ export function WritingWorkspace({
                 </FieldGroup>
               </div>
             </UtilityPopover>
+            <ProviderActionSummary
+              operation="writing-correction"
+              busy={correctionStage !== "idle"}
+              previousOperationId={
+                correctionError || correctionOutcome === "rate-limited"
+                  ? previousCorrectionOperationId
+                  : undefined
+              }
+            />
             {correctionOperationId ? (
               <Button variant="secondary" onPress={() => void cancelCorrection()}>
                 <X aria-hidden="true" /> {t("writing.cancelCorrection")}
@@ -221,6 +231,7 @@ export function WritingWorkspace({
         }
       >
         <section className={styles.promptActions} aria-label={t("writing.promptTitle")}>
+          <ProviderActionSummary operation="writing-prompt" busy={promptStage !== "idle"} />
           <ActionGroup className={styles.promptActionButtons}>
             <Button
               variant="secondary"

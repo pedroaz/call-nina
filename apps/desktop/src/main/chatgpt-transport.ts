@@ -48,6 +48,8 @@ export async function generateChatgptAttempt(options: {
   const model = catalog.models.find((entry) => entry.id === modelId);
   if (!model || !model.supportedReasoningEfforts.includes(effortId))
     throw new ChatgptError("model-unavailable", "OD_CHATGPT_MODEL_UNAVAILABLE");
+  if (attempt.image && !model.inputModalities.includes("image"))
+    throw new ChatgptError("model-unavailable", "OD_CHATGPT_IMAGE_UNAVAILABLE");
   const token = await session.token(signal, registrationId);
   await assertActive();
   signal.throwIfAborted();
@@ -66,7 +68,21 @@ export async function generateChatgptAttempt(options: {
       store: false,
       stream: true,
       instructions: `${attempt.instructions}\n${attempt.teachingInstructions}`,
-      input: [{ role: "user", content: attempt.prompt }],
+      input: [
+        {
+          role: "user",
+          content: attempt.image
+            ? [
+                { type: "input_text", text: attempt.prompt },
+                {
+                  type: "input_image",
+                  image_url: `data:${attempt.image.mediaType};base64,${attempt.image.data}`,
+                  detail: "high",
+                },
+              ]
+            : attempt.prompt,
+        },
+      ],
       text: {
         format: {
           type: "json_schema",

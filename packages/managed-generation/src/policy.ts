@@ -11,7 +11,7 @@ export const servicePolicySchema = z
     budgetId: z.uuid(),
     budgetMicroUsd: z.int().positive().max(1_000_000_000_000),
     startsAt: z.iso.datetime(),
-    endsAt: z.iso.datetime(),
+    endsAt: z.iso.datetime().nullable(),
     model: z.strictObject({
       id: z
         .string()
@@ -26,7 +26,7 @@ export const servicePolicySchema = z
       maximumAttemptMicroUsd: z.int().positive().max(500_000_000_000),
       costEvidenceUrl: z.url().startsWith("https://"),
       costReviewedAt: z.iso.datetime(),
-      costValidUntil: z.iso.datetime(),
+      costValidUntil: z.iso.datetime().nullable(),
     }),
     requestsPerMinute: z.int().min(1).max(100),
     globalRequestsPerMinute: z.int().min(1).max(1000),
@@ -34,8 +34,9 @@ export const servicePolicySchema = z
   })
   .superRefine((policy, context) => {
     if (
-      Date.parse(policy.endsAt) <= Date.parse(policy.startsAt) ||
-      Date.parse(policy.model.costValidUntil) <= Date.parse(policy.model.costReviewedAt) ||
+      (policy.endsAt !== null && Date.parse(policy.endsAt) <= Date.parse(policy.startsAt)) ||
+      (policy.model.costValidUntil !== null &&
+        Date.parse(policy.model.costValidUntil) <= Date.parse(policy.model.costReviewedAt)) ||
       policy.model.maximumAttemptMicroUsd * 2 > policy.budgetMicroUsd
     )
       context.addIssue({ code: "custom", message: "OD_MANAGED_POLICY_INVALID" });
@@ -48,8 +49,8 @@ export function policyIsCurrent(policy: ServicePolicy): boolean {
   const now = Date.now();
   return (
     now >= Date.parse(policy.startsAt) &&
-    now < Date.parse(policy.endsAt) &&
+    (policy.endsAt === null || now < Date.parse(policy.endsAt)) &&
     now >= Date.parse(policy.model.costReviewedAt) &&
-    now < Date.parse(policy.model.costValidUntil)
+    (policy.model.costValidUntil === null || now < Date.parse(policy.model.costValidUntil))
   );
 }

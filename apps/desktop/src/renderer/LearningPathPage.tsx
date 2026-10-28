@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { BookOpen } from "lucide-react";
 import { ActivityHeaderActionsContext } from "./components/activity/index.js";
 import type {
@@ -288,7 +289,10 @@ function LearningPathWorkspace({
     launchOrigin === origin ? (
       <div className={styles.launchProgress}>
         {generation.progress ? (
-          <OperationProgress progress={generation.progress} onCancel={generation.cancel} />
+          <>
+            <ProviderActionSummary operation="exercise-generation" busy={generation.busy} />
+            <OperationProgress progress={generation.progress} onCancel={generation.cancel} />
+          </>
         ) : (
           <p role="status">{t("learningPath.preparing")}</p>
         )}

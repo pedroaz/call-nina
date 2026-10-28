@@ -288,3 +288,5 @@ export * from "./offline-model.js";
 export { chatgptRegistrationIdSchema, chatgptAccountsSchema } from "./chatgpt.js";
 
 export * from "./nina-account.js";
+
+export * from "./vocabulary-learning.js";

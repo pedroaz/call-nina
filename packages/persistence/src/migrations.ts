@@ -3,7 +3,12 @@ import { migrateMultilingualTeaching } from "./teaching-migration.js";
 import { migrateLanguageProfiles } from "./language-migration.js";
 import { migrateAttemptEvidence } from "./attempt-evidence.js";
 import { migrateVersionedContent } from "./content.js";
-import { aiConnectionsSchema, z, type DataRootGeneration } from "@call-nina/contracts";
+import {
+  legacyAiConnectionsSchema as aiConnectionsSchema,
+  emptyAiConnections,
+  z,
+  type DataRootGeneration,
+} from "@call-nina/contracts";
 
 import { openDataRootDatabase, type DatabaseMigration } from "./sqlite.js";
 
@@ -1894,6 +1899,63 @@ export const callNinaMigrations = [
       INSERT INTO course_selection SELECT target_language, selected_stage, current_json FROM previous_course_selection;
       DROP TABLE previous_course_selection;
     `,
+  },
+  {
+    version: 39,
+    name: "vocabulary-learning-loop",
+    sql: `
+      CREATE TABLE vocabulary_focuses (
+        id TEXT PRIMARY KEY, target_language TEXT NOT NULL REFERENCES language_profiles(target_language),
+        title TEXT NOT NULL, guidance TEXT NOT NULL, source_text TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)), created_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE vocabulary_batches (
+        id TEXT PRIMARY KEY, target_language TEXT NOT NULL REFERENCES language_profiles(target_language),
+        source_key TEXT NOT NULL, title TEXT NOT NULL, created_at TEXT NOT NULL,
+        is_read INTEGER NOT NULL DEFAULT 0, undone INTEGER NOT NULL DEFAULT 0,
+        focus_id TEXT REFERENCES vocabulary_focuses(id) ON DELETE SET NULL,
+        UNIQUE(target_language, source_key)
+      ) STRICT;
+      CREATE TABLE vocabulary_observations (
+        batch_id TEXT NOT NULL REFERENCES vocabulary_batches(id) ON DELETE CASCADE,
+        vocabulary_id TEXT NOT NULL REFERENCES vocabulary_entries(vocabulary_id) ON DELETE CASCADE,
+        reason TEXT NOT NULL, excerpt TEXT NOT NULL, outcome TEXT NOT NULL,
+        was_added INTEGER NOT NULL, was_created INTEGER NOT NULL, attempt_id TEXT,
+        PRIMARY KEY(batch_id, vocabulary_id)
+      ) STRICT;
+      CREATE TABLE vocabulary_analysis_queue (
+        activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+        target_language TEXT NOT NULL, source_key TEXT NOT NULL, source_text TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE vocabulary_suppressions (
+        target_language TEXT NOT NULL, identity TEXT NOT NULL,
+        PRIMARY KEY(target_language, identity)
+      ) STRICT;
+    `,
+  },
+  {
+    version: 40,
+    name: "provider-routing-development-reset",
+    sql: "SELECT 1;",
+    migrate(database) {
+      const row = database
+        .prepare("SELECT settings_json FROM ai_connections WHERE singleton = 1")
+        .get();
+      const prior = aiConnectionsSchema.parse(JSON.parse(String(row?.["settings_json"])));
+      // Explicit development format reset; validate the old format before discarding intent.
+      database.prepare("UPDATE ai_connections SET settings_json = ? WHERE singleton = 1").run(
+        JSON.stringify({
+          ...emptyAiConnections,
+          revision: prior.revision + 1,
+          retiredSecretRefs: [
+            ...new Set([
+              ...prior.retiredSecretRefs,
+              ...prior.connections.flatMap((entry) => (entry.secretRef ? [entry.secretRef] : [])),
+            ]),
+          ],
+        }),
+      );
+    },
   },
 ] as const satisfies readonly DatabaseMigration[];
 

@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { Disclosure } from "./components/ui/Disclosure.js";
 import { Nina } from "./components/ui/Nina.js";
 import {
@@ -131,7 +132,12 @@ export function ContextualHelper({
   );
 
   const submit = async (request: SubmittedRequest, modelQuestion: string) => {
-    if (!selection || stage !== "idle" || !(await requestAiAccess("contextual-help"))) return;
+    if (
+      !selection ||
+      stage !== "idle" ||
+      !(await requestAiAccess(request.intent === "translate" ? "translation" : "contextual-help"))
+    )
+      return;
     const nextSubmissionId = createDesktopSubmissionId();
     submissionId.current = nextSubmissionId;
     progress.begin(nextSubmissionId, "contextual-help");
@@ -291,6 +297,8 @@ export function ContextualHelper({
             }}
           />
         </FieldGroup>
+        <ProviderActionSummary operation="contextual-help" busy={stage !== "idle"} />
+        <ProviderActionSummary operation="translation" busy={stage !== "idle"} />
         <div className={styles.helperComposerActions}>
           <Button
             variant="secondary"

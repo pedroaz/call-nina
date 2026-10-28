@@ -1,4 +1,3 @@
-import { NinaAccountSettings } from "./NinaAccount.js";
 import { Disclosure } from "./components/ui/Disclosure.js";
 import { ConnectionSettings } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -590,21 +589,15 @@ export function SettingsPage({
             icon: <Plug aria-hidden="true" />,
             children: (
               <div className={styles.aiSetup}>
-                <NinaAccountSettings />
                 <Section className={styles.aiConnections} aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
                     surface={false}
                     active={selectedTab === "ai"}
                     disabled={busy || Boolean(loginId)}
                     onPendingChange={setConnectionPending}
-                    chatgptAccess={({ active, saved, dirty: connectionDirty }) => {
+                    chatgptConnected={account ? account.status === "signed-in" : undefined}
+                    chatgptAccess={({ dirty: connectionDirty }) => {
                       const blocked = busy || Boolean(loginId) || connectionDirty;
-                      if (!active)
-                        return (
-                          <p>
-                            {t(saved ? "settings.activateBeforeLogin" : "settings.saveBeforeLogin")}
-                          </p>
-                        );
                       return (
                         <div className={styles.accountAccess}>
                           <div className={styles.accountSummary}>
@@ -656,21 +649,19 @@ export function SettingsPage({
                             </Feedback>
                           )}
                           <div className={styles.accountTools}>
-                            <ActionGroup>
-                              <Button
-                                variant="quiet"
-                                onPress={() =>
-                                  void invokeDesktop("chatgpt/usage/open", {}).catch(
-                                    (cause: unknown) => {
-                                      setError(normalizeDesktopError(cause).detail);
-                                    },
-                                  )
-                                }
-                              >
-                                <Gauge aria-hidden="true" />
-                                {t("settings.chatgptUsageLink")}
-                              </Button>
-                            </ActionGroup>
+                            <Button
+                              variant="secondary"
+                              onPress={() =>
+                                void invokeDesktop("chatgpt/usage/open", {}).catch(
+                                  (cause: unknown) => {
+                                    setError(normalizeDesktopError(cause).detail);
+                                  },
+                                )
+                              }
+                            >
+                              <Gauge aria-hidden="true" />
+                              {t("settings.chatgptUsageLink")}
+                            </Button>
                             <Button variant="secondary" onPress={() => setAccountOptionsOpen(true)}>
                               <UserRound aria-hidden="true" />
                               {t("settings.accountOptions")}

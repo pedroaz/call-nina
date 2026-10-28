@@ -6,6 +6,7 @@ export function ContentRow({
   actions,
   children,
   variant = "divided",
+  density = "comfortable",
   className,
   ...props
 }: ComponentPropsWithoutRef<"article"> & {
@@ -13,11 +14,13 @@ export function ContentRow({
   metadata?: ReactNode;
   actions?: ReactNode;
   variant?: "divided" | "bordered";
+  density?: "compact" | "comfortable";
 }) {
   return (
     <article
       {...props}
       data-variant={variant}
+      data-density={density}
       data-leading={Boolean(leading) || undefined}
       className={`${styles.row} ${className ?? ""}`}
     >

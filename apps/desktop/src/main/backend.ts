@@ -1,6 +1,17 @@
+import { recommendedRouting } from "@call-nina/domain";
+import { routedProvider, type AiAction } from "@call-nina/contracts";
+import { nativeImage } from "electron";
+import {
+  readVocabularyLearning,
+  updateVocabularyLearning,
+  vocabularyPracticeContext,
+  readVocabularyAnalysis,
+  queueVocabularyAnalysis,
+} from "@call-nina/persistence";
 import { type NinaLoginStorage } from "./nina-login-storage.js";
 import { NinaAccount } from "./nina-account.js";
 import {
+  desktopIpcRequestSchema,
   activityIdSchema,
   aiConnectionsViewSchema,
   correlationIdSchema,
@@ -216,7 +227,7 @@ export class DesktopBackend {
       nina: this.#nina,
       offline: this.#offline,
       secrets: this.#secrets,
-      requireActiveConnection: () => this.#requireActiveConnection(),
+      connectionById: (id) => this.#connectionById(id),
       projectGenerationEvent: projectEvent,
       providerAccess: (...args) => this.#providerAccess(...args),
     });
@@ -436,14 +447,16 @@ export class DesktopBackend {
   }
 
   async #reviewContext(scope: LearningScope) {
-    const [relevantMistakes, vocabulary] = await Promise.all([
+    const [relevantMistakes, vocabularyContext] = await Promise.all([
       this.#repository?.readCorrectionMistakeSample(6, scope) ?? Promise.resolve([]),
-      this.#repository?.listDueVocabulary(new Date().toISOString().slice(0, 10), scope) ??
-        Promise.resolve([]),
+      this.#database
+        ? vocabularyPracticeContext(this.#database, scope.targetLanguage)
+        : Promise.resolve({ words: [], focuses: [] }),
     ]);
     return {
       relevantMistakes,
-      vocabularyToReview: vocabulary.slice(0, 12).map((entry) => ({
+      vocabularyFocuses: vocabularyContext.focuses,
+      vocabularyToReview: vocabularyContext.words.slice(0, 12).map((entry) => ({
         vocabularyId: entry.vocabularyId,
         lemma: entry.lemma,
         meaning: entry.meaning,
@@ -480,6 +493,14 @@ export class DesktopBackend {
   ): Promise<LearnerSettingsRecord & { capturedContext?: CapturedTeachingContext }> {
     const repository = this.#repository;
     if (!repository || !this.#database) throw new Error("OD_DATA_ROOT_STALE");
+    if (input.kind === "vocabulary-analysis") {
+      if (input.rootGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      if (input.source.kind === "activity") {
+        const source = await readVocabularyAnalysis(this.#database, input.source.activityId);
+        return repository.readLearnerSettingsForScope(source.scope);
+      }
+    }
     if (input.kind === "exercise-feedback") {
       const activity = await repository.readPreparedActivity(input.activityId);
       if (!activity) throw new Error("OD_ACTIVITY_NOT_FOUND");
@@ -574,6 +595,57 @@ export class DesktopBackend {
     const calibration =
       settings.capturedContext?.calibration ??
       buildLearningCalibration(settings.learningContext, profile);
+    if (input.kind === "vocabulary-analysis") {
+      if (!this.#database || input.rootGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const known = await vocabularyPracticeContext(
+        this.#database,
+        settings.learningContext.targetLanguage,
+      );
+      if (input.source.kind === "activity") {
+        const source = await readVocabularyAnalysis(this.#database, input.source.activityId);
+        return {
+          kind: input.kind,
+          mode: "activity",
+          sourceKey: source.sourceKey,
+          sourceText: source.sourceText,
+          guidance: "",
+          calibration,
+          knownWords: known.words.map((w) => ({
+            vocabularyId: w.vocabularyId,
+            lemma: w.lemma,
+            meaning: w.meaning,
+          })),
+        };
+      }
+      const { image, guidance, text } = input.source;
+      if (!image && !guidance.trim() && !text.trim()) throw new Error("OD_VOCABULARY_SOURCE_EMPTY");
+      if (image) {
+        const active = await this.#requireRoutedConnection("vocabulary-analysis", true);
+        if (active.routeId !== "chatgpt") throw new Error("OD_VOCABULARY_IMAGE_UNAVAILABLE");
+        const bytes = Buffer.from(image.data, "base64");
+        if (bytes.length > 10 * 1024 * 1024 || bytes.toString("base64") !== image.data)
+          throw new Error("OD_VOCABULARY_IMAGE_INVALID");
+        const decoded = nativeImage.createFromBuffer(bytes);
+        const size = decoded.getSize();
+        if (decoded.isEmpty() || size.width * size.height > 20_000_000)
+          throw new Error("OD_VOCABULARY_IMAGE_INVALID");
+      }
+      return {
+        kind: input.kind,
+        mode: "import",
+        sourceKey: `import:${selectionId()}`,
+        sourceText: text,
+        guidance,
+        ...(image ? { image } : {}),
+        calibration,
+        knownWords: known.words.map((w) => ({
+          vocabularyId: w.vocabularyId,
+          lemma: w.lemma,
+          meaning: w.meaning,
+        })),
+      };
+    }
     if (input.kind === "flashcard-generation")
       return { ...input, targetLevel: generationLevel[input.targetLevel] };
     if (input.kind === "writing-prompt") {
@@ -1057,14 +1129,23 @@ export class DesktopBackend {
     };
   }
 
-  async #activeConnection(): Promise<AiConnection | undefined> {
-    if (!this.#database) return undefined;
+  async #connectionById(id: string): Promise<AiConnection> {
+    if (!this.#database) throw new Error("OD_DATA_ROOT_STALE");
     const settings = await readAiConnections(this.#database);
-    return settings.connections.find((entry) => entry.id === settings.activeConnectionId);
+    const connection = settings.connections.find((entry) => entry.id === id);
+    if (!connection) throw new Error("OD_CONNECTION_NOT_FOUND");
+    return connection;
   }
 
-  async #requireActiveConnection(): Promise<AiConnection> {
-    const connection = await this.#activeConnection();
+  async #routedConnection(action: AiAction, image = false): Promise<AiConnection | undefined> {
+    if (!this.#database) return undefined;
+    const settings = await readAiConnections(this.#database);
+    const route = routedProvider(settings.routing, action, image ? "image" : "text");
+    return settings.connections.find((entry) => entry.routeId === route);
+  }
+
+  async #requireRoutedConnection(action: AiAction, image = false): Promise<AiConnection> {
+    const connection = await this.#routedConnection(action, image);
     if (!connection) throw new Error("OD_CONNECTION_NOT_FOUND");
     return connection;
   }
@@ -1086,9 +1167,8 @@ export class DesktopBackend {
         models: null,
       };
       if (connection.routeId === "chatgpt") {
-        entry.status =
-          connection.id === settings.activeConnectionId ? "account-required" : "inactive";
-        if (connection.id === settings.activeConnectionId) {
+        entry.status = "account-required";
+        {
           if (this.#secrets.state().status !== "available")
             entry.status = "secure-storage-unavailable";
           else
@@ -1103,6 +1183,7 @@ export class DesktopBackend {
                   "voice-activity-draft",
                   "writing-correction",
                   "contextual-help",
+                  "vocabulary-analysis",
                   "flashcard-generation",
                   "exercise-generation",
                   "exercise-feedback",
@@ -1124,16 +1205,13 @@ export class DesktopBackend {
         entry.operations = catalog.operations;
         entry.languages = catalog.languages;
         entry.status =
-          connection.id !== settings.activeConnectionId
-            ? "inactive"
-            : this.#secrets.state().status !== "available"
-              ? "secure-storage-unavailable"
-              : !connection.secretRef
-                ? "credential-required"
-                : resolveModelPreference(connection.preference, catalog.models).status !==
-                    "available"
-                  ? "model-unavailable"
-                  : "configured";
+          this.#secrets.state().status !== "available"
+            ? "secure-storage-unavailable"
+            : !connection.secretRef
+              ? "credential-required"
+              : resolveModelPreference(connection.preference, catalog.models).status !== "available"
+                ? "model-unavailable"
+                : "configured";
       }
       if (connection.routeId === "local") {
         const catalog = offlineCatalog();
@@ -1142,15 +1220,13 @@ export class DesktopBackend {
         entry.operations = catalog.operations;
         entry.languages = catalog.languages;
         entry.status =
-          connection.id !== settings.activeConnectionId
-            ? "inactive"
-            : snapshot.state !== "installed" ||
-                !snapshot.preflight?.platformSupported ||
-                !snapshot.preflight.memorySufficient
-              ? "runtime-unavailable"
-              : resolveModelPreference(connection.preference, catalog.models).status !== "available"
-                ? "model-unavailable"
-                : "configured";
+          snapshot.state !== "installed" ||
+          !snapshot.preflight?.platformSupported ||
+          !snapshot.preflight.memorySufficient
+            ? "runtime-unavailable"
+            : resolveModelPreference(connection.preference, catalog.models).status !== "available"
+              ? "model-unavailable"
+              : "configured";
       }
       if (connection.routeId === "managed") {
         const catalog = managedCatalog();
@@ -1159,11 +1235,15 @@ export class DesktopBackend {
           entry.operations = catalog.operations;
           entry.languages = [...catalog.languages];
           entry.status =
-            connection.id !== settings.activeConnectionId
-              ? "inactive"
-              : resolveModelPreference(connection.preference, catalog.models).status === "available"
-                ? "configured"
-                : "model-unavailable";
+            this.#nina.state.status !== "signed-in"
+              ? "account-required"
+              : this.#nina.state.access?.eligibility !== "approved" ||
+                  !this.#nina.state.access.inferenceEnabled
+                ? "runtime-unavailable"
+                : resolveModelPreference(connection.preference, catalog.models).status ===
+                    "available"
+                  ? "configured"
+                  : "model-unavailable";
         }
       }
       availability.push(entry);
@@ -1184,12 +1264,27 @@ export class DesktopBackend {
     retainedSelection?: AcceptedOperation["operation"]["modelSelection"],
     retainedConnection?: AiConnection,
     integrationState?: CodexIntegration,
+    hasImage = false,
   ): Promise<ProviderAccess> {
-    const connection = await this.#activeConnection();
+    const connection = retainedConnection
+      ? await this.#connectionById(retainedConnection.id).catch(() => undefined)
+      : operation === "voice-handoff"
+        ? undefined
+        : await this.#routedConnection(operation, hasImage);
+    const generationKind = operation === "translation" ? "contextual-help" : operation;
+    const configuredRoute =
+      connection?.routeId ??
+      (this.#database && operation !== "voice-handoff"
+        ? routedProvider(
+            (await readAiConnections(this.#database)).routing,
+            operation,
+            hasImage ? "image" : "text",
+          )
+        : null);
     const unavailable = (
       reason: Extract<ProviderAccess, { status: "unavailable" }>["reason"],
     ): ProviderAccess => ({
-      routeId: connection?.routeId ?? null,
+      routeId: configuredRoute,
       operation,
       status: "unavailable",
       reason,
@@ -1207,6 +1302,7 @@ export class DesktopBackend {
       };
     }
     if (!connection) return unavailable("connection-required");
+    if (hasImage && connection.routeId !== "chatgpt") return unavailable("capability-unavailable");
     if (
       retainedConnection &&
       (connection.id !== retainedConnection.id ||
@@ -1216,7 +1312,12 @@ export class DesktopBackend {
       return unavailable("capability-unavailable");
     if (isDirectApiRoute(connection.routeId)) {
       const catalog = directApiCatalog(connection.routeId);
-      if (!catalog.operations.includes(operation)) return unavailable("capability-unavailable");
+      if (
+        !catalog.operations.includes(
+          generationKind as Exclude<typeof generationKind, "voice-handoff">,
+        )
+      )
+        return unavailable("capability-unavailable");
       if (this.#secrets.state().status !== "available")
         return unavailable("secure-storage-unavailable");
       if (!connection.secretRef) return unavailable("credential-required");
@@ -1248,7 +1349,7 @@ export class DesktopBackend {
     }
     if (connection.routeId === "local") {
       const catalog = offlineCatalog();
-      if (operation !== "writing-prompt" && operation !== "contextual-help")
+      if (generationKind !== "writing-prompt" && generationKind !== "contextual-help")
         return unavailable("capability-unavailable");
       const snapshot = await this.#offline.inspect();
       if (
@@ -1287,7 +1388,12 @@ export class DesktopBackend {
       if (!this.#nina.state.access.inferenceEnabled) return unavailable("runtime-unavailable");
       const catalog = managedCatalog();
       if (!catalog) return unavailable("runtime-unavailable");
-      if (!catalog.operations.includes(operation)) return unavailable("capability-unavailable");
+      if (
+        !catalog.operations.includes(
+          generationKind as Exclude<typeof generationKind, "voice-handoff">,
+        )
+      )
+        return unavailable("capability-unavailable");
       if (retainedSelection) {
         if (
           retainedSelection.model.selection !== "exact" ||
@@ -1324,6 +1430,18 @@ export class DesktopBackend {
     if (account.status !== "signed-in") return unavailable("account-unavailable");
     try {
       const catalog = await this.#chatgpt.models();
+      if (hasImage) {
+        const modelId =
+          retainedSelection?.model.selection === "exact"
+            ? retainedSelection.model.modelId
+            : connection.preference.model.mode === "exact"
+              ? connection.preference.model.modelId
+              : catalog.runtimeDefaultModelId;
+        if (
+          !catalog.models.find((entry) => entry.id === modelId)?.inputModalities.includes("image")
+        )
+          return unavailable("capability-unavailable");
+      }
       // Retry retains the original model/effort and never silently changes it.
       if (retainedSelection) {
         const model = retainedSelection.model;
@@ -1626,6 +1744,20 @@ export class DesktopBackend {
       ) {
         return this.#failure(request, "stale-data-root");
       }
+      if (
+        request.channel === "vocabulary/learning-read" ||
+        request.channel === "vocabulary/learning-update"
+      ) {
+        await this.#dataRootState(request.requestId);
+        if (!this.#database) return this.#failure(request, "stale-data-root");
+        const result =
+          request.channel === "vocabulary/learning-read"
+            ? await readVocabularyLearning(this.#database)
+            : await updateVocabularyLearning(this.#database, request.payload);
+        if (request.channel === "vocabulary/learning-update")
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+        return this.#success(request, result);
+      }
       if (request.channel === "offline-model/read" || request.channel === "offline-model/manage") {
         if (request.channel === "offline-model/manage") {
           if (
@@ -1652,24 +1784,40 @@ export class DesktopBackend {
         if (root.status !== "ready" || !this.#database)
           return this.#failure(request, "stale-data-root");
         if (request.channel === "ai-connections/update") {
+          let mutation = request.payload;
+          if (mutation.action.kind === "recommend") {
+            const view = await this.#connectionsView();
+            for (const connection of view.settings.connections) {
+              connection.preference = {
+                model: { mode: "automatic" },
+                effort: { mode: "semantic", effort: "balanced" },
+              };
+              const state = view.availability.find((entry) => entry.connectionId === connection.id);
+              if (
+                state?.status === "model-unavailable" &&
+                state.models &&
+                resolveModelPreference(connection.preference, state.models).status === "available"
+              )
+                state.status = "configured";
+            }
+            mutation = {
+              ...mutation,
+              action: {
+                kind: "routing",
+                routing: recommendedRouting(view),
+                resetModelDefaults: true,
+              },
+            };
+            // Recommendations reset model choices atomically in the mutation owner.
+          }
           if (
-            this.#operations.activeOperations.size > 0 ||
-            this.#translations.translationJobs.size > 0
+            request.payload.action.kind !== "routing" &&
+            request.payload.action.kind !== "recommend" &&
+            (this.#operations.activeOperations.size > 0 ||
+              this.#translations.translationJobs.size > 0)
           )
             return this.#failure(request, "conflict");
-          this.#connections.offlineEpoch++;
-          await mutateConnections(
-            this.#database,
-            this.#secrets,
-            request.payload,
-            async (current, next) => {
-              if (
-                current.activeConnectionId !== null &&
-                current.activeConnectionId !== next.activeConnectionId
-              )
-                await this.#connections.stopConnectionRuntime();
-            },
-          );
+          await mutateConnections(this.#database, this.#secrets, mutation, async () => {});
           this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
         }
         return this.#success(request, await this.#connectionsView());
@@ -1725,7 +1873,7 @@ export class DesktopBackend {
         if (!(await this.#hasAcknowledgedAiDisclosure()))
           return this.#failure(request, "validation");
         const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
-        const access = await this.#providerAccess("contextual-help", request.requestId);
+        const access = await this.#providerAccess("translation", request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
@@ -1752,7 +1900,7 @@ export class DesktopBackend {
                 ? { selection: "runtime-default" }
                 : { selection: "exact", effortId: access.modelSelection.effortId },
           },
-          await this.#requireActiveConnection(),
+          await this.#requireRoutedConnection("translation"),
         );
         return this.#success(request, {
           operationId: request.payload.operationId,
@@ -1783,6 +1931,7 @@ export class DesktopBackend {
       if (request.channel === "provider/access/read") {
         let retainedSelection: AcceptedOperation["operation"]["modelSelection"] | undefined;
         let retainedConnection: AiConnection | undefined;
+        let hasImage = request.payload.hasImage ?? false;
         if (request.payload.previousOperationId) {
           const dataRoot = await this.#dataRootState(request.requestId);
           if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
@@ -1800,6 +1949,7 @@ export class DesktopBackend {
           // Resolve retry access from main-owned state, never the current sidebar preference.
           retainedSelection = prior.operation.modelSelection;
           retainedConnection = prior.connection;
+          hasImage = prior.operation.capability === "image";
         }
         return this.#success(
           request,
@@ -1809,6 +1959,7 @@ export class DesktopBackend {
             retainedSelection,
             retainedConnection,
             integration,
+            hasImage,
           ),
         );
       }
@@ -2838,6 +2989,46 @@ export class DesktopBackend {
         });
         this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
         this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+        const database = this.#database;
+        const activityId = request.payload.activityId;
+        if (database)
+          void this.#enqueue(async () => {
+            try {
+              if (
+                database !== this.#database ||
+                !(await queueVocabularyAnalysis(
+                  database,
+                  activityId,
+                  request.payload.answers.map((a) => a.attemptId),
+                ))
+              )
+                return;
+              this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+              await this.#handleRequest(
+                desktopIpcRequestSchema.parse({
+                  requestId: selectionId(),
+                  channel: "learning-operation/start",
+                  payload: {
+                    submissionId: selectionId(),
+                    input: {
+                      kind: "vocabulary-analysis",
+                      rootGeneration: database.rootGeneration,
+                      source: { kind: "activity", activityId },
+                    },
+                  },
+                }),
+              );
+            } catch {
+              this.#operationLog(
+                "warn",
+                "VOCABULARY_ANALYSIS_PENDING",
+                request.requestId,
+                "vocabulary-analysis",
+                undefined,
+                "Vocabulary analysis remains available for retry.",
+              );
+            }
+          });
         return this.#success(request, {
           activityId: request.payload.activityId,
           status: "completed",
@@ -3041,13 +3232,10 @@ export class DesktopBackend {
           this.#translations.translationJobs.size > 0
         )
           return this.#failure(request, "conflict");
-        // Choosing ChatGPT sign-in explicitly selects that route, preserving every saved connection.
+        // Sign-in creates the provider configuration if needed; routing remains an explicit Settings choice.
         if (!this.#database) return this.#failure(request, "stale-data-root");
         const connections = await readAiConnections(this.#database);
-        let connection =
-          connections.connections.find(
-            (entry) => entry.id === connections.activeConnectionId && entry.routeId === "chatgpt",
-          ) ?? connections.connections.find((entry) => entry.routeId === "chatgpt");
+        let connection = connections.connections.find((entry) => entry.routeId === "chatgpt");
         if (!connection) {
           const created = await mutateConnections(
             this.#database,
@@ -3072,20 +3260,6 @@ export class DesktopBackend {
             async () => this.#connections.stopConnectionRuntime(),
           );
           connection = created.connections.find((entry) => entry.routeId === "chatgpt");
-        }
-        if (connection) {
-          const current = await readAiConnections(this.#database);
-          if (current.activeConnectionId !== connection.id)
-            await mutateConnections(
-              this.#database,
-              this.#secrets,
-              {
-                expectedGeneration: this.#database.rootGeneration,
-                expectedRevision: current.revision,
-                action: { kind: "activate", connectionId: connection.id },
-              },
-              async () => this.#connections.stopConnectionRuntime(),
-            );
         }
         const loginId = await this.#chatgpt.startLogin(request.payload.registrationId);
         this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
@@ -3169,7 +3343,23 @@ export class DesktopBackend {
           request.payload.input,
           activeSettings,
         );
-        const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
+        const hasImage =
+          request.payload.input.kind === "vocabulary-analysis" &&
+          request.payload.input.source.kind === "import" &&
+          Boolean(request.payload.input.source.image);
+        const action =
+          request.payload.input.kind === "contextual-help" &&
+          request.payload.input.intent === "translate"
+            ? "translation"
+            : request.payload.input.kind;
+        const access = await this.#providerAccess(
+          action,
+          request.requestId,
+          undefined,
+          undefined,
+          undefined,
+          hasImage,
+        );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
@@ -3177,12 +3367,13 @@ export class DesktopBackend {
         )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
-        const connection = await this.#requireActiveConnection();
+        const connection = await this.#requireRoutedConnection(action, hasImage);
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
           operationId,
           submissionId: request.payload.submissionId,
           dataRootGeneration: dataRoot.generation,
+          capability: hasImage ? "image" : "text",
           modelSelection: {
             model: { selection: "exact", modelId: access.modelSelection.modelId },
             effort:
@@ -3286,6 +3477,8 @@ export class DesktopBackend {
           request.requestId,
           prior.operation.modelSelection,
           prior.connection,
+          undefined,
+          prior.operation.capability === "image",
         );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (

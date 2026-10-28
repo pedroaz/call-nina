@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { PracticeComposer } from "./PracticeComposer.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
@@ -180,6 +181,16 @@ export function NinaHome({
           disabled={busy}
           onTopicChange={(naturalRequest) => onDraftChange({ ...draft, naturalRequest })}
           onKindChange={(kind) => onDraftChange({ ...draft, kind })}
+        />
+        <ProviderActionSummary
+          operation={
+            draft.kind === "flashcards"
+              ? "flashcard-generation"
+              : draft.kind === "listening" || draft.kind === "speaking"
+                ? "voice-activity-draft"
+                : "exercise-generation"
+          }
+          busy={busy}
         />
         <ActionGroup className={styles.quickActions}>
           <Button

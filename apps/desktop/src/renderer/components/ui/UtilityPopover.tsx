@@ -8,15 +8,26 @@ export function UtilityPopover({
   label,
   summary,
   children,
+  triggerClassName,
+  leadingIcon,
+  trailingIcon,
 }: {
   label: string;
   summary?: string;
   children: ReactNode;
+  triggerClassName?: string;
+  leadingIcon?: ReactNode;
+  trailingIcon?: ReactNode;
 }) {
   const { t } = useTranslation();
   return (
     <DialogTrigger>
-      <Button variant="quiet" className={styles.utilityTrigger}>
+      <Button
+        variant="quiet"
+        className={`${styles.utilityTrigger} ${triggerClassName ?? ""}`}
+        leadingIcon={leadingIcon}
+        trailingIcon={trailingIcon}
+      >
         {label}
         {summary ? ` · ${summary}` : ""}
       </Button>

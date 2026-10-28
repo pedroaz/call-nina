@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
-  aiConnectionsSchema,
+  legacyAiConnectionsSchema as aiConnectionsSchema,
   aiModelPreferenceSchema,
-  emptyAiConnections,
+  legacyEmptyAiConnections as emptyAiConnections,
   type AiConnection,
 } from "@call-nina/contracts";
 

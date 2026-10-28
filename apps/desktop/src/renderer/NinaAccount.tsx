@@ -1,6 +1,6 @@
 import { Clock3, CircleAlert } from "lucide-react";
 import { Disclosure } from "./components/ui/Disclosure.js";
-import { ClerkProvider, useClerk, useAuth, useSignIn, useUser } from "@clerk/electron/react";
+import { ClerkProvider, useClerk, useSession, useSignIn, useUser } from "@clerk/electron/react";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ninaPublicConfiguration,
@@ -9,7 +9,7 @@ import {
 } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { invokeDesktop } from "./ipc.js";
-import { Button, TextField, Muted, DiagnosticCode } from "./components/ui/index.js";
+import { Button, TextField, CheckboxField, Muted, DiagnosticCode } from "./components/ui/index.js";
 import { ActionGroup, Section } from "./components/layout/index.js";
 import styles from "./SettingsPage.module.css";
 
@@ -50,8 +50,23 @@ function accountTransition(changing: boolean) {
   if (!changing) window.dispatchEvent(new Event(syncEvent));
 }
 const AccountContext = createContext<NinaAccountState>({ status: "signed-out", access: null });
+const AccountIdentityContext = createContext<{
+  loaded: boolean;
+  signedIn: boolean;
+  pending: boolean;
+}>({
+  loaded: true,
+  signedIn: false,
+  pending: false,
+});
+export function useNinaAccountState() {
+  const account = useContext(AccountContext);
+  const identity = useContext(AccountIdentityContext);
+  return { ...account, identity };
+}
 function SessionObserver({ children }: { children: ReactNode }) {
-  const { isLoaded, isSignedIn, getToken, sessionId } = useAuth();
+  const { user, isLoaded: identityLoaded } = useUser();
+  const { isLoaded, session } = useSession();
   const [state, setState] = useState<NinaAccountState>({ status: "signed-out", access: null });
   useEffect(() => {
     let cancelled = false;
@@ -61,7 +76,24 @@ function SessionObserver({ children }: { children: ReactNode }) {
       const version = transitionVersion;
       running = true;
       try {
-        const token = isSignedIn ? await getToken() : null;
+        if (session?.status === "pending") {
+          const next = await invokeDesktop("nina-account/update", {
+            status: "signing-in",
+            token: null,
+          });
+          if (!cancelled && version === transitionVersion) setState(next);
+          return;
+        }
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const token = await Promise.race([
+          session ? session.getToken({ skipCache: true }) : Promise.resolve(null),
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(() => reject(new Error("OD_NINA_TOKEN_TIMEOUT")), 10000);
+          }),
+        ]).finally(() => {
+          if (timer) clearTimeout(timer);
+        });
+        if (session && !token) throw new Error("OD_NINA_TOKEN_UNAVAILABLE");
         if (cancelled || version !== transitionVersion) return;
         const result = await invokeDesktop("nina-account/update", {
           status: token ? "signed-in" : "signed-out",
@@ -89,13 +121,28 @@ function SessionObserver({ children }: { children: ReactNode }) {
       window.removeEventListener("focus", sync);
       window.removeEventListener(syncEvent, sync);
     };
-  }, [isLoaded, isSignedIn, sessionId, getToken]);
-  return <AccountContext.Provider value={state}>{children}</AccountContext.Provider>;
+  }, [isLoaded, session, session?.status]);
+  return (
+    <AccountIdentityContext.Provider
+      value={{
+        loaded: identityLoaded,
+        signedIn: Boolean(user),
+        pending: session?.status === "pending",
+      }}
+    >
+      <AccountContext.Provider value={state}>{children}</AccountContext.Provider>
+    </AccountIdentityContext.Provider>
+  );
 }
 export function NinaAccountProvider({ children }: { children: ReactNode }) {
   if (!ninaPublicConfiguration.publishableKey) return children;
   return (
-    <ClerkProvider publishableKey={ninaPublicConfiguration.publishableKey} telemetry={false}>
+    <ClerkProvider
+      publishableKey={ninaPublicConfiguration.publishableKey}
+      telemetry={false}
+      routerPush={() => {}}
+      routerReplace={() => {}}
+    >
       <SessionObserver>{children}</SessionObserver>
     </ClerkProvider>
   );
@@ -118,11 +165,13 @@ export function NinaAccountSettings() {
 function AccountForm() {
   const { t } = useTranslation();
   const { signIn } = useSignIn();
+  const { session } = useSession();
   const { user, isLoaded } = useUser();
   const clerk = useClerk();
   const account = useContext(AccountContext);
   const [username, setUsername] = useState(loginDraft.username);
   const [password, setPassword] = useState(loginDraft.password);
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -361,14 +410,25 @@ function AccountForm() {
         <>
           {(busy || error) && feedback}
           <div className={styles.ninaAccountSummary}>
-            <p>{t("ninaAccount.signedIn", { username: user.username })}</p>
+            <p>
+              {session?.status === "pending" || account.status !== "signed-in"
+                ? user.username
+                : t("ninaAccount.signedIn", { username: user.username })}
+            </p>
             <Button variant="secondary" isDisabled={busy} onPress={() => void logout()}>
-              {t("ninaAccount.signOut")}
+              {t(account.status === "expired" ? "ninaAccount.signInAgain" : "ninaAccount.signOut")}
             </Button>
           </div>
-          {(account.status === "unavailable" || account.status === "expired") && (
-            <p role="status">{t(`ninaAccount.${account.status}`)}</p>
+          {session?.status === "pending" && (
+            <div className={styles.pendingSession}>
+              <p role="status">{t("providers.signInIncomplete")}</p>
+              <p>{t("ninaAccount.expired")}</p>
+            </div>
           )}
+          {session?.status !== "pending" &&
+            (account.status === "unavailable" || account.status === "expired") && (
+              <p role="status">{t(`ninaAccount.${account.status}`)}</p>
+            )}
           {account.access && (
             <>
               <p>{t(`ninaAccount.${account.access.eligibility}`)}</p>
@@ -405,7 +465,7 @@ function AccountForm() {
             />
             <TextField
               label={t("ninaAccount.password")}
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               value={password}
               onChange={(event) => {
@@ -420,6 +480,12 @@ function AccountForm() {
               disabled={busy}
             />
           </div>
+          <CheckboxField
+            checked={showPassword}
+            onChange={(event) => setShowPassword(event.target.checked)}
+          >
+            {t("ninaAccount.showPassword")}
+          </CheckboxField>
           <div className={styles.ninaAccountFooter}>
             {feedback}
             <ActionGroup>
