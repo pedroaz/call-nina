@@ -1,6 +1,0 @@
-interface:
-  display_name: "Manual"
-  short_description: "User-led local development outside Orca"
-
-policy:
-  allow_implicit_invocation: false

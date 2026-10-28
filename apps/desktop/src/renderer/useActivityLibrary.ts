@@ -9,6 +9,7 @@ export function useActivityLibrary(
   activityTypes: Filter["activityTypes"],
   enabled = true,
   material?: Filter["material"],
+  search?: string,
 ) {
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [busy, setBusy] = useState(false);
@@ -33,6 +34,7 @@ export function useActivityLibrary(
           next = await invokeDesktop("activity/list", {
             activityTypes: filterKey.split(",").filter(Boolean) as Filter["activityTypes"],
             maximum: 20,
+            ...(search?.trim() ? { search: search.trim() } : {}),
             ...(materialId && revisionId ? { material: { materialId, revisionId } } : {}),
             ...(nextCursor ? { cursor: nextCursor } : {}),
           });
@@ -67,7 +69,7 @@ export function useActivityLibrary(
         if (current === version.current) setBusy(false);
       }
     },
-    [filterKey, materialId, revisionId],
+    [filterKey, materialId, revisionId, search],
   );
   const refresh = useCallback(() => fetchPage(), [fetchPage]);
   useEffect(() => {
@@ -79,7 +81,11 @@ export function useActivityLibrary(
     }, 0);
     const onFocus = () => void refresh();
     const unsubscribe = subscribeDesktop((event) => {
-      if (event.event === "state-invalidated" && event.scope === "dashboard") void refresh();
+      if (
+        event.event === "state-invalidated" &&
+        (event.scope === "dashboard" || event.scope === "history")
+      )
+        void refresh();
     });
     window.addEventListener("focus", onFocus);
     return () => {

@@ -4,3 +4,5 @@ export * from "./Surface.js";
 export * from "./Dialog.js";
 export * from "./Tabs.js";
 export * from "./Feedback.js";
+export * from "./ActivityChoice.js";
+export * from "./OverflowMenu.js";

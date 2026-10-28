@@ -6,15 +6,16 @@
   display: flex;
   gap: var(--od-space-4);
   justify-content: flex-end;
-  padding: var(--od-space-5) var(--od-space-6);
+  padding: var(--od-space-5) var(--od-space-7);
 }
 
 .startup {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
   justify-content: center;
   min-height: 80dvh;
-  padding: var(--od-space-6);
+  padding-top: var(--od-space-7);
+  padding: var(--od-space-7);
 }
 
 .startupCard {
@@ -26,7 +27,7 @@
 
 .startupCard h1 {
   font-size: var(--od-font-size-xl);
-  line-height: var(--od-line-tight);
+  line-height: var(--od-type-h1-line);
   margin: 0 0 var(--od-space-4);
 }
 
@@ -34,21 +35,21 @@
   color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
+  letter-spacing: normal;
   margin: 0 0 var(--od-space-3);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .privacyGrid {
   display: grid;
   gap: var(--od-space-5);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: var(--od-space-6);
+  margin-top: var(--od-space-7);
 }
 
 .warningList {
   color: var(--od-color-state-streak);
-  padding-left: var(--od-space-6);
+  padding-left: var(--od-space-7);
 }
 
 @media (max-width: 52rem) {

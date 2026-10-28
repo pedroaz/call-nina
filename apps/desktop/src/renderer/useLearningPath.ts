@@ -17,6 +17,7 @@ export function useLearningPath() {
       if (current === sequence.current) {
         setSnapshot(value);
         setError(undefined);
+        return value;
       }
     } catch (cause) {
       if (current === sequence.current) setError(normalizeDesktopError(cause).detail);

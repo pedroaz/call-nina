@@ -1,160 +1,27 @@
 .optionGroup {
   display: grid;
-  gap: var(--od-space-4);
-}
-
-.exerciseBlanks {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
   gap: var(--od-space-3);
-  margin: var(--od-space-6) 0;
 }
-
-.exerciseBlanks input {
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-sm);
-  color: var(--od-color-text-strong);
-  font: inherit;
-  max-width: var(--od-field-max);
-  padding: var(--od-space-3);
-}
-
-.exercisePrompt {
-  border-inline-start: var(--od-border-outlined) solid var(--od-color-brand);
-  margin: var(--od-space-5) 0;
-  padding-inline-start: var(--od-space-5);
-}
-
-.eyebrow {
-  color: var(--od-color-brand-ink);
-  font-size: var(--od-font-size-xs);
-  font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
-  margin: 0 0 var(--od-space-3);
-  text-transform: uppercase;
-}
-
-.exerciseCardHeader {
-  align-items: center;
-  display: flex;
-  gap: var(--od-space-4);
-  justify-content: space-between;
-  margin-bottom: 0;
-}
-
-.exerciseCardHeader .eyebrow {
-  margin: 0;
-}
-
-.exerciseNavigation {
-  display: flex;
-  flex: none;
-  gap: var(--od-space-2);
-}
-
-.exerciseNavButton {
-  align-items: center;
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
-  color: var(--od-color-brand-ink);
-  cursor: pointer;
-  display: inline-flex;
-  height: var(--od-control-min);
-  justify-content: center;
+.choiceFieldset {
+  border: 0;
   padding: 0;
-  width: var(--od-control-min);
-}
-
-.exerciseNavButton:hover:not([data-disabled]),
-.exerciseNavButton[data-pressed]:not([data-disabled]) {
-  background: var(--od-color-surface-brand);
-  border-color: var(--od-color-brand-ink);
-}
-
-.exerciseNavButton:focus-visible {
-  outline: var(--od-border-outlined) solid var(--od-color-focus);
-  outline-offset: var(--od-space-2);
-}
-
-.exerciseNavButton[data-disabled] {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-
-.exerciseNavButton svg {
-  height: var(--od-icon-md);
-  width: var(--od-icon-md);
-}
-
-:global([data-exercise-mode="true"]) .exerciseCardHeader {
-  margin-bottom: var(--od-space-3);
-}
-
-.exerciseAiFeedback {
-  background: var(--od-color-surface-card);
-  border-left: var(--od-border-outlined) solid var(--od-color-brand);
-  border-radius: 0 var(--od-radius-md) var(--od-radius-md) 0;
-  display: grid;
-  gap: var(--od-space-6);
-  line-height: var(--od-line-normal);
-  margin: var(--od-space-6) 0 var(--od-space-5);
-  padding: var(--od-space-5) var(--od-space-6);
-}
-
-.exerciseAiFeedback h3,
-.exerciseAiFeedback p,
-.exerciseAiFeedback ul {
   margin: 0;
-}
-
-.exerciseAiFeedback section {
-  display: grid;
-  gap: var(--od-space-3);
-}
-
-.exerciseAiFeedback section + section {
-  border-top: var(--od-border-thin) solid var(--od-color-border-default);
-  padding-top: var(--od-space-5);
-}
-
-.exerciseAiFeedback section + p {
-  border-top: var(--od-border-thin) solid var(--od-color-border-default);
-  padding-top: var(--od-space-5);
-}
-
-.exerciseAiFeedback li + li {
-  margin-top: var(--od-space-3);
-}
-
-.acceptedAnswers {
-  display: block;
-  margin-top: var(--od-space-2);
-  line-height: var(--od-line-normal);
-  overflow-wrap: anywhere;
-}
-.activeExercise {
-  overflow-anchor: none;
-  display: flex;
-  flex-direction: column;
-  min-height: min(var(--od-exercise-min), calc(100dvh - var(--od-exercise-chrome)));
-}
-.exerciseActions {
-  margin-top: auto;
-  border-top: var(--od-border-thin) solid var(--od-color-border-default);
-  padding-block: var(--od-space-4);
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  background: var(--od-color-surface-card);
-}
-.exerciseBlanks input {
   min-width: 0;
-  max-width: 100%;
 }
-
+.choiceFieldset legend {
+  padding: 0;
+  margin-bottom: var(--od-space-4);
+  font-size: var(--od-font-size-md);
+}
+.optionGroup[data-evaluated] > label:has(input:disabled) {
+  opacity: 1;
+  cursor: default;
+}
+.questionSection {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
 .questionHeader {
   display: flex;
   align-items: start;
@@ -162,32 +29,98 @@
   gap: var(--od-space-4);
 }
 .questionHeader h2 {
+  font-family: var(--od-font-family-editorial);
   margin: 0;
 }
 .questionHeader > button {
   flex-shrink: 0;
 }
-.feedbackArea {
-  display: grid;
-  align-content: start;
-  gap: var(--od-space-4);
-  min-height: 10rem;
+.questionSection textarea {
+  min-height: 4.5rem;
+  max-height: 16rem;
+  font-size: var(--od-font-size-md);
 }
-.feedbackArea > p {
+.questionSection textarea[readonly] {
+  background: var(--od-color-surface-sunken);
+}
+.answerLabel {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+  font-weight: var(--od-weight-medium);
+}
+.exerciseBlanks {
+  line-height: 3;
+}
+.exerciseBlanks input {
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-sm);
+  color: var(--od-color-text-strong);
+  font: inherit;
+  padding: var(--od-space-3);
+  min-width: 0;
+  width: 10ch;
+  max-width: 100%;
+  margin-inline: var(--od-space-2);
+}
+.submittedBlank {
+  background: var(--od-color-surface-sunken);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-inline: var(--od-space-2);
+  margin-inline: var(--od-space-2);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.exercisePrompt {
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  margin: 0;
+  padding-block: var(--od-space-4);
+  white-space: pre-wrap;
+}
+.exerciseAiFeedback {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.exerciseAiFeedback p,
+.exerciseAiFeedback ul {
   margin: 0;
 }
-.primaryAction {
-  width: 16rem;
+.exerciseAiFeedback li + li {
+  margin-top: var(--od-space-2);
 }
-.optionGroup[data-evaluated] > label:has(input:disabled) {
-  opacity: 1;
-  cursor: default;
+.acceptedAnswers {
+  display: block;
+  margin-top: var(--od-space-2);
+  overflow-wrap: anywhere;
+}
+.answerReview {
+  display: grid;
+  gap: var(--od-space-5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.answerReview > li + li {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-4);
+}
+.answerReview > li {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.answerReview h3,
+.answerReview p {
+  margin: 0;
 }
 .hintPopover {
   background: var(--od-color-surface-card);
   border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
-  box-shadow: var(--od-shadow-card);
+  box-shadow: var(--od-shadow-pop);
   width: var(--od-info-width);
   max-width: calc(100vw - var(--od-space-8));
   max-height: calc(100dvh - var(--od-space-8));
@@ -206,12 +139,9 @@
 .hintDialog p {
   margin: 0;
 }
+
 @container workspace (max-width: 28rem) {
   .questionHeader {
     flex-wrap: wrap;
   }
-}
-
-.activeExercise > fieldset {
-  margin-block: 0;
 }

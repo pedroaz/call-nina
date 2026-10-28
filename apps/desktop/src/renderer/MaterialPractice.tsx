@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,6 +12,7 @@ import {
   type ProviderOperation,
 } from "@call-nina/contracts";
 import {
+  SelectControl,
   Button,
   ConfirmDialog,
   Disclosure,
@@ -220,12 +222,17 @@ export function MaterialPractice({
   };
   return (
     <Disclosure
-      defaultOpen={view !== "list"}
-      label={t(
-        practiceType === "reading"
-          ? "materialPractice.optional"
-          : "materialPractice.optionalVocabulary",
-      )}
+      open={view !== "list" || Boolean(selected) || Boolean(error) ? true : undefined}
+      label={
+        <>
+          {t(
+            practiceType === "reading"
+              ? "materialPractice.optional"
+              : "materialPractice.optionalVocabulary",
+          )}
+          {selected ? ` · ${selected.title}` : ""}
+        </>
+      }
     >
       <div
         className={styles.workspace}
@@ -245,6 +252,7 @@ export function MaterialPractice({
                 {t("materialPractice.load")}
               </Button>
               <Button
+                variant="primary"
                 isDisabled={locked || !snapshot}
                 onPress={() => {
                   setSelected(undefined);
@@ -263,7 +271,7 @@ export function MaterialPractice({
                   })}
                 </Muted>
                 {snapshot.materials.length === 0 && <Muted>{t("materialPractice.empty")}</Muted>}
-                <ItemList>
+                <ItemList className={styles.sourceList}>
                   {snapshot.materials.map((material) => (
                     <li key={material.materialId}>
                       <Button
@@ -305,7 +313,7 @@ export function MaterialPractice({
             </FieldGroup>
             <FieldGroup>
               {t("materialPractice.kind")}
-              <select
+              <SelectControl
                 value={draft.kind}
                 disabled={locked}
                 onChange={(event) => {
@@ -314,7 +322,7 @@ export function MaterialPractice({
               >
                 <option value="topic">{t("materialPractice.topic")}</option>
                 <option value="pasted-text">{t("materialPractice.passage")}</option>
-              </select>
+              </SelectControl>
             </FieldGroup>
             <FieldGroup>
               {t(`materialPractice.${draft.kind === "topic" ? "topic" : "passage"}`)}
@@ -343,7 +351,11 @@ export function MaterialPractice({
             <Muted>{t("materialPractice.sourceHint")}</Muted>
             <Muted>{t("materialPractice.preserve")}</Muted>
             <ActionGroup>
-              <Button isDisabled={locked || !value?.success} onPress={() => void save()}>
+              <Button
+                variant="primary"
+                isDisabled={locked || !value?.success}
+                onPress={() => void save()}
+              >
                 {t("materialPractice.save")}
               </Button>
               <Button
@@ -385,6 +397,7 @@ export function MaterialPractice({
                 {t("materialPractice.source")}: {selected.source.url}
               </p>
             )}
+            <ProviderActionSummary operation="exercise-generation" busy={generation.busy} />
             <ActionGroup>
               <Button
                 variant="secondary"
@@ -404,7 +417,11 @@ export function MaterialPractice({
               >
                 {t("materialPractice.edit")}
               </Button>
-              <Button isDisabled={locked || !countValid} onPress={() => void generate()}>
+              <Button
+                variant="primary"
+                isDisabled={locked || !countValid}
+                onPress={() => void generate()}
+              >
                 {t(
                   practiceType === "reading"
                     ? "materialPractice.generateReading"
@@ -538,7 +555,11 @@ function RelatedPractice({
           {t("materialPractice.refresh")}
         </Button>
         {library.hasMore && (
-          <Button isDisabled={disabled || library.busy} onPress={() => void library.loadMore()}>
+          <Button
+            variant="primary"
+            isDisabled={disabled || library.busy}
+            onPress={() => void library.loadMore()}
+          >
             {t("materialPractice.more")}
           </Button>
         )}

@@ -18,6 +18,7 @@ import {
   activityIdSchema,
   targetLanguageSchema,
   portableFlashcardContentSchema,
+  mobileSnapshotSchema,
   type PortableFlashcardContent,
   type learningGoalSchema,
   flashcardSchema,
@@ -462,4 +463,22 @@ export function migrateFlashcardContent(connection: DatabaseSync) {
   connection.exec(`ALTER TABLE flashcard_decks DROP COLUMN provenance_json;
     CREATE TRIGGER flashcard_content_immutable BEFORE UPDATE OF activity_id, source, content_json ON flashcard_decks
     BEGIN SELECT RAISE(ABORT, 'OD_CONTENT_REVISION_IMMUTABLE'); END;`);
+}
+
+/** Export a consistent, language-independent content snapshot, never learner progress. */
+export async function exportMobileFlashcards(database: CallNinaDatabase) {
+  return withLeasedTransaction(database, (connection) => {
+    const rows = connection
+      .prepare("SELECT activity_id FROM flashcard_decks ORDER BY activity_id")
+      .all();
+    const decks = rows.map((row) => {
+      const deck = read(connection, database, String(row["activity_id"]));
+      return { activityId: deck.activityId, title: deck.title, content: deck.content };
+    });
+    return mobileSnapshotSchema.parse({
+      schemaVersion: 1,
+      createdAt: new Date().toISOString(),
+      decks,
+    });
+  });
 }

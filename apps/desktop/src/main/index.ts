@@ -1,3 +1,14 @@
+import { NinaLoginStorage } from "./nina-login-storage.js";
+import { createClerkBridge } from "@clerk/electron";
+import { storage } from "@clerk/electron/storage";
+import {
+  ninaPublicConfiguration,
+  desktopIpcEventSchema,
+  desktopIpcRequestSchema,
+  desktopIpcResponseSchema,
+  type ActivityId,
+} from "@call-nina/contracts";
+import { pathToFileURL, fileURLToPath } from "node:url";
 import { OfflineRuntime } from "@call-nina/offline-runtime";
 import { ConnectionSecretStorage } from "./secret-storage.js";
 import { desktopPathOption } from "./options.js";
@@ -5,16 +16,9 @@ import { writeFile } from "node:fs/promises";
 import { mkdirSync, lstatSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-import {
-  desktopIpcEventSchema,
-  desktopIpcRequestSchema,
-  desktopIpcResponseSchema,
-  type ActivityId,
-} from "@call-nina/contracts";
-import { CallNinaAppServerClient } from "@call-nina/codex-client";
-import { app, BrowserWindow, dialog, ipcMain, session } from "electron";
+import { ChatgptSession } from "./chatgpt-session.js";
+import { app, BrowserWindow, dialog, ipcMain, Menu, session, net, protocol } from "electron";
 
 import { DesktopBackend } from "./backend.js";
 import { parseCallNinaActivityUrl } from "./deep-link.js";
@@ -27,8 +31,17 @@ import {
   openValidatedExternalUrl,
 } from "./security.js";
 
+// Interactive launchers may inject Chromium's plaintext/mock credential stores.
+// Nina always uses the real OS key provider; unavailable stores remain unavailable.
+if (process.platform === "linux" && app.commandLine.getSwitchValue("password-store") === "basic")
+  app.commandLine.removeSwitch("password-store");
+app.commandLine.removeSwitch("use-mock-keychain");
+
 const rendererUrl = new URL(
-  process.env["CALL_NINA_RENDERER_URL"] ?? new URL("../renderer/index.html", import.meta.url),
+  process.env["CALL_NINA_RENDERER_URL"] ??
+    (ninaPublicConfiguration.publishableKey
+      ? "call-nina-ui://renderer/index.html"
+      : new URL("../renderer/index.html", import.meta.url)),
 ).href;
 const preload = fileURLToPath(new URL("../preload/index.cjs", import.meta.url));
 const developmentWindowIcon = fileURLToPath(new URL("../../assets/call-nina.png", import.meta.url));
@@ -57,6 +70,20 @@ function createWindow(): BrowserWindow {
     },
   });
   attachNavigationPolicy(window, rendererUrl);
+  // Keep zoom available without installing a visible application menu.
+  window.webContents.on("before-input-event", (event, input) => {
+    const modifier = process.platform === "darwin" ? input.meta : input.control;
+    if (input.type !== "keyDown" || !modifier || input.alt) return;
+    const zoomIn = input.key === "+" || input.key === "=";
+    const zoomOut = input.key === "-";
+    const reset = input.key === "0";
+    if (!zoomIn && !zoomOut && !reset) return;
+    event.preventDefault();
+    const current = window.webContents.getZoomFactor();
+    window.webContents.setZoomFactor(
+      reset ? 1 : Math.min(5, Math.max(0.25, current * (zoomIn ? 1.2 : 1 / 1.2))),
+    );
+  });
   window.webContents.on("did-start-loading", () => {
     workspaceReady = false;
   });
@@ -162,6 +189,29 @@ for (const segment of userDataDirectory
 }
 mkdirSync(userDataDirectory, { recursive: true, mode: 0o700 });
 
+const clerkBridge = ninaPublicConfiguration.publishableKey
+  ? createClerkBridge({
+      storage: storage({
+        name: "nina-account",
+        path: userDataDirectory,
+        unencryptedFallback: false,
+      }),
+      renderer: { scheme: "call-nina-ui", host: "renderer" },
+      manageSingleInstanceLock: false,
+    })
+  : undefined;
+app.on("will-quit", () => clerkBridge?.cleanup());
+void app.whenReady().then(() => {
+  if (!clerkBridge) return;
+  const directory = path.resolve(fileURLToPath(new URL("../renderer/", import.meta.url)));
+  protocol.handle("call-nina-ui", (request) => {
+    const url = new URL(request.url);
+    const target = path.resolve(directory, `.${decodeURIComponent(url.pathname)}`);
+    if (url.host !== "renderer" || !target.startsWith(`${directory}${path.sep}`))
+      return new Response(null, { status: 404 });
+    return net.fetch(pathToFileURL(target).href);
+  });
+});
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -191,12 +241,10 @@ if (!app.requestSingleInstanceLock()) {
     });
   }
   void app.whenReady().then(() => {
+    Menu.setApplicationMenu(null);
     if (app.isPackaged) app.setAsDefaultProtocolClient("call-nina");
     handleProtocolArguments(process.argv);
-    configureSessionSecurity(
-      session.defaultSession,
-      Boolean(process.env["CALL_NINA_RENDERER_URL"]),
-    );
+    configureSessionSecurity(session.defaultSession, process.env["CALL_NINA_RENDERER_URL"]);
     const userData = app.getPath("userData");
     const bootstrapFile = path.join(userData, "bootstrap.json");
     const knownInstallRoots = [app.getAppPath(), process.resourcesPath];
@@ -217,42 +265,22 @@ if (!app.requestSingleInstanceLock()) {
       message: "Call Nina desktop process started.",
       phase: "started",
     });
-    const appServer = new CallNinaAppServerClient({
-      forbiddenRoots: [userData, ...knownInstallRoots, ...(app.isPackaged ? [] : [process.cwd()])],
+    const secrets = new ConnectionSecretStorage(userData);
+    const chatgpt = new ChatgptSession({
+      configDirectory: userData,
+      secrets,
       openExternal: openValidatedExternalUrl,
-      presentDeviceCode: async ({ verificationUrl, userCode }) => {
-        await openValidatedExternalUrl(verificationUrl);
-        await dialog.showMessageBox({
-          type: "info",
-          title: "Call Nina account connection",
-          message: "Enter this one-time code in the browser window:",
-          detail: userCode,
-          buttons: ["Continue"],
-          defaultId: 0,
-          noLink: true,
-        });
-      },
-      processOptions: {
-        standalone: {
-          resourceRoot: app.isPackaged
-            ? path.join(process.resourcesPath, "codex-runtime")
-            : fileURLToPath(new URL("../../../../release/codex-runtime/", import.meta.url)),
-          deviceRoot: userData,
-        },
-        log,
-        runId,
-        sessionId,
-      },
     });
     backend = new DesktopBackend({
+      loginCredentials: new NinaLoginStorage(userData),
       curriculumRoot: app.isPackaged
         ? path.join(process.resourcesPath, "curriculum")
         : fileURLToPath(new URL("../../../../content/curriculum/", import.meta.url)),
       bootstrapFile,
-      secrets: new ConnectionSecretStorage(userData),
+      secrets,
       offlineRuntime: new OfflineRuntime({ artifactRoot: path.join(userData, "offline") }),
       knownInstallRoots,
-      appServer,
+      chatgpt,
       openExternal: openValidatedExternalUrl,
       log,
       emitEvent: (event) => {

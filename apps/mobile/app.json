@@ -14,7 +14,17 @@
     },
     "plugins": [
       "expo-system-ui",
-      ["expo-build-properties", { "ios": { "enableSceneSupport": true } }]
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-localization"
     ]
   }
 }

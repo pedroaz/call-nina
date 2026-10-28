@@ -10,6 +10,9 @@ import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import {
   germanNounGender,
+  learningCatalogSchema,
+  learningCourseSchema,
+  type Language,
   courseEvidenceSchema,
   courseMissionSchema,
   courseTeachingContextSchema,
@@ -28,16 +31,50 @@ import {
 } from "@call-nina/domain";
 import { withLeasedConnection, withLeasedTransaction, type CallNinaDatabase } from "./sqlite.js";
 
-export async function readLearningCourse(curriculumRoot: string): Promise<LearningCourse | null> {
-  let source: string;
-  try {
-    source = await readFile(path.join(curriculumRoot, "learning-path.json"), "utf8");
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw new Error("OD_COURSE_UNAVAILABLE");
-  }
-  if (source.length > 2_000_000) throw new Error("OD_COURSE_INVALID");
-  return parseSupportedLearningCourse(JSON.parse(source));
+/** A language collection flattens authored paths for existing evidence operations.
+ * Versions are globally unique, while existing German identities remain unchanged. */
+export async function readLearningCourse(
+  curriculumRoot: string,
+  language: Language = "de",
+): Promise<LearningCourse | null> {
+  const catalog = learningCatalogSchema.parse(
+    JSON.parse(await readFile(path.join(curriculumRoot, "catalog.json"), "utf8")),
+  );
+  if (
+    new Set(catalog.languages.map((item) => item.language)).size !== catalog.languages.length ||
+    new Set(catalog.languages.map((item) => item.version)).size !== catalog.languages.length
+  )
+    throw new Error("OD_COURSE_INVALID");
+  const entry = catalog.languages.find((item) => item.language === language);
+  if (!entry) return null;
+  const parts = await Promise.all(
+    entry.files.map(async (file) => {
+      const source = await readFile(path.join(curriculumRoot, file), "utf8");
+      if (source.length > 2_000_000) throw new Error("OD_COURSE_INVALID");
+      const part = learningCourseSchema.parse(JSON.parse(source));
+      if (
+        part.targetLanguage !== language ||
+        part.courseId !== entry.courseId ||
+        part.version !== entry.version
+      )
+        throw new Error("OD_COURSE_INVALID");
+      return part;
+    }),
+  );
+  return parseSupportedLearningCourse({
+    schemaVersion: 3,
+    courseId: entry.courseId,
+    targetLanguage: language,
+    version: entry.version,
+    paths: parts.flatMap((part) => part.paths),
+    sources: [
+      ...new Map(
+        parts.flatMap((part) => part.sources).map((source) => [source.id, source]),
+      ).values(),
+    ],
+    targets: parts.flatMap((part) => part.targets),
+    units: parts.flatMap((part) => part.units),
+  });
 }
 
 export function saveCourseEvidence(
@@ -118,7 +155,7 @@ function createMission(
   connection: DatabaseSync,
   course: LearningCourse,
   reference: CourseReference,
-  locale: "en" | "de",
+  locale: "en" | "de" | "es" | "pt-BR",
 ) {
   const { unit } = resolveCourseReference(course, reference);
   const count = (
@@ -139,7 +176,7 @@ function createMission(
   });
   connection
     .prepare(
-      "INSERT INTO course_missions (mission_id, version, unit_id, variant_id, mode, started_at, facts) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO course_missions (mission_id, version, unit_id, variant_id, mode, started_at, facts, target_language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .run(
       mission.id,
@@ -149,6 +186,7 @@ function createMission(
       mission.mode,
       mission.startedAt,
       mission.facts,
+      course.targetLanguage,
     );
   return mission;
 }
@@ -158,7 +196,7 @@ export async function prepareCourseTeaching(
   database: CallNinaDatabase,
   course: LearningCourse,
   reference: CourseReference,
-  locale: "en" | "de",
+  locale: "en" | "de" | "es" | "pt-BR",
   scope?: LearningScope,
 ) {
   const { unit, activity } = resolveCourseReference(course, reference);
@@ -188,7 +226,13 @@ export async function prepareCourseTeaching(
       .slice(0, 3);
     return courseTeachingContextSchema.parse({
       objectives:
-        activity.delivery === "practice"
+        activity.delivery === "practice" &&
+        targets.some(
+          (t) =>
+            t.kind === "construction" &&
+            unit.targetIds.includes(t.id) &&
+            activity.targetIds.includes(t.id),
+        )
           ? targets
               .filter(
                 (t) =>
@@ -203,12 +247,12 @@ export async function prepareCourseTeaching(
                 skills: ["writing"],
                 description:
                   locale === "de"
-                    ? `Erkenne, rufe ab oder verwende das Satzmuster „${t.german}“ im passenden Kontext.`
-                    : `Recognise, recall or use the sentence pattern “${t.german}” in context.`,
+                    ? `Erkenne, rufe ab oder verwende das Satzmuster „${t.text}“ im passenden Kontext.`
+                    : `Recognise, recall or use the sentence pattern “${t.text}” in context.`,
                 criterion:
                   locale === "de"
-                    ? `Prüfe genau das Satzmuster „${t.german}“, keine andere Wendung aus dem Modul. Verwende eine neue Person oder Angabe. Beim Wiedererkennen steht das Muster nur in den Antwortoptionen; beim Abrufen und Verwenden nur in optionalen Hinweisen, nicht in der Aufgabe.`
-                    : `Assess exactly the construction “${t.german}”, not a neighbouring phrase from the module. Use a new person or detail. Recognition may show the pattern only in answer options; recall and use must keep sentence frames in optional hints, not in the question. Record any support used.`,
+                    ? `Prüfe genau das Satzmuster „${t.text}“, keine andere Wendung aus dem Modul. Verwende eine neue Person oder Angabe. Beim Wiedererkennen steht das Muster nur in den Antwortoptionen; beim Abrufen und Verwenden nur in optionalen Hinweisen, nicht in der Aufgabe.`
+                    : `Assess exactly the construction “${t.text}”, not a neighbouring phrase from the module. Use a new person or detail. Recognition may show the pattern only in answer options; recall and use must keep sentence frames in optional hints, not in the question. Record any support used.`,
               }))
           : unit.objectives
               .filter((o) => activity.objectiveIds.includes(o.id))
@@ -238,7 +282,7 @@ export async function prepareCourseTeaching(
 export async function readLearningPathState(database: CallNinaDatabase) {
   return withLeasedConnection(database, (connection) => {
     const scope = requireLocalLearningScope(connection);
-    if (scope.targetLanguage !== "de" || scope.courseId === null)
+    if (scope.courseId === null)
       return learningPathStateSchema.parse({
         selectedStage: "a1-1",
         current: null,
@@ -247,11 +291,16 @@ export async function readLearningPathState(database: CallNinaDatabase) {
         activities: [],
       });
     const selection = connection
-      .prepare("SELECT selected_stage, current_json FROM course_selection WHERE singleton = 1")
-      .get() as { selected_stage: string; current_json: string | null } | undefined;
+      .prepare(
+        "SELECT selected_stage, current_json FROM course_selection WHERE target_language = ?",
+      )
+      .get(scope.targetLanguage) as
+      { selected_stage: string; current_json: string | null } | undefined;
     const marks = connection
-      .prepare("SELECT version, unit_id, activity_key, status, updated_at FROM course_marks")
-      .all() as {
+      .prepare(
+        "SELECT version, unit_id, activity_key, status, updated_at FROM course_marks WHERE target_language = ?",
+      )
+      .all(scope.targetLanguage) as {
       version: string;
       unit_id: string;
       activity_key: string;
@@ -263,10 +312,10 @@ export async function readLearningPathState(database: CallNinaDatabase) {
         `SELECT a.activity_id, a.context_json, a.status, a.prepared_at, a.completed_at,
       (SELECT count(*) FROM course_results r WHERE r.activity_id = a.activity_id AND r.occurred_at = a.completed_at) AS result_count,
       (SELECT json_array_length(p.output_json, '$.exercises') FROM generated_activity_payloads p WHERE p.activity_id = a.activity_id) AS expected_count
-      FROM prepared_activities a WHERE json_type(a.context_json, '$.learningPath') = 'object'
+      FROM prepared_activities a WHERE json_type(a.context_json, '$.learningPath') = 'object' AND a.target_language = ?
       ORDER BY a.prepared_at DESC LIMIT 2000`,
       )
-      .all() as {
+      .all(scope.targetLanguage) as {
       activity_id: string;
       context_json: string;
       status: string;
@@ -278,7 +327,9 @@ export async function readLearningPathState(database: CallNinaDatabase) {
     return learningPathStateSchema.parse({
       selectedStage: selection?.selected_stage ?? "a1-1",
       current: selection?.current_json ? (JSON.parse(selection.current_json) as unknown) : null,
-      missions: connection.prepare(`${missionSelect} ORDER BY started_at DESC LIMIT 2000`).all(),
+      missions: connection
+        .prepare(`${missionSelect} WHERE target_language = ? ORDER BY started_at DESC LIMIT 2000`)
+        .all(scope.targetLanguage),
       marks: marks.map((m) => ({
         reference: {
           version: m.version,
@@ -332,7 +383,7 @@ export async function updateLearningPath(
   database: CallNinaDatabase,
   course: LearningCourse,
   raw: unknown,
-  locale: "en" | "de",
+  locale: "en" | "de" | "es" | "pt-BR",
 ) {
   const input = learningPathUpdateSchema.parse(raw);
   if (input.expectedGeneration !== database.rootGeneration) throw new Error("OD_DATA_ROOT_STALE");
@@ -344,9 +395,9 @@ export async function updateLearningPath(
     assertCourseScope(connection, course);
     connection
       .prepare(
-        `INSERT INTO course_selection (singleton, selected_stage, current_json) VALUES (1, ?, ?) ON CONFLICT(singleton) DO UPDATE SET selected_stage = excluded.selected_stage, current_json = excluded.current_json`,
+        `INSERT INTO course_selection (target_language, selected_stage, current_json) VALUES (?, ?, ?) ON CONFLICT(target_language) DO UPDATE SET selected_stage = excluded.selected_stage, current_json = excluded.current_json`,
       )
-      .run(unit.stage, JSON.stringify(reference));
+      .run(course.targetLanguage, unit.stage, JSON.stringify(reference));
     if (input.action === "new-mission") {
       createMission(connection, course, reference, locale);
       connection
@@ -357,7 +408,7 @@ export async function updateLearningPath(
     if (input.action !== "select")
       connection
         .prepare(
-          `INSERT INTO course_marks (version, unit_id, activity_key, status, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(version, unit_id, activity_key) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at`,
+          `INSERT INTO course_marks (version, unit_id, activity_key, status, updated_at, target_language) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(version, unit_id, activity_key) DO UPDATE SET status = excluded.status, updated_at = excluded.updated_at`,
         )
         .run(
           reference.version,
@@ -369,6 +420,7 @@ export async function updateLearningPath(
               ? "skipped"
               : "not-started",
           new Date().toISOString(),
+          course.targetLanguage,
         );
   });
 }
@@ -377,7 +429,7 @@ export async function addCourseVocabulary(
   database: CallNinaDatabase,
   course: LearningCourse,
   reference: CourseReference,
-  locale: "en" | "de",
+  locale: "en" | "de" | "es" | "pt-BR",
 ) {
   const { unit } = resolveCourseReference(course, reference);
   return withLeasedTransaction(database, (connection) => {
@@ -397,9 +449,10 @@ export async function addCourseVocabulary(
       // Link an existing learner entry instead of duplicating the same lexical item.
       const existing = connection
         .prepare(
-          "SELECT vocabulary_id FROM vocabulary_entries WHERE lemma = ? AND meaning = ? ORDER BY created_at LIMIT 1",
+          "SELECT vocabulary_id FROM vocabulary_entries WHERE lemma = ? AND meaning = ? AND target_language = ? ORDER BY created_at LIMIT 1",
         )
-        .get(target.german, target.meaning[locale]) as { vocabulary_id: string } | undefined;
+        .get(target.text, target.meaning[locale], course.targetLanguage) as
+        { vocabulary_id: string } | undefined;
       const id = existing?.vocabulary_id ?? `vocabulary_${randomUUID().replaceAll("-", "")}`;
       if (!existing) {
         const lexeme =
@@ -420,10 +473,10 @@ export async function addCourseVocabulary(
                 ? { partOfSpeech: "verb", pattern: target.pattern }
                 : { partOfSpeech: "other" };
         vocabularyEntrySchema.parse({
-          targetLanguage: "de",
+          targetLanguage: course.targetLanguage,
           schemaVersion: 1,
           vocabularyId: id,
-          lemma: target.german,
+          lemma: target.text,
           meaning: target.meaning[locale],
           lexeme,
           examples: [{ text: target.example, meaning: target.exampleMeaning[locale] }],
@@ -436,11 +489,11 @@ export async function addCourseVocabulary(
         });
         connection
           .prepare(
-            "INSERT INTO vocabulary_entries (vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO vocabulary_entries (vocabulary_id, lemma, meaning, lexeme_json, examples_json, source_json, created_at, updated_at, target_language) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
           )
           .run(
             id,
-            target.german,
+            target.text,
             target.meaning[locale],
             JSON.stringify(lexeme),
             JSON.stringify([{ text: target.example, meaning: target.exampleMeaning[locale] }]),
@@ -451,6 +504,7 @@ export async function addCourseVocabulary(
             }),
             now,
             now,
+            course.targetLanguage,
           );
         added++;
       }

@@ -8,23 +8,30 @@
   "type": "module",
   "main": "dist/main/index.js",
   "scripts": {
-    "build": "node ../../scripts/build/stage-codex-runtime.mjs && pnpm --filter @call-nina/mcp-server... run build && node scripts/generate-css-types.mjs && tsc -b && vite build --config vite.main.config.ts && vite build --config vite.config.ts && vite build --config vite.preload.config.ts",
+    "build": "pnpm --filter @call-nina/mcp-server... run build && node scripts/generate-css-types.mjs && tsc -b && vite build --config vite.main.config.ts && vite build --config vite.config.ts && vite build --config vite.preload.config.ts",
     "service:dev": "node scripts/desktop-service.mjs dev",
     "service:prd": "node scripts/desktop-service.mjs prd",
     "package:appimage": "electron-builder --config electron-builder.yml --linux AppImage --publish never"
   },
   "devDependencies": {
+    "@call-nina/browser-ui": "workspace:*",
     "@call-nina/codex-client": "workspace:*",
     "@call-nina/contracts": "workspace:*",
     "@call-nina/design-system": "workspace:*",
+    "@call-nina/direct-api": "workspace:*",
     "@call-nina/domain": "workspace:*",
+    "@call-nina/learning-workflows": "workspace:*",
+    "@call-nina/managed-generation": "workspace:*",
+    "@call-nina/offline-runtime": "workspace:*",
     "@call-nina/persistence": "workspace:*",
+    "@clerk/electron": "0.1.3",
     "@types/node": "catalog:",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "6.0.5",
     "electron": "catalog:",
     "electron-builder": "26.15.3",
+    "electron-store": "^8.2.0",
     "i18next": "26.3.6",
     "lucide-react": "1.33.0",
     "postcss": "8.5.26",
@@ -34,10 +41,7 @@
     "react-i18next": "17.0.11",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "@call-nina/learning-workflows": "workspace:*",
-    "@call-nina/direct-api": "workspace:*",
-    "@call-nina/browser-ui": "workspace:*",
-    "@call-nina/offline-runtime": "workspace:*",
-    "@call-nina/managed-generation": "workspace:*"
+    "@call-nina/mobile-sync": "workspace:*",
+    "@call-nina/learning-ui": "workspace:*"
   }
 }

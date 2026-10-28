@@ -68,3 +68,14 @@ sources:
     freshness:
       status: time-sensitive
       reviewDueOn: 2027-08-21
+  - sourceId: curriculum-source_0000000000000099
+    title: Call Nina multilingual path catalog
+    repositoryPath: content/curriculum/catalog.json
+    publisher: Call Nina
+    sourceClass: repository-original
+    supportedClaims:
+      - The catalog defines language availability and original everyday scenario paths, each with at least three lessons. Per-file source records distinguish broad CEFR scope from editorial level choices.
+    retrievedOn: 2026-10-26
+    reviewedOn: 2026-10-26
+    freshness:
+      status: stable

@@ -38,7 +38,7 @@ function start(command, args, environment = process.env, essential = false) {
   const child = spawn(executable, nodeTool ? [nodeTool, ...args] : args, {
     cwd: command === "node" ? repositoryRoot : desktopRoot,
     env: environment,
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: command === "node" ? ["ignore", "pipe", "pipe", "ipc"] : ["ignore", "pipe", "pipe"],
   });
   attachOutput(child, command, command === "electron" ? "electron" : "build");
   children.add(child);
@@ -113,20 +113,6 @@ async function run(command, args, stage) {
   }
 }
 
-async function waitForVite(url) {
-  const deadline = Date.now() + 15_000;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) return;
-    } catch {
-      // Vite is still starting.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  throw new Error("Desktop Vite server did not become ready.");
-}
-
 function stopChildren(signal = "SIGTERM") {
   if (stopping) return;
   stopping = true;
@@ -144,7 +130,6 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 try {
   let rendererUrl;
   if (mode === "dev") {
-    await run("node", ["scripts/build/stage-codex-runtime.mjs"], "stage-codex-runtime");
     await run("tsc", ["-b", "../mcp-server"], "compile-plugin-runtime");
     await run(
       "vite",
@@ -163,14 +148,17 @@ try {
     );
     start("vite", ["build", "--watch", "--config", "vite.preload.config.ts"], process.env, true);
     start("vite", ["build", "--watch", "--config", "vite.main.config.ts"], process.env, true);
-    rendererUrl = "http://127.0.0.1:5173";
-    start(
-      "vite",
-      ["--config", "vite.config.ts", "--host", "127.0.0.1", "--port", "5173", "--strictPort"],
+    const renderer = start(
+      "node",
+      ["apps/desktop/scripts/renderer-service.mjs"],
       process.env,
       true,
     );
-    await waitForVite(rendererUrl);
+    const [address] = await Promise.race([once(renderer, "message"), serviceFailure]);
+    if (typeof address !== "string" || !/^http:\/\/127\.0\.0\.1:\d+\/$/u.test(address)) {
+      throw new Error("Desktop Vite server reported an invalid address.");
+    }
+    rendererUrl = address;
   }
 
   const electron = start("electron", ["dist/main/index.js"], {

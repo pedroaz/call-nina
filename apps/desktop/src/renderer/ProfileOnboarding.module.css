@@ -1,52 +1,30 @@
-.app {
-  min-height: 100vh;
-}
-
-.topActions {
-  display: flex;
-  gap: var(--od-space-4);
-  justify-content: flex-end;
-  padding: var(--od-space-5) var(--od-space-6);
-}
-
-.startup {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  min-height: 80dvh;
-  padding: var(--od-space-6);
-}
-
-.startupCard {
-  max-width: var(--od-dialog-max);
-  overflow-wrap: anywhere;
-  padding: var(--od-space-7);
-  width: 100%;
-}
-
 .onboardingCard {
-  max-width: var(--od-onboarding-max);
+  max-width: var(--od-form-max);
 }
 
 .onboardingGrid {
   display: grid;
   gap: var(--od-space-6);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: var(--od-space-6);
+  margin-top: 0;
+  align-items: start;
 }
 
 .onboardingSection {
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-lg);
-  margin-top: var(--od-space-6);
+  border: 0;
   min-width: 0;
-  padding: var(--od-space-6);
+  padding: 0;
+  display: grid;
+  gap: var(--od-space-4);
+  margin-top: 0;
 }
 
 .onboardingSection legend {
+  font-family: var(--od-font-family-editorial);
   font-size: var(--od-font-size-lg);
-  font-weight: var(--od-weight-strong);
-  padding: 0 var(--od-space-3);
+  font-weight: var(--od-weight-medium);
+  padding: 0;
+  margin-bottom: var(--od-space-4);
 }
 
 .controlLegend {
@@ -59,37 +37,13 @@
   gap: var(--od-space-4);
 }
 
-.startupCard h1 {
-  font-size: var(--od-font-size-xl);
-  line-height: var(--od-line-tight);
-  margin: 0 0 var(--od-space-4);
-}
-
 .eyebrow {
   color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
-  font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
+  font-weight: var(--od-weight-medium);
+  letter-spacing: normal;
   margin: 0 0 var(--od-space-3);
-  text-transform: uppercase;
-}
-
-@media (max-width: 52rem) {
-  .onboardingGrid {
-    grid-template-columns: 1fr;
-  }
-}
-.startupCard > :where(h1, h2, p) {
-  margin-block: 0;
-}
-.onboardingSection {
-  display: grid;
-  gap: var(--od-space-4);
-  margin-top: 0;
-}
-.onboardingGrid {
-  margin-top: 0;
-  align-items: start;
+  text-transform: none;
 }
 .onboardingSection p {
   margin-block: 0;
@@ -103,4 +57,33 @@
 .connectionStatus > div {
   display: grid;
   gap: var(--od-space-3);
+}
+
+.accessOptions {
+  margin-block: 0;
+  min-width: 0;
+}
+.accessOptions[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--od-space-4);
+}
+.accessOptions p {
+  margin: 0;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-5);
+}
+.heading h1 {
+  margin: 0;
+}
+
+@media (max-width: 52rem) {
+  .onboardingGrid {
+    grid-template-columns: 1fr;
+  }
 }

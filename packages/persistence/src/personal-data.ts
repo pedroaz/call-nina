@@ -81,6 +81,11 @@ export async function clearPersonalData(
         .prepare(`DELETE FROM activity_context_references WHERE reference_kind = 'vocabulary'`)
         .run();
     }
+    if (vocabulary) {
+      connection.exec(
+        "DELETE FROM vocabulary_observations; DELETE FROM vocabulary_batches; DELETE FROM vocabulary_focuses; DELETE FROM vocabulary_analysis_queue; DELETE FROM vocabulary_suppressions;",
+      );
+    }
     if (practice) {
       connection.prepare("DELETE FROM course_marks").run();
       connection.prepare("DELETE FROM course_selection").run();

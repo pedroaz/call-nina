@@ -1,0 +1,10 @@
+.summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--od-space-2);
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  overflow-wrap: anywhere;
+}

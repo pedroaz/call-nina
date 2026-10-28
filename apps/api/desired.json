@@ -1,0 +1,33 @@
+{
+  "preview": {
+    "enabled": false
+  },
+  "production": {
+    "enabled": true,
+    "projectId": "prj_G6dX6jZ4E9hnlSxxLZXnRhMfndba",
+    "teamId": "team_8AKgpxdjIKYtsa2rynPbsFVK",
+    "origin": "https://call-nina.vercel.app",
+    "approvalReference": "https://vercel.com/pedro-azevedos-projects/~/ai",
+    "boundary": "vercel-direct-no-trusted-proxy",
+    "funding": "isolated-gateway-system-credits-only",
+    "policy": {
+      "enabled": true,
+      "environment": "production",
+      "budgetId": "c5b3a708-ac7f-4028-8f0f-f3ddac3dd755",
+      "budgetMicroUsd": 10000000,
+      "startsAt": "2026-10-28T10:18:39.354Z",
+      "endsAt": null,
+      "model": {
+        "id": "nvidia/nemotron-3.5-lightning-free",
+        "provider": "nvidia",
+        "maximumAttemptMicroUsd": 1,
+        "costEvidenceUrl": "https://vercel.com/ai-gateway/models/nemotron-3.5-lightning-free",
+        "costReviewedAt": "2026-10-28T10:18:39.354Z",
+        "costValidUntil": null
+      },
+      "requestsPerMinute": 10,
+      "globalRequestsPerMinute": 20,
+      "maximumConcurrent": 2
+    }
+  }
+}

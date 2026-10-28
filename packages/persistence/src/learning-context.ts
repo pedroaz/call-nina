@@ -1,6 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
   preparedActivitySchema,
+  languageDefinitions,
   normalizeVocabularyIdentity,
   learningScopeSchema,
   type LearningScope,
@@ -50,7 +51,7 @@ export function assertLocalLearningScope(connection: DatabaseSync, value: Learni
   if (
     actual.learnerId !== root.learnerId ||
     (actual.courseId !== null &&
-      (actual.targetLanguage !== "de" || actual.courseId !== "german-foundations"))
+      actual.courseId !== languageDefinitions[actual.targetLanguage].structuredCourseId)
   )
     throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
 }
@@ -88,8 +89,8 @@ export function parseScopedActivityContext(connection: DatabaseSync, value: unkn
   assertLocalLearningScope(connection, context.learningScope);
   if (
     context.learningPath &&
-    (context.learningScope.targetLanguage !== "de" ||
-      context.learningScope.courseId !== "german-foundations")
+    context.learningScope.courseId !==
+      languageDefinitions[context.learningScope.targetLanguage].structuredCourseId
   )
     throw new Error("OD_COURSE_UNSUPPORTED");
   return context;

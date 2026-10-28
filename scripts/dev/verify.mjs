@@ -7,12 +7,7 @@ import { chmod, lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import {
-  assertVerificationBarrier,
-  coordinatorVerificationBarrier,
-  advanceVerificationBarrier,
-  locked,
-} from "../agents/lib/orchestration.mjs";
+import { assertVerificationBarrier, locked } from "./lib/verification-state.mjs";
 import { inspectOwnedProcess, lifecyclePaths, startMode, statusMode } from "./lib/lifecycle.mjs";
 import {
   requestVerification,
@@ -21,7 +16,6 @@ import {
   persistVerificationProcesses,
   stopVerification,
   journalFingerprint,
-  reconcileVerificationEffect,
 } from "./lib/verification-client.mjs";
 import {
   VerificationSession,
@@ -34,22 +28,20 @@ import {
 } from "./lib/verification-session.mjs";
 
 import {
-  prepareControllerRecovery,
-  recoveryContext,
-  childRecoveryContext,
-  validateRecoveryContext,
-  recordRecoveryIntent,
-  reconcileControllerRecovery,
-  existingControllerRecovery,
-  assertRecoveryAction,
-} from "./lib/verification-recovery.mjs";
+  manualVerificationStatus,
+  recoverManualVerification,
+  quarantineManualJournal,
+  enterManualVerification,
+  leaveManualVerification,
+  markManualVerificationStarted,
+} from "./lib/manual-verification.mjs";
 
 const { positionals, values: launchOptions } = parseArgs({
   allowPositionals: true,
   options: {
     run: { type: "string" },
-    attempt: { type: "string" },
-    "expected-head": { type: "string" },
+    "journal-sha": { type: "string" },
+    worktree: { type: "string" },
     executable: { type: "string" },
     "config-dir": { type: "string" },
     "codex-executable": { type: "string" },
@@ -57,8 +49,8 @@ const { positionals, values: launchOptions } = parseArgs({
 });
 const {
   run: recoveryRun,
-  "expected-head": expectedHead,
-  attempt: recoveryAttempt,
+  "journal-sha": journalSha,
+  worktree: selectedWorktree,
   ...appOptions
 } = launchOptions;
 for (const value of Object.values(appOptions))
@@ -106,10 +98,11 @@ function validateRequest(request) {
     click: ["target"],
     "double-click": ["target"],
     fill: ["target", "value"],
+    "upload-image": ["target", "path"],
     select: ["target", "value"],
     press: ["target", "key"],
     wait: ["target", "state", "timeoutMs"],
-    "prepare-ai": [],
+    "prepare-ai": ["route"],
     "begin-records": ["kind"],
     "confirm-no-creation": ["confirmation"],
     track: ["id"],
@@ -176,12 +169,8 @@ function locate(page, target) {
   }
   return locator;
 }
-async function serve(resume = false, recovering = false) {
-  if (recovering && Object.keys(appOptions).length)
-    throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
-  const context = recovering
-    ? await childRecoveryContext(recoveryRun, expectedHead, recoveryAttempt)
-    : { targetRoot: root, barrier: assertVerificationBarrier() };
+async function serve(resume = false) {
+  const context = { targetRoot: root, barrier: assertVerificationBarrier() };
   const barrier = context.barrier;
   const runtimeRoot = path.join(context.targetRoot, ".runtime");
   const verificationRoot = path.join(runtimeRoot, "verification");
@@ -214,6 +203,8 @@ async function serve(resume = false, recovering = false) {
   if (!info.isDirectory() || info.uid !== process.getuid() || info.mode & 0o077)
     throw failure("VERIFY_DIRECTORY_UNSAFE");
   const ownership = await recordVerificationController(lifecycleState, context);
+  // The starting parent holds the shared lock until this child reports ready.
+  if (barrier.mode === "manual") markManualVerificationStarted(barrier);
   try {
     const previous = JSON.parse(
       await readFile(path.join(verificationRoot, "recovery.json"), "utf8"),
@@ -244,8 +235,8 @@ async function serve(resume = false, recovering = false) {
   }
   await rm(socketPath, { force: true });
   await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
-  if (!recovering) await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
-  if (recovering) await validateRecoveryContext(context, { beforeLaunch: true });
+  await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
+  if (barrier.mode === "manual") assertVerificationBarrier();
   const session = new VerificationSession(
     verificationRoot,
     recovery,
@@ -277,27 +268,29 @@ async function serve(resume = false, recovering = false) {
   }
   async function journaled(request, operation) {
     const { action } = request;
-    if (recovering) {
-      assertRecoveryAction(request);
-      await validateRecoveryContext(context);
-    }
+    if (
+      barrier.mode === "manual" &&
+      mutatingActions.includes(action) &&
+      !["stop", "suspend", "restore", "cleanup"].includes(action)
+    )
+      assertVerificationBarrier();
     if (!mutatingActions.includes(action)) return operation();
     const identity = {
       actionId: randomUUID(),
       action,
       startedAt: new Date().toISOString(),
       sourceHead: barrier.head,
-      ...(recovering
-        ? { controllerHead: context.provenance.controllerHead, recoveryReceipt: context.receipt.id }
-        : {}),
+      ...(barrier.mode === "manual" ? { sourceDigest: barrier.sourceDigest } : {}),
     };
     // Only the digest is retained; selectors, labels, keys and fill text stay ephemeral.
     identity.requestFingerprint = journalFingerprint(JSON.stringify(request));
     let target;
+    let profileSave = false;
+    let localeBefore;
     try {
       if (action === "restore" && request.languageSelection !== undefined)
         await session.historicalLanguageSelection(request.languageSelection);
-      if (["click", "double-click", "fill", "select", "press"].includes(action)) {
+      if (["click", "double-click", "fill", "select", "press", "upload-image"].includes(action)) {
         if (["fill", "select"].includes(action) && typeof request.value !== "string")
           throw failure("VERIFY_REQUEST_INVALID");
         if (action === "press" && (typeof request.key !== "string" || !request.key.length))
@@ -307,7 +300,27 @@ async function serve(resume = false, recovering = false) {
           throw failure("VERIFY_TARGET_INVALID");
         });
         if (count !== 1) throw failure(count ? "VERIFY_TARGET_AMBIGUOUS" : "VERIFY_TARGET_MISSING");
-        await session.rememberSettings();
+        if (action === "select") {
+          // Reject an unavailable option before recording a possible mutation.
+          // Native selects accept either the option value or label.
+          const options = await target.locator("option").evaluateAll((entries) =>
+            entries.map((entry) => ({
+              value: entry.value,
+              label: entry.label,
+              disabled: entry.disabled,
+            })),
+          );
+          if (
+            !options.some(
+              (entry) =>
+                !entry.disabled && (entry.value === request.value || entry.label === request.value),
+            )
+          )
+            throw failure("VERIFY_SELECT_OPTION_UNAVAILABLE");
+        }
+        localeBefore = await session.page.locator("html").getAttribute("lang");
+        profileSave = await session.isProfileSave(target);
+        await session.rememberSettings(target);
         if (action === "select") {
           const selection = await session.languageSelectionOwnership(target, request.value);
           if (selection) identity.learningLanguageSelection = selection;
@@ -315,7 +328,7 @@ async function serve(resume = false, recovering = false) {
       }
       if (
         action === "cleanup" &&
-        (!/^(activity|material)_[0-9a-z]{16,64}$/.test(request.id ?? "") ||
+        (!/^(activity|material|vocabulary)_[0-9a-z]{16,64}$/.test(request.id ?? "") ||
           !session.journal.records.some((entry) => entry.id === request.id))
       )
         throw failure("VERIFY_RECORD_NOT_OWNED");
@@ -338,7 +351,12 @@ async function serve(resume = false, recovering = false) {
     session.journal.pendingAction = { ...identity, phase: "dispatch-may-have-started" };
     await session.persist();
     const result = await operation(target);
-    if (recovering) await validateRecoveryContext(context);
+    if (["click", "double-click", "fill", "select", "press", "upload-image"].includes(action))
+      await session.observeSettingsAfterAction(
+        profileSave,
+        identity.learningLanguageSelection,
+        localeBefore,
+      );
     delete session.journal.pendingAction;
     await session.persist();
     return result;
@@ -384,6 +402,9 @@ async function serve(resume = false, recovering = false) {
       case "status":
         return {
           phase: session.phase,
+          ...(barrier.mode === "manual"
+            ? { baseHead: barrier.head, sourceDigest: barrier.sourceDigest }
+            : {}),
           aiPrepared: Boolean(session.aiPrepared),
           records: session.journal.records,
           notes: session.journal.notes,
@@ -428,6 +449,11 @@ async function serve(resume = false, recovering = false) {
             .first()
             .getAttribute("data-material-id", { timeout: 500 })
             .catch(() => null),
+          openedVocabularyId: await page
+            .locator("[data-vocabulary-id]:visible")
+            .first()
+            .getAttribute("data-vocabulary-id", { timeout: 500 })
+            .catch(() => null),
           openedActivityId: await page
             .locator("[data-activity-id]")
             .first()
@@ -445,6 +471,11 @@ async function serve(resume = false, recovering = false) {
           request.height > 1600
         )
           throw failure("VERIFY_REQUEST_INVALID");
+        const window = await session.application.browserWindow(page);
+        await window.evaluate(
+          (nativeWindow, size) => nativeWindow.setContentSize(size.width, size.height),
+          { width: request.width, height: request.height },
+        );
         await page.setViewportSize({ width: request.width, height: request.height });
         result = { width: request.width, height: request.height };
         break;
@@ -469,6 +500,27 @@ async function serve(resume = false, recovering = false) {
       case "double-click":
         await target.dblclick();
         break;
+      case "upload-image": {
+        if (typeof request.path !== "string" || !path.isAbsolute(request.path))
+          throw failure("VERIFY_REQUEST_INVALID");
+        const info = await lstat(request.path);
+        const extension = path.extname(request.path).toLowerCase();
+        const mimeType = {
+          ".png": "image/png",
+          ".jpg": "image/jpeg",
+          ".jpeg": "image/jpeg",
+          ".webp": "image/webp",
+        }[extension];
+        if (!info.isFile() || info.size > 10 * 1024 * 1024 || !mimeType)
+          throw failure("VERIFY_IMAGE_INVALID");
+        await target.setInputFiles({
+          name: `learning-image${extension}`,
+          mimeType,
+          buffer: await readFile(request.path),
+        });
+        result = { attached: true };
+        break;
+      }
       case "fill":
         if (typeof request.value !== "string") throw failure("VERIFY_REQUEST_INVALID");
         await target.fill(request.value);
@@ -488,7 +540,9 @@ async function serve(resume = false, recovering = false) {
         });
         break;
       case "prepare-ai":
-        result = await session.prepareAI();
+        if (request.route !== undefined && !["chatgpt", "managed"].includes(request.route))
+          throw failure("VERIFY_REQUEST_INVALID");
+        result = await session.prepareAI(request.route);
         break;
       case "begin-records":
         result = await session.beginRecords(request.kind);
@@ -541,7 +595,6 @@ async function serve(resume = false, recovering = false) {
         let request;
         try {
           request = validateRequest(JSON.parse(buffer.slice(0, buffer.indexOf("\n"))));
-          if (recovering) assertRecoveryAction(request);
         } catch {
           connection.end(JSON.stringify({ ok: false, code: "VERIFY_REQUEST_INVALID" }) + "\n");
           return;
@@ -623,18 +676,41 @@ async function serve(resume = false, recovering = false) {
 async function stopLocal(suspend) {
   let barrier;
   try {
-    barrier = assertVerificationBarrier();
+    barrier = assertVerificationBarrier({ allowSourceChanges: true });
   } catch (error) {
     if (suspend) throw error;
   }
-  return stopVerification({ suspend, barrier });
+  const result = await stopVerification({ suspend, barrier });
+  if (
+    !suspend &&
+    barrier?.mode === "manual" &&
+    ["stopped", "already-stopped"].includes(result.status)
+  ) {
+    result.reservation = await leaveManualVerification();
+  }
+  return result;
 }
 
 try {
   const action = positionals[0];
+  if (selectedWorktree && (action !== "manual-quarantine" || !path.isAbsolute(selectedWorktree)))
+    throw failure("VERIFY_REQUEST_INVALID");
   let result;
-  if (action === "serve-recovery") await serve(true, true);
-  else if (action === "serve" || action === "serve-resume") await serve(action === "serve-resume");
+  if (action === "manual-status") {
+    result = manualVerificationStatus();
+  } else if (action === "manual-recover") {
+    if (Object.keys(appOptions).length || journalSha) throw failure("VERIFY_REQUEST_INVALID");
+    result = await locked(() => recoverManualVerification(recoveryRun));
+  } else if (action === "manual-quarantine") {
+    if (Object.keys(appOptions).length || recoveryRun) throw failure("VERIFY_REQUEST_INVALID");
+    result = await locked(() => quarantineManualJournal(journalSha, selectedWorktree));
+  } else if (action === "manual-enter" || action === "manual-leave") {
+    if (Object.keys(launchOptions).length) throw failure("VERIFY_REQUEST_INVALID");
+    result = await locked(() =>
+      action === "manual-enter" ? enterManualVerification() : leaveManualVerification(),
+    );
+  } else if (action === "serve" || action === "serve-resume")
+    await serve(action === "serve-resume");
   else if (action === "start" || action === "resume") {
     result = await locked(async () => {
       const barrier = assertVerificationBarrier();
@@ -648,7 +724,7 @@ try {
         if (error.code !== "ENOENT") throw error;
       }
       process.stderr.write(
-        "Live verification uses your selected learner data and connected Codex account. AI actions consume usage; use prepare-ai before generation.\n",
+        "Live verification uses your selected learner data and connected ChatGPT account. AI actions consume usage; use prepare-ai before generation.\n",
       );
       return await startMode({
         mode: "verify",
@@ -674,63 +750,6 @@ try {
       });
     });
     result = { status: result.status, pid: result.pid };
-  } else if (
-    ["recovery-inventory", "recovery-resume", "recovery-reconcile", "recovery-do"].includes(action)
-  ) {
-    if (Object.keys(appOptions).length || recoveryAttempt)
-      throw failure("VERIFY_RECOVERY_OVERRIDE_FORBIDDEN");
-    let input = "";
-    if (action !== "recovery-reconcile") {
-      for await (const chunk of process.stdin) {
-        input += chunk;
-        if (Buffer.byteLength(input) > maxRequest) throw failure("VERIFY_REQUEST_LIMIT");
-      }
-    }
-    result = await locked(async () => {
-      if (["recovery-do", "recovery-reconcile"].includes(action)) {
-        const context = await existingControllerRecovery(recoveryRun, expectedHead);
-        if (action === "recovery-reconcile") return reconcileControllerRecovery(context);
-        const request = validateRequest(JSON.parse(input));
-        assertRecoveryAction(request);
-        if (request.action === "stop") return stopVerification(context);
-        return requestVerification(request, 300000, context.targetRoot);
-      }
-      const prepared = await prepareControllerRecovery(
-        JSON.parse(input),
-        action === "recovery-inventory",
-      );
-      if (action === "recovery-inventory") return prepared;
-      const context = recoveryContext(prepared.receipt, prepared.filename);
-      if (prepared.existing) return reconcileControllerRecovery(context);
-      const command = [
-        process.execPath,
-        path.join(root, "scripts/dev/verify.mjs"),
-        "serve-recovery",
-        "--run",
-        context.receipt.run,
-        "--expected-head",
-        context.receipt.appHead,
-        "--attempt",
-        context.receipt.id,
-      ];
-      const state = await startMode({
-        mode: "verify",
-        runtimeRoot: path.join(context.targetRoot, ".runtime"),
-        cwd: root,
-        command: process.env.DISPLAY ? command : ["xvfb-run", "-a", ...command],
-        verificationContext: context,
-        beforeSpawn: () => recordRecoveryIntent(context),
-        timeoutMs: 180000,
-      });
-      await validateRecoveryContext(context);
-      return {
-        status: state.status,
-        receipt: context.receipt.id,
-        lifecycleRunId: state.runId,
-        appHead: context.receipt.appHead,
-        controllerHead: context.receipt.controllerHead,
-      };
-    });
   } else if (action === "status") result = await statusMode({ mode: "verify", runtimeRoot });
   else if (action === "do") {
     let input = "";
@@ -744,28 +763,6 @@ try {
       : await requestVerification(request);
   } else if (["stop", "suspend"].includes(action)) {
     result = await locked(() => stopLocal(action === "suspend"));
-  } else if (
-    [
-      "recovery-stop",
-      "reconcile-disclosure",
-      "reconcile-plugin-refresh",
-      "recovery-advance",
-    ].includes(action)
-  ) {
-    let input = "";
-    if (action !== "recovery-stop") {
-      for await (const chunk of process.stdin) {
-        input += chunk;
-        if (Buffer.byteLength(input) > maxRequest) throw failure("VERIFY_REQUEST_LIMIT");
-      }
-    }
-    result = await locked(async () => {
-      if (action === "recovery-advance") return advanceVerificationBarrier(JSON.parse(input));
-      const barrier = coordinatorVerificationBarrier(recoveryRun, expectedHead);
-      if (action === "recovery-stop")
-        return stopVerification({ targetRoot: barrier.worktree, barrier });
-      return reconcileVerificationEffect(barrier, JSON.parse(input), action);
-    });
   } else if (["snapshot", "screenshot"].includes(action)) {
     result = await requestVerification({ action });
   } else throw failure("VERIFY_COMMAND_INVALID");
@@ -788,9 +785,21 @@ try {
     : error.message?.startsWith("LIFECYCLE_START_LOCKED")
       ? "VERIFY_START_LOCKED"
       : safeCode(error, "VERIFY_COMMAND_FAILED");
+  if (code === "VERIFY_RESERVATION_ALREADY_HELD")
+    process.stderr.write(
+      "Managed session reserved: run make verify manual-status for ownership, cleanup and the supported recovery action. Source work and existing-window visual inspection remain available. No application was started.\n",
+    );
+  if (code === "VERIFY_JOURNAL_QUARANTINE_REQUIRED")
+    process.stderr.write(
+      "This checkout has an incompatible journal. Inspect make verify manual-status; use explicit fingerprint-bound quarantine to retain it without changing learner data.\n",
+    );
+  if (code === "VERIFY_OPERATION_BUSY")
+    process.stderr.write(
+      "The verification operation lock is held. This invocation did not dispatch a verification action; inspect its owner before retrying.\n",
+    );
   if (code === "VERIFY_COMMAND_FAILED")
     process.stderr.write(
-      "Inspect make logs-once ARGS='--scope history --component lifecycle' and .runtime/logs/verify.log for startup/build diagnostics.\n",
+      "Inspect make logs -- --scope history --component lifecycle and .runtime/logs/verify.log for startup/build diagnostics.\n",
     );
   process.stderr.write(code + "\n");
   process.exitCode = 1;

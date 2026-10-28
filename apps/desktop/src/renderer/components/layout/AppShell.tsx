@@ -1,6 +1,5 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 import {
-  ChevronLeft,
   type LucideIcon,
   PanelLeftClose,
   PanelLeftOpen,
@@ -15,24 +14,20 @@ export type ShellNavigationItem<Page extends string> = Readonly<{
   page: Page;
   label: string;
   icon: LucideIcon;
+  feedback?: ReactNode;
 }>;
 
 export function AppShell<Page extends string>(props: {
   activePage: Page;
   navigation: ReadonlyArray<ShellNavigationItem<Page>>;
   settingsNavigation: ShellNavigationItem<Page>;
-  parent?: { label: string; onPress: () => void };
-  locationLabel: string;
   navigationLabel: string;
   brandName: string;
-  brandMark: string;
   navCollapsed: boolean;
   navToggleLabel: string;
   helperOpen: boolean;
   helperTitle: string;
   helperToggleLabel: string;
-  exerciseMode?: boolean;
-  wide?: boolean;
   content: ReactNode;
   helper: ReactNode;
   navFooter?: ReactNode;
@@ -48,6 +43,39 @@ export function AppShell<Page extends string>(props: {
   const navigation = useRef<HTMLElement>(null);
   const helper = useRef<HTMLElement>(null);
   const { onToggleNavigation, onToggleHelper, navCollapsed, helperOpen } = props;
+  useEffect(() => {
+    // A non-modal companion may cover content, but never the learner's keyboard focus.
+    const revealFocusedControl = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement) || !target.closest("#main-content")) return;
+      const bounds = target.getBoundingClientRect();
+      if (
+        helperOpen &&
+        window.matchMedia("(max-width: 80rem)").matches &&
+        helper.current &&
+        bounds.right > helper.current.getBoundingClientRect().left
+      )
+        onToggleHelper();
+      if (
+        !navCollapsed &&
+        window.matchMedia("(max-width: 68rem)").matches &&
+        navigation.current &&
+        bounds.left < navigation.current.getBoundingClientRect().right
+      )
+        onToggleNavigation();
+    };
+    const onFocus = (event: FocusEvent) => {
+      revealFocusedControl(event.target);
+    };
+    const onResize = () => {
+      revealFocusedControl(document.activeElement);
+    };
+    document.addEventListener("focusin", onFocus);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.removeEventListener("focusin", onFocus);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [helperOpen, navCollapsed, onToggleHelper, onToggleNavigation]);
   useEffect(() => {
     if (helperOpen && focusHelperOnOpen.current) {
       helper.current?.focus();
@@ -69,6 +97,18 @@ export function AppShell<Page extends string>(props: {
   };
   useEffect(() => {
     const handleShortcut = (event: globalThis.KeyboardEvent) => {
+      if (
+        !event.defaultPrevented &&
+        event.key === "Escape" &&
+        !navCollapsed &&
+        navigation.current?.contains(document.activeElement) &&
+        !document.querySelector('[role="dialog"][aria-modal="true"]')
+      ) {
+        event.preventDefault();
+        navigationToggle.current?.focus();
+        onToggleNavigation();
+        return;
+      }
       if (
         !event.defaultPrevented &&
         event.key === "Escape" &&
@@ -115,18 +155,36 @@ export function AppShell<Page extends string>(props: {
       window.removeEventListener("keydown", handleShortcut);
     };
   }, [onToggleNavigation, onToggleHelper, navCollapsed, helperOpen, macKeyboard]);
+  const helperControl = (
+    <IconButton
+      variant="quiet"
+      className={styles.helperToggle}
+      ref={helperToggle}
+      label={`${props.helperToggleLabel} (${shortcutModifier}G)`}
+      aria-keyshortcuts={macKeyboard ? "Meta+G" : "Control+G"}
+      aria-expanded={helperOpen}
+      aria-controls="context-helper"
+      leadingIcon={
+        helperOpen ? <PanelRightClose aria-hidden="true" /> : <PanelRightOpen aria-hidden="true" />
+      }
+      onPress={() => {
+        focusHelperOnOpen.current = !helperOpen;
+        focusHelperOnClose.current = helperOpen;
+        props.onToggleHelper();
+      }}
+    />
+  );
   return (
     <div
-      className={`${styles.shell} ${props.navCollapsed ? styles.navCollapsed : ""} ${props.helperOpen ? "" : styles.helperCollapsed} ${props.wide ? styles.wide : ""}`}
-      data-exercise-mode={props.exerciseMode || undefined}
+      className={`${styles.shell} ${props.navCollapsed ? styles.navCollapsed : ""} ${props.helperOpen ? "" : styles.helperCollapsed}`}
       data-nav-collapsed={props.navCollapsed || undefined}
     >
       <nav ref={navigation} className={styles.nav} aria-label={props.navigationLabel}>
         <div className={styles.navInner}>
           <div className={styles.brand}>
-            <img alt="" className={styles.brandMark} src={props.brandMark} />
             <span className={styles.brandText}>{props.brandName}</span>
             <IconButton
+              variant="quiet"
               ref={navigationToggle}
               label={`${props.navToggleLabel} (${shortcutModifier}B)`}
               aria-keyshortcuts={macKeyboard ? "Meta+B" : "Control+B"}
@@ -142,7 +200,7 @@ export function AppShell<Page extends string>(props: {
             />
           </div>
           <ul className={styles.navList}>
-            {props.navigation.map(({ page, label, icon: Icon }) => {
+            {props.navigation.map(({ page, label, icon: Icon, feedback }) => {
               const control = (
                 <Button
                   aria-label={label}
@@ -163,6 +221,7 @@ export function AppShell<Page extends string>(props: {
               return (
                 <li key={page}>
                   {props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}
+                  {feedback}
                 </li>
               );
             })}
@@ -196,47 +255,13 @@ export function AppShell<Page extends string>(props: {
         </div>
       </nav>
       <main className={styles.workspace} id="main-content">
-        <div className={styles.workspaceInner}>
-          <header className={styles.workspaceHeader}>
-            <div className={styles.location}>
-              {props.parent && (
-                <Button
-                  className={styles.parentLink}
-                  density="compact"
-                  onPress={props.parent.onPress}
-                  variant="quiet"
-                >
-                  <ChevronLeft aria-hidden="true" />
-                  {props.parent.label}
-                </Button>
-              )}
-              {props.parent && <span aria-hidden="true">/</span>}
-              <span aria-current="page">{props.locationLabel}</span>
-            </div>
-            {!helperOpen && (
-              <IconButton
-                variant="quiet"
-                className={styles.helperToggle}
-                ref={helperToggle}
-                label={`${props.helperToggleLabel} (${shortcutModifier}G)`}
-                aria-keyshortcuts={macKeyboard ? "Meta+G" : "Control+G"}
-                aria-expanded={false}
-                aria-controls="context-helper"
-                leadingIcon={<PanelRightOpen aria-hidden="true" />}
-                onPress={() => {
-                  focusHelperOnOpen.current = true;
-                  props.onToggleHelper();
-                }}
-              />
-            )}
-          </header>
-          {props.content}
-        </div>
+        <div className={styles.workspaceInner}>{props.content}</div>
       </main>
       <aside
         ref={helper}
         id="context-helper"
         tabIndex={-1}
+        data-focus-anchor
         className={styles.helper}
         hidden={!props.helperOpen}
         aria-label={props.helperTitle}
@@ -244,23 +269,11 @@ export function AppShell<Page extends string>(props: {
         <div className={styles.helperInner}>
           <div className={styles.helperHeader}>
             <h2>{props.helperTitle}</h2>
-            <IconButton
-              variant="quiet"
-              className={styles.helperToggle}
-              aria-expanded={true}
-              aria-controls="context-helper"
-              label={`${props.helperToggleLabel} (${shortcutModifier}G)`}
-              aria-keyshortcuts={macKeyboard ? "Meta+G" : "Control+G"}
-              leadingIcon={<PanelRightClose aria-hidden="true" />}
-              onPress={() => {
-                focusHelperOnClose.current = true;
-                props.onToggleHelper();
-              }}
-            />
           </div>
           <div className={styles.helperContent}>{props.helper}</div>
         </div>
       </aside>
+      <div className={styles.helperRail}>{helperControl}</div>
     </div>
   );
 }

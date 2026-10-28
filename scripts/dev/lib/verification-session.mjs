@@ -36,7 +36,7 @@ export function validateVerificationPreferences(preference, initialRoot) {
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       preference.connectionId,
     ) ||
-    preference.route !== "codex" ||
+    preference.route !== "chatgpt" ||
     typeof preference.rootGeneration !== "string" ||
     !/^[1-9][0-9]*$/.test(preference.rootGeneration) ||
     !Number.isSafeInteger(Number(preference.rootGeneration)) ||
@@ -53,6 +53,7 @@ export const mutatingActions = [
   "click",
   "double-click",
   "fill",
+  "upload-image",
   "select",
   "press",
   "prepare-ai",
@@ -60,6 +61,14 @@ export const mutatingActions = [
   "restore",
   "stop",
 ];
+const recordKinds = ["practice", "speaking", "listening", "material", "vocabulary"];
+function recordIdPattern(kind) {
+  return kind === "material"
+    ? /^material_[0-9a-z]{16,64}$/
+    : kind === "vocabulary"
+      ? /^vocabulary_[0-9a-z]{16,64}$/
+      : /^activity_[0-9a-z]{16,64}$/;
+}
 export function validateVerificationJournal(previous) {
   if (
     !previous ||
@@ -71,7 +80,9 @@ export function validateVerificationJournal(previous) {
   validateVerificationPreferences(previous.preferences, previous.initialRoot);
   const needsRecovery = Boolean(
     previous.suspended ||
+    previous.baseline ||
     previous.initialTarget ||
+    previous.localeRestore ||
     Object.keys(previous.learningPreferences ?? {}).length ||
     previous.records?.length ||
     Object.keys(previous.preferences ?? {}).length ||
@@ -91,9 +102,9 @@ export function validateVerificationJournal(previous) {
   if (
     previous.records.some(
       (r) =>
-        !(r.kind === "material" ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/).test(
-          r.id,
-        ) || !["practice", "speaking", "listening", "material"].includes(r.kind),
+        !recordIdPattern(r.kind).test(r.id) ||
+        !recordKinds.includes(r.kind) ||
+        (r.kind === "vocabulary" && !/^activity_[0-9a-z]{16,64}$/.test(r.sourceActivityId ?? "")),
     )
   )
     throw failure("VERIFY_RECOVERY_INVALID");
@@ -137,15 +148,8 @@ export function validateVerificationJournal(previous) {
   if (
     previous.baseline &&
     (!Array.isArray(previous.baseline.ids) ||
-      !["practice", "speaking", "listening", "material"].includes(previous.baseline.kind) ||
-      previous.baseline.ids.some(
-        (id) =>
-          !(
-            previous.baseline.kind === "material"
-              ? /^material_[0-9a-z]{16,64}$/
-              : /^activity_[0-9a-z]{16,64}$/
-          ).test(id),
-      ))
+      !recordKinds.includes(previous.baseline.kind) ||
+      previous.baseline.ids.some((id) => !recordIdPattern(previous.baseline.kind).test(id)))
   )
     throw failure("VERIFY_RECOVERY_INVALID");
   return { journal: previous, needsRecovery };
@@ -240,21 +244,6 @@ export class VerificationSession {
     this.initialLocale =
       this.journal.locale ?? (await this.page.locator("html").getAttribute("lang"));
     this.journal.locale = this.initialLocale;
-    const selectedLanguage = this.page
-      .getByRole("navigation", { includeHidden: true })
-      .getByRole("combobox", {
-        name: await this.t("onboarding.targetLanguage"),
-        exact: true,
-        includeHidden: true,
-      });
-    if (!this.journal.initialTarget && (await selectedLanguage.count()) === 1) {
-      this.journal.initialTarget = await selectedLanguage.inputValue();
-      this.journal.initialRoot = await this.page
-        .locator("[data-learning-root]")
-        .getAttribute("data-learning-root");
-      if (!this.journal.notes.includes("LEARNING_SETTINGS_RESTORE_REQUIRED"))
-        this.journal.notes.push("LEARNING_SETTINGS_RESTORE_REQUIRED");
-    }
     delete this.journal.suspended;
     await this.persist();
     this.phase = "ready";
@@ -269,7 +258,17 @@ export class VerificationSession {
         "utf8",
       ),
     );
-    const label = key.split(".").reduce((value, part) => value?.[part], this.catalogs[locale]);
+    const catalog = this.catalogs[locale];
+    if (!catalog.flashcards) {
+      const shared = JSON.parse(
+        await readFile(
+          path.join(this.context.targetRoot, "packages/learning-ui/src/flashcards.json"),
+          "utf8",
+        ),
+      );
+      catalog.flashcards = shared[locale === "en" ? "en-US" : locale];
+    }
+    const label = key.split(".").reduce((value, part) => value?.[part], catalog);
     if (typeof label !== "string") throw failure("VERIFY_LABEL_UNAVAILABLE");
     return label;
   }
@@ -314,13 +313,32 @@ export class VerificationSession {
         : {}),
     };
   }
-  async rememberSettings() {
+  async rememberSettings(target) {
+    // Navigation and screenshots do not create restoration obligations.
+    if (target) {
+      const tag = await target.evaluate((element) => element.tagName.toLowerCase());
+      const save = await this.button("settings.save");
+      if (!["input", "select", "textarea"].includes(tag) && !(await target.and(save).count()))
+        return;
+    }
     // Only capture an unedited persisted profile. Never replace an earlier baseline.
     const profile = this.page.locator("#settings-profile-title");
     if (!(await profile.isVisible())) return;
     const language = await this.page
       .locator("[data-settings-language]")
       .getAttribute("data-settings-language");
+    if (
+      target &&
+      (await target
+        .and(
+          this.page.getByRole("combobox", { name: await this.t("settings.uiLocale"), exact: true }),
+        )
+        .count())
+    ) {
+      this.journal.localeRestore = true;
+      this.journal.expectedLocale ??= await this.page.locator("html").getAttribute("lang");
+      await this.persist();
+    }
     if (this.journal.learningPreferences?.[language]) return;
     if (!(await this.page.locator('[data-settings-ready="true"]').count()))
       throw failure("VERIFY_SETTINGS_BASELINE_REQUIRED");
@@ -329,11 +347,41 @@ export class VerificationSession {
       throw failure("VERIFY_SETTINGS_BASELINE_REQUIRED");
     this.journal.learningPreferences ??= {};
     this.journal.learningPreferences[values.language] = values;
+    this.journal.expectedLearningPreferences ??= {};
+    this.journal.expectedLearningPreferences[values.language] = values;
+    this.journal.expectedTarget ??= values.language;
     this.journal.initialTarget ??= values.language;
     this.journal.initialRoot ??= values.rootGeneration;
     if (!this.journal.notes.includes("LEARNING_SETTINGS_RESTORE_REQUIRED"))
       this.journal.notes.push("LEARNING_SETTINGS_RESTORE_REQUIRED");
     await this.persist();
+  }
+  async isProfileSave(target) {
+    return (
+      Boolean(await this.page.locator("#settings-profile-title").isVisible()) &&
+      Boolean(await target.and(await this.button("settings.save")).count())
+    );
+  }
+  async observeSettingsAfterAction(profileSave, selection, localeBefore) {
+    const localeAfter = await this.page.locator("html").getAttribute("lang");
+    if (localeBefore && localeAfter !== localeBefore) {
+      if (!this.journal.localeRestore) {
+        this.initialLocale = localeBefore;
+        this.journal.locale = localeBefore;
+      }
+      this.journal.localeRestore = true;
+      this.journal.expectedLocale = localeAfter;
+    }
+    if (selection) this.journal.expectedTarget = selection.selectedLanguage;
+    if (!profileSave) return;
+    await this.page.locator('[data-settings-ready="true"]').waitFor();
+    const values = await this.profileValues();
+    if (this.journal.learningPreferences?.[values.language]) {
+      this.journal.expectedLearningPreferences ??= {};
+      this.journal.expectedLearningPreferences[values.language] = values;
+    }
+    if (this.journal.localeRestore)
+      this.journal.expectedLocale = await this.page.locator("html").getAttribute("lang");
   }
   async selectLanguage(language) {
     if (!locales[language]) throw failure("VERIFY_RECORD_SCOPE_UNKNOWN");
@@ -357,6 +405,8 @@ export class VerificationSession {
             .getAttribute("data-settings-language")) === language,
         "VERIFY_LANGUAGE_SWITCH_FAILED",
       );
+      this.journal.expectedTarget = language;
+      await this.persist();
     }
   }
   async languageSelectionOwnership(target, selectedLanguage) {
@@ -373,6 +423,14 @@ export class VerificationSession {
           ? "navigation-language"
           : undefined;
     if (!kind) return undefined;
+    if (!this.journal.initialTarget) {
+      this.journal.initialTarget = await target.inputValue();
+      this.journal.expectedTarget = this.journal.initialTarget;
+      this.journal.initialRoot = await this.page
+        .locator("[data-learning-root]")
+        .getAttribute("data-learning-root");
+      await this.persist();
+    }
     const rootGeneration = await this.page
       .locator("[data-learning-root]")
       .getAttribute("data-learning-root");
@@ -396,17 +454,31 @@ export class VerificationSession {
       throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
   }
   async settings() {
+    this.phase = "settings-navigation";
     await this.navigate(await this.t("nav.settings"));
     await this.page
-      .getByRole("tab", { name: await this.t("settings.tabs.models"), exact: true })
+      .getByRole("tab", { name: await this.t("settings.tabs.ai"), exact: true })
       .click();
-    const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
+    const tab = this.page.getByRole("tabpanel");
+    this.phase = "settings-management";
+    const management = tab.locator("[data-connection-management]");
+    const active = management.locator('option[data-active-connection="true"]');
+    await active.waitFor({ state: "attached" });
+    const connectionId = await active.getAttribute("value");
+    if (!connectionId) throw failure("VERIFY_AI_CONNECTION_UNAVAILABLE");
+    const picker = management.getByRole("combobox", {
+      name: await this.t("connectionSettings.savedConnections"),
+      exact: true,
+    });
+    if ((await picker.inputValue()) !== connectionId) await picker.selectOption(connectionId);
+    const panel = tab.locator("[data-ai-connection]");
     await panel.waitFor();
-    if ((await panel.locator("details").getAttribute("open")) === null)
-      await panel.locator("summary").click();
+    if ((await panel.getAttribute("data-dirty")) !== "false")
+      throw failure("VERIFY_SETTINGS_UNRESTORABLE");
     await panel
-      .getByRole("combobox", { name: await this.t("connections.active"), exact: true })
+      .getByRole("heading", { name: await this.t("connectionSettings.advanced"), exact: true })
       .waitFor();
+    this.phase = "settings-ready";
     return panel;
   }
   async preferences() {
@@ -417,42 +489,77 @@ export class VerificationSession {
       rootGeneration: await panel.getAttribute("data-root-generation"),
       model: await panel
         .getByRole("combobox", { name: await this.t("modelControl.model"), exact: true })
-        .inputValue(),
+        .inputValue()
+        .catch(() => {
+          throw failure("VERIFY_AI_MODEL_CONTROL_UNAVAILABLE");
+        }),
       effort: await panel
         .getByRole("combobox", { name: await this.t("settings.effort"), exact: true })
-        .inputValue(),
+        .inputValue()
+        .catch(() => {
+          throw failure("VERIFY_AI_EFFORT_CONTROL_UNAVAILABLE");
+        }),
     };
     return validateVerificationPreferences(preference, this.journal.initialRoot);
   }
   async selectAiPreference(panel, key, value) {
     const control = panel.getByRole("combobox", { name: await this.t(key), exact: true });
+    this.phase = "settings-select";
     if ((await control.inputValue()) === value) return;
     const revision = await panel.getAttribute("data-connection-revision");
     await control.selectOption(value);
+    const save = panel.getByRole("button", { name: await this.t("settings.save"), exact: true });
+    await save.click();
     await until(
       async () =>
         (await panel.getAttribute("aria-busy")) === "false" &&
         (await panel.getAttribute("data-connection-revision")) !== revision &&
+        (await panel.getAttribute("data-dirty")) === "false" &&
         (await control.inputValue()) === value,
       "VERIFY_SETTINGS_SAVE_FAILED",
     );
-  }
-  async saveSettings() {
-    const save = await this.button("settings.save");
-    if (await save.isEnabled()) {
-      await save.click();
-      await until(async () => {
-        const currentSave = await this.button("settings.save");
-        const message = this.page.getByText(await this.t("settings.saved"), { exact: true });
-        return (await message.isVisible()) && !(await currentSave.isEnabled());
-      }, "VERIFY_SETTINGS_SAVE_FAILED");
+    if (Object.keys(this.journal.preferences).length) {
+      this.journal.expectedPreferences = await this.preferences();
+      await this.persist();
     }
   }
-  async prepareAI() {
+  async saveSettings() {
+    // The persisted/dirty state is the contract; button visibility is presentation.
+    if (await this.page.locator('[data-settings-ready="true"]').count()) return;
+    const save = await this.button("settings.save");
+    if (!(await save.count()) || !(await save.isEnabled()))
+      throw failure("VERIFY_SETTINGS_SAVE_UNAVAILABLE");
+    await save.click();
+    await this.page.locator('[data-settings-ready="true"]').waitFor();
+  }
+  async prepareAI(route = "chatgpt") {
+    if (route === "managed") {
+      const configuration = JSON.parse(
+        await readFile(
+          path.join(this.context.targetRoot, "packages/contracts/src/nina-public.json"),
+          "utf8",
+        ),
+      );
+      if (!configuration.modelId) throw failure("VERIFY_MANAGED_MODEL_UNAVAILABLE");
+      // The operator selects routing in Settings first. Verify the actual action's
+      // resolved UI selection without changing unrelated capability assignments.
+      const summary = this.page.getByRole("status").filter({
+        hasText: configuration.modelId,
+      });
+      await summary.first().waitFor();
+      if (
+        !(await summary.first().innerText()).includes(
+          await this.t("connectionSettings.routes.managed"),
+        )
+      )
+        throw failure("VERIFY_MANAGED_ROUTE_REQUIRED");
+      this.aiPrepared = true;
+      return { route: "managed", model: configuration.modelId, effort: "runtime-default" };
+    }
     this.phase = "select-luna";
     const panel = await this.settings();
     const current = await this.preferences();
-    if (current.route !== "codex") throw failure("VERIFY_CODEX_CONNECTION_REQUIRED");
+    if (current.route !== "chatgpt") throw failure("VERIFY_CHATGPT_CONNECTION_REQUIRED");
     // Refuse to mutate an unavailable saved selection that cannot be restored
     // through the current advertised controls; keep the original journal intact.
     if (!(await panel.getAttribute("data-effective-model")))
@@ -490,11 +597,37 @@ export class VerificationSession {
       observed.effort !== "semantic:balanced"
     )
       throw failure("VERIFY_LUNA_SELECTION_FAILED");
+    this.journal.expectedPreferences = observed;
+    await this.persist();
     this.aiPrepared = true;
     this.phase = "ready";
     return { model: "gpt-6-luna", effort: "runtime-default" };
   }
   async library(kind = "practice") {
+    if (kind === "vocabulary") {
+      await this.navigate(await this.t("nav.nina"));
+      await this.navigate(await this.t("nav.vocabulary"));
+      const section = this.page.locator("[data-vocabulary-ready]");
+      await until(
+        async () => (await section.getAttribute("data-vocabulary-ready")) === "true",
+        "VERIFY_LIBRARY_UNAVAILABLE",
+      );
+      const clear = await this.button("vocabulary.flow.clearFilters", section);
+      if (await clear.isVisible()) await clear.click();
+      await until(
+        async () => (await section.getAttribute("data-vocabulary-ready")) === "true",
+        "VERIFY_LIBRARY_UNAVAILABLE",
+      );
+      const total = Number(await section.getAttribute("data-vocabulary-total"));
+      if (
+        !Number.isSafeInteger(total) ||
+        total < 0 ||
+        total > 30 ||
+        (await section.locator('[id^="vocabulary-open-"]').count()) !== total
+      )
+        throw failure("VERIFY_VOCABULARY_BASELINE_INCOMPLETE");
+      return section;
+    }
     await this.navigate(await this.t("practice.title"));
     await this.page
       .getByRole("tab", { name: await this.t("practice.library.title"), exact: true })
@@ -503,12 +636,7 @@ export class VerificationSession {
       `practice.library.filters.${kind === "speaking" ? "voice-speaking" : kind === "listening" ? "codex-listening" : "all"}`,
     );
     if (await filter.isVisible()) await filter.click();
-    const section = this.page.locator("main section[aria-busy]").filter({
-      has: this.page.getByRole("heading", {
-        name: await this.t("practice.library.title"),
-        exact: true,
-      }),
-    });
+    const section = this.page.locator("main section[data-library-ready]");
     await until(
       async () => (await section.getAttribute("data-library-ready")) === "true",
       "VERIFY_LIBRARY_UNAVAILABLE",
@@ -532,9 +660,7 @@ export class VerificationSession {
     await this.page.getByRole("tab", { name: await this.t("ui.newPractice"), exact: true }).click();
     await (await this.button("practice.types.reading.title")).click();
     const disclosure = this.page.locator("details").filter({
-      has: this.page
-        .locator("summary")
-        .getByText(await this.t("materialPractice.optional"), { exact: true }),
+      has: this.page.getByText(await this.t("materialPractice.optional"), { exact: true }),
     });
     if ((await disclosure.getAttribute("open")) === null)
       await disclosure.locator("summary").click();
@@ -562,7 +688,12 @@ export class VerificationSession {
   }
   async activityIds(kind = "practice") {
     const section = kind === "material" ? await this.materialLibrary() : await this.library(kind);
-    const prefix = kind === "material" ? "material-open-" : "activity-open-";
+    const prefix =
+      kind === "material"
+        ? "material-open-"
+        : kind === "vocabulary"
+          ? "vocabulary-open-"
+          : "activity-open-";
     const buttons = await section.locator(`[id^="${prefix}"]`).all();
     return Promise.all(
       buttons.map(async (button) => (await button.getAttribute("id")).slice(prefix.length)),
@@ -571,13 +702,13 @@ export class VerificationSession {
   async beginRecords(kind = "practice") {
     if (this.journal.notes.includes("UNCONFIRMED_CREATION"))
       throw failure("VERIFY_RECORD_BASELINE_UNRESOLVED");
-    if (!["practice", "speaking", "listening", "material"].includes(kind))
-      throw failure("VERIFY_RECORD_KIND_INVALID");
-    const materialIds = kind === "material" ? undefined : await this.activityIds("material");
-    const materialScope =
-      kind === "material"
-        ? undefined
-        : await this.scopeOf(this.page.locator("[data-material-workspace]:visible"));
+    if (!recordKinds.includes(kind)) throw failure("VERIFY_RECORD_KIND_INVALID");
+    const materialIds = ["material", "vocabulary"].includes(kind)
+      ? undefined
+      : await this.activityIds("material");
+    const materialScope = ["material", "vocabulary"].includes(kind)
+      ? undefined
+      : await this.scopeOf(this.page.locator("[data-material-workspace]:visible"));
     const ids = await this.activityIds(kind);
     const scope = await this.scopeOf(
       kind === "material" ? await this.materialLibrary() : await this.library(kind),
@@ -607,9 +738,12 @@ export class VerificationSession {
     return { kind, existingCount: this.baseline.ids.length };
   }
   async confirmNoCreation(confirmation) {
+    const cancelled =
+      confirmation === "cancelled-without-creation" &&
+      this.journal.notes.includes("CANCELLED_UI_OBSERVED_NO_ACTIVITY");
     if (
-      confirmation !== "no-creation-submitted" ||
-      this.journal.records.length ||
+      (!cancelled && confirmation !== "no-creation-submitted") ||
+      (!cancelled && this.journal.records.length) ||
       this.journal.pendingAction ||
       this.journal.interruptedActions?.length ||
       !this.journal.baseline ||
@@ -649,12 +783,18 @@ export class VerificationSession {
     }
     this.journal.receipts ??= [];
     this.journal.receipts.push({
-      code: "NO_CREATION_SUBMITTED",
+      code: cancelled ? "CANCELLED_WITHOUT_CREATION" : "NO_CREATION_SUBMITTED",
       at: new Date().toISOString(),
-      evidence: "unchanged-library-and-operator-attestation",
+      evidence: cancelled
+        ? "observed-cancellation-and-unchanged-libraries"
+        : "unchanged-library-and-operator-attestation",
       deletedRecords: 0,
     });
-    this.journal.notes = this.journal.notes.filter((note) => note !== "UNCONFIRMED_CREATION");
+    this.journal.notes = this.journal.notes.filter(
+      (note) =>
+        note !== "UNCONFIRMED_CREATION" &&
+        (!cancelled || note !== "CANCELLED_UI_OBSERVED_NO_ACTIVITY"),
+    );
     delete this.journal.baseline;
     this.baseline = undefined;
     await this.persist();
@@ -662,7 +802,8 @@ export class VerificationSession {
   }
   async trackActivity(id) {
     const material = this.baseline?.kind === "material";
-    if (!(material ? /^material_[0-9a-z]{16,64}$/ : /^activity_[0-9a-z]{16,64}$/).test(id ?? ""))
+    const vocabulary = this.baseline?.kind === "vocabulary";
+    if (!recordIdPattern(this.baseline?.kind).test(id ?? ""))
       throw failure("VERIFY_INVALID_ACTIVITY_ID");
     const owned = this.journal.records.find((record) => record.id === id);
     if (
@@ -671,10 +812,13 @@ export class VerificationSession {
         !(material && owned && this.baseline.revisions?.[id] === owned.revision))
     )
       throw failure("VERIFY_RECORD_NOT_NEW");
-    const visible = this.page.locator(
-      material ? "[data-material-id]:visible" : "[data-activity-id]:visible",
-    );
-    if ((await visible.getAttribute(material ? "data-material-id" : "data-activity-id")) !== id)
+    const identityAttribute = material
+      ? "data-material-id"
+      : vocabulary
+        ? "data-current-vocabulary-id"
+        : "data-activity-id";
+    const visible = this.page.locator(`[${identityAttribute}]:visible`);
+    if ((await visible.getAttribute(identityAttribute)) !== id)
       throw failure("VERIFY_RECORD_NOT_VISIBLE");
     await this.assertScope(
       material
@@ -682,6 +826,21 @@ export class VerificationSession {
         : visible,
       this.baseline,
     );
+    const sourceActivityId = vocabulary
+      ? await visible.getAttribute("data-activity-id")
+      : undefined;
+    if (
+      vocabulary &&
+      !this.journal.records.some(
+        (record) =>
+          record.id === sourceActivityId &&
+          record.kind !== "vocabulary" &&
+          record.kind !== "material" &&
+          record.language === this.baseline.language &&
+          record.rootGeneration === this.baseline.rootGeneration,
+      )
+    )
+      throw failure("VERIFY_VOCABULARY_SOURCE_NOT_OWNED");
     const revision = material ? await visible.getAttribute("data-material-revision") : undefined;
     if (material && !/^material-revision_[0-9a-z]{16,64}$/.test(revision ?? ""))
       throw failure("VERIFY_RECORD_NOT_VISIBLE");
@@ -711,8 +870,9 @@ export class VerificationSession {
         language: this.baseline.language,
         rootGeneration: this.baseline.rootGeneration,
         ...(material ? { revision } : {}),
+        ...(vocabulary ? { sourceActivityId } : {}),
       });
-    if (!material) {
+    if (!material && !vocabulary) {
       const materialId = await visible.getAttribute("data-activity-material-id");
       const materialRevision = await visible.getAttribute("data-activity-material-revision");
       if (materialId) {
@@ -749,7 +909,9 @@ export class VerificationSession {
       await history.waitFor();
       if ((await history.getAttribute("data-root-generation")) !== record.rootGeneration)
         throw failure("VERIFY_RECORD_SCOPE_MISMATCH");
-      const candidate = history.locator(`[data-history-activity-id="${record.id}"]`).first();
+      const ownershipAttribute =
+        record.kind === "vocabulary" ? "data-history-vocabulary-id" : "data-history-activity-id";
+      const candidate = history.locator(`[${ownershipAttribute}="${record.id}"]`).first();
       if (!(await candidate.count())) return;
       const historyEntryId = await candidate.getAttribute("data-history-entry-id");
       if (!/^history-entry_[0-9a-z]{16,64}$/.test(historyEntryId ?? ""))
@@ -762,9 +924,12 @@ export class VerificationSession {
       await entry.waitFor({ state: "detached" });
       this.journal.receipts ??= [];
       this.journal.receipts.push({
-        code: "OWNED_ACTIVITY_HISTORY_REMOVED",
+        code:
+          record.kind === "vocabulary"
+            ? "OWNED_VOCABULARY_HISTORY_REMOVED"
+            : "OWNED_ACTIVITY_HISTORY_REMOVED",
         at: new Date().toISOString(),
-        activityId: record.id,
+        ...(record.kind === "vocabulary" ? { vocabularyId: record.id } : { activityId: record.id }),
         historyEntryId,
         language: record.language,
         rootGeneration: record.rootGeneration,
@@ -803,6 +968,29 @@ export class VerificationSession {
     )
       throw failure("VERIFY_ACTIVITY_CLEANUP_REQUIRED");
     await this.selectLanguage(record.language);
+    if (record.kind === "vocabulary") {
+      await this.cleanupActivityHistory(record);
+      const library = await this.library("vocabulary");
+      await this.assertScope(library, record);
+      const open = library.locator(`[id="vocabulary-open-${id}"]`);
+      if (await open.count()) {
+        await open.click();
+        const detail = this.page.locator(`[data-vocabulary-id="${id}"]:visible`);
+        await this.assertScope(detail, record);
+        await (await this.button("vocabulary.delete", this.page.getByRole("dialog"))).click();
+        await (
+          await this.button("vocabulary.delete", this.page.getByRole("dialog").last())
+        ).click();
+        await detail.waitFor({ state: "detached" });
+      }
+      await this.assertScope(await this.library("vocabulary"), record);
+      if ((await this.activityIds("vocabulary")).includes(id))
+        throw failure("VERIFY_RECORD_RETAINED");
+      this.recordCleanupReadback(record);
+      this.journal.records = this.journal.records.filter((entry) => entry.id !== id);
+      await this.persist();
+      return;
+    }
     if (record.kind === "material") {
       const workspace = await this.materialLibrary();
       await this.assertScope(workspace, record);
@@ -831,10 +1019,14 @@ export class VerificationSession {
     await this.assertScope(await this.library(record.kind), record);
     const open = this.page.locator(`[id="activity-open-${id}"]`);
     if (await open.count()) {
-      const card = open.locator("..");
+      const card = this.page.getByRole("article").filter({ has: open });
       const buttons = card.getByRole("button");
       if ((await buttons.count()) !== 2) throw failure("VERIFY_RECORD_CLEANUP_BLOCKED");
       await buttons.nth(1).click();
+      const menu = this.page.getByRole("menu");
+      if ((await menu.getByRole("menuitem").count()) !== 1)
+        throw failure("VERIFY_RECORD_CLEANUP_BLOCKED");
+      await menu.getByRole("menuitem").click();
       const dialog = this.page.getByRole("dialog");
       const confirm = await this.button("practice.library.deleteConfirm", dialog);
       if (!(await confirm.isVisible())) {
@@ -923,8 +1115,27 @@ export class VerificationSession {
     this.page = this.mainPage;
     const failures = [];
     let restoredSelection;
+    const currentTarget = this.page
+      .getByRole("navigation", { includeHidden: true })
+      .getByRole("combobox", {
+        name: await this.t("onboarding.targetLanguage"),
+        exact: true,
+        includeHidden: true,
+      });
+    if (this.journal.initialTarget && (await currentTarget.count())) {
+      const current = await currentTarget.inputValue();
+      if (current !== this.journal.initialTarget && current !== this.journal.expectedTarget)
+        throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
+    }
+    if (this.journal.localeRestore) {
+      const current = await this.page.locator("html").getAttribute("lang");
+      if (current !== this.initialLocale && current !== this.journal.expectedLocale)
+        throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
+    }
     for (const record of [...this.journal.records].sort(
-      (a, b) => Number(a.kind === "material") - Number(b.kind === "material"),
+      (a, b) =>
+        (a.kind === "vocabulary" ? 0 : a.kind === "material" ? 2 : 1) -
+        (b.kind === "vocabulary" ? 0 : b.kind === "material" ? 2 : 1),
     )) {
       try {
         await this.cleanupActivity(record.id);
@@ -938,6 +1149,12 @@ export class VerificationSession {
         const observed = await this.profileValues();
         if (observed.rootGeneration !== preference.rootGeneration)
           throw failure("VERIFY_SETTINGS_ROOT_CHANGED");
+        if (JSON.stringify(observed) === JSON.stringify(preference)) continue;
+        if (
+          JSON.stringify(observed) !==
+          JSON.stringify(this.journal.expectedLearningPreferences?.[preference.language])
+        )
+          throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
         const panel = this.page.getByRole("tabpanel");
         for (const [field, key] of [
           ["level", "onboarding.level"],
@@ -984,6 +1201,11 @@ export class VerificationSession {
           preference.route !== current.route
         )
           throw failure("VERIFY_SETTINGS_SCOPE_CHANGED");
+        if (
+          JSON.stringify(current) !== JSON.stringify(preference) &&
+          JSON.stringify(current) !== JSON.stringify(this.journal.expectedPreferences)
+        )
+          throw failure("VERIFY_SETTINGS_CHANGED_EXTERNALLY");
         await this.selectAiPreference(panel, "modelControl.model", preference.model);
         await this.selectAiPreference(panel, "settings.effort", preference.effort);
         await this.navigate(await this.t("nav.nina"));
@@ -994,10 +1216,11 @@ export class VerificationSession {
         this.journal.preferences = {};
       }
       if (
-        await this.page
+        this.journal.localeRestore &&
+        (await this.page
           .getByRole("navigation")
           .filter({ has: this.page.getByRole("list") })
-          .count()
+          .count())
       ) {
         await this.navigate(await this.t("nav.settings"));
         await this.page
@@ -1008,7 +1231,10 @@ export class VerificationSession {
           .selectOption(this.initialLocale);
         await this.saveSettings();
       }
-      if ((await this.page.locator("html").getAttribute("lang")) !== this.initialLocale) {
+      if (
+        this.journal.localeRestore &&
+        (await this.page.locator("html").getAttribute("lang")) !== this.initialLocale
+      ) {
         await this.page
           .getByRole("button", {
             name: languageNames[this.initialLocale],
@@ -1021,11 +1247,17 @@ export class VerificationSession {
         );
       }
       delete this.journal.learningPreferences;
+      delete this.journal.expectedLearningPreferences;
+      delete this.journal.expectedPreferences;
+      delete this.journal.localeRestore;
+      delete this.journal.expectedLocale;
       this.journal.notes = this.journal.notes.filter(
         (note) => note !== "LEARNING_SETTINGS_RESTORE_REQUIRED",
       );
-    } catch {
+    } catch (error) {
       failures.push("VERIFY_SETTINGS_RESTORE_FAILED");
+      const code = safeCode(error, "VERIFY_SETTINGS_RESTORE_FAILED");
+      if (code !== "VERIFY_SETTINGS_RESTORE_FAILED") failures.push(code);
       if (!this.journal.notes.includes("SETTINGS_RESTORE_REQUIRED"))
         this.journal.notes.push("SETTINGS_RESTORE_REQUIRED");
     }
@@ -1067,6 +1299,7 @@ export class VerificationSession {
       });
       // Preserve the original selection baseline while any unproven select remains.
       if (!this.journal.interruptedActions.some((entry) => entry.action === "select")) {
+        delete this.journal.expectedTarget;
         delete this.journal.initialTarget;
         delete this.journal.initialRoot;
       }

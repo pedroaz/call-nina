@@ -11,7 +11,11 @@ import tseslint from "typescript-eslint";
 import callNina from "./scripts/eslint-rules/call-nina.mjs";
 
 const typeScriptFiles = ["**/*.{ts,tsx}"];
-const rendererFiles = ["apps/desktop/src/renderer/**/*.{ts,tsx}", "apps/website/src/**/*.{ts,tsx}"];
+const rendererFiles = [
+  "apps/desktop/src/renderer/**/*.{ts,tsx}",
+  "apps/website/src/**/*.{ts,tsx}",
+  "packages/browser-ui/src/**/*.{ts,tsx}",
+];
 const electronFiles = ["apps/desktop/src/{main,preload}/**/*.{ts,tsx}"];
 
 const scopedTypeScriptConfigs = tseslint.configs.strictTypeChecked.map((config) => ({
@@ -23,6 +27,9 @@ export default tseslint.config(
   {
     name: "call-nina/ignores",
     ignores: [
+      ".runtime/**",
+      "build/**",
+      ".tmp/**",
       "**/dist/**",
       "apps/*/build/**",
       "packages/*/build/**",
@@ -104,6 +111,17 @@ export default tseslint.config(
     },
   },
   {
+    name: "call-nina/keyboard-scroll-regions",
+    files: [
+      "apps/desktop/src/renderer/components/activity/ActivityReference.tsx",
+      "apps/desktop/src/renderer/components/activity/ActivityWorkspace.tsx",
+    ],
+    rules: {
+      // Named, independently scrolling panes need keyboard focus to scroll without a mouse.
+      "jsx-a11y/no-noninteractive-tabindex": ["error", { roles: ["tabpanel", "region"] }],
+    },
+  },
+  {
     name: "call-nina/mobile-react",
     files: ["apps/mobile/src/**/*.{ts,tsx}"],
     plugins: { react, "react-hooks": reactHooks },
@@ -126,8 +144,9 @@ export default tseslint.config(
             },
             {
               regex:
-                "^@call-nina/(?!design-system(?:$|/font-notices\\.json$|/fonts/[^/]+\\.ttf$|/brand/[^/]+\\.png$)).+",
-              message: "Mobile currently consumes only the portable design foundation.",
+                "^@call-nina/(?!(?:contracts|mobile-sync|learning-ui)$|design-system(?:$|/font-notices\\.json$|/fonts/[^/]+\\.ttf$|/brand/[^/]+\\.png$)).+",
+              message:
+                "Mobile may consume only portable contracts, sync, learning translations, and design assets.",
             },
             {
               group: ["../**/packages/**", "../**/apps/**"],

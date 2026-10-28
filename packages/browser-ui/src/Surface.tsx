@@ -6,7 +6,7 @@ type CardProps<T extends ElementType> = Readonly<{
   as?: T;
   children: ReactNode;
   className?: string;
-  variant?: "default" | "muted";
+  variant?: "default" | "muted" | "brand";
   density?: "compact" | "comfortable";
 }> &
   Omit<ComponentPropsWithoutRef<T>, "as" | "children" | "className">;
@@ -31,7 +31,7 @@ export function Card<T extends ElementType = "div">({
     <Component
       {...props}
       data-density={density}
-      className={`${styles.card} ${variant === "muted" ? styles.muted : ""} ${className ?? ""}`}
+      className={`${styles.card} ${variant === "muted" ? styles.muted : variant === "brand" ? styles.brand : ""} ${className ?? ""}`}
     >
       {children}
     </Component>

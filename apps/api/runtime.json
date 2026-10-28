@@ -1,0 +1,7 @@
+{
+  "projectId": "prj_G6dX6jZ4E9hnlSxxLZXnRhMfndba",
+  "teamId": "team_8AKgpxdjIKYtsa2rynPbsFVK",
+  "origin": "https://call-nina.vercel.app",
+  "clerkIssuer": "https://wired-platypus-3046.clerk.accounts.dev",
+  "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"]
+}

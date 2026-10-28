@@ -1,23 +1,16 @@
 .progress {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--od-space-4);
-  margin-block: var(--od-space-5);
-  padding: var(--od-space-4) var(--od-space-5);
+  padding: var(--od-space-5);
   border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-lg);
   background: var(--od-color-surface-card);
 }
 .copy {
   flex: 1;
-  min-width: 0;
-}
-.indicator {
-  flex: none;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-top: 0.2rem;
-  animation: turning 2s linear infinite;
+  min-width: min(12rem, 100%);
 }
 .attempt,
 .detail {
@@ -29,14 +22,4 @@
   flex-wrap: wrap;
   gap: var(--od-space-2) var(--od-space-4);
   margin-top: var(--od-space-2);
-}
-@keyframes turning {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .indicator {
-    animation: none;
-  }
 }

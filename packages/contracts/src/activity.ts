@@ -83,11 +83,13 @@ export const activityLibraryFilterSchema = z.strictObject({
   maximum: z.int().min(1).max(50).default(20),
   cursor: activityLibraryCursorSchema.optional(),
   material: materialReferenceSchema.optional(),
+  search: z.string().trim().max(160).optional(),
 });
 export const activityLibraryItemSchema = z
   .strictObject(preparedActivitySchema.shape)
   .omit({ context: true })
   .extend({
     generated: z.boolean(),
+    resultCount: z.int().nonnegative(),
     deletionStatus: z.enum(["available", "cascade", "retained-data"]),
   });

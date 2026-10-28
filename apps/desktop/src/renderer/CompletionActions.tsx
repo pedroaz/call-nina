@@ -9,6 +9,7 @@ import {
 import { invokeDesktop } from "./ipc.js";
 import { Button, Muted } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
+import styles from "./CompletionActions.module.css";
 
 /** Read-only follow-up to the shared player's committed completion. */
 export function CompletionActions({
@@ -17,7 +18,7 @@ export function CompletionActions({
   rootGeneration,
   parentLabel,
   onReturn,
-  onHistory,
+  onResults,
   onNina,
 }: {
   targetLanguage: Language;
@@ -25,7 +26,7 @@ export function CompletionActions({
   rootGeneration: DataRootGeneration;
   parentLabel: string;
   onReturn: () => void;
-  onHistory: () => void;
+  onResults: () => void;
   onNina: () => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -46,7 +47,7 @@ export function CompletionActions({
     };
   }, [locale, rootGeneration, targetLanguage]);
   return (
-    <div>
+    <section className={styles.summary}>
       <h3 ref={heading} tabIndex={-1}>
         {t("completion.next")}
       </h3>
@@ -54,24 +55,26 @@ export function CompletionActions({
         {t(evidence === "answers" ? "completion.evidence" : "completion.selfAssessment")}
       </Muted>
       {suggestion ? (
-        <>
+        <div className={styles.suggestion}>
           <p>
             <strong>{suggestion.title}</strong>
           </p>
           <p>{suggestion.rationale}</p>
-        </>
+        </div>
       ) : (
         <p>{t("completion.nextHint")}</p>
       )}
-      <ActionGroup>
-        <Button onPress={onNina}>{t("completion.nina")}</Button>
-        <Button variant="secondary" onPress={onHistory}>
-          {t("nav.history")}
-        </Button>
-        <Button variant="secondary" onPress={onReturn}>
+      <ActionGroup className={styles.actions}>
+        <Button variant="primary" onPress={onReturn}>
           {t("completion.return", { origin: parentLabel })}
         </Button>
+        <Button variant="secondary" onPress={onNina}>
+          {t("nav.nina")}
+        </Button>
+        <Button variant="secondary" onPress={onResults}>
+          {t("nav.history")}
+        </Button>
       </ActionGroup>
-    </div>
+    </section>
   );
 }

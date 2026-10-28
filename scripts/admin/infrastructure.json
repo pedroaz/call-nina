@@ -1,0 +1,11 @@
+{
+  "projectId": "prj_G6dX6jZ4E9hnlSxxLZXnRhMfndba",
+  "projectName": "call-nina",
+  "teamId": "team_8AKgpxdjIKYtsa2rynPbsFVK",
+  "origin": "https://call-nina.vercel.app",
+  "clerkInstanceId": "ins_3Jv8z9aSBihCBa3fF0o3D6Dp29V",
+  "clerkIssuer": "https://wired-platypus-3046.clerk.accounts.dev",
+  "publishableKey": "pk_test_d2lyZWQtcGxhdHlwdXMtMzA0Ni5jbGVyay5hY2NvdW50cy5kZXYk",
+  "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"],
+  "runtimeRole": "nina_runtime"
+}

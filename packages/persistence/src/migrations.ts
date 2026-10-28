@@ -3,7 +3,12 @@ import { migrateMultilingualTeaching } from "./teaching-migration.js";
 import { migrateLanguageProfiles } from "./language-migration.js";
 import { migrateAttemptEvidence } from "./attempt-evidence.js";
 import { migrateVersionedContent } from "./content.js";
-import type { DataRootGeneration } from "@call-nina/contracts";
+import {
+  legacyAiConnectionsSchema as aiConnectionsSchema,
+  emptyAiConnections,
+  z,
+  type DataRootGeneration,
+} from "@call-nina/contracts";
 
 import { openDataRootDatabase, type DatabaseMigration } from "./sqlite.js";
 
@@ -1806,6 +1811,151 @@ export const callNinaMigrations = [
     // The existing BEFORE UPDATE trigger also protects this additive column.
     sql: `ALTER TABLE exercise_attempt_feedback ADD COLUMN provenance_json TEXT
       CHECK(provenance_json IS NULL OR json_valid(provenance_json));`,
+  },
+  {
+    version: 37,
+    name: "chatgpt-plan-connections",
+    sql: "SELECT 1;",
+    migrate(database) {
+      const row = database
+        .prepare("SELECT settings_json FROM ai_connections WHERE singleton = 1")
+        .get();
+      if (!row || typeof row["settings_json"] !== "string")
+        throw new Error("OD_CONNECTION_CONFIG_INVALID");
+      const unknownValue: unknown = JSON.parse(row["settings_json"]);
+      const envelope = z.looseObject({ schemaVersion: z.int() }).parse(unknownValue);
+      if (envelope.schemaVersion === 2) {
+        aiConnectionsSchema.parse(unknownValue);
+        return;
+      }
+      const value = z
+        .strictObject({
+          schemaVersion: z.literal(1),
+          revision: z.int().nonnegative(),
+          migrationNotice: z.boolean(),
+          activeConnectionId: z.uuid().nullable(),
+          retiredSecretRefs: z.array(z.uuid()).max(100),
+          connections: z.array(z.looseObject({ routeId: z.string(), label: z.string() })).max(50),
+        })
+        .parse(unknownValue);
+      const next = aiConnectionsSchema.parse({
+        ...value,
+        schemaVersion: 2,
+        revision: value.revision + 1,
+        migrationNotice:
+          value.migrationNotice ||
+          value.connections.some((entry: { routeId?: unknown }) => entry.routeId === "codex"),
+        connections: value.connections.map((entry: { routeId?: unknown; label?: unknown }) =>
+          entry.routeId === "codex"
+            ? {
+                ...entry,
+                routeId: "chatgpt",
+                label:
+                  typeof entry.label === "string"
+                    ? entry.label.replace(/^Codex(?= \(|$)/u, "ChatGPT")
+                    : entry.label,
+              }
+            : entry,
+        ),
+      });
+      database
+        .prepare("UPDATE ai_connections SET settings_json = ? WHERE singleton = 1")
+        .run(JSON.stringify(next));
+    },
+  },
+  {
+    version: 38,
+    name: "multilingual-learning-path-catalog",
+    sql: `
+      DROP TRIGGER prepared_activity_scope_insert;
+      ALTER TABLE language_profiles RENAME TO previous_language_profiles;
+      CREATE TABLE language_profiles (
+        target_language TEXT PRIMARY KEY CHECK(target_language IN ('en-US','pt-BR','es','de')),
+        learner_id TEXT NOT NULL REFERENCES learner_profiles(learner_id) ON DELETE RESTRICT,
+        course_id TEXT,
+        profile_json TEXT NOT NULL CHECK(json_valid(profile_json) AND json_extract(profile_json, '$.targetLanguage') = target_language AND json_extract(profile_json, '$.learnerId') = learner_id)
+      ) STRICT;
+      INSERT INTO language_profiles SELECT * FROM previous_language_profiles;
+      DROP TABLE previous_language_profiles;
+      CREATE TRIGGER prepared_activity_scope_insert BEFORE INSERT ON prepared_activities
+        WHEN NOT EXISTS (SELECT 1 FROM language_profiles WHERE learner_id = json_extract(NEW.context_json, '$.learningScope.learnerId') AND target_language = NEW.target_language)
+          OR json_extract(NEW.context_json, '$.learningScope.targetLanguage') IS NOT NEW.target_language
+        BEGIN SELECT RAISE(ABORT, 'OD_LEARNING_CONTEXT_MISMATCH'); END;
+      ALTER TABLE local_learning_scope RENAME TO previous_learning_scope;
+      CREATE TABLE local_learning_scope (
+        singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
+        learner_id TEXT NOT NULL UNIQUE REFERENCES learner_profiles(learner_id) ON DELETE RESTRICT,
+        course_id TEXT,
+        target_language TEXT NOT NULL CHECK(target_language IN ('en-US','pt-BR','es','de'))
+      ) STRICT;
+      INSERT INTO local_learning_scope SELECT * FROM previous_learning_scope;
+      DROP TABLE previous_learning_scope;
+      ALTER TABLE course_selection RENAME TO previous_course_selection;
+      CREATE TABLE course_selection (
+        target_language TEXT PRIMARY KEY CHECK(target_language IN ('en-US','pt-BR','es','de')),
+        selected_stage TEXT NOT NULL,
+        current_json TEXT CHECK(current_json IS NULL OR json_valid(current_json))
+      ) STRICT;
+      INSERT INTO course_selection SELECT target_language, selected_stage, current_json FROM previous_course_selection;
+      DROP TABLE previous_course_selection;
+    `,
+  },
+  {
+    version: 39,
+    name: "vocabulary-learning-loop",
+    sql: `
+      CREATE TABLE vocabulary_focuses (
+        id TEXT PRIMARY KEY, target_language TEXT NOT NULL REFERENCES language_profiles(target_language),
+        title TEXT NOT NULL, guidance TEXT NOT NULL, source_text TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0,1)), created_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE vocabulary_batches (
+        id TEXT PRIMARY KEY, target_language TEXT NOT NULL REFERENCES language_profiles(target_language),
+        source_key TEXT NOT NULL, title TEXT NOT NULL, created_at TEXT NOT NULL,
+        is_read INTEGER NOT NULL DEFAULT 0, undone INTEGER NOT NULL DEFAULT 0,
+        focus_id TEXT REFERENCES vocabulary_focuses(id) ON DELETE SET NULL,
+        UNIQUE(target_language, source_key)
+      ) STRICT;
+      CREATE TABLE vocabulary_observations (
+        batch_id TEXT NOT NULL REFERENCES vocabulary_batches(id) ON DELETE CASCADE,
+        vocabulary_id TEXT NOT NULL REFERENCES vocabulary_entries(vocabulary_id) ON DELETE CASCADE,
+        reason TEXT NOT NULL, excerpt TEXT NOT NULL, outcome TEXT NOT NULL,
+        was_added INTEGER NOT NULL, was_created INTEGER NOT NULL, attempt_id TEXT,
+        PRIMARY KEY(batch_id, vocabulary_id)
+      ) STRICT;
+      CREATE TABLE vocabulary_analysis_queue (
+        activity_id TEXT PRIMARY KEY REFERENCES prepared_activities(activity_id) ON DELETE CASCADE,
+        target_language TEXT NOT NULL, source_key TEXT NOT NULL, source_text TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE vocabulary_suppressions (
+        target_language TEXT NOT NULL, identity TEXT NOT NULL,
+        PRIMARY KEY(target_language, identity)
+      ) STRICT;
+    `,
+  },
+  {
+    version: 40,
+    name: "provider-routing-development-reset",
+    sql: "SELECT 1;",
+    migrate(database) {
+      const row = database
+        .prepare("SELECT settings_json FROM ai_connections WHERE singleton = 1")
+        .get();
+      const prior = aiConnectionsSchema.parse(JSON.parse(String(row?.["settings_json"])));
+      // Explicit development format reset; validate the old format before discarding intent.
+      database.prepare("UPDATE ai_connections SET settings_json = ? WHERE singleton = 1").run(
+        JSON.stringify({
+          ...emptyAiConnections,
+          revision: prior.revision + 1,
+          retiredSecretRefs: [
+            ...new Set([
+              ...prior.retiredSecretRefs,
+              ...prior.connections.flatMap((entry) => (entry.secretRef ? [entry.secretRef] : [])),
+            ]),
+          ],
+        }),
+      );
+    },
   },
 ] as const satisfies readonly DatabaseMigration[];
 

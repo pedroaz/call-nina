@@ -1,0 +1,19 @@
+{
+  "name": "@call-nina/mobile-sync",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@call-nina/contracts": "workspace:*",
+    "base64-js": "1.5.1"
+  }
+}

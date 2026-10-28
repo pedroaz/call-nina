@@ -1,3 +1,6 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
+import { Disclosure } from "./components/ui/Disclosure.js";
+import { Nina } from "./components/ui/Nina.js";
 import {
   type ProviderOperation,
   contextualHelpCandidateSchema,
@@ -9,7 +12,14 @@ import { OperationProgress } from "./OperationProgress.js";
 import { Languages, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { DiagnosticCode, Button, Feedback, FieldGroup, ItemList } from "./components/ui/index.js";
+import {
+  DiagnosticCode,
+  Button,
+  Feedback,
+  FieldGroup,
+  ItemList,
+  InfoHint,
+} from "./components/ui/index.js";
 
 import styles from "./ContextualHelper.module.css";
 import {
@@ -43,9 +53,11 @@ export type ContextualHelperSelection = Readonly<{
 
 export function ContextualHelper({
   selection,
+  targetLanguage,
   requestAiAccess,
 }: {
   selection: ContextualHelperSelection | undefined;
+  targetLanguage: string | undefined;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
 }) {
   const { t } = useTranslation();
@@ -120,7 +132,12 @@ export function ContextualHelper({
   );
 
   const submit = async (request: SubmittedRequest, modelQuestion: string) => {
-    if (!selection || stage !== "idle" || !(await requestAiAccess("contextual-help"))) return;
+    if (
+      !selection ||
+      stage !== "idle" ||
+      !(await requestAiAccess(request.intent === "translate" ? "translation" : "contextual-help"))
+    )
+      return;
     const nextSubmissionId = createDesktopSubmissionId();
     submissionId.current = nextSubmissionId;
     progress.begin(nextSubmissionId, "contextual-help");
@@ -169,80 +186,94 @@ export function ContextualHelper({
 
   return (
     <div className={styles.helperConversation}>
-      <p>{t("helper.courseSupport")}</p>
-      {!selection ? (
-        <Feedback live="off">{t("helper.selectText")}</Feedback>
-      ) : (
-        <figure className={styles.helperSelection}>
-          <figcaption>{t("helper.selectedContext")}</figcaption>
-          <blockquote>{selection.selectedText}</blockquote>
-          {selection.truncated ? <p>{t("helper.selectionTruncated")}</p> : null}
-        </figure>
-      )}
-      <div className={styles.helperTurns} aria-live="polite">
-        {turns.map((turn, index) => (
-          <article key={`${turn.prompt}:${String(index)}`}>
-            <p className={styles.eyebrow}>{t("helper.youAsked")}</p>
-            <p>{turn.prompt}</p>
-            <p className={styles.eyebrow}>{t("helper.answer")}</p>
-            <p className={styles.helperAnswer}>{turn.output.answer}</p>
-            {turn.output.examples.length > 0 ? (
-              <ItemList>
-                {turn.output.examples.map((example) => (
-                  <li key={example}>{example}</li>
-                ))}
-              </ItemList>
-            ) : null}
-            {turn.output.alternatives.length > 0 ? (
-              <section>
-                <h3>{t("helper.alternatives")}</h3>
-                <ItemList>
-                  {turn.output.alternatives.map((alternative) => (
-                    <li key={alternative}>{alternative}</li>
-                  ))}
-                </ItemList>
-              </section>
-            ) : null}
-            {turn.intent !== "translate" && turn.output.translations.length > 0 ? (
-              <section>
-                <h3>{t("helper.translations")}</h3>
-                <ItemList>
-                  {turn.output.translations.map((translation) => (
-                    <li key={`${translation.sourceText}:${translation.translatedText}`}>
-                      <span lang="de">{translation.sourceText}</span> — {translation.translatedText}
-                    </li>
-                  ))}
-                </ItemList>
-              </section>
-            ) : null}
-            {turn.output.miniExercises.length > 0 ? (
-              <section>
-                <h3>{t("helper.miniExercises")}</h3>
-                {turn.output.miniExercises.map((exercise) => (
-                  <details key={exercise.prompt}>
-                    <summary>{exercise.prompt}</summary>
-                    <p>{exercise.suggestedAnswer}</p>
-                  </details>
-                ))}
-              </section>
-            ) : null}
-            {turn.output.followUpSuggestions.length > 0 ? (
-              <section>
-                <h3>{t("helper.followUps")}</h3>
-                <ItemList>
-                  {turn.output.followUpSuggestions.map((suggestion) => (
-                    <li key={suggestion}>{suggestion}</li>
-                  ))}
-                </ItemList>
-              </section>
-            ) : null}
-            {turn.output.uncertainty.level !== "none" ? (
-              <Feedback live="off" tone="warning">
-                {turn.output.uncertainty.explanation}
-              </Feedback>
-            ) : null}
-          </article>
-        ))}
+      <div className={styles.helperScroll}>
+        <div className={styles.supportNotice}>
+          <span>{t("helper.supportNotice")}</span>
+          <InfoHint label={t("helper.supportDetails")}>
+            <p>{t("helper.courseSupport")}</p>
+          </InfoHint>
+        </div>
+        {turns.length === 0 && <Nina pose="listening" size="medium" />}
+        {!selection ? (
+          <Feedback live="off">{t("helper.selectText")}</Feedback>
+        ) : (
+          <figure className={styles.helperSelection}>
+            <figcaption>{t("helper.selectedContext")}</figcaption>
+            <blockquote>{selection.selectedText}</blockquote>
+            {selection.truncated ? <p>{t("helper.selectionTruncated")}</p> : null}
+          </figure>
+        )}
+        <div className={styles.helperTurns} aria-live="polite">
+          {turns.map((turn, index) => (
+            <div className={styles.exchange} key={`${turn.prompt}:${String(index)}`}>
+              <div className={styles.questionBubble} role="group" aria-label={t("helper.youAsked")}>
+                <p>{turn.prompt}</p>
+              </div>
+              <div className={styles.answerBubble} role="group" aria-label={t("helper.answer")}>
+                <p className={styles.helperAnswer}>{turn.output.answer}</p>
+                {turn.output.examples.length > 0 ? (
+                  <ItemList>
+                    {turn.output.examples.map((example) => (
+                      <li key={example}>{example}</li>
+                    ))}
+                  </ItemList>
+                ) : null}
+                {turn.output.alternatives.length > 0 ? (
+                  <section>
+                    <h3>{t("helper.alternatives")}</h3>
+                    <ItemList>
+                      {turn.output.alternatives.map((alternative) => (
+                        <li key={alternative}>{alternative}</li>
+                      ))}
+                    </ItemList>
+                  </section>
+                ) : null}
+                {turn.intent !== "translate" && turn.output.translations.length > 0 ? (
+                  <section>
+                    <h3>{t("helper.translations")}</h3>
+                    <ItemList>
+                      {turn.output.translations.map((translation) => (
+                        <li key={`${translation.sourceText}:${translation.translatedText}`}>
+                          <span lang={targetLanguage}>{translation.sourceText}</span> —{" "}
+                          {translation.translatedText}
+                        </li>
+                      ))}
+                    </ItemList>
+                  </section>
+                ) : null}
+                {turn.output.miniExercises.length > 0 ? (
+                  <section>
+                    <h3>{t("helper.miniExercises")}</h3>
+                    {turn.output.miniExercises.map((exercise) => (
+                      <Disclosure
+                        variant="inline"
+                        key={exercise.prompt}
+                        label={<> {exercise.prompt} </>}
+                      >
+                        <p>{exercise.suggestedAnswer}</p>
+                      </Disclosure>
+                    ))}
+                  </section>
+                ) : null}
+                {turn.output.followUpSuggestions.length > 0 ? (
+                  <section>
+                    <h3>{t("helper.followUps")}</h3>
+                    <ItemList>
+                      {turn.output.followUpSuggestions.map((suggestion) => (
+                        <li key={suggestion}>{suggestion}</li>
+                      ))}
+                    </ItemList>
+                  </section>
+                ) : null}
+                {turn.output.uncertainty.level !== "none" ? (
+                  <Feedback live="off" tone="warning">
+                    {turn.output.uncertainty.explanation}
+                  </Feedback>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       <div className={styles.helperComposer}>
         <OperationProgress progress={stage === "idle" ? undefined : progress.progress} />
@@ -266,8 +297,11 @@ export function ContextualHelper({
             }}
           />
         </FieldGroup>
+        <ProviderActionSummary operation="contextual-help" busy={stage !== "idle"} />
+        <ProviderActionSummary operation="translation" busy={stage !== "idle"} />
         <div className={styles.helperComposerActions}>
           <Button
+            variant="secondary"
             isDisabled={!selection || stage !== "idle"}
             leadingIcon={<Languages aria-hidden="true" />}
             onPress={translate}
@@ -297,15 +331,15 @@ export function ContextualHelper({
           ) : null}
         </div>
         <p className={styles.helperComposerHint}>{t("helper.sendHint")}</p>
+        {error ? (
+          <Feedback live="assertive" tone="error">
+            {t(error.messageKey)}
+            <DiagnosticCode>
+              {error.reference.code} · {error.reference.correlationId}
+            </DiagnosticCode>
+          </Feedback>
+        ) : null}
       </div>
-      {error ? (
-        <Feedback live="assertive" tone="error">
-          {t(error.messageKey)}
-          <DiagnosticCode>
-            {error.reference.code} · {error.reference.correlationId}
-          </DiagnosticCode>
-        </Feedback>
-      ) : null}
     </div>
   );
 }

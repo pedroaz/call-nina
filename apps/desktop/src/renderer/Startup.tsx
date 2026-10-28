@@ -53,6 +53,8 @@ function Diagnostic({ error }: { error: CallNinaError }) {
 
 export function OperationError({ error }: { error: CallNinaError }) {
   const { t } = useTranslation();
+  if (error.kind === "cancellation")
+    return <Feedback live="polite">{t(error.messageKey)}</Feedback>;
   return (
     <Feedback live="assertive" tone="error">
       <div>
@@ -86,6 +88,7 @@ export class ViewBoundary extends Component<BoundaryProps, BoundaryState> {
           <strong>{this.props.title}</strong>
           <p>{this.props.body}</p>
           <Button
+            variant="primary"
             onPress={() => {
               this.setState({ failed: false });
             }}
@@ -257,28 +260,11 @@ export function StartupError(props: {
           <Button variant="primary" onPress={() => void props.retry()}>
             {t("actions.retry")}
           </Button>
-          <Button onPress={props.recover}>{t("actions.chooseAnother")}</Button>
+          <Button variant="primary" onPress={props.recover}>
+            {t("actions.chooseAnother")}
+          </Button>
         </ActionGroup>
       </Card>
     </StartupFrame>
-  );
-}
-
-export function CodexBanner({ readiness }: { readiness: Readiness }) {
-  const { t } = useTranslation();
-  if (readiness.codex.status === "available") return null;
-  const message =
-    readiness.codex.reason === "missing"
-      ? "codex.missing"
-      : readiness.codex.reason === "unsupported-version"
-        ? "codex.unsupported"
-        : "codex.unavailable";
-  return (
-    <Feedback live="off" tone="warning">
-      <div>
-        {t(message)}
-        <Diagnostic error={readiness.codex.error} />
-      </div>
-    </Feedback>
   );
 }

@@ -1,3 +1,4 @@
+import { vocabularyImageSchema, vocabularyAnalysisOutputSchema } from "./vocabulary-learning.js";
 import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
 import { materialDraftSchema, materialReferenceSchema } from "./material.js";
@@ -30,6 +31,7 @@ const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 const runtimeId = (maximum = 200) => text(maximum).regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/u);
 
 export const generationKinds = [
+  "vocabulary-analysis",
   "writing-prompt",
   "voice-activity-draft",
   "writing-correction",
@@ -41,6 +43,7 @@ export const generationKinds = [
 export const generationKindSchema = z.enum(generationKinds);
 
 export const generationOutputSchemaIds = {
+  "vocabulary-analysis": "call-nina/vocabulary-analysis@1",
   "writing-prompt": "call-nina/writing-prompt@1",
   "voice-activity-draft": "call-nina/voice-activity-draft@1",
   "writing-correction": "call-nina/writing-correction@1",
@@ -234,6 +237,7 @@ export function isGeneratedExerciseInstruction(kind: string, instructions: strin
 }
 
 const candidateExerciseShape = {
+  targetedVocabularyIds: z.array(vocabularyIdSchema).max(3).default([]),
   title: text(160),
   instructions: text(4_000),
   explanation: text(4_000)
@@ -353,6 +357,7 @@ export const exerciseFeedbackCandidateSchema = strictBoundaryObject({
 });
 
 export const generationCandidateOutputSchemas = Object.freeze({
+  "vocabulary-analysis": vocabularyAnalysisOutputSchema,
   "writing-prompt": writingPromptCandidateSchema,
   "voice-activity-draft": voiceActivityDraftCandidateSchema,
   "writing-correction": writingCorrectionCandidateSchema,
@@ -363,6 +368,7 @@ export const generationCandidateOutputSchemas = Object.freeze({
 });
 
 export const generationCandidateOutputJsonSchemas = Object.freeze({
+  "vocabulary-analysis": toStructuredOutputJsonSchema(vocabularyAnalysisOutputSchema),
   "writing-prompt": toStructuredOutputJsonSchema(writingPromptCandidateSchema),
   "voice-activity-draft": toStructuredOutputJsonSchema(voiceActivityDraftCandidateSchema),
   "writing-correction": toStructuredOutputJsonSchema(writingCorrectionCandidateSchema),
@@ -475,6 +481,7 @@ const correctionMistakeSampleSchema = z.discriminatedUnion("kind", [
 ]);
 
 const learningContextFields = {
+  vocabularyFocuses: z.array(text(2000)).max(10).default([]),
   relevantMistakes: z.array(correctionMistakeSampleSchema).max(6).default([]),
   vocabularyToReview: z
     .array(
@@ -490,6 +497,21 @@ const learningContextFields = {
 } as const;
 
 export const generationInputSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: z.literal("vocabulary-analysis"),
+    learningContext: learningContextSchema,
+    mode: z.enum(["import", "activity"]),
+    sourceKey: text(200),
+    guidance: z.string().max(2_000),
+    sourceText: z.string().max(120_000),
+    image: vocabularyImageSchema.optional(),
+    calibration: learnerCalibrationSchema,
+    knownWords: z
+      .array(
+        z.strictObject({ vocabularyId: vocabularyIdSchema, lemma: text(160), meaning: text(500) }),
+      )
+      .max(100),
+  }),
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("flashcard-generation"),
@@ -631,6 +653,7 @@ export const generationOperationStartSchema = strictBoundaryObject({
   submissionId: correlationIdSchema,
   dataRootGeneration: dataRootGenerationSchema,
   modelSelection: resolvedModelSelectionSchema,
+  capability: z.enum(["text", "image"]).optional(),
   input: generationInputSchema,
 });
 
@@ -732,6 +755,7 @@ export type GenerationInput = z.infer<typeof generationInputSchema>;
 export type GenerationOperationStart = z.infer<typeof generationOperationStartSchema>;
 export type GenerationOperationState = z.infer<typeof generationOperationStateSchema>;
 export type GenerationCandidateOutputMap = {
+  readonly "vocabulary-analysis": z.infer<typeof vocabularyAnalysisOutputSchema>;
   readonly "writing-prompt": z.infer<typeof writingPromptCandidateSchema>;
   readonly "voice-activity-draft": z.infer<typeof voiceActivityDraftCandidateSchema>;
   readonly "writing-correction": z.infer<typeof writingCorrectionCandidateSchema>;
@@ -780,6 +804,7 @@ export interface GenerationService<Outputs extends GenerationOutputMap = Generat
   subscribeGeneration(listener: (event: GenerationEvent) => void): () => void;
 }
 export const generationDeadlineMilliseconds = Object.freeze({
+  "vocabulary-analysis": 120_000,
   "writing-prompt": 60_000,
   "voice-activity-draft": 60_000,
   "writing-correction": 60_000,

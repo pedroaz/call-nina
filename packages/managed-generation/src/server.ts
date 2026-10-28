@@ -1,12 +1,13 @@
+import { authenticate, type ClerkPolicy } from "./auth.js";
+import { ninaAccessSchema, generationDeadlineMilliseconds, z } from "@call-nina/contracts";
+import { type GatewayUsage, generateGatewayAttempt } from "./gateway.js";
 import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
-import { generationDeadlineMilliseconds, z } from "@call-nina/contracts";
 import {
   GenerationOutputValidationError,
   runLearningWorkflow,
 } from "@call-nina/learning-workflows";
 import { PostgresBudget, type BudgetSql } from "./budget.js";
-import { generateGatewayAttempt } from "./gateway.js";
 import { policyIsCurrent, servicePolicySchema, type ServicePolicy } from "./policy.js";
 import {
   failureCodeSchema,
@@ -21,6 +22,8 @@ export { openBudgetSql } from "./postgres.js";
 export { policyDigest, servicePolicySchema } from "./policy.js";
 
 const statuses: Record<FailureCode, number> = {
+  unauthenticated: 401,
+  forbidden: 403,
   unavailable: 503,
   shutdown: 503,
   exhausted: 429,
@@ -45,12 +48,20 @@ export function unavailableResponse(): Response {
  * populate this value from a JSON field, arbitrary proxy, cookie or install ID. */
 export class ManagedService {
   readonly #policy: ServicePolicy;
+  readonly #auth: ClerkPolicy;
   readonly #budget: PostgresBudget;
   readonly #apiKey: string;
   readonly #throttleKey: string;
   readonly #running = new Set<AbortController>();
   #closed = false;
-  constructor(options: { policy: unknown; sql: BudgetSql; apiKey: string; throttleKey: string }) {
+  constructor(options: {
+    auth: ClerkPolicy;
+    policy: unknown;
+    sql: BudgetSql;
+    apiKey: string;
+    throttleKey: string;
+  }) {
+    this.#auth = options.auth;
     this.#policy = servicePolicySchema.parse(options.policy);
     this.#apiKey = z.string().min(20).max(4096).regex(/^\S+$/u).parse(options.apiKey);
     this.#throttleKey = z
@@ -71,8 +82,12 @@ export class ManagedService {
     }, limits.deadlineMs);
     let reservationId: string | undefined;
     let attempted = 0;
+    const started = Date.now();
+    let outcome = "unknown";
+    const usage: GatewayUsage[] = [];
     this.#running.add(controller);
     try {
+      const userId = await authenticate(request, this.#auth);
       if (this.#closed) throw new ManagedFailure("shutdown");
       if (!policyIsCurrent(this.#policy)) throw new ManagedFailure("unavailable");
       if (!isIP(trustedNetworkAddress)) throw new ManagedFailure("unavailable");
@@ -96,7 +111,7 @@ export class ManagedService {
           `${this.#policy.budgetId}:${new Date().toISOString().slice(0, 10)}:${trustedNetworkAddress}`,
         )
         .digest("hex");
-      await this.#budget.reserve(input.requestId, network);
+      await this.#budget.reserve(input.requestId, network, userId, input.input.kind);
       reservationId = input.requestId;
       controller.signal.throwIfAborted();
       const workflowTimer = setTimeout(() => {
@@ -115,6 +130,9 @@ export class ManagedService {
             // line never establishes free work; only an unattempted repair is refunded.
             attempted++;
             return generateGatewayAttempt({
+              userId,
+              operation: input.input.kind,
+              recordUsage: (value) => usage.push(value),
               policy: this.#policy,
               apiKey: this.#apiKey,
               attempt,
@@ -134,6 +152,7 @@ export class ManagedService {
       };
       if (Buffer.byteLength(JSON.stringify(body)) > limits.responseBytes)
         throw new ManagedFailure("invalid-output");
+      outcome = "validated";
       return response(body, 200);
     } catch (error) {
       const reason: unknown = controller.signal.aborted ? controller.signal.reason : error;
@@ -145,6 +164,7 @@ export class ManagedService {
             : reason instanceof SyntaxError
               ? "invalid-request"
               : "unavailable";
+      outcome = code;
       return response({ status: "failed", code: failureCodeSchema.parse(code) }, statuses[code]);
     } finally {
       clearTimeout(timer);
@@ -153,7 +173,12 @@ export class ManagedService {
       if (reservationId) {
         // Failure leaves the original maximum charged durably. No fire-and-forget
         // refund and no dependency on client connection staying open.
-        await this.#budget.settle(reservationId, attempted).catch(() => undefined);
+        await this.#budget
+          .settle(reservationId, attempted, outcome, Date.now() - started, {
+            attempts: usage,
+            complete: usage.length === attempted,
+          })
+          .catch(() => undefined);
       }
     }
   }
@@ -162,3 +187,39 @@ export class ManagedService {
     for (const controller of this.#running) controller.abort(new ManagedFailure("shutdown"));
   }
 }
+
+export { authenticate, type ClerkPolicy } from "./auth.js";
+export async function accountResponse(
+  request: Request,
+  auth: ClerkPolicy,
+  sql: BudgetSql,
+  inferenceEnabled: boolean,
+): Promise<Response> {
+  try {
+    const userId = await authenticate(request, auth);
+    const result = await sql.query("select * from nina_starter.access($1)", [userId]);
+    const account = z
+      .object({
+        hosted_ai_enabled: z.boolean(),
+        remaining_actions: z.coerce.number().int().nonnegative(),
+      })
+      .optional()
+      .parse(result.rows[0]);
+    return response(
+      ninaAccessSchema.parse({
+        userId,
+        hostedAiEnabled: account?.hosted_ai_enabled ?? false,
+        remainingActions: account?.remaining_actions ?? 0,
+        inferenceEnabled,
+      }),
+      200,
+    );
+  } catch (error) {
+    return response(
+      { status: "failed", code: error instanceof ManagedFailure ? error.code : "unavailable" },
+      error instanceof ManagedFailure && error.code === "unauthenticated" ? 401 : 503,
+    );
+  }
+}
+
+export type { BudgetSql } from "./budget.js";

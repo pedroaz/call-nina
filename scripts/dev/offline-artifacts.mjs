@@ -18,7 +18,7 @@ if (
   !path.isAbsolute(deviceRoot)
 ) {
   process.stderr.write(
-    "Usage: make offline-artifacts ARGS='inspect|install|remove --config-dir /absolute/device-config-directory'\n",
+    "Usage: pnpm --filter @call-nina/offline-runtime run artifacts inspect|install|remove --config-dir /absolute/device-config-directory\n",
   );
   process.exitCode = 1;
 } else {

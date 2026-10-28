@@ -1,1 +1,1 @@
-export * from "@call-nina/browser-ui";
+export { Tabs } from "@call-nina/browser-ui";

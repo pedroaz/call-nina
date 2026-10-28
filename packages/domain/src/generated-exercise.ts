@@ -138,6 +138,7 @@ function materializeExercise(
     hints: candidate.hints.map((text) => ({ text })),
     feedbackMode: defaultFeedbackModeForExerciseKind(),
     curriculumTopicIds: options.curriculumTopicIds ?? [],
+    targetedVocabularyIds: candidate.targetedVocabularyIds,
     vocabularySetLinks: [],
   };
   if (candidate.kind === "free-writing") {

@@ -1,4 +1,5 @@
-import { SidebarModelControl } from "./SidebarModelControl.js";
+import { Disclosure } from "./components/ui/Disclosure.js";
+import { ConnectionSettings } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   languageDefinitions,
@@ -6,10 +7,22 @@ import {
   type DesktopIpcResponse,
   type CallNinaError,
 } from "@call-nina/contracts";
-import { Save, UserRound } from "lucide-react";
+import {
+  Save,
+  UserRound,
+  CircleCheck,
+  CircleHelp,
+  Gauge,
+  LogOut,
+  AudioLines,
+  BookOpen,
+  Plug,
+  ShieldCheck,
+  Activity,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
-  Card,
+  SelectControl,
   Tabs,
   InfoHint,
   DiagnosticCode,
@@ -17,11 +30,13 @@ import {
   CheckboxField,
   Feedback,
   FieldGroup,
+  SelectField,
   LoadingState,
   ItemList,
   Muted,
+  ModalDialog,
 } from "./components/ui/index.js";
-import { ActionGroup, Page } from "./components/layout/index.js";
+import { ActionGroup, Page, Section } from "./components/layout/index.js";
 
 import styles from "./SettingsPage.module.css";
 import i18n from "./i18n.js";
@@ -41,12 +56,16 @@ type Integration = Extract<
 >["result"];
 type Account = Extract<
   DesktopIpcResponse,
-  { status: "ok"; channel: "codex/account/read" }
+  { status: "ok"; channel: "chatgpt/account/read" }
 >["result"];
-type Limits = Extract<
+type Accounts = Extract<
   DesktopIpcResponse,
-  { status: "ok"; channel: "codex/rate-limits/read" }
+  { status: "ok"; channel: "chatgpt/accounts/read" }
 >["result"];
+type LoginId = Extract<
+  DesktopIpcResponse,
+  { status: "ok"; channel: "chatgpt/account/login/start" }
+>["result"]["loginId"];
 type DataRootSelection = Extract<
   Extract<DesktopIpcResponse, { status: "ok"; channel: "data-root/choose" }>["result"],
   { status: "selected" }
@@ -103,12 +122,16 @@ export function SettingsPage({
   onDataRootChanged?: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
+  const [accountOptionsOpen, setAccountOptionsOpen] = useState(false);
   const [account, setAccount] = useState<Account>();
-  const [limits, setLimits] = useState<Limits>();
+  const [loginId, setLoginId] = useState<LoginId>();
+  const [accounts, setAccounts] = useState<Accounts>();
+  const [selectedRegistration, setSelectedRegistration] = useState<string>();
   const [persisted, setPersisted] = useState<DesktopSettingsResult>();
   const [draft, setDraft] = useState<DesktopSettingsValue>();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [connectionPending, setConnectionPending] = useState(false);
   const [error, setError] = useState<CallNinaError>();
   const [notice, setNotice] = useState<string>();
   const [integrationFailure, setIntegrationFailure] = useState<string>();
@@ -132,28 +155,23 @@ export function SettingsPage({
   }, []);
 
   const refreshRuntime = useCallback(async () => {
-    const [accountResult, limitsResult] = await Promise.allSettled([
-      invokeDesktop("codex/account/read", {}),
-      invokeDesktop("codex/rate-limits/read", {}),
+    const [accountResult, accountsResult] = await Promise.allSettled([
+      invokeDesktop("chatgpt/account/read", {}),
+      invokeDesktop("chatgpt/accounts/read", {}),
     ]);
     setAccount(
       accountResult.status === "fulfilled"
         ? accountResult.value
         : { status: "unavailable", reason: "runtime-not-ready" },
     );
-    setLimits(
-      limitsResult.status === "fulfilled"
-        ? limitsResult.value
-        : { status: "unavailable", reason: "runtime-not-ready" },
-    );
-    const failure = [accountResult, limitsResult].find((result) => result.status === "rejected");
+    setAccounts(accountsResult.status === "fulfilled" ? accountsResult.value : undefined);
+    const failure = [accountResult, accountsResult].find((result) => result.status === "rejected");
     if (failure?.status === "rejected") setError(normalizeDesktopError(failure.reason).detail);
   }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(undefined);
-    void refreshIntegration();
     try {
       const settings = adapter.available() ? await adapter.read() : undefined;
       if (settings) {
@@ -166,6 +184,7 @@ export function SettingsPage({
       setLoading(false);
     }
     // Provider failures cannot prevent local settings from loading.
+    void refreshIntegration();
     void refreshRuntime();
   }, [adapter, refreshRuntime, refreshIntegration]);
 
@@ -176,6 +195,10 @@ export function SettingsPage({
         event.event === "account-login" &&
         ["complete", "cancelled", "failed"].includes(event.state.status)
       ) {
+        setLoginId(undefined);
+        setNotice(undefined);
+        if (event.state.status === "failed") setError(event.state.error);
+        if (event.state.status === "complete") setSelectedRegistration(undefined);
         void refreshRuntime();
       } else if (
         event.event === "state-invalidated" &&
@@ -245,10 +268,47 @@ export function SettingsPage({
   };
 
   const login = async () => {
+    if (busy || loginId) return;
     setBusy(true);
+    setError(undefined);
     try {
-      await invokeDesktop("codex/account/login/start", { method: "browser" });
+      const result = await invokeDesktop("chatgpt/account/login/start", {
+        registrationId: (selectedRegistration ?? accounts?.selectedId) || null,
+      });
+      setLoginId(result.loginId);
       setNotice(t("settings.loginStarted"));
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const logout = async () => {
+    if (busy || loginId) return;
+    setBusy(true);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      setAccount(await invokeDesktop("chatgpt/account/logout", {}));
+      void refreshRuntime();
+      setNotice(t("settings.loggedOut"));
+    } catch (cause) {
+      setError(normalizeDesktopError(cause).detail);
+      void refreshRuntime();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancelLogin = async () => {
+    if (busy || !loginId) return;
+    setBusy(true);
+    setError(undefined);
+    try {
+      await invokeDesktop("chatgpt/account/login/cancel", { loginId });
+      setLoginId(undefined);
+      void refreshRuntime();
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -357,27 +417,39 @@ export function SettingsPage({
 
   return (
     <Page
+      width="form"
       className={styles.settingsPage}
       data-settings-root={persisted?.dataRoot.generation}
       data-settings-language={persisted?.settings.learningScope.targetLanguage}
-      data-settings-ready={Boolean(persisted) && !loading && !busy && !dirty}
-
+      data-settings-ready={Boolean(persisted) && !loading && !busy && !dirty && !connectionPending}
+      actions={
+        <ActionGroup>
+          <Button
+            variant="quiet"
+            isDisabled={loading || busy || dirty || connectionPending || Boolean(loginId)}
+            onPress={onRunSetup}
+          >
+            {t("onboarding.runAgain")}
+          </Button>
+          <Button
+            variant="quiet"
+            isDisabled={loading || busy || dirty || connectionPending || Boolean(loginId)}
+            onPress={onOpenPersonalData}
+          >
+            {t("nav.personalData")}
+          </Button>
+        </ActionGroup>
+      }
       title={t("settings.title")}
-      refresh={{ onRefresh: load, busy: loading || busy, disabled: dirty }}
+      refresh={{
+        onRefresh: load,
+        busy: loading || busy,
+        disabled: dirty || connectionPending || Boolean(loginId),
+      }}
     >
-      <ActionGroup>
-        <Button isDisabled={loading || busy || dirty} onPress={onRunSetup}>
-          {t("onboarding.runAgain")}
-        </Button>
-        <Button
-          variant="secondary"
-          isDisabled={loading || busy || dirty}
-          onPress={onOpenPersonalData}
-        >
-          {t("nav.personalData")}
-        </Button>
-        {dirty && <span>{t("onboarding.saveSettingsFirst")}</span>}
-      </ActionGroup>
+      {(dirty || connectionPending) && (
+        <Muted role="status">{t("onboarding.saveSettingsFirst")}</Muted>
+      )}
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
       {error && <SettingsError error={error} />}
       {integrationFailure && (
@@ -399,12 +471,12 @@ export function SettingsPage({
           {
             id: "profile",
             label: t("settings.tabs.profile"),
+            icon: <BookOpen aria-hidden="true" />,
             children: (
               <>
-                <Card as="section" aria-labelledby="settings-profile-title">
-                  <h2 id="settings-profile-title">{t("settings.profileTitle")}</h2>
+                <Section title={t("settings.profileTitle")}>
                   {!draft ? (
-                    <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
+                    !loading && <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
                   ) : (
                     <div className={styles.settingsControls}>
                       <LanguageSelect
@@ -413,30 +485,9 @@ export function SettingsPage({
                         disabled={busy}
                         onChange={(language) => void selectTarget(language)}
                       />
-                      {draft.learningScope.targetLanguage === "de" ? (
-                        <CheckboxField
-                          checked={
-                            draft.learningScope.courseId ===
-                            languageDefinitions.de.structuredCourseId
-                          }
-                          disabled={busy}
-                          onChange={(event) => {
-                            setProfile("learningScope", {
-                              ...draft.learningScope,
-                              courseId: event.currentTarget.checked
-                                ? languageDefinitions.de.structuredCourseId
-                                : null,
-                            });
-                          }}
-                        >
-                          {t("onboarding.enrollCourse")}
-                        </CheckboxField>
-                      ) : (
-                        <p>{t("onboarding.pathUnavailable")}</p>
-                      )}
                       <FieldGroup>
                         <span>{t("onboarding.level")}</span>
-                        <select
+                        <SelectControl
                           value={draft.approximateLevel}
                           onChange={(event) => {
                             setProfile(
@@ -450,7 +501,7 @@ export function SettingsPage({
                               {value.toUpperCase()}
                             </option>
                           ))}
-                        </select>
+                        </SelectControl>
                       </FieldGroup>
                       <FieldGroup>
                         <span>{t("onboarding.goal")}</span>
@@ -466,7 +517,7 @@ export function SettingsPage({
 
                       <FieldGroup>
                         <span>{t("settings.teachingProfile")}</span>
-                        <select
+                        <SelectControl
                           value={draft.defaultTeachingProfileId}
                           onChange={(event) => {
                             setProfile(
@@ -482,7 +533,7 @@ export function SettingsPage({
                           <option value="strict-corrector">
                             {t("onboarding.profiles.strict-corrector.title")}
                           </option>
-                        </select>
+                        </SelectControl>
                       </FieldGroup>
                       <LanguageSelect
                         label={t("onboarding.explanationLanguage")}
@@ -502,55 +553,205 @@ export function SettingsPage({
                             setProfile("uiLocale", language);
                           }}
                         />
-                        <small>{t("settings.localeSeparate")}</small>
+                      </div>
+                      <div className={styles.coursePreference}>
+                        {
+                          <CheckboxField
+                            checked={
+                              draft.learningScope.courseId ===
+                              languageDefinitions[draft.learningScope.targetLanguage]
+                                .structuredCourseId
+                            }
+                            disabled={busy}
+                            onChange={(event) => {
+                              setProfile("learningScope", {
+                                ...draft.learningScope,
+                                courseId: event.currentTarget.checked
+                                  ? languageDefinitions[draft.learningScope.targetLanguage]
+                                      .structuredCourseId
+                                  : null,
+                              });
+                            }}
+                          >
+                            {t("onboarding.enrollCourse")}
+                          </CheckboxField>
+                        }
                       </div>
                     </div>
                   )}
-                </Card>
+                </Section>
               </>
             ),
           },
           {
-            id: "models",
-            label: t("settings.tabs.models"),
+            id: "ai",
+            label: t("settings.tabs.ai"),
+            icon: <Plug aria-hidden="true" />,
             children: (
-              <>
-                <Card as="section" aria-labelledby="settings-models-title">
-                  <h2 id="settings-models-title">{t("settings.modelsTitle")}</h2>
-                  <SidebarModelControl />
-                </Card>
-              </>
-            ),
-          },
-          {
-            id: "account",
-            label: t("settings.tabs.account"),
-            children: (
-              <>
-                <Card as="section" aria-labelledby="settings-account-title">
-                  <h2 id="settings-account-title">{t("settings.accountTitle")}</h2>
-                  <p>{t("providerAccess.identityBoundary")}</p>
-                  <p>{t("providerAccess.localAvailable")}</p>
-                  <p>
-                    {account ? t(`settings.account.${account.status}`) : t("settings.notReported")}
-                  </p>
-                  {account?.status === "signed-in" && account.planType && (
-                    <p>{t("settings.plan", { plan: account.planType })}</p>
-                  )}
-                  <ActionGroup>
-                    {account?.status === "signed-in" ? (
-                      <p>{t("connections.officialAuth")}</p>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        isDisabled={busy || integration?.status !== "available"}
-                        onPress={() => void login()}
-                      >
-                        <UserRound aria-hidden="true" />
-                        {t("settings.login")}
-                      </Button>
-                    )}
-                  </ActionGroup>
+              <div className={styles.aiSetup}>
+                <Section className={styles.aiConnections} aria-label={t("settings.aiTitle")}>
+                  <ConnectionSettings
+                    surface={false}
+                    active={selectedTab === "ai"}
+                    disabled={busy || Boolean(loginId)}
+                    onPendingChange={setConnectionPending}
+                    chatgptConnected={account ? account.status === "signed-in" : undefined}
+                    chatgptAccess={({ dirty: connectionDirty }) => {
+                      const blocked = busy || Boolean(loginId) || connectionDirty;
+                      return (
+                        <div className={styles.accountAccess}>
+                          <div className={styles.accountSummary}>
+                            <p role="status" className={styles.connectionStatus}>
+                              {account?.status === "signed-in" ? (
+                                <CircleCheck aria-hidden="true" />
+                              ) : (
+                                <CircleHelp aria-hidden="true" />
+                              )}
+                              {account
+                                ? t(`settings.account.${account.status}`)
+                                : t("settings.notReported")}
+                            </p>
+                            <InfoHint label={t("settings.privacyTitle")}>
+                              <p>{t("connectionSettings.cost.chatgpt")}</p>
+                              <p>{t("settings.sessionPrivacy")}</p>
+                            </InfoHint>
+                          </div>
+                          {account?.status !== "signed-in" && (
+                            <ActionGroup>
+                              <Button
+                                variant="primary"
+                                isDisabled={blocked || !account || account.status === "unavailable"}
+                                onPress={() => void login()}
+                              >
+                                <UserRound aria-hidden="true" />
+                                {t("settings.login")}
+                              </Button>
+                            </ActionGroup>
+                          )}
+                          {loginId && (
+                            <ActionGroup>
+                              <span role="status">{t("onboarding.login.waiting")}</span>
+                              <Button
+                                variant="primary"
+                                isDisabled={busy}
+                                onPress={() => void cancelLogin()}
+                              >
+                                {t("onboarding.cancelLogin")}
+                              </Button>
+                            </ActionGroup>
+                          )}
+                          {account?.status === "unavailable" && (
+                            <p>{t("connectionSettings.chatgptLoginUnavailable")}</p>
+                          )}
+                          {accounts?.remoteRevocationPending && (
+                            <Feedback tone="warning" live="polite">
+                              {t("settings.chatgptRevocationPending")}
+                            </Feedback>
+                          )}
+                          <div className={styles.accountTools}>
+                            <Button
+                              variant="secondary"
+                              onPress={() =>
+                                void invokeDesktop("chatgpt/usage/open", {}).catch(
+                                  (cause: unknown) => {
+                                    setError(normalizeDesktopError(cause).detail);
+                                  },
+                                )
+                              }
+                            >
+                              <Gauge aria-hidden="true" />
+                              {t("settings.chatgptUsageLink")}
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              onPress={() => {
+                                setAccountOptionsOpen(true);
+                              }}
+                            >
+                              <UserRound aria-hidden="true" />
+                              {t("settings.accountOptions")}
+                            </Button>
+                          </div>
+                          <ModalDialog
+                            isOpen={accountOptionsOpen}
+                            onOpenChange={setAccountOptionsOpen}
+                            title={t("settings.accountOptions")}
+                          >
+                            <div className={styles.accountOptions}>
+                              {account?.status === "signed-in" && account.planType && (
+                                <p>{t("settings.plan", { plan: account.planType })}</p>
+                              )}
+                              <SelectField
+                                label={t("settings.chatgptAccount")}
+                                disabled={blocked}
+                                value={selectedRegistration ?? accounts?.selectedId ?? ""}
+                                onChange={(event) => {
+                                  setSelectedRegistration(event.currentTarget.value);
+                                }}
+                              >
+                                <option value="">{t("settings.chatgptNewAccount")}</option>
+                                {accounts?.registrations.map((entry) => (
+                                  <option key={entry.id} value={entry.id}>
+                                    {entry.label}
+                                  </option>
+                                ))}
+                              </SelectField>
+                              <ActionGroup>
+                                <Button
+                                  variant="primary"
+                                  isDisabled={
+                                    blocked || !account || account.status === "unavailable"
+                                  }
+                                  onPress={() => void login()}
+                                >
+                                  {t("settings.login")}
+                                </Button>
+                                {account?.status === "signed-in" && (
+                                  <Button
+                                    variant="quiet"
+                                    isDisabled={blocked}
+                                    onPress={() => void logout()}
+                                  >
+                                    <LogOut aria-hidden="true" />
+                                    {t("settings.logout")}
+                                  </Button>
+                                )}
+                              </ActionGroup>
+                              <p>{t("settings.sessionPrivacy")}</p>
+                              <Button
+                                variant="secondary"
+                                onPress={() => {
+                                  setAccountOptionsOpen(false);
+                                }}
+                              >
+                                {t("actions.close")}
+                              </Button>
+                            </div>
+                          </ModalDialog>
+                          {connectionDirty && <p>{t("settings.saveBeforeAccount")}</p>}
+                        </div>
+                      );
+                    }}
+                  />
+                </Section>
+                <Disclosure
+                  className={styles.optionalIntegration}
+                  variant="plain"
+                  label={
+                    <span className={styles.tabLabel}>
+                      <AudioLines aria-hidden="true" />
+                      {t("settings.externalIntegrationTitle")} ·{" "}
+                      {integration === undefined
+                        ? t("settings.notReported")
+                        : integration.status === "available"
+                          ? t(`settings.plugin.${integration.plugin}`)
+                          : t("settings.codexUnavailable")}
+                    </span>
+                  }
+                >
+                  <InfoHint label={t("settings.externalIntegrationTitle")}>
+                    <p>{t("settings.externalIntegrationHelp")}</p>
+                  </InfoHint>
                   <p>
                     {integration === undefined
                       ? t("settings.notReported")
@@ -560,7 +761,6 @@ export function SettingsPage({
                   </p>
                   {integration?.status === "available" && (
                     <>
-                      <p>{t(`settings.plugin.${integration.plugin}`)}</p>
                       <ActionGroup>
                         {integration.plugin === "not-installed" && (
                           <Button
@@ -582,6 +782,7 @@ export function SettingsPage({
                         )}
                         {integration.plugin === "installed" && (
                           <Button
+                            variant="primary"
                             isDisabled={busy}
                             onPress={() => void manageIntegration("uninstall")}
                           >
@@ -591,33 +792,17 @@ export function SettingsPage({
                       </ActionGroup>
                     </>
                   )}
-                </Card>
-                <Card as="section" aria-labelledby="settings-limits-title">
-                  <h2 id="settings-limits-title">{t("settings.limitsTitle")}</h2>
-                  {limits && (limits.status === "available" || limits.status === "limited") ? (
-                    <ItemList>
-                      {limits.buckets.map((bucket) => (
-                        <li key={bucket.limitId}>
-                          <strong>{bucket.limitId}</strong>
-                          {bucket.primary?.usedPercent == null
-                            ? ""
-                            : ` · ${String(bucket.primary.usedPercent)}%`}
-                        </li>
-                      ))}
-                    </ItemList>
-                  ) : (
-                    <Muted as="p">{t("settings.notReported")}</Muted>
-                  )}
-                </Card>
-              </>
+                </Disclosure>
+              </div>
             ),
           },
           {
             id: "data",
             label: t("settings.tabs.data"),
+            icon: <ShieldCheck aria-hidden="true" />,
             children: (
               <>
-                <Card as="section" aria-labelledby="settings-data-title">
+                <Section className={styles.settingsSection} aria-labelledby="settings-data-title">
                   <h2 id="settings-data-title">{t("settings.dataTitle")}</h2>
                   {readiness.dataRoot.status === "ready" && (
                     <dl className={styles.detailList}>
@@ -628,7 +813,11 @@ export function SettingsPage({
                     </dl>
                   )}
                   {!dataRootSelection ? (
-                    <Button isDisabled={busy} onPress={() => void chooseDataRoot()}>
+                    <Button
+                      variant="primary"
+                      isDisabled={busy}
+                      onPress={() => void chooseDataRoot()}
+                    >
                       {t("settings.dataSwitch")}
                     </Button>
                   ) : (
@@ -670,8 +859,11 @@ export function SettingsPage({
                       </ActionGroup>
                     </div>
                   )}
-                </Card>
-                <Card as="section" aria-labelledby="settings-privacy-title">
+                </Section>
+                <Section
+                  className={styles.settingsSection}
+                  aria-labelledby="settings-privacy-title"
+                >
                   <h2 id="settings-privacy-title">{t("settings.privacyTitle")}</h2>
                   <p>
                     <strong>{t("folder.privacyTitle")}</strong> — {t("folder.privacyBody")}
@@ -679,16 +871,20 @@ export function SettingsPage({
                   <p>
                     <strong>{t("folder.cloudTitle")}</strong> — {t("folder.cloudBody")}
                   </p>
-                </Card>
+                </Section>
               </>
             ),
           },
           {
             id: "diagnostics",
             label: t("settings.tabs.diagnostics"),
+            icon: <Activity aria-hidden="true" />,
             children: (
               <>
-                <Card as="section" aria-labelledby="settings-diagnostics-title">
+                <Section
+                  className={styles.settingsSection}
+                  aria-labelledby="settings-diagnostics-title"
+                >
                   <h2 id="settings-diagnostics-title">{t("settings.diagnosticsTitle")}</h2>
                   <InfoHint label={t("settings.diagnosticsTitle")}>
                     {t("settings.diagnosticsPrivacy")}
@@ -714,26 +910,39 @@ export function SettingsPage({
                     </dl>
                   )}
                   <ActionGroup>
-                    <Button isDisabled={busy} onPress={() => void readDiagnostics()}>
+                    <Button
+                      variant="primary"
+                      isDisabled={busy}
+                      onPress={() => void readDiagnostics()}
+                    >
                       {t("settings.runDiagnostics")}
                     </Button>
-                    <Button isDisabled={busy} onPress={() => void exportDiagnostics()}>
+                    <Button
+                      variant="secondary"
+                      isDisabled={busy}
+                      onPress={() => void exportDiagnostics()}
+                    >
                       {t("settings.exportDiagnostics")}
                     </Button>
-                    <Button isDisabled={busy} onPress={() => void clearLogs()}>
+                    <Button variant="secondary" isDisabled={busy} onPress={() => void clearLogs()}>
                       {t("settings.clearLogs")}
                     </Button>
                   </ActionGroup>
-                </Card>
+                </Section>
               </>
             ),
           },
         ]}
       />
 
-      {draft && (selectedTab === "profile" || selectedTab === "models" || dirty) && (
-        <div className={styles.settingsActions}>
+      {draft && (selectedTab === "profile" || dirty) && (
+        <div
+          className={styles.settingsActions}
+          role="group"
+          aria-label={t("settings.profileTitle")}
+        >
           <Button
+            variant="secondary"
             isDisabled={busy || !persisted || !dirty}
             onPress={() => {
               if (persisted) setDraft(persisted.settings);

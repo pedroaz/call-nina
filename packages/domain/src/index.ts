@@ -219,3 +219,5 @@ export * from "./learning-context.js";
 
 export * from "./language-policy.js";
 export { attemptEvidenceBasis } from "./attempt-evidence.js";
+
+export { providerSupports, recommendedRouting } from "./provider-routing.js";

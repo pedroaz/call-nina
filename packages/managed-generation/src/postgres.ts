@@ -2,7 +2,10 @@ import postgres from "postgres";
 import type { BudgetSql } from "./budget.js";
 import { ManagedFailure } from "./protocol.js";
 
-export function openBudgetSql(connectionString: string): BudgetSql & { close(): Promise<void> } {
+export function openBudgetSql(
+  connectionString: string,
+  purpose: "account" | "mobile-sync" = "account",
+): BudgetSql & { close(): Promise<void> } {
   // No local socket/ambient PG environment fallback; URL never reaches logs.
   const url = new URL(connectionString);
   if (
@@ -22,7 +25,7 @@ export function openBudgetSql(connectionString: string): BudgetSql & { close(): 
     username: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
     ssl: { rejectUnauthorized: true },
-    max: 2,
+    max: purpose === "mobile-sync" ? 1 : 2,
     connect_timeout: 5,
     idle_timeout: 10,
     max_lifetime: 60,
@@ -30,9 +33,9 @@ export function openBudgetSql(connectionString: string): BudgetSql & { close(): 
     debug: false,
     onnotice: () => undefined,
     connection: {
-      statement_timeout: 5000,
+      statement_timeout: purpose === "mobile-sync" ? 30000 : 5000,
       lock_timeout: 3000,
-      application_name: "nina-starter-budget",
+      application_name: purpose === "mobile-sync" ? "nina-mobile-sync" : "nina-starter-budget",
     },
   });
   return {

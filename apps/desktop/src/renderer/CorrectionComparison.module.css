@@ -1,6 +1,6 @@
 .correctionReady {
   background: transparent;
-  border-inline-start: var(--od-border-outlined) solid var(--od-color-state-correct);
+  border-top: var(--od-border-thin) solid var(--od-color-state-correct);
   display: grid;
   gap: var(--od-space-3);
   padding: var(--od-space-5);
@@ -60,7 +60,7 @@
 .correctionChange ins {
   color: var(--od-color-state-correct);
   font-weight: var(--od-weight-strong);
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .correctionChange svg,
@@ -73,7 +73,7 @@
 .correctionHelper,
 .noChanges {
   background: var(--od-color-surface-card);
-  border-inline-start: var(--od-border-outlined) solid var(--od-color-brand);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   display: grid;
   gap: var(--od-space-3);
@@ -124,9 +124,9 @@
   color: var(--od-color-brand-ink);
   font-size: var(--od-font-size-xs);
   font-weight: var(--od-weight-strong);
-  letter-spacing: var(--od-letter-wide);
+  letter-spacing: normal;
   margin: 0 0 var(--od-space-3);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 @media (max-width: 52rem) {
@@ -144,4 +144,10 @@
   .correctionMistakes {
     grid-template-columns: 1fr;
   }
+}
+
+.reviewBody {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
 }

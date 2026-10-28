@@ -5,7 +5,10 @@ import { z } from "./schema-system.js";
 // Configured routes may be unavailable. Provider access is separate from local
 // learner identity and does not imply a Nina account, plan or entitlement.
 export const providerRouteIdSchema = aiRouteSchema;
-export const providerOperationSchema = z.union([generationKindSchema, z.literal("voice-handoff")]);
+export const providerOperationSchema = z.union([
+  generationKindSchema,
+  z.enum(["voice-handoff", "translation"]),
+]);
 export const providerAccessReasonSchema = z.enum([
   "connection-required",
   "runtime-unavailable",
@@ -16,6 +19,7 @@ export const providerAccessReasonSchema = z.enum([
   "capability-unavailable",
   "model-unavailable",
   "plugin-required",
+  "integration-unavailable",
 ]);
 export const providerAccessSchema = z.discriminatedUnion("status", [
   z.strictObject({

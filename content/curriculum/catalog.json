@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "languages": [
+    {
+      "language": "de",
+      "courseId": "german-foundations",
+      "version": "a1-missions-2026-09",
+      "files": [
+        "courses/de/foundations.json",
+        "courses/de/restaurant.json",
+        "courses/de/parcel.json",
+        "courses/de/appointment.json",
+        "courses/de/bakery.json",
+        "courses/de/train-ticket.json",
+        "courses/de/hotel.json",
+        "courses/de/hobby.json",
+        "courses/de/invitation.json",
+        "courses/de/lost-item.json",
+        "courses/de/repair.json",
+        "courses/de/return-item.json",
+        "courses/de/delay.json",
+        "courses/de/work-task.json"
+      ]
+    },
+    {
+      "language": "en-US",
+      "courseId": "english-paths",
+      "version": "en-everyday-2026-10",
+      "files": [
+        "courses/en-US/restaurant.json",
+        "courses/en-US/parcel.json",
+        "courses/en-US/appointment.json"
+      ]
+    },
+    {
+      "language": "es",
+      "courseId": "spanish-paths",
+      "version": "es-everyday-2026-10",
+      "files": [
+        "courses/es/restaurant.json",
+        "courses/es/parcel.json",
+        "courses/es/appointment.json"
+      ]
+    },
+    {
+      "language": "pt-BR",
+      "courseId": "portuguese-paths",
+      "version": "pt-everyday-2026-10",
+      "files": [
+        "courses/pt-BR/restaurant.json",
+        "courses/pt-BR/parcel.json",
+        "courses/pt-BR/appointment.json"
+      ]
+    }
+  ]
+}

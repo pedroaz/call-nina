@@ -1,187 +1,242 @@
 export const languages = [
   { code: "en", label: "English" },
   { code: "de", label: "Deutsch" },
+  { code: "es", label: "Español" },
+  { code: "pt-BR", label: "Português" },
 ] as const;
 export type Locale = (typeof languages)[number]["code"];
-export type LocalizedText = Record<Locale, string>;
+export const featureIds = ["exercises", "paths", "writing", "vocabulary"] as const;
+export type FeatureId = (typeof featureIds)[number];
 
 type Copy = {
   title: string;
   description: string;
   skip: string;
-  navigation: string;
   language: string;
-  nav: { practice: string; future: string; downloads: string };
-  prelaunch: string;
   headline: string;
   introduction: string;
-  explore: string;
-  downloadStatus: string;
-  previewLabel: string;
-  previewTitle: string;
-  previewText: string;
-  previewTranslation: string;
-  previewNote: string;
-  practiceLabel: string;
-  practiceTitle: string;
-  practiceIntro: string;
-  steps: { title: string; text: string }[];
-  localTitle: string;
-  localText: string;
-  aiText: string;
-  futureLabel: string;
-  futureTitle: string;
-  futureIntro: string;
-  futureItems: { title: string; text: string }[];
-  downloadsTitle: string;
-  downloadsText: string;
-  platforms: string;
+  free: string;
+  mobile: string;
+  subscriptions: string;
+  download: string;
+  github: string;
+  featuresTitle: string;
+  features: Record<FeatureId, { label: string; text: string }>;
+  connections: string;
+  providers: { label: string; status?: string }[];
+  languagesTitle: string;
+  learningLanguages: string[];
+  moreLanguages: string;
+  yes: string;
+  notYet: string;
+  local: string;
+  costs: string;
+  contact: string;
   source: string;
   license: string;
-  licenseLink: string;
-  footer: string;
 };
 
 export const copy: Record<Locale, Copy> = {
   en: {
-    title: "Call Nina — German, one small step at a time",
+    title: "Call Nina — Learn a language with AI",
     description:
-      "Meet Call Nina, a local-first German learning companion in development. Explore desktop practice and what’s planned. Downloads coming soon.",
+      "A desktop app for language practice. Open source under the MIT License. AI exercises, learning paths, writing feedback and vocabulary practice with Call Nina.",
     skip: "Skip to content",
-    navigation: "Main navigation",
     language: "Website language",
-    nav: { practice: "The idea", future: "What’s next", downloads: "Downloads" },
-    prelaunch: "In development · German first",
-    headline: "A little German. A little more confidence.",
-    introduction:
-      "Make room for German in your everyday life. Call Nina brings reading, writing and vocabulary practice together in a desktop companion, with your learning history kept on your device.",
-    explore: "Explore the idea",
-    downloadStatus: "Coming soon",
-    previewLabel: "A little German for today",
-    previewTitle: "Small words. Everyday moments.",
-    previewText: "Einen Kaffee, bitte.",
-    previewTranslation: "A coffee, please.",
-    previewNote: "An example of everyday German — not a live exercise or an app screenshot.",
-    practiceLabel: "Inside the current desktop app",
-    practiceTitle: "Your next step can be a small one.",
-    practiceIntro:
-      "The development version focuses on German practice. Its interface is available in English and German; public downloads are still coming soon.",
-    steps: [
-      {
-        title: "Find something to practise",
-        text: "Choose reading or writing practice, work through prepared activities, or return to vocabulary that’s due for review.",
+    headline: "Learn a language with AI.",
+    introduction: "A desktop app for language practice.",
+    free: "Open source under the MIT License.",
+    mobile: "Mobile app — coming soon",
+    subscriptions: "Connect ChatGPT or use your own API keys.",
+    download: "Download — coming soon",
+    github: "View on GitHub",
+    featuresTitle: "Your practice, with Nina.",
+    features: {
+      exercises: { label: "AI exercises", text: "Generate practice around your topic and level." },
+      paths: {
+        label: "Learning paths",
+        text: "Follow structured lessons toward your learning goals.",
       },
-      {
-        title: "Make it relevant",
-        text: "Pick a reading topic or paste a passage. With a connected Codex setup, the app can prepare exercises and provide writing feedback.",
+      writing: {
+        label: "Writing feedback",
+        text: "Get AI feedback and explanations on your writing.",
       },
-      {
-        title: "Build on what you’ve done",
-        text: "Keep attempts and vocabulary locally. Practice suggestions draw on review needs and recorded difficulties to help you choose what to do next.",
-      },
+      vocabulary: { label: "Vocabulary practice", text: "Save words and return to practise them." },
+    },
+    connections: "Bring your AI.",
+    providers: [
+      { label: "OpenAI API" },
+      { label: "Anthropic API" },
+      { label: "Google Gemini API" },
+      { label: "Local AI (Linux x64)", status: "limited" },
+      { label: "Nina AI", status: "account required" },
     ],
-    localTitle: "Your learning has a home. On your device.",
-    localText:
-      "The desktop app stores learning records locally. You can come back to your history and vocabulary without a cloud learning library.",
-    aiText:
-      "Local-first doesn’t mean all AI runs offline: AI preparation and feedback currently use a connected Codex setup. Relevant learning content is sent through that connection, and provider access is required.",
-    futureLabel: "The direction · not available yet",
-    futureTitle: "More ways to make German part of your day.",
-    futureIntro:
-      "These are plans, not features you can use today. There’s no announced release date.",
-    futureItems: [
-      {
-        title: "Start with a conversation",
-        text: "A planned Nina home screen will turn a typed goal into a suggested activity. Nina will be an AI guide; voice is a later step.",
-      },
-      {
-        title: "Take practice with you",
-        text: "Android and iOS companions are planned for practising prepared material offline, with desktop-to-phone transfer still to come.",
-      },
-      {
-        title: "Choose more ways to connect",
-        text: "Additional AI providers, optional desktop local models and a Nina-managed service are future work. Today’s AI route is Codex.",
-      },
-    ],
-    downloadsTitle: "A new learning companion is on the way.",
-    downloadsText:
-      "We’re still building Call Nina. Public installers aren’t available yet, so there’s nothing to download here today.",
-    platforms: "Planned desktop downloads: Linux, macOS and Windows",
-    source: "View source on GitHub",
-    license:
-      "Source available. New original material: free personal study; professional and organizational use requires permission. Prior MIT grants remain intact.",
-    licenseLink: "License and attribution",
-    footer: "Made for small steps forward.",
+    languagesTitle: "Pick your language.",
+    learningLanguages: ["US English", "Brazilian Portuguese", "Spanish", "German"],
+    moreLanguages: "More languages",
+    yes: "yes",
+    notYet: "not yet",
+    local:
+      "Learning records are stored locally. Flashcards you choose to publish sync through your Nina account.",
+    costs: "Cloud AI receives relevant learning content. Provider fees and terms may apply.",
+    contact: "Contact",
+    source: "Source on GitHub",
+    license: "License",
   },
   de: {
-    title: "Call Nina — Deutsch, einen kleinen Schritt nach dem anderen",
+    title: "Call Nina — Lerne eine Sprache mit KI",
     description:
-      "Call Nina ist eine Deutsch-Lernbegleitung in Entwicklung, mit lokal gespeicherten Lerndaten. Entdecke die Desktop-Übungen und unsere Pläne. Downloads folgen.",
+      "Eine Desktop-App zum Sprachenlernen. Open Source unter der MIT-Lizenz. KI-Übungen, Lernpfade, Schreibfeedback und Wortschatztraining mit Call Nina.",
     skip: "Zum Inhalt springen",
-    navigation: "Hauptnavigation",
     language: "Sprache der Website",
-    nav: { practice: "Die Idee", future: "Was kommt", downloads: "Downloads" },
-    prelaunch: "In Entwicklung · Deutsch zuerst",
-    headline: "Ein bisschen Deutsch. Ein bisschen mehr Sicherheit.",
-    introduction:
-      "Gib Deutsch einen Platz in deinem Alltag. Call Nina verbindet Lesen, Schreiben und Wortschatzübungen in einer Desktop-App. Dein Lernverlauf bleibt auf deinem Gerät gespeichert.",
-    explore: "Die Idee entdecken",
-    downloadStatus: "Demnächst verfügbar",
-    previewLabel: "Ein bisschen Deutsch für heute",
-    previewTitle: "Kleine Worte. Alltägliche Momente.",
-    previewText: "Einen Kaffee, bitte.",
-    previewTranslation: "So bestellst du einen Kaffee.",
-    previewNote:
-      "Ein Beispiel für Alltagsdeutsch — keine interaktive Übung und kein App-Screenshot.",
-    practiceLabel: "In der aktuellen Desktop-App",
-    practiceTitle: "Dein nächster Schritt darf klein sein.",
-    practiceIntro:
-      "Die Entwicklungsversion konzentriert sich auf Deutschübungen. Die Oberfläche gibt es auf Englisch und Deutsch. Öffentliche Downloads folgen noch.",
-    steps: [
-      {
-        title: "Finde eine passende Übung",
-        text: "Wähle Lese- oder Schreibübungen, bearbeite vorbereitete Aufgaben oder wiederhole fällige Vokabeln.",
+    headline: "Lerne eine Sprache mit KI.",
+    introduction: "Eine Desktop-App zum Sprachenlernen.",
+    free: "Open Source unter der MIT-Lizenz.",
+    mobile: "Mobile App — bald verfügbar",
+    subscriptions: "Verbinde ChatGPT oder nutze deine eigenen API-Schlüssel.",
+    download: "Download — bald verfügbar",
+    github: "Auf GitHub ansehen",
+    featuresTitle: "Deine Übungen, mit Nina.",
+    features: {
+      exercises: {
+        label: "KI-Übungen",
+        text: "Erstelle Übungen passend zu deinem Thema und Niveau.",
       },
-      {
-        title: "Übe, was dich interessiert",
-        text: "Wähle ein Lesethema oder füge einen Text ein. Mit einer eingerichteten Codex-Verbindung kann die App Übungen vorbereiten und Feedback zu deinen Texten geben.",
+      paths: {
+        label: "Lernpfade",
+        text: "Folge strukturierten Lektionen auf dem Weg zu deinen Lernzielen.",
       },
-      {
-        title: "Baue auf deinem Lernen auf",
-        text: "Deine Versuche und Vokabeln werden lokal gespeichert. Übungsvorschläge berücksichtigen fällige Wiederholungen und erfasste Schwierigkeiten und helfen dir bei der nächsten Auswahl.",
+      writing: {
+        label: "Schreibfeedback",
+        text: "Erhalte KI-Feedback und Erklärungen zu deinen Texten.",
       },
+      vocabulary: {
+        label: "Wortschatztraining",
+        text: "Speichere Wörter und wiederhole sie später.",
+      },
+    },
+    connections: "Bring deine KI mit.",
+    providers: [
+      { label: "OpenAI API" },
+      { label: "Anthropic API" },
+      { label: "Google Gemini API" },
+      { label: "Lokale KI (Linux x64)", status: "eingeschränkt" },
+      { label: "Nina-KI", status: "Konto erforderlich" },
     ],
-    localTitle: "Dein Lernen hat ein Zuhause. Auf deinem Gerät.",
-    localText:
-      "Die Desktop-App speichert Lerndaten lokal. Du kannst auf deinen Verlauf und Wortschatz zurückgreifen, ohne eine Lernbibliothek in der Cloud zu benötigen.",
-    aiText:
-      "Lokal gespeichert heißt nicht, dass jede KI offline läuft: KI-gestützte Vorbereitung und Feedback nutzen derzeit eine eingerichtete Codex-Verbindung. Relevante Lerninhalte werden darüber übermittelt; ein Zugang zum Anbieter ist erforderlich.",
-    futureLabel: "Unsere Richtung · noch nicht verfügbar",
-    futureTitle: "Mehr Platz für Deutsch in deinem Alltag.",
-    futureIntro:
-      "Das sind Pläne, keine heute verfügbaren Funktionen. Ein Veröffentlichungstermin steht noch nicht fest.",
-    futureItems: [
-      {
-        title: "Mit einem Gespräch beginnen",
-        text: "Auf einer geplanten Nina-Startseite soll aus deinem eingetippten Lernziel ein Übungsvorschlag werden. Nina wird eine KI-Lernbegleitung sein; Spracheingabe und Sprachausgabe folgen später.",
+    languagesTitle: "Wähle deine Sprache.",
+    learningLanguages: ["US-Englisch", "Brasilianisches Portugiesisch", "Spanisch", "Deutsch"],
+    moreLanguages: "Weitere Sprachen",
+    yes: "ja",
+    notYet: "noch nicht",
+    local:
+      "Lerndaten werden lokal gespeichert. Von dir veröffentlichte Lernkarten werden über dein Nina-Konto synchronisiert.",
+    costs:
+      "Cloud-KI erhält relevante Lerninhalte. Gebühren und Bedingungen der Anbieter können gelten.",
+    contact: "Kontakt",
+    source: "Quellcode auf GitHub",
+    license: "Lizenz",
+  },
+  es: {
+    title: "Call Nina — Aprende un idioma con IA",
+    description:
+      "Una aplicación de escritorio para practicar idiomas. Código abierto bajo la licencia MIT. Ejercicios con IA, rutas de aprendizaje, comentarios sobre textos y práctica de vocabulario con Call Nina.",
+    skip: "Saltar al contenido",
+    language: "Idioma del sitio",
+    headline: "Aprende un idioma con IA.",
+    introduction: "Una aplicación de escritorio para practicar idiomas.",
+    free: "Código abierto bajo la licencia MIT.",
+    mobile: "Aplicación móvil — próximamente",
+    subscriptions: "Conecta ChatGPT o usa tus propias claves de API.",
+    download: "Descargar — próximamente",
+    github: "Ver en GitHub",
+    featuresTitle: "Tu práctica, con Nina.",
+    features: {
+      exercises: { label: "Ejercicios con IA", text: "Genera ejercicios según tu tema y nivel." },
+      paths: {
+        label: "Rutas de aprendizaje",
+        text: "Sigue lecciones estructuradas para alcanzar tus objetivos.",
       },
-      {
-        title: "Übungen mitnehmen",
-        text: "Apps für Android und iOS sind geplant, um vorbereitete Inhalte offline zu üben. Auch die Übertragung vom Desktop aufs Handy ist noch Zukunftsmusik.",
+      writing: {
+        label: "Comentarios sobre tus textos",
+        text: "Recibe correcciones y explicaciones de la IA sobre lo que escribes.",
       },
-      {
-        title: "Mehr Möglichkeiten für KI",
-        text: "Weitere KI-Anbieter, optionale lokale Desktop-Modelle und ein von Nina betriebener Dienst sind geplant. Der aktuelle KI-Zugang läuft über Codex.",
+      vocabulary: {
+        label: "Práctica de vocabulario",
+        text: "Guarda palabras y vuelve a practicarlas.",
       },
+    },
+    connections: "Trae tu IA.",
+    providers: [
+      { label: "API de OpenAI" },
+      { label: "API de Anthropic" },
+      { label: "API de Google Gemini" },
+      { label: "IA local (Linux x64)", status: "limitada" },
+      { label: "IA de Nina", status: "requiere cuenta" },
     ],
-    downloadsTitle: "Eine neue Lernbegleitung entsteht.",
-    downloadsText:
-      "Wir entwickeln Call Nina noch. Öffentliche Installationspakete sind noch nicht verfügbar. Deshalb gibt es hier heute noch keinen Download.",
-    platforms: "Geplante Desktop-Downloads: Linux, macOS und Windows",
-    source: "Quellcode auf GitHub ansehen",
-    license:
-      "Quellcode einsehbar. Neues eigenes Material: persönliches Lernen kostenlos; professionelle und organisatorische Nutzung mit Erlaubnis. Bisherige MIT-Rechte bleiben erhalten.",
-    licenseLink: "Lizenz und Quellenangaben",
-    footer: "Für kleine Schritte nach vorn.",
+    languagesTitle: "Elige tu idioma.",
+    learningLanguages: ["Inglés de Estados Unidos", "Portugués de Brasil", "Español", "Alemán"],
+    moreLanguages: "Más idiomas",
+    yes: "sí",
+    notYet: "todavía no",
+    local:
+      "Los registros se guardan localmente. Las tarjetas que decidas publicar se sincronizan a través de tu cuenta de Nina.",
+    costs:
+      "La IA en la nube recibe el contenido de aprendizaje relevante. Pueden aplicarse tarifas y condiciones del proveedor.",
+    contact: "Contacto",
+    source: "Código en GitHub",
+    license: "Licencia",
+  },
+  "pt-BR": {
+    title: "Call Nina — Aprenda um idioma com IA",
+    description:
+      "Um aplicativo de desktop para praticar idiomas. Código aberto sob a licença MIT. Exercícios com IA, trilhas de aprendizagem, feedback de escrita e prática de vocabulário com Call Nina.",
+    skip: "Pular para o conteúdo",
+    language: "Idioma do site",
+    headline: "Aprenda um idioma com IA.",
+    introduction: "Um aplicativo de desktop para praticar idiomas.",
+    free: "Código aberto sob a licença MIT.",
+    mobile: "Aplicativo móvel — em breve",
+    subscriptions: "Conecte o ChatGPT ou use suas próprias chaves de API.",
+    download: "Baixar — em breve",
+    github: "Ver no GitHub",
+    featuresTitle: "Sua prática, com a Nina.",
+    features: {
+      exercises: {
+        label: "Exercícios com IA",
+        text: "Gere exercícios de acordo com seu tema e nível.",
+      },
+      paths: {
+        label: "Trilhas de aprendizagem",
+        text: "Siga lições estruturadas para alcançar seus objetivos.",
+      },
+      writing: {
+        label: "Feedback de escrita",
+        text: "Receba feedback e explicações da IA sobre seus textos.",
+      },
+      vocabulary: {
+        label: "Prática de vocabulário",
+        text: "Salve palavras e volte para praticá-las.",
+      },
+    },
+    connections: "Traga sua IA.",
+    providers: [
+      { label: "API da OpenAI" },
+      { label: "API da Anthropic" },
+      { label: "API do Google Gemini" },
+      { label: "IA local (Linux x64)", status: "limitada" },
+      { label: "IA da Nina", status: "requer conta" },
+    ],
+    languagesTitle: "Escolha seu idioma.",
+    learningLanguages: ["Inglês dos Estados Unidos", "Português do Brasil", "Espanhol", "Alemão"],
+    moreLanguages: "Mais idiomas",
+    yes: "sim",
+    notYet: "ainda não",
+    local:
+      "Os registros ficam salvos localmente. Os cartões que você publicar são sincronizados pela sua conta da Nina.",
+    costs:
+      "A IA na nuvem recebe o conteúdo de aprendizagem relevante. Taxas e termos do provedor podem se aplicar.",
+    contact: "Contato",
+    source: "Código no GitHub",
+    license: "Licença",
   },
 };

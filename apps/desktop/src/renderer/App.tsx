@@ -1,3 +1,6 @@
+import { MobilePage } from "./MobilePage.js";
+import { openProviderSettingsEvent } from "./ProviderActionSummary.js";
+import { VocabularyLearningNotice } from "./VocabularyLearning.js";
 import i18n from "./i18n.js";
 import type { PracticeLaunch } from "./usePracticeSuggestion.js";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -13,27 +16,23 @@ import {
   type Language,
   type DataRootGeneration,
 } from "@call-nina/contracts";
-import {
-  FilePenLine,
-  Gauge,
-  History,
-  MessageCircle,
-  LibraryBig,
-  LoaderCircle,
-  Settings,
-  Sparkles,
-  UserRound,
-} from "lucide-react";
+import { Smartphone, Gauge, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, Feedback, LoadingState, ModalDialog } from "./components/ui/index.js";
+import {
+  Button,
+  Card,
+  Feedback,
+  LoadingState,
+  ModalDialog,
+  useDetailNavigation,
+} from "./components/ui/index.js";
 import { ActionGroup, AppShell as ApplicationShell, Page } from "./components/layout/index.js";
 
-import callNinaLogo from "@call-nina/design-system/brand/nina-phone.png";
-import styles from "./AppStyles.module.css";
+import styles from "./Startup.module.css";
 import { NinaHome, emptyNinaHomeDraft, type NinaHomeDraft } from "./Dashboard.js";
 import { useHelperSelection } from "./useHelperSelection.js";
 import { ContextualHelper } from "./ContextualHelper.js";
-import { HistoryPage, type HistoryPracticeSeed } from "./HistoryPage.js";
+import { type SavedResultsScope, type HistoryPracticeSeed } from "./SavedResults.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import { ProfileOnboarding } from "./ProfileOnboarding.js";
 import { LearningPathPage } from "./LearningPathPage.js";
@@ -45,7 +44,6 @@ import { SidebarModelControl } from "./SidebarModelControl.js";
 import { VocabularyPage } from "./VocabularyPage.js";
 import { WritingWorkspace } from "./WritingWorkspace.js";
 import {
-  CodexBanner,
   FolderOnboarding,
   OperationError,
   StartupError,
@@ -63,20 +61,29 @@ type Page =
   | "practice"
   | "writing"
   | "vocabulary"
-  | "history"
+  | "mobile"
   | "learningPath"
   | "personalData"
   | "settings";
 
+type NavigationTarget =
+  | {
+      destination: "practice";
+      tab?: "new" | "saved";
+      seed?: Extract<PracticeLaunch, { destination: "preparation" }>;
+    }
+  | { destination: "settings"; tab?: "profile" | "ai" | "data" | "diagnostics" }
+  | { destination: Exclude<Page, "practice" | "settings"> };
+
 const navigation: ReadonlyArray<{
   page: Page;
-  icon: typeof MessageCircle;
+  icon: typeof House;
 }> = [
-  { page: "nina", icon: MessageCircle },
+  { page: "nina", icon: House },
   { page: "practice", icon: Gauge },
-  { page: "learningPath", icon: Sparkles },
+  { page: "learningPath", icon: Route },
   { page: "vocabulary", icon: LibraryBig },
-  { page: "history", icon: History },
+  { page: "mobile", icon: Smartphone },
 ];
 
 function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) {
@@ -105,15 +112,7 @@ function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) 
     >
       <p>{t("aiReminder.body")}</p>
       {error && <OperationError error={error} />}
-      <ActionGroup>
-        <Button
-          isPending={busy}
-          pendingLabel={t("actions.acknowledge")}
-          variant="primary"
-          onPress={() => void acknowledge()}
-        >
-          {t("actions.acknowledge")}
-        </Button>
+      <ActionGroup align="end">
         <Button
           variant="secondary"
           isDisabled={busy}
@@ -122,6 +121,14 @@ function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) 
           }}
         >
           {t("actions.cancel")}
+        </Button>
+        <Button
+          isPending={busy}
+          pendingLabel={t("actions.acknowledge")}
+          variant="primary"
+          onPress={() => void acknowledge()}
+        >
+          {t("actions.acknowledge")}
         </Button>
       </ActionGroup>
     </ModalDialog>
@@ -140,13 +147,13 @@ function DesktopWorkspace({
   initialPage: Page;
 }) {
   const { t } = useTranslation();
-  const [historyEntryIds, setHistoryEntryIds] =
-    useState<
-      NonNullable<
-        Extract<DesktopIpcRequest, { channel: "history/read" }>["payload"]["historyEntryIds"]
-      >
-    >();
+  const [resultsRequest, setResultsRequest] = useState<{
+    scope?: SavedResultsScope;
+    requestId: number;
+  }>();
   const [page, setPage] = useState<Page>(initialPage);
+  const [resultsOrigin, setResultsOrigin] = useState<"learningPath" | "vocabulary">();
+  const pathHistory = useDetailNavigation<"results">();
   const [writingOrigin, setWritingOrigin] = useState<Page>("practice");
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
@@ -154,6 +161,15 @@ function DesktopWorkspace({
   const [ninaDrafts, setNinaDrafts] = useState<Record<string, NinaHomeDraft>>({});
   const ninaScopeKey = JSON.stringify(learningScope ?? null);
   const [switchingLanguage, setSwitchingLanguage] = useState(false);
+  const [practiceLanguageBlocked, setPracticeLanguageBlocked] = useState(false);
+  const [vocabularyLanguageBlocked, setVocabularyLanguageBlocked] = useState(false);
+  const [pathLanguageBlocked, setPathLanguageBlocked] = useState(false);
+  const languageSwitchBlocked =
+    page === "writing" ||
+    page === "settings" ||
+    (page === "practice" && practiceLanguageBlocked) ||
+    (page === "vocabulary" && vocabularyLanguageBlocked) ||
+    (page === "learningPath" && pathLanguageBlocked);
   const refreshScope = useCallback(async () => {
     const settings = await invokeDesktop("learner-settings/read", {});
     setLearningScope(settings.settings.learningScope);
@@ -161,7 +177,7 @@ function DesktopWorkspace({
   const selectTarget = async (targetLanguage: Language) => {
     if (
       switchingLanguage ||
-      page === "vocabulary" ||
+      languageSwitchBlocked ||
       !learningScope ||
       targetLanguage === learningScope.targetLanguage
     )
@@ -175,6 +191,9 @@ function DesktopWorkspace({
         targetLanguage,
       });
       setLearningScope(next.settings.learningScope);
+      setResultsRequest(undefined);
+      setResultsOrigin(undefined);
+      pathHistory.back();
       setPage("nina");
     } catch (cause) {
       setOperationError(normalizeDesktopError(cause).detail);
@@ -182,15 +201,18 @@ function DesktopWorkspace({
       setSwitchingLanguage(false);
     }
   };
-  const [navCollapsed, setNavCollapsed] = useState(false);
+  const savedResultsScroll = useRef<number | undefined>(undefined);
+  const [navPreference, setNavPreference] = useState<boolean>();
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const y = page === "practice" ? (savedResultsScroll.current ?? 0) : 0;
+    window.scrollTo(0, y);
+    if (page === "practice") savedResultsScroll.current = undefined;
   }, [page]);
   const [wideHelper, setWideHelper] = useState(
-    () => window.matchMedia("(min-width: 68.01rem)").matches,
+    () => window.matchMedia("(min-width: 80.01rem)").matches,
   );
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 68.01rem)");
+    const media = window.matchMedia("(min-width: 80.01rem)");
     const update = () => {
       setWideHelper(media.matches);
     };
@@ -199,6 +221,7 @@ function DesktopWorkspace({
       media.removeEventListener("change", update);
     };
   }, []);
+  const navCollapsed = navPreference ?? !wideHelper;
   const [helperPreference, setHelperPreference] = useState<boolean>();
   const helperOpen = helperPreference ?? (page === "writing" && wideHelper);
   const [reminderOpen, setReminderOpen] = useState(false);
@@ -209,7 +232,6 @@ function DesktopWorkspace({
     },
     [],
   );
-  const [accountSignedOut, setAccountSignedOut] = useState(false);
   const [providerUnavailable, setProviderUnavailable] =
     useState<Extract<ProviderAccess, { status: "unavailable" }>>();
   const [operationError, setOperationError] = useState<CallNinaError>();
@@ -244,6 +266,7 @@ function DesktopWorkspace({
     useState<Extract<HistoryPracticeSeed, { kind: "writing" }>>();
   const [preparedActivityId, setPreparedActivityId] = useState<PreparedActivityId>();
   const [suggestedWriting, setSuggestedWriting] = useState<string>();
+  const [practiceTab, setPracticeTab] = useState<"new" | "saved">("new");
   const [practiceSeed, setPracticeSeed] =
     useState<Extract<PracticeLaunch, { destination: "preparation" }>>();
   const practiceContainer = useRef<HTMLDivElement>(null);
@@ -268,7 +291,12 @@ function DesktopWorkspace({
     setPage("practice");
   };
   const [vocabularyDue, setVocabularyDue] = useState(false);
+  const [vocabularyViewRequest, setVocabularyViewRequest] = useState(0);
+  const [quickStartId, setQuickStartId] = useState<PreparedActivityId>();
   const launchPractice = (intent: PracticeLaunch) => {
+    setQuickStartId(
+      intent.destination === "activity" && intent.autoStart ? intent.activityId : undefined,
+    );
     if (intent.destination === "writing") {
       setWritingOrigin(page);
       setWritingSeed(undefined);
@@ -278,6 +306,8 @@ function DesktopWorkspace({
       setVocabularyDue(true);
       setPage("vocabulary");
     } else {
+      if (intent.destination === "preparation")
+        applyNavigation({ destination: "practice", tab: "new", seed: intent });
       setActivityOrigin(page);
       setPreparedActivityId(intent.destination === "activity" ? intent.activityId : undefined);
       setPracticeSeed(intent.destination === "preparation" ? intent : undefined);
@@ -288,31 +318,12 @@ function DesktopWorkspace({
   const [helperSelection, setHelperSelection] = useHelperSelection(helperEpoch);
 
   useEffect(() => {
-    let disposed = false;
-    const refreshAccount = () => {
-      void invokeDesktop("codex/account/read", {})
-        .then((state) => {
-          if (!disposed) setAccountSignedOut(state.status !== "signed-in");
-        })
-        .catch((cause: unknown) => {
-          if (!disposed) setOperationError(normalizeDesktopError(cause).detail);
-        });
-    };
-    refreshAccount();
     const unsubscribe = subscribeDesktop((event) => {
-      if (event.event === "state-invalidated" && event.scope === "account") {
+      if (
+        event.event === "state-invalidated" &&
+        ["account", "ai-connections"].includes(event.scope)
+      )
         setProviderUnavailable(undefined);
-        refreshAccount();
-      }
-    });
-    return () => {
-      disposed = true;
-      unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = subscribeDesktop((event) => {
       if (event.event === "prepared-activity-open") {
         if (writingDirty)
           setPendingNavigation({
@@ -347,12 +358,14 @@ function DesktopWorkspace({
   const openAi = async (
     operation: ProviderOperation,
     previousOperationId?: DesktopIpcRequest["requestId"],
+    hasImage = false,
   ) => {
     setOperationError(undefined);
     setProviderUnavailable(undefined);
     try {
       const access = await invokeDesktop("provider/access/read", {
         operation,
+        hasImage,
         ...(previousOperationId ? { previousOperationId } : {}),
       });
       if (access.status === "unavailable") {
@@ -384,8 +397,11 @@ function DesktopWorkspace({
     buttons[(current + delta + buttons.length) % buttons.length]?.focus();
   };
 
-  const applyNavigation = (destination: Page) => {
-    if (destination === "history") setHistoryEntryIds(undefined);
+  const applyNavigation = (target: Page | NavigationTarget) => {
+    const destination = typeof target === "string" ? target : target.destination;
+    if (pathHistory.view) pathHistory.back();
+    setResultsOrigin(undefined);
+
     if (destination === "writing" && page !== "writing") {
       setWritingOrigin(page);
       setWritingSeed(undefined);
@@ -397,6 +413,13 @@ function DesktopWorkspace({
       setActivityOrigin(undefined);
     }
     if (destination === "vocabulary") setVocabularyDue(false);
+    if (typeof target !== "string") {
+      if (target.destination === "practice") {
+        setPracticeTab(target.tab ?? "new");
+        setPracticeSeed(target.seed);
+      }
+      if (target.destination === "settings" && target.tab) setSettingsTab(target.tab);
+    }
     setPage(destination);
   };
   const navigate = (destination: Page, mode: "normal" | "return" = "normal") => {
@@ -407,8 +430,31 @@ function DesktopWorkspace({
     if (mode === "return") returnTo(destination);
     else applyNavigation(destination);
   };
+  useEffect(() => {
+    const open = () => {
+      setSettingsTab("ai");
+      navigate("settings");
+    };
+    window.addEventListener(openProviderSettingsEvent, open);
+    return () => {
+      window.removeEventListener(openProviderSettingsEvent, open);
+    };
+  });
+
+  const openSavedResults = (scope?: SavedResultsScope, origin?: "learningPath" | "vocabulary") => {
+    setResultsOrigin(origin);
+    setPreparedActivityId(undefined);
+    setPracticeSeed(undefined);
+    setActivityOrigin(undefined);
+    setPracticeTab("saved");
+    setResultsRequest((current) => ({
+      ...(scope ? { scope } : {}),
+      requestId: (current?.requestId ?? 0) + 1,
+    }));
+    setPage("practice");
+  };
   const openCompletionPage = async (
-    destination: "history" | "nina",
+    destination: "results" | "nina",
     language: Language,
     rootGeneration: DataRootGeneration,
   ) => {
@@ -422,8 +468,8 @@ function DesktopWorkspace({
         });
         setLearningScope(next.settings.learningScope);
       }
-      setHistoryEntryIds(undefined);
-      navigate(destination);
+      if (destination === "results") openSavedResults();
+      else navigate(destination);
     } catch (cause) {
       setOperationError(normalizeDesktopError(cause).detail);
     }
@@ -444,23 +490,27 @@ function DesktopWorkspace({
             },
           }
         : undefined;
-  const shellPage = page === "writing" ? "practice" : page === "personalData" ? "settings" : page;
+  const shellPage =
+    page === "writing"
+      ? writingOrigin
+      : page === "personalData"
+        ? "settings"
+        : page === "practice" && preparedActivityId
+          ? (activityOrigin ?? "practice")
+          : page;
 
   return (
     <>
       <ApplicationShell
         activePage={shellPage}
-        locationLabel={t(`nav.${page}`)}
-        {...(parent ? { parent } : {})}
-        brandMark={callNinaLogo}
         brandName={t("app.name")}
         content={
           <>
-            <CodexBanner readiness={readiness} />
             {resetNotice && (
               <Feedback live="polite">
                 <p>{t("developmentReset.body")}</p>
                 <Button
+                  variant="primary"
                   onPress={() => {
                     void invokeDesktop("development-notice/dismiss", {})
                       .then(() => {
@@ -482,6 +532,7 @@ function DesktopWorkspace({
                 <p>{t("providerAccess.localAvailable")}</p>
                 <ActionGroup>
                   <Button
+                    variant="primary"
                     onPress={() => {
                       navigate("settings");
                     }}
@@ -499,13 +550,11 @@ function DesktopWorkspace({
                 </ActionGroup>
               </Feedback>
             )}
-            {accountSignedOut && readiness.codex.status === "available" && (
-              <Feedback live="polite">
-                <UserRound aria-hidden="true" /> {t("codex.signedOut")}
-              </Feedback>
-            )}
             {page === "nina" && learningScope ? (
               <NinaHome
+                onLearningPaths={() => {
+                  navigate("learningPath");
+                }}
                 key={ninaScopeKey}
                 draft={ninaDrafts[ninaScopeKey] ?? emptyNinaHomeDraft}
                 onDraftChange={(draft) => {
@@ -513,31 +562,49 @@ function DesktopWorkspace({
                 }}
                 requestAiAccess={openAi}
                 onLaunch={launchPractice}
-                onNavigate={navigate}
               />
             ) : null}
             {page === "practice" || (page === "writing" && writingOrigin === "practice") ? (
               <div ref={practiceContainer} hidden={page !== "practice"}>
-                {!preparedActivityId && page === "practice" && (
-                  <div className={styles.practiceSecondary}>
-                    <Button
-                      variant="secondary"
-                      leadingIcon={<FilePenLine aria-hidden="true" />}
-                      onPress={() => {
-                        navigate("writing");
-                      }}
-                    >
-                      {t("nav.writing")}
-                    </Button>
-                  </div>
-                )}
                 <PracticePage
-                  onHistory={(language, rootGeneration) =>
-                    void openCompletionPage("history", language, rootGeneration)
+                  onLanguageSwitchBlockedChange={setPracticeLanguageBlocked}
+                  key={ninaScopeKey}
+                  resultsRequest={resultsRequest}
+                  onReturnToSource={
+                    resultsOrigin
+                      ? () => {
+                          setPage(resultsOrigin);
+                          pathHistory.back();
+                          setResultsOrigin(undefined);
+                        }
+                      : undefined
+                  }
+                  resultsReturnLabel={resultsOrigin ? t(`nav.${resultsOrigin}`) : undefined}
+                  onPracticeAgain={(seed) => {
+                    if (seed.kind === "writing") savedResultsScroll.current = window.scrollY;
+                    if (seed.kind === "exercise") {
+                      setActivityOrigin("practice");
+                      setPracticeSeed(undefined);
+                      setPreparedActivityId(seed.activityId as PreparedActivityId);
+                    } else {
+                      setWritingOrigin("practice");
+                      setWritingSeed(seed);
+                      setWritingDirty(false);
+                      setPage("writing");
+                    }
+                  }}
+                  selectedTab={practiceTab}
+                  onTabChange={setPracticeTab}
+                  onWriting={() => {
+                    navigate("writing");
+                  }}
+                  onResults={(language, rootGeneration) =>
+                    void openCompletionPage("results", language, rootGeneration)
                   }
                   onNina={(language, rootGeneration) =>
                     void openCompletionPage("nina", language, rootGeneration)
                   }
+                  autoStart={Boolean(preparedActivityId && quickStartId === preparedActivityId)}
                   targetLanguage={learningScope?.targetLanguage}
                   {...(activityOrigin ? { parentLabel: t(`nav.${activityOrigin}`) } : {})}
                   onVocabulary={() => {
@@ -561,6 +628,7 @@ function DesktopWorkspace({
             ) : null}
             {page === "writing" ? (
               <WritingWorkspace
+                {...(parent ? { breadcrumbs: [parent] } : {})}
                 key={writingSeed?.historyEntryId ?? "new-writing"}
                 {...(writingSeed
                   ? { initialContext: writingSeed.context, initialDraft: writingSeed.draft }
@@ -572,40 +640,28 @@ function DesktopWorkspace({
                 requestAiAccess={openAi}
               />
             ) : null}
-            {page === "history" ? (
-              <HistoryPage
-                {...(historyEntryIds ? { initialHistoryEntryIds: historyEntryIds } : {})}
-                requestAiAccess={openAi}
-                onPracticeAgain={(seed) => {
-                  if (seed.kind === "exercise") {
-                    setActivityOrigin("history");
-                    setPracticeSeed(undefined);
-                    setPreparedActivityId(seed.activityId as PreparedActivityId);
-                    setPage("practice");
-                  } else {
-                    setWritingOrigin("history");
-                    setWritingSeed(seed);
-                    setWritingDirty(false);
-                    setPage("writing");
-                  }
-                }}
-              />
-            ) : null}
-            {page === "learningPath" &&
+            {page === "mobile" && <MobilePage />}
+            {(page === "learningPath" || pathHistory.view === "results") &&
             learningScope &&
             languageCapabilities[learningScope.targetLanguage].structuredPath &&
             learningScope.courseId ===
               languageDefinitions[learningScope.targetLanguage].structuredCourseId ? (
-              <LearningPathPage
-                onNina={() => {
-                  navigate("nina");
-                }}
-                requestAiAccess={openAi}
-                onOpenHistory={(ids) => {
-                  setHistoryEntryIds(ids);
-                  setPage("history");
-                }}
-              />
+              <div hidden={page !== "learningPath"}>
+                <LearningPathPage
+                  onLanguageSwitchBlockedChange={setPathLanguageBlocked}
+                  onNina={() => {
+                    navigate("nina");
+                  }}
+                  requestAiAccess={openAi}
+                  onOpenResults={(ids) => {
+                    pathHistory.open("results");
+                    openSavedResults(
+                      ids?.length ? { historyEntryIds: ids } : undefined,
+                      "learningPath",
+                    );
+                  }}
+                />
+              </div>
             ) : page === "learningPath" ? (
               <Page title={t("nav.learningPath")}>
                 {!learningScope ? (
@@ -621,6 +677,7 @@ function DesktopWorkspace({
                     </p>
                     <ActionGroup>
                       <Button
+                        variant="primary"
                         onPress={() => {
                           setSettingsTab("profile");
                           navigate("settings");
@@ -641,23 +698,31 @@ function DesktopWorkspace({
                 )}
               </Page>
             ) : null}
-            {page === "vocabulary" ? (
-              <VocabularyPage
-                targetLanguage={learningScope?.targetLanguage}
-                onOpenActivity={(activityId) => {
-                  setActivityOrigin("vocabulary");
-                  setPreparedActivityId(activityId);
-                  setPracticeSeed(undefined);
-                  setPage("practice");
-                }}
-                initialDueOnly={vocabularyDue}
-                onNavigate={(destination) => {
-                  navigate(destination);
-                }}
-              />
+            {page === "vocabulary" || resultsOrigin === "vocabulary" ? (
+              <div hidden={page !== "vocabulary"}>
+                <VocabularyPage
+                  onLanguageSwitchBlockedChange={setVocabularyLanguageBlocked}
+                  requestAiAccess={openAi}
+                  targetLanguage={learningScope?.targetLanguage}
+                  onOpenActivity={(activityId) => {
+                    setActivityOrigin("vocabulary");
+                    setPreparedActivityId(activityId);
+                    setPracticeSeed(undefined);
+                    setPage("practice");
+                  }}
+                  initialDueOnly={vocabularyDue}
+                  viewRequest={vocabularyViewRequest}
+                  onNavigate={(destination, scope) => {
+                    if (destination === "results") openSavedResults(scope, "vocabulary");
+                    else if (scope?.activityId) openExternalActivity(scope.activityId);
+                    else navigate(destination);
+                  }}
+                />
+              </div>
             ) : null}
             {page === "personalData" ? (
               <PersonalDataPage
+                {...(parent ? { breadcrumbs: [parent] } : {})}
                 onDataCleared={() => {
                   setHelperSelection(undefined);
                   setHelperEpoch((value) => value + 1);
@@ -688,11 +753,11 @@ function DesktopWorkspace({
             ) : null}
           </>
         }
-        exerciseMode={page === "practice" && Boolean(preparedActivityId)}
         helper={
           <ContextualHelper
             key={helperEpoch}
             selection={helperSelection}
+            targetLanguage={learningScope?.targetLanguage}
             requestAiAccess={openAi}
           />
         }
@@ -704,6 +769,19 @@ function DesktopWorkspace({
           page: destination,
           icon,
           label: t(`nav.${destination}`),
+          ...(destination === "vocabulary"
+            ? {
+                feedback: (
+                  <VocabularyLearningNotice
+                    compact={navCollapsed}
+                    onView={() => {
+                      navigate("vocabulary");
+                      setVocabularyViewRequest((value) => value + 1);
+                    }}
+                  />
+                ),
+              }
+            : {}),
         }))}
         settingsNavigation={{ page: "settings", icon: Settings, label: t("nav.settings") }}
         navigationLabel={t("nav.label")}
@@ -722,34 +800,35 @@ function DesktopWorkspace({
                 <LanguageSelect
                   label={t("onboarding.targetLanguage")}
                   value={learningScope.targetLanguage}
-                  disabled={
-                    switchingLanguage ||
-                    page === "writing" ||
-                    page === "practice" ||
-                    page === "vocabulary" ||
-                    page === "settings"
-                  }
+                  disabled={switchingLanguage || languageSwitchBlocked}
                   onChange={(language) => void selectTarget(language)}
                 />
-                {(page === "writing" || page === "practice" || page === "vocabulary") && (
+                {languageSwitchBlocked && page !== "settings" && (
                   <small>{t("settings.finishBeforeSwitch")}</small>
                 )}
               </>
             )}
-            <SidebarModelControl />
+            <SidebarModelControl
+              onOpenSettings={() => {
+                setSettingsTab("ai");
+                navigate("settings");
+              }}
+            />
           </>
         }
         navToggleLabel={
           navCollapsed ? t("actions.expandNavigation") : t("actions.collapseNavigation")
         }
-        wide={page === "writing"}
         onMoveNavFocus={moveNavFocus}
-        onNavigate={navigate}
+        onNavigate={(destination) => {
+          navigate(destination);
+          if (!wideHelper) setNavPreference(true);
+        }}
         onToggleHelper={() => {
           setHelperPreference(!helperOpen);
         }}
         onToggleNavigation={() => {
-          setNavCollapsed((current) => !current);
+          setNavPreference(!navCollapsed);
         }}
       />
       {reminderOpen && (
@@ -769,7 +848,15 @@ function DesktopWorkspace({
           }}
         >
           <p>{t("writing.unsavedBody")}</p>
-          <ActionGroup>
+          <ActionGroup align="end">
+            <Button
+              variant="secondary"
+              onPress={() => {
+                setPendingNavigation(undefined);
+              }}
+            >
+              {t("writing.keepEditing")}
+            </Button>
             <Button
               variant="danger"
               onPress={() => {
@@ -783,13 +870,6 @@ function DesktopWorkspace({
               }}
             >
               {t("writing.leave")}
-            </Button>
-            <Button
-              onPress={() => {
-                setPendingNavigation(undefined);
-              }}
-            >
-              {t("writing.keepEditing")}
             </Button>
           </ActionGroup>
         </ModalDialog>
@@ -834,23 +914,23 @@ export default function App() {
   if (fatal) {
     return (
       <StartupFrame>
-        <section className={styles.startupCard} role="alert">
+        <Card as="section" className={styles.startupCard} role="alert">
           <h1>{t("startup.unavailableTitle")}</h1>
           <p>{t("startup.unavailableBody")}</p>
           <OperationError error={fatal} />
           <Button variant="primary" onPress={() => void load()}>
             {t("actions.retry")}
           </Button>
-        </section>
+        </Card>
       </StartupFrame>
     );
   }
   if (!readiness) {
     return (
       <StartupFrame>
-        <section className={styles.startupCard} role="status">
+        <Card as="section" className={styles.startupCard} role="status">
           <LoaderCircle aria-hidden="true" /> {t("startup.loading")}
-        </section>
+        </Card>
       </StartupFrame>
     );
   }

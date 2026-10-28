@@ -71,7 +71,9 @@ export class ScopedPluginClient {
 
   async status() {
     const [plugins, servers] = await Promise.all([
-      this.#command(["plugin", "list"], "LIST").then((value) => pluginsSchema.parse(value)),
+      this.#command(["plugin", "list", "--marketplace", callNinaMarketplaceName], "LIST").then(
+        (value) => pluginsSchema.parse(value),
+      ),
       this.#command(["mcp", "list"], "MCP_LIST").then((value) => serversSchema.parse(value)),
     ]);
     const installed = plugins.installed.find((entry) => entry.pluginId === pluginId);
@@ -123,7 +125,9 @@ export class ScopedPluginClient {
   }
 
   async uninstall() {
-    const plugins = pluginsSchema.parse(await this.#command(["plugin", "list"], "LIST"));
+    const plugins = pluginsSchema.parse(
+      await this.#command(["plugin", "list", "--marketplace", callNinaMarketplaceName], "LIST"),
+    );
     if (plugins.installed.some((entry) => entry.pluginId === pluginId)) {
       await this.#command(["plugin", "remove", pluginId], "REMOVE");
     }

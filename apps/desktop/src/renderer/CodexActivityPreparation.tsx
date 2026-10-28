@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import {
   type ProviderOperation,
   voiceActivityContextSchema,
@@ -9,8 +10,15 @@ import {
 } from "@call-nina/contracts";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, Disclosure, Feedback, FieldGroup, InfoHint } from "./components/ui/index.js";
-import { ActionGroup } from "./components/layout/index.js";
+import {
+  SelectControl,
+  Button,
+  Disclosure,
+  Feedback,
+  FieldGroup,
+  InfoHint,
+} from "./components/ui/index.js";
+import { Section, ActionGroup } from "./components/layout/index.js";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
@@ -26,6 +34,8 @@ function lines(value: string): string[] {
 export function CodexActivityPreparation({
   kind,
   initialScenario,
+  request: controlledRequest,
+  onRequestChange,
   targetLevel,
   onBusyChange,
   requestAiAccess,
@@ -33,6 +43,8 @@ export function CodexActivityPreparation({
 }: {
   kind: "listening" | "speaking";
   initialScenario?: string;
+  request?: string;
+  onRequestChange?: (request: string) => void;
   targetLevel: VoiceActivityContext["targetLevel"];
   onBusyChange: (busy: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
@@ -40,7 +52,9 @@ export function CodexActivityPreparation({
 }) {
   const { t } = useTranslation();
   const base = kind === "listening" ? "practice.listeningFlow" : "practice.speakingFlow";
-  const [request, setRequest] = useState(initialScenario ?? "");
+  const [localRequest, setLocalRequest] = useState(initialScenario ?? "");
+  const request = controlledRequest ?? localRequest;
+  const setRequest = onRequestChange ?? setLocalRequest;
   const [scenario, setScenario] = useState("");
   const [difficulty, setDifficulty] = useState<VoiceActivityContext["difficulty"]>("intermediate");
   const [correctionTiming, setCorrectionTiming] =
@@ -137,7 +151,7 @@ export function CodexActivityPreparation({
   };
 
   return (
-    <Card
+    <Section
       as="article"
       className={styles.voicePreparation}
       data-testid={`codex-${kind}-preparation`}
@@ -146,23 +160,25 @@ export function CodexActivityPreparation({
         <h2>{t(`${base}.title`)}</h2>
         <InfoHint label={t(`${base}.title`)}>{t(`${base}.body`)}</InfoHint>
       </div>
-      <FieldGroup>
-        {t("practice.promptLabel")}
-        <textarea
-          rows={3}
-          maxLength={2_000}
-          value={request}
-          disabled={draft.busy || preparing}
-          placeholder={t(`${base}.promptPlaceholder`)}
-          onChange={(event) => {
-            setRequest(event.target.value);
-          }}
-        />
-      </FieldGroup>
+      {controlledRequest === undefined && (
+        <FieldGroup>
+          {t("practice.promptLabel")}
+          <textarea
+            rows={3}
+            maxLength={2_000}
+            value={request}
+            disabled={draft.busy || preparing}
+            placeholder={t(`${base}.promptPlaceholder`)}
+            onChange={(event) => {
+              setRequest(event.target.value);
+            }}
+          />
+        </FieldGroup>
+      )}
       <div className={styles.voiceSettingsGrid}>
         <FieldGroup>
           {t(`${base}.difficultyLabel`)}
-          <select
+          <SelectControl
             value={difficulty}
             disabled={draft.busy || preparing}
             onChange={(event) => {
@@ -174,11 +190,11 @@ export function CodexActivityPreparation({
                 {t(`${base}.difficultyOptions.${value}`)}
               </option>
             ))}
-          </select>
+          </SelectControl>
         </FieldGroup>
         <FieldGroup>
           {t(`${base}.correctionTimingLabel`)}
-          <select
+          <SelectControl
             value={correctionTiming}
             disabled={draft.busy || preparing}
             onChange={(event) => {
@@ -190,12 +206,12 @@ export function CodexActivityPreparation({
                 {t(`${base}.correctionOptions.${value}`)}
               </option>
             ))}
-          </select>
+          </SelectControl>
         </FieldGroup>
         {kind === "speaking" && (
           <FieldGroup>
             {t("practice.speakingPace")}
-            <select
+            <SelectControl
               value={speakingPace}
               disabled={draft.busy || preparing}
               onChange={(event) => {
@@ -207,10 +223,11 @@ export function CodexActivityPreparation({
                   {t(`practice.paceOptions.${value}`)}
                 </option>
               ))}
-            </select>
+            </SelectControl>
           </FieldGroup>
         )}
       </div>
+      <ProviderActionSummary operation="voice-activity-draft" busy={draft.busy} />
       <ActionGroup>
         <Button
           variant="secondary"
@@ -230,12 +247,17 @@ export function CodexActivityPreparation({
         >
           {t(hasDraft ? "practice.regenerateDetails" : "practice.generateDetails")}
         </Button>
-        {draft.busy && <Button onPress={draft.cancel}>{t("actions.cancel")}</Button>}
+        {draft.busy && (
+          <Button variant="secondary" onPress={draft.cancel}>
+            {t("actions.cancel")}
+          </Button>
+        )}
       </ActionGroup>
       <OperationProgress progress={draft.progress} />
       <Disclosure
         key={hasDraft ? "draft" : "empty"}
         defaultOpen={hasDraft}
+        open={error ? true : undefined}
         label={t("practice.editDetails")}
       >
         <div className={styles.voiceSetupGrid}>
@@ -315,6 +337,6 @@ export function CodexActivityPreparation({
           {t(`${base}.prepare`)}
         </Button>
       </div>
-    </Card>
+    </Section>
   );
 }

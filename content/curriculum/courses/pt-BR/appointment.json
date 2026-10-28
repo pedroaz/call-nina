@@ -1,0 +1,1037 @@
+{
+  "schemaVersion": 3,
+  "courseId": "portuguese-paths",
+  "targetLanguage": "pt-BR",
+  "version": "pt-everyday-2026-10",
+  "paths": [
+    {
+      "id": "appointment",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Reschedule an appointment",
+        "de": "Einen Termin verschieben",
+        "es": "Cambiar una cita",
+        "pt-BR": "Remarcar um horário"
+      },
+      "description": {
+        "en": "Understand a cancellation, suggest another time, and confirm the new appointment.",
+        "de": "Verstehe eine Absage, schlage eine andere Zeit vor und bestätige den neuen Termin.",
+        "es": "Entiende una cancelación, propone otra hora y confirma la nueva cita.",
+        "pt-BR": "Entenda um cancelamento, sugira outro horário e confirme o novo compromisso."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "cefr-everyday-descriptors",
+      "title": "The CEFR Levels",
+      "url": "https://www.coe.int/en/web/common-european-framework-reference-languages/level-descriptions",
+      "publisher": "Council of Europe",
+      "reviewedOn": "2026-10-26",
+      "claim": "General A1/A2 scope for simple everyday exchanges. These original scenarios, their sequence and level assignments are Call Nina editorial choices, not validated CEFR tests."
+    }
+  ],
+  "targets": [
+    {
+      "id": "pt-br-appointment-phrase-1",
+      "kind": "chunk",
+      "text": "Podemos remarcar o horário?",
+      "meaning": {
+        "en": "Could we reschedule my appointment?",
+        "de": "Können wir den Termin verschieben?",
+        "es": "¿Podemos cambiar la cita?",
+        "pt-BR": "Pedir para mudar um horário."
+      },
+      "example": "Podemos remarcar o horário?",
+      "exampleMeaning": {
+        "en": "Could we reschedule my appointment?",
+        "de": "Können wir den Termin verschieben?",
+        "es": "¿Podemos cambiar la cita?",
+        "pt-BR": "Pedir para mudar um horário."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "pt-br-appointment-phrase-2",
+      "kind": "chunk",
+      "text": "Na quinta-feira eu não posso.",
+      "meaning": {
+        "en": "Unfortunately, Thursday does not work for me.",
+        "de": "Am Donnerstag kann ich leider nicht.",
+        "es": "El jueves no puedo.",
+        "pt-BR": "Informar que não tem disponibilidade na quinta-feira."
+      },
+      "example": "Na quinta-feira eu não posso.",
+      "exampleMeaning": {
+        "en": "Unfortunately, Thursday does not work for me.",
+        "de": "Am Donnerstag kann ich leider nicht.",
+        "es": "El jueves no puedo.",
+        "pt-BR": "Informar que não tem disponibilidade na quinta-feira."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "pt-br-appointment-phrase-3",
+      "kind": "chunk",
+      "text": "Sexta-feira às quatorze fica bom para mim.",
+      "meaning": {
+        "en": "Friday at two p.m. works for me.",
+        "de": "Freitag um vierzehn Uhr passt mir.",
+        "es": "El viernes a las catorce me viene bien.",
+        "pt-BR": "Confirmar que o horário de sexta-feira é adequado."
+      },
+      "example": "Sexta-feira às quatorze fica bom para mim.",
+      "exampleMeaning": {
+        "en": "Friday at two p.m. works for me.",
+        "de": "Freitag um vierzehn Uhr passt mir.",
+        "es": "El viernes a las catorce me viene bien.",
+        "pt-BR": "Confirmar que o horário de sexta-feira é adequado."
+      },
+      "register": "neutral"
+    }
+  ],
+  "units": [
+    {
+      "id": "pt-br-appointment",
+      "stage": "appointment",
+      "kind": "module",
+      "title": {
+        "en": "Finding a new time",
+        "de": "Eine neue Zeit finden",
+        "es": "Encontrar otra hora",
+        "pt-BR": "Encontrar outro horário"
+      },
+      "scenario": {
+        "en": "Understand a cancellation, suggest another time, and confirm the new appointment.",
+        "de": "Verstehe eine Absage, schlage eine andere Zeit vor und bestätige den neuen Termin.",
+        "es": "Entiende una cancelación, propone otra hora y confirma la nueva cita.",
+        "pt-BR": "Entenda um cancelamento, sugira outro horário e confirme o novo compromisso."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000018"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Notice the word order in “Na quinta-feira eu não posso.”. Use the complete phrase as a model; change only the detail your partner gives you.",
+        "de": "Achte auf die Wortstellung in „Na quinta-feira eu não posso.“. Nutze die vollständige Wendung als Muster und ändere nur die Angabe, die dein Gegenüber nennt.",
+        "es": "Observa el orden de las palabras en «Na quinta-feira eu não posso.». Usa la expresión completa como modelo y cambia solo el detalle que te indique tu interlocutor.",
+        "pt-BR": "Observe a ordem das palavras em “Na quinta-feira eu não posso.”. Use a expressão completa como modelo e altere apenas o detalhe informado pela outra pessoa."
+      },
+      "explanation": {
+        "en": "Start with “Podemos remarcar o horário?”. Read the examples and their meanings. Find the detail you need in the message, then make your request. Check the response and confirm the final arrangement. Cover the examples before trying to recall the phrases.",
+        "de": "Beginne mit „Podemos remarcar o horário?“. Lies die Beispiele und ihre Bedeutungen. Finde die nötige Information in der Nachricht und formuliere dann deine Bitte. Prüfe die Antwort und bestätige die Vereinbarung. Decke die Beispiele ab, bevor du die Wendungen aus dem Gedächtnis abrufst.",
+        "es": "Empieza con «Podemos remarcar o horário?». Lee los ejemplos y sus significados. Busca el dato que necesitas en el mensaje y formula tu petición. Comprueba la respuesta y confirma lo acordado. Tapa los ejemplos antes de intentar recordar las expresiones.",
+        "pt-BR": "Comece com “Podemos remarcar o horário?”. Leia os exemplos e seus significados. Encontre a informação necessária na mensagem e faça seu pedido. Confira a resposta e confirme o combinado. Cubra os exemplos antes de tentar lembrar as expressões."
+      },
+      "examples": [
+        {
+          "text": "Podemos remarcar o horário?",
+          "meaning": {
+            "en": "Could we reschedule my appointment?",
+            "de": "Können wir den Termin verschieben?",
+            "es": "¿Podemos cambiar la cita?",
+            "pt-BR": "Pedir para mudar um horário."
+          }
+        },
+        {
+          "text": "Na quinta-feira eu não posso.",
+          "meaning": {
+            "en": "Unfortunately, Thursday does not work for me.",
+            "de": "Am Donnerstag kann ich leider nicht.",
+            "es": "El jueves no puedo.",
+            "pt-BR": "Informar que não tem disponibilidade na quinta-feira."
+          }
+        },
+        {
+          "text": "Sexta-feira às quatorze fica bom para mim.",
+          "meaning": {
+            "en": "Friday at two p.m. works for me.",
+            "de": "Freitag um vierzehn Uhr passt mir.",
+            "es": "El viernes a las catorce me viene bien.",
+            "pt-BR": "Confirmar que o horário de sexta-feira é adequado."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "pt-br-appointment-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "pt-br-appointment-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Understand the requested spoken detail.",
+            "de": "Verstehe die gesuchte gesprochene Information.",
+            "es": "Comprende el detalle solicitado al escuchar.",
+            "pt-BR": "Compreenda o detalhe solicitado ao ouvir."
+          },
+          "criterion": {
+            "en": "Recover the correct detail; record any repetition or transcript support.",
+            "de": "Erfasse die richtige Angabe; halte Wiederholungen oder Skripthilfe fest.",
+            "es": "Identifica el detalle correcto; registra las repeticiones o la ayuda del guion.",
+            "pt-BR": "Identifique o detalhe correto; registre repetições ou ajuda do roteiro."
+          }
+        },
+        {
+          "id": "pt-br-appointment-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Understand a cancellation, suggest another time, and confirm the new appointment.",
+            "de": "Verstehe eine Absage, schlage eine andere Zeit vor und bestätige den neuen Termin.",
+            "es": "Entiende una cancelación, propone otra hora y confirma la nueva cita.",
+            "pt-BR": "Entenda um cancelamento, sugira outro horário e confirme o novo compromisso."
+          },
+          "criterion": {
+            "en": "Write a comprehensible message with the necessary details.",
+            "de": "Schreibe eine verständliche Nachricht mit den nötigen Angaben.",
+            "es": "Escribe un mensaje comprensible con los detalles necesarios.",
+            "pt-BR": "Escreva uma mensagem compreensível com os detalhes necessários."
+          }
+        },
+        {
+          "id": "pt-br-appointment-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Understand a cancellation, suggest another time, and confirm the new appointment.",
+            "de": "Verstehe eine Absage, schlage eine andere Zeit vor und bestätige den neuen Termin.",
+            "es": "Entiende una cancelación, propone otra hora y confirma la nueva cita.",
+            "pt-BR": "Entenda um cancelamento, sugira outro horário e confirme o novo compromisso."
+          },
+          "criterion": {
+            "en": "Complete the exchange, clarify a detail, and confirm the result.",
+            "de": "Führe den Austausch durch, kläre eine Angabe und bestätige das Ergebnis.",
+            "es": "Completa el intercambio, aclara un detalle y confirma el resultado.",
+            "pt-BR": "Complete a conversa, esclareça um detalhe e confirme o resultado."
+          }
+        }
+      ],
+      "targetIds": [
+        "pt-br-appointment-phrase-1",
+        "pt-br-appointment-phrase-2",
+        "pt-br-appointment-phrase-3"
+      ],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["pt-br-appointment-reading"],
+          "targetIds": [
+            "pt-br-appointment-phrase-1",
+            "pt-br-appointment-phrase-2",
+            "pt-br-appointment-phrase-3"
+          ],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "You cannot come on Thursday. Which offered time can you choose?",
+              "de": "Am Donnerstag kannst du nicht. Welchen angebotenen Termin kannst du wählen?",
+              "es": "No puedes ir el jueves. ¿Qué horario ofrecido puedes elegir?",
+              "pt-BR": "Você não pode ir na quinta-feira. Qual horário oferecido pode escolher?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "sexta-feira às quatorze",
+              "de": "sexta-feira às quatorze",
+              "es": "sexta-feira às quatorze",
+              "pt-BR": "sexta-feira às quatorze"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Olá, precisamos cancelar seu horário de terça-feira. Temos quinta-feira às nove ou sexta-feira às quatorze. Qual horário fica bom para você?"
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["pt-br-appointment-listening"],
+          "targetIds": [
+            "pt-br-appointment-phrase-1",
+            "pt-br-appointment-phrase-2",
+            "pt-br-appointment-phrase-3"
+          ],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "You cannot come on Thursday. Which offered time can you choose?",
+              "de": "Am Donnerstag kannst du nicht. Welchen angebotenen Termin kannst du wählen?",
+              "es": "No puedes ir el jueves. ¿Qué horario ofrecido puedes elegir?",
+              "pt-BR": "Você não pode ir na quinta-feira. Qual horário oferecido pode escolher?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "sexta-feira às quatorze",
+              "de": "sexta-feira às quatorze",
+              "es": "sexta-feira às quatorze",
+              "pt-BR": "sexta-feira às quatorze"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Olá, precisamos cancelar seu horário de terça-feira. Temos quinta-feira às nove ou sexta-feira às quatorze. Qual horário fica bom para você?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": [
+            "pt-br-appointment-phrase-1",
+            "pt-br-appointment-phrase-2",
+            "pt-br-appointment-phrase-3"
+          ],
+          "instructions": {
+            "en": "Study the phrases, then cover them and explain when you would use each one.",
+            "de": "Lerne die Wendungen, decke sie ab und erkläre, wann du sie verwenden würdest.",
+            "es": "Estudia las expresiones, luego tápalas y explica cuándo usarías cada una.",
+            "pt-BR": "Estude as expressões, depois cubra-as e explique quando usaria cada uma."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["pt-br-appointment-writing"],
+          "targetIds": [
+            "pt-br-appointment-phrase-1",
+            "pt-br-appointment-phrase-2",
+            "pt-br-appointment-phrase-3"
+          ],
+          "instructions": {
+            "en": "Recall a useful phrase without seeing a model. Adapt it to one changed detail.",
+            "de": "Rufe eine nützliche Wendung ohne Vorlage ab. Passe sie an eine geänderte Angabe an.",
+            "es": "Recuerda una expresión sin ver un modelo. Adáptala a un detalle diferente.",
+            "pt-BR": "Lembre uma expressão sem ver um modelo. Adapte-a a um detalhe diferente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["pt-br-appointment-writing"],
+          "targetIds": [
+            "pt-br-appointment-phrase-1",
+            "pt-br-appointment-phrase-2",
+            "pt-br-appointment-phrase-3"
+          ],
+          "instructions": {
+            "en": "Write a short message that achieves the scenario goal. Include the important details and a polite request.",
+            "de": "Schreibe eine kurze Nachricht, die das Ziel der Situation erreicht. Nenne wichtige Angaben und eine höfliche Bitte.",
+            "es": "Escribe un mensaje breve que logre el objetivo. Incluye los detalles importantes y una petición amable.",
+            "pt-BR": "Escreva uma mensagem curta que cumpra o objetivo. Inclua os detalhes importantes e um pedido educado."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["pt-br-appointment-speaking"],
+          "targetIds": [
+            "pt-br-appointment-phrase-1",
+            "pt-br-appointment-phrase-2",
+            "pt-br-appointment-phrase-3"
+          ],
+          "instructions": {
+            "en": "Role-play the situation. Ask and answer questions, clarify one changed detail, and confirm the outcome.",
+            "de": "Spiele die Situation durch. Stelle und beantworte Fragen, kläre eine geänderte Angabe und bestätige das Ergebnis.",
+            "es": "Representa la situación. Haz y responde preguntas, aclara un detalle diferente y confirma el resultado.",
+            "pt-BR": "Simule a situação. Faça e responda perguntas, esclareça um detalhe diferente e confirme o resultado."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "first-visit",
+          "facts": {
+            "en": "Understand a cancellation, suggest another time, and confirm the new appointment.",
+            "de": "Verstehe eine Absage, schlage eine andere Zeit vor und bestätige den neuen Termin.",
+            "es": "Entiende una cancelación, propone otra hora y confirma la nueva cita.",
+            "pt-BR": "Entenda um cancelamento, sugira outro horário e confirme o novo compromisso."
+          }
+        },
+        {
+          "id": "changed-detail",
+          "facts": {
+            "en": "Use the same goal, but change one name, quantity, or time. Tell the learner the new detail before assessing it.",
+            "de": "Behalte das Ziel bei, ändere aber einen Namen, eine Menge oder eine Zeit. Nenne die Änderung vor der Bewertung.",
+            "es": "Mantén el objetivo, pero cambia un nombre, una cantidad o una hora. Comunica el cambio antes de evaluarlo.",
+            "pt-BR": "Mantenha o objetivo, mas mude um nome, uma quantidade ou um horário. Informe a mudança antes de avaliar."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "pt-br-appointment-2",
+      "stage": "appointment",
+      "kind": "module",
+      "title": {
+        "en": "Decline an unsuitable time",
+        "de": "Eine unpassende Zeit ablehnen",
+        "es": "Rechazar una hora que no te conviene",
+        "pt-BR": "Recusar um horário inadequado"
+      },
+      "scenario": {
+        "en": "Decline an unsuitable time. Unfortunately, Thursday does not work for me.",
+        "de": "Eine unpassende Zeit ablehnen. Am Donnerstag kann ich leider nicht.",
+        "es": "Rechazar una hora que no te conviene. El jueves no puedo.",
+        "pt-BR": "Recusar um horário inadequado. Informar que não tem disponibilidade na quinta-feira."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000018"],
+      "prerequisites": ["pt-br-appointment"],
+      "grammar": {
+        "en": "Use the focus phrase as a complete model. Notice whether it is a question, statement, or short request. Keep its word order when recalling it; use a separate sentence to confirm the reply.",
+        "de": "Nutze die Wendung als vollständiges Muster. Ist sie eine Frage, Aussage oder kurze Bitte? Behalte beim Abrufen die Wortstellung bei und bestätige die Antwort in einem eigenen Satz.",
+        "es": "Usa la expresión como modelo completo. Observa si es una pregunta, afirmación o petición breve. Conserva el orden de las palabras al recordarla y confirma la respuesta en otra frase.",
+        "pt-BR": "Use a expressão como modelo completo. Observe se é uma pergunta, afirmação ou pedido breve. Mantenha a ordem das palavras ao lembrá-la e confirme a resposta em outra frase."
+      },
+      "explanation": {
+        "en": "Read the request and reply as a short exchange. Identify what is being requested and what the other person confirms. Recall the request without looking, then respond using only the supplied facts.",
+        "de": "Lies die Bitte und die Antwort als kurzen Austausch. Erkenne, worum gebeten wird und was die andere Person bestätigt. Rufe die Bitte ohne Vorlage ab und antworte nur mit den angegebenen Fakten.",
+        "es": "Lee la petición y la respuesta como un intercambio breve. Identifica qué se pide y qué confirma la otra persona. Recuerda la petición sin mirar y responde solo con los datos proporcionados.",
+        "pt-BR": "Leia o pedido e a resposta como uma conversa curta. Identifique o que é pedido e o que a outra pessoa confirma. Lembre o pedido sem olhar e responda apenas com os dados fornecidos."
+      },
+      "examples": [
+        {
+          "text": "Na quinta-feira eu não posso.",
+          "meaning": {
+            "en": "Unfortunately, Thursday does not work for me.",
+            "de": "Am Donnerstag kann ich leider nicht.",
+            "es": "El jueves no puedo.",
+            "pt-BR": "Informar que não tem disponibilidade na quinta-feira."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "pt-br-appointment-reading-2",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Decline an unsuitable time. Find the key information in the message.",
+            "de": "Eine unpassende Zeit ablehnen. Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Rechazar una hora que no te conviene. Encuentra la información clave del mensaje.",
+            "pt-BR": "Recusar um horário inadequado. Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "pt-br-appointment-listening-2",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Decline an unsuitable time. Understand the requested spoken detail.",
+            "de": "Eine unpassende Zeit ablehnen. Verstehe die gesuchte gesprochene Information.",
+            "es": "Rechazar una hora que no te conviene. Comprende el detalle solicitado al escuchar.",
+            "pt-BR": "Recusar um horário inadequado. Compreenda o detalhe solicitado ao ouvir."
+          },
+          "criterion": {
+            "en": "Recover the correct detail; record any repetition or transcript support.",
+            "de": "Erfasse die richtige Angabe; halte Wiederholungen oder Skripthilfe fest.",
+            "es": "Identifica el detalle correcto; registra las repeticiones o la ayuda del guion.",
+            "pt-BR": "Identifique o detalhe correto; registre repetições ou ajuda do roteiro."
+          }
+        },
+        {
+          "id": "pt-br-appointment-writing-2",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Decline an unsuitable time. Unfortunately, Thursday does not work for me.",
+            "de": "Eine unpassende Zeit ablehnen. Am Donnerstag kann ich leider nicht.",
+            "es": "Rechazar una hora que no te conviene. El jueves no puedo.",
+            "pt-BR": "Recusar um horário inadequado. Informar que não tem disponibilidade na quinta-feira."
+          },
+          "criterion": {
+            "en": "Write a comprehensible message with the necessary details.",
+            "de": "Schreibe eine verständliche Nachricht mit den nötigen Angaben.",
+            "es": "Escribe un mensaje comprensible con los detalles necesarios.",
+            "pt-BR": "Escreva uma mensagem compreensível com os detalhes necessários."
+          }
+        },
+        {
+          "id": "pt-br-appointment-speaking-2",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Decline an unsuitable time. Unfortunately, Thursday does not work for me.",
+            "de": "Eine unpassende Zeit ablehnen. Am Donnerstag kann ich leider nicht.",
+            "es": "Rechazar una hora que no te conviene. El jueves no puedo.",
+            "pt-BR": "Recusar um horário inadequado. Informar que não tem disponibilidade na quinta-feira."
+          },
+          "criterion": {
+            "en": "Complete the exchange, clarify a detail, and confirm the result.",
+            "de": "Führe den Austausch durch, kläre eine Angabe und bestätige das Ergebnis.",
+            "es": "Completa el intercambio, aclara un detalle y confirma el resultado.",
+            "pt-BR": "Complete a conversa, esclareça um detalhe e confirme o resultado."
+          }
+        }
+      ],
+      "targetIds": ["pt-br-appointment-phrase-2"],
+      "reviewTargetIds": ["pt-br-appointment-phrase-1", "pt-br-appointment-phrase-3"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["pt-br-appointment-reading-2"],
+          "targetIds": ["pt-br-appointment-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Sem problema. Pode ser sexta-feira às quatorze?",
+              "de": "Sem problema. Pode ser sexta-feira às quatorze?",
+              "es": "Sem problema. Pode ser sexta-feira às quatorze?",
+              "pt-BR": "Sem problema. Pode ser sexta-feira às quatorze?"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Na quinta-feira eu não posso.\nSem problema. Pode ser sexta-feira às quatorze?"
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["pt-br-appointment-listening-2"],
+          "targetIds": ["pt-br-appointment-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Sem problema. Pode ser sexta-feira às quatorze?",
+              "de": "Sem problema. Pode ser sexta-feira às quatorze?",
+              "es": "Sem problema. Pode ser sexta-feira às quatorze?",
+              "pt-BR": "Sem problema. Pode ser sexta-feira às quatorze?"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Na quinta-feira eu não posso.\nSem problema. Pode ser sexta-feira às quatorze?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["pt-br-appointment-phrase-2"],
+          "instructions": {
+            "en": "Study the phrases, then cover them and explain when you would use each one.",
+            "de": "Lerne die Wendungen, decke sie ab und erkläre, wann du sie verwenden würdest.",
+            "es": "Estudia las expresiones, luego tápalas y explica cuándo usarías cada una.",
+            "pt-BR": "Estude as expressões, depois cubra-as e explique quando usaria cada uma."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["pt-br-appointment-writing-2"],
+          "targetIds": ["pt-br-appointment-phrase-2"],
+          "instructions": {
+            "en": "Recall a useful phrase without seeing a model. Adapt it to one changed detail.",
+            "de": "Rufe eine nützliche Wendung ohne Vorlage ab. Passe sie an eine geänderte Angabe an.",
+            "es": "Recuerda una expresión sin ver un modelo. Adáptala a un detalle diferente.",
+            "pt-BR": "Lembre uma expressão sem ver um modelo. Adapte-a a um detalhe diferente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["pt-br-appointment-writing-2"],
+          "targetIds": ["pt-br-appointment-phrase-2"],
+          "instructions": {
+            "en": "Write a two-line exchange: make the focused request or statement, then confirm the information in the supplied reply. Do not invent additional arrangements.",
+            "de": "Schreibe einen Austausch mit zwei Zeilen: Formuliere die passende Bitte oder Aussage und bestätige dann die Angaben der vorgegebenen Antwort. Erfinde keine zusätzlichen Vereinbarungen.",
+            "es": "Escribe un intercambio de dos líneas: formula la petición o afirmación y confirma la información de la respuesta dada. No inventes otros acuerdos.",
+            "pt-BR": "Escreva uma conversa de duas linhas: faça o pedido ou a afirmação e confirme as informações da resposta fornecida. Não invente outros acordos."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Sem problema. Pode ser sexta-feira às quatorze?"
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["pt-br-appointment-speaking-2"],
+          "targetIds": ["pt-br-appointment-phrase-2"],
+          "instructions": {
+            "en": "Role-play this focused exchange. Make your request or statement without reading the model. Your partner replies using the supplied facts; confirm the important details and close politely.",
+            "de": "Spiele diesen Austausch. Formuliere deine Bitte oder Aussage ohne Vorlage. Dein Gegenüber antwortet mit den vorgegebenen Fakten; bestätige wichtige Angaben und beende das Gespräch höflich.",
+            "es": "Representa este intercambio. Formula tu petición o afirmación sin leer el modelo. Tu interlocutor responde con los datos proporcionados; confirma los detalles importantes y termina con amabilidad.",
+            "pt-BR": "Simule esta conversa. Faça seu pedido ou afirmação sem ler o modelo. A outra pessoa responde com os dados fornecidos; confirme os detalhes importantes e encerre com educação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Sem problema. Pode ser sexta-feira às quatorze?"
+        }
+      ],
+      "variants": [
+        {
+          "id": "focused-exchange",
+          "facts": {
+            "en": "Decline an unsuitable time. Unfortunately, Thursday does not work for me.\nSem problema. Pode ser sexta-feira às quatorze?",
+            "de": "Eine unpassende Zeit ablehnen. Am Donnerstag kann ich leider nicht.\nSem problema. Pode ser sexta-feira às quatorze?",
+            "es": "Rechazar una hora que no te conviene. El jueves no puedo.\nSem problema. Pode ser sexta-feira às quatorze?",
+            "pt-BR": "Recusar um horário inadequado. Informar que não tem disponibilidade na quinta-feira.\nSem problema. Pode ser sexta-feira às quatorze?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "pt-br-appointment-3",
+      "stage": "appointment",
+      "kind": "module",
+      "title": {
+        "en": "Confirm the new appointment",
+        "de": "Den neuen Termin bestätigen",
+        "es": "Confirmar la nueva cita",
+        "pt-BR": "Confirmar o novo horário"
+      },
+      "scenario": {
+        "en": "Confirm the new appointment. Friday at two p.m. works for me.",
+        "de": "Den neuen Termin bestätigen. Freitag um vierzehn Uhr passt mir.",
+        "es": "Confirmar la nueva cita. El viernes a las catorce me viene bien.",
+        "pt-BR": "Confirmar o novo horário. Confirmar que o horário de sexta-feira é adequado."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000018"],
+      "prerequisites": ["pt-br-appointment-2"],
+      "grammar": {
+        "en": "Use the focus phrase as a complete model. Notice whether it is a question, statement, or short request. Keep its word order when recalling it; use a separate sentence to confirm the reply.",
+        "de": "Nutze die Wendung als vollständiges Muster. Ist sie eine Frage, Aussage oder kurze Bitte? Behalte beim Abrufen die Wortstellung bei und bestätige die Antwort in einem eigenen Satz.",
+        "es": "Usa la expresión como modelo completo. Observa si es una pregunta, afirmación o petición breve. Conserva el orden de las palabras al recordarla y confirma la respuesta en otra frase.",
+        "pt-BR": "Use a expressão como modelo completo. Observe se é uma pergunta, afirmação ou pedido breve. Mantenha a ordem das palavras ao lembrá-la e confirme a resposta em outra frase."
+      },
+      "explanation": {
+        "en": "Read the request and reply as a short exchange. Identify what is being requested and what the other person confirms. Recall the request without looking, then respond using only the supplied facts.",
+        "de": "Lies die Bitte und die Antwort als kurzen Austausch. Erkenne, worum gebeten wird und was die andere Person bestätigt. Rufe die Bitte ohne Vorlage ab und antworte nur mit den angegebenen Fakten.",
+        "es": "Lee la petición y la respuesta como un intercambio breve. Identifica qué se pide y qué confirma la otra persona. Recuerda la petición sin mirar y responde solo con los datos proporcionados.",
+        "pt-BR": "Leia o pedido e a resposta como uma conversa curta. Identifique o que é pedido e o que a outra pessoa confirma. Lembre o pedido sem olhar e responda apenas com os dados fornecidos."
+      },
+      "examples": [
+        {
+          "text": "Sexta-feira às quatorze fica bom para mim.",
+          "meaning": {
+            "en": "Friday at two p.m. works for me.",
+            "de": "Freitag um vierzehn Uhr passt mir.",
+            "es": "El viernes a las catorce me viene bien.",
+            "pt-BR": "Confirmar que o horário de sexta-feira é adequado."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "pt-br-appointment-reading-3",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the new appointment. Find the key information in the message.",
+            "de": "Den neuen Termin bestätigen. Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Confirmar la nueva cita. Encuentra la información clave del mensaje.",
+            "pt-BR": "Confirmar o novo horário. Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "pt-br-appointment-listening-3",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the new appointment. Understand the requested spoken detail.",
+            "de": "Den neuen Termin bestätigen. Verstehe die gesuchte gesprochene Information.",
+            "es": "Confirmar la nueva cita. Comprende el detalle solicitado al escuchar.",
+            "pt-BR": "Confirmar o novo horário. Compreenda o detalhe solicitado ao ouvir."
+          },
+          "criterion": {
+            "en": "Recover the correct detail; record any repetition or transcript support.",
+            "de": "Erfasse die richtige Angabe; halte Wiederholungen oder Skripthilfe fest.",
+            "es": "Identifica el detalle correcto; registra las repeticiones o la ayuda del guion.",
+            "pt-BR": "Identifique o detalhe correto; registre repetições ou ajuda do roteiro."
+          }
+        },
+        {
+          "id": "pt-br-appointment-writing-3",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the new appointment. Friday at two p.m. works for me.",
+            "de": "Den neuen Termin bestätigen. Freitag um vierzehn Uhr passt mir.",
+            "es": "Confirmar la nueva cita. El viernes a las catorce me viene bien.",
+            "pt-BR": "Confirmar o novo horário. Confirmar que o horário de sexta-feira é adequado."
+          },
+          "criterion": {
+            "en": "Write a comprehensible message with the necessary details.",
+            "de": "Schreibe eine verständliche Nachricht mit den nötigen Angaben.",
+            "es": "Escribe un mensaje comprensible con los detalles necesarios.",
+            "pt-BR": "Escreva uma mensagem compreensível com os detalhes necessários."
+          }
+        },
+        {
+          "id": "pt-br-appointment-speaking-3",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the new appointment. Friday at two p.m. works for me.",
+            "de": "Den neuen Termin bestätigen. Freitag um vierzehn Uhr passt mir.",
+            "es": "Confirmar la nueva cita. El viernes a las catorce me viene bien.",
+            "pt-BR": "Confirmar o novo horário. Confirmar que o horário de sexta-feira é adequado."
+          },
+          "criterion": {
+            "en": "Complete the exchange, clarify a detail, and confirm the result.",
+            "de": "Führe den Austausch durch, kläre eine Angabe und bestätige das Ergebnis.",
+            "es": "Completa el intercambio, aclara un detalle y confirma el resultado.",
+            "pt-BR": "Complete a conversa, esclareça um detalhe e confirme o resultado."
+          }
+        }
+      ],
+      "targetIds": ["pt-br-appointment-phrase-3"],
+      "reviewTargetIds": ["pt-br-appointment-phrase-1", "pt-br-appointment-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["pt-br-appointment-reading-3"],
+          "targetIds": ["pt-br-appointment-phrase-3"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três.",
+              "de": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três.",
+              "es": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três.",
+              "pt-BR": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Sexta-feira às quatorze fica bom para mim.\nÓtimo. Nos vemos na sexta-feira às quatorze na sala três."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["pt-br-appointment-listening-3"],
+          "targetIds": ["pt-br-appointment-phrase-3"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What information does the reply give?",
+              "de": "Welche Informationen gibt die Antwort?",
+              "es": "¿Qué información da la respuesta?",
+              "pt-BR": "Que informações a resposta dá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três.",
+              "de": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três.",
+              "es": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três.",
+              "pt-BR": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Sexta-feira às quatorze fica bom para mim.\nÓtimo. Nos vemos na sexta-feira às quatorze na sala três."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["pt-br-appointment-phrase-3"],
+          "instructions": {
+            "en": "Study the phrases, then cover them and explain when you would use each one.",
+            "de": "Lerne die Wendungen, decke sie ab und erkläre, wann du sie verwenden würdest.",
+            "es": "Estudia las expresiones, luego tápalas y explica cuándo usarías cada una.",
+            "pt-BR": "Estude as expressões, depois cubra-as e explique quando usaria cada uma."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["pt-br-appointment-writing-3"],
+          "targetIds": ["pt-br-appointment-phrase-3"],
+          "instructions": {
+            "en": "Recall a useful phrase without seeing a model. Adapt it to one changed detail.",
+            "de": "Rufe eine nützliche Wendung ohne Vorlage ab. Passe sie an eine geänderte Angabe an.",
+            "es": "Recuerda una expresión sin ver un modelo. Adáptala a un detalle diferente.",
+            "pt-BR": "Lembre uma expressão sem ver um modelo. Adapte-a a um detalhe diferente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["pt-br-appointment-writing-3"],
+          "targetIds": ["pt-br-appointment-phrase-3"],
+          "instructions": {
+            "en": "Write a two-line exchange: make the focused request or statement, then confirm the information in the supplied reply. Do not invent additional arrangements.",
+            "de": "Schreibe einen Austausch mit zwei Zeilen: Formuliere die passende Bitte oder Aussage und bestätige dann die Angaben der vorgegebenen Antwort. Erfinde keine zusätzlichen Vereinbarungen.",
+            "es": "Escribe un intercambio de dos líneas: formula la petición o afirmación y confirma la información de la respuesta dada. No inventes otros acuerdos.",
+            "pt-BR": "Escreva uma conversa de duas linhas: faça o pedido ou a afirmação e confirme as informações da resposta fornecida. Não invente outros acordos."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["pt-br-appointment-speaking-3"],
+          "targetIds": ["pt-br-appointment-phrase-3"],
+          "instructions": {
+            "en": "Role-play this focused exchange. Make your request or statement without reading the model. Your partner replies using the supplied facts; confirm the important details and close politely.",
+            "de": "Spiele diesen Austausch. Formuliere deine Bitte oder Aussage ohne Vorlage. Dein Gegenüber antwortet mit den vorgegebenen Fakten; bestätige wichtige Angaben und beende das Gespräch höflich.",
+            "es": "Representa este intercambio. Formula tu petición o afirmación sin leer el modelo. Tu interlocutor responde con los datos proporcionados; confirma los detalles importantes y termina con amabilidad.",
+            "pt-BR": "Simule esta conversa. Faça seu pedido ou afirmação sem ler o modelo. A outra pessoa responde com os dados fornecidos; confirme os detalhes importantes e encerre com educação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ótimo. Nos vemos na sexta-feira às quatorze na sala três."
+        }
+      ],
+      "variants": [
+        {
+          "id": "focused-exchange",
+          "facts": {
+            "en": "Confirm the new appointment. Friday at two p.m. works for me.\nÓtimo. Nos vemos na sexta-feira às quatorze na sala três.",
+            "de": "Den neuen Termin bestätigen. Freitag um vierzehn Uhr passt mir.\nÓtimo. Nos vemos na sexta-feira às quatorze na sala três.",
+            "es": "Confirmar la nueva cita. El viernes a las catorce me viene bien.\nÓtimo. Nos vemos na sexta-feira às quatorze na sala três.",
+            "pt-BR": "Confirmar o novo horário. Confirmar que o horário de sexta-feira é adequado.\nÓtimo. Nos vemos na sexta-feira às quatorze na sala três."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    }
+  ]
+}

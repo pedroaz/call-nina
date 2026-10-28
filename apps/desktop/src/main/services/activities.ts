@@ -28,6 +28,7 @@ import {
 } from "@call-nina/persistence";
 import { opaqueId } from "../backend-support.js";
 import { createCodexVoiceActivityUrl } from "../deep-link.js";
+import { codexVoiceWorkspacePath } from "../voice-workspace.js";
 
 /** Request-scoped application service. Never retain it across a data-root switch. */
 export class ActivityService {
@@ -137,7 +138,10 @@ export class ActivityService {
     await this.#validate(value);
     // Validate course association against the installed course only when credit is requested.
     if (value.context.origin === "learning-path") {
-      const course = await readLearningCourse(this.#curriculumRoot);
+      const course = await readLearningCourse(
+        this.#curriculumRoot,
+        (await this.#repository.requireLearningScope()).targetLanguage,
+      );
       resolveCourseReference(course, value.context.reference);
     }
     return this.#repository.reuseGeneratedActivity(value);
@@ -164,7 +168,10 @@ export class ActivityService {
       };
     }
     if (activity.context.learningPath) {
-      const course = await readLearningCourse(this.#curriculumRoot);
+      const course = await readLearningCourse(
+        this.#curriculumRoot,
+        activity.context.learningScope.targetLanguage,
+      );
       resolveCourseReference(course, activity.context.learningPath);
     }
     const startedAt = utcInstantSchema.parse(new Date().toISOString());
@@ -252,6 +259,7 @@ export class ActivityService {
       activity.activityId,
       this.generation,
       activity.context.learningScope,
+      codexVoiceWorkspacePath(),
     );
     try {
       await ports.openExternal(url);
@@ -314,15 +322,14 @@ export class ActivityService {
   async prepareCourseVoice(
     value: Extract<ActivityAction, { action: "prepare-course-voice" }>,
     requestIdValue: string,
-    locale: "en" | "de",
+    locale: "en" | "de" | "es" | "pt-BR",
   ) {
     const action = await this.#validate(value);
     if (action.action !== "prepare-course-voice") throw new Error("OD_ACTIVITY_ACTION_INVALID");
     const requestId = correlationIdSchema.parse(requestIdValue);
     const learningScope = await this.#repository.requireLearningScope();
-    if (learningScope.targetLanguage !== "de" || learningScope.courseId !== "german-foundations")
-      throw new Error("OD_COURSE_UNAVAILABLE");
-    const course = await readLearningCourse(this.#curriculumRoot);
+    if (learningScope.courseId === null) throw new Error("OD_COURSE_UNAVAILABLE");
+    const course = await readLearningCourse(this.#curriculumRoot, learningScope.targetLanguage);
     if (!course) throw new Error("OD_COURSE_NOT_FOUND");
     const { reference, unit, activity } = resolveCourseReference(course, action.reference);
     if (activity.delivery !== "listening" && activity.delivery !== "speaking")
@@ -346,7 +353,9 @@ export class ActivityService {
           voiceContext: {
             schemaVersion: 1,
             kind: activity.delivery,
-            targetLevel: "a1",
+            targetLevel: ({ A1: "a1", A2: "a2", B1: "b1", B2: "b2" } as const)[
+              course.paths.find((path) => path.id === unit.stage)?.level ?? "A1"
+            ],
             scenario: unit.scenario[locale].slice(0, 240),
             difficulty: "beginner",
             correctionTiming: "end",

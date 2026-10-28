@@ -29,10 +29,6 @@ extraResources:
     to: notices/offline-model-license.txt
   - from: ../../docs/offline-runtime-license.txt
     to: notices/offline-runtime-license.txt
-  - from: ../../release/codex-runtime
-    to: codex-runtime
-    filter:
-      - "**/*"
   - from: assets/call-nina.png
     to: call-nina.png
   - from: ../../LICENSE
@@ -62,12 +58,12 @@ extraResources:
     filter:
       - "OFL-*.txt"
 linux:
-  description: A local-first German-learning companion for Codex.
-  synopsis: Practice German with Call Nina and Codex.
+  description: A local-first language-learning companion with optional Codex integration.
+  synopsis: Practice English, Portuguese, Spanish, and German with Call Nina.
   desktop:
     entry:
       Name: Call Nina
-      Comment: Practice German locally with Codex.
+      Comment: Practise languages locally with Call Nina.
       Categories: Education;
       MimeType: x-scheme-handler/call-nina;
   target:

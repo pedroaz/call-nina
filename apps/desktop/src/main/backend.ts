@@ -1,119 +1,118 @@
-import { ManagedGenerationService, managedCatalog } from "@call-nina/managed-generation/service";
+import { createHash, randomUUID } from "node:crypto";
+import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
 import {
-  OfflineGenerationService,
-  type OfflineRuntime,
-  offlineCatalog,
-  offlineSelection,
-} from "@call-nina/offline-runtime";
+  ninaPublicConfiguration,
+  routedProvider,
+  type AiAction,
+  desktopIpcRequestSchema,
+  activityIdSchema,
+  aiConnectionsViewSchema,
+  correlationIdSchema,
+  dataRootGenerationSchema,
+  desktopIpcResponseSchema,
+  generationOperationStartSchema,
+  historyEntryIdSchema,
+  learnerIdSchema,
+  ninaGenerationRequestSchema,
+  translationRequestSchema,
+  utcInstantSchema,
+  type ActivityAction,
+  type AiConnection,
+  type CapturedTeachingContext,
+  type DesktopIpcEvent,
+  type DesktopIpcRequest,
+  type DesktopIpcResponse,
+  type ErrorKind,
+  type GenerationEvent,
+  type LearningScope,
+  type NinaPlan,
+  type ProviderAccess,
+  type ProviderOperation,
+} from "@call-nina/contracts";
 import {
-  DirectApiGenerationService,
+  exportMobileFlashcards,
+  assertCallNinaDatabaseLease,
+  readVocabularyLearning,
+  updateVocabularyLearning,
+  vocabularyPracticeContext,
+  readVocabularyAnalysis,
+  queueVocabularyAnalysis,
+  CallNinaRepository,
+  addCourseVocabulary,
+  createVocabularyFlashcards,
+  deleteMaterial,
+  initializeCallNinaDataRoot,
+  inspectDataRootChoice,
+  listMaterials,
+  openCallNinaDatabase,
+  prepareCourseTeaching,
+  readAiConnections,
+  readBootstrapPointer,
+  readFlashcards,
+  readLearningCourse,
+  readMaterialRevision,
+  readSavedTranslations,
+  recoverCallNinaDataRoot,
+  resolveDataRootLayout,
+  saveFlashcardVocabulary,
+  saveMaterial,
+  switchCallNinaDataRoot,
+  updateFlashcardProgress,
+  validateTranslationReveal,
+  type CallNinaDatabase,
+  type LearnerSettingsRecord,
+} from "@call-nina/persistence";
+import {
+  recommendedRouting,
+  assertExerciseGenerationContext,
+  buildPracticeSuggestions,
+  createInitialLearnerProfile,
+  evaluateExerciseAnswer,
+  resolveCourseReference,
+  resolveModelPreference,
+} from "@call-nina/domain";
+import { nativeImage } from "electron";
+import { type NinaLoginStorage } from "./nina-login-storage.js";
+import { NinaAccount } from "./nina-account.js";
+import {
   directApiCatalog,
   directApiCatalogs,
   directApiSelection,
   isDirectApiRoute,
 } from "@call-nina/direct-api";
-import { type ConnectionSecretStorage } from "./secret-storage.js";
-import {
-  mutateConnections,
-  cleanupConnectionSecrets,
-  type ConnectionView,
-} from "./connection-settings.js";
-import {
-  readAiConnections,
-  readSavedTranslations,
-  saveSupportingTranslation,
-  validateTranslationReveal,
-  readFlashcards,
-  readMaterialRevision,
-  listMaterials,
-  deleteMaterial,
-  saveMaterial,
-  createVocabularyFlashcards,
-  updateFlashcardProgress,
-  saveFlashcardVocabulary,
-  prepareCourseTeaching,
-  addCourseVocabulary,
-  readLearningCourse,
-  initializeCallNinaDataRoot,
-  inspectDataRootChoice,
-  CallNinaRepository,
-  openCallNinaDatabase,
-  readBootstrapPointer,
-  recoverCallNinaDataRoot,
-  resolveDataRootLayout,
-  switchCallNinaDataRoot,
-  type CallNinaDatabase,
-  type LearnerSettingsRecord,
-} from "@call-nina/persistence";
-import {
-  aiConnectionsViewSchema,
-  type AiConnection,
-  ninaGenerationRequestSchema,
-  type NinaPlan,
-  translationRequestSchema,
-  type TranslationRequest,
-  type TranslationStart,
-  type TranslationReveal,
-  type LearningContext,
-  type CapturedTeachingContext,
-  type GenerationOperationStart,
-  type GenerationProvenance,
-  type CorrelationId,
-  type GenerationService,
-  type LearningScope,
-  type ProviderAccess,
-  type ProviderOperation,
-  learnerIdSchema,
-  activityIdSchema,
-  correlationIdSchema,
-  contextualHelpCandidateSchema,
-  historyEntryIdSchema,
-  generationOperationStartSchema,
-  generationProvenanceSchema,
-  dataRootGenerationSchema,
-  modelRequestIdSchema,
-  utcInstantSchema,
-  desktopIpcResponseSchema,
-  desktopIpcEventSchema,
-  exerciseGenerationCandidateSchema,
-  exerciseFeedbackCandidateSchema,
-  writingCorrectionCandidateSchema,
-  type DesktopIpcRequest,
-  type DesktopIpcResponse,
-  type DesktopIpcEvent,
-  type ErrorKind,
-  type AppServerEvent,
-  type ActivityAction,
-  type CallNinaAppServerAdapter,
-} from "@call-nina/contracts";
-import { ActivityService } from "./services/activities.js";
-import { LearningResultService } from "./services/learning-results.js";
-import { desktopPathOption } from "./options.js";
-import { readPersonalDataLocations } from "./personal-data.js";
+import { managedCatalog } from "@call-nina/managed-generation/service";
+import { offlineCatalog, offlineSelection, type OfflineRuntime } from "@call-nina/offline-runtime";
 import { lstat, readFile, readdir, realpath, unlink } from "node:fs/promises";
 import path from "node:path";
+import { type ChatgptSession } from "./chatgpt-session.js";
+import {
+  cleanupConnectionSecrets,
+  mutateConnections,
+  type ConnectionView,
+} from "./connection-settings.js";
+import { desktopPathOption } from "./options.js";
+import { readPersonalDataLocations } from "./personal-data.js";
+import { type ConnectionSecretStorage } from "./secret-storage.js";
+import { ActivityService } from "./services/activities.js";
+import { ConnectionRuntime } from "./services/connection-runtime.js";
+import { GenerationOperations } from "./services/generation-operations.js";
+import { LearningResultService } from "./services/learning-results.js";
+import { TranslationJobs, type TranslationJob } from "./services/translation-jobs.js";
 
-import {
-  buildPracticeSuggestions,
-  assertExerciseGenerationContext,
-  resolveCourseReference,
-  createInitialLearnerProfile,
-  evaluateExerciseAnswer,
-  resolveModelPreference,
-} from "@call-nina/domain";
-import {
-  AppServerTransportError,
-  AppServerUnavailableError,
-  discoverCodex,
-  type AppServerLogRecord,
-} from "@call-nina/codex-client";
+import { discoverCodex, type AppServerLogRecord } from "@call-nina/codex-client";
 import { readPluginIntegrationState, runPluginIntegrationAction } from "./plugin-integration.js";
 
+import {
+  buildLearningCalibration,
+  generationLevel,
+  interpretNinaRequest,
+  matchesNinaRequest,
+  ninaExerciseCount,
+} from "@call-nina/learning-workflows";
 import {
   diagnosticErrorCode,
   exerciseHistoryPrompt,
   freshTimestampAfter,
-  maximumRetainedSubmissions,
   opaqueId,
   operationInputFingerprint,
   safeError,
@@ -124,37 +123,24 @@ import {
   type AcceptedOperation,
   type PendingSelection,
 } from "./backend-support.js";
-import {
-  buildLearningCalibration,
-  generationLevel,
-  interpretNinaRequest,
-  ninaExerciseCount,
-  matchesNinaRequest,
-  savedTranslationInput,
-  translationParts,
-} from "@call-nina/learning-workflows";
 
-type TranslationJob = {
-  request: TranslationStart;
-  cancelled: boolean;
-  providerOperationId: CorrelationId | undefined;
-};
+type CodexIntegration = Extract<
+  DesktopIpcResponse,
+  { status: "ok"; channel: "codex/integration/read" }
+>["result"];
 
 export class DesktopBackend {
-  #pendingLoginId: ReturnType<typeof correlationIdSchema.parse> | undefined;
+  readonly #connections: ConnectionRuntime;
+  readonly #operations: GenerationOperations;
+  readonly #translations: TranslationJobs;
   readonly #secrets: ConnectionSecretStorage;
+  readonly #loginCredentials: NinaLoginStorage;
   readonly #curriculumRoot: string;
   readonly #bootstrapFile: string;
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
-  readonly #operationServices = new Map<string, GenerationService>();
-  readonly #managedServices = new Set<ManagedGenerationService>();
-  readonly #directServices = new Set<DirectApiGenerationService>();
-  readonly #offlineServices = new Set<OfflineGenerationService>();
   readonly #offline: OfflineRuntime;
-  #offlineEpoch = 0;
-  readonly #projectGenerationEvent: (event: AppServerEvent) => void;
-  readonly #appServer: CallNinaAppServerAdapter | undefined;
+  readonly #chatgpt: ChatgptSession;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
   readonly #emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
   readonly #openExternal: ((url: string) => Promise<void>) | undefined;
@@ -163,25 +149,15 @@ export class DesktopBackend {
         content: string,
       ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>)
     | undefined;
-  readonly #translationJobs = new Map<string, TranslationJob>();
-  readonly #translationReveals = new Map<string, TranslationReveal>();
-  readonly #translationProviderOperations = new Set<string>();
   readonly #pending = new Map<string, PendingSelection>();
-  readonly #operationsBySubmission = new Map<string, AcceptedOperation>();
-  readonly #activeOperations = new Set<string>();
-  readonly #retryableOperations = new Set<string>();
-  readonly #helperSessions = new Map<
-    string,
-    {
-      activityId: ReturnType<typeof activityIdSchema.parse>;
-      turns: Array<{ question: string; answer: string }>;
-    }
-  >();
   #database: CallNinaDatabase | undefined;
   #repository: CallNinaRepository | undefined;
-  #appServerStart: Promise<unknown> | undefined;
   #requestQueue: Promise<void> = Promise.resolve();
   #closing = false;
+  readonly #nina = new NinaAccount(async () => {
+    await Promise.all([...this.#connections.managedServices].map((service) => service.shutdown()));
+    this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+  });
 
   #enqueue<T>(work: () => T | Promise<T>): Promise<T> {
     const result = this.#requestQueue.then(work);
@@ -192,29 +168,15 @@ export class DesktopBackend {
     return result;
   }
 
-  #makeOperationRoom(protectedOperationId?: string): boolean {
-    for (const [submissionId, operation] of this.#operationsBySubmission) {
-      if (this.#operationsBySubmission.size < maximumRetainedSubmissions) return true;
-      if (
-        this.#activeOperations.has(operation.operationId) ||
-        operation.operationId === protectedOperationId
-      )
-        continue;
-      this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
-      this.#operationsBySubmission.delete(submissionId);
-      this.#retryableOperations.delete(operation.operationId);
-    }
-    return this.#operationsBySubmission.size < maximumRetainedSubmissions;
-  }
-
   constructor(options: {
     curriculumRoot: string;
     bootstrapFile: string;
     secrets: ConnectionSecretStorage;
+    loginCredentials: NinaLoginStorage;
     offlineRuntime: OfflineRuntime;
     chooseDirectory: () => Promise<string | undefined>;
     knownInstallRoots: readonly string[];
-    appServer?: CallNinaAppServerAdapter;
+    chatgpt: ChatgptSession;
     log?: (record: AppServerLogRecord) => void;
     emitEvent?: (event: DesktopIpcEvent) => void;
     openExternal?: (url: string) => Promise<void>;
@@ -223,83 +185,120 @@ export class DesktopBackend {
     ) => Promise<{ status: "cancelled" } | { status: "exported"; displayName: string }>;
   }) {
     this.#secrets = options.secrets;
+    this.#loginCredentials = options.loginCredentials;
     this.#offline = options.offlineRuntime;
     this.#curriculumRoot = options.curriculumRoot;
     this.#bootstrapFile = options.bootstrapFile;
     this.#chooseDirectory = options.chooseDirectory;
     this.#knownInstallRoots = options.knownInstallRoots;
-    this.#appServer = options.appServer;
+    this.#chatgpt = options.chatgpt;
+    this.#chatgpt.subscribe((event) => this.#emitEvent?.(event));
     this.#log = options.log;
     this.#emitEvent = options.emitEvent;
     this.#openExternal = options.openExternal;
     this.#exportDiagnostics = options.exportDiagnostics;
-    const projectEvent = (event: AppServerEvent) => {
+    const projectEvent = (event: GenerationEvent) => {
       // Saved translations have their own settlement and never enter helper history,
       // course support, skill evidence, or learning-operation output events.
       const translationOperationId =
-        event.event === "operation-state-changed"
-          ? event.state.operationId
-          : event.event === "operation-progress" || event.event === "operation-finished"
-            ? event.operationId
-            : undefined;
-      if (translationOperationId && this.#translationProviderOperations.has(translationOperationId))
+        event.event === "operation-state-changed" ? event.state.operationId : event.operationId;
+      if (
+        translationOperationId &&
+        this.#translations.translationProviderOperations.has(translationOperationId)
+      )
         return;
       void this.#enqueue(async () => {
-        if (!this.#closing) await this.#projectAppServerEvent(event);
-      }).catch(() => {
+        if (!this.#closing) await this.#operations.handleGenerationEvent(event);
+      }).catch((error: unknown) => {
         this.#operationLog(
           "error",
           "DESKTOP_EVENT_FAILED",
           selectionId(),
-          "app-server-event",
-          undefined,
-          "App Server event could not be handled.",
+          "generation-event",
+          diagnosticErrorCode(error),
+          "Generation event could not be handled.",
         );
         if (event.event === "operation-state-changed") {
-          const accepted = this.#operationsBySubmission.get(event.state.submissionId);
-          if (accepted) void this.#rejectUnsettledOperation(accepted.operation);
+          const accepted = this.#operations.operationsBySubmission.get(event.state.submissionId);
+          if (accepted) void this.#operations.rejectUnsettledOperation(accepted.operation);
         }
       });
     };
-    this.#appServer?.subscribe((event) => {
-      if (
-        event.event !== "operation-state-changed" &&
-        event.event !== "operation-progress" &&
-        event.event !== "operation-finished"
-      )
-        projectEvent(event);
+    this.#connections = new ConnectionRuntime({
+      database: () => this.#database,
+      closing: () => this.#closing,
+      chatgpt: this.#chatgpt,
+      nina: this.#nina,
+      offline: this.#offline,
+      secrets: this.#secrets,
+      connectionById: (id) => this.#connectionById(id),
+      projectGenerationEvent: projectEvent,
+      providerAccess: (...args) => this.#providerAccess(...args),
     });
-    this.#projectGenerationEvent = projectEvent;
-    this.#appServer?.subscribeGeneration(projectEvent);
+    this.#operations = new GenerationOperations({
+      repository: () => this.#repository,
+      closing: () => this.#closing,
+      enqueue: (work) => this.#enqueue(work),
+      operationServices: this.#connections.operationServices,
+      releaseOperation: (id) => {
+        this.#connections.releaseOperation(id);
+      },
+      emitEvent: this.#emitEvent,
+      operationLog: (...args) => {
+        this.#operationLog(...args);
+      },
+      dataRootState: (id) => this.#dataRootState(id),
+      learningResults: () => this.#learningResults(),
+    });
+    this.#translations = new TranslationJobs({
+      database: () => this.#database,
+      closing: () => this.#closing,
+      enqueue: (work) => this.#enqueue(work),
+      activeOperations: this.#operations.activeOperations,
+      operationServices: this.#connections.operationServices,
+      releaseOperation: (id) => {
+        this.#connections.releaseOperation(id);
+      },
+      emitEvent: this.#emitEvent,
+      operationLog: (...args) => {
+        this.#operationLog(...args);
+      },
+      providerAccess: (...args) => this.#providerAccess(...args),
+      generationForConnection: (connection) =>
+        this.#connections.generationForConnection(connection),
+    });
   }
 
   close(): void {
-    this.#offlineEpoch++;
-    for (const service of this.#offlineServices) void service.shutdown();
-    this.#offlineServices.clear();
+    this.#connections.offlineEpoch++;
+    for (const service of this.#connections.offlineServices) void service.shutdown();
+    this.#connections.offlineServices.clear();
     void this.#offline.stop().catch(() => undefined);
-    for (const job of this.#translationJobs.values()) {
+    for (const job of this.#translations.translationJobs.values()) {
       job.cancelled = true;
       if (job.providerOperationId)
-        void this.#operationServices
+        void this.#connections.operationServices
           .get(job.providerOperationId)
           ?.cancelOperation(job.providerOperationId)
           .catch(() => undefined);
     }
-    for (const service of this.#managedServices) void service.shutdown();
-    this.#managedServices.clear();
-    for (const service of this.#directServices) void service.shutdown();
-    this.#directServices.clear();
-    this.#operationServices.clear();
-    this.#translationReveals.clear();
+    for (const service of this.#connections.managedServices) void service.shutdown();
+    this.#connections.managedServices.clear();
+    for (const service of this.#connections.directServices) void service.shutdown();
+    this.#connections.directServices.clear();
+    for (const service of this.#connections.chatgptServices) void service.shutdown();
+    this.#connections.chatgptServices.clear();
+    this.#connections.operationServices.clear();
+    this.#translations.translationReveals.clear();
+    this.#mobileAbort?.abort();
     this.#database?.close();
     this.#database = undefined;
     this.#repository = undefined;
     this.#pending.clear();
-    this.#operationsBySubmission.clear();
-    this.#activeOperations.clear();
-    this.#retryableOperations.clear();
-    this.#helperSessions.clear();
+    this.#operations.operationsBySubmission.clear();
+    this.#operations.activeOperations.clear();
+    this.#operations.retryableOperations.clear();
+    this.#operations.helperSessions.clear();
   }
 
   async shutdown(): Promise<void> {
@@ -317,7 +316,7 @@ export class DesktopBackend {
       this.close();
     });
     await this.#offline.stop();
-    await this.#appServer?.shutdown();
+    await this.#chatgpt.shutdown();
     this.#operationLog(
       "info",
       "DESKTOP_SHUTDOWN_COMPLETED",
@@ -327,358 +326,6 @@ export class DesktopBackend {
       "Call Nina desktop shutdown completed.",
       { action: "lifecycle/shutdown", phase: "completed", outcome: "ok" },
     );
-  }
-
-  async #rejectUnsettledOperation(
-    operation: AcceptedOperation["operation"],
-    error?: unknown,
-  ): Promise<void> {
-    await this.#enqueue(() => {
-      if (
-        !this.#closing &&
-        error !== undefined &&
-        this.#operationServices.get(operation.operationId) instanceof DirectApiGenerationService
-      )
-        this.#operationLog(
-          "warn",
-          "DESKTOP_DIRECT_API_OPERATION_FAILED",
-          operation.operationId,
-          operation.input.kind,
-          diagnosticErrorCode(error),
-          "Personal API generation did not complete.",
-          { phase: "failed", outcome: "error" },
-        );
-      if (!this.#activeOperations.delete(operation.operationId) || this.#closing) return;
-      this.#emitEvent?.({
-        event: "learning-operation-finished",
-        operationId: operation.operationId,
-        submissionId: operation.submissionId,
-        kind: operation.input.kind,
-        submission: "retained",
-        outcome: { status: "failed", error: safeError("app-server", operation.operationId) },
-      });
-    });
-  }
-
-  async #ensureAppServer(): Promise<CallNinaAppServerAdapter | undefined> {
-    if (!this.#appServer || (await this.#activeConnection())?.routeId !== "codex") return undefined;
-    if (this.#appServerStart) {
-      await this.#appServerStart;
-      const { lifecycle } = await this.#appServer.snapshot();
-      if (lifecycle.status === "failed" || lifecycle.status === "stopped") {
-        this.#appServerStart = undefined;
-      }
-    }
-    if (!this.#appServerStart) {
-      this.#appServerStart = this.#appServer.start().catch((error: unknown) => {
-        this.#appServerStart = undefined;
-        throw error;
-      });
-    }
-    await this.#appServerStart;
-    return this.#appServer;
-  }
-
-  async #stopConnectionRuntime(): Promise<void> {
-    this.#offlineEpoch++;
-    await this.#offline.stop();
-    if (this.#pendingLoginId && this.#appServer) {
-      await this.#appServer.cancelManagedLogin(this.#pendingLoginId);
-      this.#pendingLoginId = undefined;
-    }
-    await this.#appServer?.shutdown();
-    this.#appServerStart = undefined;
-  }
-
-  async #projectAppServerEvent(event: AppServerEvent): Promise<void> {
-    if (event.event === "account-login-changed") {
-      if (
-        ["complete", "cancelled", "failed"].includes(event.state.status) &&
-        this.#pendingLoginId === event.loginId
-      )
-        this.#pendingLoginId = undefined;
-      this.#emitEvent?.({ event: "account-login", loginId: event.loginId, state: event.state });
-    } else if (event.event === "models-changed") {
-      this.#emitEvent?.({ event: "state-invalidated", scope: "models" });
-    } else if (event.event === "rate-limits-changed") {
-      this.#emitEvent?.({ event: "state-invalidated", scope: "rate-limits" });
-    } else if (event.event === "account-changed") {
-      this.#emitEvent?.({ event: "state-invalidated", scope: "account" });
-    } else if (event.event === "operation-progress") {
-      const accepted = this.#operationsBySubmission.get(event.submissionId);
-      if (
-        !accepted ||
-        accepted.operationId !== event.operationId ||
-        !this.#activeOperations.has(event.operationId)
-      )
-        return;
-      this.#operationsBySubmission.set(event.submissionId, {
-        ...accepted,
-        attempt: event.attempt,
-      });
-      this.#emitEvent?.({
-        event: "learning-operation-progress",
-        operationId: event.operationId,
-        submissionId: event.submissionId,
-        kind: event.kind,
-        submission: "retained",
-        stage: event.stage,
-        attempt: event.attempt,
-      });
-    } else if (event.event === "operation-state-changed") {
-      const state = event.state;
-      const owned = this.#operationsBySubmission.get(state.submissionId);
-      if (
-        !owned ||
-        owned.operationId !== state.operationId ||
-        !this.#activeOperations.has(state.operationId)
-      )
-        return;
-      if (state.status === "validated") {
-        const projectionStartedAt = performance.now();
-        let savedActivityId: ReturnType<typeof activityIdSchema.parse> | undefined;
-        const acceptedOperation = this.#operationsBySubmission.get(state.submissionId);
-        if (acceptedOperation)
-          state.provenance = { ...state.provenance, connectionId: acceptedOperation.connection.id };
-        const root = await this.#dataRootState(state.operationId);
-        if (
-          !acceptedOperation ||
-          acceptedOperation.operationId !== state.operationId ||
-          root.status !== "ready" ||
-          acceptedOperation.dataRootGeneration !== root.generation
-        ) {
-          this.#activeOperations.delete(state.operationId);
-          this.#retryableOperations.delete(state.operationId);
-          this.#emitEvent?.({
-            event: "learning-operation-finished",
-            operationId: state.operationId,
-            submissionId: state.submissionId,
-            kind: state.kind,
-            submission: "retained",
-            outcome: { status: "failed", error: safeError("stale-data-root", state.operationId) },
-          });
-          return;
-        }
-        if (
-          state.kind === "writing-correction" ||
-          state.kind === "exercise-generation" ||
-          state.kind === "flashcard-generation"
-        ) {
-          this.#emitEvent?.({
-            event: "learning-operation-progress",
-            operationId: state.operationId,
-            submissionId: state.submissionId,
-            kind: state.kind,
-            submission: "retained",
-            stage: "persisting",
-            attempt: acceptedOperation.attempt ?? 1,
-          });
-        }
-        if (state.kind === "writing-correction") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          try {
-            if (!accepted || !this.#repository) throw new Error("OD_WRITING_ATTEMPT_UNAVAILABLE");
-            await this.#learningResults().persistWritingCorrection(accepted, {
-              operationId: state.operationId,
-              submissionId: state.submissionId,
-              modelRequestId: state.modelRequestId,
-              provenance: state.provenance,
-              output: writingCorrectionCandidateSchema.parse(state.output),
-            });
-          } catch (error) {
-            this.#operationLog(
-              "error",
-              "DESKTOP_OPERATION_PERSIST_FAILED",
-              state.operationId,
-              state.kind,
-              diagnosticErrorCode(error),
-              "Validated operation output could not be saved.",
-              {
-                phase: "failed",
-                outcome: "error",
-                durationMs: Math.round(performance.now() - projectionStartedAt),
-              },
-            );
-            this.#activeOperations.delete(state.operationId);
-            this.#emitEvent?.({
-              event: "learning-operation-finished",
-              operationId: state.operationId,
-              submissionId: state.submissionId,
-              kind: state.kind,
-              submission: "retained",
-              outcome: { status: "failed", error: safeError("database", state.operationId) },
-            });
-            return;
-          }
-        } else if (state.kind === "exercise-generation" || state.kind === "flashcard-generation") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          try {
-            if (!accepted || !this.#repository) {
-              throw new Error("OD_TARGETED_PRACTICE_UNAVAILABLE");
-            }
-            savedActivityId =
-              state.kind === "flashcard-generation"
-                ? await this.#learningResults().persistFlashcards(
-                    accepted,
-                    state.output,
-                    state.provenance,
-                  )
-                : await this.#learningResults().persistTargetedPractice(accepted, {
-                    modelRequestId: state.modelRequestId,
-                    provenance: state.provenance,
-                    output: exerciseGenerationCandidateSchema.parse(state.output),
-                  });
-          } catch (error) {
-            this.#operationLog(
-              "error",
-              "DESKTOP_OPERATION_PERSIST_FAILED",
-              state.operationId,
-              state.kind,
-              diagnosticErrorCode(error),
-              "Validated operation output could not be saved.",
-              {
-                phase: "failed",
-                outcome: "error",
-                durationMs: Math.round(performance.now() - projectionStartedAt),
-              },
-            );
-            this.#activeOperations.delete(state.operationId);
-            this.#emitEvent?.({
-              event: "learning-operation-finished",
-              operationId: state.operationId,
-              submissionId: state.submissionId,
-              kind: state.kind,
-              submission: "retained",
-              outcome: { status: "failed", error: safeError("database", state.operationId) },
-            });
-            return;
-          }
-        } else if (state.kind === "contextual-help") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          const session = accepted?.helperSessionId
-            ? this.#helperSessions.get(accepted.helperSessionId)
-            : undefined;
-          if (accepted && session && accepted.operation.input.kind === "contextual-help") {
-            const output = contextualHelpCandidateSchema.parse(state.output);
-            session.turns.push({
-              question: accepted.operation.input.question,
-              answer: output.answer,
-            });
-            if (session.turns.length > 6) session.turns.splice(0, session.turns.length - 6);
-          }
-        } else if (state.kind === "exercise-feedback") {
-          const accepted = [...this.#operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === state.operationId,
-          );
-          if (!accepted?.exerciseFeedback) {
-            throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
-          }
-          const selection = accepted.operation.modelSelection;
-          const provenance = generationProvenanceSchema.parse(state.provenance);
-          const capturedEffort =
-            selection.effort.selection === "exact"
-              ? selection.effort.effortId
-              : accepted.connection.routeId === "managed"
-                ? "runtime-default"
-                : undefined;
-          if (
-            selection.model.selection !== "exact" ||
-            capturedEffort === undefined ||
-            provenance.producer !== accepted.connection.routeId ||
-            provenance.modelId !== selection.model.modelId ||
-            provenance.effortId !== capturedEffort
-          )
-            throw new Error("OD_EXERCISE_FEEDBACK_OPERATION_INVALID");
-          if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
-          await this.#repository.saveGeneratedExerciseFeedback(
-            accepted.exerciseFeedback.activityId,
-            accepted.exerciseFeedback.attemptId,
-            {
-              modelRequestId: modelRequestIdSchema.parse(state.modelRequestId),
-              provenance,
-              output: exerciseFeedbackCandidateSchema.parse(state.output),
-            },
-          );
-        }
-        this.#operationLog(
-          "info",
-          "DESKTOP_OPERATION_OUTPUT_APPLIED",
-          state.operationId,
-          state.kind,
-          undefined,
-          "Validated AI output applied to learning state.",
-          {
-            phase: "completed",
-            outcome: "ok",
-            durationMs: Math.round(performance.now() - projectionStartedAt),
-            metadata: { stage: "apply-output" },
-          },
-        );
-        this.#activeOperations.delete(state.operationId);
-        this.#retryableOperations.delete(state.operationId);
-        if (state.kind === "voice-activity-draft")
-          this.#operationsBySubmission.set(state.submissionId, {
-            ...acceptedOperation,
-            validatedVoiceModelRequestId: state.modelRequestId,
-          });
-        this.#emitEvent?.(
-          desktopIpcEventSchema.parse({
-            event: "learning-operation-finished",
-            operationId: state.operationId,
-            submissionId: state.submissionId,
-            kind: state.kind,
-            submission: "retained",
-            outcome: {
-              status: "validated",
-              modelRequestId: state.modelRequestId,
-              provenance: state.provenance,
-              output: state.output,
-              learningScope: {
-                learnerId: acceptedOperation.operation.input.learningContext.learnerId,
-                courseId: acceptedOperation.operation.input.learningContext.courseId,
-                targetLanguage: acceptedOperation.operation.input.learningContext.targetLanguage,
-              },
-              ...(savedActivityId ? { activityId: savedActivityId } : {}),
-            },
-          }),
-        );
-      } else if (
-        state.status === "cancelled" ||
-        state.status === "rate-limited" ||
-        state.status === "failed"
-      ) {
-        this.#activeOperations.delete(state.operationId);
-        if (state.status === "failed" || state.status === "rate-limited") {
-          this.#retryableOperations.add(state.operationId);
-        } else {
-          this.#retryableOperations.delete(state.operationId);
-        }
-        const outcome =
-          state.status === "cancelled"
-            ? { status: "cancelled" as const }
-            : state.status === "rate-limited"
-              ? {
-                  status: "rate-limited" as const,
-                  reached: state.reached,
-                  retryAt: state.retryAt,
-                }
-              : { status: "failed" as const, error: state.error };
-        this.#emitEvent?.({
-          event: "learning-operation-finished",
-          operationId: state.operationId,
-          submissionId: state.submissionId,
-          kind: state.kind,
-          submission: "retained",
-          outcome,
-        });
-      }
-    }
   }
 
   async #activities(requestId: string): Promise<ActivityService> {
@@ -805,14 +452,16 @@ export class DesktopBackend {
   }
 
   async #reviewContext(scope: LearningScope) {
-    const [relevantMistakes, vocabulary] = await Promise.all([
+    const [relevantMistakes, vocabularyContext] = await Promise.all([
       this.#repository?.readCorrectionMistakeSample(6, scope) ?? Promise.resolve([]),
-      this.#repository?.listDueVocabulary(new Date().toISOString().slice(0, 10), scope) ??
-        Promise.resolve([]),
+      this.#database
+        ? vocabularyPracticeContext(this.#database, scope.targetLanguage)
+        : Promise.resolve({ words: [], focuses: [] }),
     ]);
     return {
       relevantMistakes,
-      vocabularyToReview: vocabulary.slice(0, 12).map((entry) => ({
+      vocabularyFocuses: vocabularyContext.focuses,
+      vocabularyToReview: vocabularyContext.words.slice(0, 12).map((entry) => ({
         vocabularyId: entry.vocabularyId,
         lemma: entry.lemma,
         meaning: entry.meaning,
@@ -843,22 +492,20 @@ export class DesktopBackend {
     return saved;
   }
 
-  #hasActiveExerciseFeedback(input: NonNullable<AcceptedOperation["exerciseFeedback"]>) {
-    return [...this.#operationsBySubmission.values()].some(
-      (accepted) =>
-        this.#activeOperations.has(accepted.operationId) &&
-        accepted.dataRootGeneration === input.expectedGeneration &&
-        accepted.exerciseFeedback?.activityId === input.activityId &&
-        accepted.exerciseFeedback.attemptId === input.attemptId,
-    );
-  }
-
   async #operationLearnerSettings(
     input: Extract<DesktopIpcRequest, { channel: "learning-operation/start" }>["payload"]["input"],
     settings: LearnerSettingsRecord,
   ): Promise<LearnerSettingsRecord & { capturedContext?: CapturedTeachingContext }> {
     const repository = this.#repository;
     if (!repository || !this.#database) throw new Error("OD_DATA_ROOT_STALE");
+    if (input.kind === "vocabulary-analysis") {
+      if (input.rootGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      if (input.source.kind === "activity") {
+        const source = await readVocabularyAnalysis(this.#database, input.source.activityId);
+        return repository.readLearnerSettingsForScope(source.scope);
+      }
+    }
     if (input.kind === "exercise-feedback") {
       const activity = await repository.readPreparedActivity(input.activityId);
       if (!activity) throw new Error("OD_ACTIVITY_NOT_FOUND");
@@ -929,7 +576,10 @@ export class DesktopBackend {
     if (request.source === "learning-path") {
       if (request.expectedGeneration !== this.#database.rootGeneration)
         throw new Error("OD_DATA_ROOT_STALE");
-      const course = await readLearningCourse(this.#curriculumRoot);
+      const course = await readLearningCourse(
+        this.#curriculumRoot,
+        settings.learningContext.targetLanguage,
+      );
       resolveCourseReference(course, request.reference);
       if (!course) throw new Error("OD_COURSE_UNAVAILABLE");
       const scope = await repository.requireLearningScope(course.targetLanguage);
@@ -950,6 +600,57 @@ export class DesktopBackend {
     const calibration =
       settings.capturedContext?.calibration ??
       buildLearningCalibration(settings.learningContext, profile);
+    if (input.kind === "vocabulary-analysis") {
+      if (!this.#database || input.rootGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const known = await vocabularyPracticeContext(
+        this.#database,
+        settings.learningContext.targetLanguage,
+      );
+      if (input.source.kind === "activity") {
+        const source = await readVocabularyAnalysis(this.#database, input.source.activityId);
+        return {
+          kind: input.kind,
+          mode: "activity",
+          sourceKey: source.sourceKey,
+          sourceText: source.sourceText,
+          guidance: "",
+          calibration,
+          knownWords: known.words.map((w) => ({
+            vocabularyId: w.vocabularyId,
+            lemma: w.lemma,
+            meaning: w.meaning,
+          })),
+        };
+      }
+      const { image, guidance, text } = input.source;
+      if (!image && !guidance.trim() && !text.trim()) throw new Error("OD_VOCABULARY_SOURCE_EMPTY");
+      if (image) {
+        const active = await this.#requireRoutedConnection("vocabulary-analysis", true);
+        if (active.routeId !== "chatgpt") throw new Error("OD_VOCABULARY_IMAGE_UNAVAILABLE");
+        const bytes = Buffer.from(image.data, "base64");
+        if (bytes.length > 10 * 1024 * 1024 || bytes.toString("base64") !== image.data)
+          throw new Error("OD_VOCABULARY_IMAGE_INVALID");
+        const decoded = nativeImage.createFromBuffer(bytes);
+        const size = decoded.getSize();
+        if (decoded.isEmpty() || size.width * size.height > 20_000_000)
+          throw new Error("OD_VOCABULARY_IMAGE_INVALID");
+      }
+      return {
+        kind: input.kind,
+        mode: "import",
+        sourceKey: `import:${selectionId()}`,
+        sourceText: text,
+        guidance,
+        ...(image ? { image } : {}),
+        calibration,
+        knownWords: known.words.map((w) => ({
+          vocabularyId: w.vocabularyId,
+          lemma: w.lemma,
+          meaning: w.meaning,
+        })),
+      };
+    }
     if (input.kind === "flashcard-generation")
       return { ...input, targetLevel: generationLevel[input.targetLevel] };
     if (input.kind === "writing-prompt") {
@@ -991,14 +692,14 @@ export class DesktopBackend {
       if (!this.#repository) throw new Error("OD_DATA_ROOT_STALE");
       await this.#repository.recordCourseHelperSupport(input.intent, settings.learningContext);
       const helperKey = `${input.sessionId}:${settings.learningContext.targetLanguage}`;
-      let session = this.#helperSessions.get(helperKey);
+      let session = this.#operations.helperSessions.get(helperKey);
       if (!session) {
-        if (this.#helperSessions.size >= 64) {
-          const oldest = this.#helperSessions.keys().next().value;
-          if (oldest) this.#helperSessions.delete(oldest);
+        if (this.#operations.helperSessions.size >= 64) {
+          const oldest = this.#operations.helperSessions.keys().next().value;
+          if (oldest) this.#operations.helperSessions.delete(oldest);
         }
         session = { activityId: activityIdSchema.parse(opaqueId("activity")), turns: [] };
-        this.#helperSessions.set(helperKey, session);
+        this.#operations.helperSessions.set(helperKey, session);
       }
       return {
         kind: input.kind,
@@ -1139,14 +840,17 @@ export class DesktopBackend {
           input.request.expectedGeneration !== this.#database.rootGeneration
         )
           throw new Error("OD_DATA_ROOT_STALE");
-        const course = await readLearningCourse(this.#curriculumRoot);
+        const course = await readLearningCourse(
+          this.#curriculumRoot,
+          settings.learningContext.targetLanguage,
+        );
         const { reference, unit, activity } = resolveCourseReference(
           course,
           input.request.reference,
         );
         if (!["practice", "reading", "writing"].includes(activity.delivery))
           throw new Error("OD_COURSE_ACTIVITY_INVALID");
-        const locale = profile.explanationLanguage === "de" ? "de" : "en";
+        const locale = profile.explanationLanguage === "en-US" ? "en" : profile.explanationLanguage;
         if (!course) throw new Error("OD_COURSE_REFERENCE_STALE");
         const teaching = await prepareCourseTeaching(
           this.#database,
@@ -1158,7 +862,10 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...reviewContext,
-          calibration: { ...calibration, approximateLevel: "A1" as const },
+          calibration: {
+            ...calibration,
+            approximateLevel: course.paths.find((path) => path.id === unit.stage)?.level ?? "A1",
+          },
           learningPath: reference,
           courseTeaching: teaching,
           naturalRequest:
@@ -1384,6 +1091,7 @@ export class DesktopBackend {
         this.#database.closed ||
         this.#database.rootGeneration !== state.rootGeneration
       ) {
+        this.#mobileAbort?.abort();
         this.#database?.close();
         this.#database = await openCallNinaDatabase({
           bootstrapFile: this.#bootstrapFile,
@@ -1416,13 +1124,7 @@ export class DesktopBackend {
     const executable = desktopPathOption("codex-executable");
     const discovery = await discoverCodex(executable === undefined ? {} : { executable });
     if (discovery.status === "available") {
-      const state = await readPluginIntegrationState(discovery.version);
-      const plugin = state.plugin;
-      return {
-        status: "available" as const,
-        codexVersion: discovery.version,
-        plugin,
-      };
+      return readPluginIntegrationState(discovery.version, correlationId);
     }
     const kind =
       discovery.reason === "unsupported-version" ? "unsupported-codex-version" : "app-server";
@@ -1433,120 +1135,23 @@ export class DesktopBackend {
     };
   }
 
-  async #activeConnection(): Promise<AiConnection | undefined> {
+  async #connectionById(id: string): Promise<AiConnection> {
+    if (!this.#database) throw new Error("OD_DATA_ROOT_STALE");
+    const settings = await readAiConnections(this.#database);
+    const connection = settings.connections.find((entry) => entry.id === id);
+    if (!connection) throw new Error("OD_CONNECTION_NOT_FOUND");
+    return connection;
+  }
+
+  async #routedConnection(action: AiAction, image = false): Promise<AiConnection | undefined> {
     if (!this.#database) return undefined;
     const settings = await readAiConnections(this.#database);
-    return settings.connections.find((entry) => entry.id === settings.activeConnectionId);
+    const route = routedProvider(settings.routing, action, image ? "image" : "text");
+    return settings.connections.find((entry) => entry.routeId === route);
   }
 
-  #generationForConnection(connection: AiConnection): GenerationService | undefined {
-    if (connection.routeId === "codex") return this.#appServer;
-    if (connection.routeId === "managed" && this.#database) {
-      const database = this.#database;
-      const service = new ManagedGenerationService({
-        connectionId: connection.id,
-        rootGeneration: database.rootGeneration,
-        // Connection mutations wait for settlement; root changes invalidate the lease.
-        assertActive: () => {
-          if (this.#closing || database !== this.#database || database.closed)
-            throw new Error("OD_DATA_ROOT_STALE");
-        },
-      });
-      service.subscribeGeneration(this.#projectGenerationEvent);
-      this.#managedServices.add(service);
-      return service;
-    }
-    if (connection.routeId === "local" && this.#database) {
-      const database = this.#database;
-      const captured = structuredClone(connection);
-      const service = new OfflineGenerationService({
-        connectionId: captured.id,
-        rootGeneration: database.rootGeneration,
-        runtime: this.#offline,
-        captureActive: () => {
-          const epoch = this.#offlineEpoch;
-          return () =>
-            !this.#closing &&
-            database === this.#database &&
-            !database.closed &&
-            epoch === this.#offlineEpoch;
-        },
-        assertActive: async (request) => {
-          const access = await this.#providerAccess(
-            request.input.kind,
-            request.operationId,
-            request.modelSelection,
-            captured,
-          );
-          if (access.status !== "available" || access.routeId !== "local")
-            throw new Error("OD_OFFLINE_INACTIVE");
-        },
-      });
-      service.subscribeGeneration(this.#projectGenerationEvent);
-      this.#offlineServices.add(service);
-      return service;
-    }
-    if (!isDirectApiRoute(connection.routeId) || !this.#database) return undefined;
-    const database = this.#database;
-    const captured = structuredClone(connection);
-    const assertActive = async () => {
-      if (this.#closing || database !== this.#database || database.closed)
-        throw new Error("OD_DATA_ROOT_STALE");
-      const current = await this.#requireActiveConnection();
-      if (
-        current.id !== captured.id ||
-        current.routeId !== captured.routeId ||
-        current.secretRef !== captured.secretRef ||
-        !captured.secretRef
-      )
-        throw new Error("OD_CONNECTION_CONFLICT");
-    };
-    const service = new DirectApiGenerationService({
-      route: connection.routeId,
-      connectionId: connection.id,
-      rootGeneration: database.rootGeneration,
-      readActiveCredential: async () => {
-        await assertActive();
-        if (!captured.secretRef) throw new Error("OD_CONNECTION_CREDENTIAL_UNAVAILABLE");
-        const secret = await this.#secrets.read(captured.secretRef);
-        await assertActive();
-        return secret;
-      },
-    });
-    service.subscribeGeneration(this.#projectGenerationEvent);
-    this.#directServices.add(service);
-    return service;
-  }
-
-  #releaseOperation(operationId: CorrelationId): void {
-    const service = this.#operationServices.get(operationId);
-    service?.releaseOperation(operationId);
-    this.#operationServices.delete(operationId);
-    if (
-      service instanceof ManagedGenerationService &&
-      ![...this.#operationServices.values()].includes(service)
-    ) {
-      this.#managedServices.delete(service);
-      void service.shutdown();
-    }
-    if (
-      service instanceof OfflineGenerationService &&
-      ![...this.#operationServices.values()].includes(service)
-    ) {
-      this.#offlineServices.delete(service);
-      void service.shutdown();
-    }
-    if (
-      service instanceof DirectApiGenerationService &&
-      ![...this.#operationServices.values()].includes(service)
-    ) {
-      this.#directServices.delete(service);
-      void service.shutdown();
-    }
-  }
-
-  async #requireActiveConnection(): Promise<AiConnection> {
-    const connection = await this.#activeConnection();
+  async #requireRoutedConnection(action: AiAction, image = false): Promise<AiConnection> {
+    const connection = await this.#routedConnection(action, image);
     if (!connection) throw new Error("OD_CONNECTION_NOT_FOUND");
     return connection;
   }
@@ -1567,33 +1172,37 @@ export class DesktopBackend {
         languages: [],
         models: null,
       };
-      if (connection.routeId === "codex") {
-        entry.status = "inactive";
-        // Reading settings never starts an inactive runtime or probes credentials.
-        if (connection.id === settings.activeConnectionId) {
-          entry.status = "runtime-unavailable";
-          try {
-            const runtime = await this.#ensureAppServer();
-            if (runtime) {
-              const snapshot = await runtime.snapshot();
-              if (snapshot.lifecycle.status === "ready") {
-                entry.models =
-                  snapshot.account.status === "signed-in" ? await runtime.refreshModels() : null;
-                entry.operations = [...runtime.generationCapabilities.operations];
+      if (connection.routeId === "chatgpt") {
+        entry.status = "account-required";
+        {
+          if (this.#secrets.state().status !== "available")
+            entry.status = "secure-storage-unavailable";
+          else
+            try {
+              if (
+                (await this.#chatgpt.account()).status === "signed-in" &&
+                !this.#chatgpt.pendingLoginId
+              ) {
+                entry.models = await this.#chatgpt.models();
+                entry.operations = [
+                  "writing-prompt",
+                  "voice-activity-draft",
+                  "writing-correction",
+                  "contextual-help",
+                  "vocabulary-analysis",
+                  "flashcard-generation",
+                  "exercise-generation",
+                  "exercise-feedback",
+                ];
                 entry.languages = ["en-US", "pt-BR", "es", "de"];
                 entry.status =
-                  snapshot.account.status !== "signed-in"
-                    ? "account-required"
-                    : entry.models &&
-                        resolveModelPreference(connection.preference, entry.models).status ===
-                          "available"
-                      ? "available"
-                      : "model-unavailable";
+                  resolveModelPreference(connection.preference, entry.models).status === "available"
+                    ? "available"
+                    : "model-unavailable";
               }
+            } catch {
+              entry.status = "model-unavailable";
             }
-          } catch {
-            entry.status = "runtime-unavailable";
-          }
         }
       }
       if (isDirectApiRoute(connection.routeId)) {
@@ -1602,16 +1211,13 @@ export class DesktopBackend {
         entry.operations = catalog.operations;
         entry.languages = catalog.languages;
         entry.status =
-          connection.id !== settings.activeConnectionId
-            ? "inactive"
-            : this.#secrets.state().status !== "available"
-              ? "secure-storage-unavailable"
-              : !connection.secretRef
-                ? "credential-required"
-                : resolveModelPreference(connection.preference, catalog.models).status !==
-                    "available"
-                  ? "model-unavailable"
-                  : "configured";
+          this.#secrets.state().status !== "available"
+            ? "secure-storage-unavailable"
+            : !connection.secretRef
+              ? "credential-required"
+              : resolveModelPreference(connection.preference, catalog.models).status !== "available"
+                ? "model-unavailable"
+                : "configured";
       }
       if (connection.routeId === "local") {
         const catalog = offlineCatalog();
@@ -1620,15 +1226,13 @@ export class DesktopBackend {
         entry.operations = catalog.operations;
         entry.languages = catalog.languages;
         entry.status =
-          connection.id !== settings.activeConnectionId
-            ? "inactive"
-            : snapshot.state !== "installed" ||
-                !snapshot.preflight?.platformSupported ||
-                !snapshot.preflight.memorySufficient
-              ? "runtime-unavailable"
-              : resolveModelPreference(connection.preference, catalog.models).status !== "available"
-                ? "model-unavailable"
-                : "configured";
+          snapshot.state !== "installed" ||
+          !snapshot.preflight?.platformSupported ||
+          !snapshot.preflight.memorySufficient
+            ? "runtime-unavailable"
+            : resolveModelPreference(connection.preference, catalog.models).status !== "available"
+              ? "model-unavailable"
+              : "configured";
       }
       if (connection.routeId === "managed") {
         const catalog = managedCatalog();
@@ -1637,11 +1241,16 @@ export class DesktopBackend {
           entry.operations = catalog.operations;
           entry.languages = [...catalog.languages];
           entry.status =
-            connection.id !== settings.activeConnectionId
-              ? "inactive"
-              : resolveModelPreference(connection.preference, catalog.models).status === "available"
-                ? "configured"
-                : "model-unavailable";
+            this.#nina.state.status !== "signed-in"
+              ? "account-required"
+              : !this.#nina.state.access?.hostedAiEnabled ||
+                  this.#nina.state.access.remainingActions <= 0 ||
+                  !this.#nina.state.access.inferenceEnabled
+                ? "runtime-unavailable"
+                : resolveModelPreference(connection.preference, catalog.models).status ===
+                    "available"
+                  ? "configured"
+                  : "model-unavailable";
         }
       }
       availability.push(entry);
@@ -1661,17 +1270,46 @@ export class DesktopBackend {
     correlationId: string,
     retainedSelection?: AcceptedOperation["operation"]["modelSelection"],
     retainedConnection?: AiConnection,
+    integrationState?: CodexIntegration,
+    hasImage = false,
   ): Promise<ProviderAccess> {
-    const connection = await this.#activeConnection();
+    const connection = retainedConnection
+      ? await this.#connectionById(retainedConnection.id).catch(() => undefined)
+      : operation === "voice-handoff"
+        ? undefined
+        : await this.#routedConnection(operation, hasImage);
+    const generationKind = operation === "translation" ? "contextual-help" : operation;
+    const configuredRoute =
+      connection?.routeId ??
+      (this.#database && operation !== "voice-handoff"
+        ? routedProvider(
+            (await readAiConnections(this.#database)).routing,
+            operation,
+            hasImage ? "image" : "text",
+          )
+        : null);
     const unavailable = (
       reason: Extract<ProviderAccess, { status: "unavailable" }>["reason"],
     ): ProviderAccess => ({
-      routeId: connection?.routeId ?? null,
+      routeId: configuredRoute,
       operation,
       status: "unavailable",
       reason,
     });
+    if (operation === "voice-handoff") {
+      if (!this.#openExternal) return unavailable("capability-unavailable");
+      const integration = integrationState ?? (await this.#codexState(correlationId));
+      if (integration.status !== "available") return unavailable("integration-unavailable");
+      if (integration.plugin !== "installed") return unavailable("plugin-required");
+      return {
+        routeId: connection?.routeId ?? "chatgpt",
+        operation,
+        status: "available",
+        modelSelection: null,
+      };
+    }
     if (!connection) return unavailable("connection-required");
+    if (hasImage && connection.routeId !== "chatgpt") return unavailable("capability-unavailable");
     if (
       retainedConnection &&
       (connection.id !== retainedConnection.id ||
@@ -1681,7 +1319,11 @@ export class DesktopBackend {
       return unavailable("capability-unavailable");
     if (isDirectApiRoute(connection.routeId)) {
       const catalog = directApiCatalog(connection.routeId);
-      if (operation === "voice-handoff" || !catalog.operations.includes(operation))
+      if (
+        !catalog.operations.includes(
+          generationKind as Exclude<typeof generationKind, "voice-handoff">,
+        )
+      )
         return unavailable("capability-unavailable");
       if (this.#secrets.state().status !== "available")
         return unavailable("secure-storage-unavailable");
@@ -1714,7 +1356,7 @@ export class DesktopBackend {
     }
     if (connection.routeId === "local") {
       const catalog = offlineCatalog();
-      if (operation !== "writing-prompt" && operation !== "contextual-help")
+      if (generationKind !== "writing-prompt" && generationKind !== "contextual-help")
         return unavailable("capability-unavailable");
       const snapshot = await this.#offline.inspect();
       if (
@@ -1747,9 +1389,20 @@ export class DesktopBackend {
       }
     }
     if (connection.routeId === "managed") {
+      if (this.#nina.state.status !== "signed-in") return unavailable("account-required");
+      if (
+        !this.#nina.state.access?.hostedAiEnabled ||
+        this.#nina.state.access.remainingActions <= 0
+      )
+        return unavailable("account-unavailable");
+      if (!this.#nina.state.access.inferenceEnabled) return unavailable("runtime-unavailable");
       const catalog = managedCatalog();
       if (!catalog) return unavailable("runtime-unavailable");
-      if (operation === "voice-handoff" || !catalog.operations.includes(operation))
+      if (
+        !catalog.operations.includes(
+          generationKind as Exclude<typeof generationKind, "voice-handoff">,
+        )
+      )
         return unavailable("capability-unavailable");
       if (retainedSelection) {
         if (
@@ -1777,44 +1430,28 @@ export class DesktopBackend {
         },
       };
     }
-    if (connection.routeId !== "codex") return unavailable("capability-unavailable");
-    if (operation === "voice-handoff") {
-      const capabilities = this.#appServer?.codexCapabilities;
-      if (
-        !this.#openExternal ||
-        !capabilities?.voiceHandoff ||
-        !capabilities.externalConversation ||
-        !capabilities.localMcp ||
-        !capabilities.plugin
-      )
-        return unavailable("capability-unavailable");
-      const integration = await this.#codexState(correlationId);
-      if (integration.status !== "available") return unavailable("runtime-unavailable");
-      if (integration.plugin !== "installed") return unavailable("plugin-required");
-      return { routeId: "codex", operation, status: "available", modelSelection: null };
-    }
-    if (this.#pendingLoginId) return unavailable("account-unavailable");
-    let appServer: CallNinaAppServerAdapter | undefined;
+    if (connection.routeId !== "chatgpt") return unavailable("capability-unavailable");
+    if (this.#secrets.state().status !== "available")
+      return unavailable("secure-storage-unavailable");
+    if (this.#chatgpt.pendingLoginId) return unavailable("account-unavailable");
+    const account = await this.#chatgpt.account();
+    if (account.status === "signed-out" || account.status === "expired")
+      return unavailable("account-required");
+    if (account.status !== "signed-in") return unavailable("account-unavailable");
     try {
-      appServer = await this.#ensureAppServer();
-      if (!appServer) return unavailable("runtime-unavailable");
-      const snapshot = await appServer.snapshot();
-      if (snapshot.lifecycle.status !== "ready") return unavailable("runtime-unavailable");
-      if (snapshot.account.status === "signed-out" || snapshot.account.status === "expired")
-        return unavailable("account-required");
-      if (snapshot.account.status !== "signed-in") return unavailable("account-unavailable");
-    } catch {
-      return unavailable("runtime-unavailable");
-    }
-    const capabilities = this.#appServer?.generationCapabilities;
-    if (
-      !capabilities ||
-      capabilities.providerId !== connection.routeId ||
-      !capabilities.operations.includes(operation)
-    )
-      return unavailable("capability-unavailable");
-    try {
-      const catalog = await appServer.refreshModels();
+      const catalog = await this.#chatgpt.models();
+      if (hasImage) {
+        const modelId =
+          retainedSelection?.model.selection === "exact"
+            ? retainedSelection.model.modelId
+            : connection.preference.model.mode === "exact"
+              ? connection.preference.model.modelId
+              : catalog.runtimeDefaultModelId;
+        if (
+          !catalog.models.find((entry) => entry.id === modelId)?.inputModalities.includes("image")
+        )
+          return unavailable("capability-unavailable");
+      }
       // Retry retains the original model/effort and never silently changes it.
       if (retainedSelection) {
         const model = retainedSelection.model;
@@ -1964,8 +1601,24 @@ export class DesktopBackend {
     return this.#failure(request, kind);
   }
 
+  #mobilePublishing = false;
+  #mobileAbort: AbortController | undefined;
+
   async handle(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
-    return this.#enqueue(() => this.#handleLoggedRequest(request));
+    // Account network calls have their own serialized queue and cannot stall local learning.
+    if (
+      request.channel === "mobile-sync/publish" ||
+      request.channel === "mobile-sync/read" ||
+      request.channel === "nina-account/read" ||
+      request.channel === "nina-account/update" ||
+      request.channel === "nina-account/diagnostic" ||
+      request.channel === "nina-account/credentials/read" ||
+      request.channel === "nina-account/credentials/save"
+    ) {
+      if (this.#closing) return this.#failure(request, "cancellation");
+      return this.#handleRequest(request);
+    }
+    return this.#handleLoggedRequest(request);
   }
 
   async #handleLoggedRequest(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
@@ -1983,7 +1636,25 @@ export class DesktopBackend {
         { action, phase: "started" },
       );
     }
-    const response = await this.#handleRequest(request);
+    // External discovery must settle outside the learner-data queue. Validate
+    // local state only after re-entering the queue, including Voice root leases.
+    const needsIntegration =
+      request.channel === "app/readiness" ||
+      request.channel === "codex/integration/read" ||
+      request.channel === "voice-activity/open-in-codex" ||
+      (request.channel === "provider/access/read" && request.payload.operation === "voice-handoff");
+    const integration = needsIntegration
+      ? await this.#codexState(request.requestId).catch(() => ({
+          status: "unavailable" as const,
+          reason: "app-server-unavailable" as const,
+          error: safeError("app-server", request.requestId),
+        }))
+      : undefined;
+    const response = await this.#enqueue(() =>
+      this.#closing
+        ? this.#failure(request, "cancellation")
+        : this.#handleRequest(request, integration),
+    );
     if (action) {
       const cancelled =
         response.status === "ok" &&
@@ -2024,123 +1695,125 @@ export class DesktopBackend {
     return response;
   }
 
-  #translationReveal(request: TranslationRequest) {
-    return "revealId" in request.field
-      ? this.#translationReveals.get(request.field.revealId)
-      : undefined;
-  }
-
-  #finishTranslation(job: TranslationJob, outcome: "saved" | "cancelled" | "failed") {
-    this.#translationJobs.delete(job.request.operationId);
-    this.#activeOperations.delete(job.request.operationId);
-    if (!this.#closing)
-      this.#emitEvent?.({
-        event: "translation-finished",
-        operationId: job.request.operationId,
-        rootGeneration: job.request.rootGeneration,
-        outcome,
-      });
-  }
-
-  async #runTranslation(
-    job: TranslationJob,
-    database: CallNinaDatabase,
-    source: Awaited<ReturnType<typeof readSavedTranslations>>,
-    context: LearningContext,
-    modelSelection: GenerationOperationStart["modelSelection"],
-    connection: AiConnection,
-  ) {
-    const request = translationRequestSchema.parse({
-      rootGeneration: job.request.rootGeneration,
-      activityId: job.request.activityId,
-      content: job.request.content,
-      field: job.request.field,
-    });
-    const assertActive = () => {
-      if (job.cancelled || this.#closing) throw new Error("OD_TRANSLATION_CANCELLED");
-    };
+  async #handleRequest(
+    request: DesktopIpcRequest,
+    integration?: CodexIntegration,
+  ): Promise<DesktopIpcResponse> {
     try {
-      const translated: string[] = [];
-      let provenance: GenerationProvenance | undefined;
-      for (const part of translationParts(source.original)) {
-        assertActive();
-        // Recheck lease/visibility between bounded provider calls, without ever
-        // holding a database transaction or the IPC queue during generation.
-        await this.#enqueue(async () => {
-          if (database !== this.#database) throw new Error("OD_DATA_ROOT_STALE");
-          const access = await this.#providerAccess(
-            "contextual-help",
-            job.request.operationId,
-            modelSelection,
-            connection,
-          );
-          if (access.status === "unavailable")
-            throw new Error("OD_TRANSLATION_PROVIDER_UNAVAILABLE");
-          await readSavedTranslations(database, request, this.#translationReveal(job.request));
-        });
-        assertActive();
-        const generation = this.#generationForConnection(connection);
-        if (!generation) throw new Error("OD_OPERATION_UNSUPPORTED");
-        const operationId = selectionId();
-        this.#operationServices.set(operationId, generation);
-        job.providerOperationId = operationId;
-        this.#translationProviderOperations.add(operationId);
+      if (request.channel === "nina-account/credentials/read") {
         try {
-          const result = await generation.runOperation({
-            operationId,
-            submissionId: operationId,
-            dataRootGeneration: job.request.rootGeneration,
-            modelSelection,
-            input: savedTranslationInput(job.request, part, context),
+          return this.#success(request, {
+            available: true,
+            credentials: await this.#loginCredentials.read(),
           });
-          translated.push(contextualHelpCandidateSchema.parse(result.output).answer);
-          provenance = { ...result.provenance, connectionId: connection.id };
-        } finally {
-          this.#translationProviderOperations.delete(operationId);
-          this.#releaseOperation(operationId);
-          job.providerOperationId = undefined;
+        } catch {
+          return this.#success(request, { available: false, credentials: null });
         }
       }
-      await this.#enqueue(async () => {
-        assertActive();
-        if (database !== this.#database || !provenance) throw new Error("OD_DATA_ROOT_STALE");
-        await saveSupportingTranslation(
-          database,
-          request,
-          {
-            schemaVersion: 1,
-            activityId: job.request.activityId,
-            content: job.request.content,
-            fieldKey: source.fieldKey,
-            original: source.original,
-            learningScope: source.learningScope,
-            language: job.request.language,
-            text: translated.join("\n\n"),
-            createdAt: utcInstantSchema.parse(new Date().toISOString()),
-            provenance,
-          },
-          this.#translationReveal(job.request),
-        );
-        this.#finishTranslation(job, "saved");
-      });
-    } catch (error) {
-      await this.#enqueue(() => {
+      if (request.channel === "nina-account/credentials/save") {
+        try {
+          await this.#loginCredentials.save(request.payload);
+          return this.#success(request, { saved: true });
+        } catch {
+          return this.#success(request, { saved: false });
+        }
+      }
+      if (request.channel === "nina-account/diagnostic") {
+        const { stage, outcome, reason } = request.payload;
         this.#operationLog(
-          "warn",
-          "DESKTOP_TRANSLATION_FAILED",
-          job.request.operationId,
-          "translation/start",
-          diagnosticErrorCode(error),
-          "Saved translation did not complete.",
-          { action: "translation/start", phase: "failed", outcome: "error" },
+          outcome === "failed" || outcome === "slow" ? "warn" : "info",
+          "NINA_LOGIN_STAGE",
+          request.requestId,
+          reason,
+          undefined,
+          "Nina sign-in stage.",
+          { action: "nina-account/login", metadata: { stage, status: outcome, reason } },
         );
-        this.#finishTranslation(job, job.cancelled || this.#closing ? "cancelled" : "failed");
-      });
-    }
-  }
-
-  async #handleRequest(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
-    try {
+        return this.#success(request, { recorded: true });
+      }
+      if (request.channel === "mobile-sync/publish" || request.channel === "mobile-sync/read") {
+        const publishing = request.channel === "mobile-sync/publish";
+        if (publishing) await this.#enqueue(() => this.#dataRootState(request.requestId));
+        if (publishing && this.#mobilePublishing)
+          return this.#success(request, { status: "failed", reason: "busy" });
+        if (!ninaPublicConfiguration.serviceOrigin || this.#nina.state.status !== "signed-in")
+          return this.#success(request, { status: "failed", reason: "sign-in" });
+        const epoch = this.#nina.epoch;
+        const database = this.#database;
+        if (publishing && !database)
+          return this.#success(request, { status: "failed", reason: "changed" });
+        const controller = new AbortController();
+        if (publishing) {
+          this.#mobilePublishing = true;
+          this.#mobileAbort = controller;
+        }
+        try {
+          const connection = {
+            origin: ninaPublicConfiguration.serviceOrigin,
+            token: () => this.#nina.token(epoch),
+            hash: (bytes: Uint8Array) =>
+              Promise.resolve(createHash("sha256").update(bytes).digest("hex")),
+            signal: controller.signal,
+            assertCurrent: async () => {
+              if (database) await assertCallNinaDatabaseLease(database);
+              this.#nina.assert(epoch);
+              if (
+                controller.signal.aborted ||
+                this.#closing ||
+                database !== this.#database ||
+                database?.closed
+              )
+                throw new SyncError("changed");
+            },
+          };
+          const result =
+            publishing && database
+              ? await publishSnapshot(
+                  connection,
+                  await exportMobileFlashcards(database),
+                  randomUUID(),
+                )
+              : await readPublished(connection);
+          return this.#success(
+            request,
+            result ? { status: "synced", publishedAt: result.publishedAt } : { status: "empty" },
+          );
+        } catch (error) {
+          return this.#success(request, {
+            status: "failed",
+            reason:
+              error instanceof SyncError && error.reason !== "update-required"
+                ? error.reason
+                : "unavailable",
+          });
+        } finally {
+          if (publishing) {
+            this.#mobilePublishing = false;
+            this.#mobileAbort = undefined;
+          }
+        }
+      }
+      if (request.channel === "nina-account/read") return this.#success(request, this.#nina.state);
+      if (request.channel === "nina-account/update") {
+        const previous = JSON.stringify(this.#nina.state);
+        const beforeEpoch = this.#nina.epoch;
+        const state = await this.#nina.update(request.payload.status, request.payload.token);
+        if (beforeEpoch !== this.#nina.epoch) this.#mobileAbort?.abort();
+        if (JSON.stringify(state) !== previous) {
+          this.#operationLog(
+            state.status === "unavailable" || state.status === "expired" ? "warn" : "info",
+            "NINA_ACCOUNT_STATE",
+            request.requestId,
+            "account-sync",
+            undefined,
+            "Nina account state updated.",
+            { action: "nina-account/update", metadata: { status: state.status } },
+          );
+        }
+        if (JSON.stringify(state) !== previous)
+          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+        return this.#success(request, state);
+      }
       if (
         (request.channel.startsWith("vocabulary/") ||
           request.channel.startsWith("vocabulary-set/") ||
@@ -2150,11 +1823,26 @@ export class DesktopBackend {
       ) {
         return this.#failure(request, "stale-data-root");
       }
+      if (
+        request.channel === "vocabulary/learning-read" ||
+        request.channel === "vocabulary/learning-update"
+      ) {
+        await this.#dataRootState(request.requestId);
+        if (!this.#database) return this.#failure(request, "stale-data-root");
+        const result =
+          request.channel === "vocabulary/learning-read"
+            ? await readVocabularyLearning(this.#database)
+            : await updateVocabularyLearning(this.#database, request.payload);
+        if (request.channel === "vocabulary/learning-update")
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+        return this.#success(request, result);
+      }
       if (request.channel === "offline-model/read" || request.channel === "offline-model/manage") {
         if (request.channel === "offline-model/manage") {
           if (
             request.payload.action !== "cancel" &&
-            (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+            (this.#operations.activeOperations.size > 0 ||
+              this.#translations.translationJobs.size > 0)
           )
             return this.#failure(request, "conflict");
           if (request.payload.action === "install") this.#offline.install();
@@ -2175,21 +1863,40 @@ export class DesktopBackend {
         if (root.status !== "ready" || !this.#database)
           return this.#failure(request, "stale-data-root");
         if (request.channel === "ai-connections/update") {
-          if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
-            return this.#failure(request, "conflict");
-          this.#offlineEpoch++;
-          await mutateConnections(
-            this.#database,
-            this.#secrets,
-            request.payload,
-            async (current, next) => {
+          let mutation = request.payload;
+          if (mutation.action.kind === "recommend") {
+            const view = await this.#connectionsView();
+            for (const connection of view.settings.connections) {
+              connection.preference = {
+                model: { mode: "automatic" },
+                effort: { mode: "semantic", effort: "balanced" },
+              };
+              const state = view.availability.find((entry) => entry.connectionId === connection.id);
               if (
-                current.activeConnectionId !== null &&
-                current.activeConnectionId !== next.activeConnectionId
+                state?.status === "model-unavailable" &&
+                state.models &&
+                resolveModelPreference(connection.preference, state.models).status === "available"
               )
-                await this.#stopConnectionRuntime();
-            },
-          );
+                state.status = "configured";
+            }
+            mutation = {
+              ...mutation,
+              action: {
+                kind: "routing",
+                routing: recommendedRouting(view),
+                resetModelDefaults: true,
+              },
+            };
+            // Recommendations reset model choices atomically in the mutation owner.
+          }
+          if (
+            request.payload.action.kind !== "routing" &&
+            request.payload.action.kind !== "recommend" &&
+            (this.#operations.activeOperations.size > 0 ||
+              this.#translations.translationJobs.size > 0)
+          )
+            return this.#failure(request, "conflict");
+          await mutateConnections(this.#database, this.#secrets, mutation, async () => {});
           this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
         }
         return this.#success(request, await this.#connectionsView());
@@ -2205,9 +1912,9 @@ export class DesktopBackend {
         if (request.payload.visible) {
           await validateTranslationReveal(this.#database, request.payload);
           // Only the currently displayed back is authorized; a new flip revokes old capabilities.
-          this.#translationReveals.clear();
-          this.#translationReveals.set(request.payload.revealId, request.payload);
-        } else this.#translationReveals.delete(request.payload.revealId);
+          this.#translations.translationReveals.clear();
+          this.#translations.translationReveals.set(request.payload.revealId, request.payload);
+        } else this.#translations.translationReveals.delete(request.payload.revealId);
         return this.#success(request, { visible: request.payload.visible });
       }
       if (request.channel === "translation/read" || request.channel === "translation/start") {
@@ -2228,7 +1935,7 @@ export class DesktopBackend {
             content: request.payload.content,
             field: request.payload.field,
           }),
-          this.#translationReveal(request.payload),
+          this.#translations.translationReveal(request.payload),
         );
         if (request.channel === "translation/read")
           return this.#success(request, { translations: source.translations });
@@ -2238,18 +1945,18 @@ export class DesktopBackend {
             status: "saved",
           });
         if (
-          this.#translationJobs.size > 0 ||
-          this.#activeOperations.has(request.payload.operationId)
+          this.#translations.translationJobs.size > 0 ||
+          this.#operations.activeOperations.has(request.payload.operationId)
         )
           return this.#failure(request, "conflict");
         if (!(await this.#hasAcknowledgedAiDisclosure()))
           return this.#failure(request, "validation");
         const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
-        const access = await this.#providerAccess("contextual-help", request.requestId);
+        const access = await this.#providerAccess("translation", request.requestId);
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#activeOperations.size >= 4
+          this.#operations.activeOperations.size >= 4
         )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
@@ -2258,9 +1965,9 @@ export class DesktopBackend {
           cancelled: false,
           providerOperationId: undefined,
         };
-        this.#translationJobs.set(request.payload.operationId, job);
-        this.#activeOperations.add(request.payload.operationId);
-        void this.#runTranslation(
+        this.#translations.translationJobs.set(request.payload.operationId, job);
+        this.#operations.activeOperations.add(request.payload.operationId);
+        void this.#translations.runTranslation(
           job,
           database,
           source,
@@ -2272,7 +1979,7 @@ export class DesktopBackend {
                 ? { selection: "runtime-default" }
                 : { selection: "exact", effortId: access.modelSelection.effortId },
           },
-          await this.#requireActiveConnection(),
+          await this.#requireRoutedConnection("translation"),
         );
         return this.#success(request, {
           operationId: request.payload.operationId,
@@ -2280,40 +1987,34 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "translation/cancel") {
-        const job = this.#translationJobs.get(request.payload.operationId);
+        const job = this.#translations.translationJobs.get(request.payload.operationId);
         if (job && job.request.rootGeneration !== request.payload.rootGeneration)
           return this.#failure(request, "stale-data-root");
         if (job) {
           job.cancelled = true;
           if (job.providerOperationId)
-            await this.#operationServices
+            await this.#connections.operationServices
               .get(job.providerOperationId)
               ?.cancelOperation(job.providerOperationId);
         }
         return this.#success(request, { status: job ? "cancelling" : "already-finished" });
       }
       if (request.channel === "app/readiness") {
-        const [dataRoot, codex] = await Promise.all([
-          this.#dataRootState(request.requestId),
-          this.#codexState(request.requestId).catch(() => ({
-            status: "unavailable" as const,
-            reason: "app-server-unavailable" as const,
-            error: safeError("app-server", request.requestId),
-          })),
-        ]);
+        const dataRoot = await this.#dataRootState(request.requestId);
         return this.#success(request, {
           status: dataRoot.status === "ready" ? "ready" : "degraded",
           dataRoot,
-          codex,
+          codex: integration,
         });
       }
       if (request.channel === "provider/access/read") {
         let retainedSelection: AcceptedOperation["operation"]["modelSelection"] | undefined;
         let retainedConnection: AiConnection | undefined;
+        let hasImage = request.payload.hasImage ?? false;
         if (request.payload.previousOperationId) {
           const dataRoot = await this.#dataRootState(request.requestId);
           if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-          const prior = [...this.#operationsBySubmission.values()].find(
+          const prior = [...this.#operations.operationsBySubmission.values()].find(
             ({ operationId }) => operationId === request.payload.previousOperationId,
           );
           if (!prior) return this.#failure(request, "not-found");
@@ -2321,12 +2022,13 @@ export class DesktopBackend {
             return this.#failure(request, "stale-data-root");
           if (
             prior.operation.input.kind !== request.payload.operation ||
-            !this.#retryableOperations.has(prior.operationId)
+            !this.#operations.retryableOperations.has(prior.operationId)
           )
             return this.#failure(request, "conflict");
           // Resolve retry access from main-owned state, never the current sidebar preference.
           retainedSelection = prior.operation.modelSelection;
           retainedConnection = prior.connection;
+          hasImage = prior.operation.capability === "image";
         }
         return this.#success(
           request,
@@ -2335,6 +2037,8 @@ export class DesktopBackend {
             request.requestId,
             retainedSelection,
             retainedConnection,
+            integration,
+            hasImage,
           ),
         );
       }
@@ -2370,10 +2074,12 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "data-root/confirm") {
-        if (this.#activeOperations.size > 0) return this.#failure(request, "data-root-busy");
+        this.#mobileAbort?.abort();
+        if (this.#operations.activeOperations.size > 0)
+          return this.#failure(request, "data-root-busy");
         const pending = this.#pending.get(request.payload.selectionId);
         if (!pending) return this.#failure(request, "conflict");
-        await this.#stopConnectionRuntime();
+        await this.#connections.stopConnectionRuntime();
         this.#pending.delete(request.payload.selectionId);
         const timestamp = new Date().toISOString();
         if (pending.mode === "initialize") {
@@ -2404,13 +2110,13 @@ export class DesktopBackend {
           });
         }
         this.#repository = new CallNinaRepository(this.#database);
-        for (const operation of this.#operationsBySubmission.values()) {
-          this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
+        for (const operation of this.#operations.operationsBySubmission.values()) {
+          this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
         }
-        this.#operationsBySubmission.clear();
-        this.#retryableOperations.clear();
-        this.#helperSessions.clear();
-        this.#translationReveals.clear();
+        this.#operations.operationsBySubmission.clear();
+        this.#operations.retryableOperations.clear();
+        this.#operations.helperSessions.clear();
+        this.#translations.translationReveals.clear();
         const state = await this.#dataRootState(request.requestId);
         if (state.status === "ready") {
           this.#emitEvent?.({
@@ -2552,7 +2258,7 @@ export class DesktopBackend {
       }
       if (request.channel === "codex-activity/prepare") {
         const activities = await this.#activities(request.requestId);
-        const accepted = [...this.#operationsBySubmission.values()].find(
+        const accepted = [...this.#operations.operationsBySubmission.values()].find(
           (operation) =>
             operation.validatedVoiceModelRequestId === request.payload.draftModelRequestId,
         );
@@ -2673,7 +2379,7 @@ export class DesktopBackend {
         return this.#success(request, this.#settingsProjection(stored, dataRoot));
       }
       if (request.channel === "personal-data/clear") {
-        if (this.#activeOperations.size > 0) {
+        if (this.#operations.activeOperations.size > 0) {
           return this.#success(request, { status: "blocked", reason: "busy" });
         }
         const root = await this.#dataRootState(request.requestId);
@@ -2686,13 +2392,13 @@ export class DesktopBackend {
         }
         const result = await this.#repository.clearPersonalData(request.payload);
         if (result.status === "cleared") {
-          for (const operation of this.#operationsBySubmission.values()) {
-            this.#releaseOperation(correlationIdSchema.parse(operation.operationId));
+          for (const operation of this.#operations.operationsBySubmission.values()) {
+            this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
           }
-          this.#operationsBySubmission.clear();
-          this.#retryableOperations.clear();
-          this.#helperSessions.clear();
-          this.#translationReveals.clear();
+          this.#operations.operationsBySubmission.clear();
+          this.#operations.retryableOperations.clear();
+          this.#operations.helperSessions.clear();
+          this.#translations.translationReveals.clear();
           for (const scope of ["dashboard", "history", "vocabulary", "settings"] as const) {
             this.#emitEvent?.({ event: "state-invalidated", scope });
           }
@@ -2792,11 +2498,13 @@ export class DesktopBackend {
           return this.#failure(request, "stale-data-root");
         const learningContext = await this.#repository.requireLearningContext();
         const course =
-          learningContext.targetLanguage === "de" &&
-          learningContext.courseId === "german-foundations"
-            ? await readLearningCourse(this.#curriculumRoot)
+          learningContext.courseId !== null
+            ? await readLearningCourse(this.#curriculumRoot, learningContext.targetLanguage)
             : null;
-        const explanationLanguage = learningContext.explanationLanguage === "de" ? "de" : "en";
+        const explanationLanguage =
+          learningContext.explanationLanguage === "en-US"
+            ? "en"
+            : learningContext.explanationLanguage;
         if (request.channel === "learning-path/read")
           return this.#success(request, {
             rootGeneration: root.generation,
@@ -3289,8 +2997,15 @@ export class DesktopBackend {
           await activities.openVoice(request.payload.activityId, {
             isCodexVoiceAvailable: async () => {
               return (
-                (await this.#providerAccess("voice-handoff", request.requestId)).status ===
-                "available"
+                (
+                  await this.#providerAccess(
+                    "voice-handoff",
+                    request.requestId,
+                    undefined,
+                    undefined,
+                    integration,
+                  )
+                ).status === "available"
               );
             },
             ...(this.#openExternal ? { openExternal: this.#openExternal } : {}),
@@ -3354,6 +3069,46 @@ export class DesktopBackend {
         });
         this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
         this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+        const database = this.#database;
+        const activityId = request.payload.activityId;
+        if (database)
+          void this.#enqueue(async () => {
+            try {
+              if (
+                database !== this.#database ||
+                !(await queueVocabularyAnalysis(
+                  database,
+                  activityId,
+                  request.payload.answers.map((a) => a.attemptId),
+                ))
+              )
+                return;
+              this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+              await this.#handleRequest(
+                desktopIpcRequestSchema.parse({
+                  requestId: selectionId(),
+                  channel: "learning-operation/start",
+                  payload: {
+                    submissionId: selectionId(),
+                    input: {
+                      kind: "vocabulary-analysis",
+                      rootGeneration: database.rootGeneration,
+                      source: { kind: "activity", activityId },
+                    },
+                  },
+                }),
+              );
+            } catch {
+              this.#operationLog(
+                "warn",
+                "VOCABULARY_ANALYSIS_PENDING",
+                request.requestId,
+                "vocabulary-analysis",
+                undefined,
+                "Vocabulary analysis remains available for retry.",
+              );
+            }
+          });
         return this.#success(request, {
           activityId: request.payload.activityId,
           status: "completed",
@@ -3379,7 +3134,7 @@ export class DesktopBackend {
         if (dataRoot.status !== "ready" || !this.#repository) {
           return this.#failure(request, "stale-data-root");
         }
-        const [entries, mistakePatterns, allTimeSkillTotals] = await Promise.all([
+        const [history, mistakePatterns, allTimeSkillTotals] = await Promise.all([
           this.#repository.listHistory(request.payload),
           this.#repository.listMistakePatterns({
             ...(request.payload.fromDate ? { fromDate: request.payload.fromDate } : {}),
@@ -3390,7 +3145,7 @@ export class DesktopBackend {
             ...(request.payload.mistakeCategory
               ? { mistakeCategory: request.payload.mistakeCategory }
               : {}),
-            maximum: Math.min(request.payload.maximum ?? 50, 50),
+            maximum: 50,
           }),
           this.#repository.readHistorySkillTotals(),
         ]);
@@ -3398,7 +3153,8 @@ export class DesktopBackend {
           rootGeneration: dataRoot.generation,
           mistakePatterns,
           allTimeSkillTotals,
-          entries: entries.map((entry) => {
+          nextCursor: history.nextCursor,
+          entries: history.entries.map((entry) => {
             const detail =
               entry.detail.kind === "reference" || entry.detail.kind === "attempt-feedback"
                 ? entry.detail
@@ -3469,6 +3225,7 @@ export class DesktopBackend {
                       };
             return {
               historyEntryId: entry.historyEntryId,
+              activityAvailable: entry.activityAvailable,
               evidence: entry.evidence,
               entityKind: entry.entityKind,
               skill: entry.skill,
@@ -3520,89 +3277,85 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "codex/integration/read") {
-        return this.#success(request, await this.#codexState(request.requestId));
+        return this.#success(request, integration);
       }
       if (request.channel === "codex/integration/action") {
         const current = await this.#codexState(request.requestId);
         if (current.status !== "available") return this.#failure(request, "app-server");
         return this.#success(
           request,
-          await runPluginIntegrationAction(request.payload.action, current.codexVersion),
+          await runPluginIntegrationAction(
+            request.payload.action,
+            current.codexVersion,
+            request.requestId,
+          ),
         );
       }
-      if (request.channel === "codex/account/read") {
-        try {
-          const appServer = await this.#ensureAppServer();
-          if (appServer) return this.#success(request, (await appServer.snapshot()).account);
-        } catch {
-          // Optional provider state must not turn local setup into an error screen.
-        }
-        return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
+      if (request.channel === "chatgpt/usage/open") {
+        if (!this.#openExternal) return this.#failure(request, "app-server");
+        await this.#openExternal("https://chatgpt.com/settings/usage");
+        return this.#success(request, { status: "opened" });
       }
-      if (request.channel === "codex/account/logout") {
-        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
+      if (request.channel === "chatgpt/account/read")
+        return this.#success(request, await this.#chatgpt.account());
+      if (request.channel === "chatgpt/accounts/read")
+        return this.#success(request, await this.#chatgpt.accounts());
+      if (request.channel === "chatgpt/account/logout") {
+        if (
+          this.#operations.activeOperations.size > 0 ||
+          this.#translations.translationJobs.size > 0
+        )
           return this.#failure(request, "conflict");
-        const appServer = await this.#ensureAppServer();
-        if (!appServer) return this.#failure(request, "app-server");
-        const account = await appServer.logout();
-        this.#pendingLoginId = undefined;
+        return this.#success(request, await this.#chatgpt.logout());
+      }
+      if (request.channel === "chatgpt/account/login/start") {
+        if (
+          this.#operations.activeOperations.size > 0 ||
+          this.#translations.translationJobs.size > 0
+        )
+          return this.#failure(request, "conflict");
+        // Sign-in creates the provider configuration if needed; routing remains an explicit Settings choice.
+        if (!this.#database) return this.#failure(request, "stale-data-root");
+        const connections = await readAiConnections(this.#database);
+        let connection = connections.connections.find((entry) => entry.routeId === "chatgpt");
+        if (!connection) {
+          const created = await mutateConnections(
+            this.#database,
+            this.#secrets,
+            {
+              expectedGeneration: this.#database.rootGeneration,
+              expectedRevision: connections.revision,
+              action: {
+                kind: "save",
+                connection: {
+                  id: crypto.randomUUID(),
+                  label: "ChatGPT",
+                  routeId: "chatgpt",
+                  preference: {
+                    model: { mode: "automatic" },
+                    effort: { mode: "semantic", effort: "balanced" },
+                  },
+                },
+                credential: { action: "keep" },
+              },
+            },
+            async () => this.#connections.stopConnectionRuntime(),
+          );
+          connection = created.connections.find((entry) => entry.routeId === "chatgpt");
+        }
+        const loginId = await this.#chatgpt.startLogin(request.payload.registrationId);
         this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
-        return this.#success(request, account);
+        return this.#success(request, { loginId, status: "started" });
       }
-      if (request.channel === "codex/account/login/start") {
-        if (this.#activeOperations.size > 0 || this.#translationJobs.size > 0)
-          return this.#failure(request, "conflict");
-        const appServer = await this.#ensureAppServer();
-        if (appServer) {
-          const loginId = await appServer.startManagedLogin(request.payload.method);
-          this.#pendingLoginId = loginId;
-          return this.#success(request, { loginId, status: "started" });
-        }
-        return this.#failure(request, "app-server");
+      if (request.channel === "chatgpt/account/login/cancel") {
+        const cancelled = this.#chatgpt.cancelLogin(request.payload.loginId);
+        return this.#success(request, {
+          loginId: request.payload.loginId,
+          status: cancelled ? "cancelled" : "already-finished",
+        });
       }
-      if (request.channel === "codex/account/login/cancel") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) {
-          try {
-            await appServer.cancelManagedLogin(request.payload.loginId);
-            if (this.#pendingLoginId === request.payload.loginId) this.#pendingLoginId = undefined;
-            return this.#success(request, {
-              loginId: request.payload.loginId,
-              status: "cancelled",
-            });
-          } catch {
-            return this.#success(request, {
-              loginId: request.payload.loginId,
-              status: "already-finished",
-            });
-          }
-        }
-        return this.#failure(request, "app-server");
-      }
-      if (request.channel === "codex/models/read") {
-        try {
-          const appServer = await this.#ensureAppServer();
-          if (!appServer || (await appServer.snapshot()).lifecycle.status !== "ready") {
-            return this.#failure(request, "app-server");
-          }
-          if ((await appServer.snapshot()).account.status !== "signed-in")
-            return this.#failure(request, "authentication");
-          return this.#success(request, await appServer.refreshModels());
-        } catch (error) {
-          if (
-            error instanceof AppServerUnavailableError ||
-            error instanceof AppServerTransportError
-          ) {
-            return this.#failure(request, "app-server");
-          }
-          throw error;
-        }
-      }
-      if (request.channel === "codex/rate-limits/read") {
-        const appServer = await this.#ensureAppServer();
-        if (appServer) return this.#success(request, await appServer.refreshRateLimits());
-        return this.#success(request, { status: "unavailable", reason: "runtime-not-ready" });
-      }
+      if (request.channel === "chatgpt/models/read")
+        return this.#success(request, await this.#chatgpt.models());
       if (request.channel === "learning-operation/start") {
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") {
@@ -3614,7 +3367,7 @@ export class DesktopBackend {
           );
         }
         const inputFingerprint = operationInputFingerprint(request.payload.input);
-        const previous = this.#operationsBySubmission.get(request.payload.submissionId);
+        const previous = this.#operations.operationsBySubmission.get(request.payload.submissionId);
         if (
           previous &&
           (previous.inputFingerprint !== inputFingerprint ||
@@ -3637,7 +3390,7 @@ export class DesktopBackend {
               submission: "retained",
               ...feedback,
             });
-          if (!previous && this.#hasActiveExerciseFeedback(request.payload.input))
+          if (!previous && this.#operations.hasActiveExerciseFeedback(request.payload.input))
             return this.#failure(request, "conflict");
         }
         if (previous) {
@@ -3656,7 +3409,7 @@ export class DesktopBackend {
             "ai-disclosure",
           );
         }
-        if (!this.#makeOperationRoom()) {
+        if (!this.#operations.makeOperationRoom()) {
           return this.#failure(request, "conflict");
         }
         const activeSettings = await this.#readActiveLearnerSettings();
@@ -3672,20 +3425,37 @@ export class DesktopBackend {
           request.payload.input,
           activeSettings,
         );
-        const access = await this.#providerAccess(request.payload.input.kind, request.requestId);
+        const hasImage =
+          request.payload.input.kind === "vocabulary-analysis" &&
+          request.payload.input.source.kind === "import" &&
+          Boolean(request.payload.input.source.image);
+        const action =
+          request.payload.input.kind === "contextual-help" &&
+          request.payload.input.intent === "translate"
+            ? "translation"
+            : request.payload.input.kind;
+        const access = await this.#providerAccess(
+          action,
+          request.requestId,
+          undefined,
+          undefined,
+          undefined,
+          hasImage,
+        );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#activeOperations.size >= 4
+          this.#operations.activeOperations.size >= 4
         )
           return this.#failure(request, "conflict");
         if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
-        const connection = await this.#requireActiveConnection();
+        const connection = await this.#requireRoutedConnection(action, hasImage);
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
           operationId,
           submissionId: request.payload.submissionId,
           dataRootGeneration: dataRoot.generation,
+          capability: hasImage ? "image" : "text",
           modelSelection: {
             model: { selection: "exact", modelId: access.modelSelection.modelId },
             effort:
@@ -3702,9 +3472,9 @@ export class DesktopBackend {
             )),
           },
         });
-        const generation = this.#generationForConnection(connection);
+        const generation = await this.#connections.generationForConnection(connection);
         if (!generation) return this.#failure(request, "unsupported-operation");
-        this.#operationsBySubmission.set(request.payload.submissionId, {
+        this.#operations.operationsBySubmission.set(request.payload.submissionId, {
           connection,
           operationId,
           inputFingerprint,
@@ -3722,11 +3492,11 @@ export class DesktopBackend {
               }
             : {}),
         });
-        this.#operationServices.set(operationId, generation);
-        this.#activeOperations.add(operationId);
+        this.#connections.operationServices.set(operationId, generation);
+        this.#operations.activeOperations.add(operationId);
         void Promise.resolve()
           .then(() => generation.runOperation(operation))
-          .catch((error: unknown) => this.#rejectUnsettledOperation(operation, error));
+          .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
         return this.#success(request, {
           operationId,
           submissionId: request.payload.submissionId,
@@ -3737,14 +3507,14 @@ export class DesktopBackend {
       if (request.channel === "learning-operation/retry") {
         const dataRoot = await this.#dataRootState(request.requestId);
         if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-        const prior = [...this.#operationsBySubmission.values()].find(
+        const prior = [...this.#operations.operationsBySubmission.values()].find(
           ({ operationId }) => operationId === request.payload.previousOperationId,
         );
         if (!prior) return this.#failure(request, "not-found");
         if (prior.dataRootGeneration !== dataRoot.generation) {
           return this.#failure(request, "stale-data-root");
         }
-        const replay = this.#operationsBySubmission.get(request.payload.submissionId);
+        const replay = this.#operations.operationsBySubmission.get(request.payload.submissionId);
         if (
           replay &&
           (replay.inputFingerprint !== prior.inputFingerprint ||
@@ -3762,7 +3532,7 @@ export class DesktopBackend {
               ...feedback,
             });
         }
-        if (!this.#retryableOperations.has(prior.operationId)) {
+        if (!this.#operations.retryableOperations.has(prior.operationId)) {
           return this.#failure(request, "conflict");
         }
         if (!(await this.#hasAcknowledgedAiDisclosure())) {
@@ -3776,9 +3546,12 @@ export class DesktopBackend {
             submission: "retained",
           });
         }
-        if (prior.exerciseFeedback && this.#hasActiveExerciseFeedback(prior.exerciseFeedback))
+        if (
+          prior.exerciseFeedback &&
+          this.#operations.hasActiveExerciseFeedback(prior.exerciseFeedback)
+        )
           return this.#failure(request, "conflict");
-        if (!this.#makeOperationRoom(prior.operationId)) {
+        if (!this.#operations.makeOperationRoom(prior.operationId)) {
           return this.#failure(request, "conflict");
         }
         const access = await this.#providerAccess(
@@ -3786,14 +3559,16 @@ export class DesktopBackend {
           request.requestId,
           prior.operation.modelSelection,
           prior.connection,
+          undefined,
+          prior.operation.capability === "image",
         );
         if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
         if (
           (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#activeOperations.size >= 4
+          this.#operations.activeOperations.size >= 4
         )
           return this.#failure(request, "conflict");
-        const generation = this.#operationServices.get(prior.operationId);
+        const generation = this.#connections.operationServices.get(prior.operationId);
         if (!generation) return this.#failure(request, "unsupported-operation");
         const operationId = selectionId();
         const operation = generationOperationStartSchema.parse({
@@ -3802,7 +3577,7 @@ export class DesktopBackend {
           submissionId: request.payload.submissionId,
           dataRootGeneration: dataRoot.generation,
         });
-        this.#operationsBySubmission.set(request.payload.submissionId, {
+        this.#operations.operationsBySubmission.set(request.payload.submissionId, {
           connection: prior.connection,
           operationId,
           inputFingerprint: prior.inputFingerprint,
@@ -3812,8 +3587,8 @@ export class DesktopBackend {
           ...(prior.helperSessionId ? { helperSessionId: prior.helperSessionId } : {}),
           ...(prior.exerciseFeedback ? { exerciseFeedback: prior.exerciseFeedback } : {}),
         });
-        this.#operationServices.set(operationId, generation);
-        this.#activeOperations.add(operationId);
+        this.#connections.operationServices.set(operationId, generation);
+        this.#operations.activeOperations.add(operationId);
         void Promise.resolve()
           .then(() =>
             generation.retryOperation({
@@ -3822,7 +3597,7 @@ export class DesktopBackend {
               submissionId: request.payload.submissionId,
             }),
           )
-          .catch((error: unknown) => this.#rejectUnsettledOperation(operation, error));
+          .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
         return this.#success(request, {
           operationId,
           submissionId: request.payload.submissionId,
@@ -3830,9 +3605,9 @@ export class DesktopBackend {
           submission: "retained",
         });
       }
-      const active = this.#activeOperations.has(request.payload.operationId);
+      const active = this.#operations.activeOperations.has(request.payload.operationId);
       if (active) {
-        await this.#operationServices
+        await this.#connections.operationServices
           .get(request.payload.operationId)
           ?.cancelOperation(request.payload.operationId);
       }

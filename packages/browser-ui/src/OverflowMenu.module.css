@@ -1,0 +1,32 @@
+.popover {
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-md);
+  padding: var(--od-space-2);
+  box-shadow: var(--od-shadow-pop);
+  min-width: 10rem;
+  max-width: calc(100vw - 2rem);
+  z-index: 30;
+}
+.menu {
+  display: grid;
+  gap: var(--od-space-1);
+  outline: none;
+}
+.item {
+  padding: var(--od-space-3) var(--od-space-4);
+  border-radius: var(--od-radius-sm);
+  color: var(--od-color-text-strong);
+  cursor: pointer;
+  outline: none;
+}
+.item[data-focused] {
+  background: var(--od-color-surface-brand);
+}
+.item[data-focus-visible] {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: -2px;
+}
+.item[data-destructive] {
+  color: var(--od-color-state-wrong);
+}

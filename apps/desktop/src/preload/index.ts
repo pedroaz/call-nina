@@ -1,3 +1,4 @@
+import { exposeClerkBridge } from "@clerk/electron/preload";
 import {
   desktopIpcEventSchema,
   desktopIpcRequestSchema,
@@ -7,6 +8,8 @@ import {
   type CallNinaDesktopBridge,
 } from "@call-nina/contracts";
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
+
+exposeClerkBridge();
 
 const invoke = (async (request: DesktopIpcRequest) => {
   const parsedRequest = desktopIpcRequestSchema.safeParse(request);

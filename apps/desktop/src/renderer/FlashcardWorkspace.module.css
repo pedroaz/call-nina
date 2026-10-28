@@ -1,15 +1,13 @@
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--od-space-5);
-  max-width: 48rem;
-  overflow-wrap: anywhere;
+.example {
+  display: grid;
+  gap: var(--od-space-2);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-4);
 }
-.answer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--od-space-4);
-  padding: var(--od-space-4);
-  background: var(--od-color-surface-card);
-  border-radius: var(--od-radius-sm);
+.example > p {
+  margin: 0;
+}
+.example > p + p {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-body-small-size);
 }

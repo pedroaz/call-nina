@@ -13,7 +13,13 @@ export function Tabs({
   density?: "compact" | "comfortable";
   selectedKey?: string;
   onSelectionChange?: (key: string) => void;
-  items: ReadonlyArray<{ id: string; label: string; children: ReactNode; isDisabled?: boolean }>;
+  items: ReadonlyArray<{
+    id: string;
+    label: string;
+    icon?: ReactNode;
+    children: ReactNode;
+    isDisabled?: boolean;
+  }>;
 }) {
   return (
     <AriaTabs
@@ -36,6 +42,7 @@ export function Tabs({
             isDisabled={item.isDisabled ?? false}
             className={styles.tab}
           >
+            {item.icon && <span className={styles.icon}>{item.icon}</span>}
             {item.label}
           </Tab>
         ))}

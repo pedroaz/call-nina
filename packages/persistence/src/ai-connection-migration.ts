@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
-  aiConnectionsSchema,
+  legacyAiConnectionsSchema as aiConnectionsSchema,
   aiModelPreferenceSchema,
-  emptyAiConnections,
+  legacyEmptyAiConnections as emptyAiConnections,
   type AiConnection,
 } from "@call-nina/contracts";
 
@@ -52,8 +52,8 @@ export function migrateAiConnections(database: DatabaseSync) {
       )
         connections.push({
           id: randomUUID(),
-          label: `Codex (${workload})`,
-          routeId: "codex",
+          label: `ChatGPT (${workload})`,
+          routeId: "chatgpt",
           preference,
           secretRef: null,
         });

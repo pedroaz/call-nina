@@ -90,7 +90,6 @@ export function useVocabularyLibrary(initialDueOnly: boolean) {
   const changeQuery = useCallback((patch: Partial<VocabularyFilter>) => {
     version.current += 1;
     setBusy(true);
-    setResult(undefined);
     queryRef.current = { ...queryRef.current, ...patch };
     setQuery(queryRef.current);
   }, []);

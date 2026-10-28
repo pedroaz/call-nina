@@ -1,3 +1,4 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -28,6 +29,7 @@ export function SavedTranslation({
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [activated, setActivated] = useState(false);
   const id = useId();
   return (
     <div className={styles.controls}>
@@ -36,15 +38,17 @@ export function SavedTranslation({
         aria-expanded={open}
         aria-controls={id}
         onPress={() => {
+          setActivated(true);
           setOpen(!open);
         }}
       >
         {t(open ? "translation.close" : "translation.action")}
       </Button>
-      {open && (
+      {activated && (
         <div id={id}>
           <TranslationControls
             key={JSON.stringify(request)}
+            open={open}
             request={request}
             requestAiAccess={requestAiAccess}
           />
@@ -55,9 +59,11 @@ export function SavedTranslation({
 }
 
 function TranslationControls({
+  open,
   request: requestValue,
   requestAiAccess,
 }: {
+  open: boolean;
   request: TranslationRequest;
   requestAiAccess: TranslationAccess;
 }) {
@@ -131,7 +137,7 @@ function TranslationControls({
     setBusy(true);
     setNotice(undefined);
     try {
-      if (!(await requestAiAccess("contextual-help"))) {
+      if (!(await requestAiAccess("translation"))) {
         if (isAlive()) setNotice("unavailable");
         return;
       }
@@ -162,46 +168,58 @@ function TranslationControls({
   };
   return (
     <div className={styles.controls}>
-      <p>{t("translation.description")}</p>
-      <LanguageSelect
-        label={t("translation.language")}
-        value={language}
-        onChange={setLanguage}
-        disabled={busy}
-      />
-      {saved && (
-        <section className={styles.saved} aria-label={t("translation.derived")}>
-          <strong>{t("translation.label", { language: t(`languages.${saved.language}`) })}</strong>
-          <small>{t("translation.revision", { revision: saved.content.revisionId })}</small>
-          <p lang={saved.language}>{saved.text}</p>
-        </section>
-      )}
-      <ActionGroup>
-        {!saved && (
-          <Button isDisabled={loading || busy || !available} onPress={() => void start()}>
-            {t(busy ? "translation.translating" : "translation.action")}
-          </Button>
+      <div className={styles.controls} hidden={!open}>
+        <p>{t("translation.description")}</p>
+        <LanguageSelect
+          label={t("translation.language")}
+          value={language}
+          onChange={setLanguage}
+          disabled={busy}
+        />
+        {saved && (
+          <section className={styles.saved} aria-label={t("translation.derived")}>
+            <strong>
+              {t("translation.label", { language: t(`languages.${saved.language}`) })}
+            </strong>
+            <small>{t("translation.revision", { revision: saved.content.revisionId })}</small>
+            <p lang={saved.language}>{saved.text}</p>
+          </section>
         )}
-        {busy && (
-          <Button
-            variant="secondary"
-            onPress={() => {
-              if (active.current)
-                void invokeDesktop("translation/cancel", {
-                  rootGeneration: request.rootGeneration,
-                  operationId: active.current,
-                }).catch(() => {
-                  if (isAlive()) setNotice("failed");
-                });
-            }}
-          >
-            {t("actions.cancel")}
-          </Button>
-        )}
-        {notice === "loadFailed" && (
-          <Button onPress={() => void load()}>{t("translation.retryRead")}</Button>
-        )}
-      </ActionGroup>
+        {!saved && <ProviderActionSummary operation="translation" busy={busy} />}
+        <ActionGroup>
+          {!saved && (
+            <Button
+              variant="primary"
+              isDisabled={loading || busy || !available}
+              onPress={() => void start()}
+            >
+              {t(busy ? "translation.translating" : "translation.action")}
+            </Button>
+          )}
+          {busy && (
+            <Button
+              variant="secondary"
+              onPress={() => {
+                if (active.current)
+                  void invokeDesktop("translation/cancel", {
+                    rootGeneration: request.rootGeneration,
+                    operationId: active.current,
+                  }).catch(() => {
+                    if (isAlive()) setNotice("failed");
+                  });
+              }}
+            >
+              {t("actions.cancel")}
+            </Button>
+          )}
+          {notice === "loadFailed" && (
+            <Button variant="primary" onPress={() => void load()}>
+              {t("translation.retryRead")}
+            </Button>
+          )}
+        </ActionGroup>
+      </div>
+      {!open && busy && <Feedback live="polite">{t("translation.translating")}</Feedback>}
       {notice && (
         <Feedback
           live="polite"

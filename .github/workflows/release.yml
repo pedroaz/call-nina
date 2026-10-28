@@ -1,0 +1,196 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Release unit (hosting includes website and API)
+        type: choice
+        options: [all, desktop, hosting]
+        default: all
+      operation:
+        description: Build downloads only, or publish the selected units
+        type: choice
+        options: [build-only, publish]
+        default: build-only
+      desktop_version:
+        description: Committed version confirmation for desktop publication
+        type: string
+        default: ""
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ inputs.operation == 'publish' && 'production' || github.run_id }}
+  cancel-in-progress: false
+env:
+  RELEASE_TARGET: ${{ inputs.target }}
+  RELEASE_OPERATION: ${{ inputs.operation }}
+  RELEASE_VERSION: ${{ inputs.desktop_version }}
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      sha: ${{ steps.validate.outputs.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+      - id: validate
+        run: node scripts/ci/release.mjs preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Static checks
+        run: node scripts/commands.mjs check
+  desktop:
+    needs: preflight
+    if: inputs.target != 'hosting'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux-x64
+          - runner: windows-2022
+            platform: win32-x64
+          - runner: macos-15-intel
+            platform: darwin-x64
+          - runner: macos-15
+            platform: darwin-arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.preflight.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+      - name: Package desktop
+        run: node scripts/ci/release.mjs desktop
+        env:
+          RELEASE_PLATFORM: ${{ matrix.platform }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: desktop-${{ matrix.platform }}
+          path: build/release-artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+  hosting:
+    needs: preflight
+    if: inputs.target != 'desktop'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.preflight.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+      - run: node scripts/ci/release.mjs hosting
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: hosting
+          path: build/release-artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+  prepare:
+    needs: [preflight, desktop, hosting]
+    if: >-
+      always() && !cancelled() && inputs.operation == 'publish' && inputs.target != 'hosting' &&
+      needs.preflight.result == 'success' && needs.desktop.result == 'success' &&
+      (needs.hosting.result == 'success' || needs.hosting.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: Production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.preflight.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: desktop-*
+          merge-multiple: true
+          path: build/release-artifacts
+      - run: node scripts/ci/release.mjs prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+  deploy:
+    needs: [preflight, desktop, hosting, prepare]
+    if: >-
+      always() && !cancelled() && inputs.operation == 'publish' && inputs.target != 'desktop' &&
+      needs.preflight.result == 'success' && needs.hosting.result == 'success' &&
+      (inputs.target == 'hosting' || (needs.desktop.result == 'success' && needs.prepare.result == 'success'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: Production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.preflight.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: hosting
+          path: build/release-artifacts
+      - name: Install deployment CLI
+        run: npm install --global vercel@65.5.0
+      - id: deploy
+        run: node scripts/ci/release.mjs deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  publish:
+    needs: [preflight, prepare, deploy]
+    if: >-
+      always() && !cancelled() && inputs.operation == 'publish' && inputs.target != 'hosting' &&
+      needs.preflight.result == 'success' && needs.prepare.result == 'success' &&
+      (inputs.target == 'desktop' || needs.deploy.result == 'success')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: Production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.preflight.outputs.sha }}
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: desktop-*
+          merge-multiple: true
+          path: build/release-artifacts
+      - run: node scripts/ci/release.mjs publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+  summary:
+    needs: [preflight, desktop, hosting, prepare, deploy, publish]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+      - run: node scripts/ci/release.mjs summary
+        env:
+          RELEASE_RESULTS: ${{ toJSON(needs) }}

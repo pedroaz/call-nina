@@ -1,3 +1,4 @@
+import type { AppServerLogRecord } from "@call-nina/codex-client";
 import { createHash, randomUUID } from "node:crypto";
 
 import {
@@ -189,3 +190,28 @@ export function exerciseHistoryPrompt(
   if (exercise.kind === "multiple-choice") return exercise.content.question;
   return exercise.content.cue;
 }
+
+export type OperationLog = (
+  severity: AppServerLogRecord["severity"],
+  code: string,
+  correlationId: string,
+  reason: string,
+  errorCode: string | undefined,
+  message: string,
+  fields?: Readonly<{
+    action?: string;
+    phase?:
+      | "received"
+      | "started"
+      | "queued"
+      | "running"
+      | "validating"
+      | "persisting"
+      | "completed"
+      | "cancelled"
+      | "failed";
+    outcome?: "ok" | "rejected" | "cancelled" | "rate-limited" | "error";
+    durationMs?: number;
+    metadata?: Readonly<Record<string, string | number | boolean | null>>;
+  }>,
+) => void;

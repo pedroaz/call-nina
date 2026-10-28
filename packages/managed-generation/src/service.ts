@@ -41,15 +41,19 @@ function managedFailure(error: unknown): ManagedGenerationError {
   if (error instanceof ManagedGenerationError) return error;
   if (error instanceof ManagedFailure) {
     const kind: ErrorKind =
-      error.code === "cancelled"
-        ? "cancellation"
-        : error.code === "deadline"
-          ? "ai-timeout"
-          : error.code === "throttled" || error.code === "exhausted"
-            ? "rate-limit"
-            : error.code === "invalid-output"
-              ? "model-output"
-              : "app-server";
+      error.code === "unauthenticated"
+        ? "authentication"
+        : error.code === "forbidden"
+          ? "ai-policy"
+          : error.code === "cancelled"
+            ? "cancellation"
+            : error.code === "deadline"
+              ? "ai-timeout"
+              : error.code === "throttled" || error.code === "exhausted"
+                ? "rate-limit"
+                : error.code === "invalid-output"
+                  ? "model-output"
+                  : "app-server";
     return new ManagedGenerationError(kind, error.message);
   }
   return new ManagedGenerationError("app-server", "OD_MANAGED_UNAVAILABLE");
@@ -108,6 +112,7 @@ export class ManagedGenerationService implements GenerationService {
   readonly #connectionId: string;
   readonly #rootGeneration: number;
   readonly #assertActive: () => void;
+  readonly #readToken: () => Promise<string>;
   readonly #listeners = new Set<(event: GenerationEvent) => void>();
   readonly #records = new Map<string, RecordState>();
   #closed = false;
@@ -117,8 +122,9 @@ export class ManagedGenerationService implements GenerationService {
     connectionId: string;
     rootGeneration: number;
     // Main checks its captured active connection and data-root lease before a
-    // dispatch and before committing a result. No credential reader is accepted.
+    // dispatch and before committing a result. Only Nina session tokens are accepted.
     assertActive: () => void;
+    readToken: () => Promise<string>;
   }) {
     this.#configuration = options.configuration
       ? Object.freeze({ ...options.configuration })
@@ -126,6 +132,7 @@ export class ManagedGenerationService implements GenerationService {
     this.#connectionId = aiConnectionIdSchema.parse(options.connectionId);
     this.#rootGeneration = dataRootGenerationSchema.parse(options.rootGeneration);
     this.#assertActive = options.assertActive;
+    this.#readToken = options.readToken;
     this.generationCapabilities = generationCapabilitiesSchema.parse({
       providerId: "managed",
       operations: this.#configuration ? generationKinds : [],
@@ -229,6 +236,7 @@ export class ManagedGenerationService implements GenerationService {
       this.#emit({ event: "operation-progress", ...base, stage: "running", attempt: 1 });
       const result = await abortable(
         runManagedOperation({
+          token: await this.#readToken(),
           configuration: this.#configuration,
           input: operation.input,
           signal: controller.signal,

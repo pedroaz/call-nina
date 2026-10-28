@@ -1,16 +1,19 @@
+import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { MaterialPractice, type MaterialPracticeState } from "./MaterialPractice.js";
 import type { ProviderOperation, ActivityId, CallNinaError } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type ReactNode, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, FieldGroup } from "./components/ui/index.js";
-import { ActionGroup } from "./components/layout/index.js";
+import { Button, FieldGroup } from "./components/ui/index.js";
+import { ActionGroup, Section } from "./components/layout/index.js";
 import { OperationError } from "./Startup.js";
 import { normalizeDesktopError } from "./ipc.js";
-import { generatePracticeActivity } from "./generatePracticeActivity.js";
+import { startTopicPractice } from "./startTopicPractice.js";
 
 export function ReadingPractice({
+  settings,
+  hideTopic = false,
   exerciseCount,
   countValid,
   targetLevel,
@@ -22,6 +25,8 @@ export function ReadingPractice({
   materialState,
   setMaterialState,
 }: {
+  settings?: ReactNode;
+  hideTopic?: boolean;
   exerciseCount: number;
   countValid: boolean;
   targetLevel: "a1" | "a2" | "b1" | "b2";
@@ -45,12 +50,12 @@ export function ReadingPractice({
     if (!countValid || !(await requestAiAccess("exercise-generation"))) return;
     setError(undefined);
     try {
-      const activityId = await generatePracticeActivity(
+      const activityId = await startTopicPractice(
         {
-          source: "reading",
-          exerciseCount,
+          kind: "reading",
+          count: exerciseCount,
           targetLevel,
-          naturalRequest: topic.trim() || t("practice.readingFlow.defaultRequest"),
+          topic: topic.trim() || t("practice.readingFlow.defaultRequest"),
         },
         generation.run,
       );
@@ -60,24 +65,27 @@ export function ReadingPractice({
     }
   };
   return (
-    <Card as="article">
-      <h2>{t("practice.readingFlow.title")}</h2>
-
-      <FieldGroup>
-        {t("practice.promptLabel")}
-        <textarea
-          rows={3}
-          maxLength={2_000}
-          value={topic}
-          disabled={busy}
-          placeholder={t("practice.readingPromptPlaceholder")}
-          onChange={(event) => {
-            setTopic(event.target.value);
-          }}
-        />
-      </FieldGroup>
+    <Section as="article">
+      {!hideTopic && (
+        <FieldGroup>
+          {t("practice.promptLabel")}
+          <textarea
+            rows={3}
+            maxLength={2_000}
+            value={topic}
+            disabled={busy}
+            placeholder={t("practice.readingPromptPlaceholder")}
+            onChange={(event) => {
+              setTopic(event.target.value);
+            }}
+          />
+        </FieldGroup>
+      )}
+      {settings}
+      <ProviderActionSummary operation="exercise-generation" busy={generation.busy} />
       <ActionGroup>
         <Button
+          variant="secondary"
           isDisabled={busy}
           onPress={() => {
             setTopic(t("practice.readingFlow.defaultRequest"));
@@ -112,6 +120,6 @@ export function ReadingPractice({
       />
       <OperationProgress progress={generation.progress} />
       {error && <OperationError error={error} />}
-    </Card>
+    </Section>
   );
 }

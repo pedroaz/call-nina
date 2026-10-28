@@ -19,6 +19,9 @@
     },
     {
       "path": "../../packages/domain"
+    },
+    {
+      "path": "../../packages/learning-ui"
     }
   ]
 }

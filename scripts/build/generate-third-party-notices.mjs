@@ -38,6 +38,32 @@ async function readInstalledPackages() {
     { cwd: repositoryRoot, maxBuffer: 64 * 1024 * 1024 },
   );
   const workspaces = JSON.parse(stdout);
+  // pnpm can expand a package under an unrelated root and emit only a deduped
+  // leaf under a shipped root. Index the entire graph before selecting roots.
+  const expanded = new Map();
+  function index(dependencies) {
+    for (const dependency of Object.values(dependencies ?? {})) {
+      if (!dependency || typeof dependency !== "object") continue;
+      if (dependency.path && (dependency.dependencies || dependency.optionalDependencies)) {
+        const previous = expanded.get(dependency.path) ?? {};
+        expanded.set(dependency.path, {
+          ...dependency,
+          dependencies: { ...previous.dependencies, ...dependency.dependencies },
+          optionalDependencies: {
+            ...previous.optionalDependencies,
+            ...dependency.optionalDependencies,
+          },
+        });
+      }
+      index(dependency.dependencies);
+      index(dependency.optionalDependencies);
+    }
+  }
+  for (const workspace of workspaces) {
+    index(workspace.dependencies);
+    index(workspace.devDependencies);
+    index(workspace.optionalDependencies);
+  }
   const packages = new Map();
   const visited = new Set();
   const buildOnlyPackages = new Set(["@types/node", "typescript"]);
@@ -50,6 +76,13 @@ async function readInstalledPackages() {
     "@call-nina/contracts",
     "@call-nina/domain",
     "@call-nina/persistence",
+    "@call-nina/browser-ui",
+    "@call-nina/design-system",
+    "@call-nina/mobile-sync",
+    "@call-nina/learning-ui",
+    "@call-nina/managed-generation",
+    "@clerk/electron",
+    "electron-store",
     "electron",
     "i18next",
     "lucide-react",
@@ -65,12 +98,11 @@ async function readInstalledPackages() {
     for (const dependency of Object.values(dependencies)) {
       if (!dependency || typeof dependency !== "object") continue;
       const dependencyPath = dependency.path;
-      // pnpm may emit a deduplicated leaf before the expanded dependency tree.
-      // Visit every tree occurrence, even when its package metadata was already read.
-      await visitDependencies(dependency.dependencies);
-      await visitDependencies(dependency.optionalDependencies);
       if (typeof dependencyPath !== "string" || visited.has(dependencyPath)) continue;
       visited.add(dependencyPath);
+      const complete = expanded.get(dependencyPath) ?? dependency;
+      await visitDependencies(complete.dependencies);
+      await visitDependencies(complete.optionalDependencies);
       try {
         const manifest = JSON.parse(await readFile(path.join(dependencyPath, "package.json")));
         if (
@@ -114,7 +146,7 @@ const lines = [
   "# Call Nina third-party notices",
   "",
   `This inventory covers the ${String(packages.length)} package versions bundled into, or providing the Electron runtime for, the local application from the pinned pnpm lockfile. Build-only quality and packaging tools are excluded. Each dependency remains under its own license; consult the package metadata and upstream repository for the complete license text. This file is regenerated with ` +
-    "`pnpm run generate:third-party-notices`.",
+    "`make generate third-party-notices`.",
   "",
   "## Application and assets",
   "",
@@ -134,7 +166,7 @@ const lines = [
   "",
   "## Release boundary",
   "",
-  "The Linux AppImage includes this notice, the Call Nina licensing note, and the immutable curriculum/plugin/helper snapshot. It does not include learner data, credentials, or a Codex account. A compatible external Codex installation remains a prerequisite for AI actions.",
+  "Desktop distribution artifacts include this notice, the Call Nina licensing note, and the immutable curriculum/plugin/helper snapshot. They do not include learner data, credentials, or a Codex account. Optional Codex handoff requires a compatible external Codex installation.",
 ];
 await writeFile(outputFile, `${lines.join("\n")}\n`, { encoding: "utf8", mode: 0o644 });
 process.stdout.write(

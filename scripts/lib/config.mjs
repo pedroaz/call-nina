@@ -4,15 +4,9 @@ export const root = path.resolve(import.meta.dirname, "../..");
 export function developmentConfig() {
   const config = JSON.parse(readFileSync(path.join(root, "development.json"), "utf8"));
   if (
-    !/^[\w.-]+\/[\w.-]+$/.test(config.github?.repository) ||
-    !Number.isInteger(config.workers?.maximum) ||
-    config.workers.maximum < 1 ||
-    !Number.isInteger(config.workers?.writers) ||
-    config.workers.writers < 1 ||
-    config.workers.writers > config.workers.maximum ||
-    typeof config.intake?.enabled !== "boolean" ||
-    !Number.isInteger(config.intake.intervalMinutes) ||
-    config.intake.intervalMinutes < 1
+    !config.executables ||
+    Object.keys(config).some((key) => key !== "executables") ||
+    Object.keys(config.executables).sort().join(",") !== "codex,pnpmCli"
   )
     throw new Error("DEVELOPMENT_CONFIG_INVALID");
   for (const value of Object.values(config.executables))

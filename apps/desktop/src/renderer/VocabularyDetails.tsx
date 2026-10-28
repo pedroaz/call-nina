@@ -1,3 +1,4 @@
+import type { SavedResultsScope } from "./savedResultsTypes.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CallNinaError, VocabularyId, DataRootGeneration } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
@@ -61,7 +62,7 @@ export function VocabularyDetails(props: {
   rootGeneration: DataRootGeneration;
   onClose: () => void;
   onChanged: () => void;
-  onNavigate: (page: "history" | "practice") => void;
+  onNavigate: (page: "results" | "practice", scope?: SavedResultsScope) => void;
 }) {
   const { t } = useTranslation();
   const [entry, setEntry] = useState<VocabularyEntry>();
@@ -155,7 +156,13 @@ export function VocabularyDetails(props: {
       {entry && !editing && (
         <>
           <VocabularyInformation entry={entry} />
-          <p>{t(`vocabulary.filters.${entry.state.status}`)}</p>
+          <p
+            data-vocabulary-id={entry.vocabularyId}
+            data-root-generation={props.rootGeneration}
+            data-learning-language={entry.targetLanguage}
+          >
+            {t(`vocabulary.filters.${entry.state.status}`)}
+          </p>
           {entry.state.status !== "candidate" && (
             <>
               <p>{t("vocabulary.due", { date: entry.state.dueOn, stage: entry.state.stage })}</p>
@@ -180,9 +187,10 @@ export function VocabularyDetails(props: {
             <strong>{t("vocabulary.library.source")}</strong>
             <p>{entry.source.context}</p>
           </div>
-          <ActionGroup>
+          <ActionGroup align="end">
             {entry.state.status === "candidate" && (
               <Button
+                variant="primary"
                 isDisabled={busy || loading}
                 onPress={() => {
                   bulk("confirm");
@@ -204,6 +212,7 @@ export function VocabularyDetails(props: {
             )}
             {entry.state.status === "suspended" && (
               <Button
+                variant="primary"
                 isDisabled={busy || loading}
                 onPress={() => {
                   bulk("resume");
@@ -221,7 +230,10 @@ export function VocabularyDetails(props: {
                 isDisabled={busy}
                 onPress={() => {
                   props.onClose();
-                  props.onNavigate(entry.source.kind === "activity" ? "practice" : "history");
+                  if (entry.source.kind === "activity")
+                    props.onNavigate("practice", { activityId: entry.source.activityId });
+                  else if (entry.source.kind === "correction")
+                    props.onNavigate("results", { correctionId: entry.source.correctionId });
                 }}
               >
                 {t("vocabulary.openSource")}
@@ -283,14 +295,7 @@ export function VocabularyDetails(props: {
               }}
             />
           ))}
-          <ActionGroup>
-            <Button
-              type="submit"
-              isPending={busy}
-              isDisabled={loading || Object.values(draft).some((value) => !value.trim())}
-            >
-              {t("vocabulary.save")}
-            </Button>
+          <ActionGroup align="end">
             <Button
               variant="secondary"
               isDisabled={busy}
@@ -299,6 +304,14 @@ export function VocabularyDetails(props: {
               }}
             >
               {t("actions.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              isPending={busy}
+              isDisabled={loading || Object.values(draft).some((value) => !value.trim())}
+            >
+              {t("vocabulary.save")}
             </Button>
           </ActionGroup>
         </form>

@@ -12,6 +12,9 @@ catalog:
   zod: 4.4.3
 
 allowBuilds:
+  browser-tabs-lock: false
+  core-js: false
+  esbuild: true
   electron: true
   electron-winstaller: false
   unrs-resolver: true

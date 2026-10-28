@@ -48,7 +48,7 @@
       "path": "./packages/managed-generation"
     },
     {
-      "path": "./apps/managed-service"
+      "path": "./apps/api"
     }
   ]
 }

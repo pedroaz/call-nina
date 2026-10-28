@@ -1,15 +1,24 @@
+import type { SavedResultsScope } from "./savedResultsTypes.js";
+import { VocabularyLearning } from "./VocabularyLearning.js";
+import tableStyles from "./components/layout/Table.module.css";
 import { useEffect, useRef, useState } from "react";
-import type { ActivityId, CallNinaError, Language, VocabularyId } from "@call-nina/contracts";
+import type {
+  ActivityId,
+  CallNinaError,
+  Language,
+  ProviderOperation,
+  VocabularyId,
+} from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import {
   Button,
   Feedback,
   LoadingState,
-  ModalDialog,
   TextField,
+  SelectField,
   ToggleButtonGroup,
 } from "./components/ui/index.js";
-import { ActionGroup, Page } from "./components/layout/index.js";
+import { ActionGroup } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import {
   useVocabularyLibrary,
@@ -24,37 +33,52 @@ import { VocabularyReview } from "./VocabularyReview.js";
 import styles from "./VocabularyPage.module.css";
 
 type Props = Readonly<{
+  onLanguageSwitchBlockedChange?: (blocked: boolean) => void;
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   targetLanguage?: Language | undefined;
   initialDueOnly?: boolean;
+  viewRequest?: number;
   onOpenActivity: (activityId: ActivityId) => void;
-  onNavigate: (page: "history" | "practice") => void;
+  onNavigate: (page: "results" | "practice", scope?: SavedResultsScope) => void;
 }>;
 
 export function VocabularyPage({
+  onLanguageSwitchBlockedChange,
   targetLanguage,
   initialDueOnly = false,
+  viewRequest = 0,
   onNavigate,
   onOpenActivity,
+  requestAiAccess,
 }: Props) {
   const library = useVocabularyLibrary(initialDueOnly);
   return (
     <VocabularyWorkspace
       key={library.rootGeneration ?? "unconfigured"}
       library={library}
+      viewRequest={viewRequest}
+      onLanguageSwitchBlockedChange={onLanguageSwitchBlockedChange}
       targetLanguage={targetLanguage}
       onNavigate={onNavigate}
       onOpenActivity={onOpenActivity}
+      requestAiAccess={requestAiAccess}
     />
   );
 }
 
 function VocabularyWorkspace({
+  onLanguageSwitchBlockedChange,
   library,
+  viewRequest,
   targetLanguage,
   onNavigate,
   onOpenActivity,
+  requestAiAccess,
 }: {
   library: ReturnType<typeof useVocabularyLibrary>;
+  viewRequest: number;
+  onLanguageSwitchBlockedChange: Props["onLanguageSwitchBlockedChange"];
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   targetLanguage?: Language | undefined;
   onNavigate: Props["onNavigate"];
   onOpenActivity: Props["onOpenActivity"];
@@ -62,14 +86,17 @@ function VocabularyWorkspace({
   const { t } = useTranslation();
   const { result, query } = library;
   const [search, setSearch] = useState(query.search);
+  const filters = useRef<HTMLDivElement>(null);
   const [selection, setSelected] = useState<VocabularySummary[]>([]);
   const [detailId, setDetailId] = useState<VocabularyId>();
+  const [learningBusy, setLearningBusy] = useState(false);
   const [reviewing, setReviewing] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [request, setRequest] = useState("");
-  const [topic, setTopic] = useState("");
-  const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
+  const languageSwitchBlocked = learningBusy || reviewing || Boolean(detailId) || busy;
+  useEffect(() => {
+    onLanguageSwitchBlockedChange?.(languageSwitchBlocked);
+    return () => onLanguageSwitchBlockedChange?.(false);
+  }, [languageSwitchBlocked, onLanguageSwitchBlockedChange]);
   const [error, setError] = useState<CallNinaError>();
   const [notice, setNotice] = useState("");
   const operation = useRef(0);
@@ -135,10 +162,6 @@ function VocabularyWorkspace({
         setSelected([]);
         setDetailId(undefined);
         setReviewing(false);
-        setCreating(false);
-        setRequest("");
-        setTopic("");
-        setTitle("");
         setError(undefined);
         setNotice("");
       }
@@ -235,35 +258,27 @@ function VocabularyWorkspace({
           }}
         />
       )}
-      <div hidden={reviewing}>
-        <Page
-          title={t("vocabulary.title")}
-          refresh={{ onRefresh: library.refresh, busy: waiting }}
-          actions={
-            <ActionGroup>
-              <Button
-                ref={reviewButton}
-                isDisabled={waiting || !result?.counts.due}
-                onPress={() => {
-                  setError(undefined);
-                  libraryScroll.current = window.scrollY;
-                  setReviewing(true);
-                }}
-              >
-                {t("vocabulary.library.reviewDue", { count: result?.counts.due ?? 0 })}
-              </Button>
-              <Button
-                variant="secondary"
-                isDisabled={!result || busy}
-                onPress={() => {
-                  setError(undefined);
-                  setCreating(true);
-                }}
-              >
-                {t("vocabulary.createTitle")}
-              </Button>
-            </ActionGroup>
-          }
+      <div
+        hidden={reviewing}
+        data-vocabulary-ready={Boolean(result && !waiting && !error && !library.error)}
+        data-vocabulary-total={result?.counts.all}
+        data-root-generation={result?.rootGeneration}
+        data-learning-language={targetLanguage}
+      >
+        <VocabularyLearning
+          requestAiAccess={requestAiAccess}
+          onBusyChange={setLearningBusy}
+          dueCount={result?.counts.due}
+          viewRequest={viewRequest}
+          initialTab={query.filter === "due" ? "words" : "learning"}
+          refreshLibrary={library.refresh}
+          libraryBusy={waiting}
+          reviewButtonRef={reviewButton}
+          onReview={() => {
+            setError(undefined);
+            libraryScroll.current = window.scrollY;
+            setReviewing(true);
+          }}
         >
           {visibleError && (
             <Feedback tone="error" live="assertive">
@@ -275,211 +290,251 @@ function VocabularyWorkspace({
               {notice}
             </Feedback>
           )}
-          <div className={styles.toolbar}>
-            <TextField
-              label={t("vocabulary.library.search")}
-              type="search"
-              maxLength={500}
-              value={search}
-              onChange={(event) => {
-                setSelected([]);
-                setSearch(event.target.value);
-              }}
-            />
-            <label className={styles.sort}>
-              <span>{t("vocabulary.library.sort")}</span>
-              <select
-                value={query.sort}
-                onChange={(event) => {
-                  changeQuery({ sort: event.target.value as VocabularyFilter["sort"], page: 0 });
-                }}
-              >
-                <option value="word">{t("vocabulary.library.sortWord")}</option>
-                <option value="due">{t("vocabulary.library.sortDue")}</option>
-              </select>
-            </label>
-          </div>
-          <ToggleButtonGroup label={t("vocabulary.filtersLabel")}>
-            {(["all", "candidate", "due", "active", "suspended"] as const).map((filter) => (
-              <Button
-                key={filter}
-                aria-pressed={query.filter === filter}
-                onPress={() => {
-                  changeQuery({ filter, page: 0 });
-                }}
-              >
-                {t(`vocabulary.filters.${filter}`)} ({result?.counts[filter] ?? 0})
-              </Button>
-            ))}
-          </ToggleButtonGroup>
-          {selected.length > 0 && (
-            <ActionGroup>
-              <span>{t("vocabulary.library.selected", { count: selected.length })}</span>
-              <Button
-                isDisabled={waiting || selected.length < 3 || selected.length > 30}
-                onPress={() => void studyFlashcards()}
-              >
-                {t("flashcards.study")}
-              </Button>
-              {selected.length < 3 && <span>{t("flashcards.selectRange")}</span>}
-              <Button
-                isDisabled={!canBulk("candidate")}
-                onPress={() => {
-                  bulk("confirm");
-                }}
-              >
-                {t("vocabulary.confirm")}
-              </Button>
-              <Button
-                variant="secondary"
-                isDisabled={!canBulk("active")}
-                onPress={() => {
-                  bulk("suspend");
-                }}
-              >
-                {t("vocabulary.suspend")}
-              </Button>
-              <Button
-                variant="secondary"
-                isDisabled={!canBulk("suspended")}
-                onPress={() => {
-                  bulk("resume");
-                }}
-              >
-                {t("vocabulary.resume")}
-              </Button>
-              <Button
-                variant="quiet"
-                isDisabled={busy}
-                onPress={() => {
-                  setSelected([]);
-                }}
-              >
-                {t("vocabulary.library.clearSelection")}
-              </Button>
-            </ActionGroup>
-          )}
-          {library.busy && <LoadingState live>{t("ui.loading")}</LoadingState>}
-          {result && (
-            <>
-              <div className={styles.tableRegion} aria-busy={waiting}>
-                <table className={styles.table}>
-                  <caption ref={tableCaption} tabIndex={-1} className={styles.caption}>
-                    {t("vocabulary.library.resultCount", { count: result.total })}
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th className={styles.selection}>
-                        <input
-                          ref={selectAll}
-                          type="checkbox"
-                          aria-label={t("vocabulary.library.selectPage")}
-                          checked={allSelected}
-                          disabled={waiting || !rows.length}
-                          onChange={(event) => {
-                            setSelected(event.target.checked ? [...rows] : []);
-                          }}
-                        />
-                      </th>
-                      <th scope="col">{t("vocabulary.lemma")}</th>
-                      <th scope="col" className={styles.meaningColumn}>
-                        {t("vocabulary.meaning")}
-                      </th>
-                      <th scope="col">{t("vocabulary.library.status")}</th>
-                      <th scope="col" className={styles.dueColumn}>
-                        {t("vocabulary.library.nextReview")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((entry) => (
-                      <tr key={entry.vocabularyId}>
-                        <td className={styles.selection}>
+          <div className={styles.library}>
+            {result?.counts.all === 0 && <p>{t("vocabulary.flow.emptyLibrary")}</p>}
+            {result && result.counts.candidate > 0 && (
+              <Feedback live="polite">
+                {t("vocabulary.flow.suggestions", { count: result.counts.candidate })}
+              </Feedback>
+            )}
+            {result && result.counts.all > 0 && (
+              <>
+                <div ref={filters} className={styles.toolbar}>
+                  <TextField
+                    label={t("vocabulary.library.search")}
+                    type="search"
+                    maxLength={500}
+                    value={search}
+                    onChange={(event) => {
+                      setSelected([]);
+                      setSearch(event.target.value);
+                    }}
+                  />
+                  <SelectField
+                    label={t("vocabulary.library.sort")}
+                    value={query.sort}
+                    onChange={(event) => {
+                      changeQuery({
+                        sort: event.target.value as VocabularyFilter["sort"],
+                        page: 0,
+                      });
+                    }}
+                  >
+                    <option value="word">{t("vocabulary.library.sortWord")}</option>
+                    <option value="due">{t("vocabulary.library.sortDue")}</option>
+                  </SelectField>
+                </div>
+                <ToggleButtonGroup label={t("vocabulary.filtersLabel")}>
+                  {(["all", "candidate", "due", "active", "suspended"] as const).map((filter) => (
+                    <Button
+                      variant="secondary"
+                      key={filter}
+                      aria-pressed={query.filter === filter}
+                      onPress={() => {
+                        changeQuery({ filter, page: 0 });
+                      }}
+                    >
+                      {t(`vocabulary.filters.${filter}`)} ({result.counts[filter]})
+                    </Button>
+                  ))}
+                </ToggleButtonGroup>
+                {selected.length > 0 && (
+                  <ActionGroup>
+                    <span>{t("vocabulary.library.selected", { count: selected.length })}</span>
+                    <Button
+                      variant="primary"
+                      isDisabled={waiting || selected.length < 3 || selected.length > 30}
+                      onPress={() => void studyFlashcards()}
+                    >
+                      {t("flashcards.studyAction")}
+                    </Button>
+                    {selected.length < 3 && <span>{t("flashcards.selectRange")}</span>}
+                    <Button
+                      variant="primary"
+                      isDisabled={!canBulk("candidate")}
+                      onPress={() => {
+                        bulk("confirm");
+                      }}
+                    >
+                      {t("vocabulary.confirm")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      isDisabled={!canBulk("active")}
+                      onPress={() => {
+                        bulk("suspend");
+                      }}
+                    >
+                      {t("vocabulary.suspend")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      isDisabled={!canBulk("suspended")}
+                      onPress={() => {
+                        bulk("resume");
+                      }}
+                    >
+                      {t("vocabulary.resume")}
+                    </Button>
+                    <Button
+                      variant="quiet"
+                      isDisabled={busy}
+                      onPress={() => {
+                        setSelected([]);
+                      }}
+                    >
+                      {t("vocabulary.library.clearSelection")}
+                    </Button>
+                  </ActionGroup>
+                )}
+              </>
+            )}
+            {library.busy && <LoadingState live>{t("ui.loading")}</LoadingState>}
+            {result && result.counts.all > 0 && (
+              <>
+                <div className={styles.tableRegion} aria-busy={waiting}>
+                  <table className={`${tableStyles.table} ${styles.table}`}>
+                    <caption ref={tableCaption} tabIndex={-1} className={styles.caption}>
+                      {t("vocabulary.library.resultCount", { count: result.total })}
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th className={styles.selection}>
                           <input
+                            ref={selectAll}
                             type="checkbox"
-                            aria-label={t("vocabulary.library.selectWord", { word: entry.lemma })}
-                            checked={selectedIds.has(entry.vocabularyId)}
-                            disabled={waiting}
+                            aria-label={t("vocabulary.library.selectPage")}
+                            checked={allSelected}
+                            disabled={waiting || !rows.length}
                             onChange={(event) => {
-                              setSelected((previous) =>
-                                event.target.checked
-                                  ? [...previous, entry]
-                                  : previous.filter(
-                                      (item) => item.vocabularyId !== entry.vocabularyId,
-                                    ),
-                              );
+                              setSelected(event.target.checked ? [...rows] : []);
                             }}
                           />
-                        </td>
-                        <td>
-                          <Button
-                            variant="quiet"
-                            className={styles.word}
-                            ref={(node) => {
-                              if (node) wordButtons.current.set(entry.vocabularyId, node);
-                              else wordButtons.current.delete(entry.vocabularyId);
-                            }}
-                            isDisabled={waiting}
-                            onPress={() => {
-                              restoreWord.current = entry.vocabularyId;
-                              setDetailId(entry.vocabularyId);
-                            }}
-                          >
-                            <span lang={targetLanguage}>{entry.lemma}</span>
-                          </Button>
-                          <span className={styles.compactMeaning} lang="">
-                            {entry.meaning}
-                          </span>
-                        </td>
-                        <td className={styles.meaningColumn}>
-                          <span className={styles.summary} lang="">
-                            {entry.meaning}
-                          </span>
-                        </td>
-                        <td>
-                          <span>{t(`vocabulary.filters.${entry.status}`)}</span>
-                          <span className={styles.compactDue}>{nextReview(entry)}</span>
-                        </td>
-                        <td className={styles.dueColumn}>{nextReview(entry)}</td>
+                        </th>
+                        <th scope="col">{t("vocabulary.lemma")}</th>
+                        <th scope="col" className={styles.meaningColumn}>
+                          {t("vocabulary.meaning")}
+                        </th>
+                        <th scope="col">{t("vocabulary.library.status")}</th>
+                        <th scope="col" className={styles.dueColumn}>
+                          {t("vocabulary.library.nextReview")}
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {rows.length === 0 && (
-                  <p className={styles.empty}>
-                    {t(result.counts.all ? "vocabulary.library.noMatches" : "vocabulary.empty")}
-                  </p>
+                    </thead>
+                    <tbody>
+                      {rows.map((entry) => (
+                        <tr key={entry.vocabularyId}>
+                          <td className={styles.selection}>
+                            <input
+                              type="checkbox"
+                              aria-label={t("vocabulary.library.selectWord", { word: entry.lemma })}
+                              checked={selectedIds.has(entry.vocabularyId)}
+                              disabled={waiting}
+                              onChange={(event) => {
+                                setSelected((previous) =>
+                                  event.target.checked
+                                    ? [...previous, entry]
+                                    : previous.filter(
+                                        (item) => item.vocabularyId !== entry.vocabularyId,
+                                      ),
+                                );
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <Button
+                              id={`vocabulary-open-${entry.vocabularyId}`}
+                              variant="quiet"
+                              className={styles.word}
+                              ref={(node) => {
+                                if (node) wordButtons.current.set(entry.vocabularyId, node);
+                                else wordButtons.current.delete(entry.vocabularyId);
+                              }}
+                              isDisabled={waiting}
+                              onPress={() => {
+                                restoreWord.current = entry.vocabularyId;
+                                setDetailId(entry.vocabularyId);
+                              }}
+                            >
+                              <span lang={targetLanguage}>{entry.lemma}</span>
+                            </Button>
+                            <span className={styles.compactMeaning} lang="">
+                              {entry.meaning}
+                            </span>
+                          </td>
+                          <td className={styles.meaningColumn}>
+                            <span className={styles.summary} lang="">
+                              {entry.meaning}
+                            </span>
+                          </td>
+                          <td>
+                            <span>{t(`vocabulary.filters.${entry.status}`)}</span>
+                            {entry.status !== "suspended" && (
+                              <span className={styles.compactDue}>{nextReview(entry)}</span>
+                            )}
+                          </td>
+                          <td className={styles.dueColumn}>{nextReview(entry)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {rows.length === 0 && (
+                    <div className={styles.empty}>
+                      <p>
+                        {t(
+                          result.counts.all
+                            ? "vocabulary.library.noMatches"
+                            : "vocabulary.flow.emptyLibrary",
+                        )}
+                      </p>
+                      {result.counts.all > 0 && (
+                        <Button
+                          variant="secondary"
+                          onPress={() => {
+                            setSearch("");
+                            changeQuery({ search: "", filter: "all", page: 0 });
+                            filters.current?.querySelector("input")?.focus();
+                          }}
+                        >
+                          {t("vocabulary.flow.clearFilters")}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {result.total > 30 && (
+                  <ActionGroup>
+                    <Button
+                      variant="secondary"
+                      isDisabled={waiting || result.page === 0}
+                      onPress={() => {
+                        changeQuery({ page: result.page - 1 });
+                      }}
+                    >
+                      {t("vocabulary.library.previous")}
+                    </Button>
+                    <span aria-live="polite">
+                      {t("vocabulary.library.page", {
+                        page: result.page + 1,
+                        total: Math.max(1, Math.ceil(result.total / 30)),
+                      })}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      isDisabled={waiting || (result.page + 1) * 30 >= result.total}
+                      onPress={() => {
+                        changeQuery({ page: result.page + 1 });
+                      }}
+                    >
+                      {t("vocabulary.library.next")}
+                    </Button>
+                  </ActionGroup>
                 )}
-              </div>
-              <ActionGroup>
-                <Button
-                  variant="secondary"
-                  isDisabled={waiting || result.page === 0}
-                  onPress={() => {
-                    changeQuery({ page: result.page - 1 });
-                  }}
-                >
-                  {t("vocabulary.library.previous")}
-                </Button>
-                <span aria-live="polite">
-                  {t("vocabulary.library.page", {
-                    page: result.page + 1,
-                    total: Math.max(1, Math.ceil(result.total / 30)),
-                  })}
-                </span>
-                <Button
-                  variant="secondary"
-                  isDisabled={waiting || (result.page + 1) * 30 >= result.total}
-                  onPress={() => {
-                    changeQuery({ page: result.page + 1 });
-                  }}
-                >
-                  {t("vocabulary.library.next")}
-                </Button>
-              </ActionGroup>
-            </>
-          )}
-        </Page>
+              </>
+            )}
+            {result && <VocabularyLessonSets rootGeneration={result.rootGeneration} />}
+          </div>
+        </VocabularyLearning>
       </div>
       {detailId && result && (
         <VocabularyDetails
@@ -492,94 +547,6 @@ function VocabularyWorkspace({
           onChanged={changed}
           onNavigate={onNavigate}
         />
-      )}
-      {creating && result && (
-        <ModalDialog
-          isOpen
-          title={t("vocabulary.createTitle")}
-          isDismissable={!busy && !request && !topic && !title}
-          onOpenChange={(open) => {
-            if (!open && !busy) setCreating(false);
-          }}
-        >
-          <p>{t("vocabulary.createBody")}</p>
-          {error && (
-            <Feedback tone="error" live="assertive">
-              {t(error.messageKey)}
-            </Feedback>
-          )}
-          <form
-            className={styles.editForm}
-            onSubmit={(event) => {
-              event.preventDefault();
-              void mutate(
-                () =>
-                  invokeDesktop("vocabulary-set/create", {
-                    rootGeneration: result.rootGeneration,
-                    naturalRequest: request.trim(),
-                    topic: topic.trim() || undefined,
-                    title: title.trim() || request.trim().slice(0, 160),
-                  }),
-                () => {
-                  setCreating(false);
-                  setRequest("");
-                  setTopic("");
-                  setTitle("");
-                  setNotice(t("vocabulary.library.setCreated"));
-                },
-              );
-            }}
-          >
-            <TextField
-              label={t("vocabulary.request")}
-              value={request}
-              required
-              maxLength={1000}
-              disabled={busy}
-              onChange={(event) => {
-                setRequest(event.target.value);
-              }}
-            />
-            <TextField
-              label={t("vocabulary.topic")}
-              value={topic}
-              maxLength={160}
-              disabled={busy}
-              onChange={(event) => {
-                setTopic(event.target.value);
-              }}
-            />
-            <TextField
-              label={t("vocabulary.setTitle")}
-              value={title}
-              maxLength={160}
-              disabled={busy}
-              onChange={(event) => {
-                setTitle(event.target.value);
-              }}
-            />
-            {result.counts.candidate === 0 && <p>{t("vocabulary.library.noSuggestions")}</p>}
-            <ActionGroup>
-              <Button
-                type="submit"
-                isPending={busy}
-                isDisabled={!request.trim() || !result.counts.candidate}
-              >
-                {t("vocabulary.createSet")}
-              </Button>
-              <Button
-                variant="secondary"
-                isDisabled={busy}
-                onPress={() => {
-                  setCreating(false);
-                }}
-              >
-                {t("actions.cancel")}
-              </Button>
-            </ActionGroup>
-          </form>
-          <VocabularyLessonSets rootGeneration={result.rootGeneration} />
-        </ModalDialog>
       )}
     </>
   );

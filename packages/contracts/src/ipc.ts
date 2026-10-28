@@ -1,3 +1,12 @@
+import { mobileSyncResultSchema } from "./mobile-sync.js";
+import { vocabularyImageSchema, vocabularyLearningSnapshotSchema } from "./vocabulary-learning.js";
+import {
+  ninaAccountStateSchema,
+  ninaAccountUpdateSchema,
+  ninaLoginDiagnosticSchema,
+  ninaLoginCredentialsSchema,
+} from "./nina-account.js";
+import { chatgptRegistrationIdSchema, chatgptAccountsSchema } from "./chatgpt.js";
 import { offlineModelActionSchema, offlineModelViewSchema } from "./offline-model.js";
 import { aiConnectionMutationSchema, aiConnectionsViewSchema } from "./ai-connections.js";
 import {
@@ -81,11 +90,7 @@ import {
   vocabularyIdSchema,
 } from "./common.js";
 import { callNinaErrorSchema } from "./errors.js";
-import {
-  accountStateSchema,
-  modelCatalogSchema,
-  rateLimitStateSchema,
-} from "./app-server-state.js";
+import { accountStateSchema, modelCatalogSchema } from "./app-server-state.js";
 import { generationCandidateOutputSchemas } from "./generation.js";
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
@@ -93,6 +98,13 @@ import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "nina-account/credentials/read",
+  "nina-account/credentials/save",
+  "nina-account/diagnostic",
+  "mobile-sync/publish",
+  "mobile-sync/read",
+  "nina-account/read",
+  "nina-account/update",
   "offline-model/read",
   "offline-model/manage",
   "ai-connections/read",
@@ -137,6 +149,8 @@ export const desktopIpcChannels = [
   "flashcards/read",
   "flashcards/progress",
   "flashcards/save-vocabulary",
+  "vocabulary/learning-read",
+  "vocabulary/learning-update",
   "vocabulary/read",
   "vocabulary/detail",
   "vocabulary/review-queue",
@@ -167,12 +181,13 @@ export const desktopIpcChannels = [
   "history/delete",
   "codex/integration/read",
   "codex/integration/action",
-  "codex/account/read",
-  "codex/account/logout",
-  "codex/account/login/start",
-  "codex/account/login/cancel",
-  "codex/models/read",
-  "codex/rate-limits/read",
+  "chatgpt/account/read",
+  "chatgpt/account/logout",
+  "chatgpt/account/login/start",
+  "chatgpt/account/login/cancel",
+  "chatgpt/models/read",
+  "chatgpt/accounts/read",
+  "chatgpt/usage/open",
   "learning-operation/start",
   "learning-operation/retry",
   "learning-operation/cancel",
@@ -197,6 +212,7 @@ const providerAccessReadRequest = request(
   "provider/access/read",
   z.strictObject({
     operation: providerOperationSchema,
+    hasImage: z.boolean().optional(),
     previousOperationId: correlationIdSchema.optional(),
   }),
 );
@@ -332,6 +348,24 @@ const learningPathPrepareVoiceRequest = request(
   z.strictObject({
     expectedGeneration: dataRootGenerationSchema,
     reference: courseReferenceSchema,
+  }),
+);
+const vocabularyLearningReadRequest = request("vocabulary/learning-read", emptyPayload);
+const vocabularyLearningUpdateRequest = request(
+  "vocabulary/learning-update",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    action: z.discriminatedUnion("kind", [
+      z.strictObject({ kind: z.literal("read") }),
+      z.strictObject({ kind: z.literal("undo"), batchId: text(100) }),
+      z.strictObject({
+        kind: z.literal("focus"),
+        focusId: text(100),
+        title: text(160),
+        active: z.boolean(),
+        text: z.string().max(12000),
+      }),
+    ]),
   }),
 );
 const vocabularyReadRequest = request("vocabulary/read", vocabularyLibraryFilterSchema);
@@ -514,6 +548,12 @@ const historyReadRequest = request(
   "history/read",
   z.strictObject({
     historyEntryIds: z.array(historyEntryIdSchema).min(1).max(100).optional(),
+    search: text(160).optional(),
+    activityId: activityIdSchema.optional(),
+    correctionId: correctionIdSchema.optional(),
+    cursor: z
+      .strictObject({ occurredAt: utcInstantSchema, historyEntryId: historyEntryIdSchema })
+      .optional(),
     skill: z.enum(["writing", "reading", "listening", "speaking"]).optional(),
     activityType: historyActivityTypeSchema.optional(),
     fromDate: calendarDateSchema.optional(),
@@ -561,20 +601,22 @@ const integrationActionRequest = request(
   "codex/integration/action",
   z.strictObject({ action: z.enum(["install", "refresh", "uninstall"]) }),
 );
-const accountReadRequest = request("codex/account/read", emptyPayload);
-const accountLogoutRequest = request("codex/account/logout", emptyPayload);
+const accountReadRequest = request("chatgpt/account/read", emptyPayload);
+const accountLogoutRequest = request("chatgpt/account/logout", emptyPayload);
 const accountLoginRequest = request(
-  "codex/account/login/start",
-  z.strictObject({ method: z.enum(["browser", "device-code"]) }),
+  "chatgpt/account/login/start",
+  z.strictObject({ registrationId: chatgptRegistrationIdSchema.nullable() }),
 );
 const accountLoginCancelRequest = request(
-  "codex/account/login/cancel",
+  "chatgpt/account/login/cancel",
   z.strictObject({ loginId: correlationIdSchema }),
 );
-const modelsReadRequest = request("codex/models/read", emptyPayload);
-const rateLimitsReadRequest = request("codex/rate-limits/read", emptyPayload);
+const modelsReadRequest = request("chatgpt/models/read", emptyPayload);
+const usageOpenRequest = request("chatgpt/usage/open", emptyPayload);
+const accountsReadRequest = request("chatgpt/accounts/read", emptyPayload);
 
 export const learningOperationKinds = [
+  "vocabulary-analysis",
   "writing-prompt",
   "voice-activity-draft",
   "writing-correction",
@@ -586,6 +628,19 @@ export const learningOperationKinds = [
 export const learningOperationKindSchema = z.enum(learningOperationKinds);
 
 export const learningOperationInputSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: z.literal("vocabulary-analysis"),
+    rootGeneration: dataRootGenerationSchema,
+    source: z.discriminatedUnion("kind", [
+      z.strictObject({
+        kind: z.literal("import"),
+        guidance: z.string().max(2000),
+        text: z.string().max(12000),
+        image: vocabularyImageSchema.optional(),
+      }),
+      z.strictObject({ kind: z.literal("activity"), activityId: activityIdSchema }),
+    ]),
+  }),
   z.strictObject({
     kind: z.literal("flashcard-generation"),
     topic: text(2_000),
@@ -725,6 +780,13 @@ const learningOperationRetryRequest = request(
 );
 
 export const desktopIpcRequestSchema = boundaryUnion([
+  request("nina-account/credentials/read", emptyPayload),
+  request("nina-account/credentials/save", ninaLoginCredentialsSchema),
+  request("nina-account/diagnostic", ninaLoginDiagnosticSchema),
+  request("mobile-sync/publish", emptyPayload),
+  request("mobile-sync/read", emptyPayload),
+  request("nina-account/read", emptyPayload),
+  request("nina-account/update", ninaAccountUpdateSchema),
   request("offline-model/read", emptyPayload),
   request("offline-model/manage", offlineModelActionSchema),
   request("ai-connections/read", emptyPayload),
@@ -769,6 +831,8 @@ export const desktopIpcRequestSchema = boundaryUnion([
   request("flashcards/read", flashcardReadRequestSchema),
   request("flashcards/progress", flashcardProgressRequestSchema),
   request("flashcards/save-vocabulary", flashcardSaveRequestSchema),
+  vocabularyLearningReadRequest,
+  vocabularyLearningUpdateRequest,
   vocabularyReadRequest,
   vocabularyDetailRequest,
   vocabularyQueueRequest,
@@ -804,7 +868,8 @@ export const desktopIpcRequestSchema = boundaryUnion([
   accountLoginRequest,
   accountLoginCancelRequest,
   modelsReadRequest,
-  rateLimitsReadRequest,
+  accountsReadRequest,
+  usageOpenRequest,
   learningOperationStartRequest,
   learningOperationRetryRequest,
   learningOperationCancelRequest,
@@ -1181,6 +1246,14 @@ const vocabularyProjectionSchema = z.strictObject({
   revision: z.int().nonnegative(),
   updatedAt: utcInstantSchema,
 });
+const vocabularyLearningReadResponse = response(
+  "vocabulary/learning-read",
+  vocabularyLearningSnapshotSchema,
+);
+const vocabularyLearningUpdateResponse = response(
+  "vocabulary/learning-update",
+  vocabularyLearningSnapshotSchema,
+);
 const vocabularyReadResponse = response(
   "vocabulary/read",
   z.strictObject({
@@ -1596,6 +1669,9 @@ const historyReadResponse = response(
   "history/read",
   z.strictObject({
     rootGeneration: dataRootGenerationSchema,
+    nextCursor: z
+      .strictObject({ occurredAt: utcInstantSchema, historyEntryId: historyEntryIdSchema })
+      .nullable(),
     allTimeSkillTotals: z.strictObject({
       writing: z.int().nonnegative(),
       reading: z.int().nonnegative(),
@@ -1607,6 +1683,7 @@ const historyReadResponse = response(
       .array(
         z.strictObject({
           historyEntryId: historyEntryIdSchema,
+          activityAvailable: z.boolean(),
           evidence: attemptEvidenceSchema.nullable(),
           entityKind: z.enum([
             "attempt",
@@ -1650,21 +1727,25 @@ const integrationActionResponse = response(
     steps: z.array(text(240)).min(1).max(8),
   }),
 );
-const accountReadResponse = response("codex/account/read", accountStateSchema);
-const accountLogoutResponse = response("codex/account/logout", accountStateSchema);
+const accountReadResponse = response("chatgpt/account/read", accountStateSchema);
+const accountLogoutResponse = response("chatgpt/account/logout", accountStateSchema);
 const accountLoginResponse = response(
-  "codex/account/login/start",
+  "chatgpt/account/login/start",
   z.strictObject({ loginId: correlationIdSchema, status: z.literal("started") }),
 );
 const accountLoginCancelResponse = response(
-  "codex/account/login/cancel",
+  "chatgpt/account/login/cancel",
   z.strictObject({
     loginId: correlationIdSchema,
     status: z.enum(["cancelled", "already-finished"]),
   }),
 );
-const modelsReadResponse = response("codex/models/read", modelCatalogSchema);
-const rateLimitsReadResponse = response("codex/rate-limits/read", rateLimitStateSchema);
+const modelsReadResponse = response("chatgpt/models/read", modelCatalogSchema);
+const usageOpenResponse = response(
+  "chatgpt/usage/open",
+  z.strictObject({ status: z.literal("opened") }),
+);
+const accountsReadResponse = response("chatgpt/accounts/read", chatgptAccountsSchema);
 const learningOperationAcceptanceSchema = z.discriminatedUnion("status", [
   z.strictObject({
     operationId: correlationIdSchema,
@@ -1705,6 +1786,16 @@ const errorResponse = strictBoundaryObject({
 });
 
 export const desktopIpcResponseSchema = boundaryUnion([
+  response(
+    "nina-account/credentials/read",
+    z.strictObject({ available: z.boolean(), credentials: ninaLoginCredentialsSchema.nullable() }),
+  ),
+  response("nina-account/credentials/save", z.strictObject({ saved: z.boolean() })),
+  response("nina-account/diagnostic", z.strictObject({ recorded: z.boolean() })),
+  response("mobile-sync/publish", mobileSyncResultSchema),
+  response("mobile-sync/read", mobileSyncResultSchema),
+  response("nina-account/read", ninaAccountStateSchema),
+  response("nina-account/update", ninaAccountStateSchema),
   response("offline-model/read", offlineModelViewSchema),
   response("offline-model/manage", offlineModelViewSchema),
   response("ai-connections/read", aiConnectionsViewSchema),
@@ -1755,6 +1846,8 @@ export const desktopIpcResponseSchema = boundaryUnion([
   response("flashcards/read", flashcardDeckSchema),
   response("flashcards/progress", flashcardDeckSchema),
   response("flashcards/save-vocabulary", flashcardDeckSchema),
+  vocabularyLearningReadResponse,
+  vocabularyLearningUpdateResponse,
   vocabularyReadResponse,
   vocabularyDetailResponse,
   vocabularyQueueResponse,
@@ -1790,7 +1883,8 @@ export const desktopIpcResponseSchema = boundaryUnion([
   accountLoginResponse,
   accountLoginCancelResponse,
   modelsReadResponse,
-  rateLimitsReadResponse,
+  accountsReadResponse,
+  usageOpenResponse,
   learningOperationStartResponse,
   learningOperationRetryResponse,
   learningOperationCancelResponse,

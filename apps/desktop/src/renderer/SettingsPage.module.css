@@ -1,5 +1,15 @@
 .settingsPage {
+  gap: var(--od-space-7);
   padding-bottom: var(--od-space-10);
+}
+
+.settingsSection + .settingsSection {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-6);
+}
+
+.settingsSection > button {
+  justify-self: start;
 }
 
 .switchConfirmation {
@@ -15,8 +25,9 @@
 
 .settingsControls {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-6);
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
 }
 
 .detailList {
@@ -58,31 +69,190 @@
 }
 
 .settingsActions {
-  bottom: var(--od-space-4);
   display: flex;
   flex-wrap: wrap;
   gap: var(--od-space-4);
   justify-content: flex-end;
-  position: sticky;
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+}
+
+.coursePreference {
+  grid-column: 1 / -1;
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+}
+
+.aiSetup,
+.accountAccess {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.aiSetup {
+  gap: var(--od-space-6);
+}
+.aiSetup section {
+  min-width: 0;
+}
+.aiConnections {
+  padding-top: var(--od-space-4);
+}
+.accountAccess p {
+  margin: 0;
+}
+.ninaAccount {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--od-space-4);
+  align-items: start;
+}
+.ninaAccountIntro,
+.ninaAccountForm {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.ninaAccountIntro {
+  gap: var(--od-space-2);
+}
+.ninaAccountIntro h2,
+.ninaAccountIntro p,
+.ninaAccountFooter p {
+  margin: 0;
+}
+.ninaAccountIntro h2 {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-section-title-size);
+  line-height: var(--od-type-section-title-line);
+  font-weight: var(--od-font-weight-semibold);
+}
+.ninaAccountIntro p,
+.ninaAccountFooter p {
+  font-size: var(--od-font-size-sm);
+  line-height: var(--od-type-body-small-line);
+}
+.ninaAccountFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--od-space-4);
+}
+.ninaAccountSummary,
+.ninaAccountFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.ninaAccountSummary {
+  flex-wrap: wrap;
+}
+.ninaAccountSummary p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.loginStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  color: var(--od-color-text-muted);
+}
+.loginStatus svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.connectionStatus {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  font-weight: var(--od-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-3);
+}
+.connectionStatus svg,
+.tabLabel svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--od-color-brand-ink);
+}
+.tabLabel,
+.accountSummary,
+.accountTools {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-3);
+}
+.accountSummary {
+  justify-content: space-between;
+  min-height: var(--od-control-min);
+  min-width: 0;
+}
+.accountTools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  align-items: stretch;
+}
+.accountOptions > button {
+  justify-self: end;
+}
+.accountOptions {
+  display: grid;
+  gap: var(--od-space-5);
+}
+.accountOptions,
+.optionalIntegration {
+  min-width: 0;
+}
+.accountOptions[open],
+.optionalIntegration[open] {
+  display: grid;
+  gap: var(--od-space-4);
+}
+
+.optionalIntegration {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-4);
+}
+.optionalIntegration p {
+  margin: 0;
 }
 
 @media (max-width: 52rem) {
+  .ninaAccount,
+  .ninaAccountFields,
   .settingsControls,
   .modelRow {
     grid-template-columns: 1fr;
+  }
+}
+@container workspace (max-width: 42rem) {
+  .ninaAccount,
+  .ninaAccountFields,
+  .settingsControls,
+  .modelRow {
+    grid-template-columns: 1fr;
+  }
+  .ninaAccountSummary,
+  .ninaAccountFooter {
+    align-items: start;
+    flex-direction: column;
   }
 }
 
-.settingsActions {
-  background: var(--od-color-surface-card);
-  border: var(--od-border-thin) solid var(--od-color-border-default);
-  border-radius: var(--od-radius-md);
-  padding: var(--od-space-4);
-  z-index: 1;
+.pendingSession {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
 }
-@container workspace (max-width: 42rem) {
-  .settingsControls,
-  .modelRow {
-    grid-template-columns: 1fr;
-  }
+.pendingSession > div {
+  max-width: 100%;
 }

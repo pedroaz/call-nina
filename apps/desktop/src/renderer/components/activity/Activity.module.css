@@ -1,0 +1,215 @@
+.frame {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  width: 100%;
+  background: var(--od-color-surface-card);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-lg);
+  overflow-wrap: anywhere;
+}
+.frame:not([data-reference]) {
+  max-width: 48rem;
+  margin-inline: auto;
+}
+.progressSlot {
+  grid-row: 1;
+}
+.progressSlot:empty,
+.footerSlot:empty {
+  display: none;
+}
+.progress {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--od-space-4);
+  padding: var(--od-space-4) var(--od-space-6);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+  font-size: var(--od-font-size-sm);
+}
+.progress progress {
+  flex: 1;
+  min-width: 4rem;
+  max-width: 16rem;
+  height: var(--od-space-2);
+  border: 0;
+  accent-color: var(--od-color-action-primary);
+}
+.progress progress::-webkit-progress-bar {
+  background: var(--od-color-surface-sunken);
+  border-radius: var(--od-radius-sm);
+}
+.progress progress::-webkit-progress-value {
+  background: var(--od-color-action-primary);
+  border-radius: var(--od-radius-sm);
+}
+.body {
+  grid-row: 2;
+  display: grid;
+  min-height: 0;
+  min-width: 0;
+}
+.task,
+.reference {
+  min-width: 0;
+  padding: var(--od-space-6);
+}
+.task {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--od-space-5);
+  scroll-padding-block: var(--od-space-5);
+}
+.task > h2,
+.task > p,
+.completionHeading > h2 {
+  margin: 0;
+}
+.reference {
+  background: var(--od-color-bg-app);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.referenceDisclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  cursor: pointer;
+  font-weight: var(--od-weight-medium);
+  min-height: var(--od-control-min);
+}
+.referenceDisclosure > summary svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+}
+.referenceDisclosure[open] > summary svg {
+  transform: rotate(90deg);
+}
+.referenceContent {
+  padding-top: var(--od-space-4);
+  white-space: pre-wrap;
+}
+.referenceContent h2,
+.referenceContent h3 {
+  margin-top: 0;
+}
+.referenceContent p {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+}
+.footerSlot {
+  grid-row: 3;
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  background: var(--od-color-surface-card);
+  border-radius: 0 0 var(--od-radius-lg) var(--od-radius-lg);
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--od-space-3);
+  padding: var(--od-space-4) var(--od-space-6);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.footerLeading,
+.footerTrailing {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--od-space-3);
+}
+.footerTrailing {
+  margin-inline-start: auto;
+}
+.feedback,
+.completion {
+  display: grid;
+  gap: var(--od-space-4);
+}
+/* Nina acknowledges a saved transition; learning evidence stays in the summary. */
+.completionHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.task > h2,
+.referenceContent h2,
+.completionHeading h2,
+.recall h2 {
+  font-family: var(--od-font-family-editorial);
+  font-optical-sizing: auto;
+}
+.completionHeading h2 {
+  min-width: 0;
+}
+.recall {
+  min-height: 19rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--od-space-5);
+  padding: var(--od-space-5);
+  background: var(--od-color-bg-app);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.recall h2 {
+  margin: 0;
+  font-size: var(--od-type-page-title-size);
+}
+.recall[data-revealed] {
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.recallAnswer {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.recallAnswer p {
+  margin: 0;
+}
+.frame[data-bounded] .body {
+  grid-row: 2;
+  overflow: hidden;
+}
+.frame[data-bounded][data-reference] .body {
+  grid-row: 2;
+  grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+}
+.frame[data-bounded] .task,
+.frame[data-bounded] .reference {
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-gutter: stable;
+}
+.frame[data-bounded] .reference {
+  border-bottom: 0;
+  border-inline-end: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.frame[data-bounded] .referenceDisclosure > summary {
+  display: none;
+}
+.frame[data-bounded] .referenceContent {
+  padding-top: 0;
+}
+.frame[data-bounded] .footerSlot {
+  grid-row: 3;
+  position: static;
+}
+@container workspace (max-width: 42rem) {
+  .task,
+  .reference,
+  .footer,
+  .progress {
+    padding: var(--od-space-4);
+  }
+  .recall {
+    padding: var(--od-space-4);
+  }
+}

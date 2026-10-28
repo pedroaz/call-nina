@@ -25,6 +25,7 @@
 }
 
 .dialog h2 {
+  font-family: var(--od-font-family-heading, var(--od-font-family-body));
   margin-top: 0;
 }
 
@@ -43,4 +44,55 @@
 
 .dialog[data-density="compact"] {
   padding: var(--od-space-5);
+}
+
+.body > :where(p, ul, ol, dl, blockquote) {
+  margin-block: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-5);
+}
+
+.dialog[data-size="default"] .header {
+  margin-bottom: var(--od-space-5);
+}
+
+.header h2 {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.header > button {
+  flex: none;
+}
+
+.dialog[data-size="large"] {
+  max-width: 80rem;
+  height: calc(100dvh - var(--od-space-9));
+  padding: 0;
+  overflow: hidden;
+}
+
+.dialog[data-size="large"] > [role="dialog"] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+}
+
+.dialog[data-size="large"] .header {
+  flex: none;
+  padding: var(--od-space-5) var(--od-space-7);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+}
+
+.dialog[data-size="large"] .body {
+  display: block;
+  overflow-y: auto;
+  min-height: 0;
+  padding: var(--od-space-7);
 }

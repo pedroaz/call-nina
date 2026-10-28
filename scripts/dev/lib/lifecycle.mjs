@@ -347,9 +347,9 @@ async function acquireStartLock(lock) {
   }
 }
 
-// Serialize starts across modes, including verification, without signalling another app.
-export async function startMode(options) {
-  const root = path.resolve(options.runtimeRoot);
+// Start and stop share one short-lived, process-owned lock per checkout.
+export async function withLifecycleLock(runtimeRoot, operation) {
+  const root = path.resolve(runtimeRoot);
   await mkdir(root, { recursive: true, mode: 0o700 });
   const lock = path.join(root, "start.lock");
   await acquireStartLock(lock);
@@ -358,6 +358,16 @@ export async function startMode(options) {
       pid: process.pid,
       startTicks: await processStartTicks(process.pid),
     });
+    return await operation();
+  } finally {
+    await rm(path.join(lock, "owner.json"), { force: true });
+    await rm(lock, { recursive: true });
+  }
+}
+
+export async function startMode(options) {
+  const root = path.resolve(options.runtimeRoot);
+  return withLifecycleLock(root, async () => {
     for (const mode of lifecycleModes) {
       const current = await statusMode({ mode, runtimeRoot: root });
       if (
@@ -367,14 +377,10 @@ export async function startMode(options) {
         throw new Error(`LIFECYCLE_APP_ALREADY_RUNNING_OR_RETAINED:${mode}`);
       }
     }
-    // An exited controller does not prove its detached Electron tree exited.
     if (await pathExists(path.join(root, "verification/processes.json")))
       throw new Error("VERIFY_PROCESS_RECOVERY_REQUIRED");
     return await startModeUnlocked(options);
-  } finally {
-    await rm(path.join(lock, "owner.json"), { force: true });
-    await rm(lock, { recursive: true });
-  }
+  });
 }
 
 async function startModeUnlocked({
@@ -532,11 +538,11 @@ export async function statusMode({ mode, runtimeRoot }) {
   };
 }
 
-export async function killMode({ mode, runtimeRoot, graceMs = 5_000, verificationContext }) {
+export async function killMode(options) {
+  const { mode, runtimeRoot, verificationContext } = options;
   if (mode === "verify") {
     const { stopVerification } = await import("./verification-client.mjs");
-    const { locked, assertVerificationBarrier } =
-      await import("../../agents/lib/orchestration.mjs");
+    const { locked, assertVerificationBarrier } = await import("./verification-state.mjs");
     return locked(() => {
       const targetRoot = path.dirname(path.resolve(runtimeRoot));
       let barrier;
@@ -550,6 +556,11 @@ export async function killMode({ mode, runtimeRoot, graceMs = 5_000, verificatio
       return stopVerification(verificationContext ?? { targetRoot, barrier });
     });
   }
+
+  return withLifecycleLock(options.runtimeRoot, () => killModeUnlocked(options));
+}
+
+async function killModeUnlocked({ mode, runtimeRoot, graceMs = 5_000 }) {
   const paths = lifecyclePaths(runtimeRoot, mode);
   const state = await readState(paths);
   if (!state) return { mode, status: "already-stopped" };

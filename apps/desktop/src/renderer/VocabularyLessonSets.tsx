@@ -10,6 +10,9 @@ type Result = Extract<
 >["result"];
 
 export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataRootGeneration }) {
+  return <LessonSets key={rootGeneration} rootGeneration={rootGeneration} />;
+}
+function LessonSets({ rootGeneration }: { rootGeneration: DataRootGeneration }) {
   const { t } = useTranslation();
   const [result, setResult] = useState<Result>();
   const [error, setError] = useState<CallNinaError>();
@@ -27,9 +30,9 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
       active = false;
     };
   }, [rootGeneration, retry]);
+  if (!error && result?.entries.length === 0) return null;
   return (
-    <section>
-      <h3>{t("vocabulary.lessonSets")}</h3>
+    <>
       {error && (
         <>
           <Feedback tone="error" live="assertive">
@@ -38,6 +41,7 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
           <Button
             variant="secondary"
             onPress={() => {
+              setResult(undefined);
               setError(undefined);
               setRetry((value) => value + 1);
             }}
@@ -48,15 +52,18 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
       )}
       {!result && !error && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {result && (
-        <ul>
-          {result.entries.map((set) => (
-            <li key={set.setId}>
-              <strong>{set.title}</strong> —{" "}
-              {t("vocabulary.lessonSetItems", { count: set.candidateCount })}
-            </li>
-          ))}
-        </ul>
+        <section aria-label={t("vocabulary.lessonSets")}>
+          <h2>{t("vocabulary.lessonSets")}</h2>
+          <ul>
+            {result.entries.map((set) => (
+              <li key={set.setId}>
+                <strong>{set.title}</strong> —{" "}
+                {t("vocabulary.lessonSetItems", { count: set.candidateCount })}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-    </section>
+    </>
   );
 }

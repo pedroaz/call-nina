@@ -367,10 +367,11 @@ export function createProductionServer(runtime: Runtime) {
           const snapshot = await runtime.repository.readDashboardSnapshot(now().slice(0, 10));
           const scope = await runtime.repository.requireLearningScope();
           const course =
-            scope.courseId === "german-foundations" && scope.targetLanguage === "de"
+            scope.courseId !== null
               ? await readLearningCourse(
                   process.env["CALL_NINA_CURRICULUM_ROOT"] ??
                     path.resolve(path.dirname(thisFile), "../../../content/curriculum"),
+                  scope.targetLanguage,
                 )
               : null;
           const pathState = await runtime.repository.readLearningPathState();
@@ -658,6 +659,7 @@ export function createProductionServer(runtime: Runtime) {
               const course = await readLearningCourse(
                 process.env["CALL_NINA_CURRICULUM_ROOT"] ??
                   path.resolve(path.dirname(thisFile), "../../../content/curriculum"),
+                linked.context.learningScope.targetLanguage,
               );
               resolveCourseReference(course, linked.context.learningPath);
               validateCourseEvidence(

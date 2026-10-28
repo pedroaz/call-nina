@@ -1,17 +1,454 @@
+.catalogFilters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  gap: var(--od-space-4);
+}
+@container (max-width: 40rem) {
+  .catalogFilters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .page,
 .unit {
   display: grid;
-  gap: var(--od-space-6);
+  gap: var(--od-space-4);
   min-width: 0;
 }
-.outline {
+.lessonPreview,
+.summaryText,
+.pathProgress {
+  display: grid;
+  gap: var(--od-space-4);
+  align-content: start;
+  min-width: 0;
+}
+.summaryText {
+  gap: var(--od-space-1);
+}
+.summaryText > :first-child {
+  font-size: var(--od-font-size-sm);
+}
+.lessonPreview > *,
+.summaryText > *,
+.recommendation h2,
+.recommendation p {
+  margin: 0;
+}
+.librarySummary {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
+}
+.pathList {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+.clickablePath {
+  position: relative;
+  border-radius: var(--od-radius-md);
+  padding-inline: var(--od-space-4) 4rem;
+}
+.clickablePath:has(.pathOpen:not([data-disabled])):hover {
+  background: var(--od-color-surface-sunken);
+}
+.clickablePath:has(.pathOpen[data-focus-visible]) {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: 2px;
+}
+.pathOpen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: flex-end;
+  padding: var(--od-space-4);
+}
+.pathOpen:hover,
+.pathOpen[data-pressed] {
+  background: transparent;
+}
+.pathOpenAffordance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--od-space-2);
+  max-width: 10rem;
+}
+.pathOpenAffordance svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+}
+.pathIcon {
+  display: grid;
+  place-items: center;
+  width: var(--od-control-min);
+  height: var(--od-control-min);
+  color: var(--od-color-text-muted);
+}
+.pathIcon svg {
+  width: 24px;
+  height: 24px;
+}
+.pathHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--od-space-2) var(--od-space-3);
+}
+.pathHeading h3 {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.pathMeta,
+.resultCount,
+.summaryMeta,
+.reviewEntry {
+  font-size: var(--od-font-size-sm);
+  line-height: var(--od-type-supporting-line, 1.4286);
+}
+.pathList .pathProgress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--od-space-3);
+}
+.pathList .pathProgress progress {
+  width: 6rem;
+  max-width: 100%;
+  height: var(--od-space-1);
+}
+.reviewEntry {
+  padding-inline: var(--od-space-5);
+}
+.recommendation,
+.reviewEntry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.recommendation > div,
+.recommendation > p {
+  flex: 1;
+  min-width: min(100%, 15rem);
+}
+.pathProgress progress,
+.completion progress {
+  appearance: none;
+  width: 100%;
+  height: var(--od-space-2);
+  border: 0;
+  border-radius: var(--od-radius-pill);
+  background: var(--od-color-border-default);
+}
+.pathProgress progress::-webkit-progress-bar,
+.completion progress::-webkit-progress-bar {
+  background: var(--od-color-border-default);
+  border-radius: var(--od-radius-pill);
+}
+.pathProgress progress::-webkit-progress-value,
+.completion progress::-webkit-progress-value {
+  background: var(--od-color-action-primary);
+  border-radius: var(--od-radius-pill);
+}
+.trail {
+  position: relative;
+  list-style: none;
+  display: grid;
+  gap: var(--od-space-3);
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.trailItem {
+  display: grid;
+  gap: var(--od-space-4);
+  width: 55%;
+  min-width: 0;
+}
+.trailButton {
+  position: relative;
+  justify-content: flex-start;
+  width: 100%;
+  height: auto;
+  padding: var(--od-space-4);
+  white-space: normal;
+  text-align: start;
+}
+.trailButton[aria-pressed="true"] {
+  background: var(--od-color-surface-brand);
+  border-color: var(--od-color-action-primary);
+}
+.trailItem:not(:last-child) .trailButton::after {
+  content: "";
+  position: absolute;
+  top: calc(100% + 1px);
+  left: calc(var(--od-space-4) + 22px);
+  height: var(--od-space-3);
+  border-inline-start: 2px dashed var(--od-color-border-default);
+  pointer-events: none;
+}
+.trailMarker {
+  display: grid;
+  place-items: center;
+  width: var(--od-control-min);
+  height: var(--od-control-min);
+  flex-shrink: 0;
+  border-radius: var(--od-radius-md);
+  color: var(--od-color-text-muted);
+}
+.trailMarker svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+}
+.trailStop {
+  display: grid;
+  gap: var(--od-space-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.trailMeta {
+  font-size: var(--od-font-size-sm);
+  font-weight: var(--od-weight-regular, 400);
+}
+.lessonPreview {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  width: calc(45% - var(--od-space-6));
+}
+.lessonProgressHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--od-space-4);
+  font-size: var(--od-font-size-sm);
+}
+.lessonProgressHeader .activityTrack {
+  flex: 1;
+  min-width: min(100%, 12rem);
+}
+.lessonWorkspace {
+  display: grid;
+  grid-template-columns: minmax(13rem, 1fr) minmax(0, 2.4fr);
+  align-items: start;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.activityNavigation {
+  display: grid;
+  gap: var(--od-space-2);
+  min-width: 0;
+}
+.activityChoice {
+  width: 100%;
+  padding: var(--od-space-3);
+  justify-content: flex-start;
+  text-align: start;
+  white-space: normal;
+  gap: var(--od-space-3);
+}
+.activityChoice[aria-current="step"] {
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+}
+.activityChoiceText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.activityStatus {
+  display: inline-flex;
+  flex: none;
+  color: var(--od-color-text-muted);
+}
+.activityStatus svg {
+  width: 16px;
+  height: 16px;
+}
+.activityStatus[data-status="completed"] {
+  color: var(--od-color-action-primary);
+}
+.learningPanel {
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.learningPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.recommendation h2,
+.lessonPreview h3,
+.learningPanelHeader h2 {
+  font-family: var(--od-font-family-editorial);
+}
+.learningPanelHeader h2 {
+  font-size: var(--od-font-size-lg);
+  line-height: var(--od-type-section-title-line);
+}
+.learningPanelContent {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.activityInstruction {
+  margin: 0;
+  max-width: 60ch;
+}
+.phraseSpotlight {
+  display: grid;
+  gap: var(--od-space-3);
+  padding: var(--od-space-7) var(--od-space-5);
+  text-align: center;
+  background: var(--od-color-bg-app);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
+  overflow-wrap: anywhere;
+}
+.phraseSpotlight > p {
+  margin: 0;
+}
+.phraseSpotlight > p:first-child {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-font-size-xl);
+  line-height: var(--od-type-h1-line);
+  font-weight: var(--od-font-weight-semibold);
+}
+.lessonPassage {
+  font-family: var(--od-font-family-editorial);
+  padding: var(--od-space-5);
+  background: var(--od-color-bg-app);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lessonDisclosureLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--od-space-2);
+}
+.lessonDisclosureLabel svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+}
+.lessonExamples {
+  display: grid;
+  gap: var(--od-space-4);
+  margin: 0;
+}
+.lessonExamples > div {
+  display: grid;
+  gap: var(--od-space-1);
+}
+.lessonExamples dt {
+  font-weight: var(--od-font-weight-semibold);
+}
+.lessonExamples dd {
+  margin: 0;
+  color: var(--od-color-text-muted);
+}
+.activityInvitation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--od-space-5);
+  padding-block: var(--od-space-5);
+}
+.lessonFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-3);
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-5);
+}
+@container workspace (max-width: 48rem) {
+  .lessonWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .activityNavigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container workspace (max-width: 28rem) {
+  .activityNavigation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .phraseSpotlight {
+    padding: var(--od-space-5);
+  }
+}
+.activityTrack {
+  display: flex;
+  gap: var(--od-space-1);
+}
+.activityTrack > span {
+  flex: 1;
+  height: var(--od-space-2);
+  border-radius: var(--od-radius-pill);
+  background: var(--od-color-border-default);
+}
+.activityTrack > span[data-status="completed"] {
+  background: var(--od-color-action-primary);
+}
+.activityTrack > span[data-status="skipped"] {
+  background: transparent;
+  border: 1px dashed var(--od-color-text-muted);
+}
+.activityTrack > span[data-status="started"] {
+  background: var(--od-color-surface-brand);
+  border: 1px solid var(--od-color-action-primary);
+}
+.reviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+  padding-top: var(--od-space-3);
+}
+.reviewReason {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  padding: var(--od-space-2) var(--od-space-3);
+  border-radius: var(--od-radius-pill);
+  background: var(--od-color-surface-brand);
+  color: var(--od-color-brand-ink);
+  font-size: var(--od-font-size-sm);
+}
+.reviewReason svg {
+  width: 1rem;
+  height: 1rem;
+}
+.cardActions {
+  padding-top: 0;
+}
+.launchProgress {
+  min-width: 0;
+  margin-top: var(--od-space-3);
+}
+.launchProgress > p {
+  margin: 0;
+  color: var(--od-color-text-muted);
+}
+.scenario {
   display: grid;
   gap: var(--od-space-3);
 }
-.outline button {
-  justify-content: flex-start;
-  white-space: normal;
-  text-align: start;
+.scenario > * {
+  margin: 0;
 }
 .explanation {
   line-height: 1.7;
@@ -19,12 +456,87 @@
 }
 .words {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
-  gap: var(--od-space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--od-space-3);
+  margin: 0;
+}
+.words > div {
+  display: grid;
+  gap: var(--od-space-2);
+  padding-block: var(--od-space-3);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .words dt {
-  font-weight: 600;
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  font-weight: var(--od-weight-medium);
 }
 .words dd {
-  margin-inline-start: 0;
+  margin: 0;
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+}
+.unitDetails {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.progressSummary {
+  display: grid;
+  gap: var(--od-space-3);
+  padding: var(--od-space-4);
+  background: var(--od-color-surface-sunken);
+  border-radius: var(--od-radius-md);
+}
+.progressStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  font-size: var(--od-font-size-sm);
+}
+.lessonGoals {
+  display: grid;
+  gap: var(--od-space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lessonGoals li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--od-space-3);
+  padding-block: var(--od-space-3);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.lessonGoals svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+  color: var(--od-color-brand-ink);
+}
+.unitOverview {
+  display: grid;
+  gap: var(--od-space-4);
+}
+.completion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--od-space-3);
+  font-size: var(--od-font-size-sm);
+  color: var(--od-color-text-muted);
+}
+.completion progress {
+  width: 8rem;
+}
+@container workspace (max-width: 45rem) {
+  .trailItem {
+    width: 100%;
+  }
+  .lessonPreview {
+    position: static;
+    width: auto;
+  }
+  .trailItem:not(:last-child) .trailButton::after {
+    display: none;
+  }
 }

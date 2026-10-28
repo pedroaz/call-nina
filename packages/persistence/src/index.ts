@@ -113,3 +113,6 @@ export {
   validateTranslationReveal,
 } from "./translation.js";
 export * from "./ai-connections.js";
+
+export * from "./vocabulary-learning.js";
+export { exportMobileFlashcards } from "./flashcards.js";

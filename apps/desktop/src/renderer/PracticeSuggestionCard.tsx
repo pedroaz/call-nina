@@ -1,10 +1,11 @@
+import { ArrowRight } from "lucide-react";
 import { OperationProgress } from "./OperationProgress.js";
 import type { OperationProgressState } from "./useOperationProgress.js";
 import type { PracticeSuggestion } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
-import { Button, Card, Disclosure, Muted } from "./components/ui/index.js";
-import { ActionGroup } from "./components/layout/index.js";
-import styles from "./Dashboard.module.css";
+import { Button, Disclosure, Muted } from "./components/ui/index.js";
+import { ActionGroup, ContentRow } from "./components/layout/index.js";
+import { ActivityVisual } from "./activityPresentation.js";
 
 export function PracticeSuggestionCard({
   suggestion,
@@ -33,39 +34,38 @@ export function PracticeSuggestionCard({
           ? "prepare"
           : "start";
   return (
-    <Card as="article" className={styles.suggestion}>
-      <Muted as="p">
-        {recommended ? t("suggestions.recommended") : t(`suggestions.sources.${suggestion.source}`)}{" "}
-        · {t("suggestions.minutes", { count: suggestion.estimatedMinutes })}
-      </Muted>
-      <h3>{suggestion.title}</h3>
-      {suggestion.naturalRequest.length > 220 ? (
-        <>
-          <p>{suggestion.naturalRequest.slice(0, 217)}…</p>
-          <Disclosure label={t("suggestions.fullPrompt")}>
-            <p>{suggestion.naturalRequest}</p>
-          </Disclosure>
-        </>
-      ) : (
-        <p>{suggestion.naturalRequest}</p>
-      )}
-      <Muted as="p">{suggestion.rationale}</Muted>
-      <OperationProgress progress={progress} />
-      <ActionGroup>
-        <Button
-          isPending={starting}
-          isDisabled={disabled}
-          pendingLabel={t("suggestions.starting")}
-          onPress={onStart}
-        >
-          {t(`suggestions.actions.${action}`)}
-        </Button>
-        {starting && onCancel && (
-          <Button variant="secondary" onPress={onCancel}>
-            {t("actions.cancel")}
+    <ContentRow
+      leading={<ActivityVisual kind={suggestion.kind} />}
+      metadata={t("suggestions.minutes", { count: suggestion.estimatedMinutes })}
+      actions={
+        <ActionGroup>
+          <Button
+            trailingIcon={<ArrowRight aria-hidden="true" />}
+            variant={recommended ? "primary" : "quiet"}
+            isPending={starting}
+            isDisabled={disabled}
+            pendingLabel={t("suggestions.starting")}
+            onPress={onStart}
+          >
+            {t(`suggestions.actions.${action}`)}
           </Button>
-        )}
-      </ActionGroup>
-    </Card>
+          {starting && onCancel && (
+            <Button variant="secondary" onPress={onCancel}>
+              {t("actions.cancel")}
+            </Button>
+          )}
+        </ActionGroup>
+      }
+    >
+      <h3>{suggestion.title}</h3>
+      <Muted as="p">
+        {recommended ? t("suggestions.recommended") : t(`suggestions.sources.${suggestion.source}`)}
+      </Muted>
+      <Disclosure variant="inline" label={t("suggestions.fullPrompt")}>
+        <p>{suggestion.naturalRequest}</p>
+        <Muted as="p">{suggestion.rationale}</Muted>
+      </Disclosure>
+      <OperationProgress progress={progress} />
+    </ContentRow>
   );
 }

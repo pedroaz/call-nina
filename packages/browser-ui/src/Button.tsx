@@ -51,9 +51,15 @@ export function Button({
       aria-busy={isPending || undefined}
       isDisabled={Boolean(isDisabled) || isPending}
     >
-      {isPending ? <LoaderCircle className={styles.spinner} aria-hidden="true" /> : leadingIcon}
+      {isPending ? (
+        <span className={styles.iconSlot}>
+          <LoaderCircle className={styles.spinner} aria-hidden="true" />
+        </span>
+      ) : leadingIcon ? (
+        <span className={styles.iconSlot}>{leadingIcon}</span>
+      ) : null}
       <span className={styles.content}>{isPending && pendingLabel ? pendingLabel : children}</span>
-      {!isPending && trailingIcon}
+      {!isPending && trailingIcon && <span className={styles.iconSlot}>{trailingIcon}</span>}
     </AriaButton>
   );
 }

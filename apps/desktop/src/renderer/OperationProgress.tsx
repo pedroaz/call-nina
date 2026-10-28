@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LoaderCircle } from "lucide-react";
-import { Button } from "./components/ui/index.js";
+import { Button, Nina } from "./components/ui/index.js";
 import type { OperationProgressState } from "./useOperationProgress.js";
 import styles from "./OperationProgress.module.css";
 
@@ -43,7 +42,7 @@ export function OperationProgress({
               : "preparing";
   return (
     <div className={styles["progress"]}>
-      <LoaderCircle className={styles["indicator"]} aria-hidden="true" />
+      <Nina pose="thinking" />
       <div className={styles["copy"]}>
         <div role="status" aria-live="polite" aria-atomic="true">
           <strong>{t(`aiProgress.stages.${stage}`)}</strong>

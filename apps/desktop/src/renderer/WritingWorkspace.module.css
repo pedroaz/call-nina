@@ -13,7 +13,8 @@
   flex-wrap: wrap;
 }
 .generatedPrompt {
-  border-inline-start: var(--od-border-outlined) solid var(--od-color-brand);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
+  background: var(--od-color-bg-app);
   display: grid;
   gap: var(--od-space-3);
   padding: var(--od-space-4) var(--od-space-5);
@@ -26,7 +27,7 @@
 }
 .writingOptions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
   gap: var(--od-space-5);
 }

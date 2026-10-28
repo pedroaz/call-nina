@@ -5,12 +5,13 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 const generated = [
+  "build",
   "release",
   "apps/desktop/dist",
   "apps/desktop/build",
   "apps/mcp-server/dist",
   "apps/mcp-server/build",
-  "apps/managed-service/build",
+  "apps/api/build",
   "apps/website/dist",
   "apps/website/build",
   "apps/mobile/dist",

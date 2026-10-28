@@ -62,6 +62,19 @@ const unpacked = unpackedDirectory();
 if (!(await exists(unpacked))) throw new Error("OD_PACKAGE_UNPACKED_MISSING");
 const helper = path.join(path.dirname(asarPath(unpacked)), "mcp-helper");
 if (!(await exists(helper))) throw new Error("OD_PACKAGE_HELPER_MISSING");
+const resources = path.dirname(asarPath(unpacked));
+for (const relative of [
+  "curriculum/catalog.json",
+  "plugin/.codex-plugin/plugin.json",
+  "mcp-helper/server/index.js",
+  "notices/LICENSE",
+  "notices/THIRD-PARTY-NOTICES.md",
+  "notices/CALL-NINA-LICENSING.md",
+  "call-nina.png",
+]) {
+  if (!(await exists(path.join(resources, relative))))
+    throw new Error(`OD_PACKAGE_RESOURCE_MISSING:${relative}`);
+}
 const helperMetrics = await measure(helper, "", true);
 if (helperMetrics.bytes > 10 * mebibyte || helperMetrics.files > 20) {
   throw new Error(
@@ -69,16 +82,9 @@ if (helperMetrics.bytes > 10 * mebibyte || helperMetrics.files > 20) {
   );
 }
 
-const runtime = path.join(path.dirname(asarPath(unpacked)), "codex-runtime");
-if (!(await exists(runtime))) throw new Error("OD_PACKAGE_CODEX_RUNTIME_MISSING");
-const runtimeMetrics = await measure(runtime, "", true);
-if (runtimeMetrics.bytes > 500 * mebibyte || runtimeMetrics.files > 100) {
-  throw new Error("OD_PACKAGE_CODEX_RUNTIME_BUDGET_EXCEEDED");
-}
 const evidence = {
   schemaVersion: 1,
   helper: helperMetrics,
-  codexRuntime: runtimeMetrics,
 };
 const unpackedMetrics = await measure(unpacked);
 const appAsar = asarPath(unpacked);
@@ -87,7 +93,7 @@ const asarMetrics = await measure(appAsar);
 if (asarMetrics.bytes > 10 * mebibyte) {
   throw new Error(`OD_PACKAGE_ASAR_BUDGET_EXCEEDED:${asarMetrics.bytes}`);
 }
-if (process.platform === "linux" && unpackedMetrics.bytes - runtimeMetrics.bytes > 300 * mebibyte) {
+if (process.platform === "linux" && unpackedMetrics.bytes > 300 * mebibyte) {
   throw new Error(`OD_PACKAGE_UNPACKED_BUDGET_EXCEEDED:${unpackedMetrics.bytes}`);
 }
 evidence.unpacked = unpackedMetrics;

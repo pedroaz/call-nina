@@ -11,5 +11,15 @@
     "tsBuildInfoFile": "build/tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "references": [{ "path": "../../packages/design-system" }]
+  "references": [
+    {
+      "path": "../../packages/design-system"
+    },
+    {
+      "path": "../../packages/mobile-sync"
+    },
+    {
+      "path": "../../packages/learning-ui"
+    }
+  ]
 }

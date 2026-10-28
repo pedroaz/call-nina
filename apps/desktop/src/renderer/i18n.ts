@@ -1,3 +1,4 @@
+import { flashcardMessages } from "@call-nina/learning-ui";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
@@ -8,10 +9,10 @@ import es from "./locales/es.json";
 
 void i18n.use(initReactI18next).init({
   resources: {
-    "en-US": { translation: en },
-    "pt-BR": { translation: ptBR },
-    es: { translation: es },
-    de: { translation: de },
+    "en-US": { translation: { ...en, flashcards: flashcardMessages["en-US"] } },
+    "pt-BR": { translation: { ...ptBR, flashcards: flashcardMessages["pt-BR"] } },
+    es: { translation: { ...es, flashcards: flashcardMessages["es"] } },
+    de: { translation: { ...de, flashcards: flashcardMessages["de"] } },
   },
   lng: "en-US",
   fallbackLng: "en-US",
