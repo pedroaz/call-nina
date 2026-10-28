@@ -23,11 +23,13 @@ const manifests = [
   "package.json",
   ...new Set(discovered.sort()),
   "plugins/call-nina/.codex-plugin/plugin.json",
+  "apps/mobile/app.json",
 ];
 
 const versions = await Promise.all(
   manifests.map(async (relative) => {
-    const manifest = JSON.parse(await readFile(path.join(repositoryRoot, relative), "utf8"));
+    const data = JSON.parse(await readFile(path.join(repositoryRoot, relative), "utf8"));
+    const manifest = relative === "apps/mobile/app.json" ? data.expo : data;
     if (typeof manifest.version !== "string") throw new Error(`OD_VERSION_MISSING:${relative}`);
     return { relative, version: manifest.version };
   }),

@@ -63,15 +63,16 @@ const aliases = { h: "help", d: "dev", b: "build", l: "logs", kill: "stop" };
 const registry = {
   help: leaf("Show commands and shortcuts", (args) => help(args[0])),
   folder: leaf("Open the repository folder", openRepositoryFolder),
+  release: leaf("Manual GitHub release workflow", () => node("scripts/ci/release.mjs", "help")),
   deploy: group(
-    "Manual Vercel deployment (defaults to review)",
+    "Hosting build/review and GitHub publication guidance",
     {
       prepare: leaf("Build combined website/API locally; no upload", () =>
         node("scripts/build/package-hosting.mjs"),
       ),
       review: leaf("Review the production deployment target; no upload", () => admin("deploy")),
-      production: leaf("Build and publish combined website/API to Vercel", () =>
-        admin("deploy", "--yes"),
+      production: leaf("Open manual GitHub publication instructions; no local upload", () =>
+        node("scripts/ci/release.mjs", "help"),
       ),
     },
     "review",
@@ -144,7 +145,7 @@ const registry = {
     "Static checks",
     {
       all: leaf("All static checks", () => {
-        for (const name of ["versions", "design-tokens", "format", "lint", "types"])
+        for (const name of ["versions", "design-tokens", "format", "types", "lint"])
           checks[name].execute();
       }),
       ...checks,
@@ -244,7 +245,8 @@ function help(name) {
           "verify",
           "doctor",
         ],
-        "Local distribution and tooling": [
+        "Distribution and tooling": [
+          "release",
           "package",
           "deploy",
           "install",

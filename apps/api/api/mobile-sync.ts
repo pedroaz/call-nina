@@ -44,10 +44,10 @@ export async function handle(request: Request): Promise<Response> {
   const exchange = async (input: unknown) => {
     // Bind as text: postgres.js serializes jsonb parameters itself, which would
     // double-encode the JSON string required by the shared SQL transport.
-    const result = await mobileSql().query("select nina_sync.exchange($1,$2::text::jsonb) as result", [
-      uid,
-      JSON.stringify(input),
-    ]);
+    const result = await mobileSql().query(
+      "select nina_sync.exchange($1,$2::text::jsonb) as result",
+      [uid, JSON.stringify(input)],
+    );
     const value = z.object({ result: z.unknown() }).parse(result.rows[0]).result;
     if (value && typeof value === "object" && "error" in value)
       throw new Error(String(value.error));

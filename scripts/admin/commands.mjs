@@ -90,7 +90,7 @@ export const commands = [
   {
     name: "deploy",
     category: "Deployment",
-    label: "Build and deploy combined website/API (live write)",
+    label: "Show manual GitHub hosting publication instructions",
     args: [],
     mutation: true,
   },

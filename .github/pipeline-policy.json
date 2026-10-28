@@ -1,6 +1,8 @@
 {
   "repository": "pedroaz/call-nina",
-  "actionsEnabled": false,
+  "actionsEnabled": true,
+  "releaseTrigger": "workflow_dispatch",
+  "automaticPublishing": false,
   "branch": "main",
   "squashMergeCommitTitle": "PR_TITLE",
   "squashMergeCommitMessage": "PR_BODY",

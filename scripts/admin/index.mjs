@@ -80,7 +80,12 @@ async function execute(tokens) {
     const details =
       name === "infra migrate"
         ? {
-            migrations: ["001-budget.sql", "002-accounts.sql", "003-ai-access.sql", "004-mobile-sync.sql"],
+            migrations: [
+              "001-budget.sql",
+              "002-accounts.sql",
+              "003-ai-access.sql",
+              "004-mobile-sync.sql",
+            ],
             operation: "Check supplied PG role permissions and apply missing migrations only",
           }
         : name === "infra runtime-setup"
@@ -94,7 +99,7 @@ async function execute(tokens) {
                 operation: "Generate public desktop and API configuration",
                 origin: config.origin,
               }
-            : { operation: "Build and deploy combined website/API to production" };
+            : { operation: "Show manual GitHub hosting publication instructions (no upload)" };
     await confirm({ command: name, target, ...details, inferenceActivated: false }, yes);
     if (name === "infra runtime-setup") return (await import("./runtime-role.mjs")).setupRuntime();
     if (name === "infra migrate") return (await import("./database.mjs")).migrate();

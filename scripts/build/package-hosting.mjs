@@ -24,7 +24,7 @@ function help() {
   make package hosting          Build the complete artifact locally.
   node scripts/admin/index.mjs infra plan            Inspect desired infrastructure.
   make deploy                   Review the production deployment target.
-  make deploy production        Build and manually publish the combined artifact.
+  make release                  Show the manual GitHub release workflow.
 
 The artifact includes /api/account, /api/generate and /api/mobile-sync even while inference is disabled.
 Never deploy static website output alone to the shared project.
@@ -119,6 +119,6 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
     `Packaged ${files.length} static website files and 3 API functions in ${destination}.\n`,
   );
   process.stdout.write(
-    "No remote actions. Use $nina-admin for an explicitly requested deployment.\n",
+    "No remote actions. Publication uses the manual GitHub Release workflow; see make release.\n",
   );
 }

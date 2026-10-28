@@ -3,10 +3,7 @@
     "name": "Call Nina",
     "slug": "call-nina",
     "version": "0.2.0",
-    "platforms": [
-      "android",
-      "ios"
-    ],
+    "platforms": ["android", "ios"],
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.callnina.mobile",

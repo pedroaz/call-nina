@@ -62,6 +62,19 @@ const unpacked = unpackedDirectory();
 if (!(await exists(unpacked))) throw new Error("OD_PACKAGE_UNPACKED_MISSING");
 const helper = path.join(path.dirname(asarPath(unpacked)), "mcp-helper");
 if (!(await exists(helper))) throw new Error("OD_PACKAGE_HELPER_MISSING");
+const resources = path.dirname(asarPath(unpacked));
+for (const relative of [
+  "curriculum/catalog.json",
+  "plugin/.codex-plugin/plugin.json",
+  "mcp-helper/server/index.js",
+  "notices/LICENSE",
+  "notices/THIRD-PARTY-NOTICES.md",
+  "notices/CALL-NINA-LICENSING.md",
+  "call-nina.png",
+]) {
+  if (!(await exists(path.join(resources, relative))))
+    throw new Error(`OD_PACKAGE_RESOURCE_MISSING:${relative}`);
+}
 const helperMetrics = await measure(helper, "", true);
 if (helperMetrics.bytes > 10 * mebibyte || helperMetrics.files > 20) {
   throw new Error(

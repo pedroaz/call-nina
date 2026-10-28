@@ -55,6 +55,8 @@ The user approved a narrow exception for the managed pilot: real calls may use i
 
 Desktop Nina login is optional and independent of learner roots, ChatGPT sessions and connection selection. `@clerk/electron` owns native username/password authentication and encrypted device token persistence; the main process receives only short-lived session JWTs through validated IPC and verifies identity through `/api/account`. Public configuration lives in `packages/contracts/src/nina-public.json`; null configuration keeps login/inference unavailable. Account changes invalidate captured managed work, never personal routes or learner records. Use the existing UI controls and all interface locales.
 
+Hosting release artifacts and deployments should run through manually dispatched GitHub Actions, following the [release delivery policy](../call-nina-development/SKILL.md#release-delivery-policy); `.github/workflows/release.yml` and `scripts/ci/` own the implementation. Verify live run results before claiming deployment readiness. Preserve combined website/API packaging and disabled Vercel Git deployment. Keep migrations and runtime-grant changes explicit and separate from ordinary release builds.
+
 For account operations, provisioning, configuration and deployment, use [nina-admin](../nina-admin/SKILL.md). That skill owns operator workflows and credential handling.
 
 ## Mobile publishing

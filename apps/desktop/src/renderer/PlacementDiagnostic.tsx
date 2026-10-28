@@ -6,7 +6,14 @@ import {
   type LearningScope,
   type CallNinaError,
 } from "@call-nina/contracts";
-import { SelectControl, Button, Card, Feedback, FieldGroup, ItemList } from "./components/ui/index.js";
+import {
+  SelectControl,
+  Button,
+  Card,
+  Feedback,
+  FieldGroup,
+  ItemList,
+} from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 

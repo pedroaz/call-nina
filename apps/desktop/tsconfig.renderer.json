@@ -6,11 +6,7 @@
     "skipLibCheck": true,
     "tsBuildInfoFile": "build/tsconfig.renderer.tsbuildinfo"
   },
-  "include": [
-    "src/renderer/**/*.ts",
-    "src/renderer/**/*.tsx",
-    "src/renderer/**/*.json"
-  ],
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "src/renderer/**/*.json"],
   "references": [
     {
       "path": "../../packages/design-system"

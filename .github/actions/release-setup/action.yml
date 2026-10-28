@@ -1,0 +1,22 @@
+name: Release toolchain
+description: Install the repository-pinned Node and pnpm toolchain
+inputs:
+  dependencies:
+    description: Install the full workspace dependency graph
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version-file: .node-version
+    - name: Install pinned pnpm
+      shell: bash
+      run: npm install --global "$(node -p 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).packageManager')"
+    - name: Validate toolchain
+      shell: bash
+      run: node scripts/diagnostics/check-toolchain.mjs
+    - name: Install workspace
+      if: inputs.dependencies == 'true'
+      shell: bash
+      run: node scripts/build/setup.mjs

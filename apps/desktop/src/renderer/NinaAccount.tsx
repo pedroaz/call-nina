@@ -431,7 +431,13 @@ function AccountForm() {
             )}
           {account.access && (
             <>
-              <p>{t(account.access.hostedAiEnabled ? "ninaAccount.aiEnabled" : "ninaAccount.aiDisabled")}</p>
+              <p>
+                {t(
+                  account.access.hostedAiEnabled
+                    ? "ninaAccount.aiEnabled"
+                    : "ninaAccount.aiDisabled",
+                )}
+              </p>
               <p>{t("ninaAccount.remaining", { count: account.access.remainingActions })}</p>
               {!account.access.inferenceEnabled && <Muted>{t("ninaAccount.pending")}</Muted>}
             </>

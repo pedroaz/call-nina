@@ -17,7 +17,10 @@ export async function topup(sql, userId, actions, grantId) {
       "SELECT user_id,actions FROM nina_starter.allowance_grant WHERE id=$1::uuid",
       [grantId],
     );
-    if (!existing.rows.length) throw new ControlError("Initialize hosted AI access with users enable-ai or users disable-ai before adding actions");
+    if (!existing.rows.length)
+      throw new ControlError(
+        "Initialize hosted AI access with users enable-ai or users disable-ai before adding actions",
+      );
     if (existing.rows[0]?.user_id !== userId || Number(existing.rows[0]?.actions) !== actions)
       throw new ControlError("Grant ID already belongs to a different top-up");
   }

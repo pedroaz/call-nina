@@ -1,11 +1,7 @@
 {
   "requirements": {
-    "identifiers": [
-      "username"
-    ],
-    "authentication": [
-      "password"
-    ],
+    "identifiers": ["username"],
+    "authentication": ["password"],
     "signup": "restricted",
     "nativeApi": true,
     "passwordRecovery": "administrator",
