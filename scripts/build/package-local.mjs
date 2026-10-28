@@ -1,15 +1,29 @@
 import { spawnSync } from "node:child_process";
 import { pnpmCommand } from "../lib/package-command.mjs";
+import { runStage } from "../lib/run-stage.mjs";
 const supported = { linux: ["x64"], darwin: ["x64", "arm64"], win32: ["x64"] };
 if (!supported[process.platform]?.includes(process.arch))
   throw new Error("OD_PLATFORM_UNSUPPORTED");
-for (const file of ["generate-third-party-notices.mjs", "build-mcp-helper.mjs"]) {
-  const child = spawnSync(process.execPath, [`scripts/build/${file}`], { stdio: "inherit" });
+function node(file, ...args) {
+  const child = spawnSync(process.execPath, [`scripts/build/${file}`, ...args], {
+    stdio: "inherit",
+  });
   if (child.error || child.status !== 0) throw new Error("OD_PACKAGE_FAILED");
 }
-for (const args of [
-  ["--filter", "@call-nina/desktop", "run", "build"],
-  [
+function pnpm(args) {
+  const result = spawnSync(...pnpmCommand(args), {
+    stdio: "inherit",
+    env: { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: "false" },
+  });
+  if (result.error || result.status !== 0) throw new Error("OD_PACKAGE_FAILED");
+}
+runStage("Generate third-party notices", () => node("generate-third-party-notices.mjs"));
+runStage("Build desktop and MCP server", () =>
+  pnpm(["--filter", "@call-nina/desktop", "run", "build"]),
+);
+runStage("Stage MCP helper", () => node("build-mcp-helper.mjs", "--skip-build"));
+runStage("Package desktop", () =>
+  pnpm([
     "--dir",
     "apps/desktop",
     "exec",
@@ -21,16 +35,6 @@ for (const args of [
     "--publish",
     "never",
     "--config.directories.output=../../release/local",
-  ],
-]) {
-  const result = spawnSync(...pnpmCommand(args), {
-    stdio: "inherit",
-    env: { ...process.env, CSC_IDENTITY_AUTO_DISCOVERY: "false" },
-  });
-  if (result.error || result.status !== 0) throw new Error("OD_PACKAGE_FAILED");
-}
-const inspection = spawnSync(process.execPath, ["scripts/build/inspect-package.mjs"], {
-  stdio: "inherit",
-  env: process.env,
-});
-if (inspection.error || inspection.status !== 0) throw new Error("OD_PACKAGE_INSPECTION_FAILED");
+  ]),
+);
+runStage("Inspect desktop resources and size", () => node("inspect-package.mjs"));

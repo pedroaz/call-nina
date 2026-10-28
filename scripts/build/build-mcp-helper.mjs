@@ -12,6 +12,15 @@ const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 const defaultOutput = path.join(repositoryRoot, "release", "mcp-helper");
 
 function parseOutput() {
+  const args = process.argv.slice(2);
+  for (let index = 0; index < args.length; index++) {
+    if (args[index] === "--output") {
+      if (!args[++index] || args[index].startsWith("--"))
+        throw new Error("OD_MCP_HELPER_OUTPUT_INVALID");
+    } else if (args[index] !== "--skip-build") {
+      throw new Error("Usage: build-mcp-helper.mjs [--output PATH] [--skip-build]");
+    }
+  }
   const index = process.argv.indexOf("--output");
   const output = index === -1 ? defaultOutput : process.argv[index + 1];
   if (!output || !path.isAbsolute(output) || output.includes("\0")) {
@@ -50,12 +59,14 @@ async function main() {
   await rm(temporary, { recursive: true, force: true });
   await mkdir(path.join(temporary, "server"), { recursive: true, mode: 0o700 });
   try {
-    await execFileAsync(...pnpmCommand(["--filter", "@call-nina/mcp-server", "run", "build"]), {
-      cwd: repositoryRoot,
-      env: process.env,
-      timeout: 120_000,
-      maxBuffer: 4 * 1024 * 1024,
-    });
+    // Packaging builds desktop (and its MCP prerequisite) before staging the helper.
+    if (!process.argv.includes("--skip-build"))
+      await execFileAsync(...pnpmCommand(["--filter", "@call-nina/mcp-server", "run", "build"]), {
+        cwd: repositoryRoot,
+        env: process.env,
+        timeout: 120_000,
+        maxBuffer: 4 * 1024 * 1024,
+      });
     await cp(
       path.join(repositoryRoot, "apps/mcp-server/dist/index.js"),
       path.join(temporary, "server/index.js"),

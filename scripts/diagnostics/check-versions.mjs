@@ -1,27 +1,26 @@
 #!/usr/bin/env node
 
-import { glob, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { parse } from "yaml";
+import { pnpmCommand } from "../lib/package-command.mjs";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
-const workspace = parse(await readFile(path.join(repositoryRoot, "pnpm-workspace.yaml"), "utf8"));
-if (
-  !Array.isArray(workspace.packages) ||
-  !workspace.packages.every((pattern) => typeof pattern === "string" && !pattern.startsWith("!"))
-) {
-  throw new Error("OD_WORKSPACE_PATTERNS_INVALID");
-}
-const discovered = [];
-for await (const manifest of glob(
-  workspace.packages.map((pattern) => `${pattern}/package.json`),
-  { cwd: repositoryRoot },
-)) {
-  discovered.push(manifest);
-}
+// Let pnpm resolve its workspace patterns without installing project dependencies.
+const listing = spawnSync(...pnpmCommand(["list", "--recursive", "--depth", "-1", "--json"]), {
+  cwd: repositoryRoot,
+  encoding: "utf8",
+});
+if (listing.error || listing.status !== 0) throw new Error("OD_WORKSPACE_DISCOVERY_FAILED");
+const discovered = JSON.parse(listing.stdout).map((project) => {
+  const relative = path.relative(repositoryRoot, project.path);
+  if (path.isAbsolute(relative) || relative.split(path.sep).includes(".."))
+    throw new Error("OD_WORKSPACE_PATH_INVALID");
+  return path.join(relative, "package.json");
+});
 const manifests = [
   "package.json",
-  ...new Set(discovered.sort()),
+  ...new Set(discovered.filter((file) => file !== "package.json").sort()),
   "plugins/call-nina/.codex-plugin/plugin.json",
   "apps/mobile/app.json",
 ];

@@ -2,6 +2,7 @@ import { openRepositoryFolder } from "./lib/open-folder.mjs";
 import { spawnSync } from "node:child_process";
 import { childEnvironment } from "./lib/environment.mjs";
 import { pnpmCommand } from "./lib/package-command.mjs";
+import { runStage } from "./lib/run-stage.mjs";
 const root = new URL("../", import.meta.url);
 function run(command, args, environment = childEnvironment()) {
   const child = spawnSync(command, args, {
@@ -10,7 +11,8 @@ function run(command, args, environment = childEnvironment()) {
     env: environment,
   });
   if (child.error) throw new Error(`Cannot start ${command}`);
-  if (child.status !== 0) process.exit(child.status ?? 1);
+  if (child.status !== 0)
+    throw Object.assign(new Error("Command failed"), { exitCode: child.status ?? 1 });
 }
 const node = (file, ...args) => run(process.execPath, [file, ...args]);
 // Only the admin entrypoint may receive operator environment overrides.
@@ -147,7 +149,7 @@ const registry = {
     {
       all: leaf("All static checks", () => {
         for (const name of ["versions", "design-tokens", "format", "types", "lint"])
-          checks[name].execute();
+          runStage(checks[name].description, () => checks[name].execute());
       }),
       ...checks,
     },
@@ -179,11 +181,19 @@ const registry = {
       node("scripts/build/package-local.mjs"),
     ),
     appimage: leaf("Linux AppImage", () => {
-      node("scripts/build/generate-third-party-notices.mjs");
-      node("scripts/build/build-mcp-helper.mjs");
-      build("desktop");
-      pnpm("--filter", "@call-nina/desktop", "run", "package:appimage");
-      node("scripts/build/inspect-package.mjs", "appimage");
+      runStage("Generate third-party notices", () =>
+        node("scripts/build/generate-third-party-notices.mjs"),
+      );
+      runStage("Build desktop and MCP server", () => build("desktop"));
+      runStage("Stage MCP helper", () =>
+        node("scripts/build/build-mcp-helper.mjs", "--skip-build"),
+      );
+      runStage("Package AppImage", () =>
+        pnpm("--filter", "@call-nina/desktop", "run", "package:appimage"),
+      );
+      runStage("Inspect AppImage resources and size", () =>
+        node("scripts/build/inspect-package.mjs", "appimage"),
+      );
     }),
     hosting: leaf("Combined website and API", () => node("scripts/build/package-hosting.mjs")),
     inspect: leaf("Inspect packaging budgets", (args) =>
@@ -298,5 +308,5 @@ try {
   }
 } catch (error) {
   process.stderr.write(`${error.message}\n`);
-  process.exitCode = 1;
+  process.exitCode = error.exitCode ?? 1;
 }
