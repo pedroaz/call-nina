@@ -1,5 +1,6 @@
 import {
   createContext,
+  useContext,
   useCallback,
   useLayoutEffect,
   useRef,
@@ -7,14 +8,32 @@ import {
   type ComponentProps,
   type ReactNode,
 } from "react";
-import { Page } from "../layout/index.js";
+import { ActionGroup, Page } from "../layout/index.js";
 import styles from "./Activity.module.css";
+
+export const ActivityHeaderActionsContext = createContext<ReactNode>(null);
 
 export const ActivityLayoutContext = createContext(false);
 
 /** Route-independent page chrome; feature controllers retain all learning state. */
 export function ActivityWorkspace(props: ComponentProps<typeof Page>) {
-  return <Page {...props} presentation="activity" />;
+  const contextualActions = useContext(ActivityHeaderActionsContext);
+  return (
+    <Page
+      {...props}
+      presentation="activity"
+      actions={
+        contextualActions ? (
+          <ActionGroup>
+            {contextualActions}
+            {props.actions}
+          </ActionGroup>
+        ) : (
+          props.actions
+        )
+      }
+    />
+  );
 }
 
 export function ActivityFrame({

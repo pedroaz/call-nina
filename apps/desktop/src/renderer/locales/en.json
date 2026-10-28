@@ -1117,7 +1117,10 @@
     "learningGoals": "Learning goals",
     "review": "Review",
     "topic": "Topic",
-    "practiceOptions": "Practice options"
+    "practiceOptions": "Practice options",
+    "explanation": "Explanation",
+    "overview": "Overview",
+    "back": "Back"
   },
   "suggestions": {
     "title": "Practice next",

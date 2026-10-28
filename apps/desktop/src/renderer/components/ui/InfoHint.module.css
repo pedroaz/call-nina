@@ -34,3 +34,15 @@
   overflow: hidden;
   clip-path: inset(50%);
 }
+
+.utilityContent {
+  display: grid;
+  gap: var(--od-space-4);
+  margin-bottom: var(--od-space-4);
+}
+
+.utilityTrigger {
+  justify-self: start;
+  max-width: 100%;
+  text-align: start;
+}

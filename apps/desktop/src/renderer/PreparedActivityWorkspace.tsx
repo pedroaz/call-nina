@@ -237,7 +237,7 @@ export function PreparedActivityWorkspace({
             )}
             <div className={styles.voiceSupport}>
               {!activity.context.learningPath && (
-                <Disclosure density="compact" label={t("lessonStudio.activityDetails")}>
+                <div>
                   <p>
                     {voice.targetLevel.toUpperCase()} ·{" "}
                     {t(`${base}.difficultyOptions.${voice.difficulty}`)} ·{" "}
@@ -245,7 +245,7 @@ export function PreparedActivityWorkspace({
                     {voiceKind === "speaking" &&
                       ` · ${t(`practice.paceOptions.${voice.speakingPace ?? "normal"}`)}`}
                   </p>
-                </Disclosure>
+                </div>
               )}
               {voice.script && (
                 <Disclosure density="compact" label={t("lessonStudio.transcript")}>
@@ -257,7 +257,7 @@ export function PreparedActivityWorkspace({
                   </p>
                 </Disclosure>
               )}
-              <Disclosure density="compact" label={t(`${base}.guidance`)}>
+              <Disclosure variant="inline" label={t(`${base}.guidance`)}>
                 <ItemList>
                   {voice.answerGuidance.map((guidance) => (
                     <li key={guidance}>{guidance}</li>

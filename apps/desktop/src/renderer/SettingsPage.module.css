@@ -122,6 +122,7 @@
   margin: 0;
 }
 .ninaAccountIntro h2 {
+  font-family: var(--od-font-family-editorial);
   font-size: var(--od-type-section-title-size);
   line-height: var(--od-type-section-title-line);
   font-weight: var(--od-font-weight-semibold);

@@ -58,12 +58,10 @@ export function PracticeSuggestionCard({
       }
     >
       <h3>{suggestion.title}</h3>
-      <Disclosure label={t("suggestions.fullPrompt")}>
-        <Muted as="p">
-          {recommended
-            ? t("suggestions.recommended")
-            : t(`suggestions.sources.${suggestion.source}`)}
-        </Muted>
+      <Muted as="p">
+        {recommended ? t("suggestions.recommended") : t(`suggestions.sources.${suggestion.source}`)}
+      </Muted>
+      <Disclosure variant="inline" label={t("suggestions.fullPrompt")}>
         <p>{suggestion.naturalRequest}</p>
         <Muted as="p">{suggestion.rationale}</Muted>
       </Disclosure>

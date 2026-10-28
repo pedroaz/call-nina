@@ -14,10 +14,21 @@ const directory = new URL("../../packages/design-system/styles/", import.meta.ur
 const target = new URL("tokens.css", directory);
 const noticesTarget = new URL("../assets/fonts/font-notices.json", directory);
 const fontsDirectory = new URL("../assets/fonts/", directory);
-const noticeNames = ["Fredoka", "Figtree", "JetBrainsMono", "NotoSansMono"];
+const noticeNames = [
+  "Fredoka",
+  "Figtree",
+  "JetBrainsMono",
+  "NotoSansMono",
+  "SourceSans3",
+  "SourceSerif4",
+];
 const notices = await Promise.all(
   noticeNames.map(async (name) => ({
-    name: name.replace("JetBrainsMono", "JetBrains Mono").replace("NotoSansMono", "Noto Sans Mono"),
+    name: name
+      .replace("JetBrainsMono", "JetBrains Mono")
+      .replace("NotoSansMono", "Noto Sans Mono")
+      .replace("SourceSans3", "Source Sans 3")
+      .replace("SourceSerif4", "Source Serif 4"),
     text: await readFile(new URL(`OFL-${name}.txt`, fontsDirectory), "utf8"),
   })),
 );

@@ -240,8 +240,8 @@ export function ContextualHelper({
                     <h3>{t("helper.miniExercises")}</h3>
                     {turn.output.miniExercises.map((exercise) => (
                       <Disclosure
+                        variant="inline"
                         key={exercise.prompt}
-                        variant="plain"
                         label={<> {exercise.prompt} </>}
                       >
                         <p>{exercise.suggestedAnswer}</p>

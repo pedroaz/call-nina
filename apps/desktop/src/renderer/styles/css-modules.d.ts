@@ -118,6 +118,7 @@ declare module "*CorrectionComparison.module.css" {
     readonly eyebrow: string;
     readonly inlineCorrection: string;
     readonly noChanges: string;
+    readonly reviewBody: string;
     readonly warningText: string;
   };
   export default styles;
@@ -204,6 +205,8 @@ declare module "*InfoHint.module.css" {
     readonly hidden: string;
     readonly popover: string;
     readonly trigger: string;
+    readonly utilityContent: string;
+    readonly utilityTrigger: string;
   };
   export default styles;
 }

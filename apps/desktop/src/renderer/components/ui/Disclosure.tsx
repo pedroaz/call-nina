@@ -1,4 +1,4 @@
-import type { ComponentPropsWithRef, ReactNode } from "react";
+import { useState, type ComponentPropsWithRef, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import styles from "./Disclosure.module.css";
 
@@ -7,6 +7,9 @@ export function Disclosure({
   children,
   className,
   defaultOpen,
+  open,
+  onOpenChange,
+  onToggle,
   variant = "divided",
   density = "comfortable",
   ...props
@@ -14,18 +17,32 @@ export function Disclosure({
   label: ReactNode;
   children: ReactNode;
   defaultOpen?: boolean;
-  variant?: "plain" | "divided";
+  onOpenChange?: (open: boolean) => void;
+  variant?: "plain" | "divided" | "inline";
   density?: "compact" | "comfortable";
 }) {
+  const [expanded, setExpanded] = useState(defaultOpen ?? false);
   return (
     <details
-      {...(defaultOpen === undefined ? {} : { open: defaultOpen })}
+      open={open ?? expanded}
+      onToggle={(event) => {
+        if (open === undefined) setExpanded(event.currentTarget.open);
+        onToggle?.(event);
+        if (event.currentTarget.open !== open) onOpenChange?.(event.currentTarget.open);
+      }}
       {...props}
       data-variant={variant}
       data-density={density}
       className={`${styles.disclosure} ${className ?? ""}`}
     >
-      <summary>
+      <summary
+        onClick={(event) => {
+          if (open !== undefined) {
+            event.preventDefault();
+            onOpenChange?.(!open);
+          }
+        }}
+      >
         <ChevronRight className={styles.chevron} aria-hidden="true" />
         <span className={styles.label}>{label}</span>
       </summary>

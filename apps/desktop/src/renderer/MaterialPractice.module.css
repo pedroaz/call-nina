@@ -7,7 +7,8 @@
 .source {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-family: var(--od-font-family-body);
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
   line-height: var(--od-line-normal);
 }
 

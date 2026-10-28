@@ -1,6 +1,6 @@
 .correctionReady {
   background: transparent;
-  border-inline-start: var(--od-border-outlined) solid var(--od-color-state-correct);
+  border-top: var(--od-border-thin) solid var(--od-color-state-correct);
   display: grid;
   gap: var(--od-space-3);
   padding: var(--od-space-5);
@@ -73,7 +73,7 @@
 .correctionHelper,
 .noChanges {
   background: var(--od-color-surface-card);
-  border-inline-start: var(--od-border-outlined) solid var(--od-color-brand);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   display: grid;
   gap: var(--od-space-3);
@@ -144,4 +144,10 @@
   .correctionMistakes {
     grid-template-columns: 1fr;
   }
+}
+
+.reviewBody {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
 }

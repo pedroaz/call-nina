@@ -17,6 +17,7 @@ import {
   DiagnosticCode,
   Button,
   Disclosure,
+  ModalDialog,
   ConfirmDialog,
   EmptyState,
   Feedback,
@@ -84,14 +85,17 @@ function exerciseAnswerText(detail: Extract<Entry["detail"], { kind: "exercise-a
 export function HistoryPage({
   onPracticeAgain,
   initialHistoryEntryIds,
+  onReturn,
   requestAiAccess,
 }: {
+  onReturn?: (() => void) | undefined;
   onPracticeAgain: (seed: HistoryPracticeSeed) => void;
   initialHistoryEntryIds?: NonNullable<HistoryPayload["historyEntryIds"]>;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
 }) {
   const { i18n, t } = useTranslation();
   const progress = useOperationProgress();
+  const [detail, setDetail] = useState<string>();
   const [entryIds, setEntryIds] = useState(initialHistoryEntryIds);
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [skill, setSkill] = useState<Skill | "">("");
@@ -234,6 +238,7 @@ export function HistoryPage({
     setError(undefined);
     try {
       await invokeDesktop("history/delete", { historyEntryId: entry.historyEntryId });
+      if (detail === entry.historyEntryId) setDetail(undefined);
       setSnapshot((current) =>
         current
           ? {
@@ -348,124 +353,8 @@ export function HistoryPage({
     );
   };
 
-  return (
-    <Page
-      refresh={{ onRefresh: refresh, busy: busy }}
-      className={styles.page}
-
-      title={t("history.title")}
-      aria-busy={busy}
-      data-history-ready={Boolean(snapshot && !busy && !error)}
-      data-root-generation={snapshot?.rootGeneration}
-    >
-      {entryIds && (
-        <Button
-          variant="primary"
-          onPress={() => {
-            setEntryIds(undefined);
-          }}
-        >
-          {t("learningPath.allHistory")}
-        </Button>
-      )}
-      <FilterBar
-        as="form"
-        columns={3}
-        label={t("history.title")}
-        onSubmit={(event) => {
-          event.preventDefault();
-          applyFilters();
-        }}
-      >
-        <FieldGroup>
-          {t("history.filters.skill")}
-          <SelectControl
-            ref={skillFilter}
-            value={skill}
-            onChange={(event) => {
-              setSkill(event.target.value as Skill | "");
-            }}
-          >
-            <option value="">{t("history.filters.all")}</option>
-            {skills.map((value) => (
-              <option key={value} value={value}>
-                {t(`history.skills.${value}`)}
-              </option>
-            ))}
-          </SelectControl>
-        </FieldGroup>
-        <FieldGroup>
-          {t("history.filters.activityType")}
-          <SelectControl
-            value={activityType}
-            onChange={(event) => {
-              setActivityType(event.target.value as ActivityType | "");
-            }}
-          >
-            <option value="">{t("history.filters.all")}</option>
-            {activityTypes.map((value) => (
-              <option key={value} value={value}>
-                {t(`history.activityTypes.${value}`)}
-              </option>
-            ))}
-          </SelectControl>
-        </FieldGroup>
-        <ActionGroup>
-          <Button variant="secondary" isDisabled={busy} type="submit">
-            {t("history.filters.apply")}
-          </Button>
-          {hasFilters && (
-            <Button variant="quiet" isDisabled={busy} onPress={clearFilters}>
-              {t("vocabulary.flow.clearFilters")}
-            </Button>
-          )}
-        </ActionGroup>
-        <Disclosure className={styles.advancedFilters} label={t("ui.moreFilters")}>
-          <div className={styles.advancedGrid}>
-            <FieldGroup>
-              {t("history.filters.from")}
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(event) => {
-                  setFromDate(event.target.value);
-                }}
-              />
-            </FieldGroup>
-            <FieldGroup>
-              {t("history.filters.to")}
-              <input
-                type="date"
-                value={toDate}
-                onChange={(event) => {
-                  setToDate(event.target.value);
-                }}
-              />
-            </FieldGroup>
-            <FieldGroup>
-              {t("history.filters.topic")}
-              <input
-                maxLength={96}
-                value={curriculumTopicId}
-                onChange={(event) => {
-                  setCurriculumTopicId(event.target.value);
-                }}
-              />
-            </FieldGroup>
-            <FieldGroup>
-              {t("history.filters.mistake")}
-              <input
-                maxLength={120}
-                value={mistakeCategory}
-                onChange={(event) => {
-                  setMistakeCategory(event.target.value);
-                }}
-              />
-            </FieldGroup>
-          </div>
-        </Disclosure>
-      </FilterBar>
-
+  const operationStatus = (
+    <>
       <OperationProgress
         progress={
           practiceState?.status === "queued" || practiceState?.status === "running"
@@ -482,85 +371,264 @@ export function HistoryPage({
           </DiagnosticCode>
         </Feedback>
       )}
+    </>
+  );
+
+  return (
+    <Page
+      refresh={{ onRefresh: refresh, busy: busy }}
+      className={styles.page}
+
+      title={t("history.title")}
+      aria-busy={busy}
+      data-history-ready={Boolean(snapshot && !busy && !error)}
+      data-root-generation={snapshot?.rootGeneration}
+    >
+      <div>
+        {onReturn && (
+          <Button variant="quiet" onPress={onReturn}>
+            {t("pathFlow.backLesson")}
+          </Button>
+        )}
+        {entryIds && (
+          <Button
+            variant="primary"
+            onPress={() => {
+              setEntryIds(undefined);
+            }}
+          >
+            {t("learningPath.allHistory")}
+          </Button>
+        )}
+        <FilterBar
+          as="form"
+          columns={3}
+          label={t("history.title")}
+          onSubmit={(event) => {
+            event.preventDefault();
+            applyFilters();
+          }}
+        >
+          <FieldGroup>
+            {t("history.filters.skill")}
+            <SelectControl
+              ref={skillFilter}
+              value={skill}
+              onChange={(event) => {
+                setSkill(event.target.value as Skill | "");
+              }}
+            >
+              <option value="">{t("history.filters.all")}</option>
+              {skills.map((value) => (
+                <option key={value} value={value}>
+                  {t(`history.skills.${value}`)}
+                </option>
+              ))}
+            </SelectControl>
+          </FieldGroup>
+          <FieldGroup>
+            {t("history.filters.activityType")}
+            <SelectControl
+              value={activityType}
+              onChange={(event) => {
+                setActivityType(event.target.value as ActivityType | "");
+              }}
+            >
+              <option value="">{t("history.filters.all")}</option>
+              {activityTypes.map((value) => (
+                <option key={value} value={value}>
+                  {t(`history.activityTypes.${value}`)}
+                </option>
+              ))}
+            </SelectControl>
+          </FieldGroup>
+          <ActionGroup>
+            <Button variant="secondary" isDisabled={busy} type="submit">
+              {t("history.filters.apply")}
+            </Button>
+            {hasFilters && (
+              <Button variant="quiet" isDisabled={busy} onPress={clearFilters}>
+                {t("vocabulary.flow.clearFilters")}
+              </Button>
+            )}
+          </ActionGroup>
+          <Disclosure
+            className={styles.advancedFilters}
+            label={
+              <>
+                {t("ui.moreFilters")}
+                {[
+                  appliedFilters.fromDate,
+                  appliedFilters.toDate,
+                  appliedFilters.curriculumTopicId,
+                  appliedFilters.mistakeCategory,
+                ].filter(Boolean).length > 0 && (
+                  <span>
+                    {" "}
+                    ·{" "}
+                    {[
+                      appliedFilters.fromDate &&
+                        `${t("history.filters.from")}: ${appliedFilters.fromDate}`,
+                      appliedFilters.toDate &&
+                        `${t("history.filters.to")}: ${appliedFilters.toDate}`,
+                      appliedFilters.curriculumTopicId &&
+                        `${t("history.filters.topic")}: ${appliedFilters.curriculumTopicId}`,
+                      appliedFilters.mistakeCategory &&
+                        `${t("history.filters.mistake")}: ${appliedFilters.mistakeCategory}`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                )}
+              </>
+            }
+          >
+            <div className={styles.advancedGrid}>
+              <FieldGroup>
+                {t("history.filters.from")}
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(event) => {
+                    setFromDate(event.target.value);
+                  }}
+                />
+              </FieldGroup>
+              <FieldGroup>
+                {t("history.filters.to")}
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(event) => {
+                    setToDate(event.target.value);
+                  }}
+                />
+              </FieldGroup>
+              <FieldGroup>
+                {t("history.filters.topic")}
+                <input
+                  maxLength={96}
+                  value={curriculumTopicId}
+                  onChange={(event) => {
+                    setCurriculumTopicId(event.target.value);
+                  }}
+                />
+              </FieldGroup>
+              <FieldGroup>
+                {t("history.filters.mistake")}
+                <input
+                  maxLength={120}
+                  value={mistakeCategory}
+                  onChange={(event) => {
+                    setMistakeCategory(event.target.value);
+                  }}
+                />
+              </FieldGroup>
+            </div>
+          </Disclosure>
+        </FilterBar>
+      </div>
+
+      {!detail && operationStatus}
 
       {snapshot && snapshot.mistakePatterns.length > 0 ? (
-        <Disclosure label={t("history.patterns.title")}>
-          <div className={styles.historyMistakeGrid}>
-            {snapshot.mistakePatterns.map((pattern) => {
-              const categoryLabel =
-                pattern.category.kind === "vocabulary"
-                  ? `${pattern.category.lemma} · ${pattern.category.categoryKey}`
-                  : pattern.category.categoryKey;
-              return (
-                <Card as="article" key={`${pattern.category.kind}:${pattern.category.categoryKey}`}>
-                  <p className={styles.eyebrow}>
-                    {t(`history.patterns.category.${pattern.category.kind}`)}
-                  </p>
-                  <h3>{categoryLabel}</h3>
-                  <Feedback live="off" tone={pattern.status === "recurring" ? "warning" : "info"}>
-                    {pattern.status === "recurring"
-                      ? t("history.patterns.recurring", { count: pattern.occurrenceCount })
-                      : t("history.patterns.single")}
-                  </Feedback>
-                  <Muted as="p">
-                    {t(`history.patterns.source.${pattern.classificationSource}`)}
-                  </Muted>
-                  {pattern.targetedPractice.status === "created" ||
-                  (practiceState?.patternKey ===
-                    `${pattern.category.kind}:${pattern.category.categoryKey}` &&
-                    practiceState.status === "created") ? (
-                    <Feedback live="off" tone="success">
-                      {t("history.patterns.practice.created")}
-                    </Feedback>
-                  ) : practiceState?.patternKey ===
-                      `${pattern.category.kind}:${pattern.category.categoryKey}` &&
-                    (practiceState.status === "queued" || practiceState.status === "running") ? (
-                    <ActionGroup>
-                      <Feedback live="off">
-                        {t(`history.patterns.practice.${practiceState.status}`)}
-                      </Feedback>
-                    </ActionGroup>
-                  ) : (
-                    <ActionGroup>
-                      <Button
-                        variant="primary"
-                        onPress={() => void createTargetedPractice(pattern)}
-                      >
-                        <Sparkles aria-hidden="true" /> {t("history.patterns.practice.create")}
-                      </Button>
-                      {practiceState?.patternKey ===
-                        `${pattern.category.kind}:${pattern.category.categoryKey}` &&
-                      (practiceState.status === "cancelled" ||
-                        practiceState.status === "failed") ? (
-                        <Muted as="span">
-                          {t(`history.patterns.practice.${practiceState.status}`)}
-                        </Muted>
-                      ) : null}
-                    </ActionGroup>
-                  )}
-                  <ol className={styles.historyEvidenceList}>
-                    {pattern.occurrences.map((occurrence, position) => (
-                      <li
-                        key={`${occurrence.mistakeId}:${occurrence.observedOn}:${String(position)}`}
-                      >
-                        <time dateTime={occurrence.observedOn}>{occurrence.observedOn}</time>
-                        <blockquote>
-                          {occurrence.evidence.beforeContext}
-                          <mark>{occurrence.evidence.evidenceText}</mark>
-                          {occurrence.evidence.afterContext}
-                        </blockquote>
-                        <p>{occurrence.explanation}</p>
-                        {occurrence.classificationSource === "learner-amended" ? (
-                          <Muted as="span">{t("history.patterns.amendedEvidence")}</Muted>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ol>
-                </Card>
-              );
-            })}
+        <>
+          <div>
+            <Button variant="quiet" onPress={() => setDetail("patterns")}>
+              {t("history.patterns.title")} · {snapshot.mistakePatterns.length}
+            </Button>
           </div>
-        </Disclosure>
+          <ModalDialog
+            keepMounted
+            isOpen={detail === "patterns"}
+            onOpenChange={(open) => {
+              if (!open) setDetail(undefined);
+            }}
+            size="large"
+            title={t("history.patterns.title")}
+            closeLabel={t("actions.close")}
+          >
+            {operationStatus}
+            <div className={styles.historyMistakeGrid}>
+              {snapshot.mistakePatterns.map((pattern) => {
+                const categoryLabel =
+                  pattern.category.kind === "vocabulary"
+                    ? `${pattern.category.lemma} · ${pattern.category.categoryKey}`
+                    : pattern.category.categoryKey;
+                return (
+                  <Card
+                    as="article"
+                    key={`${pattern.category.kind}:${pattern.category.categoryKey}`}
+                  >
+                    <p className={styles.eyebrow}>
+                      {t(`history.patterns.category.${pattern.category.kind}`)}
+                    </p>
+                    <h3>{categoryLabel}</h3>
+                    <Feedback live="off" tone={pattern.status === "recurring" ? "warning" : "info"}>
+                      {pattern.status === "recurring"
+                        ? t("history.patterns.recurring", { count: pattern.occurrenceCount })
+                        : t("history.patterns.single")}
+                    </Feedback>
+                    <Muted as="p">
+                      {t(`history.patterns.source.${pattern.classificationSource}`)}
+                    </Muted>
+                    {pattern.targetedPractice.status === "created" ||
+                    (practiceState?.patternKey ===
+                      `${pattern.category.kind}:${pattern.category.categoryKey}` &&
+                      practiceState.status === "created") ? (
+                      <Feedback live="off" tone="success">
+                        {t("history.patterns.practice.created")}
+                      </Feedback>
+                    ) : practiceState?.patternKey ===
+                        `${pattern.category.kind}:${pattern.category.categoryKey}` &&
+                      (practiceState.status === "queued" || practiceState.status === "running") ? (
+                      <ActionGroup>
+                        <Feedback live="off">
+                          {t(`history.patterns.practice.${practiceState.status}`)}
+                        </Feedback>
+                      </ActionGroup>
+                    ) : (
+                      <ActionGroup>
+                        <Button
+                          variant="primary"
+                          onPress={() => void createTargetedPractice(pattern)}
+                        >
+                          <Sparkles aria-hidden="true" /> {t("history.patterns.practice.create")}
+                        </Button>
+                        {practiceState?.patternKey ===
+                          `${pattern.category.kind}:${pattern.category.categoryKey}` &&
+                        (practiceState.status === "cancelled" ||
+                          practiceState.status === "failed") ? (
+                          <Muted as="span">
+                            {t(`history.patterns.practice.${practiceState.status}`)}
+                          </Muted>
+                        ) : null}
+                      </ActionGroup>
+                    )}
+                    <ol className={styles.historyEvidenceList}>
+                      {pattern.occurrences.map((occurrence, position) => (
+                        <li
+                          key={`${occurrence.mistakeId}:${occurrence.observedOn}:${String(position)}`}
+                        >
+                          <time dateTime={occurrence.observedOn}>{occurrence.observedOn}</time>
+                          <blockquote>
+                            {occurrence.evidence.beforeContext}
+                            <mark>{occurrence.evidence.evidenceText}</mark>
+                            {occurrence.evidence.afterContext}
+                          </blockquote>
+                          <p>{occurrence.explanation}</p>
+                          {occurrence.classificationSource === "learner-amended" ? (
+                            <Muted as="span">{t("history.patterns.amendedEvidence")}</Muted>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
+                  </Card>
+                );
+              })}
+            </div>
+          </ModalDialog>
+        </>
       ) : null}
 
       {snapshot && snapshot.entries.length === 0 ? (
@@ -572,7 +640,6 @@ export function HistoryPage({
       <div className={styles.historyList}>
         {snapshot?.entries.map((entry) => (
           <ContentRow
-            variant="bordered"
             key={entry.historyEntryId}
             data-history-entry-id={entry.historyEntryId}
             data-history-vocabulary-id={
@@ -603,15 +670,36 @@ export function HistoryPage({
             {entry.evidence && (
               <Muted as="p">{t(`history.evidenceBasis.${entry.evidence.basis}`)}</Muted>
             )}
-            <Disclosure
-              label={t("ui.details")}
-              hidden={
+            <div>
+              {!(
                 entry.detail.kind === "reference" &&
                 entry.entityKind !== "vocabulary-review" &&
                 entry.curriculumTopicIds.length === 0 &&
                 entry.mistakeCategories.length === 0
-              }
+              ) && (
+                <Button variant="quiet" onPress={() => setDetail(entry.historyEntryId)}>
+                  {t("ui.details")}
+                </Button>
+              )}
+            </div>
+            <ModalDialog
+              keepMounted
+              isOpen={detail === entry.historyEntryId}
+              onOpenChange={(open) => {
+                if (!open) setDetail(undefined);
+              }}
+              size="large"
+              title={entry.title}
+              closeLabel={t("actions.close")}
             >
+              {operationStatus}
+              <Muted as="p">
+                {t(`history.activityTypes.${entry.activityType}`)} ·{" "}
+                {dateFormatter.format(new Date(entry.occurredAt))}
+              </Muted>
+              {entry.evidence && (
+                <Muted as="p">{t(`history.evidenceBasis.${entry.evidence.basis}`)}</Muted>
+              )}
               {entry.curriculumTopicIds.length > 0 && (
                 <Muted as="p">
                   {t("history.topics")}: {entry.curriculumTopicIds.join(", ")}
@@ -991,7 +1079,7 @@ export function HistoryPage({
                   trigger={t("history.delete")}
                 />
               ) : null}
-            </Disclosure>
+            </ModalDialog>
           </ContentRow>
         ))}
       </div>

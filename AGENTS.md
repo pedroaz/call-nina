@@ -4,13 +4,13 @@ Local-first language learning: Electron/React desktop, validated preload/IPC, SQ
 
 ## Working boundaries
 
-- Work directly with the user as one agent using their selected model and effort; delegate only when asked. Inspect branch, worktrees, and tracked/untracked changes before editing. Preserve concurrent work and learner data.
+- Work directly with the user as one agent using their selected model and effort; delegate only when asked. Inspect branch, worktrees, and tracked/untracked changes before editing. Preserve concurrent source work; development app data is disposable for verification.
 - Implement requested scope and necessary small fixes; report unrelated findings. Keep delivery local unless the user requests commits, pushes, issues, PRs, merges, deployment, or release. One action does not authorize the others.
 - Do not add unsolicited explanatory, reassurance, implementation, or diagnostic text to the app. Add such UI copy only when the user explicitly requests it; otherwise use credential-free logs. Keep requested controls and essential status/error feedback concise.
 - No automated application tests, fixtures, mocks, saved journeys, or regression suites. Verify real behavior interactively unless the user explicitly takes ownership of verification; in that case leave checks to them and report unverified behavior. Run `make check` only when static verification is requested or preparing/updating a PR. Independent review is optional.
 - Keep hosted CI/CD and automatic deployments disabled unless explicitly authorized. Keep learner content, credentials, raw protocols, and private paths out of logs and Git.
-- Do not stop user-owned processes. A running verification session does not block source edits; prior observations apply only to the source/build they inspected. Controlled sessions must preserve exact ownership and learner data; use the verification skills.
-- Keep durable technical guidance in skills, legal notices in `docs/`, and curriculum product data in `content/curriculum/`. Do not add parallel manuals or progress files. The explicitly requested root `missing_features.md` is a temporary planning artifact, not standing implementation authority.
+- Test directly in the running development app by default; no separate owned session, reservation or additional permission is required. Agents may change settings, run AI, create/edit/delete existing user data, reset development app state, and stop/restart the development app as needed for the task. Restoration of development data/settings is optional unless requested. Identify the correct app, data root and processes first; this authorization excludes production/hosted data, unrelated applications and concurrent source work. A running app does not block source edits; observations apply only to the source/build inspected. Use the verification skills for tool-specific workflows.
+- Keep durable technical guidance in skills, legal notices in `docs/`, and curriculum product data in `content/curriculum/`. Do not add parallel manuals or progress files.
 
 ## Skill routing
 

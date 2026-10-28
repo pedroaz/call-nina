@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { Bot, Plus, SlidersHorizontal, Settings2, Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type {
@@ -55,7 +56,9 @@ export function ConnectionSettings({
   onPendingChange,
   authHelp,
   chatgptAccess,
+  feedbackTarget,
 }: {
+  feedbackTarget?: HTMLElement | null;
   active: boolean;
   disabled?: boolean;
   surface?: boolean;
@@ -857,12 +860,28 @@ export function ConnectionSettings({
       {view && view.settings.retiredSecretRefs.length > 0 && (
         <p>{t("connections.cleanupPending")}</p>
       )}
-      {error && (
-        <Feedback tone="error" live="assertive">
-          {t(error)}
-        </Feedback>
+      {feedbackTarget ? (
+        createPortal(
+          <>
+            {error && (
+              <Feedback tone="error" live="assertive">
+                {t(error)}
+              </Feedback>
+            )}
+            {notice && <Feedback live="polite">{notice}</Feedback>}{" "}
+          </>,
+          feedbackTarget,
+        )
+      ) : (
+        <>
+          {error && (
+            <Feedback tone="error" live="assertive">
+              {t(error)}
+            </Feedback>
+          )}
+          {notice && <Feedback live="polite">{notice}</Feedback>}{" "}
+        </>
       )}
-      {notice && <Feedback live="polite">{notice}</Feedback>}
     </div>
   );
 }

@@ -27,8 +27,9 @@
   margin: 0;
 }
 .content :is(h2, h3) {
-  font-size: var(--od-font-size-md);
-  line-height: var(--od-type-body-line);
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
 }
 .metadata {
   color: var(--od-color-text-muted);

@@ -48,7 +48,7 @@
 }
 .generatedActivityList {
   display: grid;
-  gap: var(--od-space-4);
+  gap: 0;
 }
 .generatedActivityOpen {
   width: 100%;
@@ -63,7 +63,9 @@
   min-width: 0;
 }
 .generatedActivityCopy strong {
-  font-size: var(--od-font-size-md);
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
   font-weight: var(--od-weight-medium);
 }
 .generatedActivityCopy span {
@@ -130,6 +132,7 @@
   align-items: center;
 }
 .readingPassage {
+  font-family: var(--od-font-family-editorial);
   white-space: pre-wrap;
   font-size: var(--od-type-body-large-size);
   line-height: var(--od-type-body-large-line);
@@ -173,9 +176,8 @@
   display: flex;
   align-items: baseline;
   gap: var(--od-space-3);
-  padding: var(--od-space-4);
-  background: var(--od-color-surface-brand);
-  border-radius: var(--od-radius-md);
+  padding-block: var(--od-space-4);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .voiceQuestions li > span {
   flex: none;

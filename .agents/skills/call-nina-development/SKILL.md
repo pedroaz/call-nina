@@ -5,7 +5,7 @@ description: Develop and maintain Call Nina, including repository workflow, pack
 
 # Call Nina development
 
-Work directly with the user as one agent. Read root and scoped `AGENTS.md`, inspect branch, worktrees and tracked/untracked status, and preserve concurrent work and learner data. A chat request or optional ticket supplies scope; no task status or external execution record is required. Use the user's model selection and ordinary Git isolation when useful. Current code and runtime observations establish implemented behavior.
+Work directly with the user as one agent. Read root and scoped `AGENTS.md`, inspect branch, worktrees and tracked/untracked status, and preserve concurrent source work. Development app data is disposable under root `AGENTS.md`. A chat request or optional ticket supplies scope; no task status or external execution record is required. Use the user's model selection and ordinary Git isolation when useful. Current code and runtime observations establish implemented behavior.
 
 ## Find the owner
 
@@ -34,15 +34,15 @@ Paths below are relative to the repository root. Follow imports and callers rath
 
 ## Work and verify
 
-Use documented Make commands and inspect the owning implementation. Diagnose bugs from bounded redacted logs, using `make logs`; resolve exact process ownership before stopping anything. Keep learner content and credentials out of logs.
+Use documented Make commands and inspect the owning implementation. Diagnose bugs from bounded redacted logs, using `make logs`; identify the exact development app processes before stopping or restarting them. Existing user-started development processes may be restarted as needed. Keep learner content and credentials out of logs.
 
 Make the requested changes and necessary fixes, review the diff, and report actual results. No automated application tests or saved journeys. Run `make check` only when static checks are requested or preparing/updating a PR. Independent review is optional. Commit, push, publish issues, create PRs and merge only when specifically requested. Use authenticated `gh` for GitHub work, Conventional Commit titles and genuine optional issue references. Issues/Projects are optional; preserve their relationships and history. Report unrelated findings in chat.
 
-When the user explicitly owns verification, do not run app sessions or checks on their behalf; report implementation separately from unverified acceptance. Otherwise verify behavior through the [Electron skill](../call-nina-electron-verification/SKILL.md) or [Android skill](../call-nina-android-verification/SKILL.md). Use ordinary app startup and available native UI tools for inspection; the Electron skill also supports the repository’s owned Playwright controller when native UI tools are unavailable. AI verification uses the real direct ChatGPT connection with GPT-6 Luna at runtime-default effort, without model substitution; only the hosted API and administration skill defines the explicitly scoped starter-pilot exception. Preserve settings and records during interactive checks; report any unfinished cleanup. Do not stop a user-owned app without authorization.
+When the user explicitly owns verification, do not run app sessions or checks on their behalf; report implementation separately from unverified acceptance. Otherwise verify behavior through the [Electron skill](../call-nina-electron-verification/SKILL.md) or [Android skill](../call-nina-android-verification/SKILL.md). Prefer the already-running development app for both inspection and interactive behavior checks. No separate owned session or reservation is required. Use available UI tools; the Electron skill also documents the optional repository Playwright controller and its tool-specific requirements. AI verification uses the real direct ChatGPT connection with GPT-6 Luna at runtime-default effort, without model substitution; only the hosted API and administration skill defines the explicitly scoped starter-pilot exception. Existing development records and settings may be changed or removed as needed, without additional permission or mandatory restoration. Development app restarts are authorized; report material resets or data changes.
 
 Exploration and major refactors may batch behavior verification until integration. Report known breakage and deferred checks; do not launch or restore incomplete functionality after each edit solely to verify it. Perform consolidated interactive verification before claiming affected behavior works. Keep hosted CI/CD and automatic deployments disabled unless explicitly authorized.
 
-Use the [UI skill](../call-nina-desktop-ui/SKILL.md) for renderer changes. No change in workflow waives validated boundaries, data preservation or cleanup ownership.
+Use the [UI skill](../call-nina-desktop-ui/SKILL.md) for renderer changes. Development verification permissions do not change product data-preservation requirements or validated application boundaries.
 
 Keep skills concise: change a skill when a durable decision or workflow changes. Put each decision in one owning skill and link to it rather than repeating it. Do not add reference manuals, implementation summaries, runbooks or progress files. Put runtime details in their owning code. Legal notices and authored curriculum remain product files in `docs/` and `content/curriculum/`.
 

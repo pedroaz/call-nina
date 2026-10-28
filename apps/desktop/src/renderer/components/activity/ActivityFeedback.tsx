@@ -14,7 +14,7 @@ export function ActivityFeedback({
     <div className={styles.feedback}>
       <Feedback {...props}>{children}</Feedback>
       {details && detailsLabel && (
-        <Disclosure density="compact" label={detailsLabel}>
+        <Disclosure variant="inline" density="compact" label={detailsLabel}>
           {details}
         </Disclosure>
       )}

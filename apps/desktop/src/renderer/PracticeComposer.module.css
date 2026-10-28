@@ -15,9 +15,7 @@
   width: var(--od-icon-container);
   height: var(--od-icon-container);
   flex: none;
-  border-radius: var(--od-radius-md);
-  background: var(--od-color-surface-brand);
-  color: var(--od-color-brand-ink);
+  color: var(--od-color-text-muted);
 }
 .activityVisual svg {
   width: var(--od-icon-activity);

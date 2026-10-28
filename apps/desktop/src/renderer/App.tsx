@@ -15,7 +15,14 @@ import {
 } from "@call-nina/contracts";
 import { Gauge, History, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, Feedback, LoadingState, ModalDialog } from "./components/ui/index.js";
+import {
+  Button,
+  Card,
+  Feedback,
+  LoadingState,
+  ModalDialog,
+  useDetailNavigation,
+} from "./components/ui/index.js";
 import { ActionGroup, AppShell as ApplicationShell, Page } from "./components/layout/index.js";
 
 import styles from "./Startup.module.css";
@@ -144,6 +151,7 @@ function DesktopWorkspace({
       >
     >();
   const [page, setPage] = useState<Page>(initialPage);
+  const pathHistory = useDetailNavigation<"history">();
   const [writingOrigin, setWritingOrigin] = useState<Page>("practice");
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
@@ -380,6 +388,7 @@ function DesktopWorkspace({
 
   const applyNavigation = (target: Page | NavigationTarget) => {
     const destination = typeof target === "string" ? target : target.destination;
+    if (pathHistory.view) pathHistory.back();
     if (destination === "history") setHistoryEntryIds(undefined);
     if (destination === "writing" && page !== "writing") {
       setWritingOrigin(page);
@@ -571,6 +580,14 @@ function DesktopWorkspace({
             ) : null}
             {page === "history" ? (
               <HistoryPage
+                onReturn={
+                  pathHistory.view
+                    ? () => {
+                        setPage("learningPath");
+                        pathHistory.back();
+                      }
+                    : undefined
+                }
                 {...(historyEntryIds ? { initialHistoryEntryIds: historyEntryIds } : {})}
                 requestAiAccess={openAi}
                 onPracticeAgain={(seed) => {
@@ -588,22 +605,25 @@ function DesktopWorkspace({
                 }}
               />
             ) : null}
-            {page === "learningPath" &&
+            {(page === "learningPath" || (page === "history" && pathHistory.view === "history")) &&
             learningScope &&
             languageCapabilities[learningScope.targetLanguage].structuredPath &&
             learningScope.courseId ===
               languageDefinitions[learningScope.targetLanguage].structuredCourseId ? (
-              <LearningPathPage
-                onLanguageSwitchBlockedChange={setPathLanguageBlocked}
-                onNina={() => {
-                  navigate("nina");
-                }}
-                requestAiAccess={openAi}
-                onOpenHistory={(ids) => {
-                  setHistoryEntryIds(ids);
-                  setPage("history");
-                }}
-              />
+              <div hidden={page !== "learningPath"}>
+                <LearningPathPage
+                  onLanguageSwitchBlockedChange={setPathLanguageBlocked}
+                  onNina={() => {
+                    navigate("nina");
+                  }}
+                  requestAiAccess={openAi}
+                  onOpenHistory={(ids) => {
+                    pathHistory.open("history");
+                    setHistoryEntryIds(ids);
+                    setPage("history");
+                  }}
+                />
+              </div>
             ) : page === "learningPath" ? (
               <Page title={t("nav.learningPath")}>
                 {!learningScope ? (

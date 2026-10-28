@@ -1,5 +1,7 @@
 :root {
   color-scheme: light;
+  --od-font-family-body: var(--od-font-family-interface);
+  --od-font-family-heading: var(--od-font-family-editorial);
   --od-color-transparent: transparent;
   --od-font-size-xs: var(--od-type-caption-size);
   --od-font-size-sm: var(--od-type-body-small-size);

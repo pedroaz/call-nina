@@ -1,4 +1,3 @@
-import { Disclosure } from "./components/ui/Disclosure.js";
 import { PracticeComposer } from "./PracticeComposer.js";
 import { ActivityVisual } from "./activityPresentation.js";
 import type { PracticeKind } from "./PracticeTypeChooser.js";
@@ -42,7 +41,6 @@ import {
 import { ExerciseEngine } from "./ExerciseEngine.js";
 import styles from "./PracticePage.module.css";
 import {
-  Card,
   SelectControl,
   Button,
   Tabs,
@@ -777,19 +775,13 @@ export function PracticePage({
                     }[selectedKind]
                   }
                 />
-                {(selectedKind === "listening" || selectedKind === "speaking") && (
-                  <Disclosure label={t("ui.practiceOptions")} variant="plain">
-                    {practiceSettings}
-                  </Disclosure>
-                )}
+                {(selectedKind === "listening" || selectedKind === "speaking") && practiceSettings}
 
                 {generationError && <OperationError error={generationError} />}
-                <Card>
+                <Section>
                   <div hidden={selectedKind !== "flashcards"}>
                     <Section as="article">
-                      <Disclosure label={t("ui.practiceOptions")} variant="plain">
-                        {practiceSettings}
-                      </Disclosure>
+                      {practiceSettings}
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button
@@ -823,9 +815,7 @@ export function PracticePage({
                   </div>
                   <div hidden={selectedKind !== "custom"}>
                     <Section as="article">
-                      <Disclosure label={t("ui.practiceOptions")} variant="plain">
-                        {practiceSettings}
-                      </Disclosure>
+                      {practiceSettings}
                       <OperationProgress progress={generation.progress} />
                       <ActionGroup>
                         <Button
@@ -849,9 +839,7 @@ export function PracticePage({
                   </div>
                   <div hidden={selectedKind !== "grammar"}>
                     <Section as="article">
-                      <Disclosure label={t("ui.practiceOptions")} variant="plain">
-                        {practiceSettings}
-                      </Disclosure>
+                      {practiceSettings}
                       <Button
                         variant="secondary"
                         isDisabled={generating || !targetLanguage}
@@ -920,7 +908,7 @@ export function PracticePage({
                       onOpenActivity={onOpenActivity}
                     />
                   </div>
-                </Card>
+                </Section>
               </div>
             ),
           },
@@ -999,7 +987,6 @@ export function PracticePage({
                         : t("practice.library.deleteAction", { title: activity.title });
                       return (
                         <ContentRow
-                          variant="bordered"
                           leading={<ActivityVisual kind={activity.activityType} />}
                           key={activity.activityId}
                           actions={

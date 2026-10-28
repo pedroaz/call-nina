@@ -1,12 +1,13 @@
 import type { ProviderOperation } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MousePointer2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   SelectControl,
   DiagnosticCode,
   Disclosure,
+  UtilityPopover,
   InfoHint,
   Button,
   Feedback,
@@ -55,6 +56,7 @@ export function WritingWorkspace({
 }) {
   const { t } = useTranslation();
   const [writingView, setWritingView] = useState("answer");
+  const [contextOpen, setContextOpen] = useState(Boolean(initialContext));
   const {
     promptProgress,
     correctionProgress,
@@ -86,6 +88,9 @@ export function WritingWorkspace({
     retryCorrection,
     updateSelection,
   } = useWritingSession({ initialContext, initialDraft, onDirtyChange, requestAiAccess });
+  useEffect(() => {
+    if (context) setContextOpen(true);
+  }, [context]);
   const references: ActivityReferenceItem[] = [];
   if (prompt)
     references.push({
@@ -99,7 +104,7 @@ export function WritingWorkspace({
           <p>{prompt.task}</p>
           <Muted as="p">{t("writing.suggestedWords", { count: prompt.suggestedWordCount })}</Muted>
           {prompt.helpfulVocabulary.length > 0 ? (
-            <Disclosure label={t("nav.vocabulary")}>
+            <Disclosure variant="inline" label={t("nav.vocabulary")}>
               <ul>
                 {prompt.helpfulVocabulary.map((item) => (
                   <li key={item.term}>
@@ -134,6 +139,38 @@ export function WritingWorkspace({
         }
         footer={
           <ActivityFooter>
+            <UtilityPopover
+              label={t("writing.optionsTitle")}
+              summary={`${t(teachingProfile === "profile-default" ? "writing.profileDefault" : teachingProfile === "conversation-partner" ? "writing.profileConversation" : "writing.profileStrict")} · ${t(feedback === "all-meaningful" ? "writing.feedbackAll" : "writing.feedbackPriority")}`}
+            >
+              <div className={styles.writingOptions}>
+                <FieldGroup>
+                  <span>{t("writing.profileLabel")}</span>
+                  <SelectControl
+                    value={teachingProfile}
+                    onChange={(event) => {
+                      setTeachingProfile(event.currentTarget.value as TeachingProfileChoice);
+                    }}
+                  >
+                    <option value="profile-default">{t("writing.profileDefault")}</option>
+                    <option value="conversation-partner">{t("writing.profileConversation")}</option>
+                    <option value="strict-corrector">{t("writing.profileStrict")}</option>
+                  </SelectControl>
+                </FieldGroup>
+                <FieldGroup>
+                  <span>{t("writing.feedbackLabel")}</span>
+                  <SelectControl
+                    value={feedback}
+                    onChange={(event) => {
+                      setFeedback(event.currentTarget.value as FeedbackChoice);
+                    }}
+                  >
+                    <option value="all-meaningful">{t("writing.feedbackAll")}</option>
+                    <option value="priority-only">{t("writing.feedbackPriority")}</option>
+                  </SelectControl>
+                </FieldGroup>
+              </div>
+            </UtilityPopover>
             {correctionOperationId ? (
               <Button variant="secondary" onPress={() => void cancelCorrection()}>
                 <X aria-hidden="true" /> {t("writing.cancelCorrection")}
@@ -232,8 +269,10 @@ export function WritingWorkspace({
                 <div className={styles.writingLayout}>
                   <div className={styles.writingEditor}>
                     <Disclosure
+                      variant="inline"
                       label={t("writing.contextLabel")}
-                      defaultOpen={Boolean(initialContext)}
+                      open={contextOpen}
+                      onOpenChange={setContextOpen}
                     >
                       <FieldGroup>
                         <span>{t("writing.contextLabel")}</span>
@@ -280,39 +319,7 @@ export function WritingWorkspace({
                           : t("writing.noSelection")}
                       </p>
                     )}
-                    <Disclosure label={t("writing.optionsTitle")}>
-                      <div className={styles.writingOptions}>
-                        <FieldGroup>
-                          <span>{t("writing.profileLabel")}</span>
-                          <SelectControl
-                            value={teachingProfile}
-                            onChange={(event) => {
-                              setTeachingProfile(
-                                event.currentTarget.value as TeachingProfileChoice,
-                              );
-                            }}
-                          >
-                            <option value="profile-default">{t("writing.profileDefault")}</option>
-                            <option value="conversation-partner">
-                              {t("writing.profileConversation")}
-                            </option>
-                            <option value="strict-corrector">{t("writing.profileStrict")}</option>
-                          </SelectControl>
-                        </FieldGroup>
-                        <FieldGroup>
-                          <span>{t("writing.feedbackLabel")}</span>
-                          <SelectControl
-                            value={feedback}
-                            onChange={(event) => {
-                              setFeedback(event.currentTarget.value as FeedbackChoice);
-                            }}
-                          >
-                            <option value="all-meaningful">{t("writing.feedbackAll")}</option>
-                            <option value="priority-only">{t("writing.feedbackPriority")}</option>
-                          </SelectControl>
-                        </FieldGroup>
-                      </div>
-                    </Disclosure>
+
                     <Muted as="p" className={styles.draftNotice}>
                       {t("writing.localDraftNotice")}
                     </Muted>

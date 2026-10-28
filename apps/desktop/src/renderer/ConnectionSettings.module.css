@@ -38,9 +38,7 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: var(--od-radius-md);
-  background: var(--od-color-surface-brand);
-  color: var(--od-color-brand-ink);
+  color: var(--od-color-text-muted);
 }
 .connectionIcon svg {
   width: 24px;

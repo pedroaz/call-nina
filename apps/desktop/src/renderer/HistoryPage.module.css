@@ -1,4 +1,7 @@
-.historyList,
+.historyList {
+  display: grid;
+  gap: 0;
+}
 .historyDetail {
   display: grid;
   gap: var(--od-space-5);
@@ -100,6 +103,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .historyEntryHeader h2 {
+  font-family: var(--od-font-family-editorial);
   line-height: var(--od-type-subsection-title-line);
   font-size: var(--od-font-size-md);
   overflow-wrap: anywhere;

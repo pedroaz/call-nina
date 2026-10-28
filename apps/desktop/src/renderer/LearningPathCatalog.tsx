@@ -104,7 +104,7 @@ export function LearningPathCatalog({
     return (
       <>
         <div className={styles.librarySummary}>
-          <Card variant="brand" density="compact" className={styles.recommendation}>
+          <Card variant="muted" density="compact" className={styles.recommendation}>
             {recommendation ? (
               <>
                 <div className={styles.summaryText}>
@@ -295,7 +295,7 @@ export function LearningPathCatalog({
               </span>
             </Button>
             {selected?.id === unit.id && (
-              <Card variant="brand" className={styles.lessonPreview}>
+              <Card variant="muted" className={styles.lessonPreview}>
                 <Muted>
                   {t(
                     unit.kind === "checkpoint"

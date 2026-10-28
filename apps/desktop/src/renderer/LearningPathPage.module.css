@@ -50,7 +50,7 @@
   padding-inline: var(--od-space-4) 4rem;
 }
 .clickablePath:has(.pathOpen:not([data-disabled])):hover {
-  background: var(--od-color-surface-brand);
+  background: var(--od-color-surface-sunken);
 }
 .clickablePath:has(.pathOpen[data-focus-visible]) {
   outline: var(--od-border-outlined) solid var(--od-color-focus);
@@ -85,9 +85,7 @@
   place-items: center;
   width: var(--od-control-min);
   height: var(--od-control-min);
-  border-radius: var(--od-radius-md);
-  color: var(--od-color-brand-ink);
-  background: var(--od-color-surface-brand);
+  color: var(--od-color-text-muted);
 }
 .pathIcon svg {
   width: 24px;
@@ -100,6 +98,9 @@
   gap: var(--od-space-2) var(--od-space-3);
 }
 .pathHeading h3 {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
   margin: 0;
   overflow-wrap: anywhere;
 }
@@ -200,7 +201,7 @@
   height: var(--od-control-min);
   flex-shrink: 0;
   border-radius: var(--od-radius-md);
-  background: var(--od-color-surface-brand);
+  color: var(--od-color-text-muted);
 }
 .trailMarker svg {
   width: var(--od-icon-md);
@@ -284,6 +285,11 @@
   justify-content: space-between;
   gap: var(--od-space-4);
 }
+.recommendation h2,
+.lessonPreview h3,
+.learningPanelHeader h2 {
+  font-family: var(--od-font-family-editorial);
+}
 .learningPanelHeader h2 {
   font-size: var(--od-font-size-lg);
   line-height: var(--od-type-section-title-line);
@@ -302,22 +308,24 @@
   gap: var(--od-space-3);
   padding: var(--od-space-7) var(--od-space-5);
   text-align: center;
-  background: var(--od-color-surface-brand);
-  border-radius: var(--od-radius-lg);
+  background: var(--od-color-bg-app);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
   overflow-wrap: anywhere;
 }
 .phraseSpotlight > p {
   margin: 0;
 }
 .phraseSpotlight > p:first-child {
+  font-family: var(--od-font-family-editorial);
   font-size: var(--od-font-size-xl);
   line-height: var(--od-type-h1-line);
   font-weight: var(--od-font-weight-semibold);
 }
 .lessonPassage {
+  font-family: var(--od-font-family-editorial);
   padding: var(--od-space-5);
-  background: var(--od-color-surface-sunken);
-  border-radius: var(--od-radius-lg);
+  background: var(--od-color-bg-app);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
   font-size: var(--od-type-body-large-size);
   line-height: var(--od-type-body-large-line);
   white-space: pre-wrap;
@@ -496,9 +504,8 @@
   display: flex;
   align-items: flex-start;
   gap: var(--od-space-3);
-  padding: var(--od-space-3);
-  background: var(--od-color-surface-sunken);
-  border-radius: var(--od-radius-md);
+  padding-block: var(--od-space-3);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .lessonGoals svg {
   width: var(--od-icon-md);

@@ -37,7 +37,6 @@
   margin: 0;
   padding: var(--od-space-4);
   background: var(--od-color-surface-sunken);
-  border-inline-start: var(--od-border-outlined) solid var(--od-color-brand);
 }
 
 .helperSelection blockquote,
@@ -75,13 +74,14 @@
 }
 .questionBubble {
   align-self: flex-end;
-  background: var(--od-color-surface-brand);
+  background: var(--od-color-surface-sunken);
   border-end-end-radius: var(--od-radius-sm);
   white-space: pre-wrap;
 }
 .answerBubble {
   align-self: flex-start;
-  background: var(--od-color-surface-sunken);
+  padding-inline: 0;
+  background: transparent;
   border-end-start-radius: var(--od-radius-sm);
 }
 .questionBubble > p,

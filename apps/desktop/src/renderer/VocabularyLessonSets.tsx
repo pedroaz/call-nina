@@ -17,6 +17,8 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let active = true;
+    setResult(undefined);
+    setError(undefined);
     void invokeDesktop("vocabulary-set/list", { rootGeneration })
       .then((next) => {
         if (active) setResult(next);
@@ -28,9 +30,9 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
       active = false;
     };
   }, [rootGeneration, retry]);
-  if (result?.entries.length === 0) return null;
+  if (!error && result?.entries.length === 0) return null;
   return (
-    <Disclosure variant="plain" label={<> {t("vocabulary.lessonSets")} </>}>
+    <>
       {error && (
         <>
           <Feedback tone="error" live="assertive">
@@ -49,15 +51,20 @@ export function VocabularyLessonSets({ rootGeneration }: { rootGeneration: DataR
       )}
       {!result && !error && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {result && (
-        <ul>
-          {result.entries.map((set) => (
-            <li key={set.setId}>
-              <strong>{set.title}</strong> —{" "}
-              {t("vocabulary.lessonSetItems", { count: set.candidateCount })}
-            </li>
-          ))}
-        </ul>
+        <Disclosure
+          variant="inline"
+          label={`${t("vocabulary.lessonSets")} · ${result.entries.length}`}
+        >
+          <ul>
+            {result.entries.map((set) => (
+              <li key={set.setId}>
+                <strong>{set.title}</strong> —{" "}
+                {t("vocabulary.lessonSetItems", { count: set.candidateCount })}
+              </li>
+            ))}
+          </ul>
+        </Disclosure>
       )}
-    </Disclosure>
+    </>
   );
 }

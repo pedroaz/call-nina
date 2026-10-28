@@ -203,7 +203,17 @@ export function ExerciseEngine(
             <>
               <Evaluation evaluation={currentEvaluation} aiFeedback={currentAiFeedback} />
               {definition.explanation && (
-                <Disclosure label={t("exercises.explanationTitle")}>
+                <Disclosure
+                  variant="inline"
+                  key={`${position}:${currentAiFeedback?.outcome ?? currentEvaluation.status}`}
+                  defaultOpen={
+                    currentAiFeedback
+                      ? currentAiFeedback.outcome !== "demonstrated"
+                      : currentEvaluation.status === "incorrect" ||
+                        currentEvaluation.status === "almost-correct"
+                  }
+                  label={t("exercises.explanationTitle")}
+                >
                   <p>{definition.explanation}</p>
                 </Disclosure>
               )}

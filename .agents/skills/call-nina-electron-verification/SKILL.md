@@ -1,21 +1,25 @@
 ---
 name: call-nina-electron-verification
-description: Inspect Call Nina's real Electron UI and perform bounded interactive behavior checks. Supports direct visual inspection and owned Playwright sessions; no automated application tests.
+description: Inspect Call Nina's real Electron UI and perform bounded interactive behavior checks. Prefer the running development app; optional Playwright controller sessions are supported; no automated application tests.
 ---
 
 # Interactive Electron verification
 
 Choose the smallest useful check. Visual evidence, behavior acceptance, process exit and cleanup completion are distinct results. Do not turn a problem in one into a blanket development blocker. No application test suites, saved journeys, fixtures, mocks or screenshot regression suites.
 
-## Visual inspection
+## Running development app (default)
 
-Inspect an already-open user app with available screenshot/UI tools for layout, typography, color, icons and text density. No reservation, frozen checkout, Orca or historical recovery is required. Identify the app window first, preserve visible drafts and active exercises, and keep screenshots out of Git and diagnostic logs. Focusing or observing a window does not transfer lifecycle ownership.
+Identify the running Call Nina development window, checkout/build and data root, then inspect and interact with it using available UI tools. No separate owned session, reservation, frozen checkout, Orca or historical recovery is required. Follow root `AGENTS.md` authorization: settings, drafts, active exercises and existing learner records may be changed or deleted; AI calls, development data resets and app restarts are allowed as needed for verification. No extra permission, record-ownership proof or restoration is required for this development data.
 
-Do not stop the user's app, change persisted settings, run AI or create/delete learner records through this observation path. Use an owned controlled session for persistent effects. Report the screens and sizes actually observed; do not claim behavior acceptance from a screenshot.
+Observe the screen/accessibility tree, perform an action, then inspect the result. Verify behavior through the real UI; direct data changes may prepare/reset development state but are not evidence that a UI workflow works. Use the development skill's real-connection/model policy for AI checks. Identify exact processes before restarting the development app and leave it usable afterward. Source edits may proceed while it runs; reload/restart when needed and tie observations to the build actually inspected. Keep screenshots out of Git and diagnostic logs.
 
-## Controlled session
+If available tools cannot attach to or operate the running Electron app, report that concrete tool limitation and use a supported launch/attachment route. A tool limitation is not a policy requirement for a separate session.
 
-1. Inspect `make verify manual-status` and `make status`. Enter with `make verify manual-enter`, then follow its `make verify start` or `make verify resume` instruction. Start/resume builds the desktop before launching the real Electron app; no separate build is needed. Do not stop a user-owned app without authorization. If the user authorizes stopping dev for verification, restart dev after the owned verification session has stopped. Entry needs no Orca or committed source.
+## Optional repository controller session
+
+Use this path when useful or required by the available controller tools. The commands below enforce their own reservation, process and cleanup protocol; these requirements apply only to this controller, not to direct testing in the running development app. Do not bypass controller locks or infer that its ownership restrictions prohibit authorized development data changes through other supported tools.
+
+1. Inspect `make verify manual-status` and `make status`. Enter with `make verify manual-enter`, then follow its `make verify start` or `make verify resume` instruction. Start/resume builds the desktop before launching the real Electron app; no separate build is needed. Stopping/restarting the development app is already authorized; restart dev afterward if this controller displaced it. Entry needs no Orca or committed source.
 2. The reservation binds the current chat and desktop/runtime/controller inputs. Unrelated documentation and website edits do not invalidate it. Observations apply to the source/build fingerprint captured at start. Stop your owned session before editing relevant source or rebuilding, then enter and start again. This never blocks source work: end the session first. A stopped session can enter under a new chat and current source with its compatible journal preserved. Historical observations retain their original build identity.
 3. Observe with `make verify snapshot` or `make verify screenshot`. Send one bounded JSON action on stdin to `make verify do`, inspect the result, then decide the next action. For example, send `{"action":"click","target":{"role":"button","name":"Explore trail","index":0}}` or `{"action":"viewport","width":900,"height":800}` on stdin. Use the `wait` action for asynchronously loaded controls before selecting or clicking them; prefer visible accessible names or a specific summary label over a positional selector that can match hidden details. Read request validation in `scripts/dev/verify.mjs` for available actions; never inject JavaScript or edit the database to simulate user behavior.
 4. Before live generation, run `prepare-ai`: use Nina’s real direct ChatGPT connection, GPT-6 Luna and runtime-default effort. The sole scoped exception is the selected starter-pilot model under the [hosted API and administration skill](../call-nina-hosted-admin/SKILL.md); `prepare-ai` does not select that route, so its owned controller path must be adapted and verified before use. Otherwise never substitute another model/provider. Settings baselines are recorded before mutations, and cleanup must not overwrite later user changes.
@@ -25,9 +29,9 @@ Do not stop the user's app, change persisted settings, run AI or create/delete l
 
 Stopping never needs another permission request for this session's exact-owned processes. Graceful shutdown is bounded; escalation requires recorded process identity, not names, groups or guessed PIDs. A timeout does not establish whether an action ran. Inspect receipts before retrying an uncertain mutation.
 
-## Recovery and interruption
+## Optional controller recovery and interruption
 
-Use `make verify manual-status` to see what is blocked and the supported next action. For user-authorized recovery of a stopped Manual session, use `make verify manual-recover` with its exact reported run. It archives ownership and cleanup evidence, checks exact stop proof and releases exclusion without declaring cleanup complete. Enter the original checkout and resume with corrected source when needed. Active processes and retired orchestration ownership are never transferred by this command. Preserve their evidence and report the retained resource.
+Use `make verify manual-status` to see what is blocked and the supported next action. For recovery of a stopped development Manual session, use `make verify manual-recover` with its exact reported run. It archives ownership and cleanup evidence, checks exact stop proof and releases exclusion without declaring cleanup complete. Enter the original checkout and resume with corrected source when needed. Active processes and retired orchestration ownership are never transferred by this command. Preserve their evidence and report the retained resource.
 
 Incompatible journals can be explicitly quarantined by their reported SHA through `make verify manual-quarantine` under a recovery/cleanup request. The full original is retained privately with unresolved status; learner records and preferences are untouched. Do not translate obsolete settings by guesswork or delete uncertain records. Do not keep retrying the same rejected operation. Source work, builds and visual inspection remain available.
 

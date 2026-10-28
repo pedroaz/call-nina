@@ -88,6 +88,9 @@ export function ProfileOnboarding({
   const [integration, setIntegration] = useState(readiness.codex);
   const [connections, setConnections] = useState<Connections>();
   const [loginId, setLoginId] = useState<LoginId>();
+  const [connectionFeedbackTarget, setConnectionFeedbackTarget] = useState<HTMLDivElement | null>(
+    null,
+  );
   const [connectionPending, setConnectionPending] = useState(false);
   const [loginStatus, setLoginStatus] = useState<string>();
   const generation =
@@ -397,12 +400,14 @@ export function ProfileOnboarding({
                 >
                   <p>{t("onboarding.accessIntro")}</p>
                   <ConnectionSettings
+                    feedbackTarget={connectionFeedbackTarget}
                     active={step === 0}
                     disabled={busy || Boolean(loginId)}
                     onPendingChange={setConnectionPending}
                     authHelp={t("onboarding.chatgptAuthHelp")}
                   />
                 </Disclosure>
+                <div ref={setConnectionFeedbackTarget} />
                 {connectionPending && (
                   <Feedback live="polite">{t("onboarding.connectionDraft")}</Feedback>
                 )}
@@ -466,10 +471,13 @@ export function ProfileOnboarding({
                 <Disclosure
                   className={styles.accessOptions}
                   variant="plain"
-                  label={<> {t("onboarding.pluginTitle")} </>}
+                  label={
+                    <>
+                      {t("onboarding.pluginTitle")} · {t(`onboarding.plugin.${integration.plugin}`)}
+                    </>
+                  }
                 >
                   <p>{t("settings.externalIntegrationHelp")}</p>
-                  <p>{t(`onboarding.plugin.${integration.plugin}`)}</p>
                   {integration.plugin !== "installed" && (
                     <Button
                       variant="secondary"

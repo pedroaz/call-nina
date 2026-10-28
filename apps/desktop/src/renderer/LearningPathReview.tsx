@@ -5,7 +5,7 @@ import { ArrowRight, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { LearningPathSnapshot } from "./useLearningPath.js";
 import { ActivityVisual } from "./activityPresentation.js";
-import { Button, Card, Disclosure, Muted } from "./components/ui/index.js";
+import { Button, Card, UtilityPopover, Muted } from "./components/ui/index.js";
 import { ContentRow } from "./components/layout/index.js";
 import styles from "./LearningPathPage.module.css";
 
@@ -54,11 +54,7 @@ export function LearningPathReview({
         const { unit, activity } = resolveCourseReference(course, item.reference);
         const origin = `review:${unit.id}:${item.objectiveId}:${item.reference.retrieval ?? activity.id}`;
         return (
-          <ContentRow
-            variant="bordered"
-            key={origin}
-            leading={<ActivityVisual kind={activity.delivery} />}
-          >
+          <ContentRow key={origin} leading={<ActivityVisual kind={activity.delivery} />}>
             <Muted>
               {course.paths.find((path) => path.id === unit.stage)?.title[locale] ?? unit.stage} ·{" "}
               {unit.title[locale]}
@@ -87,10 +83,10 @@ export function LearningPathReview({
           </ContentRow>
         );
       })}
-      <Disclosure label={t("pathLibrary.aboutReview")}>
+      <UtilityPopover label={t("pathLibrary.aboutReview")}>
         <p>{t("missions.reviewMeaning")}</p>
-      </Disclosure>
-      <Card variant="brand" className={styles.recommendation}>
+      </UtilityPopover>
+      <Card variant="muted" className={styles.recommendation}>
         <p>{t("pathFlow.returnHint")}</p>
         <Button
           variant="secondary"

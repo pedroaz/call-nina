@@ -56,7 +56,9 @@ h4 {
   overflow-wrap: anywhere;
 }
 h1 {
-  font-weight: var(--od-weight-strong);
+  font-family: var(--od-font-family-editorial);
+  font-optical-sizing: auto;
+  font-weight: var(--od-weight-medium);
   line-height: var(--od-type-h1-line);
   font-size: var(--od-font-size-xl);
 }
@@ -80,6 +82,12 @@ select,
 textarea {
   max-width: 100%;
 }
+input::placeholder,
+textarea::placeholder {
+  color: var(--od-color-text-muted);
+  opacity: 1;
+}
+
 textarea {
   line-height: var(--od-line-normal);
 }
@@ -101,6 +109,7 @@ textarea {
 
 html {
   scrollbar-gutter: stable;
+  scrollbar-color: var(--od-color-border-default) var(--od-color-bg-app);
 }
 
 small {
@@ -121,4 +130,13 @@ svg.lucide {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+::selection {
+  background: var(--od-color-state-selected-soft);
+  color: var(--od-color-text-strong);
+}
+input,
+textarea {
+  caret-color: var(--od-color-action-primary);
 }

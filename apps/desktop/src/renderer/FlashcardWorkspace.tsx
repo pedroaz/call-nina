@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   Button,
   ConfirmDialog,
-  Disclosure,
+  UtilityPopover,
   Feedback,
   LoadingState,
 } from "./components/ui/index.js";
@@ -252,9 +252,9 @@ export function FlashcardWorkspace({
                   </>
                 }
               />
-              <Disclosure density="compact" label={t("activity.shortcuts")}>
+              <UtilityPopover label={t("activity.shortcuts")}>
                 <p>{t("flashcards.study.shortcuts")}</p>
-              </Disclosure>
+              </UtilityPopover>
             </>
           )}
         </ActivityFrame>

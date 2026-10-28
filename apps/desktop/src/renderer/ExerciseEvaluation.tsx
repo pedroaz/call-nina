@@ -46,7 +46,7 @@ export function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
     <div className={styles.exerciseAiFeedback}>
       <p>{feedback.summary}</p>
       {feedback.strengths.length > 0 && (
-        <Disclosure density="compact" label={t("exercises.aiFeedback.strengths")}>
+        <Disclosure variant="inline" density="compact" label={t("exercises.aiFeedback.strengths")}>
           <ul>
             {feedback.strengths.map((item) => (
               <li key={item}>{item}</li>
@@ -56,7 +56,11 @@ export function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
       )}
       {feedback.improvements[0] && <p>{feedback.improvements[0]}</p>}
       {feedback.improvements.length > 1 && (
-        <Disclosure density="compact" label={t("exercises.aiFeedback.improvements")}>
+        <Disclosure
+          variant="inline"
+          density="compact"
+          label={t("exercises.aiFeedback.improvements")}
+        >
           <ul>
             {feedback.improvements.slice(1).map((item) => (
               <li key={item}>{item}</li>
@@ -65,7 +69,11 @@ export function AiFeedback({ feedback }: { feedback: ExerciseAiFeedback }) {
         </Disclosure>
       )}
       {feedback.suggestedAnswer && (
-        <Disclosure density="compact" label={t("exercises.aiFeedback.suggestedAnswer")}>
+        <Disclosure
+          variant="inline"
+          density="compact"
+          label={t("exercises.aiFeedback.suggestedAnswer")}
+        >
           <p>{feedback.suggestedAnswer}</p>
         </Disclosure>
       )}

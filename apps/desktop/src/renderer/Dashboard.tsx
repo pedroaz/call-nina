@@ -147,7 +147,7 @@ export function NinaHome({
       {!snapshot && !error && <LoadingState live>{t("dashboard.refreshing")}</LoadingState>}
       {snapshot?.resume && (
         <>
-          <Card as="section" variant="brand" className={styles.resume}>
+          <Card as="section" variant="muted" className={styles.resume}>
             <div className={styles.resumeCopy}>
               <Muted as="p">{t("ninaHome.continue")}</Muted>
               <h2>{snapshot.resume.title}</h2>

@@ -46,6 +46,9 @@ External contributors retain their rights. Submission alone is not a copyright a
 
 The shared design package bundles unmodified Fredoka, Figtree, JetBrains Mono and Noto Sans Mono variable font binaries from the [Google Fonts source repository](https://github.com/google/fonts/tree/9710da1eacb3be272583c3224dcb70f9da6eadbb/ofl). Each is distributed under SIL Open Font License 1.1; its full `OFL-*.txt` license accompanies the binary in `packages/design-system/assets/fonts/`. The four inspected OFL headers declare no Reserved Font Names. Noto Sans Mono supplies IPA glyphs absent from JetBrains Mono. The design package's `nina-phone.png` was extracted from page 4 of the maintainer-supplied *Call Nina Design System* PDF, preserving its embedded color image and transparency mask. The existing installed desktop icon remains the repository's prior N mark until a later branding/package-icon migration.
 
+The desktop workbook typography also bundles unmodified [Source Sans 3](https://github.com/google/fonts/tree/main/ofl/sourcesans3) and [Source Serif 4](https://github.com/google/fonts/tree/main/ofl/sourceserif4) variable fonts from Google Fonts, under SIL Open Font License 1.1. Their accompanying `OFL-SourceSans3.txt` and `OFL-SourceSerif4.txt` notices are included in the shared font inventory and packaged notices.
+
+
 The native app bundles these **modified static derivatives** of those pinned variable binaries. They were generated with FontTools 4.60.1 `fontTools.varLib.instancer.instantiateVariableFont`, fixing every axis (including non-weight axes at the source default). SHA-256 identifies each source and resulting file:
 
 | Source variable font SHA-256 | Native static derivative SHA-256 | Fixed axes |

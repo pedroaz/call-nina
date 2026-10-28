@@ -1117,7 +1117,10 @@
     "learningGoals": "Lernziele",
     "review": "Wiederholen",
     "topic": "Thema",
-    "practiceOptions": "Übungsoptionen"
+    "practiceOptions": "Übungsoptionen",
+    "explanation": "Erklärung",
+    "overview": "Überblick",
+    "back": "Zurück"
   },
   "suggestions": {
     "title": "Als Nächstes üben",

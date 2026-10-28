@@ -221,12 +221,17 @@ export function MaterialPractice({
   };
   return (
     <Disclosure
-      defaultOpen={view !== "list"}
-      label={t(
-        practiceType === "reading"
-          ? "materialPractice.optional"
-          : "materialPractice.optionalVocabulary",
-      )}
+      open={view !== "list" || Boolean(selected) || Boolean(error) ? true : undefined}
+      label={
+        <>
+          {t(
+            practiceType === "reading"
+              ? "materialPractice.optional"
+              : "materialPractice.optionalVocabulary",
+          )}
+          {selected ? ` · ${selected.title}` : ""}
+        </>
+      }
     >
       <div
         className={styles.workspace}

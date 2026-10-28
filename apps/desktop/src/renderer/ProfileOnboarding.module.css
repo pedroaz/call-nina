@@ -20,6 +20,7 @@
 }
 
 .onboardingSection legend {
+  font-family: var(--od-font-family-editorial);
   font-size: var(--od-font-size-lg);
   font-weight: var(--od-weight-medium);
   padding: 0;

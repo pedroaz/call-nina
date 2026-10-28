@@ -34,14 +34,14 @@
   max-width: 16rem;
   height: var(--od-space-2);
   border: 0;
-  accent-color: var(--od-color-brand);
+  accent-color: var(--od-color-action-primary);
 }
 .progress progress::-webkit-progress-bar {
   background: var(--od-color-surface-sunken);
   border-radius: var(--od-radius-sm);
 }
 .progress progress::-webkit-progress-value {
-  background: var(--od-color-brand);
+  background: var(--od-color-action-primary);
   border-radius: var(--od-radius-sm);
 }
 .body {
@@ -68,6 +68,7 @@
   margin: 0;
 }
 .reference {
+  background: var(--od-color-bg-app);
   border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .referenceDisclosure > summary {
@@ -94,6 +95,7 @@
   margin-top: 0;
 }
 .referenceContent p {
+  font-family: var(--od-font-family-editorial);
   font-size: var(--od-type-body-large-size);
   line-height: var(--od-type-body-large-line);
 }
@@ -136,6 +138,13 @@
   gap: var(--od-space-4);
   min-width: 0;
 }
+.task > h2,
+.referenceContent h2,
+.completionHeading h2,
+.recall h2 {
+  font-family: var(--od-font-family-editorial);
+  font-optical-sizing: auto;
+}
 .completionHeading h2 {
   min-width: 0;
 }
@@ -147,8 +156,8 @@
   justify-content: center;
   gap: var(--od-space-5);
   padding: var(--od-space-5);
-  background: var(--od-color-surface-sunken);
-  border-radius: var(--od-radius-md);
+  background: var(--od-color-bg-app);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
 }
 .recall h2 {
   margin: 0;

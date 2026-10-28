@@ -1,3 +1,5 @@
+import { BookOpen } from "lucide-react";
+import { ActivityHeaderActionsContext } from "./components/activity/index.js";
 import type {
   ProviderOperation,
   ActivityId,
@@ -9,7 +11,7 @@ import type {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { dueCourseReviews, sameCourseActivity, resolveCourseReference } from "@call-nina/domain";
-import { Feedback, LoadingState } from "./components/ui/index.js";
+import { Button, ModalDialog, Feedback, LoadingState } from "./components/ui/index.js";
 import { Page } from "./components/layout/index.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 import { useLearningPath, type LearningPathSnapshot } from "./useLearningPath.js";
@@ -19,6 +21,7 @@ import { OperationError } from "./Startup.js";
 import { OperationProgress } from "./OperationProgress.js";
 import { PracticePage } from "./PracticePage.js";
 import { LearningPathCatalog } from "./LearningPathCatalog.js";
+import { LessonGuide } from "./LessonGuide.js";
 import { LearningPathLesson } from "./LearningPathLesson.js";
 import { LearningPathReview } from "./LearningPathReview.js";
 import { LearningPathCompletion } from "./LearningPathCompletion.js";
@@ -81,6 +84,7 @@ function LearningPathWorkspace({
 }) {
   const { t } = useTranslation();
   const generation = useLearningOperation();
+  const [guideOpen, setGuideOpen] = useState(false);
   const [navigation, setNavigation] = useState<PathNavigation>({ kind: "library" });
   const [catalogFilter, setCatalogFilter] = useState({ query: "", kind: "all", level: "all" });
   const [expandedActivity, setExpandedActivity] = useState<string>();
@@ -308,6 +312,27 @@ function LearningPathWorkspace({
     setActive(undefined);
     navigate({ kind: "trail", stage, ...(selected ? { selectedUnit: selected.id } : {}) }, true);
   };
+  const addVocabulary = (unit: CourseUnit) => {
+    if (pending.current || !course) return;
+    pending.current = true;
+    setBusy(true);
+    setVocabularyAdded(undefined);
+    setError(undefined);
+    void invokeDesktop("learning-path/vocabulary", {
+      expectedGeneration: snapshot.rootGeneration,
+      reference: courseReference(course, unit, unit.activities[0]),
+    })
+      .then((result) => {
+        if (isAlive()) setVocabularyAdded(result.added);
+      })
+      .catch((cause: unknown) => {
+        if (isAlive()) setError(normalizeDesktopError(cause).detail);
+      })
+      .finally(() => {
+        pending.current = false;
+        if (isAlive()) setBusy(false);
+      });
+  };
   const activeUnit = course?.units.find((unit) => unit.id === active?.reference.unitId);
   const activeActivity = activeUnit?.activities.find(
     (item) => item.id === active?.reference.activityKey,
@@ -317,62 +342,74 @@ function LearningPathWorkspace({
     <div className={styles.page}>
       {error && <OperationError error={error} />}
       {launchOrigin && launchFeedback(launchOrigin)}
-      <PracticePage
-        key={active.id}
-        activityId={active.id}
-        activityTitle={activeActivity?.title[locale]}
-        activityBreadcrumbs={[
-          {
-            label: t("pathLibrary.title"),
-            onPress: () => {
-              if (pending.current) return;
-              setActive(undefined);
-              navigate({ kind: "library" }, true);
+      <ActivityHeaderActionsContext.Provider
+        value={
+          <Button
+            variant="secondary"
+            leadingIcon={<BookOpen aria-hidden="true" />}
+            onPress={() => setGuideOpen(true)}
+          >
+            {t("lessonStudio.resources")}
+          </Button>
+        }
+      >
+        <PracticePage
+          key={active.id}
+          activityId={active.id}
+          activityTitle={activeActivity?.title[locale]}
+          activityBreadcrumbs={[
+            {
+              label: t("pathLibrary.title"),
+              onPress: () => {
+                if (pending.current) return;
+                setActive(undefined);
+                navigate({ kind: "library" }, true);
+              },
             },
-          },
-          ...(active.origin.kind === "review"
-            ? [{ label: t("ui.review"), onPress: closeActivity }]
-            : [
-                ...(activePath ? [{ label: activePath.title[locale], onPress: onTrail }] : []),
-                ...(activeUnit
-                  ? [{ label: activeUnit.title[locale], onPress: closeActivity }]
-                  : []),
-              ]),
-        ]}
-        parentLabel={
-          active.origin.kind === "review"
-            ? t("ui.review")
-            : (course?.units.find((unit) => unit.id === active.reference.unitId)?.title[locale] ??
-              t("pathLibrary.title"))
-        }
-        onHistory={() => {
-          onOpenHistory();
-        }}
-        onNina={onNina}
-        requestAiAccess={requestAiAccess}
-        onOpenActivity={(id) => {
-          setActive((current) => (current ? { ...current, id } : undefined));
-        }}
-        onCloseActivity={closeActivity}
-        courseCompletionActions={
-          <LearningPathCompletion
-            key={active.id}
-            activityId={active.id}
-            reference={active.reference}
-            rootGeneration={snapshot.rootGeneration}
-            busy={busy}
-            origin={active.origin}
-            onLaunch={(ref, fresh) => launch(ref, "completion-next", fresh)}
-            onLesson={openLesson}
-            onReturn={closeActivity}
-            onTrail={onTrail}
-            onLeaveReview={() => {
-              setActive(undefined);
-              if (navigation.kind === "review") returnFromReview();
-            }}
-          />
-        }
-      />
+            ...(active.origin.kind === "review"
+              ? [{ label: t("ui.review"), onPress: closeActivity }]
+              : [
+                  ...(activePath ? [{ label: activePath.title[locale], onPress: onTrail }] : []),
+                  ...(activeUnit
+                    ? [{ label: activeUnit.title[locale], onPress: closeActivity }]
+                    : []),
+                ]),
+          ]}
+          parentLabel={
+            active.origin.kind === "review"
+              ? t("ui.review")
+              : (course?.units.find((unit) => unit.id === active.reference.unitId)?.title[locale] ??
+                t("pathLibrary.title"))
+          }
+          onHistory={() => {
+            onOpenHistory();
+          }}
+          onNina={onNina}
+          requestAiAccess={requestAiAccess}
+          onOpenActivity={(id) => {
+            setActive((current) => (current ? { ...current, id } : undefined));
+          }}
+          onCloseActivity={closeActivity}
+          courseCompletionActions={
+            <LearningPathCompletion
+              key={active.id}
+              activityId={active.id}
+              reference={active.reference}
+              rootGeneration={snapshot.rootGeneration}
+              busy={busy}
+              origin={active.origin}
+              onLaunch={(ref, fresh) => launch(ref, "completion-next", fresh)}
+              onLesson={openLesson}
+              onReturn={closeActivity}
+              onTrail={onTrail}
+              onLeaveReview={() => {
+                setActive(undefined);
+                if (navigation.kind === "review") returnFromReview();
+              }}
+            />
+          }
+        />
+      </ActivityHeaderActionsContext.Provider>
     </div>
   ) : null;
 
@@ -404,6 +441,28 @@ function LearningPathWorkspace({
   return (
     <>
       {player}
+      {active && activeUnit && (
+        <ModalDialog
+          isOpen={guideOpen}
+          onOpenChange={setGuideOpen}
+          size="large"
+          title={t("lessonStudio.resources")}
+          closeLabel={t("actions.close")}
+        >
+          {displayedError && <OperationError error={displayedError} />}
+          <LessonGuide
+            snapshot={snapshot}
+            selected={activeUnit}
+            busy={busy}
+            scenarioLocked
+            changingSituation={changingSituation}
+            situationChanged={changedUnit === activeUnit.id}
+            vocabularyAdded={vocabularyAdded}
+            onAddVocabulary={() => addVocabulary(activeUnit)}
+            onChangeSituation={() => {}}
+          />
+        </ModalDialog>
+      )}
       <div hidden={!!active}>
         <Page
           title={title}
@@ -486,27 +545,7 @@ function LearningPathWorkspace({
               vocabularyAdded={vocabularyAdded}
               changingSituation={changingSituation}
               situationChanged={changedUnit === selected.id}
-              onAddVocabulary={() => {
-                if (pending.current) return;
-                pending.current = true;
-                setBusy(true);
-                setVocabularyAdded(undefined);
-                setError(undefined);
-                void invokeDesktop("learning-path/vocabulary", {
-                  expectedGeneration: snapshot.rootGeneration,
-                  reference: courseReference(course, selected, selected.activities[0]),
-                })
-                  .then((result) => {
-                    if (isAlive()) setVocabularyAdded(result.added);
-                  })
-                  .catch((cause: unknown) => {
-                    if (isAlive()) setError(normalizeDesktopError(cause).detail);
-                  })
-                  .finally(() => {
-                    pending.current = false;
-                    if (isAlive()) setBusy(false);
-                  });
-              }}
+              onAddVocabulary={() => addVocabulary(selected)}
             />
           )}
           {navigation.kind === "review" && (

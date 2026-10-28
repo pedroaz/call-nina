@@ -31,6 +31,7 @@ declare module "*Dialog.module.css" {
     readonly actions: string;
     readonly body: string;
     readonly dialog: string;
+    readonly header: string;
     readonly overlay: string;
   };
   export default styles;

@@ -4,7 +4,7 @@ import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
 import { useEffect, useState, type ReactNode, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Disclosure, FieldGroup } from "./components/ui/index.js";
+import { Button, FieldGroup } from "./components/ui/index.js";
 import { ActionGroup, Section } from "./components/layout/index.js";
 import { OperationError } from "./Startup.js";
 import { normalizeDesktopError } from "./ipc.js";
@@ -80,11 +80,7 @@ export function ReadingPractice({
           />
         </FieldGroup>
       )}
-      {settings && (
-        <Disclosure label={t("ui.practiceOptions")} variant="plain">
-          {settings}
-        </Disclosure>
-      )}
+      {settings}
       <ActionGroup>
         <Button
           variant="secondary"

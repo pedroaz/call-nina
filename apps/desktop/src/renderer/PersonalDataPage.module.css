@@ -32,6 +32,7 @@
   min-width: 0;
 }
 .table caption {
+  font-family: var(--od-font-family-editorial);
   text-align: start;
   padding: var(--od-space-5);
   font-weight: var(--od-weight-strong);

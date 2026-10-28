@@ -227,11 +227,6 @@ export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => 
                     ))}
                   </SelectControl>
                 </FieldGroup>
-                {availability && !["available", "configured"].includes(availability.status) && (
-                  <p className={styles.navModelStatus} role="status">
-                    {t(`connectionSettings.status.${availability.status}`)}
-                  </p>
-                )}
               </>
             ) : (
               <p className={styles.navModelStatus}>{t("connections.none")}</p>
@@ -242,6 +237,12 @@ export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => 
           {t("modelControl.settings")}
         </Button>
       </Disclosure>
+      {availability && !["available", "configured"].includes(availability.status) && (
+        <p className={styles.navModelStatus} role="status">
+          {t(`connectionSettings.status.${availability.status}`)}
+        </p>
+      )}
+
       {error && (
         <p role="alert" className={styles.navModelError}>
           {t(error.kind === "conflict" ? "connections.wait" : error.messageKey)}

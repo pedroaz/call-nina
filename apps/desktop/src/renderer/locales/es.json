@@ -1117,7 +1117,10 @@
     "learningGoals": "Objetivos de aprendizaje",
     "review": "Repasar",
     "topic": "Tema",
-    "practiceOptions": "Opciones de práctica"
+    "practiceOptions": "Opciones de práctica",
+    "explanation": "Explicación",
+    "overview": "Resumen",
+    "back": "Volver"
   },
   "suggestions": {
     "title": "Qué practicar después",

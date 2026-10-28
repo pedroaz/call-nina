@@ -4,25 +4,17 @@ import type {
   CourseUnit,
   HistoryEntryId,
 } from "@call-nina/contracts";
-import type { ReactNode } from "react";
-import { ArrowRight, Check, Circle, SkipForward, Lightbulb, BookOpen, Target } from "lucide-react";
+import { useId, useState, useRef, type ReactNode } from "react";
+import { ArrowRight, Check, Circle, SkipForward, Lightbulb, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { courseActivityStatus, sameCourseActivity } from "@call-nina/domain";
 import { ActivityVisual } from "./activityPresentation.js";
-import {
-  Button,
-  Card,
-  Disclosure,
-  Feedback,
-  ItemList,
-  Muted,
-  Nina,
-  Tabs,
-} from "./components/ui/index.js";
+import { Button, Card, Disclosure, ItemList, Muted, Nina, Tabs } from "./components/ui/index.js";
 import { ActionGroup, Section } from "./components/layout/index.js";
 import type { LearningPathSnapshot } from "./useLearningPath.js";
 import { lessonCounts, nextLessonActivity, courseReference } from "./learningPathNavigation.js";
 import styles from "./LearningPathPage.module.css";
+import { LessonGuide } from "./LessonGuide.js";
 import { LearningPathProgress } from "./LearningPathProgress.js";
 
 export function LearningPathLesson({
@@ -66,6 +58,15 @@ export function LearningPathLesson({
   situationChanged: boolean;
 }) {
   const { t } = useTranslation();
+  const helpGroup = useId();
+  const [lessonTab, setLessonTab] = useState({ lesson: selected.id, tab: "activities" });
+  const lessonRoot = useRef<HTMLElement>(null);
+  const returnToActivity = () => {
+    setLessonTab({ lesson: selected.id, tab: "activities" });
+    requestAnimationFrame(() =>
+      lessonRoot.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus(),
+    );
+  };
   const { course, state } = snapshot;
   if (!course) return null;
   const locale =
@@ -120,9 +121,11 @@ export function LearningPathLesson({
     else onTrail();
   };
   return (
-    <section className={styles.unit} aria-label={selected.title[locale]}>
+    <section ref={lessonRoot} className={styles.unit} aria-label={selected.title[locale]}>
       <Tabs
         key={selected.id}
+        selectedKey={lessonTab.lesson === selected.id ? lessonTab.tab : "activities"}
+        onSelectionChange={(tab) => setLessonTab({ lesson: selected.id, tab })}
         label={selected.title[locale]}
         density="compact"
         items={[
@@ -239,7 +242,8 @@ export function LearningPathLesson({
                             </ItemList>
                           )}
                           <Disclosure
-                            density="compact"
+                            variant="inline"
+                            name={`${helpGroup}-${activity.id}`}
                             label={
                               <span className={styles.lessonDisclosureLabel}>
                                 <Lightbulb aria-hidden="true" />
@@ -251,7 +255,8 @@ export function LearningPathLesson({
                           </Disclosure>
                           {(activity.input || selected.examples.length > 1) && (
                             <Disclosure
-                              density="compact"
+                              variant="inline"
+                              name={`${helpGroup}-${activity.id}`}
                               label={
                                 <span className={styles.lessonDisclosureLabel}>
                                   <BookOpen aria-hidden="true" />
@@ -292,35 +297,14 @@ export function LearningPathLesson({
                       )}
                       {launchFeedback(`activity:${activity.id}`)}
                       {attempts.some((a) => a.evidence.length) && (
-                        <Disclosure density="compact" label={t("learningPath.evidence")}>
-                          <ItemList>
-                            {attempts
-                              .flatMap((a) => a.evidence)
-                              .slice(-8)
-                              .map((e, i) => (
-                                <li key={`${e.historyEntryId}-${String(i)}`}>
-                                  <strong>{t(`missions.outcome.${e.outcome}`)}</strong> —{" "}
-                                  {e.evidence}
-                                  <Muted>
-                                    {t(`learningPath.uncertainty.${e.uncertainty}`)}
-                                    {e.support.length
-                                      ? ` · ${e.support.map((support) => t(`missions.support.${support}`)).join(", ")}`
-                                      : ""}
-                                  </Muted>
-                                </li>
-                              ))}
-                          </ItemList>
-                          <Button
-                            variant="secondary"
-                            onPress={() =>
-                              onOpenHistory(
-                                attempts.flatMap((a) => a.historyEntryIds).slice(0, 100),
-                              )
-                            }
-                          >
-                            {t("learningPath.openHistory")}
-                          </Button>
-                        </Disclosure>
+                        <Button
+                          variant="quiet"
+                          onPress={() =>
+                            onOpenHistory(attempts.flatMap((a) => a.historyEntryIds).slice(0, 100))
+                          }
+                        >
+                          {t("learningPath.evidence")}
+                        </Button>
                       )}
                     </div>
                     <footer className={styles.lessonFooter}>
@@ -414,78 +398,25 @@ export function LearningPathLesson({
             id: "resources",
             label: t("lessonStudio.resources"),
             children: (
-              <Card density="compact">
-                <Section className={styles.unitOverview}>
-                  <div className={styles.unitDetails}>
-                    <Disclosure density="compact" label={t("missions.sharedFacts")}>
-                      <section className={styles.scenario}>
-                        <p>{selectedMission?.facts ?? selected.scenario[locale]}</p>
-                      </section>
-                      <ActionGroup className={styles.cardActions}>
-                        <Button
-                          variant="secondary"
-                          isPending={changingSituation}
-                          isDisabled={busy}
-                          onPress={() =>
-                            void mutate(reference(selected, selected.activities[0]), "new-mission")
-                          }
-                        >
-                          {t("missions.newContext")}
-                        </Button>
-                      </ActionGroup>
-                      <p>{t("missions.newContextHint")}</p>
-                      {situationChanged && (
-                        <Feedback tone="success" live="polite">
-                          {t("missions.contextUpdated")}
-                        </Feedback>
-                      )}
-                    </Disclosure>
-                    <Disclosure density="compact" label={t("ui.learningGoals")}>
-                      <ul className={styles.lessonGoals}>
-                        {selected.objectives.map((o) => (
-                          <li key={o.id}>
-                            <Target aria-hidden="true" />
-                            <span>{o.description[locale]}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </Disclosure>
-                    <Disclosure density="compact" label={t("missions.language")}>
-                      <p>{selected.grammar[locale]}</p>
-                      <ActionGroup>
-                        <Button variant="secondary" isDisabled={busy} onPress={onAddVocabulary}>
-                          {t("missions.addVocabulary")}
-                        </Button>
-                      </ActionGroup>
-                      {vocabularyAdded !== undefined && (
-                        <Feedback live="polite">
-                          {t("missions.vocabularyAdded", { count: vocabularyAdded })}
-                        </Feedback>
-                      )}
-                      <dl className={styles.words}>
-                        {course.targets
-                          .filter((target) => selected.targetIds.includes(target.id))
-                          .map((target) => (
-                            <div key={target.id}>
-                              <dt lang={snapshot.learningContext.targetLanguage}>{target.text}</dt>
-                              <dd>{target.meaning[locale]}</dd>
-                            </div>
-                          ))}
-                      </dl>
-                      <p>{t("missions.reuses")}</p>
-                      <ItemList>
-                        {course.targets
-                          .filter((target) => selected.reviewTargetIds.includes(target.id))
-                          .map((target) => (
-                            <li key={target.id} lang={snapshot.learningContext.targetLanguage}>
-                              {target.text}
-                            </li>
-                          ))}
-                      </ItemList>
-                    </Disclosure>
-                  </div>
-                </Section>
-              </Card>
+              <Section className={styles.unitOverview}>
+                <ActionGroup>
+                  <Button variant="quiet" onPress={returnToActivity}>
+                    {t("ui.back")} · {t("missions.unitActivities")}
+                  </Button>
+                </ActionGroup>
+                <LessonGuide
+                  snapshot={snapshot}
+                  selected={selected}
+                  busy={busy}
+                  changingSituation={changingSituation}
+                  situationChanged={situationChanged}
+                  vocabularyAdded={vocabularyAdded}
+                  onAddVocabulary={onAddVocabulary}
+                  onChangeSituation={() =>
+                    void mutate(reference(selected, selected.activities[0]), "new-mission")
+                  }
+                />
+              </Section>
             ),
           },
         ]}

@@ -36,6 +36,10 @@
   accent-color: var(--od-color-brand-ink);
 }
 .word {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  color: var(--od-color-text-strong);
   justify-content: flex-start;
   text-align: start;
   white-space: normal;

@@ -9,7 +9,14 @@ import {
 } from "@call-nina/contracts";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { SelectControl, Button, Disclosure, Feedback, FieldGroup, InfoHint } from "./components/ui/index.js";
+import {
+  SelectControl,
+  Button,
+  Disclosure,
+  Feedback,
+  FieldGroup,
+  InfoHint,
+} from "./components/ui/index.js";
 import { Section, ActionGroup } from "./components/layout/index.js";
 import { OperationProgress } from "./OperationProgress.js";
 import { useLearningOperation } from "./useLearningOperation.js";
@@ -248,6 +255,7 @@ export function CodexActivityPreparation({
       <Disclosure
         key={hasDraft ? "draft" : "empty"}
         defaultOpen={hasDraft}
+        open={error ? true : undefined}
         label={t("practice.editDetails")}
       >
         <div className={styles.voiceSetupGrid}>

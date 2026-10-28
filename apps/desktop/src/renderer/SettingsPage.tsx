@@ -742,7 +742,12 @@ export function SettingsPage({
                   label={
                     <span className={styles.tabLabel}>
                       <AudioLines aria-hidden="true" />
-                      {t("settings.externalIntegrationTitle")}
+                      {t("settings.externalIntegrationTitle")} ·{" "}
+                      {integration === undefined
+                        ? t("settings.notReported")
+                        : integration.status === "available"
+                          ? t(`settings.plugin.${integration.plugin}`)
+                          : t("settings.codexUnavailable")}
                     </span>
                   }
                 >
@@ -758,7 +763,6 @@ export function SettingsPage({
                   </p>
                   {integration?.status === "available" && (
                     <>
-                      <p>{t(`settings.plugin.${integration.plugin}`)}</p>
                       <ActionGroup>
                         {integration.plugin === "not-installed" && (
                           <Button
