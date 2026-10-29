@@ -43,6 +43,7 @@ export function ActivityFrame({
   footer,
   children,
   taskLabel,
+  fillViewport = true,
 }: {
   progress?: ReactNode;
   reference?: ReactNode;
@@ -50,6 +51,7 @@ export function ActivityFrame({
   footer?: ReactNode;
   children: ReactNode;
   taskLabel: string;
+  fillViewport?: boolean;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const header = useRef<HTMLDivElement>(null);
@@ -82,6 +84,9 @@ export function ActivityFrame({
     });
   }, []);
   useLayoutEffect(() => {
+    if (!fillViewport) {
+      return;
+    }
     const element = frame.current;
     if (!element) return;
     const page = element.closest('[data-presentation="activity"]');
@@ -103,21 +108,22 @@ export function ActivityFrame({
     if (header.current) observer.observe(header.current);
     if (actions.current) observer.observe(actions.current);
     window.addEventListener("resize", measure);
-    measure();
+    const initialMeasure = requestAnimationFrame(measure);
     return () => {
+      cancelAnimationFrame(initialMeasure);
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [keepFocusVisible]);
+  }, [fillViewport, keepFocusVisible]);
   return (
-    <ActivityLayoutContext.Provider value={height !== undefined}>
+    <ActivityLayoutContext.Provider value={fillViewport && height !== undefined}>
       <div
         ref={frame}
         onFocusCapture={keepFocusVisible}
         className={styles.frame}
-        data-bounded={height !== undefined || undefined}
+        data-bounded={(fillViewport && height !== undefined) || undefined}
         data-reference={Boolean(reference) || undefined}
-        style={height === undefined ? undefined : { height }}
+        style={!fillViewport || height === undefined ? undefined : { height }}
       >
         <div ref={header} className={styles.progressSlot}>
           {progress}
@@ -129,7 +135,7 @@ export function ActivityFrame({
             data-activity-task
             role="region"
             aria-label={taskLabel}
-            tabIndex={height === undefined ? undefined : 0}
+            tabIndex={!fillViewport || height === undefined ? undefined : 0}
           >
             {children}
             {feedback && <div className={styles.feedback}>{feedback}</div>}

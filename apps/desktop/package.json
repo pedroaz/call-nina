@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/desktop",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Electron main, preload, and React renderer entry point for Call Nina.",
   "author": "Call Nina contributors",
@@ -42,6 +42,7 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "@call-nina/mobile-sync": "workspace:*",
-    "@call-nina/learning-ui": "workspace:*"
+    "@call-nina/learning-ui": "workspace:*",
+    "@call-nina/speech-runtime": "workspace:*"
   }
 }

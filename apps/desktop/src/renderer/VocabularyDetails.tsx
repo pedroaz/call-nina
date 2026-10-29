@@ -1,6 +1,12 @@
+import { SpeechButton } from "./SpeechButton.js";
+import {
+  vocabularyLemma,
+  type CallNinaError,
+  type VocabularyId,
+  type DataRootGeneration,
+} from "@call-nina/contracts";
 import type { SavedResultsScope } from "./savedResultsTypes.js";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CallNinaError, VocabularyId, DataRootGeneration } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { ActionGroup } from "./components/layout/index.js";
 import {
@@ -23,6 +29,10 @@ export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
   const { t } = useTranslation();
   return (
     <>
+      <SpeechButton
+        text={vocabularyLemma(entry, entry.targetLanguage)}
+        language={entry.targetLanguage}
+      />
       {/* Saved meanings have no recorded language; current preferences cannot identify it. */}
       <p lang="">{entry.meaning}</p>
       {entry.lexeme.partOfSpeech === "noun" && (
@@ -47,7 +57,9 @@ export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
       )}
       {entry.examples.map((example, index) => (
         <div key={index}>
-          <p lang={entry.targetLanguage}>{example.text}</p>
+          <p lang={entry.targetLanguage}>
+            {example.text} <SpeechButton text={example.text} language={entry.targetLanguage} />
+          </p>
           <p className={styles.muted} lang="">
             {example.meaning}
           </p>

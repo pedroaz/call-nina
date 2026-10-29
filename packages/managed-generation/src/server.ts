@@ -194,21 +194,34 @@ export async function accountResponse(
   auth: ClerkPolicy,
   sql: BudgetSql,
   inferenceEnabled: boolean,
+  speechEnabled = false,
 ): Promise<Response> {
   try {
     const userId = await authenticate(request, auth);
     const result = await sql.query("select * from nina_starter.access($1)", [userId]);
     const account = z
       .object({
+        tier: z.enum(["free", "plus"]),
         hosted_ai_enabled: z.boolean(),
         remaining_actions: z.coerce.number().int().nonnegative(),
       })
       .optional()
       .parse(result.rows[0]);
+    const speechResult = await sql.query("select * from nina_speech.access($1)", [userId]);
+    const speech = z
+      .object({ enabled: z.boolean(), remaining_characters: z.coerce.number().int().nonnegative() })
+      .optional()
+      .parse(speechResult.rows[0]);
     return response(
       ninaAccessSchema.parse({
         userId,
+        tier: account?.tier ?? "free",
         hostedAiEnabled: account?.hosted_ai_enabled ?? false,
+        speech: {
+          enabled: speech?.enabled ?? false,
+          remainingCharacters: speech?.remaining_characters ?? 0,
+          serviceEnabled: speechEnabled,
+        },
         remainingActions: account?.remaining_actions ?? 0,
         inferenceEnabled,
       }),

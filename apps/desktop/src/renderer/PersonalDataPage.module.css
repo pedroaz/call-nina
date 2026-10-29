@@ -57,3 +57,12 @@
 .reset {
   border-color: var(--od-color-state-wrong);
 }
+
+.details {
+  display: grid;
+  gap: var(--od-space-6);
+  min-width: 0;
+}
+.details p {
+  margin: 0;
+}

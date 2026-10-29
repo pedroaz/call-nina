@@ -1,6 +1,16 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { context, output, root, readJson, run, summary, setOutput } from "./common.mjs";
+import {
+  context,
+  output,
+  root,
+  readJson,
+  run,
+  summary,
+  setOutput,
+  progress,
+  diagnostic,
+} from "./common.mjs";
 import { childEnvironment } from "../lib/environment.mjs";
 import { verify } from "./artifacts.mjs";
 import { checkPublicConfiguration } from "../admin/configuration.mjs";
@@ -15,14 +25,28 @@ export async function deploy() {
   if (manifest.projectId !== projectId || manifest.teamId !== teamId)
     throw new Error("Hosting artifact targets a different project");
   await checkPublicConfiguration();
-  async function api(endpoint) {
+  async function api(endpoint, label) {
+    const started = Date.now();
+    progress(`${label}: started`);
     const url = new URL(`https://api.vercel.com/${endpoint}`);
     url.searchParams.set("teamId", teamId);
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!response.ok) throw new Error(`Vercel read failed (${response.status})`);
-    return response.json();
+    let response;
+    try {
+      response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    } catch (error) {
+      throw new Error(`${label}: network failure (${diagnostic(error.cause?.code ?? error.name)})`);
+    }
+    const details = `HTTP ${response.status}; elapsed=${Date.now() - started}ms; request=${diagnostic(response.headers.get("x-vercel-id") ?? "unavailable")}`;
+    const payload = await response.json().catch(() => null);
+    if (!response.ok)
+      throw new Error(
+        `${label}: ${details}; code=${diagnostic(payload?.error?.code ?? "unknown")}; ${diagnostic(payload?.error?.message ?? "No JSON error message")}`,
+      );
+    if (!payload) throw new Error(`${label}: invalid JSON response; ${details}`);
+    progress(`${label}: succeeded (${details})`);
+    return payload;
   }
-  const project = await api(`v9/projects/${projectId}`);
+  const project = await api(`v9/projects/${projectId}`, "Vercel project access");
   if (project.id !== projectId || project.accountId !== teamId)
     throw new Error("Vercel project identity mismatch");
   // Re-running a failed publication must first establish whether the original upload succeeded.
@@ -33,6 +57,7 @@ export async function deploy() {
       throw new Error("Deployment history exceeds recovery scan; inspect Vercel before retrying");
     const deployments = await api(
       `v6/deployments?projectId=${projectId}&limit=100${until ? `&until=${until}` : ""}`,
+      `Vercel deployment history page ${page + 1}`,
     );
     prior.push(...deployments.deployments.filter((item) => item.meta?.ninaRun === current.runId));
     if (!deployments.pagination?.next) break;
@@ -41,7 +66,10 @@ export async function deploy() {
   if (prior.length) {
     if (prior.length !== 1)
       throw new Error("Multiple deployments for this run; inspect Vercel before retrying");
-    const deployment = await api(`v13/deployments/${prior[0].uid}`);
+    const deployment = await api(
+      `v13/deployments/${prior[0].uid}`,
+      "Vercel prior deployment readback",
+    );
     if (
       deployment.meta?.ninaCommit !== current.commit ||
       deployment.meta?.ninaArtifact !== manifest.sha256 ||
@@ -87,7 +115,11 @@ export async function deploy() {
     VERCEL_PROJECT_ID: projectId,
     VERCEL_TELEMETRY_DISABLED: "1",
   });
-  run("vercel", ["whoami"], { env, stdio: "pipe" });
+  run("vercel", ["whoami"], {
+    env,
+    stdio: "pipe",
+    diagnosticLabel: "Vercel CLI authentication (whoami)",
+  });
   const result = run(
     "vercel",
     [
@@ -106,13 +138,20 @@ export async function deploy() {
       "--meta",
       `ninaArtifact=${manifest.sha256}`,
     ],
-    { env, stdio: ["ignore", "pipe", "inherit"] },
+    {
+      env,
+      stdio: "pipe",
+      diagnosticLabel: "Vercel production deployment (deploy --prebuilt --prod)",
+    },
   );
   const url = result
     ?.split(/\s+/)
     .findLast((value) => /^https:\/\/[a-zA-Z0-9.-]+\.vercel\.app\/?$/.test(value));
   if (!url) throw new Error("Deployment outcome unknown; inspect Vercel before retrying");
-  const deployed = await api(`v13/deployments/${new URL(url).hostname}`);
+  const deployed = await api(
+    `v13/deployments/${new URL(url).hostname}`,
+    "Vercel production deployment readback",
+  );
   if (
     deployed.projectId !== projectId ||
     deployed.meta?.ninaRun !== current.runId ||

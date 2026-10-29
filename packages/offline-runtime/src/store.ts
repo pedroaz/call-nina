@@ -103,6 +103,7 @@ export class ArtifactStore {
         runtimeFiles.map(({ file }) => file),
       );
       for (const spec of runtimeFiles) {
+        if (!(await exists(path.join(this.root, "runtime", spec.file)))) return "partial";
         const handle = await regular(path.join(this.root, "runtime", spec.file));
         try {
           if ((await handle.stat()).size !== spec.bytes) fail("INSTALL_INVALID");

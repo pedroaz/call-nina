@@ -36,7 +36,9 @@ export function LanguageSelect({
           .filter((language) => !interfaceOnly || languageCapabilities[language].interface)
           .map((language) => (
             <option key={language} value={language}>
-              {t(`languages.${language}`, { defaultValue: languageDefinitions[language].name })}
+              {interfaceOnly
+                ? languageDefinitions[language].name
+                : t(`languages.${language}`, { defaultValue: languageDefinitions[language].name })}
             </option>
           ))}
       </SelectControl>

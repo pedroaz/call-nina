@@ -19,16 +19,29 @@ export async function digest(file) {
   return hash.digest("hex");
 }
 export function run(command, args, options = {}) {
+  const { diagnosticLabel, ...spawnOptions } = options;
+  const started = Date.now();
+  if (diagnosticLabel) progress(`${diagnosticLabel}: started`);
   const result = spawnSync(command, args, {
     cwd: root,
     env: childEnvironment(),
     stdio: "inherit",
-    ...options,
+    ...spawnOptions,
   });
-  if (result.error || result.status !== 0)
+  if (result.error || result.status !== 0) {
+    if (diagnosticLabel) {
+      // Never dump stdout (whoami contains account identity) or command arguments.
+      // Redact before truncating so partial secret values cannot escape masking.
+      const stderr = diagnostic(result.stderr?.toString() ?? "", true);
+      progress(
+        `${diagnosticLabel}: stderr (last 1000 characters): ${stderr || "No stderr captured"}`,
+      );
+    }
     throw new Error(
-      `Command failed: ${path.basename(command)}; exit=${result.status ?? "none"}; signal=${result.signal ?? "none"}; code=${result.error?.code ?? "none"}`,
+      `Command failed: ${diagnosticLabel ?? path.basename(command)}; exit=${result.status ?? "none"}; signal=${result.signal ?? "none"}; code=${result.error?.code ?? "none"}; elapsed=${Date.now() - started}ms`,
     );
+  }
+  if (diagnosticLabel) progress(`${diagnosticLabel}: succeeded in ${Date.now() - started}ms`);
   return result.stdout?.toString().trim();
 }
 export const node = (file, ...args) => run(process.execPath, [file, ...args]);
@@ -87,7 +100,7 @@ export function cleanSource() {
   run("git", ["diff", "--exit-code", "HEAD", "--", "."]);
 }
 // Only bounded, single-line diagnostics cross the CI logging boundary.
-export function diagnostic(value) {
+export function diagnostic(value, tail = false) {
   let text = String(value);
   for (const [name, secret] of Object.entries(process.env)) {
     if (secret && /TOKEN|SECRET|PASSWORD|API_KEY|PRIVATE_KEY/.test(name))
@@ -96,7 +109,18 @@ export function diagnostic(value) {
   for (const directory of [root, process.env.HOME, process.env.USERPROFILE]) {
     if (directory) text = text.split(directory).join("[path]");
   }
-  return text
+  const sanitized = text
+    // eslint-disable-next-line no-control-regex -- Strip ANSI controls from subprocess diagnostics.
+    .replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "")
+    .replace(/https?:\/\/[^\s<>"']+/gi, (value) => {
+      try {
+        const url = new URL(value);
+        return `${url.origin}${url.pathname}`;
+      } catch {
+        return "[url]";
+      }
+    })
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[email]")
     .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
     .replace(/(?:github_pat_|gh[pousr]_)[A-Za-z0-9_]+/g, "[redacted]")
     .split("")
@@ -104,8 +128,8 @@ export function diagnostic(value) {
       const code = character.charCodeAt(0);
       return code < 32 || (code >= 127 && code <= 159) ? " " : character;
     })
-    .join("")
-    .slice(0, 1000);
+    .join("");
+  return tail ? sanitized.slice(-1000) : sanitized.slice(0, 1000);
 }
 export function progress(message) {
   process.stdout.write(`[release] ${diagnostic(message)}\n`);

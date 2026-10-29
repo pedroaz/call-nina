@@ -17,7 +17,7 @@ async function platform(path, method = "GET", body, headers) {
   }
   const args = [
     "--no-install",
-    "clerk",
+    "clerk@4.1.0",
     "api",
     "--platform",
     `/platform${path}`,
@@ -34,7 +34,7 @@ async function platform(path, method = "GET", body, headers) {
   });
   if (result.error || result.status !== 0)
     throw new ControlError(
-      "Clerk CLI request failed; check npx clerk auth login and the selected application's access. No automatic mutation retry; inspect before retrying writes.",
+      "Clerk CLI request failed; check npx clerk@4.1.0 auth login and the selected application's access. No automatic mutation retry; inspect before retrying writes.",
     );
   try {
     return JSON.parse(result.stdout);
@@ -92,7 +92,7 @@ export async function inspectClerk() {
       ...base,
       verified: false,
       status: "platform-credentials-required",
-      next: "Set CLERK_APPLICATION_ID in private root .env. Authenticate with npx clerk auth login.",
+      next: "Set CLERK_APPLICATION_ID in private root .env. Authenticate with npx clerk@4.1.0 auth login.",
     };
   const selected = await target();
   const native = await platform(`${selected.path}/native_settings`);

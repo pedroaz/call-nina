@@ -52,31 +52,16 @@ export function ProviderActionSummary({
     };
   }, [operation, hasImage, busy, previousOperationId]);
   const shown = busy ? (idleAccess ?? access) : access;
+  if (shown?.status !== "unavailable") return null;
   return (
     <div className={styles.summary} role="status" aria-live="polite">
-      <span>
-        {t(
-          operation === "voice-handoff"
-            ? "providers.voice"
-            : `connectionSettings.operation.${operation}`,
-        )}{" "}
-        ·{" "}
-        {shown?.routeId
-          ? t(`connectionSettings.routes.${shown.routeId}`)
-          : t("providers.unassigned")}
-        {shown?.status === "available" && shown.modelSelection
-          ? ` · ${shown.modelSelection.modelId}`
-          : ""}
-        {shown?.status === "unavailable" ? ` · ${t(`providerAccess.reasons.${shown.reason}`)}` : ""}
-      </span>
-      {shown?.status !== "available" && (
-        <Button
-          variant="quiet"
-          onPress={() => window.dispatchEvent(new Event(openProviderSettingsEvent))}
-        >
-          {t("settings.aiTitle")}
-        </Button>
-      )}
+      <span>{t(`providerAccess.reasons.${shown.reason}`)}</span>
+      <Button
+        variant="quiet"
+        onPress={() => window.dispatchEvent(new Event(openProviderSettingsEvent))}
+      >
+        {t("settings.aiTitle")}
+      </Button>
     </div>
   );
 }

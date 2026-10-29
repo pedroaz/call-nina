@@ -42,7 +42,9 @@
     "settings": "Settings",
     "personalData": "Personal Data",
     "learningPath": "Learning path",
-    "mobile": "Mobile"
+    "mobile": "Mobile",
+    "community": "Community",
+    "stories": "Short stories"
   },
   "practice": {
     "eyebrow": "Choose your focus",
@@ -892,8 +894,8 @@
     "selected": "Selected folder",
     "privacyTitle": "Local learning records",
     "privacyBody": "This folder contains readable local learning records. Call Nina restricts files it owns where supported, but does not encrypt the folder or replace operating-system disk encryption.",
-    "cloudTitle": "OpenAI processing",
-    "cloudBody": "Only text you select and minimized learning context are sent to OpenAI when you invoke an AI action. Codex and Voice follow your account data controls.",
+    "cloudTitle": "AI processing",
+    "cloudBody": "AI features send selected content and learning context to your chosen service.",
     "confirmCheck": "I understand where records are stored and when selected text is sent.",
     "cancelled": "No folder was selected. Nothing was changed.",
     "warningGit": "This folder is inside a Git worktree.",
@@ -1090,7 +1092,7 @@
       "helper": "Contextual helper",
       "research": "Curriculum research"
     },
-    "diagnosticsTitle": "Diagnostics",
+    "diagnosticsTitle": "Troubleshooting",
     "diagnosticsPrivacy": "This local health summary contains versions and counts only. It excludes learner text, model output, credentials, paths, and raw protocol data.",
     "diagnosticsGeneration": "Data-root generation",
     "diagnosticsSchema": "Database schema",
@@ -1109,7 +1111,7 @@
       "profile": "Learning",
       "ai": "AI providers",
       "data": "Data & privacy",
-      "diagnostics": "Diagnostics"
+      "diagnostics": "Help"
     },
     "languageSelected": "Learning language changed. Its saved level and goal are now shown.",
     "finishBeforeSwitch": "Leave or finish this activity to switch languages.",
@@ -1123,7 +1125,8 @@
     "activateBeforeLogin": "Use this connection to manage its ChatGPT sign-in.",
     "sessionPrivacy": "Your sign-in is protected on this device. Removing a connection keeps you signed in.",
     "saveBeforeAccount": "Save or discard connection changes before changing accounts.",
-    "saveBeforeLogin": "Save this connection first, then choose “Use this connection” to connect ChatGPT."
+    "saveBeforeLogin": "Save this connection first, then choose “Use this connection” to connect ChatGPT.",
+    "saveFailed": "Could not save. Try again."
   },
   "errors": {
     "exerciseContextMissing": "This activity did not save its original teaching settings. Create fresh practice for new AI feedback or teaching. Your saved activity, answers and feedback are unchanged.",
@@ -1222,7 +1225,7 @@
       "action": "Action"
     },
     "supporting": "The app also keeps links between records, your privacy acknowledgement, and small save/deletion records that prevent duplicates. These support the features above.",
-    "privacy": "Your learning records are stored locally. AI actions send selected text and learning context to the AI connection you choose. Voice activities open in Codex, which manages its account and conversations separately. Call Nina does not store audio.",
+    "privacy": "Your learning records are saved on this device. AI features send selected content and learning context to your chosen service. Saved speech stays on this device. Speaking activities open in Codex; Call Nina keeps their learning summaries, not conversation recordings.",
     "storageHelp": "Your learning records share one local database. Larger files and research material have separate folders.",
     "storageCaption": "Where your data lives",
     "status": {
@@ -1680,7 +1683,7 @@
     "directCatalogNotice": "Listed models and actions are shipped support information. A saved key and model choice only configure local prerequisites; provider access and billing have not been checked.",
     "offlineTitle": "Downloaded model on this device",
     "offlineScope": "Downloading is an explicit, multi-GB download shared by this device, outside your learner folder. Removing it affects every learner root on this device but keeps connection choices and learning records.",
-    "offlineLimits": "Provisional Linux x64 support for writing prompts and contextual help only. Model quality, native execution and hardware suitability are unverified.",
+    "offlineLimits": "Linux x64 supports writing prompts, contextual help, exercise creation and feedback. Model quality and hardware suitability remain provisional.",
     "offlinePlatform": "Downloads are currently supported only on Linux x64.",
     "offlineMemory": "This device does not meet the current memory estimate for local inference.",
     "offlineDiskEstimate": "The full-install disk estimate is low. You may still start or resume; the download checks remaining space under its install lock.",
@@ -1896,7 +1899,9 @@
       "rate-limit": "Too many attempts. Wait before trying again.",
       "network": "The sign-in service could not be reached. Check your connection.",
       "additional-step": "Your account requires another verification step that this form does not support. Contact your pilot administrator.",
-      "unknown": "No recognized error reason was returned. Share the diagnostic code above."
+      "unknown": "No recognized error reason was returned. Share the diagnostic code above.",
+      "username-taken": "That username is already taken. Choose another or sign in.",
+      "password-policy": "Choose a stronger password that meets the account requirements."
     },
     "cancelLogin": "Cancel login",
     "retry": "Retry login",
@@ -1907,7 +1912,12 @@
     "initializationFailed": "Sign-in could not start. Try again in a moment.",
     "aiEnabled": "Hosted AI enabled",
     "aiDisabled": "Hosted AI disabled",
-    "noActions": "No AI actions remaining"
+    "noActions": "No AI actions remaining",
+    "createAccount": "Create account",
+    "tier": {
+      "free": "Free",
+      "plus": "Nina Plus"
+    }
   },
   "providers": {
     "signInRequired": "Sign-in required",
@@ -1980,5 +1990,137 @@
       "participation": "Participation",
       "unknown": "Unclassified"
     }
+  },
+  "speech": {
+    "title": "Read aloud",
+    "play": "Play",
+    "stop": "Stop",
+    "loading": "Preparing…",
+    "slow": "Slow playback",
+    "unavailable": "Speech unavailable. Check Read aloud settings.",
+    "account": "Nina account",
+    "balance": "{{count}} speech characters remaining",
+    "download": "Download",
+    "resume": "Resume",
+    "remove": "Remove",
+    "size": "{{size}} MB download",
+    "cache": "Audio cache: {{size}} MB / 1 GB",
+    "clear": "Clear audio cache",
+    "downloadCourse": "Download course audio",
+    "removeCourse": "Remove course audio",
+    "states": {
+      "unavailable": "Not available",
+      "absent": "Not downloaded",
+      "partial": "Partial download",
+      "installed": "Installed",
+      "downloading": "Downloading",
+      "update": "Update available"
+    },
+    "installedSize": "{{size}} MB installed",
+    "update": "Update",
+    "storageTitle": "Audio and models",
+    "deviceStorage": "Storage on this device",
+    "freeSpace": "{{size}} available on the device",
+    "models": "Local speech models",
+    "publicAudio": "Curriculum audio",
+    "privateAudio": "Private speech · current learner",
+    "ownership": "Models and curriculum audio are shared on this device. Private speech belongs to the current learner folder and is excluded from exports and mobile sync.",
+    "preparedFirst": "Prepared and cached recordings play without using your speech allowance.",
+    "linuxOnly": "Local speech models require Linux x64.",
+    "packSizes": "Download {{download}} · installed estimate {{installed}} · voice files on disk {{disk}}",
+    "qualification": "This voice is not yet available for download.",
+    "downloadFailed": "Download failed. Resume to retry, or remove the partial download.",
+    "useVoice": "Use this voice",
+    "cacheTitle": "Saved speech",
+    "cachePolicy": "Automatic cache: 1 GB. Downloaded courses are protected; remove them from their course page. Clearing private speech keeps your words, courses and models.",
+    "clearPrivate": "Clear private speech",
+    "removeConsequences": "This removes the voice pack and any engine files no other voice needs. Cached recordings remain playable. New speech needs a downloaded voice or account speech.",
+    "readiness": {
+      "ready": "Ready",
+      "checking": "Checking audio…",
+      "offline": "Connect to download this audio.",
+      "model": "Set up a voice in Settings → AI providers.",
+      "account": "Check Nina-account speech access in Settings.",
+      "allowance": "Speech allowance exhausted.",
+      "unavailable": "Audio unavailable. Check Read aloud settings."
+    },
+    "diskFull": "Not enough disk space. Remove unused models or clear audio, then retry."
+  },
+  "setupUx": {
+    "aiPractice": "Exercise Creation",
+    "noConnection": "No connection selected",
+    "change": "Change",
+    "connect": "Connect",
+    "chooseConnection": "Choose an AI connection",
+    "configure": "Set up",
+    "advancedAi": "Advanced AI options",
+    "otherLanguages": "Other languages",
+    "notSetUp": "Not set up",
+    "setUp": "Set up",
+    "voiceTitle": "Read aloud in {{language}}",
+    "audioSource": "Audio source",
+    "onDevice": "On this device",
+    "voiceDownload": "Voice download · {{size}} MB",
+    "advanced": "Advanced",
+    "voiceEngine": "Speech engine",
+    "setUpVoice": "Set up voice",
+    "yourLearning": "Your learning",
+    "languages": "Languages",
+    "learningPreferences": "Learning preferences",
+    "customGoal": "Your own goal",
+    "levels": {
+      "a1": "Beginner · A1",
+      "a2": "Elementary · A2",
+      "b1": "Intermediate · B1",
+      "b2": "Upper intermediate · B2"
+    },
+    "goals": {
+      "everyday": "Everyday life",
+      "travel": "Travel",
+      "work": "Work & study"
+    },
+    "onboardingProfile": "What would you like to learn?",
+    "onboardingOptional": "Make it your own",
+    "onboardingLesson": "Your first lesson",
+    "optionalLater": "Optional. You can do this later.",
+    "continueLearning": "Continue to learning",
+    "openLesson": "Open first lesson",
+    "edit": "Edit",
+    "catalogFailed": "Could not load the lessons. Try again or explore learning paths later.",
+    "exploreFirst": "Explore the learning paths to find your starting point.",
+    "manageDownloads": "Manage downloads",
+    "storageDetails": "Storage details",
+    "privacy": "Privacy",
+    "localPrivacy": "Your learning records are saved on this device.",
+    "aiPrivacy": "AI features send selected content and learning context to your chosen service.",
+    "audioPrivacy": "Saved speech stays on this device. Speaking activities open in Codex; Call Nina keeps their learning summaries, not conversation recordings.",
+    "clearLearning": "Clear learning data",
+    "checkApp": "Check local storage",
+    "runCheck": "Run check",
+    "storageReadable": "Local learning storage is available.",
+    "supportReport": "Support report",
+    "exportReport": "Export report",
+    "technicalDetails": "Technical details",
+    "speakingPractice": "Live Conversation",
+    "manage": "Manage",
+    "activity": "Activity",
+    "speechAi": "Audio",
+    "language": "Language",
+    "exerciseSummary": "Exercise Creation",
+    "audioSummary": "Audio"
+  },
+  "stories": {
+    "failed": "Could not save or load the story. Try again.",
+    "loading": "Loading…",
+    "previous": "Previous",
+    "next": "Next",
+    "position": "{{current}} of {{total}}",
+    "saved": "Saved",
+    "saveWord": "Save word",
+    "search": "Search stories",
+    "level": "Level",
+    "allLevels": "All levels",
+    "read": "Read",
+    "empty": "No matching stories."
   }
 }

@@ -44,7 +44,9 @@ const rendererUrl = new URL(
       : new URL("../renderer/index.html", import.meta.url)),
 ).href;
 const preload = fileURLToPath(new URL("../preload/index.cjs", import.meta.url));
-const developmentWindowIcon = fileURLToPath(new URL("../../assets/call-nina.png", import.meta.url));
+const windowIcon = app.isPackaged
+  ? path.join(process.resourcesPath, "call-nina.png")
+  : fileURLToPath(new URL("../../assets/call-nina.png", import.meta.url));
 let backend: DesktopBackend | undefined;
 let mainWindow: BrowserWindow | undefined;
 let pendingActivityId: ActivityId | undefined;
@@ -61,7 +63,7 @@ function createWindow(): BrowserWindow {
     title: "Call Nina",
     backgroundColor: "#f7f3ea",
     show: false,
-    ...(app.isPackaged ? {} : { icon: developmentWindowIcon }),
+    icon: windowIcon,
     webPreferences: {
       contextIsolation: true,
       sandbox: true,
@@ -76,7 +78,7 @@ function createWindow(): BrowserWindow {
     if (input.type !== "keyDown" || !modifier || input.alt) return;
     const zoomIn = input.key === "+" || input.key === "=";
     const zoomOut = input.key === "-";
-    const reset = input.key === "0";
+    const reset = input.key === "0" || input.code === "Digit0" || input.code === "Numpad0";
     if (!zoomIn && !zoomOut && !reset) return;
     event.preventDefault();
     const current = window.webContents.getZoomFactor();
@@ -242,6 +244,7 @@ if (!app.requestSingleInstanceLock()) {
   }
   void app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(windowIcon);
     if (app.isPackaged) app.setAsDefaultProtocolClient("call-nina");
     handleProtocolArguments(process.argv);
     configureSessionSecurity(session.defaultSession, process.env["CALL_NINA_RENDERER_URL"]);

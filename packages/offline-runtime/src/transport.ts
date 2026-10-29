@@ -1,3 +1,4 @@
+import { availableParallelism } from "node:os";
 import { spawn, type ChildProcess } from "node:child_process";
 import { request } from "node:http";
 import { randomBytes } from "node:crypto";
@@ -140,7 +141,7 @@ export class OfflineTransport {
     if (this.child) fail("BUSY");
     if (attempt.image) fail("INPUT_UNSUPPORTED");
     const budget = attempt.deadline - Date.now();
-    if (budget <= 0 || budget > 120_000) fail("DEADLINE_INVALID");
+    if (budget <= 0 || budget > 300_000) fail("DEADLINE_INVALID");
     const signal = AbortSignal.any([
       AbortSignal.timeout(budget),
       ...(attempt.signal ? [attempt.signal] : []),
@@ -164,7 +165,7 @@ export class OfflineTransport {
       stream: false,
       cache_prompt: false,
     });
-    if (Buffer.byteLength(body) > 32 * 1024) fail("INPUT_TOO_LARGE");
+    if (Buffer.byteLength(body) > 64 * 1024) fail("INPUT_TOO_LARGE");
     const flight = await this.store.preflight();
     if (!flight.platformSupported) fail("PLATFORM_UNSUPPORTED");
     if (!flight.memorySufficient) fail("MEMORY_INSUFFICIENT");
@@ -214,7 +215,9 @@ export class OfflineTransport {
           "--n-gpu-layers",
           "0",
           "--threads",
-          "4",
+          String(Math.min(8, availableParallelism())),
+          "--threads-batch",
+          String(Math.min(8, availableParallelism())),
           "--reasoning-budget",
           "0",
           "--chat-template-kwargs",

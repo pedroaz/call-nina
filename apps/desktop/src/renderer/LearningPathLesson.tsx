@@ -1,3 +1,5 @@
+import { SpeechButton, stopSpeech } from "./SpeechButton.js";
+import { CourseAudio } from "./SpeechSettings.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type {
   CourseActivity,
@@ -5,7 +7,7 @@ import type {
   CourseUnit,
   HistoryEntryId,
 } from "@call-nina/contracts";
-import { useId, useState, useRef, type ReactNode } from "react";
+import { useId, useState, useRef, useEffect, type ReactNode } from "react";
 import { ArrowRight, Check, Circle, SkipForward, Lightbulb, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { courseActivityStatus, sameCourseActivity } from "@call-nina/domain";
@@ -61,6 +63,12 @@ export function LearningPathLesson({
   const { t } = useTranslation();
   const helpGroup = useId();
   const [lessonTab, setLessonTab] = useState({ lesson: selected.id, tab: "activities" });
+  useEffect(
+    () => () => {
+      stopSpeech();
+    },
+    [selected.id, expandedActivity, lessonTab.tab],
+  );
   const lessonRoot = useRef<HTMLElement>(null);
   const returnToActivity = () => {
     setLessonTab({ lesson: selected.id, tab: "activities" });
@@ -230,11 +238,19 @@ export function LearningPathLesson({
                               lang={snapshot.learningContext.targetLanguage}
                             >
                               {activity.input}
+                              <SpeechButton
+                                text={activity.input}
+                                language={snapshot.learningContext.targetLanguage}
+                              />
                             </div>
                           ) : firstExample ? (
                             <div className={styles.phraseSpotlight}>
                               <p lang={snapshot.learningContext.targetLanguage}>
                                 {firstExample.text}
+                                <SpeechButton
+                                  text={firstExample.text}
+                                  language={snapshot.learningContext.targetLanguage}
+                                />
                               </p>
                               <Muted as="p">{firstExample.meaning[locale]}</Muted>
                             </div>
@@ -277,6 +293,10 @@ export function LearningPathLesson({
                                   <div key={example.text}>
                                     <dt lang={snapshot.learningContext.targetLanguage}>
                                       {example.text}
+                                      <SpeechButton
+                                        text={example.text}
+                                        language={snapshot.learningContext.targetLanguage}
+                                      />
                                     </dt>
                                     <dd>{example.meaning[locale]}</dd>
                                   </div>
@@ -287,6 +307,12 @@ export function LearningPathLesson({
                         </>
                       ) : (
                         <div className={styles.activityInvitation}>
+                          {activity.delivery === "listening" && activity.input && (
+                            <SpeechButton
+                              text={activity.input}
+                              language={snapshot.learningContext.targetLanguage}
+                            />
+                          )}
                           <Nina
                             pose={
                               finished
@@ -397,6 +423,9 @@ export function LearningPathLesson({
             label: t("lessonStudio.progress"),
             children: (
               <Card density="compact">
+                <CourseAudio
+                  courseId={`${snapshot.learningContext.targetLanguage}:${selected.stage}`}
+                />
                 <LearningPathProgress
                   snapshot={snapshot}
                   unit={selected}

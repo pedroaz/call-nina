@@ -7,6 +7,8 @@ const output = path.join(root, "build/hosting/.vercel/output/functions/api");
 for (const [name, method] of [
   ["account", "GET"],
   ["generate", "POST"],
+  ["speech", "POST"],
+  ["speech-recovery", "GET"],
   ["mobile-sync", "handle"],
 ]) {
   const directory = path.join(output, `${name}.func`);

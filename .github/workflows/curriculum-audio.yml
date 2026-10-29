@@ -1,0 +1,48 @@
+name: Curriculum audio
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Review, paid generation, or publication of reviewed assets
+        type: choice
+        options: [extract, generate, publish]
+        default: extract
+      approved_digest:
+        description: Exact curriculum digest from extraction review (required for writes)
+        type: string
+      generation_run:
+        description: Successful generation run ID (publication only)
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audio:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    environment: speech-assets
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+      - run: pnpm --filter @call-nina/managed-generation... build
+      - name: Restore reviewed generation
+        if: inputs.operation == 'publish'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GENERATION_RUN: ${{ inputs.generation_run }}
+        run: gh run download "$GENERATION_RUN" --name curriculum-audio --dir build/speech
+      - name: Process curriculum audio
+        env:
+          OPERATION: ${{ inputs.operation }}
+          NINA_SPEECH_APPROVED_DIGEST: ${{ inputs.approved_digest }}
+          NINA_SPEECH_GOOGLE_CREDENTIALS: ${{ inputs.operation == 'generate' && secrets.NINA_SPEECH_GOOGLE_CREDENTIALS || '' }}
+          BLOB_READ_WRITE_TOKEN: ${{ inputs.operation == 'publish' && secrets.BLOB_READ_WRITE_TOKEN || '' }}
+        run: node scripts/speech/curriculum.mjs "$OPERATION"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: curriculum-audio
+          path: build/speech/*
+          retention-days: 30

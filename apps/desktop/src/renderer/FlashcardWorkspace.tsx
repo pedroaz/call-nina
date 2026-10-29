@@ -1,3 +1,4 @@
+import { SpeechButton } from "./SpeechButton.js";
 import { type ActivityId, vocabularyLemma } from "@call-nina/contracts";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -226,6 +227,10 @@ export function FlashcardWorkspace({
             />
           ) : (
             <>
+              <SpeechButton
+                text={vocabularyLemma(card, deck.content.language)}
+                language={deck.content.language}
+              />
               <RecallCard
                 identity={deck.progress.position}
                 language={deck.content.language}
@@ -257,7 +262,12 @@ export function FlashcardWorkspace({
                     )}
                     {card.examples.map((example, index) => (
                       <div key={index} className={styles.example}>
-                        <p lang={deck.content.language}>{example.text}</p>
+                        <p lang={deck.content.language}>
+                          {example.text}
+                          {flipped && (
+                            <SpeechButton text={example.text} language={deck.content.language} />
+                          )}
+                        </p>
                         <p>{example.meaning}</p>
                       </div>
                     ))}

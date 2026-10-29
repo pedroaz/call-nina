@@ -1,3 +1,7 @@
+import { StoriesPage } from "./StoriesPage.js";
+import { InterfaceLanguage } from "./InterfaceLanguage.js";
+import type { PathDestination } from "./learningPathNavigation.js";
+import { stopSpeech } from "./SpeechButton.js";
 import { MobilePage } from "./MobilePage.js";
 import { openProviderSettingsEvent } from "./ProviderActionSummary.js";
 import { VocabularyLearningNotice } from "./VocabularyLearning.js";
@@ -16,7 +20,17 @@ import {
   type Language,
   type DataRootGeneration,
 } from "@call-nina/contracts";
-import { Smartphone, Gauge, House, Route, LibraryBig, LoaderCircle, Settings } from "lucide-react";
+import {
+  BookOpen,
+  UsersRound,
+  Smartphone,
+  Gauge,
+  House,
+  Route,
+  LibraryBig,
+  LoaderCircle,
+  Settings,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -61,6 +75,8 @@ type Page =
   | "practice"
   | "writing"
   | "vocabulary"
+  | "stories"
+  | "community"
   | "mobile"
   | "learningPath"
   | "personalData"
@@ -82,8 +98,10 @@ const navigation: ReadonlyArray<{
   { page: "nina", icon: House },
   { page: "practice", icon: Gauge },
   { page: "learningPath", icon: Route },
+  { page: "stories", icon: BookOpen },
   { page: "vocabulary", icon: LibraryBig },
   { page: "mobile", icon: Smartphone },
+  { page: "community", icon: UsersRound },
 ];
 
 function FirstAiReminder({ close }: { close: (acknowledged: boolean) => void }) {
@@ -140,11 +158,13 @@ function DesktopWorkspace({
   reload,
   onRunSetup,
   initialPage,
+  initialPath,
 }: {
   readiness: Readiness;
   reload: () => Promise<void>;
   onRunSetup: () => void;
   initialPage: Page;
+  initialPath?: PathDestination | undefined;
 }) {
   const { t } = useTranslation();
   const [resultsRequest, setResultsRequest] = useState<{
@@ -152,6 +172,9 @@ function DesktopWorkspace({
     requestId: number;
   }>();
   const [page, setPage] = useState<Page>(initialPage);
+  useEffect(() => {
+    stopSpeech();
+  }, [page]);
   const [resultsOrigin, setResultsOrigin] = useState<"learningPath" | "vocabulary">();
   const pathHistory = useDetailNavigation<"results">();
   const [writingOrigin, setWritingOrigin] = useState<Page>("practice");
@@ -640,6 +663,11 @@ function DesktopWorkspace({
                 requestAiAccess={openAi}
               />
             ) : null}
+            {page === "stories" && (
+              <StoriesPage
+                key={`${String(readiness.dataRoot.status === "ready" ? readiness.dataRoot.generation : 0)}:${learningScope?.learnerId ?? ""}:${learningScope?.targetLanguage ?? ""}`}
+              />
+            )}
             {page === "mobile" && <MobilePage />}
             {(page === "learningPath" || pathHistory.view === "results") &&
             learningScope &&
@@ -648,6 +676,7 @@ function DesktopWorkspace({
               languageDefinitions[learningScope.targetLanguage].structuredCourseId ? (
               <div hidden={page !== "learningPath"}>
                 <LearningPathPage
+                  initialDestination={initialPath}
                   onLanguageSwitchBlockedChange={setPathLanguageBlocked}
                   onNina={() => {
                     navigate("nina");
@@ -768,6 +797,7 @@ function DesktopWorkspace({
         navigation={navigation.map(({ page: destination, icon }) => ({
           page: destination,
           icon,
+          disabled: destination === "community",
           label: t(`nav.${destination}`),
           ...(destination === "vocabulary"
             ? {
@@ -808,12 +838,8 @@ function DesktopWorkspace({
                 )}
               </>
             )}
-            <SidebarModelControl
-              onOpenSettings={() => {
-                setSettingsTab("ai");
-                navigate("settings");
-              }}
-            />
+            <InterfaceLanguage />
+            <SidebarModelControl language={learningScope?.targetLanguage ?? "de"} />
           </>
         }
         navToggleLabel={
@@ -886,6 +912,7 @@ export default function App() {
   const [profileOnboarding, setProfileOnboarding] = useState(false);
   const [repeatSetup, setRepeatSetup] = useState(false);
   const [initialPage, setInitialPage] = useState<Page>("nina");
+  const [initialPath, setInitialPath] = useState<PathDestination>();
   const load = useCallback(async () => {
     setFatal(undefined);
     try {
@@ -966,8 +993,12 @@ export default function App() {
               },
             }
           : {})}
-        onComplete={() => {
+        onComplete={(destination) => {
           setProfileOnboarding(false);
+          if (!repeatSetup && destination) {
+            setInitialPage("learningPath");
+            setInitialPath(destination);
+          }
           if (repeatSetup) setInitialPage("settings");
           setRepeatSetup(false);
           void load();
@@ -985,6 +1016,7 @@ export default function App() {
         readiness={readiness}
         reload={load}
         initialPage={initialPage}
+        initialPath={initialPath}
         onRunSetup={() => {
           setRepeatSetup(true);
         }}

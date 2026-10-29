@@ -1,3 +1,5 @@
+import { SettingsRow } from "./SettingsRow.js";
+import { SpeechSettings } from "./SpeechSettings.js";
 import tableStyles from "./components/layout/Table.module.css";
 import type {
   DesktopIpcResponse,
@@ -5,20 +7,17 @@ import type {
   PersonalDataCleanupScope,
   PersonalDataTable,
 } from "@call-nina/contracts";
-import { FolderOpen } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { FolderOpen, Volume2, History, BookOpen } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ActionGroup, Page } from "./components/layout/index.js";
+import { ActionGroup, Page, Section } from "./components/layout/index.js";
 import {
   Button,
-  Card,
   DiagnosticCode,
-  InfoHint,
   Feedback,
   ModalDialog,
   Muted,
-  Tabs,
   TextField,
 } from "./components/ui/index.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
@@ -152,11 +151,16 @@ function CleanupDialog({
 export function PersonalDataPage({
   onDataCleared,
   breadcrumbs,
+  embedded = false,
+  folderAction,
 }: {
   onDataCleared: () => void;
+  embedded?: boolean;
+  folderAction?: ReactNode;
   breadcrumbs?: ReadonlyArray<{ label: string; onPress: () => void }>;
 }) {
   const { t, i18n } = useTranslation();
+  const [details, setDetails] = useState<"storage" | "privacy" | "audio">();
   const [overview, setOverview] = useState<Overview>();
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<CallNinaError>();
@@ -205,18 +209,8 @@ export function PersonalDataPage({
       (sum, table) => sum + (overview?.tables.find((entry) => entry.table === table)?.count ?? 0),
       0,
     );
-  return (
-    <Page
-      {...(breadcrumbs ? { breadcrumbs } : {})}
-      title={t("personalData.title")}
-      actions={
-        <InfoHint label={t("personalData.title")}>
-          <p>{t("personalData.intro")}</p>
-        </InfoHint>
-      }
-      aria-busy={busy}
-      refresh={{ onRefresh: refresh, busy: busy }}
-    >
+  const content = (
+    <>
       {error && <DataError error={error} />}
       {busy && !overview && <Feedback live="polite">{t("personalData.loading")}</Feedback>}
       {cleared && (
@@ -226,163 +220,174 @@ export function PersonalDataPage({
       )}
       {overview && (
         <>
-          <div className={styles.folder}>
-            <FolderOpen aria-hidden="true" />
-            <strong>{t("personalData.folder")}</strong>
-            <code className={styles.path}>{overview.dataRoot}</code>
-          </div>
-          <Tabs
-            label={t("personalData.title")}
-            items={[
-              {
-                id: "overview",
-                label: t("personalData.tabs.overview"),
-                children: (
-                  <>
-                    <Muted>{t("personalData.overviewHelp")}</Muted>
-                    <div className={styles.tableWrap}>
-                      <table className={`${tableStyles.table} ${styles.table}`}>
-                        <caption>{t("personalData.overviewCaption")}</caption>
-                        <thead>
-                          <tr>
-                            <th scope="col">{t("personalData.columns.data")}</th>
-                            <th scope="col">{t("personalData.columns.purpose")}</th>
-                            <th scope="col">{t("personalData.columns.saved")}</th>
+          <Section title={t("setupUx.onDevice")}>
+            <SettingsRow
+              icon={<FolderOpen aria-hidden="true" />}
+              title={t("settings.dataFolder")}
+              action={folderAction}
+            >
+              <span className={styles.path}>{overview.dataRoot}</span>
+            </SettingsRow>
+            <SettingsRow
+              icon={<Volume2 aria-hidden="true" />}
+              title={t("speech.cacheTitle")}
+              action={
+                <Button
+                  variant="secondary"
+                  onPress={() => {
+                    setDetails("audio");
+                  }}
+                >
+                  {t("setupUx.manageDownloads")}
+                </Button>
+              }
+            />
+            <Button
+              variant="quiet"
+              onPress={() => {
+                setDetails("storage");
+              }}
+            >
+              {t("setupUx.storageDetails")}
+            </Button>
+          </Section>
+          <Section title={t("setupUx.privacy")}>
+            <p>{t("setupUx.localPrivacy")}</p>
+            <p>{t("setupUx.aiPrivacy")}</p>
+            <Button
+              variant="quiet"
+              onPress={() => {
+                setDetails("privacy");
+              }}
+            >
+              {t("setupUx.viewDetails")}
+            </Button>
+          </Section>
+          <Section title={t("setupUx.clearLearning")}>
+            {cleanupScopes
+              .filter((scope) => scope !== "learning")
+              .map((scope) => (
+                <SettingsRow
+                  key={scope}
+                  icon={
+                    scope === "practice" ? (
+                      <History aria-hidden="true" />
+                    ) : (
+                      <BookOpen aria-hidden="true" />
+                    )
+                  }
+                  title={t(`personalData.cleanup.${scope}.title`)}
+                  action={
+                    <Button
+                      variant="quiet"
+                      isDisabled={busy || Boolean(error)}
+                      onPress={() => {
+                        setCleared(undefined);
+                        setSelected(scope);
+                      }}
+                    >
+                      {t(`personalData.cleanup.${scope}.action`)}
+                    </Button>
+                  }
+                />
+              ))}
+            <Button
+              variant="quiet"
+              isDisabled={busy || Boolean(error)}
+              onPress={() => {
+                setCleared(undefined);
+                setSelected("learning");
+              }}
+            >
+              {t("personalData.cleanup.learning.action")}
+            </Button>
+          </Section>
+          <ModalDialog
+            closeLabel={t("actions.close")}
+            isOpen={Boolean(details)}
+            title={t(
+              details === "audio"
+                ? "speech.storageTitle"
+                : details === "privacy"
+                  ? "setupUx.privacy"
+                  : "setupUx.storageDetails",
+            )}
+            onOpenChange={(open) => {
+              if (!open) setDetails(undefined);
+            }}
+          >
+            {details === "audio" && <SpeechSettings mode="storage" />}
+            {details === "privacy" && (
+              <div className={styles.details}>
+                <p>{t("folder.privacyBody")}</p>
+                <p>{t("setupUx.aiPrivacy")}</p>
+                <p>{t("setupUx.audioPrivacy")}</p>
+                <div className={styles.tableWrap}>
+                  <table className={`${tableStyles.table} ${styles.table}`}>
+                    <caption>{t("personalData.overviewCaption")}</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">{t("personalData.columns.data")}</th>
+                        <th scope="col">{t("personalData.columns.purpose")}</th>
+                        <th scope="col">{t("personalData.columns.saved")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {categories.map(({ id, tables }) => (
+                        <tr key={id}>
+                          <th scope="row">
+                            <strong>{t(`personalData.categories.${id}.title`)}</strong>
+                            <span className={styles.description}>
+                              {t(`personalData.categories.${id}.contains`)}
+                            </span>
+                          </th>
+                          <td>{t(`personalData.categories.${id}.purpose`)}</td>
+                          <td className={styles.count}>
+                            {count(tables).toLocaleString(i18n.language)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {details === "storage" && (
+              <div className={styles.details}>
+                {" "}
+                <div className={styles.tableWrap}>
+                  <table className={`${tableStyles.table} ${styles.table}`}>
+                    <caption>{t("personalData.storageCaption")}</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">{t("personalData.columns.location")}</th>
+                        <th scope="col">{t("personalData.columns.path")}</th>
+                        <th scope="col">{t("personalData.columns.status")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {overview.locations
+                        .filter(({ id }) => visibleLocations.includes(id))
+                        .map((location) => (
+                          <tr key={location.id}>
+                            <th scope="row">
+                              {t(`personalData.locations.${location.id}.title`)}
+                              <span className={styles.description}>
+                                {t(`personalData.locations.${location.id}.description`)}
+                              </span>
+                            </th>
+                            <td>
+                              <code className={styles.path}>{location.path}</code>
+                            </td>
+                            <td>{t(`personalData.status.${location.status}`)}</td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {categories.map(({ id, tables }) => (
-                            <tr key={id}>
-                              <th scope="row">
-                                <strong>{t(`personalData.categories.${id}.title`)}</strong>
-                                <span className={styles.description}>
-                                  {t(`personalData.categories.${id}.contains`)}
-                                </span>
-                              </th>
-                              <td>{t(`personalData.categories.${id}.purpose`)}</td>
-                              <td className={styles.count}>
-                                {count(tables).toLocaleString(i18n.language)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <Muted>{t("personalData.supporting")}</Muted>
-                    <Feedback live="off">{t("personalData.privacy")}</Feedback>
-                  </>
-                ),
-              },
-              {
-                id: "storage",
-                label: t("personalData.tabs.storage"),
-                children: (
-                  <>
-                    <Muted>{t("personalData.storageHelp")}</Muted>
-                    <div className={styles.tableWrap}>
-                      <table className={`${tableStyles.table} ${styles.table}`}>
-                        <caption>{t("personalData.storageCaption")}</caption>
-                        <thead>
-                          <tr>
-                            <th scope="col">{t("personalData.columns.location")}</th>
-                            <th scope="col">{t("personalData.columns.path")}</th>
-                            <th scope="col">{t("personalData.columns.status")}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {overview.locations
-                            .filter(({ id }) => visibleLocations.includes(id))
-                            .map((location) => (
-                              <tr key={location.id}>
-                                <th scope="row">
-                                  {t(`personalData.locations.${location.id}.title`)}
-                                  <span className={styles.description}>
-                                    {t(`personalData.locations.${location.id}.description`)}
-                                  </span>
-                                </th>
-                                <td>
-                                  <code className={styles.path}>{location.path}</code>
-                                </td>
-                                <td>{t(`personalData.status.${location.status}`)}</td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                ),
-              },
-              {
-                id: "cleanup",
-                label: t("personalData.tabs.cleanup"),
-                children: (
-                  <>
-                    <Muted>{t("personalData.cleanup.intro")}</Muted>
-                    <div className={styles.tableWrap}>
-                      <table className={`${tableStyles.table} ${styles.table}`}>
-                        <caption>{t("personalData.cleanup.caption")}</caption>
-                        <thead>
-                          <tr>
-                            <th scope="col">{t("personalData.columns.cleanup")}</th>
-                            <th scope="col">{t("personalData.columns.removes")}</th>
-                            <th scope="col">{t("personalData.columns.action")}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {cleanupScopes
-                            .filter((scope) => scope !== "learning")
-                            .map((scope) => (
-                              <tr key={scope}>
-                                <th scope="row">{t(`personalData.cleanup.${scope}.title`)}</th>
-                                <td>
-                                  {t(`personalData.cleanup.${scope}.removes`)}
-                                  <span className={styles.description}>
-                                    {t(`personalData.cleanup.${scope}.keeps`)}
-                                  </span>
-                                </td>
-                                <td>
-                                  <Button
-                                    variant="secondary"
-                                    isDisabled={busy || Boolean(error)}
-                                    onPress={() => {
-                                      setCleared(undefined);
-                                      setSelected(scope);
-                                    }}
-                                  >
-                                    {t(`personalData.cleanup.${scope}.action`)}
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <Card className={styles.reset}>
-                      <h2>{t("personalData.cleanup.learning.title")}</h2>
-                      <p>{t("personalData.cleanup.learning.removes")}</p>
-                      <Muted>{t("personalData.cleanup.learning.keeps")}</Muted>
-                      <Button
-                        variant="danger"
-                        isDisabled={busy || Boolean(error)}
-                        onPress={() => {
-                          setCleared(undefined);
-                          setSelected("learning");
-                        }}
-                      >
-                        {t("personalData.cleanup.learning.action")}
-                      </Button>
-                    </Card>
-                    <Muted>{t("personalData.cleanup.retained")}</Muted>
-                  </>
-                ),
-              },
-            ]}
-          />
-          <Muted>
-            {t("personalData.updated", {
-              time: new Date(overview.refreshedAt).toLocaleTimeString(i18n.language),
-            })}
-          </Muted>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </ModalDialog>
           {selected && (
             <CleanupDialog
               key={selected}
@@ -404,6 +409,17 @@ export function PersonalDataPage({
           )}
         </>
       )}
+    </>
+  );
+  return embedded ? (
+    <div className={styles.details}>{content}</div>
+  ) : (
+    <Page
+      {...(breadcrumbs ? { breadcrumbs } : {})}
+      title={t("settings.tabs.data")}
+      refresh={{ onRefresh: refresh, busy }}
+    >
+      {content}
     </Page>
   );
 }

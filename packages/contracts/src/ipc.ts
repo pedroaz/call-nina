@@ -1,3 +1,11 @@
+import { storySnapshotSchema, storyUpdateSchema, storyVocabularySchema } from "./stories.js";
+import {
+  speechAvailabilitySchema,
+  speechActionSchema,
+  speechRequestSchema,
+  speechResultSchema,
+  speechSnapshotSchema,
+} from "./speech.js";
 import { mobileSyncResultSchema } from "./mobile-sync.js";
 import { vocabularyImageSchema, vocabularyLearningSnapshotSchema } from "./vocabulary-learning.js";
 import {
@@ -98,6 +106,10 @@ import { listeningResultSchema, voiceActivityContextSchema } from "./voice.js";
 const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "speech/availability",
+  "speech/read",
+  "speech/manage",
+  "speech/synthesize",
   "nina-account/credentials/read",
   "nina-account/credentials/save",
   "nina-account/diagnostic",
@@ -125,6 +137,9 @@ export const desktopIpcChannels = [
   "learner-profile/read",
   "learner-profile/start-onboarding",
   "learner-profile/finish-onboarding",
+  "stories/read",
+  "stories/position",
+  "stories/vocabulary",
   "learner-settings/read",
   "learner-settings/update",
   "learner-settings/select-language",
@@ -787,6 +802,10 @@ export const desktopIpcRequestSchema = boundaryUnion([
   request("mobile-sync/read", emptyPayload),
   request("nina-account/read", emptyPayload),
   request("nina-account/update", ninaAccountUpdateSchema),
+  request("speech/availability", speechRequestSchema.extend({ online: z.boolean() })),
+  request("speech/read", emptyPayload),
+  request("speech/manage", speechActionSchema),
+  request("speech/synthesize", speechRequestSchema),
   request("offline-model/read", emptyPayload),
   request("offline-model/manage", offlineModelActionSchema),
   request("ai-connections/read", emptyPayload),
@@ -820,6 +839,9 @@ export const desktopIpcRequestSchema = boundaryUnion([
   activityListRequest,
   activityResolveRequest,
   activityReuseRequest,
+  request("stories/read", emptyPayload),
+  request("stories/position", storyUpdateSchema),
+  request("stories/vocabulary", storyVocabularySchema),
   learningPathReadRequest,
   learningPathUpdateRequest,
   learningPathVocabularyRequest,
@@ -1751,6 +1773,7 @@ const learningOperationAcceptanceSchema = z.discriminatedUnion("status", [
     operationId: correlationIdSchema,
     submissionId: correlationIdSchema,
     status: z.literal("accepted"),
+    timeoutMilliseconds: z.int().positive().max(300_000),
     submission: z.literal("retained"),
   }),
   z.strictObject({
@@ -1796,6 +1819,10 @@ export const desktopIpcResponseSchema = boundaryUnion([
   response("mobile-sync/read", mobileSyncResultSchema),
   response("nina-account/read", ninaAccountStateSchema),
   response("nina-account/update", ninaAccountStateSchema),
+  response("speech/availability", speechAvailabilitySchema),
+  response("speech/read", speechSnapshotSchema),
+  response("speech/manage", speechSnapshotSchema),
+  response("speech/synthesize", speechResultSchema),
   response("offline-model/read", offlineModelViewSchema),
   response("offline-model/manage", offlineModelViewSchema),
   response("ai-connections/read", aiConnectionsViewSchema),
@@ -1835,6 +1862,9 @@ export const desktopIpcResponseSchema = boundaryUnion([
   activityListResponse,
   activityResolveResponse,
   activityReuseResponse,
+  response("stories/read", storySnapshotSchema),
+  response("stories/position", z.strictObject({ saved: z.literal(true) })),
+  response("stories/vocabulary", z.strictObject({ added: z.boolean() })),
   learningPathReadResponse,
   learningPathUpdateResponse,
   learningPathVocabularyResponse,
@@ -1892,6 +1922,11 @@ export const desktopIpcResponseSchema = boundaryUnion([
 ]);
 
 export const desktopIpcEventSchema = boundaryUnion([
+  strictBoundaryObject({
+    event: z.literal("speech-audio"),
+    id: z.uuid(),
+    audio: z.string().max(8_000_000),
+  }),
   translationFinishedEventSchema,
   strictBoundaryObject({
     event: z.literal("account-login"),

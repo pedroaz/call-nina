@@ -5,6 +5,16 @@ import { flashcardMessages } from "@call-nina/learning-ui";
 import { languageIds } from "@call-nina/contracts";
 
 const en = {
+  credentials: "The sign-in service rejected the username or password.",
+  "rate-limit": "Too many attempts. Wait before trying again.",
+  network: "The sign-in service could not be reached. Check your connection.",
+  "additional-step":
+    "Your account requires another verification step that this form does not support. Contact your pilot administrator.",
+  unknown: "No recognized error reason was returned. Share the diagnostic code above.",
+  "username-taken": "That username is already taken. Choose another or sign in.",
+  "password-policy": "Choose a stronger password that meets the account requirements.",
+  none: "No recognized error reason was returned. Share the diagnostic code above.",
+
   library: "Flashcards",
   account: "Account",
   username: "Username",
@@ -12,6 +22,8 @@ const en = {
   showPassword: "Show password",
   hidePassword: "Hide password",
   signIn: "Sign in",
+  createAccount: "Create account",
+  creatingAccount: "Creating account…",
   signOut: "Sign out",
   signingIn: "Signing in…",
   loginError: "Could not sign in. Check your details and try again.",
@@ -38,6 +50,17 @@ const en = {
   storageError: "Could not open local data. Restart the app.",
 };
 const de: typeof en = {
+  credentials: "Der Anmeldedienst hat Benutzername oder Passwort abgelehnt.",
+  "rate-limit": "Zu viele Versuche. Warte vor einem neuen Versuch.",
+  network: "Der Anmeldedienst ist nicht erreichbar. Prüfe deine Verbindung.",
+  "additional-step":
+    "Dein Konto benötigt einen weiteren Bestätigungsschritt, den dieses Formular nicht unterstützt. Kontaktiere die Pilotadministration.",
+  unknown: "Es wurde kein bekannter Fehlergrund zurückgegeben. Teile den Diagnosecode oben.",
+  "username-taken":
+    "Dieser Benutzername ist bereits vergeben. Wähle einen anderen oder melde dich an.",
+  "password-policy": "Wähle ein stärkeres Passwort, das die Kontoanforderungen erfüllt.",
+  none: "Es wurde kein bekannter Fehlergrund zurückgegeben. Teile den Diagnosecode oben.",
+
   library: "Lernkarten",
   account: "Konto",
   username: "Benutzername",
@@ -45,6 +68,8 @@ const de: typeof en = {
   showPassword: "Passwort anzeigen",
   hidePassword: "Passwort verbergen",
   signIn: "Anmelden",
+  createAccount: "Konto erstellen",
+  creatingAccount: "Konto wird erstellt…",
   signOut: "Abmelden",
   signingIn: "Anmeldung…",
   loginError: "Anmeldung fehlgeschlagen. Angaben prüfen und erneut versuchen.",
@@ -71,6 +96,17 @@ const de: typeof en = {
   storageError: "Lokale Daten konnten nicht geöffnet werden. Starte die App neu.",
 };
 const es: typeof en = {
+  credentials: "El servicio rechazó el usuario o la contraseña.",
+  "rate-limit": "Demasiados intentos. Espera antes de volver a intentarlo.",
+  network: "No se pudo contactar con el servicio de acceso. Comprueba tu conexión.",
+  "additional-step":
+    "Tu cuenta necesita otro paso de verificación que este formulario no admite. Contacta con la administración del piloto.",
+  unknown:
+    "No se recibió un motivo de error reconocido. Comparte el código de diagnóstico de arriba.",
+  "username-taken": "Ese nombre de usuario ya existe. Elige otro o inicia sesión.",
+  "password-policy": "Elige una contraseña más segura que cumpla los requisitos de la cuenta.",
+  none: "No se recibió un motivo de error reconocido. Comparte el código de diagnóstico de arriba.",
+
   library: "Tarjetas",
   account: "Cuenta",
   username: "Usuario",
@@ -78,6 +114,8 @@ const es: typeof en = {
   showPassword: "Mostrar contraseña",
   hidePassword: "Ocultar contraseña",
   signIn: "Iniciar sesión",
+  createAccount: "Crear cuenta",
+  creatingAccount: "Creando cuenta…",
   signOut: "Cerrar sesión",
   signingIn: "Iniciando sesión…",
   loginError: "No se pudo iniciar sesión. Revisa tus datos e inténtalo de nuevo.",
@@ -104,6 +142,17 @@ const es: typeof en = {
   storageError: "No se pudieron abrir los datos locales. Reinicia la app.",
 };
 const pt: typeof en = {
+  credentials: "O serviço recusou o nome de usuário ou a senha.",
+  "rate-limit": "Muitas tentativas. Aguarde antes de tentar novamente.",
+  network: "Não foi possível acessar o serviço de login. Verifique sua conexão.",
+  "additional-step":
+    "Sua conta exige outra etapa de verificação que este formulário não suporta. Entre em contato com a administração do piloto.",
+  unknown:
+    "Nenhum motivo de erro conhecido foi retornado. Compartilhe o código de diagnóstico acima.",
+  "username-taken": "Esse nome de usuário já existe. Escolha outro ou entre na conta.",
+  "password-policy": "Escolha uma senha mais forte que atenda aos requisitos da conta.",
+  none: "Nenhum motivo de erro conhecido foi retornado. Compartilhe o código de diagnóstico acima.",
+
   library: "Cartões",
   account: "Conta",
   username: "Usuário",
@@ -111,6 +160,8 @@ const pt: typeof en = {
   showPassword: "Mostrar senha",
   hidePassword: "Ocultar senha",
   signIn: "Entrar",
+  createAccount: "Criar conta",
+  creatingAccount: "Criando conta…",
   signOut: "Sair",
   signingIn: "Entrando…",
   loginError: "Não foi possível entrar. Confira seus dados e tente novamente.",

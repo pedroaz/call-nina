@@ -80,7 +80,10 @@ export async function setupRuntime() {
       REVOKE ALL ON SCHEMA nina_sync FROM ${role};
       REVOKE ALL ON ALL TABLES IN SCHEMA nina_sync FROM ${role};
       REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nina_sync FROM ${role};
-      GRANT USAGE ON SCHEMA nina_starter,nina_sync TO ${role};
+      REVOKE ALL ON SCHEMA nina_speech FROM ${role};
+      REVOKE ALL ON ALL TABLES IN SCHEMA nina_speech FROM ${role};
+      REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nina_speech FROM ${role};
+      GRANT USAGE ON SCHEMA nina_starter,nina_sync,nina_speech TO ${role};
       GRANT EXECUTE ON FUNCTION ${functions.join(", ")} TO ${role}; COMMIT;`,
       [],
     );

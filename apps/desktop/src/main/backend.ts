@@ -1,6 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
-import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
 import {
+  generationDeadlineFor,
   ninaPublicConfiguration,
   routedProvider,
   type AiAction,
@@ -30,6 +29,12 @@ import {
   type ProviderOperation,
 } from "@call-nina/contracts";
 import {
+  readStories,
+  storyPositions,
+  saveStoryPosition,
+  saveStoryWord,
+  readSpeechPreferences,
+  saveSpeechPreferences,
   exportMobileFlashcards,
   assertCallNinaDatabaseLease,
   readVocabularyLearning,
@@ -62,8 +67,13 @@ import {
   type CallNinaDatabase,
   type LearnerSettingsRecord,
 } from "@call-nina/persistence";
+import { SpeechService } from "@call-nina/speech-runtime";
+import { managedSpeech } from "./speech-client.js";
+import { createHash, randomUUID } from "node:crypto";
+import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
 import {
   recommendedRouting,
+  providerSupports,
   assertExerciseGenerationContext,
   buildPracticeSuggestions,
   createInitialLearnerProfile,
@@ -140,6 +150,7 @@ export class DesktopBackend {
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
   readonly #offline: OfflineRuntime;
+  readonly #speech: SpeechService;
   readonly #chatgpt: ChatgptSession;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
   readonly #emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
@@ -187,6 +198,10 @@ export class DesktopBackend {
     this.#secrets = options.secrets;
     this.#loginCredentials = options.loginCredentials;
     this.#offline = options.offlineRuntime;
+    this.#speech = new SpeechService(
+      path.join(path.dirname(options.bootstrapFile), "speech"),
+      options.curriculumRoot,
+    );
     this.#curriculumRoot = options.curriculumRoot;
     this.#bootstrapFile = options.bootstrapFile;
     this.#chooseDirectory = options.chooseDirectory;
@@ -315,6 +330,7 @@ export class DesktopBackend {
     await this.#enqueue(() => {
       this.close();
     });
+    await this.#speech.close();
     await this.#offline.stop();
     await this.#chatgpt.shutdown();
     this.#operationLog(
@@ -1092,6 +1108,7 @@ export class DesktopBackend {
         this.#database.rootGeneration !== state.rootGeneration
       ) {
         this.#mobileAbort?.abort();
+        this.#speech.resetRoot();
         this.#database?.close();
         this.#database = await openCallNinaDatabase({
           bootstrapFile: this.#bootstrapFile,
@@ -1297,6 +1314,11 @@ export class DesktopBackend {
       reason,
     });
     if (operation === "voice-handoff") {
+      if (
+        !this.#database ||
+        (await readAiConnections(this.#database)).routing.liveConversation !== "codex"
+      )
+        return unavailable("capability-unavailable");
       if (!this.#openExternal) return unavailable("capability-unavailable");
       const integration = integrationState ?? (await this.#codexState(correlationId));
       if (integration.status !== "available") return unavailable("integration-unavailable");
@@ -1356,7 +1378,7 @@ export class DesktopBackend {
     }
     if (connection.routeId === "local") {
       const catalog = offlineCatalog();
-      if (generationKind !== "writing-prompt" && generationKind !== "contextual-help")
+      if (!catalog.operations.some((supported) => supported === generationKind))
         return unavailable("capability-unavailable");
       const snapshot = await this.#offline.inspect();
       if (
@@ -1607,6 +1629,7 @@ export class DesktopBackend {
   async handle(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
     // Account network calls have their own serialized queue and cannot stall local learning.
     if (
+      request.channel.startsWith("speech/") ||
       request.channel === "mobile-sync/publish" ||
       request.channel === "mobile-sync/read" ||
       request.channel === "nina-account/read" ||
@@ -1650,10 +1673,11 @@ export class DesktopBackend {
           error: safeError("app-server", request.requestId),
         }))
       : undefined;
-    const response = await this.#enqueue(() =>
-      this.#closing
-        ? this.#failure(request, "cancellation")
-        : this.#handleRequest(request, integration),
+    const response: DesktopIpcResponse = await this.#enqueue(
+      async (): Promise<DesktopIpcResponse> => {
+        if (this.#closing) return this.#failure(request, "cancellation");
+        return this.#handleRequest(request, integration);
+      },
     );
     if (action) {
       const cancelled =
@@ -1798,7 +1822,10 @@ export class DesktopBackend {
         const previous = JSON.stringify(this.#nina.state);
         const beforeEpoch = this.#nina.epoch;
         const state = await this.#nina.update(request.payload.status, request.payload.token);
-        if (beforeEpoch !== this.#nina.epoch) this.#mobileAbort?.abort();
+        if (beforeEpoch !== this.#nina.epoch) {
+          this.#mobileAbort?.abort();
+          this.#speech.stop();
+        }
         if (JSON.stringify(state) !== previous) {
           this.#operationLog(
             state.status === "unavailable" || state.status === "expired" ? "warn" : "info",
@@ -1836,6 +1863,52 @@ export class DesktopBackend {
         if (request.channel === "vocabulary/learning-update")
           this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
         return this.#success(request, result);
+      }
+      if (
+        request.channel === "speech/availability" ||
+        request.channel === "speech/read" ||
+        request.channel === "speech/manage" ||
+        request.channel === "speech/synthesize"
+      ) {
+        const ready = await this.#enqueue(async () => {
+          await this.#dataRootState(request.requestId);
+          const pointer = await readBootstrapPointer(this.#bootstrapFile);
+          if (pointer.status !== "ready" || !this.#database) return false;
+          this.#speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
+          if (request.channel === "speech/manage" && request.payload.action === "preferences")
+            await saveSpeechPreferences(this.#database, request.payload.preferences);
+          return true;
+        });
+        if (!ready) return this.#failure(request, "stale-data-root");
+        if (request.channel === "speech/availability")
+          return this.#success(
+            request,
+            await this.#speech.availability(
+              request.payload,
+              request.payload.online,
+              this.#nina.state.access?.speech ?? null,
+            ),
+          );
+        if (request.channel === "speech/synthesize")
+          return this.#success(
+            request,
+            await this.#speech.synthesize(
+              request.payload,
+              (input, signal, save) => managedSpeech(this.#nina, input, signal, save),
+              (audio) =>
+                this.#emitEvent?.({
+                  event: "speech-audio",
+                  id: request.payload.id,
+                  audio: audio.toString("base64"),
+                }),
+            ),
+          );
+        if (request.channel === "speech/manage") {
+          await this.#speech.manage(request.payload);
+          if (request.payload.action !== "cancel")
+            this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
+        }
+        return this.#success(request, await this.#speech.inspect());
       }
       if (request.channel === "offline-model/read" || request.channel === "offline-model/manage") {
         if (request.channel === "offline-model/manage") {
@@ -1896,6 +1969,35 @@ export class DesktopBackend {
               this.#translations.translationJobs.size > 0)
           )
             return this.#failure(request, "conflict");
+          if (mutation.action.kind === "routing") {
+            const view = await this.#connectionsView();
+            const next = mutation.action.routing;
+            const previous = view.settings.routing;
+            const assignments = [
+              { route: next.text, prior: previous.text, capability: "text" as const },
+              { route: next.image, prior: previous.image, capability: "image" as const },
+              ...Object.entries(next.actions).map(([action, route]) => ({
+                route,
+                prior: previous.actions[action as keyof typeof previous.actions],
+                capability: "text" as const,
+              })),
+            ];
+            for (const assignment of assignments) {
+              if (!assignment.route || assignment.route === assignment.prior) continue;
+              const connection = view.settings.connections.find(
+                (entry) => entry.routeId === assignment.route,
+              );
+              const status = view.availability.find(
+                (entry) => entry.connectionId === connection?.id,
+              )?.status;
+              if (
+                !connection ||
+                (status !== "available" && status !== "configured") ||
+                !providerSupports(view, connection, assignment.capability)
+              )
+                return this.#failure(request, "conflict");
+            }
+          }
           await mutateConnections(this.#database, this.#secrets, mutation, async () => {});
           this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
         }
@@ -2257,6 +2359,11 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "codex-activity/prepare") {
+        if (
+          !this.#database ||
+          (await readAiConnections(this.#database)).routing.liveConversation !== "codex"
+        )
+          return this.#failure(request, "not-found");
         const activities = await this.#activities(request.requestId);
         const accepted = [...this.#operations.operationsBySubmission.values()].find(
           (operation) =>
@@ -2319,6 +2426,41 @@ export class DesktopBackend {
         this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
         this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
         return this.#success(request, this.#settingsProjection(settings, dataRoot));
+      }
+      if (
+        request.channel === "stories/read" ||
+        request.channel === "stories/position" ||
+        request.channel === "stories/vocabulary"
+      ) {
+        const root = await this.#dataRootState(request.requestId);
+        if (root.status !== "ready" || !this.#repository || !this.#database)
+          return this.#failure(request, "stale-data-root");
+        const db = this.#database;
+        const context = await this.#repository.requireLearningContext();
+        const stories = (await readStories(this.#curriculumRoot)).filter(
+          (story) => story.language === context.targetLanguage,
+        );
+        if (request.channel === "stories/read")
+          return this.#success(request, {
+            rootGeneration: root.generation,
+            learningContext: context,
+            stories,
+            positions: await storyPositions(db, context),
+          });
+        if (
+          request.payload.expectedGeneration !== root.generation ||
+          request.payload.language !== context.targetLanguage
+        )
+          return this.#failure(request, "stale-data-root");
+        const story = stories.find((item) => item.id === request.payload.storyId);
+        if (!story) return this.#failure(request, "not-found");
+        if (request.channel === "stories/position") {
+          await saveStoryPosition(db, context, story, request.payload.paragraph);
+          return this.#success(request, { saved: true });
+        }
+        const added = await saveStoryWord(db, context, story, request.payload.word);
+        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+        return this.#success(request, { added });
       }
       if (request.channel === "learner-settings/read") {
         const dataRoot = await this.#dataRootState(request.requestId);
@@ -2389,6 +2531,13 @@ export class DesktopBackend {
           root.generation !== request.payload.expectedGeneration
         ) {
           return this.#failure(request, "stale-data-root");
+        }
+        if (request.payload.scope === "vocabulary" || request.payload.scope === "learning") {
+          const pointer = await readBootstrapPointer(this.#bootstrapFile);
+          if (pointer.status !== "ready" || !this.#database)
+            return this.#failure(request, "stale-data-root");
+          this.#speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
+          await this.#speech.manage({ action: "clear-private-cache" });
         }
         const result = await this.#repository.clearPersonalData(request.payload);
         if (result.status === "cleared") {
@@ -2535,6 +2684,8 @@ export class DesktopBackend {
             state: await this.#repository.readLearningPathState(),
           });
         }
+        if ((await readAiConnections(this.#database)).routing.liveConversation !== "codex")
+          return this.#failure(request, "not-found");
         const activities = await this.#activities(request.requestId);
         return this.#success(
           request,
@@ -3398,6 +3549,10 @@ export class DesktopBackend {
             operationId: previous.operationId,
             submissionId: request.payload.submissionId,
             status: "accepted",
+            timeoutMilliseconds: generationDeadlineFor(
+              previous.operation.input.kind,
+              previous.connection.routeId === "local",
+            ),
             submission: "retained",
           });
         }
@@ -3501,6 +3656,10 @@ export class DesktopBackend {
           operationId,
           submissionId: request.payload.submissionId,
           status: "accepted",
+          timeoutMilliseconds: generationDeadlineFor(
+            operation.input.kind,
+            connection.routeId === "local",
+          ),
           submission: "retained",
         });
       }
@@ -3543,6 +3702,10 @@ export class DesktopBackend {
             operationId: replay.operationId,
             submissionId: request.payload.submissionId,
             status: "accepted",
+            timeoutMilliseconds: generationDeadlineFor(
+              replay.operation.input.kind,
+              replay.connection.routeId === "local",
+            ),
             submission: "retained",
           });
         }
@@ -3602,6 +3765,10 @@ export class DesktopBackend {
           operationId,
           submissionId: request.payload.submissionId,
           status: "accepted",
+          timeoutMilliseconds: generationDeadlineFor(
+            operation.input.kind,
+            prior.connection.routeId === "local",
+          ),
           submission: "retained",
         });
       }

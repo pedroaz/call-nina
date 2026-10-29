@@ -213,6 +213,7 @@ export {
   generationEventSchema,
   generationCapabilitiesSchema,
   generationDeadlineMilliseconds,
+  generationDeadlineFor,
   type GenerationService,
   type GenerationEvent,
   type GenerationCapabilities,
@@ -291,3 +292,7 @@ export * from "./nina-account.js";
 
 export * from "./vocabulary-learning.js";
 export * from "./mobile-sync.js";
+
+export * from "./speech.js";
+
+export * from "./stories.js";

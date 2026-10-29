@@ -2,7 +2,12 @@ import { z } from "./schema-system.js";
 import { modelCatalogSchema } from "./app-server-state.js";
 import { languageSchema } from "./learning-context.js";
 
-export const offlineOperationSchema = z.enum(["writing-prompt", "contextual-help"]);
+export const offlineOperationSchema = z.enum([
+  "writing-prompt",
+  "contextual-help",
+  "exercise-generation",
+  "exercise-feedback",
+]);
 export const offlinePreflightSchema = z.strictObject({
   platformSupported: z.boolean(),
   totalMemoryBytes: z.int().nonnegative(),
@@ -44,7 +49,7 @@ export const offlineCatalogSchema = z.strictObject({
   license: z.literal("Apache-2.0"),
   platform: z.literal("linux-x64"),
   models: modelCatalogSchema,
-  operations: z.array(offlineOperationSchema).max(2),
+  operations: z.array(offlineOperationSchema).max(4),
   languages: z.array(languageSchema).max(4),
   contextTokens: z.int().positive(),
   outputTokens: z.int().positive(),

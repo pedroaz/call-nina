@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-noninteractive-tabindex -- Tables scroll horizontally and must be keyboard-scrollable. */
 import {
   aiActionSchema,
   aiProviderOrder,
@@ -5,15 +6,18 @@ import {
   type DesktopIpcRequest,
   type z,
 } from "@call-nina/contracts";
+import { useId, useState } from "react";
+import { Section, ActionGroup } from "./components/layout/index.js";
 import { ProviderStatus } from "./ProviderStatus.js";
 import { providerSupports } from "@call-nina/domain";
-import { ChevronRight, Check, CircleCheck, CircleMinus, CircleAlert, Clock3 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, Disclosure, SelectField } from "./components/ui/index.js";
+import { Button, ModalDialog, SelectField } from "./components/ui/index.js";
 import styles from "./ConnectionSettings.module.css";
 
 type View = z.infer<typeof aiConnectionsViewSchema>;
 type Action = Extract<DesktopIpcRequest, { channel: "ai-connections/update" }>["payload"]["action"];
+const providers = aiProviderOrder.filter((provider) => provider !== "claude-code");
 export function ProviderRouting({
   view,
   busy,
@@ -28,24 +32,58 @@ export function ProviderRouting({
   select: (route: (typeof aiProviderOrder)[number]) => void;
 }) {
   const { t } = useTranslation();
+  const id = useId();
   const routing = view.settings.routing;
-  const choices = (
+  const [advanced, setAdvanced] = useState(false);
+  const supports = (
+    route: (typeof providers)[number],
     capability: "text" | "image",
     action?: (typeof aiActionSchema.options)[number],
-  ) =>
-    view.settings.connections.map((connection) => (
-      <option
-        key={connection.routeId}
-        value={connection.routeId}
-        disabled={!providerSupports(view, connection, capability, action)}
-      >
-        {t(`connectionSettings.routes.${connection.routeId}`)}
-      </option>
-    ));
+  ) => {
+    const connection = view.settings.connections.find((entry) => entry.routeId === route);
+    const status = view.availability.find((entry) => entry.connectionId === connection?.id)?.status;
+    return Boolean(
+      connection &&
+      (status === "available" || status === "configured") &&
+      providerSupports(view, connection, capability, action),
+    );
+  };
   return (
-    <section className={styles.panel} aria-label={t("providers.routing")}>
-      <div className={styles.connectionHeading}>
-        <h3>{t("providers.routing")}</h3>
+    <Section title={t("setupUx.aiPractice")}>
+      <ActionGroup>
+        <SelectField
+          label={t("providers.provider")}
+          value={routing.text ?? ""}
+          disabled={busy}
+          onChange={(event) =>
+            void mutate({
+              kind: "routing",
+              routing: { ...routing, text: (event.target.value || null) as typeof routing.text },
+            })
+          }
+        >
+          <option value="">{t("providers.unassigned")}</option>
+          {providers.map((route) => (
+            <option key={route} value={route}>
+              {t(`connectionSettings.routes.${route}`)}
+            </option>
+          ))}
+        </SelectField>
+        {routing.text && (
+          <>
+            <ProviderStatus route={routing.text} view={view} chatgptConnected={chatgptConnected} />
+            <Button
+              variant="secondary"
+              onPress={() => {
+                if (routing.text) select(routing.text);
+              }}
+            >
+              {t("setupUx.manage")}
+            </Button>
+          </>
+        )}
+      </ActionGroup>
+      <ActionGroup>
         <Button
           variant="secondary"
           isDisabled={busy}
@@ -53,48 +91,39 @@ export function ProviderRouting({
         >
           {t("providers.recommend")}
         </Button>
-      </div>
-      <div className={styles.modelControls}>
-        {(["text", "image"] as const).map((capability) => (
-          <SelectField
-            key={capability}
-            label={t(`providers.${capability}`)}
-            value={routing[capability] ?? ""}
-            disabled={busy}
-            onChange={(event) =>
-              void mutate({
-                kind: "routing",
-                routing: { ...routing, [capability]: event.target.value || null },
-              })
-            }
-          >
-            <option value="">{t("providers.unassigned")}</option>
-            {routing[capability] &&
-              !view.settings.connections.some((entry) => entry.routeId === routing[capability]) && (
-                <option value={routing[capability]}>
-                  {t(`connectionSettings.routes.${routing[capability]}`)}
-                </option>
-              )}
-            {choices(capability, capability === "image" ? "vocabulary-analysis" : undefined)}
-          </SelectField>
-        ))}
-      </div>
-      <div className={styles.matrix}>
-        <table>
-          <caption>{t("providers.capabilities")}</caption>
-          <thead>
-            <tr>
-              <th scope="col">{t("providers.provider")}</th>
-              <th scope="col">{t("providers.status")}</th>
-              <th scope="col">{t("providers.text")}</th>
-              <th scope="col">{t("providers.image")}</th>
-              <th scope="col">{t("providers.audio")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {aiProviderOrder.map((route) => {
-              const connection = view.settings.connections.find((entry) => entry.routeId === route);
-              return (
+        <Button
+          variant="quiet"
+          onPress={() => {
+            setAdvanced(true);
+          }}
+        >
+          {t("providers.actionDefaults")}
+        </Button>
+      </ActionGroup>
+      <ModalDialog
+        size="large"
+        closeLabel={t("actions.close")}
+        isOpen={advanced}
+        title={t("providers.actionDefaults")}
+        onOpenChange={setAdvanced}
+      >
+        <div
+          className={styles.matrix}
+          tabIndex={0}
+          role="region"
+          aria-label={t("providers.capabilities")}
+        >
+          <table className={styles.routingMatrix}>
+            <thead>
+              <tr>
+                <th scope="col">{t("providers.provider")}</th>
+                <th scope="col">{t("providers.status")}</th>
+                <th scope="col">{t("providers.text")}</th>
+                <th scope="col">{t("providers.image")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {providers.map((route) => (
                 <tr key={route}>
                   <th scope="row">
                     <Button
@@ -113,101 +142,115 @@ export function ProviderRouting({
                   <td>
                     <ProviderStatus route={route} view={view} chatgptConnected={chatgptConnected} />
                   </td>
-                  {(["text", "image"] as const).map((capability) => {
-                    const supported = Boolean(
-                      connection && providerSupports(view, connection, capability),
-                    );
-                    const unsupported =
-                      route === "claude-code" || (capability === "image" && route !== "chatgpt");
-                    const selected = routing[capability] === route;
-                    const Icon = supported ? CircleCheck : unsupported ? CircleMinus : CircleAlert;
-                    return (
-                      <td key={capability}>
-                        {selected && supported ? (
-                          <span className={styles.selectedCapability} data-ready="true">
-                            <Check aria-hidden="true" />
-                            {t("providers.selectedDefault")}
-                          </span>
-                        ) : (
-                          <span
-                            className={styles.capabilityLabel}
-                            data-supported={supported || undefined}
-                          >
-                            <Icon aria-hidden="true" />
-                            {selected ? `${t("providers.selectedDefault")} · ` : ""}
-                            {t(
-                              supported
-                                ? "providers.supported"
-                                : unsupported
-                                  ? "providers.unsupported"
-                                  : "providers.setupRequired",
-                            )}
-                          </span>
+                  {(["text", "image"] as const).map((capability) => (
+                    <td key={capability}>
+                      <label
+                        className={styles.routingChoice}
+                        title={t(
+                          supports(route, capability)
+                            ? "providers.selectedDefault"
+                            : "providers.setupRequired",
                         )}
-                      </td>
-                    );
-                  })}
-                  <td>
-                    <span className={styles.capabilityLabel}>
-                      <Clock3 aria-hidden="true" />
-                      {t("providers.notImplemented")}
-                    </span>
-                  </td>
+                      >
+                        <input
+                          type="radio"
+                          name={`${id}-${capability}`}
+                          checked={routing[capability] === route}
+                          disabled={
+                            busy ||
+                            !supports(
+                              route,
+                              capability,
+                              capability === "image" ? "vocabulary-analysis" : undefined,
+                            )
+                          }
+                          aria-label={`${t(`providers.${capability}`)}: ${t(`connectionSettings.routes.${route}`)}`}
+                          onChange={() =>
+                            void mutate({
+                              kind: "routing",
+                              routing: { ...routing, [capability]: route },
+                            })
+                          }
+                        />
+                      </label>
+                    </td>
+                  ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <Disclosure label={t("providers.actionDefaults")}>
-        <div className={styles.modelControls}>
-          {aiActionSchema.options.map((action) => (
-            <SelectField
-              key={action}
-              label={t(`connectionSettings.operation.${action}`)}
-              value={routing.actions[action] ?? ""}
-              disabled={busy}
-              onChange={(event) => {
-                const actions = { ...routing.actions };
-                if (event.target.value)
-                  actions[action] = event.target.value as (typeof aiProviderOrder)[number];
-                else {
-                  const { [action]: removed, ...remaining } = actions;
-                  void removed;
-                  void mutate({ kind: "routing", routing: { ...routing, actions: remaining } });
-                  return;
-                }
-                void mutate({ kind: "routing", routing: { ...routing, actions } });
-              }}
-            >
-              <option value="">{t("providers.useDefault")}</option>
-              {routing.actions[action] &&
-                !view.settings.connections.some(
-                  (entry) => entry.routeId === routing.actions[action],
-                ) && (
-                  <option value={routing.actions[action]}>
-                    {t(`connectionSettings.routes.${routing.actions[action]}`)}
-                  </option>
-                )}
-              {choices("text", action)}
-            </SelectField>
-          ))}
+              ))}
+              <tr>
+                <th scope="row">{t("providers.unassigned")}</th>
+                <td />
+                {(["text", "image"] as const).map((capability) => (
+                  <td key={capability}>
+                    <label className={styles.routingChoice}>
+                      <input
+                        type="radio"
+                        name={`${id}-${capability}`}
+                        checked={!routing[capability]}
+                        disabled={busy}
+                        aria-label={`${t(`providers.${capability}`)}: ${t("providers.unassigned")}`}
+                        onChange={() =>
+                          void mutate({
+                            kind: "routing",
+                            routing: { ...routing, [capability]: null },
+                          })
+                        }
+                      />
+                    </label>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </Disclosure>
-      <section className={styles.detailsSection}>
-        <h3>{t("providers.supportedActions")}</h3>
-        {view.settings.connections.map((connection) => (
-          <div key={connection.id}>
-            <strong>{t(`connectionSettings.routes.${connection.routeId}`)}</strong>
-            <p>
-              {aiActionSchema.options
-                .filter((action) => providerSupports(view, connection, "text", action))
-                .map((action) => t(`connectionSettings.operation.${action}`))
-                .join(" · ") || t("providers.unsupported")}
-            </p>
-          </div>
-        ))}
-      </section>
-    </section>
+        <div
+          className={styles.matrix}
+          tabIndex={0}
+          role="region"
+          aria-label={t("providers.actionDefaults")}
+        >
+          <table className={styles.routingMatrix}>
+            <thead>
+              <tr>
+                <th scope="col">{t("setupUx.activity")}</th>
+                <th scope="col">{t("providers.useDefault")}</th>
+                {providers.map((route) => (
+                  <th key={route} scope="col">
+                    {t(`connectionSettings.routes.${route}`)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {aiActionSchema.options.map((action) => (
+                <tr key={action}>
+                  <th scope="row">{t(`connectionSettings.operation.${action}`)}</th>
+                  {[null, ...providers].map((route) => (
+                    <td key={route ?? "default"}>
+                      <label className={styles.routingChoice}>
+                        <input
+                          type="radio"
+                          name={`${id}-${action}`}
+                          checked={(routing.actions[action] ?? null) === route}
+                          disabled={busy || Boolean(route && !supports(route, "text", action))}
+                          aria-label={`${t(`connectionSettings.operation.${action}`)}: ${route ? t(`connectionSettings.routes.${route}`) : t("providers.useDefault")}`}
+                          onChange={() => {
+                            const actions = Object.fromEntries(
+                              Object.entries(routing.actions).filter(([key]) => key !== action),
+                            );
+                            if (route) actions[action] = route;
+                            void mutate({ kind: "routing", routing: { ...routing, actions } });
+                          }}
+                        />
+                      </label>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ModalDialog>
+    </Section>
   );
 }

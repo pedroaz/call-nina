@@ -1957,6 +1957,16 @@ export const callNinaMigrations = [
       );
     },
   },
+  {
+    version: 41,
+    name: "speech-preferences",
+    sql: `CREATE TABLE speech_preferences (singleton INTEGER PRIMARY KEY CHECK(singleton=1), preferences_json TEXT NOT NULL); INSERT INTO speech_preferences VALUES(1, '{"de":"piper","en-US":"piper","pt-BR":"piper","es":"piper"}');`,
+  },
+  {
+    version: 42,
+    name: "story-reading-positions",
+    sql: `CREATE TABLE story_positions(learner_id TEXT NOT NULL, target_language TEXT NOT NULL, story_id TEXT NOT NULL, paragraph INTEGER NOT NULL CHECK(paragraph>=0), PRIMARY KEY(learner_id,target_language,story_id)) STRICT;`,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

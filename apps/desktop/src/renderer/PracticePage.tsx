@@ -563,7 +563,7 @@ export function PracticePage({
                   <ActivityReference label={t("activity.reference")} items={references} />
                 ) : undefined
               }
-              autoStart={autoStart}
+              autoStart={autoStart || !generated.activeSet}
               completionActions={
                 courseCompletionActions ??
                 (prepared && (

@@ -87,6 +87,7 @@ export async function clearPersonalData(
       );
     }
     if (practice) {
+      connection.prepare("DELETE FROM story_positions").run();
       connection.prepare("DELETE FROM course_marks").run();
       connection.prepare("DELETE FROM course_selection").run();
       connection.prepare("DELETE FROM course_missions").run();

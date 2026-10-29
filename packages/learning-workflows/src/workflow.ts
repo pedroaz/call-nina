@@ -1,7 +1,7 @@
 import {
   generationInputSchema,
   generationOutputJsonSchemaForInput,
-  generationDeadlineMilliseconds,
+  generationDeadlineFor,
   type GenerationInput,
   type GenerationKind,
   type GenerationCandidateOutputMap,
@@ -91,6 +91,7 @@ export type LearningAttempt = Readonly<{
 export type LearningWorkflowRun<Kind extends GenerationKind> = Readonly<{
   input: Extract<GenerationInput, { kind: Kind }>;
   absoluteDeadlineMilliseconds?: number;
+  localExecution?: boolean;
   signal?: AbortSignal;
   onProgress?: (stage: "starting" | "running" | "validating", attempt: 1 | 2) => void;
   onTiming?: (event: LearningWorkflowTiming) => void;
@@ -104,7 +105,7 @@ export async function runLearningWorkflow<Kind extends GenerationKind>(
   generate: (attempt: LearningAttempt) => Promise<string>,
 ): Promise<Readonly<{ output: GenerationCandidateOutputMap[Kind]; repaired: boolean }>> {
   const input = generationInputSchema.parse(run.input) as Extract<GenerationInput, { kind: Kind }>;
-  const budget = generationDeadlineMilliseconds[input.kind];
+  const budget = generationDeadlineFor(input.kind, run.localExecution);
   const requestedBudget = run.absoluteDeadlineMilliseconds ?? budget;
   if (!Number.isFinite(requestedBudget) || requestedBudget <= 0)
     throw new Error("OD_GENERATION_DEADLINE_INVALID");

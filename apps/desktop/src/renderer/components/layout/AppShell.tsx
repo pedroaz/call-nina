@@ -15,6 +15,7 @@ export type ShellNavigationItem<Page extends string> = Readonly<{
   label: string;
   icon: LucideIcon;
   feedback?: ReactNode;
+  disabled?: boolean;
 }>;
 
 export function AppShell<Page extends string>(props: {
@@ -200,9 +201,10 @@ export function AppShell<Page extends string>(props: {
             />
           </div>
           <ul className={styles.navList}>
-            {props.navigation.map(({ page, label, icon: Icon, feedback }) => {
+            {props.navigation.map(({ page, label, icon: Icon, feedback, disabled }) => {
               const control = (
                 <Button
+                  isDisabled={Boolean(disabled)}
                   aria-label={label}
                   {...(props.activePage === page ? { "aria-current": "page" as const } : {})}
                   className={styles.navButton}

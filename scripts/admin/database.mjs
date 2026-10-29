@@ -51,6 +51,8 @@ export async function migrate() {
       "002-accounts.sql",
       "003-ai-access.sql",
       "004-mobile-sync.sql",
+      "005-speech.sql",
+      "006-account-tiers.sql",
     ]) {
       const source = await readFile(
         new URL(`../../packages/managed-generation/sql/${name}`, here),

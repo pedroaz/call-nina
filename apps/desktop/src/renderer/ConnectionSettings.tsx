@@ -2,7 +2,7 @@ import { ProviderStatus } from "./ProviderStatus.js";
 import { ProviderRouting } from "./ProviderRouting.js";
 import { NinaAccountSettings } from "./NinaAccount.js";
 import { createPortal } from "react-dom";
-import { SlidersHorizontal, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type {
   AiConnection,
@@ -13,7 +13,14 @@ import type {
 } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { resolveModelPreference } from "@call-nina/domain";
-import { Button, Feedback, SelectField, TextField, ModalDialog } from "./components/ui/index.js";
+import {
+  Button,
+  Feedback,
+  SelectField,
+  TextField,
+  ModalDialog,
+  Disclosure,
+} from "./components/ui/index.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import { Section } from "./components/layout/index.js";
 import styles from "./ConnectionSettings.module.css";
@@ -357,7 +364,15 @@ export function ConnectionSettings({
           closeLabel={t("actions.close")}
           isDismissable
           onOpenChange={(open) => {
-            if (!open) setSelectedId(undefined);
+            if (!open) {
+              const untouched =
+                !saved &&
+                draft.label === t(`connectionSettings.routes.${draft.routeId}`) &&
+                JSON.stringify(draft.preference) === JSON.stringify(defaultPreference) &&
+                credentialAction === "keep";
+              if (untouched) discard();
+              else setSelectedId(undefined);
+            }
           }}
         >
           <Section
@@ -399,7 +414,6 @@ export function ConnectionSettings({
               ) : (
                 <p>{authHelp ?? t("connectionSettings.chatgptAuth")}</p>
               ))}
-            {draft.routeId !== "chatgpt" && <p>{t(`connectionSettings.cost.${draft.routeId}`)}</p>}
             {draft.routeId === "managed" && <NinaAccountSettings />}
             {isDirect && (
               <section className={styles.secret}>
@@ -476,11 +490,7 @@ export function ConnectionSettings({
               </section>
             )}
             {draft.routeId !== "claude-code" && (
-              <>
-                <div className={styles.modelHeading}>
-                  <SlidersHorizontal aria-hidden="true" />
-                  <h3>{t("connectionSettings.advanced")}</h3>
-                </div>
+              <Disclosure label={t("connectionSettings.advanced")}>
                 <div className={styles.modelControls}>
                   <SelectField
                     label={t("modelControl.model")}
@@ -560,7 +570,7 @@ export function ConnectionSettings({
                     </SelectField>
                   )}
                 </div>
-              </>
+              </Disclosure>
             )}
             {draft.routeId === "local" && offline && (
               <div ref={offlineRef} className={styles.offline} tabIndex={-1} data-focus-anchor>
@@ -662,8 +672,7 @@ export function ConnectionSettings({
               </div>
             )}
 
-            <section className={styles.detailsSection}>
-              <h3>{t("connectionSettings.details")}</h3>
+            <Disclosure label={t("connectionSettings.details")}>
               <div className={styles.detailsBody}>
                 <p>{t(`connectionSettings.destination.${draft.routeId}`)}</p>
                 {directCatalog && <p>{t("connectionSettings.directCatalogNotice")}</p>}
@@ -713,7 +722,7 @@ export function ConnectionSettings({
                   </div>
                 )}
               </div>
-            </section>
+            </Disclosure>
             {error && (
               <Feedback tone="error" live="assertive">
                 {t(error)}

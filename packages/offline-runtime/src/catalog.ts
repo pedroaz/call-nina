@@ -24,11 +24,11 @@ export function offlineCatalog() {
       runtimeDefaultModelId: offlineCandidate.modelId,
       missingReasoningMetadata: [],
     },
-    operations: ["writing-prompt", "contextual-help"],
+    operations: ["writing-prompt", "contextual-help", "exercise-generation", "exercise-feedback"],
     languages: ["en-US", "pt-BR", "es", "de"],
     contextTokens: offlineCandidate.contextTokens,
     outputTokens: offlineCandidate.outputTokens,
-    maximumRequestBytes: 32 * 1024,
+    maximumRequestBytes: 64 * 1024,
     admissionMemoryBytes: offlineCandidate.minimumMemoryBytes,
     admissionFreeMemoryBytes: offlineCandidate.minimumFreeMemoryBytes,
   });

@@ -15,6 +15,9 @@ export async function GET(request: Request): Promise<Response> {
       deployment.auth,
       accountSql(),
       deployment.inferenceEnabled,
+      process.env["NINA_SPEECH_ENABLED"] === "true" &&
+        process.env["NINA_SPEECH_RECOVERY_READY"] === "true" &&
+        Boolean(process.env["NINA_SPEECH_GOOGLE_CREDENTIALS"]),
     );
   } catch {
     return unavailableResponse();

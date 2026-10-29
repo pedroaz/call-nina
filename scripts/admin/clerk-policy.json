@@ -2,7 +2,7 @@
   "requirements": {
     "identifiers": ["username"],
     "authentication": ["password"],
-    "signup": "restricted",
+    "signup": "public",
     "nativeApi": true,
     "passwordRecovery": "administrator",
     "organizationSelection": "optional"
@@ -24,11 +24,11 @@
       "verify_at_sign_up": false
     },
     "auth_access_control": {
-      "sign_up_mode": "restricted"
+      "sign_up_mode": "public"
     },
     "organization_settings": {
       "force_organization_selection": false
     }
   },
-  "configuration": "Existing instance only. Authenticate using npx clerk auth login. Set CLERK_APPLICATION_ID in private root .env. Review infra clerk-apply and execute with --yes. Partial authentication patches preserve unrelated settings; Native API and origins are read back separately."
+  "configuration": "Existing instance only. Authenticate using npx clerk@4.1.0 auth login. Set CLERK_APPLICATION_ID in private root .env. Review infra clerk-apply and execute with --yes. Partial authentication patches preserve unrelated settings; Native API and origins are read back separately."
 }
