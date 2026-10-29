@@ -43,10 +43,6 @@ async function report() {
         "\n",
       )}\n\nDownloads are in the source build's Artifacts section (30-day retention). Published desktop assets remain on GitHub Releases.\n\n${workflowUrl}`,
   );
-  if (jobs.deploy?.conclusion === "success" && jobs.desktop?.conclusion !== "success")
-    await summary(
-      "Hosting succeeded but desktop publication failed. Inspect the deployment and retained draft before retrying; no automatic rollback occurred.",
-    );
 }
 const action = process.argv[2] ?? "help";
 const started = Date.now();

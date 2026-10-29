@@ -16,7 +16,7 @@ import { verify } from "./artifacts.mjs";
 import { checkPublicConfiguration } from "../admin/configuration.mjs";
 
 export async function deploy() {
-  const current = context(true);
+  const current = context("vercel");
   const token = process.env.VERCEL_TOKEN;
   if (!token)
     throw new Error("Set the CI-compatible VERCEL_TOKEN secret in GitHub's Production environment");
@@ -72,6 +72,7 @@ export async function deploy() {
     );
     if (
       deployment.meta?.ninaCommit !== current.commit ||
+      deployment.meta?.ninaVersion !== manifest.version ||
       deployment.meta?.ninaArtifact !== manifest.sha256 ||
       deployment.target !== "production" ||
       deployment.readyState !== "READY" ||
@@ -80,7 +81,7 @@ export async function deploy() {
       throw new Error(
         "Prior deployment has an uncertain or failed outcome; inspect Vercel before retrying",
       );
-    await report(`https://${deployment.url}`);
+    await report(`https://${deployment.url}`, manifest.version);
     return;
   }
   const destination = path.join(root, "build/hosting");
@@ -136,6 +137,8 @@ export async function deploy() {
       "--meta",
       `ninaCommit=${current.commit}`,
       "--meta",
+      `ninaVersion=${manifest.version}`,
+      "--meta",
       `ninaArtifact=${manifest.sha256}`,
     ],
     {
@@ -156,17 +159,18 @@ export async function deploy() {
     deployed.projectId !== projectId ||
     deployed.meta?.ninaRun !== current.runId ||
     deployed.meta?.ninaCommit !== current.commit ||
+    deployed.meta?.ninaVersion !== manifest.version ||
     deployed.meta?.ninaArtifact !== manifest.sha256 ||
     deployed.readyState !== "READY" ||
     deployed.target !== "production" ||
     !deployed.aliasAssigned
   )
     throw new Error("Deployment readback is incomplete; inspect Vercel before retrying");
-  await report(url);
+  await report(url, manifest.version);
 }
-async function report(url) {
+async function report(url, version) {
   await setOutput("url", url);
   await summary(
-    `Hosting deployed: ${url}\nCommit: ${context().commit}\nNo migrations or inference activation performed.`,
+    `Vercel deployed: ${url}\nVersion: ${version}\nCommit: ${context().commit}\nRun: ${context().runId}\nNo migrations or inference activation performed.`,
   );
 }

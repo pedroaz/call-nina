@@ -6,7 +6,7 @@ on:
         description: Artifacts to build
         type: choice
         options: [all, desktop, hosting]
-        default: all
+        default: desktop
       build_linux:
         description: "Build: Linux x64"
         type: boolean

@@ -10,6 +10,7 @@ export const root = fileURLToPath(new URL("../../", import.meta.url));
 export const output = path.join(root, "build/release-artifacts");
 export const repository = "pedroaz/call-nina";
 export const workflowUrl = `https://github.com/${repository}/actions/workflows/build.yml`;
+export const deployUrl = `https://github.com/${repository}/actions/workflows/deploy-vercel.yml`;
 export const publishUrl = `https://github.com/${repository}/actions/workflows/publish.yml`;
 export const readJson = async (file) =>
   JSON.parse(await readFile(path.resolve(root, file), "utf8"));
@@ -59,10 +60,15 @@ export function context(publishing = false) {
   if (
     publishing &&
     (process.env.GITHUB_REF !== "refs/heads/main" ||
-      process.env.RELEASE_OPERATION !== "publish" ||
-      process.env.RELEASE_TARGET !== "all")
+      (publishing === "vercel"
+        ? process.env.RELEASE_OPERATION !== "deploy-vercel" ||
+          process.env.RELEASE_TARGET !== "hosting" ||
+          Boolean(process.env.RELEASE_SOURCE_COMMIT)
+        : process.env.RELEASE_OPERATION !== "publish" || process.env.RELEASE_TARGET !== "desktop"))
   )
-    throw new Error("Publication requires an explicit publish-all run from main");
+    throw new Error(
+      "Publication requires an explicit desktop release or Deploy Vercel run from main",
+    );
   const head = run("git", ["rev-parse", "HEAD"], { stdio: "pipe" });
   if (head !== GITHUB_SHA) throw new Error("Checkout does not match dispatch commit");
   if (process.env.RELEASE_SOURCE_COMMIT) {
@@ -205,6 +211,6 @@ export async function github(
 }
 export function help() {
   process.stdout.write(
-    `Build: ${workflowUrl}\nChoose target=all/desktop/hosting and desktop platform checkboxes. Build never publishes.\nPublish: ${publishUrl}\nFrom main, enter a successful complete main-branch build run ID to publish its exact artifacts without rebuilding. Complete Release dry runs are also accepted.\nBuild downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
+    `Build: ${workflowUrl}\nChoose target=desktop for desktop releases; all/hosting remain available for artifact preparation. Build never publishes.\nRelease desktop: ${publishUrl}\nFrom main, enter a successful main-branch Build run ID containing all four desktop artifacts. Hosting is not required or deployed.\nDeploy Vercel: ${deployUrl}\nRun from main to build and deploy the combined website/API without desktop builds.\nShared versions are retained; every artifact and deployment records its exact commit and run ID.\nBuild downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
   );
 }
