@@ -813,3 +813,8 @@ export const generationDeadlineMilliseconds = Object.freeze({
   "exercise-generation": 120_000,
   "exercise-feedback": 60_000,
 });
+
+// CPU-only local inference includes model loading, prompt evaluation and one repair.
+export function generationDeadlineFor(kind: GenerationKind, local = false): number {
+  return local ? 300_000 : generationDeadlineMilliseconds[kind];
+}

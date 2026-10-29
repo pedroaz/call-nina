@@ -44,12 +44,12 @@ export function Evaluation({
         <section className={styles.correctionAnswer}>
           <h3>
             {t(
-              suggestedAnswer ? "exercises.aiFeedback.suggestedAnswer" : "exercises.acceptedAnswers",
+              suggestedAnswer
+                ? "exercises.aiFeedback.suggestedAnswer"
+                : "exercises.acceptedAnswers",
             )}
           </h3>
-          <p className={styles.correctedText}>
-            {suggestedAnswer ?? acceptedAnswers.join(" / ")}
-          </p>
+          <p className={styles.correctedText}>{suggestedAnswer ?? acceptedAnswers.join(" / ")}</p>
           {suggestedAnswer && acceptedAnswers.length > 0 && (
             <p className={styles.acceptedAnswers}>
               {t("exercises.acceptedAnswers")}: {acceptedAnswers.join(" / ")}

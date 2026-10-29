@@ -1,0 +1,40 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-4);
+  padding-block: var(--od-space-4);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  color: var(--od-color-text-muted);
+}
+.icon svg {
+  width: 24px;
+  height: 24px;
+}
+.copy {
+  display: grid;
+  gap: var(--od-space-2);
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.copy strong {
+  font-weight: var(--od-weight-medium);
+}
+.copy p {
+  margin: 0;
+  color: var(--od-color-text-muted);
+}
+.action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--od-space-3);
+}

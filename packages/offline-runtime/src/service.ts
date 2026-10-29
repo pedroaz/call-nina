@@ -3,7 +3,7 @@ import {
   aiConnectionIdSchema,
   dataRootGenerationSchema,
   generationCapabilitiesSchema,
-  generationDeadlineMilliseconds,
+  generationDeadlineFor,
   generationEventSchema,
   generationOperationStartSchema,
   generationOutputSchemaIds,
@@ -131,7 +131,7 @@ export class OfflineGenerationService implements GenerationService {
       submissionId: request.submissionId,
       kind: request.input.kind,
     };
-    const deadline = Date.now() + generationDeadlineMilliseconds[request.input.kind];
+    const deadline = Date.now() + generationDeadlineFor(request.input.kind, true);
     const timer = setTimeout(
       () => {
         controller.abort();
@@ -142,6 +142,7 @@ export class OfflineGenerationService implements GenerationService {
       const result = await runLearningWorkflow(
         {
           input: request.input,
+          localExecution: true,
           signal: controller.signal,
           absoluteDeadlineMilliseconds: Math.max(1, deadline - Date.now()),
           onProgress: (stage, attempt) => {

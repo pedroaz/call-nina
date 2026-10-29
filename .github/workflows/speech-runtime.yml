@@ -1,0 +1,38 @@
+name: Prepare speech runtime
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: CPU runtime to prepare for qualification
+        type: choice
+        options: [piper, pocket]
+        required: true
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/release-setup
+        with:
+          dependencies: "false"
+      - name: Install pinned build tooling
+        run: |
+          python3 -m venv "$RUNNER_TEMP/speech-tools"
+          "$RUNNER_TEMP/speech-tools/bin/pip" install uv==0.9.26
+          echo "$RUNNER_TEMP/speech-tools/bin" >> "$GITHUB_PATH"
+      - name: Prepare self-contained bundle
+        env:
+          SPEECH_ENGINE: ${{ inputs.engine }}
+        run: python3 scripts/speech/build-runtime.py "$SPEECH_ENGINE" build/speech-runtime
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: speech-runtime-${{ inputs.engine }}-linux-x64
+          path: |
+            build/speech-runtime/runtime.tar.gz
+            build/speech-runtime/runtime.json
+          retention-days: 30

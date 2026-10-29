@@ -6,11 +6,11 @@ export const offlineCandidate = Object.freeze({
   license: "Apache-2.0",
   quality: "unverified" as const,
   platform: "linux-x64" as const,
-  contextTokens: 8192,
-  outputTokens: 2048,
+  contextTokens: 16384,
+  outputTokens: 8192,
   // Conservative admission limits, NOT measured minimum hardware requirements.
   minimumMemoryBytes: 8 * 1024 ** 3,
-  minimumFreeMemoryBytes: 4 * 1024 ** 3,
+  minimumFreeMemoryBytes: 6 * 1024 ** 3,
   diskReserveBytes: 512 * 1024 ** 2,
   upstream: "https://huggingface.co/Qwen/Qwen3.5-4B/tree/851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
   quantization:
@@ -36,6 +36,84 @@ export type Artifact = (typeof artifacts)[keyof typeof artifacts];
 // Only these regular archive members are installed. SONAME aliases are copies,
 // never archive-controlled links; no CLI, RPC server or optional backend is staged.
 export const runtimeFiles = Object.freeze([
+  {
+    source: "libggml-cpu-alderlake.so",
+    file: "libggml-cpu-alderlake.so",
+    bytes: 1395816,
+    sha256: "746079860100bccaeb56676900da83c8ece7be3e2ab0bcf012971e6af9c93568",
+  },
+  {
+    source: "libggml-cpu-cannonlake.so",
+    file: "libggml-cpu-cannonlake.so",
+    bytes: 1565376,
+    sha256: "7a24f1d33cff440dbdfa220b3adf9e1a32ce42eac496f4d14e6c7953d6c455fd",
+  },
+  {
+    source: "libggml-cpu-cascadelake.so",
+    file: "libggml-cpu-cascadelake.so",
+    bytes: 1577368,
+    sha256: "69da378eefdc089430c8d2b4731bbdaeab715673bd53a9fba87b35bb1d931396",
+  },
+  {
+    source: "libggml-cpu-cooperlake.so",
+    file: "libggml-cpu-cooperlake.so",
+    bytes: 1577432,
+    sha256: "31e93596ec413e9509161a582c4ff0b48552fbfec26558048b5e4be565c664d1",
+  },
+  {
+    source: "libggml-cpu-haswell.so",
+    file: "libggml-cpu-haswell.so",
+    bytes: 1399912,
+    sha256: "510bb86530d07fe2fd552e17ed914430452943fb4262952dc1163299cbd48991",
+  },
+  {
+    source: "libggml-cpu-icelake.so",
+    file: "libggml-cpu-icelake.so",
+    bytes: 1577368,
+    sha256: "5a5bf870a45e8b0eea79e62cf3761e6f28bbcfeb5945bfa5fe3fa3d68f174cc2",
+  },
+  {
+    source: "libggml-cpu-ivybridge.so",
+    file: "libggml-cpu-ivybridge.so",
+    bytes: 1343720,
+    sha256: "6fb22f02e7f1d643aa2011028fc8d98c12e6e8d8dccde8711fdf170dfe362efb",
+  },
+  {
+    source: "libggml-cpu-piledriver.so",
+    file: "libggml-cpu-piledriver.so",
+    bytes: 1339624,
+    sha256: "ecff59c97c9d06c7f715c4b40582ac0b18e0ee798a4dc6a55342cb8cc8d1a6d9",
+  },
+  {
+    source: "libggml-cpu-sandybridge.so",
+    file: "libggml-cpu-sandybridge.so",
+    bytes: 1334408,
+    sha256: "ead259c309646f6cd3858ec876fdc638026a8afc743b9b210dc8c9d57a3cc023",
+  },
+  {
+    source: "libggml-cpu-sapphirerapids.so",
+    file: "libggml-cpu-sapphirerapids.so",
+    bytes: 1839672,
+    sha256: "027fff1c9911b6b0fc4cd8024e096335e8d9047f49588c266de54dfd8c1da74a",
+  },
+  {
+    source: "libggml-cpu-skylakex.so",
+    file: "libggml-cpu-skylakex.so",
+    bytes: 1565376,
+    sha256: "1254aa8890c486833947769c08ec6123586b3183d1d4dfafe2e78cc836650b19",
+  },
+  {
+    source: "libggml-cpu-sse42.so",
+    file: "libggml-cpu-sse42.so",
+    bytes: 942048,
+    sha256: "4acfbb6b779db7c6b3407ca9ecff888839b3bf62879cbd4e6ddc7497da11ccf0",
+  },
+  {
+    source: "libggml-cpu-zen4.so",
+    file: "libggml-cpu-zen4.so",
+    bytes: 1577432,
+    sha256: "42d73eba9c6c523a8e3fba3c2509ab1cef71c7e63762a9e1fee58803d0c28b05",
+  },
   {
     source: "llama-server",
     file: "llama-server",

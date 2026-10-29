@@ -1,11 +1,11 @@
+import { LiveConversationProvider } from "./LiveConversationProvider.js";
+import { PersonalDataPage } from "./PersonalDataPage.js";
+import { SettingsRow } from "./SettingsRow.js";
+import { LearningProfileFields } from "./LearningProfileFields.js";
+import { SpeechSettings } from "./SpeechSettings.js";
 import { ConnectionSettings } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  languageDefinitions,
-  type Language,
-  type DesktopIpcResponse,
-  type CallNinaError,
-} from "@call-nina/contracts";
+import { type Language, type DesktopIpcResponse, type CallNinaError } from "@call-nina/contracts";
 import {
   Save,
   UserRound,
@@ -21,25 +21,20 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
-  SelectControl,
   Tabs,
   InfoHint,
   DiagnosticCode,
   Button,
-  CheckboxField,
   Feedback,
-  FieldGroup,
   SelectField,
   LoadingState,
   ItemList,
-  Muted,
   ModalDialog,
 } from "./components/ui/index.js";
 import { ActionGroup, Page, Section } from "./components/layout/index.js";
 
 import styles from "./SettingsPage.module.css";
 import i18n from "./i18n.js";
-import { LanguageSelect } from "./LanguageSelect.js";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import {
   desktopSettingsAdapter,
@@ -102,7 +97,6 @@ function SettingsError({ error }: { error: CallNinaError }) {
 export function SettingsPage({
   readiness,
   onRunSetup,
-  onOpenPersonalData,
   selectedTab,
   onTabChange,
   onLearningLanguageChange,
@@ -121,6 +115,9 @@ export function SettingsPage({
   onDataRootChanged?: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
+  const [folderOpen, setFolderOpen] = useState(false);
+  const [technicalOpen, setTechnicalOpen] = useState(false);
+  const [integrationOpen, setIntegrationOpen] = useState(false);
   const [accountOptionsOpen, setAccountOptionsOpen] = useState(false);
   const [account, setAccount] = useState<Account>();
   const [loginId, setLoginId] = useState<LoginId>();
@@ -128,6 +125,7 @@ export function SettingsPage({
   const [selectedRegistration, setSelectedRegistration] = useState<string>();
   const [persisted, setPersisted] = useState<DesktopSettingsResult>();
   const [draft, setDraft] = useState<DesktopSettingsValue>();
+  const lastPersisted = useRef<DesktopSettingsResult | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [connectionPending, setConnectionPending] = useState(false);
@@ -175,8 +173,27 @@ export function SettingsPage({
     try {
       const settings = adapter.available() ? await adapter.read() : undefined;
       if (settings) {
+        const previous = lastPersisted.current;
+        lastPersisted.current = settings;
         setPersisted(settings);
-        setDraft(settings.settings);
+        setDraft((current) => {
+          if (
+            !current ||
+            !previous ||
+            JSON.stringify(previous.settings.learningScope) !==
+              JSON.stringify(settings.settings.learningScope)
+          )
+            return settings.settings;
+          const merged = { ...settings.settings };
+          for (const key of Object.keys(current) as (keyof DesktopSettingsValue)[]) {
+            if (
+              key !== "uiLocale" &&
+              JSON.stringify(current[key]) !== JSON.stringify(previous.settings[key])
+            )
+              Object.assign(merged, { [key]: current[key] });
+          }
+          return merged;
+        });
       }
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
@@ -229,6 +246,7 @@ export function SettingsPage({
     setNotice(undefined);
     try {
       const next = await adapter.update(persisted.updatedAt, draft);
+      lastPersisted.current = next;
       setPersisted(next);
       setDraft(next.settings);
       await i18n.changeLanguage(next.settings.uiLocale);
@@ -248,6 +266,7 @@ export function SettingsPage({
       let current = persisted;
       if (dirty) {
         current = await adapter.update(current.updatedAt, draft);
+        lastPersisted.current = current;
         setPersisted(current);
         setDraft(current.settings);
         await i18n.changeLanguage(current.settings.uiLocale);
@@ -256,6 +275,7 @@ export function SettingsPage({
         expectedGeneration: current.dataRoot.generation,
         targetLanguage,
       });
+      lastPersisted.current = next;
       setPersisted(next);
       setDraft(next.settings);
       onLearningLanguageChange?.(next.settings.learningScope.targetLanguage);
@@ -331,8 +351,8 @@ export function SettingsPage({
       setIntegration(result.status);
       if (result.result === "failed") setIntegrationFailure(t("settings.plugin.actionFailed"));
       else setIntegrationNotice(result.steps.at(-1));
-    } catch (cause) {
-      setIntegrationFailure(normalizeDesktopError(cause).detail);
+    } catch {
+      setIntegrationFailure(t("settings.plugin.actionFailed"));
     } finally {
       integrationActionPending.current = false;
       setBusy(false);
@@ -409,13 +429,6 @@ export function SettingsPage({
     }
   };
 
-  const setProfile = <Key extends keyof DesktopSettingsValue>(
-    key: Key,
-    value: DesktopSettingsValue[Key],
-  ) => {
-    setDraft((current) => (current ? { ...current, [key]: value } : current));
-  };
-
   return (
     <Page
       width="form"
@@ -432,13 +445,6 @@ export function SettingsPage({
           >
             {t("onboarding.runAgain")}
           </Button>
-          <Button
-            variant="quiet"
-            isDisabled={loading || busy || dirty || connectionPending || Boolean(loginId)}
-            onPress={onOpenPersonalData}
-          >
-            {t("nav.personalData")}
-          </Button>
         </ActionGroup>
       }
       title={t("settings.title")}
@@ -448,9 +454,6 @@ export function SettingsPage({
         disabled: dirty || connectionPending || Boolean(loginId),
       }}
     >
-      {(dirty || connectionPending) && (
-        <Muted role="status">{t("onboarding.saveSettingsFirst")}</Muted>
-      )}
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
       {error && <SettingsError error={error} />}
       {notice && (
@@ -460,7 +463,7 @@ export function SettingsPage({
       )}
 
       <Tabs
-        selectedKey={selectedTab}
+        selectedKey={selectedTab === "speech" ? "ai" : selectedTab}
         onSelectionChange={onTabChange}
         label={t("settings.title")}
         items={[
@@ -470,112 +473,17 @@ export function SettingsPage({
             icon: <BookOpen aria-hidden="true" />,
             children: (
               <>
-                <Section title={t("settings.profileTitle")}>
-                  {!draft ? (
-                    !loading && <Muted as="p">{t("settings.persistenceUnavailable")}</Muted>
-                  ) : (
-                    <div className={styles.settingsControls}>
-                      <LanguageSelect
-                        label={t("onboarding.targetLanguage")}
-                        value={draft.learningScope.targetLanguage}
-                        disabled={busy}
-                        onChange={(language) => void selectTarget(language)}
-                      />
-                      <FieldGroup>
-                        <span>{t("onboarding.level")}</span>
-                        <SelectControl
-                          value={draft.approximateLevel}
-                          onChange={(event) => {
-                            setProfile(
-                              "approximateLevel",
-                              event.currentTarget.value as DesktopSettingsValue["approximateLevel"],
-                            );
-                          }}
-                        >
-                          {["a1", "a2", "b1", "b2"].map((value) => (
-                            <option key={value} value={value}>
-                              {value.toUpperCase()}
-                            </option>
-                          ))}
-                        </SelectControl>
-                      </FieldGroup>
-                      <FieldGroup>
-                        <span>{t("onboarding.goal")}</span>
-                        <textarea
-                          rows={3}
-                          maxLength={500}
-                          value={draft.everydayLifeGoal}
-                          onChange={(event) => {
-                            setProfile("everydayLifeGoal", event.currentTarget.value);
-                          }}
-                        />
-                      </FieldGroup>
-
-                      <FieldGroup>
-                        <span>{t("settings.teachingProfile")}</span>
-                        <SelectControl
-                          value={draft.defaultTeachingProfileId}
-                          onChange={(event) => {
-                            setProfile(
-                              "defaultTeachingProfileId",
-                              event.currentTarget
-                                .value as DesktopSettingsValue["defaultTeachingProfileId"],
-                            );
-                          }}
-                        >
-                          <option value="conversation-partner">
-                            {t("onboarding.profiles.conversation-partner.title")}
-                          </option>
-                          <option value="strict-corrector">
-                            {t("onboarding.profiles.strict-corrector.title")}
-                          </option>
-                        </SelectControl>
-                      </FieldGroup>
-                      <LanguageSelect
-                        label={t("onboarding.explanationLanguage")}
-                        value={draft.explanationLanguage}
-                        disabled={busy}
-                        onChange={(language) => {
-                          setProfile("explanationLanguage", language);
-                        }}
-                      />
-                      <div>
-                        <LanguageSelect
-                          label={t("settings.uiLocale")}
-                          value={draft.uiLocale}
-                          interfaceOnly
-                          disabled={busy}
-                          onChange={(language) => {
-                            setProfile("uiLocale", language);
-                          }}
-                        />
-                      </div>
-                      <div className={styles.coursePreference}>
-                        {
-                          <CheckboxField
-                            checked={
-                              draft.learningScope.courseId ===
-                              languageDefinitions[draft.learningScope.targetLanguage]
-                                .structuredCourseId
-                            }
-                            disabled={busy}
-                            onChange={(event) => {
-                              setProfile("learningScope", {
-                                ...draft.learningScope,
-                                courseId: event.currentTarget.checked
-                                  ? languageDefinitions[draft.learningScope.targetLanguage]
-                                      .structuredCourseId
-                                  : null,
-                              });
-                            }}
-                          >
-                            {t("onboarding.enrollCourse")}
-                          </CheckboxField>
-                        }
-                      </div>
-                    </div>
-                  )}
-                </Section>
+                {draft && (
+                  <LearningProfileFields
+                    value={draft}
+                    language={draft.learningScope.targetLanguage}
+                    disabled={busy}
+                    onLanguage={(language) => void selectTarget(language)}
+                    onChange={(key, value) => {
+                      setDraft((current) => (current ? { ...current, [key]: value } : current));
+                    }}
+                  />
+                )}
               </>
             ),
           },
@@ -588,7 +496,7 @@ export function SettingsPage({
                 <Section className={styles.aiConnections} aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
                     surface={false}
-                    active={selectedTab === "ai"}
+                    active={selectedTab === "ai" || selectedTab === "speech"}
                     disabled={busy || Boolean(loginId)}
                     onPendingChange={setConnectionPending}
                     chatgptConnected={account ? account.status === "signed-in" : undefined}
@@ -730,75 +638,106 @@ export function SettingsPage({
                     }}
                   />
                 </Section>
-                <section className={styles.optionalIntegration} aria-labelledby="codex-integration-title">
-                  <div className={styles.integrationCopy}>
-                    <div className={styles.integrationHeading}>
-                      <AudioLines aria-hidden="true" />
-                      <h3 id="codex-integration-title">{t("settings.externalIntegrationTitle")}</h3>
-                      <InfoHint label={t("settings.externalIntegrationTitle")}>
-                        <p>{t("settings.externalIntegrationHelp")}</p>
-                      </InfoHint>
-                    </div>
-                    <p className={styles.integrationStatus} role="status">
-                      {integration === undefined
-                        ? t("settings.notReported")
-                        : integration.status === "available"
-                          ? t(`settings.plugin.${integration.plugin}`)
-                          : t("settings.codexUnavailable")}
-                    </p>
-                    {integration?.status === "available" && (
-                      <p className={styles.integrationDetail}>
-                        {t("settings.codexVersion", { version: integration.codexVersion })}
+                <SpeechSettings language={draft?.learningScope.targetLanguage ?? "de"} />
+                <Section title={t("setupUx.speakingPractice")}>
+                  <LiveConversationProvider />
+                  <ActionGroup>
+                    <span role="status">
+                      {integration?.status === "available"
+                        ? t(`settings.plugin.${integration.plugin}`)
+                        : t("settings.codexUnavailable")}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      onPress={() => {
+                        setIntegrationOpen(true);
+                      }}
+                    >
+                      {t("setupUx.manage")}
+                    </Button>
+                  </ActionGroup>
+                </Section>
+                <ModalDialog
+                  closeLabel={t("actions.close")}
+                  isOpen={integrationOpen}
+                  title={t("setupUx.speakingPractice")}
+                  onOpenChange={setIntegrationOpen}
+                >
+                  <section
+                    className={styles.optionalIntegration}
+                    aria-labelledby="codex-integration-title"
+                  >
+                    <div className={styles.integrationCopy}>
+                      <div className={styles.integrationHeading}>
+                        <AudioLines aria-hidden="true" />
+                        <h3 id="codex-integration-title">
+                          {t("settings.externalIntegrationTitle")}
+                        </h3>
+                        <InfoHint label={t("settings.externalIntegrationTitle")}>
+                          <p>{t("settings.externalIntegrationHelp")}</p>
+                        </InfoHint>
+                      </div>
+                      <p className={styles.integrationStatus} role="status">
+                        {integration === undefined
+                          ? t("settings.notReported")
+                          : integration.status === "available"
+                            ? t(`settings.plugin.${integration.plugin}`)
+                            : t("settings.codexUnavailable")}
                       </p>
-                    )}
-                  </div>
-                  {integration?.status === "available" && (
-                    <>
-                      <ActionGroup>
-                        {integration.plugin === "not-installed" && (
-                          <Button
-                            variant="primary"
-                            isDisabled={busy}
-                            onPress={() => void manageIntegration("install")}
-                          >
-                            {t("settings.plugin.actions.install")}
-                          </Button>
-                        )}
-                        {integration.plugin !== "not-installed" && (
-                          <Button
-                            variant="secondary"
-                            isDisabled={busy}
-                            onPress={() => void manageIntegration("refresh")}
-                          >
-                            {t("settings.plugin.actions.refresh")}
-                          </Button>
-                        )}
-                        {integration.plugin === "installed" && (
-                          <Button
-                            variant="quiet"
-                            isDisabled={busy}
-                            onPress={() => void manageIntegration("uninstall")}
-                          >
-                            {t("settings.plugin.actions.uninstall")}
-                          </Button>
-                        )}
-                      </ActionGroup>
-                    </>
-                  )}
-                  {(integrationFailure || integrationNotice) && (
-                    <div className={styles.integrationFeedback}>
-                      {integrationFailure ? (
-                        <Feedback live="assertive" tone="error">
-                          {integrationFailure}
-                        </Feedback>
-                      ) : (
-                        <Feedback live="polite" tone="success">
-                          {integrationNotice}
-                        </Feedback>
+                      {integration?.status === "available" && (
+                        <p className={styles.integrationDetail}>
+                          {t("settings.codexVersion", { version: integration.codexVersion })}
+                        </p>
                       )}
                     </div>
-                  )}
-                </section>
+                    {integration?.status === "available" && (
+                      <>
+                        <ActionGroup>
+                          {integration.plugin === "not-installed" && (
+                            <Button
+                              variant="primary"
+                              isDisabled={busy}
+                              onPress={() => void manageIntegration("install")}
+                            >
+                              {t("settings.plugin.actions.install")}
+                            </Button>
+                          )}
+                          {integration.plugin !== "not-installed" && (
+                            <Button
+                              variant="secondary"
+                              isDisabled={busy}
+                              onPress={() => void manageIntegration("refresh")}
+                            >
+                              {t("settings.plugin.actions.refresh")}
+                            </Button>
+                          )}
+                          {integration.plugin === "installed" && (
+                            <Button
+                              variant="quiet"
+                              isDisabled={busy}
+                              onPress={() => void manageIntegration("uninstall")}
+                            >
+                              {t("settings.plugin.actions.uninstall")}
+                            </Button>
+                          )}
+                        </ActionGroup>
+                      </>
+                    )}
+                    {(integrationFailure || integrationNotice) && (
+                      <div className={styles.integrationFeedback}>
+                        {integrationFailure ? (
+                          <Feedback live="assertive" tone="error">
+                            {integrationFailure}
+                          </Feedback>
+                        ) : (
+                          <Feedback live="polite" tone="success">
+                            {integrationNotice}
+                          </Feedback>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                </ModalDialog>
               </div>
             ),
           },
@@ -808,76 +747,87 @@ export function SettingsPage({
             icon: <ShieldCheck aria-hidden="true" />,
             children: (
               <>
-                <Section className={styles.settingsSection} aria-labelledby="settings-data-title">
-                  <h2 id="settings-data-title">{t("settings.dataTitle")}</h2>
-                  {readiness.dataRoot.status === "ready" && (
-                    <dl className={styles.detailList}>
-                      <div>
-                        <dt>{t("settings.dataFolder")}</dt>
-                        <dd>{readiness.dataRoot.displayName}</dd>
-                      </div>
-                    </dl>
-                  )}
-                  {!dataRootSelection ? (
+                <PersonalDataPage
+                  embedded
+                  onDataCleared={() => void load()}
+                  folderAction={
                     <Button
-                      variant="primary"
-                      isDisabled={busy}
-                      onPress={() => void chooseDataRoot()}
+                      variant="secondary"
+                      isDisabled={busy || dirty || connectionPending}
+                      onPress={() => {
+                        setFolderOpen(true);
+                      }}
                     >
-                      {t("settings.dataSwitch")}
+                      {t("setupUx.change")}
                     </Button>
-                  ) : (
-                    <div
-                      className={styles.switchConfirmation}
-                      role="group"
-                      aria-label={t("settings.dataSwitchConfirmTitle")}
-                    >
-                      <p>
-                        {t("settings.dataSwitchConfirm", {
-                          name: dataRootSelection.displayName,
-                          generation: dataRootSelection.generation,
-                        })}
-                      </p>
-                      {dataRootSelection.warnings.length > 0 && (
-                        <ItemList>
-                          {dataRootSelection.warnings.map((warning) => (
-                            <li key={warning}>{t(dataRootWarningKeys[warning])}</li>
-                          ))}
-                        </ItemList>
-                      )}
-                      <ActionGroup>
-                        <Button
-                          variant="primary"
-                          isDisabled={busy}
-                          onPress={() => void confirmDataRoot()}
-                        >
-                          {t("settings.dataSwitchConfirmAction")}
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          isDisabled={busy}
-                          onPress={() => {
-                            setDataRootSelection(undefined);
-                          }}
-                        >
-                          {t("actions.cancel")}
-                        </Button>
-                      </ActionGroup>
-                    </div>
-                  )}
-                </Section>
-                <Section
-                  className={styles.settingsSection}
-                  aria-labelledby="settings-privacy-title"
+                  }
+                />
+                <ModalDialog
+                  closeLabel={t("actions.close")}
+                  isOpen={folderOpen}
+                  title={t("settings.dataSwitch")}
+                  isDismissable={!busy}
+                  onOpenChange={setFolderOpen}
                 >
-                  <h2 id="settings-privacy-title">{t("settings.privacyTitle")}</h2>
-                  <p>
-                    <strong>{t("folder.privacyTitle")}</strong> — {t("folder.privacyBody")}
-                  </p>
-                  <p>
-                    <strong>{t("folder.cloudTitle")}</strong> — {t("folder.cloudBody")}
-                  </p>
-                </Section>
+                  <Section className={styles.settingsSection} aria-labelledby="settings-data-title">
+                    <h2 id="settings-data-title">{t("settings.dataTitle")}</h2>
+                    {readiness.dataRoot.status === "ready" && (
+                      <dl className={styles.detailList}>
+                        <div>
+                          <dt>{t("settings.dataFolder")}</dt>
+                          <dd>{readiness.dataRoot.displayName}</dd>
+                        </div>
+                      </dl>
+                    )}
+                    {!dataRootSelection ? (
+                      <Button
+                        variant="primary"
+                        isDisabled={busy}
+                        onPress={() => void chooseDataRoot()}
+                      >
+                        {t("settings.dataSwitch")}
+                      </Button>
+                    ) : (
+                      <div
+                        className={styles.switchConfirmation}
+                        role="group"
+                        aria-label={t("settings.dataSwitchConfirmTitle")}
+                      >
+                        <p>
+                          {t("settings.dataSwitchConfirm", {
+                            name: dataRootSelection.displayName,
+                            generation: dataRootSelection.generation,
+                          })}
+                        </p>
+                        {dataRootSelection.warnings.length > 0 && (
+                          <ItemList>
+                            {dataRootSelection.warnings.map((warning) => (
+                              <li key={warning}>{t(dataRootWarningKeys[warning])}</li>
+                            ))}
+                          </ItemList>
+                        )}
+                        <ActionGroup>
+                          <Button
+                            variant="primary"
+                            isDisabled={busy}
+                            onPress={() => void confirmDataRoot()}
+                          >
+                            {t("settings.dataSwitchConfirmAction")}
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            isDisabled={busy}
+                            onPress={() => {
+                              setDataRootSelection(undefined);
+                            }}
+                          >
+                            {t("actions.cancel")}
+                          </Button>
+                        </ActionGroup>
+                      </div>
+                    )}
+                  </Section>
+                </ModalDialog>
               </>
             ),
           },
@@ -892,48 +842,83 @@ export function SettingsPage({
                   aria-labelledby="settings-diagnostics-title"
                 >
                   <h2 id="settings-diagnostics-title">{t("settings.diagnosticsTitle")}</h2>
-                  <InfoHint label={t("settings.diagnosticsTitle")}>
-                    {t("settings.diagnosticsPrivacy")}
-                  </InfoHint>
-                  {diagnostics && (
-                    <dl className={styles.detailList}>
-                      <div>
-                        <dt>{t("settings.diagnosticsGeneration")}</dt>
-                        <dd>{diagnostics.dataRootGeneration}</dd>
-                      </div>
-                      <div>
-                        <dt>{t("settings.diagnosticsSchema")}</dt>
-                        <dd>{diagnostics.databaseSchemaVersion}</dd>
-                      </div>
-                      <div>
-                        <dt>{t("settings.diagnosticsDatabase")}</dt>
-                        <dd>{diagnostics.journalMode.toUpperCase()}</dd>
-                      </div>
-                      <div>
-                        <dt>{t("settings.diagnosticsLogs")}</dt>
-                        <dd>{diagnostics.logFileCount}</dd>
-                      </div>
-                    </dl>
-                  )}
-                  <ActionGroup>
-                    <Button
-                      variant="primary"
-                      isDisabled={busy}
-                      onPress={() => void readDiagnostics()}
-                    >
-                      {t("settings.runDiagnostics")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      isDisabled={busy}
-                      onPress={() => void exportDiagnostics()}
-                    >
-                      {t("settings.exportDiagnostics")}
-                    </Button>
-                    <Button variant="secondary" isDisabled={busy} onPress={() => void clearLogs()}>
-                      {t("settings.clearLogs")}
-                    </Button>
-                  </ActionGroup>
+                  <SettingsRow
+                    title={t("setupUx.checkApp")}
+                    action={
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy}
+                        onPress={() => void readDiagnostics()}
+                      >
+                        {t("setupUx.runCheck")}
+                      </Button>
+                    }
+                  >
+                    {diagnostics && <span role="status">{t("setupUx.storageReadable")}</span>}
+                  </SettingsRow>
+                  <SettingsRow
+                    title={t("setupUx.supportReport")}
+                    action={
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy}
+                        onPress={() => void exportDiagnostics()}
+                      >
+                        {t("setupUx.exportReport")}
+                      </Button>
+                    }
+                  />
+                  <Button
+                    variant="quiet"
+                    onPress={() => {
+                      setTechnicalOpen(true);
+                    }}
+                  >
+                    {t("setupUx.technicalDetails")}
+                  </Button>
+                  <ModalDialog
+                    closeLabel={t("actions.close")}
+                    isOpen={technicalOpen}
+                    title={t("setupUx.technicalDetails")}
+                    onOpenChange={setTechnicalOpen}
+                  >
+                    {diagnostics && (
+                      <dl className={styles.detailList}>
+                        <div>
+                          <dt>{t("settings.diagnosticsGeneration")}</dt>
+                          <dd>{diagnostics.dataRootGeneration}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("settings.diagnosticsSchema")}</dt>
+                          <dd>{diagnostics.databaseSchemaVersion}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("settings.diagnosticsDatabase")}</dt>
+                          <dd>{diagnostics.journalMode.toUpperCase()}</dd>
+                        </div>
+                        <div>
+                          <dt>{t("settings.diagnosticsLogs")}</dt>
+                          <dd>{diagnostics.logFileCount}</dd>
+                        </div>
+                      </dl>
+                    )}
+                    <ActionGroup>
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy}
+                        onPress={() => void readDiagnostics()}
+                      >
+                        {t("setupUx.runCheck")}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy}
+                        onPress={() => void clearLogs()}
+                      >
+                        {t("settings.clearLogs")}
+                      </Button>
+                    </ActionGroup>
+                  </ModalDialog>
                 </Section>
               </>
             ),

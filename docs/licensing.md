@@ -10,7 +10,7 @@ Third-party software, fonts, and attributed external material retain their own t
 
 ## Hosted access and optional services
 
-The software license grants no access to the maintainer's Vercel, Clerk, database, or AI accounts. Hosted Nina access requires a separately provisioned account and available service allowances. Provider charges and terms remain separate.
+The software license grants no access to the maintainer's Vercel, Clerk, database, or AI accounts. Users can register Free Nina accounts. Nina-hosted AI and audio require admin-assigned Nina Plus and available service allowances. Provider charges and terms remain separate.
 
 Optional paid enterprise setup, customization, and support are available by contacting [Pedro Azevedo Minutetnag](mailto:pedro.azvm@gmail.com). These services are not a condition of commercial use or independent hosting under MIT. The repository currently targets maintainer-operated infrastructure; a turnkey independent deployment workflow is not provided.
 

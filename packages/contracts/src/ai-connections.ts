@@ -81,6 +81,7 @@ export const legacyEmptyAiConnections = {
 export const aiCapabilitySchema = z.enum(["text", "image", "audio"]);
 export const aiActionSchema = z.enum([...generationKindSchema.options, "translation"]);
 export const aiRoutingSchema = z.strictObject({
+  liveConversation: z.literal("codex").nullable().default("codex"),
   text: aiRouteSchema.nullable(),
   image: aiRouteSchema.nullable(),
   actions: z.partialRecord(aiActionSchema, aiRouteSchema),
@@ -111,7 +112,7 @@ export const emptyAiConnections = {
   schemaVersion: 3,
   revision: 0,
   connections: [],
-  routing: { text: null, image: null, actions: {} },
+  routing: { text: null, image: null, actions: {}, liveConversation: "codex" },
   migrationNotice: false,
   retiredSecretRefs: [],
 } as const;

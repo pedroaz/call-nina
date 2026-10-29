@@ -18,6 +18,7 @@ export const productionContentSecurityPolicy = [
   "style-src 'self' 'unsafe-hashes' 'sha256-38RhXrc7EdReTKsOm23ZPOCUgniTUUcjky8QOOrQx6o='",
   "img-src 'self' data:",
   "font-src 'self'",
+  "media-src 'self' blob:",
   `connect-src 'self' ${clerkHost}`,
   "object-src 'none'",
   "base-uri 'none'",

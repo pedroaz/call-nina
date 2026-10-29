@@ -2,7 +2,7 @@
   "name": "call-nina",
   "version": "0.4.0",
   "private": true,
-  "description": "A local-first companion for learning English, Portuguese, Spanish, and German, with optional Codex integration.",
+  "description": "A local-first companion for learning English, Portuguese, Spanish, and German, with optional AI exercises, audio, and live conversation.",
   "type": "module",
   "packageManager": "pnpm@11.0.9",
   "engines": {
@@ -15,6 +15,7 @@
     "@eslint/js": "9.39.5",
     "@modelcontextprotocol/client": "2.3.0",
     "@types/node": "catalog:",
+    "@vercel/blob": "2.8.2",
     "electron": "catalog:",
     "esbuild": "^0.28.2",
     "eslint": "9.39.5",

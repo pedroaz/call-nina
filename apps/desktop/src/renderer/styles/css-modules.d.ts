@@ -79,6 +79,8 @@ declare module "*ConnectionSettings.module.css" {
     readonly providerOverview: string;
     readonly providerStatus: string;
     readonly remove: string;
+    readonly routingChoice: string;
+    readonly routingMatrix: string;
     readonly secret: string;
     readonly selectedCapability: string;
     readonly statusIssue: string;
@@ -341,6 +343,7 @@ declare module "*PersonalDataPage.module.css" {
   const styles: {
     readonly count: string;
     readonly description: string;
+    readonly details: string;
     readonly folder: string;
     readonly path: string;
     readonly reset: string;
@@ -393,15 +396,17 @@ declare module "*PracticePage.module.css" {
 
 declare module "*ProfileOnboarding.module.css" {
   const styles: {
-    readonly accessOptions: string;
-    readonly connectionStatus: string;
-    readonly controlLegend: string;
-    readonly eyebrow: string;
+    readonly app: string;
+    readonly brand: string;
+    readonly content: string;
+    readonly finish: string;
+    readonly footer: string;
     readonly heading: string;
-    readonly onboardingCard: string;
-    readonly onboardingGrid: string;
-    readonly onboardingSection: string;
-    readonly optionGroup: string;
+    readonly lesson: string;
+    readonly options: string;
+    readonly progress: string;
+    readonly summary: string;
+    readonly topbar: string;
   };
   export default styles;
 }
@@ -457,14 +462,34 @@ declare module "*SettingsPage.module.css" {
   export default styles;
 }
 
+declare module "*SettingsRow.module.css" {
+  const styles: {
+    readonly action: string;
+    readonly copy: string;
+    readonly icon: string;
+    readonly row: string;
+  };
+  export default styles;
+}
+
 declare module "*SidebarModelControl.module.css" {
   const styles: {
     readonly assignment: string;
-    readonly assignmentText: string;
-    readonly assignments: string;
-    readonly capabilityIcon: string;
     readonly navModelPanel: string;
-    readonly summaryTrigger: string;
+  };
+  export default styles;
+}
+
+declare module "*SpeechSettings.module.css" {
+  const styles: {
+    readonly actionLabel: string;
+    readonly details: string;
+    readonly languages: string;
+    readonly pack: string;
+    readonly playback: string;
+    readonly sections: string;
+    readonly storage: string;
+    readonly usage: string;
   };
   export default styles;
 }
@@ -478,6 +503,15 @@ declare module "*Startup.module.css" {
     readonly startupCard: string;
     readonly topActions: string;
     readonly warningList: string;
+  };
+  export default styles;
+}
+
+declare module "*StoriesPage.module.css" {
+  const styles: {
+    readonly filters: string;
+    readonly passage: string;
+    readonly reading: string;
   };
   export default styles;
 }

@@ -1,0 +1,1201 @@
+{
+  "schemaVersion": 1,
+  "stories": [
+    {
+      "id": "en-us-blue-cup",
+      "version": 1,
+      "language": "en-US",
+      "level": "A1",
+      "topicId": "curriculum-topic_0000000000000001",
+      "title": {
+        "en": "The blue cup",
+        "de": "Die blaue Tasse",
+        "es": "La taza azul",
+        "pt-BR": "A xícara azul"
+      },
+      "summary": {
+        "en": "A new neighbor comes for breakfast.",
+        "de": "Eine neue Nachbarin kommt zum Frühstück.",
+        "es": "Una vecina nueva viene a desayunar.",
+        "pt-BR": "Uma nova vizinha vem tomar café da manhã."
+      },
+      "paragraphs": [
+        "Maya lives in a small apartment. Today is Saturday. Her new neighbor, Lina, comes for breakfast. Maya puts two plates on the table. She has bread, cheese, and three red apples. But she has only one cup. It is blue.",
+        "Maya knocks on her brother’s door. “Can I have a cup?” she asks. He gives her a green cup. “Is your friend here?” he asks. “Not yet,” says Maya. She goes home and makes tea.",
+        "At nine, Lina arrives. She has a small bag. “This is for you,” she says. Inside is a yellow cup. Maya laughs. “Now we have three cups!” Lina puts the yellow cup on the table. “Can your brother come too?” she asks. Maya opens the door again."
+      ],
+      "vocabulary": [
+        {
+          "text": "cup",
+          "meaning": {
+            "en": "a small container for a hot drink",
+            "de": "ein kleines Gefäß für ein heißes Getränk",
+            "es": "un recipiente pequeño para una bebida caliente",
+            "pt-BR": "um recipiente pequeno para uma bebida quente"
+          },
+          "example": "Maya has only one cup.",
+          "exampleMeaning": {
+            "en": "Maya has only one cup.",
+            "de": "Maya hat nur eine Tasse.",
+            "es": "Maya solo tiene una taza.",
+            "pt-BR": "Maya só tem uma xícara."
+          }
+        },
+        {
+          "text": "breakfast",
+          "meaning": {
+            "en": "the first meal of the day",
+            "de": "die erste Mahlzeit des Tages",
+            "es": "la primera comida del día",
+            "pt-BR": "a primeira refeição do dia"
+          },
+          "example": "Lina comes for breakfast.",
+          "exampleMeaning": {
+            "en": "Lina comes for breakfast.",
+            "de": "Lina kommt zum Frühstück.",
+            "es": "Lina viene a desayunar.",
+            "pt-BR": "Lina vem tomar café da manhã."
+          }
+        },
+        {
+          "text": "neighbor",
+          "meaning": {
+            "en": "a person who lives near you",
+            "de": "eine Frau, die in der Nähe wohnt",
+            "es": "una mujer que vive cerca de ti",
+            "pt-BR": "uma mulher que mora perto de você"
+          },
+          "example": "My neighbor brings a cup.",
+          "exampleMeaning": {
+            "en": "My neighbor brings a cup.",
+            "de": "Meine Nachbarin bringt eine Tasse mit.",
+            "es": "Mi vecina trae una taza.",
+            "pt-BR": "Minha vizinha traz uma xícara."
+          }
+        }
+      ]
+    },
+    {
+      "id": "de-blue-cup",
+      "version": 1,
+      "language": "de",
+      "level": "A1",
+      "topicId": "curriculum-topic_0000000000000001",
+      "title": {
+        "en": "The blue cup",
+        "de": "Die blaue Tasse",
+        "es": "La taza azul",
+        "pt-BR": "A xícara azul"
+      },
+      "summary": {
+        "en": "A new neighbor comes for breakfast.",
+        "de": "Eine neue Nachbarin kommt zum Frühstück.",
+        "es": "Una vecina nueva viene a desayunar.",
+        "pt-BR": "Uma nova vizinha vem tomar café da manhã."
+      },
+      "paragraphs": [
+        "Maya wohnt in einer kleinen Wohnung. Heute ist Samstag. Ihre neue Nachbarin Lina kommt zum Frühstück. Maya stellt zwei Teller auf den Tisch. Sie hat Brot, Käse und drei rote Äpfel. Aber sie hat nur eine Tasse. Sie ist blau.",
+        "Maya klopft an die Tür ihres Bruders. „Kann ich eine Tasse haben?“, fragt sie. Er gibt ihr eine grüne Tasse. „Ist deine Freundin schon da?“, fragt er. „Noch nicht“, sagt Maya. Sie geht nach Hause und macht Tee.",
+        "Um neun kommt Lina. Sie hat eine kleine Tasche. „Das ist für dich“, sagt sie. In der Tasche ist eine gelbe Tasse. Maya lacht. „Jetzt haben wir drei Tassen!“ Lina stellt die gelbe Tasse auf den Tisch. „Kann dein Bruder auch kommen?“, fragt sie. Maya öffnet wieder die Tür."
+      ],
+      "vocabulary": [
+        {
+          "text": "Tasse",
+          "meaning": {
+            "en": "a small container for a hot drink",
+            "de": "ein kleines Gefäß für ein heißes Getränk",
+            "es": "un recipiente pequeño para una bebida caliente",
+            "pt-BR": "um recipiente pequeno para uma bebida quente"
+          },
+          "example": "Maya hat nur eine Tasse.",
+          "exampleMeaning": {
+            "en": "Maya has only one cup.",
+            "de": "Maya hat nur eine Tasse.",
+            "es": "Maya solo tiene una taza.",
+            "pt-BR": "Maya só tem uma xícara."
+          }
+        },
+        {
+          "text": "Frühstück",
+          "meaning": {
+            "en": "the first meal of the day",
+            "de": "die erste Mahlzeit des Tages",
+            "es": "la primera comida del día",
+            "pt-BR": "a primeira refeição do dia"
+          },
+          "example": "Lina kommt zum Frühstück.",
+          "exampleMeaning": {
+            "en": "Lina comes for breakfast.",
+            "de": "Lina kommt zum Frühstück.",
+            "es": "Lina viene a desayunar.",
+            "pt-BR": "Lina vem tomar café da manhã."
+          }
+        },
+        {
+          "text": "Nachbarin",
+          "meaning": {
+            "en": "a person who lives near you",
+            "de": "eine Frau, die in der Nähe wohnt",
+            "es": "una mujer que vive cerca de ti",
+            "pt-BR": "uma mulher que mora perto de você"
+          },
+          "example": "Meine Nachbarin bringt eine Tasse mit.",
+          "exampleMeaning": {
+            "en": "My neighbor brings a cup.",
+            "de": "Meine Nachbarin bringt eine Tasse mit.",
+            "es": "Mi vecina trae una taza.",
+            "pt-BR": "Minha vizinha traz uma xícara."
+          }
+        }
+      ]
+    },
+    {
+      "id": "es-blue-cup",
+      "version": 1,
+      "language": "es",
+      "level": "A1",
+      "topicId": "curriculum-topic_0000000000000001",
+      "title": {
+        "en": "The blue cup",
+        "de": "Die blaue Tasse",
+        "es": "La taza azul",
+        "pt-BR": "A xícara azul"
+      },
+      "summary": {
+        "en": "A new neighbor comes for breakfast.",
+        "de": "Eine neue Nachbarin kommt zum Frühstück.",
+        "es": "Una vecina nueva viene a desayunar.",
+        "pt-BR": "Uma nova vizinha vem tomar café da manhã."
+      },
+      "paragraphs": [
+        "Maya vive en un apartamento pequeño. Hoy es sábado. Su nueva vecina, Lina, viene a desayunar. Maya pone dos platos en la mesa. Tiene pan, queso y tres manzanas rojas. Pero solo tiene una taza. Es azul.",
+        "Maya llama a la puerta de su hermano. «¿Me das una taza?», pregunta. Él le da una taza verde. «¿Tu amiga ya está aquí?», pregunta él. «Todavía no», dice Maya. Vuelve a casa y prepara té.",
+        "A las nueve llega Lina. Tiene una bolsa pequeña. «Esto es para ti», dice. Dentro hay una taza amarilla. Maya se ríe. «¡Ahora tenemos tres tazas!» Lina pone la taza amarilla en la mesa. «¿Tu hermano también puede venir?», pregunta. Maya abre la puerta otra vez."
+      ],
+      "vocabulary": [
+        {
+          "text": "taza",
+          "meaning": {
+            "en": "a small container for a hot drink",
+            "de": "ein kleines Gefäß für ein heißes Getränk",
+            "es": "un recipiente pequeño para una bebida caliente",
+            "pt-BR": "um recipiente pequeno para uma bebida quente"
+          },
+          "example": "Maya solo tiene una taza.",
+          "exampleMeaning": {
+            "en": "Maya has only one cup.",
+            "de": "Maya hat nur eine Tasse.",
+            "es": "Maya solo tiene una taza.",
+            "pt-BR": "Maya só tem uma xícara."
+          }
+        },
+        {
+          "text": "desayuno",
+          "meaning": {
+            "en": "the first meal of the day",
+            "de": "die erste Mahlzeit des Tages",
+            "es": "la primera comida del día",
+            "pt-BR": "a primeira refeição do dia"
+          },
+          "example": "Lina viene a desayunar.",
+          "exampleMeaning": {
+            "en": "Lina comes for breakfast.",
+            "de": "Lina kommt zum Frühstück.",
+            "es": "Lina viene a desayunar.",
+            "pt-BR": "Lina vem tomar café da manhã."
+          }
+        },
+        {
+          "text": "vecina",
+          "meaning": {
+            "en": "a person who lives near you",
+            "de": "eine Frau, die in der Nähe wohnt",
+            "es": "una mujer que vive cerca de ti",
+            "pt-BR": "uma mulher que mora perto de você"
+          },
+          "example": "Mi vecina trae una taza.",
+          "exampleMeaning": {
+            "en": "My neighbor brings a cup.",
+            "de": "Meine Nachbarin bringt eine Tasse mit.",
+            "es": "Mi vecina trae una taza.",
+            "pt-BR": "Minha vizinha traz uma xícara."
+          }
+        }
+      ]
+    },
+    {
+      "id": "pt-br-blue-cup",
+      "version": 1,
+      "language": "pt-BR",
+      "level": "A1",
+      "topicId": "curriculum-topic_0000000000000001",
+      "title": {
+        "en": "The blue cup",
+        "de": "Die blaue Tasse",
+        "es": "La taza azul",
+        "pt-BR": "A xícara azul"
+      },
+      "summary": {
+        "en": "A new neighbor comes for breakfast.",
+        "de": "Eine neue Nachbarin kommt zum Frühstück.",
+        "es": "Una vecina nueva viene a desayunar.",
+        "pt-BR": "Uma nova vizinha vem tomar café da manhã."
+      },
+      "paragraphs": [
+        "Maya mora em um apartamento pequeno. Hoje é sábado. Sua nova vizinha, Lina, vem tomar café da manhã. Maya coloca dois pratos na mesa. Ela tem pão, queijo e três maçãs vermelhas. Mas só tem uma xícara. Ela é azul.",
+        "Maya bate na porta do irmão. “Você tem uma xícara para mim?”, pergunta. Ele dá uma xícara verde para ela. “Sua amiga já chegou?”, ele pergunta. “Ainda não”, diz Maya. Ela volta para casa e faz chá.",
+        "Às nove, Lina chega. Ela tem uma sacola pequena. “Isto é para você”, diz. Dentro há uma xícara amarela. Maya ri. “Agora temos três xícaras!” Lina coloca a xícara amarela na mesa. “Seu irmão também pode vir?”, pergunta. Maya abre a porta de novo."
+      ],
+      "vocabulary": [
+        {
+          "text": "xícara",
+          "meaning": {
+            "en": "a small container for a hot drink",
+            "de": "ein kleines Gefäß für ein heißes Getränk",
+            "es": "un recipiente pequeño para una bebida caliente",
+            "pt-BR": "um recipiente pequeno para uma bebida quente"
+          },
+          "example": "Maya só tem uma xícara.",
+          "exampleMeaning": {
+            "en": "Maya has only one cup.",
+            "de": "Maya hat nur eine Tasse.",
+            "es": "Maya solo tiene una taza.",
+            "pt-BR": "Maya só tem uma xícara."
+          }
+        },
+        {
+          "text": "café da manhã",
+          "meaning": {
+            "en": "the first meal of the day",
+            "de": "die erste Mahlzeit des Tages",
+            "es": "la primera comida del día",
+            "pt-BR": "a primeira refeição do dia"
+          },
+          "example": "Lina vem tomar café da manhã.",
+          "exampleMeaning": {
+            "en": "Lina comes for breakfast.",
+            "de": "Lina kommt zum Frühstück.",
+            "es": "Lina viene a desayunar.",
+            "pt-BR": "Lina vem tomar café da manhã."
+          }
+        },
+        {
+          "text": "vizinha",
+          "meaning": {
+            "en": "a person who lives near you",
+            "de": "eine Frau, die in der Nähe wohnt",
+            "es": "una mujer que vive cerca de ti",
+            "pt-BR": "uma mulher que mora perto de você"
+          },
+          "example": "Minha vizinha traz uma xícara.",
+          "exampleMeaning": {
+            "en": "My neighbor brings a cup.",
+            "de": "Meine Nachbarin bringt eine Tasse mit.",
+            "es": "Mi vecina trae una taza.",
+            "pt-BR": "Minha vizinha traz uma xícara."
+          }
+        }
+      ]
+    },
+    {
+      "id": "en-us-last-bus",
+      "version": 1,
+      "language": "en-US",
+      "level": "A2",
+      "topicId": "curriculum-topic_0000000000000017",
+      "title": {
+        "en": "The last bus",
+        "de": "Der letzte Bus",
+        "es": "El último autobús",
+        "pt-BR": "O último ônibus"
+      },
+      "summary": {
+        "en": "A missed bus leads to an unexpected invitation.",
+        "de": "Ein verpasster Bus führt zu einer unerwarteten Einladung.",
+        "es": "Perder un autobús lleva a una invitación inesperada.",
+        "pt-BR": "Perder um ônibus leva a um convite inesperado."
+      },
+      "paragraphs": [
+        "On Friday, Leo finished work late. He ran to the bus stop, but the last bus was already leaving. His phone had no battery. He sat on the bench and looked at the dark street. Home was an hour away on foot.",
+        "An older woman was closing the flower shop behind him. “Are you waiting for someone?” she asked. Leo explained what had happened. She offered him her phone. He called his sister, but she could not collect him until ten. It was only nine.",
+        "“You can wait inside,” the woman said. Her name was Rosa. On the counter were six small plants. Leo helped her carry them away from the cold window. Then they drank tea. Rosa told him that she wanted to sell the shop and spend more time with her grandchildren.",
+        "When his sister arrived, Leo was watering the last plant. Rosa gave it to him. “Thank you for helping,” she said. On Monday, he took an earlier bus and visited the shop. This time, he brought tea."
+      ],
+      "vocabulary": [
+        {
+          "text": "bus stop",
+          "meaning": {
+            "en": "a place where passengers get on a bus",
+            "de": "ein Ort, an dem Fahrgäste in einen Bus einsteigen",
+            "es": "un lugar donde los pasajeros suben al autobús",
+            "pt-BR": "um lugar onde os passageiros entram no ônibus"
+          },
+          "example": "He waits at the bus stop.",
+          "exampleMeaning": {
+            "en": "He waits at the bus stop.",
+            "de": "Er wartet an der Haltestelle.",
+            "es": "Espera en la parada de autobús.",
+            "pt-BR": "Ele espera no ponto de ônibus."
+          }
+        },
+        {
+          "text": "driver",
+          "meaning": {
+            "en": "a person who drives a vehicle",
+            "de": "eine Person, die ein Fahrzeug fährt",
+            "es": "una persona que conduce un vehículo",
+            "pt-BR": "uma pessoa que dirige um veículo"
+          },
+          "example": "The driver waits a moment.",
+          "exampleMeaning": {
+            "en": "The driver waits a moment.",
+            "de": "Der Fahrer wartet einen Moment.",
+            "es": "El conductor espera un momento.",
+            "pt-BR": "O motorista espera um momento."
+          }
+        },
+        {
+          "text": "invitation",
+          "meaning": {
+            "en": "a request to join an activity",
+            "de": "eine Bitte, an etwas teilzunehmen",
+            "es": "una propuesta para participar en una actividad",
+            "pt-BR": "uma proposta para participar de uma atividade"
+          },
+          "example": "He accepts the invitation.",
+          "exampleMeaning": {
+            "en": "He accepts the invitation.",
+            "de": "Er nimmt die Einladung an.",
+            "es": "Él acepta la invitación.",
+            "pt-BR": "Ele aceita o convite."
+          }
+        }
+      ]
+    },
+    {
+      "id": "de-last-bus",
+      "version": 1,
+      "language": "de",
+      "level": "A2",
+      "topicId": "curriculum-topic_0000000000000017",
+      "title": {
+        "en": "The last bus",
+        "de": "Der letzte Bus",
+        "es": "El último autobús",
+        "pt-BR": "O último ônibus"
+      },
+      "summary": {
+        "en": "A missed bus leads to an unexpected invitation.",
+        "de": "Ein verpasster Bus führt zu einer unerwarteten Einladung.",
+        "es": "Perder un autobús lleva a una invitación inesperada.",
+        "pt-BR": "Perder um ônibus leva a um convite inesperado."
+      },
+      "paragraphs": [
+        "Am Freitag war Leo lange bei der Arbeit. Er lief zur Haltestelle, aber der letzte Bus fuhr gerade ab. Sein Handy hatte keinen Akku mehr. Er setzte sich auf die Bank und sah auf die dunkle Straße. Zu Fuß brauchte er eine Stunde nach Hause.",
+        "Eine ältere Frau schloss den Blumenladen hinter ihm. „Warten Sie auf jemanden?“, fragte sie. Leo erzählte ihr, was passiert war. Sie gab ihm ihr Telefon. Er rief seine Schwester an, aber sie konnte ihn erst um zehn abholen. Es war erst neun.",
+        "„Sie können drinnen warten“, sagte die Frau. Sie hieß Rosa. Auf der Theke standen sechs kleine Pflanzen. Leo half ihr, die Pflanzen vom kalten Fenster wegzutragen. Dann tranken sie Tee. Rosa erzählte, dass sie den Laden verkaufen und mehr Zeit mit ihren Enkelkindern verbringen wollte.",
+        "Als seine Schwester kam, goss Leo die letzte Pflanze. Rosa schenkte sie ihm. „Danke für Ihre Hilfe“, sagte sie. Am Montag nahm er einen früheren Bus und besuchte den Laden. Diesmal brachte er Tee mit."
+      ],
+      "vocabulary": [
+        {
+          "text": "Haltestelle",
+          "meaning": {
+            "en": "a place where passengers get on a bus",
+            "de": "ein Ort, an dem Fahrgäste in einen Bus einsteigen",
+            "es": "un lugar donde los pasajeros suben al autobús",
+            "pt-BR": "um lugar onde os passageiros entram no ônibus"
+          },
+          "example": "Er wartet an der Haltestelle.",
+          "exampleMeaning": {
+            "en": "He waits at the bus stop.",
+            "de": "Er wartet an der Haltestelle.",
+            "es": "Espera en la parada de autobús.",
+            "pt-BR": "Ele espera no ponto de ônibus."
+          }
+        },
+        {
+          "text": "Fahrer",
+          "meaning": {
+            "en": "a person who drives a vehicle",
+            "de": "eine Person, die ein Fahrzeug fährt",
+            "es": "una persona que conduce un vehículo",
+            "pt-BR": "uma pessoa que dirige um veículo"
+          },
+          "example": "Der Fahrer wartet einen Moment.",
+          "exampleMeaning": {
+            "en": "The driver waits a moment.",
+            "de": "Der Fahrer wartet einen Moment.",
+            "es": "El conductor espera un momento.",
+            "pt-BR": "O motorista espera um momento."
+          }
+        },
+        {
+          "text": "Einladung",
+          "meaning": {
+            "en": "a request to join an activity",
+            "de": "eine Bitte, an etwas teilzunehmen",
+            "es": "una propuesta para participar en una actividad",
+            "pt-BR": "uma proposta para participar de uma atividade"
+          },
+          "example": "Er nimmt die Einladung an.",
+          "exampleMeaning": {
+            "en": "He accepts the invitation.",
+            "de": "Er nimmt die Einladung an.",
+            "es": "Él acepta la invitación.",
+            "pt-BR": "Ele aceita o convite."
+          }
+        }
+      ]
+    },
+    {
+      "id": "es-last-bus",
+      "version": 1,
+      "language": "es",
+      "level": "A2",
+      "topicId": "curriculum-topic_0000000000000017",
+      "title": {
+        "en": "The last bus",
+        "de": "Der letzte Bus",
+        "es": "El último autobús",
+        "pt-BR": "O último ônibus"
+      },
+      "summary": {
+        "en": "A missed bus leads to an unexpected invitation.",
+        "de": "Ein verpasster Bus führt zu einer unerwarteten Einladung.",
+        "es": "Perder un autobús lleva a una invitación inesperada.",
+        "pt-BR": "Perder um ônibus leva a um convite inesperado."
+      },
+      "paragraphs": [
+        "El viernes, Leo terminó de trabajar tarde. Corrió hasta la parada, pero el último autobús ya salía. Su teléfono no tenía batería. Se sentó en el banco y miró la calle oscura. Su casa estaba a una hora a pie.",
+        "Una mujer mayor estaba cerrando la floristería que había detrás. «¿Espera a alguien?», preguntó. Leo le explicó lo que había pasado. Ella le prestó su teléfono. Llamó a su hermana, pero ella no podía recogerlo hasta las diez. Solo eran las nueve.",
+        "«Puede esperar dentro», dijo la mujer. Se llamaba Rosa. En el mostrador había seis plantas pequeñas. Leo la ayudó a llevarlas lejos de la ventana fría. Después tomaron té. Rosa le contó que quería vender la tienda y pasar más tiempo con sus nietos.",
+        "Cuando llegó su hermana, Leo estaba regando la última planta. Rosa se la regaló. «Gracias por ayudarme», dijo. El lunes, él tomó un autobús más temprano y visitó la tienda. Esta vez llevó té."
+      ],
+      "vocabulary": [
+        {
+          "text": "parada",
+          "meaning": {
+            "en": "a place where passengers get on a bus",
+            "de": "ein Ort, an dem Fahrgäste in einen Bus einsteigen",
+            "es": "un lugar donde los pasajeros suben al autobús",
+            "pt-BR": "um lugar onde os passageiros entram no ônibus"
+          },
+          "example": "Espera en la parada de autobús.",
+          "exampleMeaning": {
+            "en": "He waits at the bus stop.",
+            "de": "Er wartet an der Haltestelle.",
+            "es": "Espera en la parada de autobús.",
+            "pt-BR": "Ele espera no ponto de ônibus."
+          }
+        },
+        {
+          "text": "conductor",
+          "meaning": {
+            "en": "a person who drives a vehicle",
+            "de": "eine Person, die ein Fahrzeug fährt",
+            "es": "una persona que conduce un vehículo",
+            "pt-BR": "uma pessoa que dirige um veículo"
+          },
+          "example": "El conductor espera un momento.",
+          "exampleMeaning": {
+            "en": "The driver waits a moment.",
+            "de": "Der Fahrer wartet einen Moment.",
+            "es": "El conductor espera un momento.",
+            "pt-BR": "O motorista espera um momento."
+          }
+        },
+        {
+          "text": "invitación",
+          "meaning": {
+            "en": "a request to join an activity",
+            "de": "eine Bitte, an etwas teilzunehmen",
+            "es": "una propuesta para participar en una actividad",
+            "pt-BR": "uma proposta para participar de uma atividade"
+          },
+          "example": "Él acepta la invitación.",
+          "exampleMeaning": {
+            "en": "He accepts the invitation.",
+            "de": "Er nimmt die Einladung an.",
+            "es": "Él acepta la invitación.",
+            "pt-BR": "Ele aceita o convite."
+          }
+        }
+      ]
+    },
+    {
+      "id": "pt-br-last-bus",
+      "version": 1,
+      "language": "pt-BR",
+      "level": "A2",
+      "topicId": "curriculum-topic_0000000000000017",
+      "title": {
+        "en": "The last bus",
+        "de": "Der letzte Bus",
+        "es": "El último autobús",
+        "pt-BR": "O último ônibus"
+      },
+      "summary": {
+        "en": "A missed bus leads to an unexpected invitation.",
+        "de": "Ein verpasster Bus führt zu einer unerwarteten Einladung.",
+        "es": "Perder un autobús lleva a una invitación inesperada.",
+        "pt-BR": "Perder um ônibus leva a um convite inesperado."
+      },
+      "paragraphs": [
+        "Na sexta-feira, Leo saiu tarde do trabalho. Correu até o ponto, mas o último ônibus já estava saindo. Seu celular estava sem bateria. Ele se sentou no banco e olhou para a rua escura. Sua casa ficava a uma hora a pé.",
+        "Uma senhora estava fechando a floricultura atrás dele. “Você está esperando alguém?”, perguntou. Leo explicou o que tinha acontecido. Ela emprestou seu telefone. Ele ligou para a irmã, mas ela só podia buscá-lo às dez. Ainda eram nove.",
+        "“Pode esperar aqui dentro”, disse a mulher. Seu nome era Rosa. Havia seis plantas pequenas no balcão. Leo ajudou a levar as plantas para longe da janela fria. Depois, tomaram chá. Rosa contou que queria vender a loja e passar mais tempo com os netos.",
+        "Quando a irmã chegou, Leo estava regando a última planta. Rosa deu a planta para ele. “Obrigada pela ajuda”, disse. Na segunda-feira, ele pegou um ônibus mais cedo e visitou a loja. Dessa vez, levou chá."
+      ],
+      "vocabulary": [
+        {
+          "text": "ponto de ônibus",
+          "meaning": {
+            "en": "a place where passengers get on a bus",
+            "de": "ein Ort, an dem Fahrgäste in einen Bus einsteigen",
+            "es": "un lugar donde los pasajeros suben al autobús",
+            "pt-BR": "um lugar onde os passageiros entram no ônibus"
+          },
+          "example": "Ele espera no ponto de ônibus.",
+          "exampleMeaning": {
+            "en": "He waits at the bus stop.",
+            "de": "Er wartet an der Haltestelle.",
+            "es": "Espera en la parada de autobús.",
+            "pt-BR": "Ele espera no ponto de ônibus."
+          }
+        },
+        {
+          "text": "motorista",
+          "meaning": {
+            "en": "a person who drives a vehicle",
+            "de": "eine Person, die ein Fahrzeug fährt",
+            "es": "una persona que conduce un vehículo",
+            "pt-BR": "uma pessoa que dirige um veículo"
+          },
+          "example": "O motorista espera um momento.",
+          "exampleMeaning": {
+            "en": "The driver waits a moment.",
+            "de": "Der Fahrer wartet einen Moment.",
+            "es": "El conductor espera un momento.",
+            "pt-BR": "O motorista espera um momento."
+          }
+        },
+        {
+          "text": "convite",
+          "meaning": {
+            "en": "a request to join an activity",
+            "de": "eine Bitte, an etwas teilzunehmen",
+            "es": "una propuesta para participar en una actividad",
+            "pt-BR": "uma proposta para participar de uma atividade"
+          },
+          "example": "Ele aceita o convite.",
+          "exampleMeaning": {
+            "en": "He accepts the invitation.",
+            "de": "Er nimmt die Einladung an.",
+            "es": "Él acepta la invitación.",
+            "pt-BR": "Ele aceita o convite."
+          }
+        }
+      ]
+    },
+    {
+      "id": "en-us-repair-table",
+      "version": 1,
+      "language": "en-US",
+      "level": "B1",
+      "topicId": "curriculum-topic_0000000000000026",
+      "title": {
+        "en": "The repair table",
+        "de": "Der Reparaturtisch",
+        "es": "La mesa de reparaciones",
+        "pt-BR": "A mesa de consertos"
+      },
+      "summary": {
+        "en": "A broken radio changes a neighborhood project.",
+        "de": "Ein kaputtes Radio verändert ein Nachbarschaftsprojekt.",
+        "es": "Una radio averiada cambia un proyecto del barrio.",
+        "pt-BR": "Um rádio quebrado muda um projeto do bairro."
+      },
+      "paragraphs": [
+        "When Amira announced a repair afternoon at the neighborhood center, she expected people to bring lamps and bicycles. She had borrowed tools and invited two friends who knew how to use them. Her poster promised fewer things in the trash and more useful objects at home. She had not thought about what would happen if they could not repair something.",
+        "The first visitor was Daniel, carrying a small radio that had belonged to his father. Its plastic case was scratched, and one button was missing. Amira carefully opened it. A part inside was damaged, but nobody recognized it. Daniel watched silently while they searched a book of old radio diagrams. After an hour, Amira admitted that she could not promise a repair.",
+        "“I don’t really need another radio,” Daniel said. “I wanted to hear the sound of this one.” He described the music his father used to play while cooking. Another visitor recognized a song and began to sing it quietly. Soon Daniel was laughing and adding the words that she had forgotten. The radio still lay open between them.",
+        "Before leaving, Daniel asked whether he could come back next month. He knew how to sharpen kitchen knives and wanted to help. Amira added a line to the next poster: “Bring a skill, too.” She kept looking for the radio part, but she no longer measured the afternoon only by the number of objects they had repaired."
+      ],
+      "vocabulary": [
+        {
+          "text": "repair",
+          "meaning": {
+            "en": "make a damaged object work again",
+            "de": "einen beschädigten Gegenstand wieder funktionsfähig machen",
+            "es": "hacer que un objeto averiado vuelva a funcionar",
+            "pt-BR": "fazer um objeto quebrado funcionar de novo"
+          },
+          "example": "They want to repair the radio.",
+          "exampleMeaning": {
+            "en": "They want to repair the radio.",
+            "de": "Sie wollen das Radio reparieren.",
+            "es": "Quieren reparar la radio.",
+            "pt-BR": "Eles querem consertar o rádio."
+          }
+        },
+        {
+          "text": "volunteer",
+          "meaning": {
+            "en": "a person who helps without being paid",
+            "de": "eine Person, die ohne Bezahlung hilft",
+            "es": "una persona que ayuda sin recibir un pago",
+            "pt-BR": "uma pessoa que ajuda sem receber pagamento"
+          },
+          "example": "A volunteer explains the problem.",
+          "exampleMeaning": {
+            "en": "A volunteer explains the problem.",
+            "de": "Eine Freiwillige erklärt das Problem.",
+            "es": "Un voluntario explica el problema.",
+            "pt-BR": "Um voluntário explica o problema."
+          }
+        },
+        {
+          "text": "mistake",
+          "meaning": {
+            "en": "something done incorrectly",
+            "de": "etwas, das falsch gemacht wurde",
+            "es": "algo que se ha hecho incorrectamente",
+            "pt-BR": "algo que foi feito incorretamente"
+          },
+          "example": "They learn from the mistake.",
+          "exampleMeaning": {
+            "en": "They learn from the mistake.",
+            "de": "Sie lernen aus dem Fehler.",
+            "es": "Aprenden del error.",
+            "pt-BR": "Eles aprendem com o erro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "de-repair-table",
+      "version": 1,
+      "language": "de",
+      "level": "B1",
+      "topicId": "curriculum-topic_0000000000000026",
+      "title": {
+        "en": "The repair table",
+        "de": "Der Reparaturtisch",
+        "es": "La mesa de reparaciones",
+        "pt-BR": "A mesa de consertos"
+      },
+      "summary": {
+        "en": "A broken radio changes a neighborhood project.",
+        "de": "Ein kaputtes Radio verändert ein Nachbarschaftsprojekt.",
+        "es": "Una radio averiada cambia un proyecto del barrio.",
+        "pt-BR": "Um rádio quebrado muda um projeto do bairro."
+      },
+      "paragraphs": [
+        "Als Amira einen Reparaturnachmittag im Nachbarschaftszentrum ankündigte, rechnete sie mit Lampen und Fahrrädern. Sie hatte Werkzeug ausgeliehen und zwei Freunde eingeladen, die damit umgehen konnten. Ihr Plakat versprach weniger Müll und mehr brauchbare Gegenstände zu Hause. Was passieren würde, wenn sie etwas nicht reparieren konnten, hatte sie nicht bedacht.",
+        "Der erste Besucher war Daniel. Er trug ein kleines Radio, das seinem Vater gehört hatte. Das Kunststoffgehäuse war zerkratzt, und ein Knopf fehlte. Amira öffnete es vorsichtig. Innen war ein Bauteil beschädigt, das niemand erkannte. Daniel sah schweigend zu, während sie in einem Buch mit alten Radioschaltplänen suchten. Nach einer Stunde gab Amira zu, dass sie keine Reparatur versprechen konnte.",
+        "„Eigentlich brauche ich kein neues Radio“, sagte Daniel. „Ich wollte den Klang von diesem hier hören.“ Er beschrieb die Musik, die sein Vater beim Kochen gehört hatte. Eine andere Besucherin erkannte ein Lied und begann, es leise zu singen. Bald lachte Daniel und ergänzte die Wörter, die sie vergessen hatte. Das Radio lag weiterhin offen zwischen ihnen.",
+        "Vor dem Abschied fragte Daniel, ob er nächsten Monat wiederkommen dürfe. Er konnte Küchenmesser schärfen und wollte helfen. Amira ergänzte das nächste Plakat: „Bring auch dein Können mit.“ Sie suchte weiter nach dem Bauteil. Aber sie bewertete den Nachmittag nicht mehr nur nach der Zahl der reparierten Gegenstände."
+      ],
+      "vocabulary": [
+        {
+          "text": "reparieren",
+          "meaning": {
+            "en": "make a damaged object work again",
+            "de": "einen beschädigten Gegenstand wieder funktionsfähig machen",
+            "es": "hacer que un objeto averiado vuelva a funcionar",
+            "pt-BR": "fazer um objeto quebrado funcionar de novo"
+          },
+          "example": "Sie wollen das Radio reparieren.",
+          "exampleMeaning": {
+            "en": "They want to repair the radio.",
+            "de": "Sie wollen das Radio reparieren.",
+            "es": "Quieren reparar la radio.",
+            "pt-BR": "Eles querem consertar o rádio."
+          }
+        },
+        {
+          "text": "Freiwillige",
+          "meaning": {
+            "en": "a person who helps without being paid",
+            "de": "eine Person, die ohne Bezahlung hilft",
+            "es": "una persona que ayuda sin recibir un pago",
+            "pt-BR": "uma pessoa que ajuda sem receber pagamento"
+          },
+          "example": "Eine Freiwillige erklärt das Problem.",
+          "exampleMeaning": {
+            "en": "A volunteer explains the problem.",
+            "de": "Eine Freiwillige erklärt das Problem.",
+            "es": "Un voluntario explica el problema.",
+            "pt-BR": "Um voluntário explica o problema."
+          }
+        },
+        {
+          "text": "Fehler",
+          "meaning": {
+            "en": "something done incorrectly",
+            "de": "etwas, das falsch gemacht wurde",
+            "es": "algo que se ha hecho incorrectamente",
+            "pt-BR": "algo que foi feito incorretamente"
+          },
+          "example": "Sie lernen aus dem Fehler.",
+          "exampleMeaning": {
+            "en": "They learn from the mistake.",
+            "de": "Sie lernen aus dem Fehler.",
+            "es": "Aprenden del error.",
+            "pt-BR": "Eles aprendem com o erro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "es-repair-table",
+      "version": 1,
+      "language": "es",
+      "level": "B1",
+      "topicId": "curriculum-topic_0000000000000026",
+      "title": {
+        "en": "The repair table",
+        "de": "Der Reparaturtisch",
+        "es": "La mesa de reparaciones",
+        "pt-BR": "A mesa de consertos"
+      },
+      "summary": {
+        "en": "A broken radio changes a neighborhood project.",
+        "de": "Ein kaputtes Radio verändert ein Nachbarschaftsprojekt.",
+        "es": "Una radio averiada cambia un proyecto del barrio.",
+        "pt-BR": "Um rádio quebrado muda um projeto do bairro."
+      },
+      "paragraphs": [
+        "Cuando Amira anunció una tarde de reparaciones en el centro del barrio, esperaba que la gente llevara lámparas y bicicletas. Había pedido herramientas prestadas e invitado a dos amigos que sabían usarlas. Su cartel prometía menos basura y más objetos útiles en casa. No había pensado en lo que pasaría si no podían reparar algo.",
+        "El primer visitante fue Daniel, que llevaba una pequeña radio de su padre. La carcasa de plástico estaba rayada y faltaba un botón. Amira la abrió con cuidado. Una pieza del interior estaba dañada, pero nadie la reconocía. Daniel observaba en silencio mientras buscaban en un libro de esquemas de radios antiguas. Después de una hora, Amira reconoció que no podía prometer una reparación.",
+        "«En realidad, no necesito otra radio», dijo Daniel. «Quería oír el sonido de esta». Describió la música que su padre ponía cuando cocinaba. Otra visitante reconoció una canción y empezó a cantarla en voz baja. Pronto Daniel se reía y añadía las palabras que ella había olvidado. La radio seguía abierta entre los dos.",
+        "Antes de marcharse, Daniel preguntó si podía volver el mes siguiente. Sabía afilar cuchillos de cocina y quería ayudar. Amira añadió una frase al siguiente cartel: «Trae también lo que sabes hacer». Siguió buscando la pieza, pero ya no valoraba la tarde solamente por el número de objetos reparados."
+      ],
+      "vocabulary": [
+        {
+          "text": "reparar",
+          "meaning": {
+            "en": "make a damaged object work again",
+            "de": "einen beschädigten Gegenstand wieder funktionsfähig machen",
+            "es": "hacer que un objeto averiado vuelva a funcionar",
+            "pt-BR": "fazer um objeto quebrado funcionar de novo"
+          },
+          "example": "Quieren reparar la radio.",
+          "exampleMeaning": {
+            "en": "They want to repair the radio.",
+            "de": "Sie wollen das Radio reparieren.",
+            "es": "Quieren reparar la radio.",
+            "pt-BR": "Eles querem consertar o rádio."
+          }
+        },
+        {
+          "text": "voluntario",
+          "meaning": {
+            "en": "a person who helps without being paid",
+            "de": "eine Person, die ohne Bezahlung hilft",
+            "es": "una persona que ayuda sin recibir un pago",
+            "pt-BR": "uma pessoa que ajuda sem receber pagamento"
+          },
+          "example": "Un voluntario explica el problema.",
+          "exampleMeaning": {
+            "en": "A volunteer explains the problem.",
+            "de": "Eine Freiwillige erklärt das Problem.",
+            "es": "Un voluntario explica el problema.",
+            "pt-BR": "Um voluntário explica o problema."
+          }
+        },
+        {
+          "text": "error",
+          "meaning": {
+            "en": "something done incorrectly",
+            "de": "etwas, das falsch gemacht wurde",
+            "es": "algo que se ha hecho incorrectamente",
+            "pt-BR": "algo que foi feito incorretamente"
+          },
+          "example": "Aprenden del error.",
+          "exampleMeaning": {
+            "en": "They learn from the mistake.",
+            "de": "Sie lernen aus dem Fehler.",
+            "es": "Aprenden del error.",
+            "pt-BR": "Eles aprendem com o erro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "pt-br-repair-table",
+      "version": 1,
+      "language": "pt-BR",
+      "level": "B1",
+      "topicId": "curriculum-topic_0000000000000026",
+      "title": {
+        "en": "The repair table",
+        "de": "Der Reparaturtisch",
+        "es": "La mesa de reparaciones",
+        "pt-BR": "A mesa de consertos"
+      },
+      "summary": {
+        "en": "A broken radio changes a neighborhood project.",
+        "de": "Ein kaputtes Radio verändert ein Nachbarschaftsprojekt.",
+        "es": "Una radio averiada cambia un proyecto del barrio.",
+        "pt-BR": "Um rádio quebrado muda um projeto do bairro."
+      },
+      "paragraphs": [
+        "Quando Amira anunciou uma tarde de consertos no centro comunitário, esperava que as pessoas trouxessem luminárias e bicicletas. Tinha pegado ferramentas emprestadas e convidado dois amigos que sabiam usá-las. Seu cartaz prometia menos coisas no lixo e mais objetos úteis em casa. Ela não tinha pensado no que aconteceria se não conseguissem consertar alguma coisa.",
+        "O primeiro visitante foi Daniel, carregando um pequeno rádio que tinha sido do pai. A caixa de plástico estava riscada e faltava um botão. Amira abriu o aparelho com cuidado. Uma peça estava danificada, mas ninguém a reconheceu. Daniel observou em silêncio enquanto eles procuravam em um livro de esquemas de rádios antigos. Depois de uma hora, Amira admitiu que não podia prometer o conserto.",
+        "“Na verdade, não preciso de outro rádio”, disse Daniel. “Queria ouvir o som deste aqui.” Ele descreveu as músicas que o pai tocava enquanto cozinhava. Outra visitante reconheceu uma canção e começou a cantar baixinho. Logo Daniel estava rindo e completando as palavras que ela tinha esquecido. O rádio continuava aberto entre os dois.",
+        "Antes de ir embora, Daniel perguntou se podia voltar no mês seguinte. Sabia afiar facas de cozinha e queria ajudar. Amira acrescentou uma frase ao próximo cartaz: “Traga também o que você sabe fazer.” Continuou procurando a peça, mas já não avaliava a tarde apenas pelo número de objetos consertados."
+      ],
+      "vocabulary": [
+        {
+          "text": "consertar",
+          "meaning": {
+            "en": "make a damaged object work again",
+            "de": "einen beschädigten Gegenstand wieder funktionsfähig machen",
+            "es": "hacer que un objeto averiado vuelva a funcionar",
+            "pt-BR": "fazer um objeto quebrado funcionar de novo"
+          },
+          "example": "Eles querem consertar o rádio.",
+          "exampleMeaning": {
+            "en": "They want to repair the radio.",
+            "de": "Sie wollen das Radio reparieren.",
+            "es": "Quieren reparar la radio.",
+            "pt-BR": "Eles querem consertar o rádio."
+          }
+        },
+        {
+          "text": "voluntário",
+          "meaning": {
+            "en": "a person who helps without being paid",
+            "de": "eine Person, die ohne Bezahlung hilft",
+            "es": "una persona que ayuda sin recibir un pago",
+            "pt-BR": "uma pessoa que ajuda sem receber pagamento"
+          },
+          "example": "Um voluntário explica o problema.",
+          "exampleMeaning": {
+            "en": "A volunteer explains the problem.",
+            "de": "Eine Freiwillige erklärt das Problem.",
+            "es": "Un voluntario explica el problema.",
+            "pt-BR": "Um voluntário explica o problema."
+          }
+        },
+        {
+          "text": "erro",
+          "meaning": {
+            "en": "something done incorrectly",
+            "de": "etwas, das falsch gemacht wurde",
+            "es": "algo que se ha hecho incorrectamente",
+            "pt-BR": "algo que foi feito incorretamente"
+          },
+          "example": "Eles aprendem com o erro.",
+          "exampleMeaning": {
+            "en": "They learn from the mistake.",
+            "de": "Sie lernen aus dem Fehler.",
+            "es": "Aprenden del error.",
+            "pt-BR": "Eles aprendem com o erro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "en-us-quiet-hour",
+      "version": 1,
+      "language": "en-US",
+      "level": "B2",
+      "topicId": "curriculum-topic_0000000000000047",
+      "title": {
+        "en": "The quiet hour",
+        "de": "Die stille Stunde",
+        "es": "La hora tranquila",
+        "pt-BR": "A hora tranquila"
+      },
+      "summary": {
+        "en": "A library experiment raises a question about who gets heard.",
+        "de": "Ein Bibliotheksexperiment wirft die Frage auf, wer gehört wird.",
+        "es": "Un experimento en una biblioteca plantea quién consigue ser escuchado.",
+        "pt-BR": "Uma experiência na biblioteca levanta a questão de quem consegue ser ouvido."
+      },
+      "paragraphs": [
+        "The proposal seemed harmless: reserve the library’s upstairs room for silent work every Wednesday evening. Nora, who managed the building, had received several complaints about noise. At the public meeting, everyone who spoke supported the idea. She recorded the unanimous decision and ordered a small sign. Only later did she notice that the people who used the room most often had not attended.",
+        "A week after the rule took effect, a teenager stopped her by the stairs. He and his grandmother met there on Wednesdays to practice reading. At home, they shared two rooms with the rest of the family; the library was the only place where they could concentrate. “We’re not talking instead of reading,” he explained. “Talking is how we read.” Nora pointed out that the downstairs room was still available, then remembered its broken elevator and the grandmother’s walking stick.",
+        "She could have treated their situation as an exception. Instead, she spent the next Wednesday asking visitors how they used the building. Some welcomed the silence. Others had stopped coming because they assumed the new sign applied everywhere. One man said he had wanted to attend the meeting but worked evenings. The unanimous decision began to look less like agreement than a record of who had been free to speak.",
+        "At the next meeting, Nora presented two options rather than a solution. The group chose to divide the upstairs room with an existing movable wall and try the arrangement for a month. It would not be perfectly quiet, and space would be tighter. Nora wrote those disadvantages into the minutes. Beside the new sign, she left a notebook for comments. On the first page, someone had written: “Please leave a pencil here, too.”"
+      ],
+      "vocabulary": [
+        {
+          "text": "unanimous",
+          "meaning": {
+            "en": "agreed by everyone participating in a decision",
+            "de": "von allen an einer Entscheidung Beteiligten befürwortet",
+            "es": "apoyado por todas las personas que participan en una decisión",
+            "pt-BR": "apoiado por todas as pessoas que participam de uma decisão"
+          },
+          "example": "The decision is not unanimous.",
+          "exampleMeaning": {
+            "en": "The decision is not unanimous.",
+            "de": "Die Entscheidung ist nicht einstimmig.",
+            "es": "La decisión no es unánime.",
+            "pt-BR": "A decisão não é unânime."
+          }
+        },
+        {
+          "text": "access",
+          "meaning": {
+            "en": "the possibility of entering or using something",
+            "de": "die Möglichkeit, etwas zu betreten oder zu nutzen",
+            "es": "la posibilidad de entrar en un lugar o utilizar algo",
+            "pt-BR": "a possibilidade de entrar em um lugar ou usar algo"
+          },
+          "example": "Everyone should have access to the library.",
+          "exampleMeaning": {
+            "en": "Everyone should have access to the library.",
+            "de": "Alle sollten Zugang zur Bibliothek haben.",
+            "es": "Todos deberían tener acceso a la biblioteca.",
+            "pt-BR": "Todos deveriam ter acesso à biblioteca."
+          }
+        },
+        {
+          "text": "compromise",
+          "meaning": {
+            "en": "an agreement in which each side gives up something",
+            "de": "eine Einigung, bei der jede Seite etwas nachgibt",
+            "es": "un acuerdo en el que cada parte cede algo",
+            "pt-BR": "um acordo em que cada parte cede um pouco"
+          },
+          "example": "The compromise does not satisfy everyone.",
+          "exampleMeaning": {
+            "en": "The compromise does not satisfy everyone.",
+            "de": "Der Kompromiss stellt nicht alle zufrieden.",
+            "es": "El acuerdo no satisface a todos.",
+            "pt-BR": "O acordo não satisfaz a todos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "de-quiet-hour",
+      "version": 1,
+      "language": "de",
+      "level": "B2",
+      "topicId": "curriculum-topic_0000000000000047",
+      "title": {
+        "en": "The quiet hour",
+        "de": "Die stille Stunde",
+        "es": "La hora tranquila",
+        "pt-BR": "A hora tranquila"
+      },
+      "summary": {
+        "en": "A library experiment raises a question about who gets heard.",
+        "de": "Ein Bibliotheksexperiment wirft die Frage auf, wer gehört wird.",
+        "es": "Un experimento en una biblioteca plantea quién consigue ser escuchado.",
+        "pt-BR": "Uma experiência na biblioteca levanta a questão de quem consegue ser ouvido."
+      },
+      "paragraphs": [
+        "Der Vorschlag schien harmlos: Der Raum im Obergeschoss der Bibliothek sollte mittwochabends für stilles Arbeiten reserviert werden. Nora, die das Haus leitete, hatte mehrere Beschwerden über Lärm erhalten. Bei der öffentlichen Versammlung befürworteten alle, die sich zu Wort meldeten, die Idee. Sie hielt den einstimmigen Beschluss fest und bestellte ein kleines Schild. Erst später fiel ihr auf, dass die häufigsten Nutzer des Raums gar nicht anwesend gewesen waren.",
+        "Eine Woche nach Einführung der Regel hielt sie ein Jugendlicher an der Treppe auf. Er und seine Großmutter trafen sich mittwochs dort, um Lesen zu üben. Zu Hause teilten sie zwei Zimmer mit dem Rest der Familie; nur in der Bibliothek konnten sie sich konzentrieren. „Wir reden nicht, statt zu lesen“, erklärte er. „Reden ist unsere Art zu lesen.“ Nora verwies auf den Raum im Untergeschoss. Dann erinnerte sie sich an den defekten Aufzug und den Gehstock der Großmutter.",
+        "Sie hätte den Fall als Ausnahme behandeln können. Stattdessen fragte sie am folgenden Mittwoch die Besucher, wie sie das Gebäude nutzten. Manche begrüßten die Ruhe. Andere waren weggeblieben, weil sie das neue Schild auf die ganze Bibliothek bezogen hatten. Ein Mann hätte gern an der Versammlung teilgenommen, musste aber abends arbeiten. Der einstimmige Beschluss wirkte nun weniger wie Einigkeit als wie eine Aufzeichnung darüber, wer Zeit zum Reden gehabt hatte.",
+        "Bei der nächsten Versammlung stellte Nora zwei Möglichkeiten statt einer fertigen Lösung vor. Die Gruppe entschied sich, den oberen Raum mit einer vorhandenen beweglichen Wand zu teilen und die Anordnung einen Monat lang auszuprobieren. Vollkommen ruhig würde es nicht werden, und der Platz wäre knapper. Nora nahm diese Nachteile ins Protokoll auf. Neben das neue Schild legte sie ein Heft für Anmerkungen. Auf der ersten Seite stand: „Bitte auch einen Stift hinlegen.“"
+      ],
+      "vocabulary": [
+        {
+          "text": "einstimmig",
+          "meaning": {
+            "en": "agreed by everyone participating in a decision",
+            "de": "von allen an einer Entscheidung Beteiligten befürwortet",
+            "es": "apoyado por todas las personas que participan en una decisión",
+            "pt-BR": "apoiado por todas as pessoas que participam de uma decisão"
+          },
+          "example": "Die Entscheidung ist nicht einstimmig.",
+          "exampleMeaning": {
+            "en": "The decision is not unanimous.",
+            "de": "Die Entscheidung ist nicht einstimmig.",
+            "es": "La decisión no es unánime.",
+            "pt-BR": "A decisão não é unânime."
+          }
+        },
+        {
+          "text": "Zugang",
+          "meaning": {
+            "en": "the possibility of entering or using something",
+            "de": "die Möglichkeit, etwas zu betreten oder zu nutzen",
+            "es": "la posibilidad de entrar en un lugar o utilizar algo",
+            "pt-BR": "a possibilidade de entrar em um lugar ou usar algo"
+          },
+          "example": "Alle sollten Zugang zur Bibliothek haben.",
+          "exampleMeaning": {
+            "en": "Everyone should have access to the library.",
+            "de": "Alle sollten Zugang zur Bibliothek haben.",
+            "es": "Todos deberían tener acceso a la biblioteca.",
+            "pt-BR": "Todos deveriam ter acesso à biblioteca."
+          }
+        },
+        {
+          "text": "Kompromiss",
+          "meaning": {
+            "en": "an agreement in which each side gives up something",
+            "de": "eine Einigung, bei der jede Seite etwas nachgibt",
+            "es": "un acuerdo en el que cada parte cede algo",
+            "pt-BR": "um acordo em que cada parte cede um pouco"
+          },
+          "example": "Der Kompromiss stellt nicht alle zufrieden.",
+          "exampleMeaning": {
+            "en": "The compromise does not satisfy everyone.",
+            "de": "Der Kompromiss stellt nicht alle zufrieden.",
+            "es": "El acuerdo no satisface a todos.",
+            "pt-BR": "O acordo não satisfaz a todos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "es-quiet-hour",
+      "version": 1,
+      "language": "es",
+      "level": "B2",
+      "topicId": "curriculum-topic_0000000000000047",
+      "title": {
+        "en": "The quiet hour",
+        "de": "Die stille Stunde",
+        "es": "La hora tranquila",
+        "pt-BR": "A hora tranquila"
+      },
+      "summary": {
+        "en": "A library experiment raises a question about who gets heard.",
+        "de": "Ein Bibliotheksexperiment wirft die Frage auf, wer gehört wird.",
+        "es": "Un experimento en una biblioteca plantea quién consigue ser escuchado.",
+        "pt-BR": "Uma experiência na biblioteca levanta a questão de quem consegue ser ouvido."
+      },
+      "paragraphs": [
+        "La propuesta parecía inofensiva: reservar la sala superior de la biblioteca para trabajar en silencio los miércoles por la tarde. Nora, que dirigía el edificio, había recibido varias quejas por el ruido. En la reunión pública, todas las personas que intervinieron apoyaron la idea. Anotó la decisión unánime y encargó un pequeño cartel. Solo después reparó en que los usuarios más habituales de la sala no habían asistido.",
+        "Una semana después de entrar en vigor la norma, un adolescente la detuvo junto a las escaleras. Él y su abuela se reunían allí los miércoles para practicar la lectura. En casa compartían dos habitaciones con el resto de la familia; la biblioteca era el único lugar donde podían concentrarse. «No hablamos en vez de leer», explicó. «Hablando es como leemos». Nora señaló que la sala de abajo seguía disponible y entonces recordó el ascensor averiado y el bastón de la abuela.",
+        "Podría haber considerado su situación una excepción. En cambio, dedicó el miércoles siguiente a preguntar a los visitantes cómo utilizaban el edificio. Algunos agradecían el silencio. Otros habían dejado de ir porque suponían que el cartel se aplicaba a toda la biblioteca. Un hombre dijo que había querido asistir a la reunión, pero trabajaba por las tardes. La decisión unánime empezó a parecer menos un acuerdo que un registro de quién había tenido tiempo para hablar.",
+        "En la siguiente reunión, Nora presentó dos opciones en lugar de una solución. El grupo decidió dividir la sala superior con una pared móvil que ya tenían y probar la distribución durante un mes. No habría un silencio perfecto y el espacio sería más reducido. Nora incluyó esas desventajas en el acta. Junto al cartel nuevo dejó un cuaderno para comentarios. En la primera página alguien había escrito: «Dejen también un lápiz, por favor»."
+      ],
+      "vocabulary": [
+        {
+          "text": "unánime",
+          "meaning": {
+            "en": "agreed by everyone participating in a decision",
+            "de": "von allen an einer Entscheidung Beteiligten befürwortet",
+            "es": "apoyado por todas las personas que participan en una decisión",
+            "pt-BR": "apoiado por todas as pessoas que participam de uma decisão"
+          },
+          "example": "La decisión no es unánime.",
+          "exampleMeaning": {
+            "en": "The decision is not unanimous.",
+            "de": "Die Entscheidung ist nicht einstimmig.",
+            "es": "La decisión no es unánime.",
+            "pt-BR": "A decisão não é unânime."
+          }
+        },
+        {
+          "text": "acceso",
+          "meaning": {
+            "en": "the possibility of entering or using something",
+            "de": "die Möglichkeit, etwas zu betreten oder zu nutzen",
+            "es": "la posibilidad de entrar en un lugar o utilizar algo",
+            "pt-BR": "a possibilidade de entrar em um lugar ou usar algo"
+          },
+          "example": "Todos deberían tener acceso a la biblioteca.",
+          "exampleMeaning": {
+            "en": "Everyone should have access to the library.",
+            "de": "Alle sollten Zugang zur Bibliothek haben.",
+            "es": "Todos deberían tener acceso a la biblioteca.",
+            "pt-BR": "Todos deveriam ter acesso à biblioteca."
+          }
+        },
+        {
+          "text": "acuerdo",
+          "meaning": {
+            "en": "an agreement in which each side gives up something",
+            "de": "eine Einigung, bei der jede Seite etwas nachgibt",
+            "es": "un acuerdo en el que cada parte cede algo",
+            "pt-BR": "um acordo em que cada parte cede um pouco"
+          },
+          "example": "El acuerdo no satisface a todos.",
+          "exampleMeaning": {
+            "en": "The compromise does not satisfy everyone.",
+            "de": "Der Kompromiss stellt nicht alle zufrieden.",
+            "es": "El acuerdo no satisface a todos.",
+            "pt-BR": "O acordo não satisfaz a todos."
+          }
+        }
+      ]
+    },
+    {
+      "id": "pt-br-quiet-hour",
+      "version": 1,
+      "language": "pt-BR",
+      "level": "B2",
+      "topicId": "curriculum-topic_0000000000000047",
+      "title": {
+        "en": "The quiet hour",
+        "de": "Die stille Stunde",
+        "es": "La hora tranquila",
+        "pt-BR": "A hora tranquila"
+      },
+      "summary": {
+        "en": "A library experiment raises a question about who gets heard.",
+        "de": "Ein Bibliotheksexperiment wirft die Frage auf, wer gehört wird.",
+        "es": "Un experimento en una biblioteca plantea quién consigue ser escuchado.",
+        "pt-BR": "Uma experiência na biblioteca levanta a questão de quem consegue ser ouvido."
+      },
+      "paragraphs": [
+        "A proposta parecia inofensiva: reservar a sala do andar de cima da biblioteca para trabalho silencioso nas noites de quarta-feira. Nora, que administrava o prédio, tinha recebido várias reclamações sobre o barulho. Na reunião pública, todos que se manifestaram apoiaram a ideia. Ela registrou a decisão unânime e encomendou uma pequena placa. Só depois percebeu que os frequentadores mais assíduos da sala não tinham comparecido.",
+        "Uma semana depois de a regra entrar em vigor, um adolescente a chamou perto da escada. Ele e a avó se encontravam ali às quartas para praticar a leitura. Em casa, dividiam dois cômodos com o restante da família; a biblioteca era o único lugar onde conseguiam se concentrar. “Não estamos conversando em vez de ler”, explicou. “Conversar é o nosso jeito de ler.” Nora lembrou que a sala de baixo continuava disponível, mas então pensou no elevador quebrado e na bengala da avó.",
+        "Ela poderia ter tratado o caso como uma exceção. Em vez disso, passou a quarta-feira seguinte perguntando aos visitantes como usavam o prédio. Alguns gostavam do silêncio. Outros tinham deixado de ir porque entenderam que a placa valia para toda a biblioteca. Um homem disse que queria ter participado da reunião, mas trabalhava à noite. A decisão unânime começou a parecer menos um acordo e mais um registro de quem tinha tido tempo para falar.",
+        "Na reunião seguinte, Nora apresentou duas opções em vez de uma solução. O grupo decidiu dividir a sala de cima com uma parede móvel que já existia e experimentar a organização por um mês. Não haveria silêncio completo, e o espaço ficaria mais apertado. Nora registrou essas desvantagens na ata. Ao lado da placa nova, deixou um caderno para comentários. Na primeira página, alguém tinha escrito: “Deixem um lápis aqui também, por favor.”"
+      ],
+      "vocabulary": [
+        {
+          "text": "unânime",
+          "meaning": {
+            "en": "agreed by everyone participating in a decision",
+            "de": "von allen an einer Entscheidung Beteiligten befürwortet",
+            "es": "apoyado por todas las personas que participan en una decisión",
+            "pt-BR": "apoiado por todas as pessoas que participam de uma decisão"
+          },
+          "example": "A decisão não é unânime.",
+          "exampleMeaning": {
+            "en": "The decision is not unanimous.",
+            "de": "Die Entscheidung ist nicht einstimmig.",
+            "es": "La decisión no es unánime.",
+            "pt-BR": "A decisão não é unânime."
+          }
+        },
+        {
+          "text": "acesso",
+          "meaning": {
+            "en": "the possibility of entering or using something",
+            "de": "die Möglichkeit, etwas zu betreten oder zu nutzen",
+            "es": "la posibilidad de entrar en un lugar o utilizar algo",
+            "pt-BR": "a possibilidade de entrar em um lugar ou usar algo"
+          },
+          "example": "Todos deveriam ter acesso à biblioteca.",
+          "exampleMeaning": {
+            "en": "Everyone should have access to the library.",
+            "de": "Alle sollten Zugang zur Bibliothek haben.",
+            "es": "Todos deberían tener acceso a la biblioteca.",
+            "pt-BR": "Todos deveriam ter acesso à biblioteca."
+          }
+        },
+        {
+          "text": "acordo",
+          "meaning": {
+            "en": "an agreement in which each side gives up something",
+            "de": "eine Einigung, bei der jede Seite etwas nachgibt",
+            "es": "un acuerdo en el que cada parte cede algo",
+            "pt-BR": "um acordo em que cada parte cede um pouco"
+          },
+          "example": "O acordo não satisfaz a todos.",
+          "exampleMeaning": {
+            "en": "The compromise does not satisfy everyone.",
+            "de": "Der Kompromiss stellt nicht alle zufrieden.",
+            "es": "El acuerdo no satisface a todos.",
+            "pt-BR": "O acordo não satisfaz a todos."
+          }
+        }
+      ]
+    }
+  ]
+}

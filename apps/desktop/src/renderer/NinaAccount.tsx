@@ -1,9 +1,17 @@
 import { Clock3, CircleAlert } from "lucide-react";
 import { Disclosure } from "./components/ui/Disclosure.js";
-import { ClerkProvider, useClerk, useSession, useSignIn, useUser } from "@clerk/electron/react";
+import {
+  ClerkProvider,
+  useClerk,
+  useSession,
+  useSignIn,
+  useSignUp,
+  useUser,
+} from "@clerk/electron/react";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ninaPublicConfiguration,
+  ninaAuthFailure,
   type NinaLoginDiagnostic,
   type NinaAccountState,
 } from "@call-nina/contracts";
@@ -14,26 +22,6 @@ import { ActionGroup, Section } from "./components/layout/index.js";
 import styles from "./SettingsPage.module.css";
 
 const isAborted = (signal: AbortSignal) => signal.aborted;
-function loginReason(cause: unknown): NinaLoginDiagnostic["reason"] {
-  if (typeof cause !== "object" || cause === null) return "unknown";
-  const errors: unknown[] =
-    "errors" in cause && Array.isArray(cause.errors) ? cause.errors : [cause];
-  for (const error of errors) {
-    if (typeof error !== "object" || error === null || !("code" in error)) continue;
-    switch (error.code) {
-      case "form_password_incorrect":
-      case "form_identifier_not_found":
-        return "credentials";
-      case "too_many_requests":
-        return "rate-limit";
-      case "network_error":
-        return "network";
-      case "additional-step":
-        return "additional-step";
-    }
-  }
-  return "unknown";
-}
 function reportLogin(diagnostic: NinaLoginDiagnostic) {
   void invokeDesktop("nina-account/diagnostic", diagnostic).catch(() => undefined);
 }
@@ -158,10 +146,7 @@ export function NinaAccountProvider({ children }: { children: ReactNode }) {
 export function NinaAccountSettings() {
   const { t } = useTranslation();
   return (
-    <Section className={styles.ninaAccount} aria-labelledby="nina-account-title">
-      <header className={styles.ninaAccountIntro}>
-        <h2 id="nina-account-title">{t("ninaAccount.title")}</h2>
-      </header>
+    <Section className={styles.ninaAccount} aria-label={t("ninaAccount.title")}>
       {ninaPublicConfiguration.publishableKey ? (
         <AccountForm />
       ) : (
@@ -173,6 +158,8 @@ export function NinaAccountSettings() {
 function AccountForm() {
   const { t } = useTranslation();
   const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
+  const [registering, setRegistering] = useState(false);
   const { session } = useSession();
   const { user, isLoaded } = useUser();
   const clerk = useClerk();
@@ -325,7 +312,7 @@ function AccountForm() {
       return result;
     } catch (cause) {
       if (isAborted(signal)) throw cause;
-      const failed = { stage, outcome: "failed", reason: loginReason(cause) } as const;
+      const failed = { stage, outcome: "failed", reason: ninaAuthFailure(cause) } as const;
       setProgress(failed);
       reportLogin(failed);
       throw cause;
@@ -356,16 +343,18 @@ function AccountForm() {
       await step(
         "credentials",
         async () => {
-          const result = await signIn.password({ identifier: username, password });
+          const result = registering
+            ? await signUp.password({ username: username.trim(), password })
+            : await signIn.password({ identifier: username.trim(), password });
           if (result.error) throw result.error;
-          if (signIn.status !== "complete") {
+          if ((registering ? signUp.status : signIn.status) !== "complete") {
             const needsVerification = [
               "needs_first_factor",
               "needs_second_factor",
               "needs_new_password",
             ].includes(signIn.status);
             throw Object.assign(new Error("OD_NINA_LOGIN_INCOMPLETE"), {
-              code: needsVerification ? "additional-step" : "unknown",
+              code: registering || needsVerification ? "additional-step" : "unknown",
             });
           }
         },
@@ -375,7 +364,7 @@ function AccountForm() {
       await step(
         "session",
         async () => {
-          const completed = await signIn.finalize();
+          const completed = await (registering ? signUp.finalize() : signIn.finalize());
           if (completed.error) throw completed.error;
         },
         signal,
@@ -419,7 +408,11 @@ function AccountForm() {
   const feedback = (
     <div className={styles.loginStatus} role="status" aria-live="polite">
       {error ? <CircleAlert aria-hidden="true" /> : busy ? <Clock3 aria-hidden="true" /> : null}
-      <span>{statusText}</span>
+      <span>
+        {error && progress?.reason && progress.reason !== "none"
+          ? t(`ninaAccount.loginReason.${progress.reason}`)
+          : statusText}
+      </span>
     </div>
   );
   return (
@@ -449,6 +442,7 @@ function AccountForm() {
             )}
           {account.access && (
             <>
+              <p>{t(`ninaAccount.tier.${account.access.tier}`)}</p>
               <p>
                 {t(
                   account.access.hostedAiEnabled
@@ -470,7 +464,20 @@ function AccountForm() {
             void login();
           }}
         >
-          <Muted>{t("ninaAccount.description")}</Muted>
+          <ActionGroup>
+            <Button
+              variant="quiet"
+              isDisabled={busy || settling}
+              onPress={() => {
+                setRegistering(!registering);
+                setError(false);
+                setProgress(undefined);
+              }}
+            >
+              {t(registering ? "ninaAccount.signIn" : "ninaAccount.createAccount")}
+            </Button>
+          </ActionGroup>
+          <div id="clerk-captcha" />
           <div className={styles.ninaAccountFields}>
             <TextField
               label={t("ninaAccount.username")}
@@ -490,7 +497,7 @@ function AccountForm() {
             <TextField
               label={t("ninaAccount.password")}
               type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
+              autoComplete={registering ? "new-password" : "current-password"}
               value={password}
               onChange={(event) => {
                 draftEdited.current = true;
@@ -515,7 +522,7 @@ function AccountForm() {
           <div className={styles.ninaAccountFooter}>
             {feedback}
             <ActionGroup>
-              {busy && progress?.stage !== "session" && (
+              {busy && !registering && progress?.stage !== "session" && (
                 <Button variant="quiet" onPress={cancelLogin}>
                   {t("ninaAccount.cancelLogin")}
                 </Button>
@@ -530,7 +537,9 @@ function AccountForm() {
                     ? "ninaAccount.signing-in"
                     : error || cancelled
                       ? "ninaAccount.retry"
-                      : "ninaAccount.signIn",
+                      : registering
+                        ? "ninaAccount.createAccount"
+                        : "ninaAccount.signIn",
                 )}
               </Button>
             </ActionGroup>

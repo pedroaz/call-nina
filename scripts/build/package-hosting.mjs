@@ -91,6 +91,9 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   const pages = files.filter((file) => file.endsWith("index.html"));
   const config = {
     version: 3,
+    ...(process.env.NINA_SPEECH_RECOVERY_SCHEDULE === "enabled"
+      ? { crons: [{ path: "/api/speech-recovery", schedule: "* * * * *" }] }
+      : {}),
     routes: [
       { handle: "filesystem" },
       ...pages.map((file) => ({
@@ -111,7 +114,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   for (const file of [
     "vercel.json",
     ".vercel/output/config.json",
-    ...["account", "generate", "mobile-sync"].flatMap((name) => [
+    ...["account", "generate", "mobile-sync", "speech"].flatMap((name) => [
       `.vercel/output/functions/api/${name}.func/index.mjs`,
       `.vercel/output/functions/api/${name}.func/.vc-config.json`,
     ]),

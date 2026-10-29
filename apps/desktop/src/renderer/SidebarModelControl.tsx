@@ -1,43 +1,88 @@
-import { Image, Plug, Type } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { Language, SpeechSnapshot } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
-import { Button } from "./components/ui/index.js";
 import { useProviderView } from "./useProviderView.js";
+import { useNinaAccountState } from "./NinaAccount.js";
+import { invokeDesktop, subscribeDesktop } from "./ipc.js";
 import styles from "./SidebarModelControl.module.css";
 
-export function SidebarModelControl({ onOpenSettings }: { onOpenSettings: () => void }) {
+export function SidebarModelControl({ language }: { language: Language }) {
   const { t } = useTranslation();
   const view = useProviderView();
+  const nina = useNinaAccountState();
+  const [speech, setSpeech] = useState<SpeechSnapshot>();
+  useEffect(() => {
+    let live = true;
+    let serial = 0;
+    const refresh = async () => {
+      const ticket = ++serial;
+      try {
+        const next = await invokeDesktop("speech/read", {});
+        if (live && ticket === serial) setSpeech(next);
+      } catch {
+        if (live && ticket === serial) setSpeech(undefined);
+      }
+    };
+    void refresh();
+    const unsubscribe = subscribeDesktop((event) => {
+      if (event.event === "data-root-changed") {
+        setSpeech(undefined);
+        void refresh();
+      } else if (event.event === "state-invalidated") void refresh();
+    });
+    const timer = window.setInterval(() => void refresh(), 10000);
+    return () => {
+      live = false;
+      ++serial;
+      unsubscribe();
+      window.clearInterval(timer);
+    };
+  }, []);
+  const route = view?.settings.routing.text;
+  const connection = view?.settings.connections.find((entry) => entry.routeId === route);
+  const status = view?.availability.find((entry) => entry.connectionId === connection?.id)?.status;
+  const connected = status === "available" || status === "configured";
+  const shortNames: Record<string, string> = {
+    chatgpt: "ChatGPT",
+    openai: "OpenAI",
+    anthropic: "Anthropic",
+    google: "Google",
+  };
+  const exercise =
+    connected && route
+      ? (shortNames[route] ?? t(`connectionSettings.routes.${route}`))
+      : t("providers.disconnected");
+  const source = speech?.preferences[language];
+  const pack = speech?.packs.find(
+    (entry) => entry.language === language && entry.engine === source,
+  );
+  const audioReady =
+    source === "managed"
+      ? nina.status === "signed-in" &&
+        nina.access?.speech.enabled &&
+        nina.access.speech.serviceEnabled &&
+        nina.access.speech.remainingCharacters > 0
+      : speech?.supported && pack?.state === "installed";
+  const audio = audioReady
+    ? source === "managed"
+      ? t("connectionSettings.routes.managed")
+      : source === "pocket"
+        ? "Pocket TTS"
+        : "Piper"
+    : t("providers.disconnected");
   return (
-    <section className={styles.navModelPanel} aria-label={t("settings.aiTitle")}>
-      <Button
-        variant="quiet"
-        className={styles.summaryTrigger}
-        leadingIcon={<Plug aria-hidden="true" />}
-        onPress={onOpenSettings}
-      >
-        {t("settings.aiTitle")}
-      </Button>
-      <dl className={styles.assignments}>
-        {(["text", "image"] as const).map((capability) => {
-          const route = view?.settings.routing[capability];
-          const Icon = capability === "text" ? Type : Image;
-          return (
-            <div className={styles.assignment} key={capability}>
-              <Icon className={styles.capabilityIcon} aria-hidden="true" />
-              <div className={styles.assignmentText}>
-                <dt>{t(`providers.${capability}`)}</dt>
-                <dd data-unassigned={!route || undefined}>
-                  {!view
-                    ? t("settings.loading")
-                    : route
-                      ? t(`connectionSettings.routes.${route}`)
-                      : t("providers.unassigned")}
-                </dd>
-              </div>
-            </div>
-          );
-        })}
-      </dl>
-    </section>
+    <dl className={styles.navModelPanel}>
+      {(
+        [
+          ["exerciseSummary", exercise],
+          ["audioSummary", audio],
+        ] as const
+      ).map(([label, value]) => (
+        <div key={label} className={styles.assignment}>
+          <dt>{t(`setupUx.${label}`)}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

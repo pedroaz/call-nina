@@ -145,13 +145,7 @@ export function ExerciseEngine(
         }
       >
         <h2>
-          {t(
-            starting
-              ? "exercises.starting"
-              : resuming
-                ? "exercises.resume"
-                : "exercises.ready",
-          )}
+          {t(starting ? "exercises.starting" : resuming ? "exercises.resume" : "exercises.ready")}
         </h2>
         <p>{t("exercises.readyBody", { count: exercises.length })}</p>
         {startFailed && (

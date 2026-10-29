@@ -1,3 +1,4 @@
+import { CourseAudio } from "./SpeechSettings.js";
 import type { CourseUnit, LearningCourse, LearningPathState } from "@call-nina/contracts";
 import { resolveCourseReference } from "@call-nina/domain";
 import { ArrowRight, BookOpen, Check, Flag } from "lucide-react";
@@ -258,6 +259,7 @@ export function LearningPathCatalog({
   return (
     <>
       {progress(units)}
+      <CourseAudio courseId={`${course.targetLanguage}:${stage}`} />
       {review}
       <ol className={styles.trail} aria-label={title(stage)}>
         {units.map((unit, index) => (

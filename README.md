@@ -2,7 +2,7 @@
 
 A local-first desktop companion for practising US English, Brazilian Portuguese, Spanish, and German. Practice, vocabulary, materials, and learning history live in a selected local data folder. Learning, interface, and explanation languages are independent. The Learning Path includes German foundations and everyday scenarios in all four languages.
 
-The desktop app includes direct ChatGPT sign-in and personal API-key connections. Cloud AI receives the context needed for the selected activity. Optional Voice handoff uses the separate Codex app and Call Nina plugin. Local onboarding and prepared practice do not require provider sign-in. Optional managed AI requires a provisioned Nina account with AI access and an available service allowance. The mobile companion includes authenticated flashcard sync; native mobile release distribution is not configured. Source availability does not establish a verified public release.
+The desktop app includes direct ChatGPT sign-in and personal API-key connections. Cloud AI receives the context needed for the selected activity. Optional Voice handoff uses the separate Codex app and Call Nina plugin. Local onboarding and prepared practice do not require provider sign-in. Optional managed AI requires an admin-assigned Nina Plus account with an available service allowance. The mobile companion includes authenticated flashcard sync; native mobile release distribution is not configured. The source is open under the MIT License; release verification is described below.
 
 ## Install from source
 
@@ -39,7 +39,7 @@ Hosted administration is optional for local desktop development. Its credentials
 
 ## Builds and releases
 
-Release builds and deployments use the manually dispatched [GitHub Actions → Release](https://github.com/pedroaz/call-nina/actions/workflows/release.yml) workflow. `make release` displays its instructions. Select `desktop`, `hosting` (website + API), or `all`. `build-only` creates downloads retained for 30 days; `publish` releases from `main`. Desktop publication requires the committed workspace version and creates `desktop-vX.Y.Z`.
+Release builds use the manually dispatched [Build workflow](https://github.com/pedroaz/call-nina/actions/workflows/build.yml). The separate [Publish workflow](https://github.com/pedroaz/call-nina/actions/workflows/publish.yml) promotes a successful complete build from `main`, including desktop and combined website/API artifacts. `make release` displays instructions. Build artifacts are retained for 30 days; desktop publication creates `desktop-vX.Y.Z` from the committed workspace version.
 
 Desktop artifacts are unsigned Linux x64 AppImage, Windows x64 ZIP, and macOS Intel/Apple Silicon app archives. Native mobile distribution is not configured. Successful CI builds and native-platform checks are required before describing artifacts as verified. Pushes and pull requests do not publish releases, and automatic Vercel Git deployments are disabled. See the [release delivery policy](.agents/skills/call-nina-development/SKILL.md#release-delivery-policy) for details.
 
@@ -53,6 +53,6 @@ This is maintained as a solo project. Outside feature contributions are not curr
 
 Call Nina's original code, documentation, curriculum, and artwork are available under the [MIT License](LICENSE), to the extent the maintainer holds the relevant rights. Commercial use, modification, redistribution, and independent hosting are permitted. Third-party components retain their own licenses; see [licensing and provenance](docs/licensing.md) and [third-party notices](docs/third-party-notices.md).
 
-The software license does not provide access to hosted infrastructure or an AI allowance. Hosted Nina access uses separately provisioned accounts and service allowances. Independent deployment currently requires adapting the repository's maintainer-specific configuration; turnkey self-hosting is not provided.
+The software license does not provide access to hosted infrastructure or an AI allowance. Users can create Free Nina accounts. Administrators assign Nina Plus and grant AI actions and audio allowances separately. Independent deployment currently requires adapting the repository's maintainer-specific configuration; turnkey self-hosting is not provided.
 
 For optional paid enterprise setup, customization, and support, contact [Pedro Azevedo Minutetnag](mailto:pedro.azvm@gmail.com). These services are optional; commercial use of the MIT-licensed software does not require purchasing them.

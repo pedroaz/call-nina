@@ -52,6 +52,7 @@ export function recommendedRouting(view: View): AiRouting {
     if (match) actions[action] = match.routeId;
   }
   return {
+    liveConversation: view.settings.routing.liveConversation,
     text: text?.routeId ?? null,
     image:
       ready.find((connection) => providerSupports(view, connection, "image", "vocabulary-analysis"))

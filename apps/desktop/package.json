@@ -42,6 +42,7 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "@call-nina/mobile-sync": "workspace:*",
-    "@call-nina/learning-ui": "workspace:*"
+    "@call-nina/learning-ui": "workspace:*",
+    "@call-nina/speech-runtime": "workspace:*"
   }
 }

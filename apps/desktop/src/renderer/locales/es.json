@@ -42,7 +42,9 @@
     "settings": "Configuración",
     "personalData": "Datos personales",
     "learningPath": "Ruta de aprendizaje",
-    "mobile": "Móvil"
+    "mobile": "Móvil",
+    "community": "Comunidad",
+    "stories": "Relatos cortos"
   },
   "practice": {
     "eyebrow": "Elige en qué centrarte",
@@ -892,8 +894,8 @@
     "selected": "Carpeta seleccionada",
     "privacyTitle": "Registros de aprendizaje locales",
     "privacyBody": "Esta carpeta contiene registros de aprendizaje locales que pueden leerse. Call Nina restringe el acceso a los archivos que administra cuando es posible, pero no cifra la carpeta ni sustituye el cifrado de disco del sistema operativo.",
-    "cloudTitle": "Procesamiento de OpenAI",
-    "cloudBody": "Solo el texto que selecciones y el contexto de aprendizaje mínimo necesario se envían a OpenAI cuando invocas una acción de IA. Codex y Voice siguen los controles de datos de tu cuenta.",
+    "cloudTitle": "Procesamiento con IA",
+    "cloudBody": "Las funciones de IA envían el contenido seleccionado y el contexto de aprendizaje al servicio que elijas.",
     "confirmCheck": "Entiendo dónde se guardan los registros y cuándo se envía el texto seleccionado.",
     "cancelled": "No se seleccionó ninguna carpeta. No se cambió nada.",
     "warningGit": "Esta carpeta está dentro de un directorio de trabajo de Git.",
@@ -1090,7 +1092,7 @@
       "helper": "Asistente contextual",
       "research": "Investigación para el programa de aprendizaje"
     },
-    "diagnosticsTitle": "Diagnóstico",
+    "diagnosticsTitle": "Solución de problemas",
     "diagnosticsPrivacy": "Este resumen local del estado solo contiene versiones y cifras. Excluye textos del estudiante, resultados del modelo, credenciales, rutas y datos de protocolo sin procesar.",
     "diagnosticsGeneration": "Generación de la carpeta de datos",
     "diagnosticsSchema": "Esquema de la base de datos",
@@ -1109,7 +1111,7 @@
       "profile": "Aprendizaje",
       "ai": "Proveedores de IA",
       "data": "Datos y privacidad",
-      "diagnostics": "Diagnósticos"
+      "diagnostics": "Ayuda"
     },
     "languageSelected": "Cambió el idioma de aprendizaje. Ahora se muestran el nivel y objetivo guardados para ese idioma.",
     "finishBeforeSwitch": "Sal de la actividad o termínala para cambiar de idioma.",
@@ -1123,7 +1125,8 @@
     "activateBeforeLogin": "Usa esta conexión para gestionar su inicio de sesión en ChatGPT.",
     "sessionPrivacy": "Tu sesión está protegida en este dispositivo. Eliminar una conexión no cierra la sesión.",
     "saveBeforeAccount": "Guarda o descarta los cambios de conexión antes de cambiar de cuenta.",
-    "saveBeforeLogin": "Guarda esta conexión y luego elige «Usar esta conexión» para conectar ChatGPT."
+    "saveBeforeLogin": "Guarda esta conexión y luego elige «Usar esta conexión» para conectar ChatGPT.",
+    "saveFailed": "No se pudo guardar. Inténtalo de nuevo."
   },
   "errors": {
     "exerciseContextMissing": "Esta actividad no guardó sus ajustes de aprendizaje originales. Crea una práctica nueva para recibir nuevos comentarios o ayuda de la IA. Tu actividad, respuestas y comentarios guardados no cambian.",
@@ -1222,7 +1225,7 @@
       "action": "Acción"
     },
     "supporting": "La aplicación también conserva vínculos entre registros, tu aceptación del aviso de privacidad y pequeños registros de guardado o eliminación para evitar duplicados. Estos datos respaldan las funciones anteriores.",
-    "privacy": "Tus registros de aprendizaje se guardan localmente. Las acciones de IA envían el texto seleccionado y el contexto de aprendizaje a la conexión de IA que elijas. Las actividades de voz se abren en Codex, que gestiona su cuenta y sus conversaciones por separado. Call Nina no almacena audio.",
+    "privacy": "Tus datos de aprendizaje se guardan en este dispositivo. Las funciones de IA envían el contenido seleccionado y el contexto de aprendizaje al servicio que elijas. El audio guardado permanece en este dispositivo. Las actividades orales se abren en Codex; Call Nina guarda sus resúmenes de aprendizaje, no grabaciones de conversaciones.",
     "storageHelp": "Tus registros de aprendizaje comparten una base de datos local. Los archivos más grandes y el material de investigación tienen carpetas separadas.",
     "storageCaption": "Dónde se guardan tus datos",
     "status": {
@@ -1680,7 +1683,7 @@
     "directCatalogNotice": "Los modelos y acciones indicados proceden de la lista de compatibilidad incluida. Guardar una clave y elegir un modelo solo configura requisitos locales; no se han comprobado el acceso ni la facturación.",
     "offlineTitle": "Modelo descargado en este dispositivo",
     "offlineScope": "La descarga requiere tu elección expresa, ocupa varios GB y se comparte en este dispositivo fuera de la carpeta de aprendizaje. Eliminarla afecta a todas las carpetas de aprendizaje de este dispositivo; se conservan conexiones y datos de aprendizaje.",
-    "offlineLimits": "Compatibilidad provisional solo con Linux x64 para tareas de escritura y ayuda contextual. No se han verificado la calidad, la ejecución nativa ni la idoneidad del hardware.",
+    "offlineLimits": "Linux x64 admite consignas de escritura, ayuda contextual, creación de ejercicios y comentarios. La calidad del modelo y la idoneidad del hardware siguen siendo provisionales.",
     "offlinePlatform": "Por ahora, las descargas solo se admiten en Linux x64.",
     "offlineMemory": "Este dispositivo no cumple la estimación actual de memoria para IA local.",
     "offlineDiskEstimate": "La estimación de espacio para una instalación completa es insuficiente. Aun así puedes iniciar o reanudar; la descarga comprueba el espacio restante bajo su bloqueo de instalación.",
@@ -1896,7 +1899,9 @@
       "rate-limit": "Demasiados intentos. Espera antes de volver a intentarlo.",
       "network": "No se pudo contactar con el servicio de acceso. Comprueba tu conexión.",
       "additional-step": "Tu cuenta necesita otro paso de verificación que este formulario no admite. Contacta con la administración del piloto.",
-      "unknown": "No se recibió un motivo de error reconocido. Comparte el código de diagnóstico de arriba."
+      "unknown": "No se recibió un motivo de error reconocido. Comparte el código de diagnóstico de arriba.",
+      "username-taken": "Ese nombre de usuario ya existe. Elige otro o inicia sesión.",
+      "password-policy": "Elige una contraseña más segura que cumpla los requisitos de la cuenta."
     },
     "cancelLogin": "Cancelar acceso",
     "retry": "Reintentar acceso",
@@ -1907,7 +1912,12 @@
     "initializationFailed": "No se pudo iniciar el acceso. Vuelve a intentarlo en un momento.",
     "aiEnabled": "IA alojada activada",
     "aiDisabled": "IA alojada desactivada",
-    "noActions": "No quedan acciones de IA"
+    "noActions": "No quedan acciones de IA",
+    "createAccount": "Crear cuenta",
+    "tier": {
+      "free": "Gratis",
+      "plus": "Nina Plus"
+    }
   },
   "providers": {
     "signInRequired": "Inicio de sesión necesario",
@@ -1980,5 +1990,137 @@
       "participation": "Participación",
       "unknown": "Sin clasificar"
     }
+  },
+  "speech": {
+    "title": "Leer en voz alta",
+    "play": "Reproducir",
+    "stop": "Detener",
+    "loading": "Preparando…",
+    "slow": "Reproducción lenta",
+    "unavailable": "Audio no disponible. Revisa los ajustes de lectura.",
+    "account": "Cuenta Nina",
+    "balance": "Quedan {{count}} caracteres de voz",
+    "download": "Descargar",
+    "resume": "Continuar",
+    "remove": "Eliminar",
+    "size": "Descarga de {{size}} MB",
+    "cache": "Caché de audio: {{size}} MB / 1 GB",
+    "clear": "Vaciar caché de audio",
+    "downloadCourse": "Descargar audio del curso",
+    "removeCourse": "Eliminar audio del curso",
+    "states": {
+      "unavailable": "No disponible",
+      "absent": "Sin descargar",
+      "partial": "Descarga parcial",
+      "installed": "Instalado",
+      "downloading": "Descargando",
+      "update": "Actualización disponible"
+    },
+    "installedSize": "{{size}} MB instalados",
+    "update": "Actualizar",
+    "storageTitle": "Audio y modelos",
+    "deviceStorage": "Almacenamiento en este dispositivo",
+    "freeSpace": "{{size}} disponibles en el dispositivo",
+    "models": "Modelos de voz locales",
+    "publicAudio": "Audio de los cursos",
+    "privateAudio": "Voz privada · estudiante actual",
+    "ownership": "Los modelos y el audio de los cursos se comparten en este dispositivo. La voz privada pertenece a la carpeta del estudiante actual y se excluye de las exportaciones y la sincronización móvil.",
+    "preparedFirst": "Las grabaciones preparadas y guardadas no consumen tu saldo de voz.",
+    "linuxOnly": "Los modelos de voz locales requieren Linux x64.",
+    "packSizes": "Descarga {{download}} · instalación estimada {{installed}} · archivos de voz en disco {{disk}}",
+    "qualification": "Esta voz aún no está disponible para descargar.",
+    "downloadFailed": "La descarga falló. Reanúdala o elimina la descarga parcial.",
+    "useVoice": "Usar esta voz",
+    "cacheTitle": "Voz guardada",
+    "cachePolicy": "Caché automática: 1 GB. Los cursos descargados están protegidos; elimínalos desde su página. Borrar la voz privada conserva tus palabras, cursos y modelos.",
+    "clearPrivate": "Borrar voz privada",
+    "removeConsequences": "Elimina el paquete de voz y los archivos del motor que ninguna otra voz necesita. Las grabaciones guardadas seguirán disponibles. La voz nueva necesita una voz descargada o la voz de la cuenta.",
+    "readiness": {
+      "ready": "Disponible",
+      "checking": "Comprobando audio…",
+      "offline": "Conéctate para descargar este audio.",
+      "model": "Configura una voz en Ajustes → Proveedores de IA.",
+      "account": "Revisa el acceso a la voz de la cuenta Nina en Ajustes.",
+      "allowance": "Saldo de voz agotado.",
+      "unavailable": "Audio no disponible. Revisa los ajustes de lectura."
+    },
+    "diskFull": "No hay suficiente espacio. Elimina modelos o audio que no uses y vuelve a intentarlo."
+  },
+  "setupUx": {
+    "aiPractice": "Creación de ejercicios",
+    "noConnection": "Sin conexión seleccionada",
+    "change": "Cambiar",
+    "connect": "Conectar",
+    "chooseConnection": "Elige una conexión de IA",
+    "configure": "Configurar",
+    "advancedAi": "Opciones avanzadas de IA",
+    "otherLanguages": "Otros idiomas",
+    "notSetUp": "Sin configurar",
+    "setUp": "Configurar",
+    "voiceTitle": "Leer en voz alta: {{language}}",
+    "audioSource": "Fuente de audio",
+    "onDevice": "En este dispositivo",
+    "voiceDownload": "Descarga de voz · {{size}} MB",
+    "advanced": "Avanzado",
+    "voiceEngine": "Motor de voz",
+    "setUpVoice": "Configurar voz",
+    "yourLearning": "Tu aprendizaje",
+    "languages": "Idiomas",
+    "learningPreferences": "Preferencias de aprendizaje",
+    "customGoal": "Tu propio objetivo",
+    "levels": {
+      "a1": "Principiante · A1",
+      "a2": "Elemental · A2",
+      "b1": "Intermedio · B1",
+      "b2": "Intermedio alto · B2"
+    },
+    "goals": {
+      "everyday": "Vida cotidiana",
+      "travel": "Viajes",
+      "work": "Trabajo y estudios"
+    },
+    "onboardingProfile": "¿Qué te gustaría aprender?",
+    "onboardingOptional": "Adáptalo a ti",
+    "onboardingLesson": "Tu primera lección",
+    "optionalLater": "Opcional. Puedes hacerlo después.",
+    "continueLearning": "Continuar al aprendizaje",
+    "openLesson": "Abrir primera lección",
+    "edit": "Editar",
+    "catalogFailed": "No se pudieron cargar las lecciones. Inténtalo de nuevo o explora las rutas más tarde.",
+    "exploreFirst": "Encuentra tu punto de partida en las rutas de aprendizaje.",
+    "manageDownloads": "Gestionar descargas",
+    "storageDetails": "Detalles de almacenamiento",
+    "privacy": "Privacidad",
+    "localPrivacy": "Tus datos de aprendizaje se guardan en este dispositivo.",
+    "aiPrivacy": "Las funciones de IA envían el contenido seleccionado y el contexto de aprendizaje al servicio que elijas.",
+    "audioPrivacy": "El audio guardado permanece en este dispositivo. Las actividades orales se abren en Codex; Call Nina guarda sus resúmenes de aprendizaje, no grabaciones de conversaciones.",
+    "clearLearning": "Borrar datos de aprendizaje",
+    "checkApp": "Comprobar almacenamiento local",
+    "runCheck": "Comprobar",
+    "storageReadable": "El almacenamiento local está disponible.",
+    "supportReport": "Informe de soporte",
+    "exportReport": "Exportar informe",
+    "technicalDetails": "Detalles técnicos",
+    "speakingPractice": "Conversación en vivo",
+    "manage": "Gestionar",
+    "activity": "Actividad",
+    "speechAi": "Audio",
+    "language": "Idioma",
+    "exerciseSummary": "Creación de ejercicios",
+    "audioSummary": "Audio"
+  },
+  "stories": {
+    "failed": "No se pudo cargar o guardar el relato. Inténtalo de nuevo.",
+    "loading": "Cargando…",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "position": "{{current}} de {{total}}",
+    "saved": "Guardado",
+    "saveWord": "Guardar palabra",
+    "search": "Buscar relatos",
+    "level": "Nivel",
+    "allLevels": "Todos los niveles",
+    "read": "Leer",
+    "empty": "No hay relatos que coincidan."
   }
 }

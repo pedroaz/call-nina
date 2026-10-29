@@ -85,6 +85,8 @@ async function execute(tokens) {
               "002-accounts.sql",
               "003-ai-access.sql",
               "004-mobile-sync.sql",
+              "005-speech.sql",
+              "006-account-tiers.sql",
             ],
             operation: "Check supplied PG role permissions and apply missing migrations only",
           }
@@ -106,11 +108,15 @@ async function execute(tokens) {
     if (name === "infra configure-client") return configureClient();
     return (await import("./deployment.mjs")).deploy();
   }
+  if (name === "users reset-beta")
+    return (await import("./beta-reset.mjs")).resetBeta(values[0], yes);
   const { findUser, positive, passwordOperation, changeAccess } = await import("./users.mjs");
   const { topup, report } = await import("./usage.mjs");
   const { database } = await import("./database.mjs");
   const [username] = values;
-  const actions = ["users onboard", "quota top-up"].includes(name)
+  if (name === "users set-tier" && !["free", "plus"].includes(values[1]))
+    throw new ControlError("Tier must be free or plus");
+  const actions = ["users onboard", "quota top-up", "speech grant"].includes(name)
     ? positive(values[1])
     : undefined;
   if (actions && yes && !values[2])
@@ -126,6 +132,7 @@ async function execute(tokens) {
   if (!["users create", "users onboard"].includes(name) && !user)
     throw new ControlError("User not found");
   if (name === "usage") return report(user, username);
+  if (name === "speech usage") return (await import("./speech.mjs")).speechAdmin(name, user);
   await confirm(
     {
       operation: name,
@@ -133,23 +140,32 @@ async function execute(tokens) {
       username,
       userId: user?.id,
       actions,
+      ...(name === "users set-tier" ? { tier: values[1], grants: "none" } : {}),
       grantId,
       ...(grantId
-        ? { retry: `node scripts/admin/index.mjs quota top-up ${username} ${actions} ${grantId}` }
+        ? {
+            retry: `node scripts/admin/index.mjs ${name === "speech grant" ? "speech grant" : "quota top-up"} ${username} ${actions} ${grantId}`,
+          }
         : {}),
       ...(name === "users onboard"
-        ? { steps: ["create user", "enable hosted AI", "grant initial actions"] }
+        ? { steps: ["create user", "assign Plus", "grant initial actions"] }
         : {}),
     },
     yes,
   );
+  if (name === "users set-tier") {
+    await (await import("./users.mjs")).setTier(user, values[1]);
+    return report(user, username);
+  }
+  if (name.startsWith("speech "))
+    return (await import("./speech.mjs")).speechAdmin(name, user, actions, grantId);
   if (name === "users onboard") {
     const completed = [];
     let password;
     try {
       ({ user, password } = await passwordOperation(username, "create", user));
       completed.push("create");
-      await changeAccess(user, "enable-ai");
+      await (await import("./users.mjs")).setTier(user, "plus");
       completed.push("enable-ai");
       await database((sql) => topup(sql, user.id, actions, grantId));
       completed.push("top-up");

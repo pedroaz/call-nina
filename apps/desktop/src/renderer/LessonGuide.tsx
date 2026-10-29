@@ -1,3 +1,4 @@
+import { SpeechButton } from "./SpeechButton.js";
 import type { CourseUnit } from "@call-nina/contracts";
 import { Target } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -97,7 +98,13 @@ export function LessonGuide({
               <dl className={styles.words}>
                 {selected.examples.map((example, index) => (
                   <div key={index}>
-                    <dt lang={snapshot.learningContext.targetLanguage}>{example.text}</dt>
+                    <dt lang={snapshot.learningContext.targetLanguage}>
+                      {example.text}
+                      <SpeechButton
+                        text={example.text}
+                        language={snapshot.learningContext.targetLanguage}
+                      />
+                    </dt>
                     <dd>{example.meaning[locale]}</dd>
                   </div>
                 ))}
@@ -125,7 +132,13 @@ export function LessonGuide({
                   .filter((target) => selected.targetIds.includes(target.id))
                   .map((target) => (
                     <div key={target.id}>
-                      <dt lang={snapshot.learningContext.targetLanguage}>{target.text}</dt>
+                      <dt lang={snapshot.learningContext.targetLanguage}>
+                        {target.text}
+                        <SpeechButton
+                          text={target.text}
+                          language={snapshot.learningContext.targetLanguage}
+                        />
+                      </dt>
                       <dd>{target.meaning[locale]}</dd>
                     </div>
                   ))}
@@ -137,6 +150,10 @@ export function LessonGuide({
                   .map((target) => (
                     <li key={target.id} lang={snapshot.learningContext.targetLanguage}>
                       {target.text}
+                      <SpeechButton
+                        text={target.text}
+                        language={snapshot.learningContext.targetLanguage}
+                      />
                     </li>
                   ))}
               </ItemList>

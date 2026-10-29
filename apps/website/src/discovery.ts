@@ -166,8 +166,9 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     guidance: {
       chatgpt: "Bring your ChatGPT account. Provider terms and limits apply.",
-      local: "Local AI supports writing prompts and contextual help on Linux x64.",
-      nina: "Nina AI requires a provisioned account, AI access, and an available allowance.",
+      local:
+        "Local AI supports writing prompts, contextual help, exercise creation and feedback on Linux x64.",
+      nina: "Create a Free Nina account in the app. Nina Plus and hosted AI allowances are assigned by an administrator.",
       unsure: "Choose your AI later. ChatGPT is available.",
     },
     summary: "Your Nina",
@@ -248,8 +249,9 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     guidance: {
       chatgpt: "Nutze dein ChatGPT-Konto. Anbieterbedingungen und Limits gelten.",
-      local: "Lokale KI unterstützt Schreibimpulse und kontextbezogene Hilfe unter Linux x64.",
-      nina: "Nina-KI erfordert ein eingerichtetes Konto, KI-Zugriff und ein verfügbares Kontingent.",
+      local:
+        "Lokale KI unterstützt Schreibimpulse, kontextbezogene Hilfe sowie die Erstellung und Bewertung von Übungen unter Linux x64.",
+      nina: "Erstelle ein kostenloses Nina-Konto in der App. Nina Plus und Kontingente für gehostete KI werden von der Administration zugewiesen.",
       unsure: "Wähle deine KI später. ChatGPT ist verfügbar.",
     },
     summary: "Deine Nina",
@@ -330,8 +332,9 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     guidance: {
       chatgpt: "Usa tu cuenta de ChatGPT. Se aplican sus términos y límites.",
-      local: "La IA local permite generar consignas de escritura y ayuda contextual en Linux x64.",
-      nina: "La IA de Nina requiere una cuenta habilitada, acceso a IA y saldo disponible.",
+      local:
+        "La IA local permite generar consignas de escritura, ayuda contextual, ejercicios y comentarios en Linux x64.",
+      nina: "Crea una cuenta gratuita de Nina en la aplicación. Un administrador asigna Nina Plus y los créditos de IA alojada.",
       unsure: "Elige tu IA después. ChatGPT está disponible.",
     },
     summary: "Tu Nina",
@@ -412,8 +415,9 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     guidance: {
       chatgpt: "Use sua conta do ChatGPT. Os termos e limites do provedor se aplicam.",
-      local: "A IA local oferece propostas de escrita e ajuda contextual no Linux x64.",
-      nina: "A IA da Nina requer uma conta provisionada, acesso à IA e saldo disponível.",
+      local:
+        "A IA local oferece propostas de escrita, ajuda contextual, criação de exercícios e feedback no Linux x64.",
+      nina: "Crie uma conta gratuita da Nina no aplicativo. Um administrador atribui o Nina Plus e os créditos de IA hospedada.",
       unsure: "Escolha sua IA depois. O ChatGPT está disponível.",
     },
     summary: "Sua Nina",

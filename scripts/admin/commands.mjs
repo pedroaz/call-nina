@@ -1,6 +1,27 @@
 // Operation metadata drives agent discovery and argument validation.
 export const commands = [
   {
+    name: "users reset-beta",
+    category: "Users",
+    label: "Delete reviewed beta identities and hosted sync data; retain accounting",
+    args: ["REVIEW_DIGEST?"],
+    mutation: true,
+  },
+  {
+    name: "users set-tier",
+    category: "Users",
+    label: "Assign Free or Plus without granting credits",
+    args: ["USERNAME", "TIER"],
+    mutation: true,
+  },
+  ...["enable", "disable", "usage", "grant"].map((action) => ({
+    name: `speech ${action}`,
+    category: "Speech",
+    label: `${action} account speech`,
+    args: action === "grant" ? ["USERNAME", "CHARACTERS", "GRANT_UUID?"] : ["USERNAME"],
+    mutation: action !== "usage",
+  })),
+  {
     name: "users onboard",
     category: "Users",
     label: "Create, enable hosted AI and grant initial actions (live write)",

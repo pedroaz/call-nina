@@ -1,0 +1,75 @@
+.sections {
+  display: grid;
+  gap: var(--od-space-6);
+  min-width: 0;
+}
+.languages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--od-space-4);
+}
+.details,
+.storage {
+  display: grid;
+  gap: var(--od-space-2);
+  min-width: 0;
+}
+.pack {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--od-space-4);
+  padding-block: var(--od-space-4);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.pack > .details {
+  flex: 1 1 20rem;
+}
+.details span {
+  overflow-wrap: anywhere;
+  font-size: var(--od-font-size-sm);
+}
+.usage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--od-space-4);
+  margin: 0;
+}
+.usage div {
+  display: grid;
+  gap: var(--od-space-2);
+}
+.usage dd {
+  margin: 0;
+  font-weight: var(--od-font-weight-semibold);
+}
+.sections p,
+.sections h3 {
+  margin: 0;
+}
+@container workspace (max-width: 42rem) {
+  .languages,
+  .usage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.playback {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--od-space-2);
+  max-width: 100%;
+}
+.playback > span {
+  font-size: var(--od-font-size-sm);
+  color: var(--od-color-text-muted);
+}
+
+.actionLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

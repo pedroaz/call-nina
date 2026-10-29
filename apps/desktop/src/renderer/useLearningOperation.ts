@@ -91,12 +91,13 @@ export function runLearningOperation(
         );
     });
     // Allow time for startup and dispatch in addition to the bounded model turn.
-    const timeout = window.setTimeout(() => {
+    const expire = () => {
       if (settled) return;
       cancelBackend();
       cleanup();
       reject(operationError("ai-timeout", operationId ?? submissionId));
-    }, generationDeadlineMilliseconds[input.kind] + 30_000);
+    };
+    let timeout = window.setTimeout(expire, generationDeadlineMilliseconds[input.kind] + 30_000);
     signal.addEventListener("abort", abort, { once: true });
     void invokeDesktop("learning-operation/start", { submissionId, input })
       .then((accepted) => {
@@ -105,6 +106,10 @@ export function runLearningOperation(
           cleanup();
           resolve(accepted);
           return;
+        }
+        if (!settled && accepted.status === "accepted") {
+          window.clearTimeout(timeout);
+          timeout = window.setTimeout(expire, accepted.timeoutMilliseconds + 30_000);
         }
         // Cancellation can arrive before the start acknowledgement.
         if (cancellationRequested) cancelBackend();

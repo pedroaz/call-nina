@@ -12,18 +12,12 @@ import { z } from "./schema-system.js";
 
 const text = (max: number) => z.string().trim().min(1).max(max);
 const key = z.string().regex(/^[a-z][a-z0-9-]{0,79}$/u);
-const localized = z
-  .strictObject({
-    en: text(8000),
-    de: text(8000),
-    es: text(8000).optional(),
-    "pt-BR": text(8000).optional(),
-  })
-  .transform((value) => ({
-    ...value,
-    es: value.es ?? value.en,
-    "pt-BR": value["pt-BR"] ?? value.en,
-  }));
+const localized = z.strictObject({
+  en: text(8000),
+  de: text(8000),
+  es: text(8000),
+  "pt-BR": text(8000),
+});
 export type CourseLocale = "en" | "de" | "es" | "pt-BR";
 export const coursePathSchema = z.strictObject({
   id: key,

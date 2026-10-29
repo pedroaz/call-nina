@@ -4,6 +4,9 @@ import { database } from "./database.mjs";
 export async function topup(sql, userId, actions, grantId) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(grantId ?? ""))
     throw new ControlError("Provide a stable UUID grant ID; reuse it when retrying a top-up");
+  await sql.query("INSERT INTO nina_starter.account(user_id) VALUES($1) ON CONFLICT DO NOTHING", [
+    userId,
+  ]);
   const result = await sql.query(
     `WITH inserted AS (
     INSERT INTO nina_starter.allowance_grant(id,user_id,actions) SELECT $1::uuid,$2,$3::bigint FROM nina_starter.account WHERE user_id=$2

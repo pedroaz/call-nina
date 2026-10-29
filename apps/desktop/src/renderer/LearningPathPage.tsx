@@ -31,10 +31,12 @@ import {
   nextLessonActivity,
   nextPathActivity,
   type PathNavigation,
+  type PathDestination,
 } from "./learningPathNavigation.js";
 import styles from "./LearningPathPage.module.css";
 
 type Props = {
+  initialDestination?: PathDestination | undefined;
   onLanguageSwitchBlockedChange?: (blocked: boolean) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
   onNina: () => void;
@@ -71,6 +73,7 @@ export function LearningPathPage(props: Props) {
   );
 }
 function LearningPathWorkspace({
+  initialDestination,
   onLanguageSwitchBlockedChange,
   snapshot,
   refresh,
@@ -86,7 +89,14 @@ function LearningPathWorkspace({
   const { t } = useTranslation();
   const generation = useLearningOperation();
   const [guideOpen, setGuideOpen] = useState(false);
-  const [navigation, setNavigation] = useState<PathNavigation>({ kind: "library" });
+  const [navigation, setNavigation] = useState<PathNavigation>(() =>
+    initialDestination?.kind === "lesson" &&
+    snapshot.course?.units.some(
+      (unit) => unit.id === initialDestination.unitId && unit.stage === initialDestination.stage,
+    )
+      ? initialDestination
+      : { kind: "library" },
+  );
   const [catalogFilter, setCatalogFilter] = useState({ query: "", kind: "all", level: "all" });
   const [expandedActivity, setExpandedActivity] = useState<string>();
   const [active, setActive] = useState<{

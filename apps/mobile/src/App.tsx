@@ -3,7 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AppState, BackHandler } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ClerkProvider, useClerk, useSession, useSignIn, useUser } from "@clerk/expo";
+import { ClerkProvider, useClerk, useSession, useSignIn, useSignUp, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { resourceCache } from "@clerk/expo/resource-cache";
 import * as Crypto from "expo-crypto";
@@ -14,6 +14,8 @@ import {
   languageIds,
   languageDefinitions,
   ninaPublicConfiguration,
+  ninaAuthFailure,
+  type NinaLoginDiagnostic,
   mobileSnapshotSchema,
   type MobileDeck,
   type MobileSnapshot,
@@ -72,11 +74,13 @@ async function hash(bytes: Uint8Array) {
 function Login() {
   const { t } = useTranslation();
   const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
+  const [registering, setRegistering] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<"loginError" | "incomplete">();
+  const [error, setError] = useState<"loginError" | "incomplete" | NinaLoginDiagnostic["reason"]>();
   const submitting = useRef(false);
   const submit = async () => {
     if (submitting.current) return;
@@ -84,17 +88,21 @@ function Login() {
     setBusy(true);
     setError(undefined);
     try {
-      const result = await timed(signIn.password({ identifier: username.trim(), password }));
-      if (result.error) throw new Error("credentials");
-      if (signIn.status !== "complete") {
+      const result = await timed(
+        registering
+          ? signUp.password({ username: username.trim(), password })
+          : signIn.password({ identifier: username.trim(), password }),
+      );
+      if (result.error) throw result.error;
+      if ((registering ? signUp.status : signIn.status) !== "complete") {
         setError("incomplete");
         return;
       }
-      const finished = await timed(signIn.finalize());
+      const finished = await timed(registering ? signUp.finalize() : signIn.finalize());
       if (finished.error) throw new Error("incomplete");
       setPassword("");
-    } catch {
-      setError("loginError");
+    } catch (cause) {
+      setError(ninaAuthFailure(cause));
     } finally {
       submitting.current = false;
       setBusy(false);
@@ -104,7 +112,9 @@ function Login() {
     <NativeScreen centered>
       <NinaMark />
       <NativeText variant="title">Call Nina</NativeText>
-      <NativeText variant="heading">{t("mobile.signIn")}</NativeText>
+      <NativeText variant="heading">
+        {t(registering ? "mobile.createAccount" : "mobile.signIn")}
+      </NativeText>
       <NativeField
         label={t("mobile.username")}
         value={username}
@@ -121,7 +131,7 @@ function Login() {
         secureTextEntry={!visible}
         autoCapitalize="none"
         autoCorrect={false}
-        autoComplete="current-password"
+        autoComplete={registering ? "new-password" : "current-password"}
         editable={!busy}
         onSubmitEditing={() => void submit()}
       />
@@ -134,10 +144,27 @@ function Login() {
       />
       {error && <NativeText accessibilityRole="alert">{t(`mobile.${error}`)}</NativeText>}
       <NativeButton
-        label={t(busy ? "mobile.signingIn" : "mobile.signIn")}
+        label={t(
+          busy
+            ? registering
+              ? "mobile.creatingAccount"
+              : "mobile.signingIn"
+            : registering
+              ? "mobile.createAccount"
+              : "mobile.signIn",
+        )}
         variant="primary"
         disabled={busy || !username.trim() || !password}
         onPress={() => void submit()}
+      />
+      <NativeButton
+        label={t(registering ? "mobile.signIn" : "mobile.createAccount")}
+        variant="quiet"
+        disabled={busy}
+        onPress={() => {
+          setRegistering(!registering);
+          setError(undefined);
+        }}
       />
     </NativeScreen>
   );
