@@ -76,6 +76,7 @@ declare module "*ConnectionSettings.module.css" {
     readonly offline: string;
     readonly panel: string;
     readonly providerButton: string;
+    readonly providerControls: string;
     readonly providerOverview: string;
     readonly providerStatus: string;
     readonly remove: string;
@@ -449,6 +450,7 @@ declare module "*SettingsPage.module.css" {
     readonly ninaAccountFooter: string;
     readonly ninaAccountForm: string;
     readonly ninaAccountIntro: string;
+    readonly ninaAccountMode: string;
     readonly ninaAccountSummary: string;
     readonly optionalIntegration: string;
     readonly pendingSession: string;

@@ -112,6 +112,19 @@
   gap: var(--od-space-4);
   min-width: 0;
 }
+.ninaAccountMode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.ninaAccountMode h3 {
+  margin: 0;
+  font-size: var(--od-type-subsection-title-size);
+  line-height: var(--od-type-subsection-title-line);
+  font-weight: var(--od-font-weight-semibold);
+}
 .ninaAccountIntro {
   gap: var(--od-space-2);
 }

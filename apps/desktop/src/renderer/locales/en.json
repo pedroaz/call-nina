@@ -1917,7 +1917,8 @@
     "tier": {
       "free": "Free",
       "plus": "Nina Plus"
-    }
+    },
+    "creatingAccount": "Creating account…"
   },
   "providers": {
     "signInRequired": "Sign-in required",

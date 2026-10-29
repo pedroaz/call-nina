@@ -63,8 +63,14 @@
   font-size: var(--od-font-size-sm);
   justify-content: flex-start;
 }
-.navButton:hover {
+.navButton:hover:not([data-disabled]) {
   color: var(--od-color-text-strong);
+}
+.navButton[data-disabled]:not([data-pending]) {
+  background: transparent;
+  border-color: transparent;
+  color: var(--od-color-text-muted);
+  opacity: 0.55;
 }
 .navButton[aria-current="page"] {
   background: var(--od-color-surface-brand);

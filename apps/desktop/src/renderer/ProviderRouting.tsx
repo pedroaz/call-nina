@@ -50,7 +50,7 @@ export function ProviderRouting({
   };
   return (
     <Section title={t("setupUx.aiPractice")}>
-      <ActionGroup>
+      <ActionGroup className={styles.providerControls}>
         <SelectField
           label={t("providers.provider")}
           value={routing.text ?? ""}
