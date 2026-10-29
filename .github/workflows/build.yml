@@ -1,4 +1,4 @@
-name: Build
+name: Desktop Build
 on:
   workflow_dispatch:
     inputs:

@@ -31,7 +31,7 @@ export function run(command, args, options = {}) {
   });
   if (result.error || result.status !== 0) {
     if (diagnosticLabel) {
-      // Never dump stdout (whoami contains account identity) or command arguments.
+      // Never dump stdout or command arguments, which may contain private data.
       // Redact before truncating so partial secret values cannot escape masking.
       const stderr = diagnostic(result.stderr?.toString() ?? "", true);
       progress(
@@ -211,6 +211,6 @@ export async function github(
 }
 export function help() {
   process.stdout.write(
-    `Build: ${workflowUrl}\nChoose target=desktop for desktop releases; all/hosting remain available for artifact preparation. Build never publishes.\nRelease desktop: ${publishUrl}\nFrom main, enter a successful main-branch Build run ID containing all four desktop artifacts. Hosting is not required or deployed.\nDeploy Vercel: ${deployUrl}\nRun from main to build and deploy the combined website/API without desktop builds.\nShared versions are retained; every artifact and deployment records its exact commit and run ID.\nBuild downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
+    `Desktop Build: ${workflowUrl}\nChoose target=desktop for desktop releases; all/hosting remain available for artifact preparation. Build never publishes.\nDesktop Release: ${publishUrl}\nFrom main, enter a successful main-branch Desktop Build run ID containing all four desktop artifacts. Hosting is not required or deployed.\nDeploy Vercel: ${deployUrl}\nRun from main to build and deploy the combined website/API without desktop builds.\nShared versions are retained; every artifact and deployment records its exact commit and run ID.\nBuild downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
   );
 }
