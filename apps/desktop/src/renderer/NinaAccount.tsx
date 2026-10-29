@@ -464,7 +464,8 @@ function AccountForm() {
             void login();
           }}
         >
-          <ActionGroup>
+          <div className={styles.ninaAccountMode}>
+            <h3>{t(registering ? "ninaAccount.createAccount" : "ninaAccount.signIn")}</h3>
             <Button
               variant="quiet"
               isDisabled={busy || settling}
@@ -476,7 +477,7 @@ function AccountForm() {
             >
               {t(registering ? "ninaAccount.signIn" : "ninaAccount.createAccount")}
             </Button>
-          </ActionGroup>
+          </div>
           <div id="clerk-captcha" />
           <div className={styles.ninaAccountFields}>
             <TextField
@@ -534,7 +535,9 @@ function AccountForm() {
               >
                 {t(
                   busy
-                    ? "ninaAccount.signing-in"
+                    ? registering
+                      ? "ninaAccount.creatingAccount"
+                      : "ninaAccount.signing-in"
                     : error || cancelled
                       ? "ninaAccount.retry"
                       : registering

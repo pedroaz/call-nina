@@ -12,6 +12,9 @@
 .panel {
   gap: var(--od-space-4);
 }
+.providerControls[data-align] {
+  align-items: flex-end;
+}
 .connectionHeading {
   display: flex;
   align-items: center;
