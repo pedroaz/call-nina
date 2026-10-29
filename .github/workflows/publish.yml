@@ -1,9 +1,9 @@
-name: Release desktop
+name: Desktop Release
 on:
   workflow_dispatch:
     inputs:
       build_run_id:
-        description: Successful Build run from main containing all four desktop platforms
+        description: Successful Desktop Build run from main containing all four desktop platforms
         type: string
         required: true
 permissions:

@@ -116,11 +116,8 @@ export async function deploy() {
     VERCEL_PROJECT_ID: projectId,
     VERCEL_TELEMETRY_DISABLED: "1",
   });
-  run("vercel", ["whoami"], {
-    env,
-    stdio: "pipe",
-    diagnosticLabel: "Vercel CLI authentication (whoami)",
-  });
+  // Project access and ownership were verified above. Account identity lookup is
+  // not a deployment prerequisite for a token scoped to the configured team.
   const result = run(
     "vercel",
     [
