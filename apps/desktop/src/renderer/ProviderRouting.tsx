@@ -55,12 +55,17 @@ export function ProviderRouting({
           label={t("providers.provider")}
           value={routing.text ?? ""}
           disabled={busy}
-          onChange={(event) =>
+          onChange={(event) => {
+            const route = event.target.value as (typeof providers)[number] | "";
+            if (route && !supports(route, "text")) {
+              select(route);
+              return;
+            }
             void mutate({
               kind: "routing",
-              routing: { ...routing, text: (event.target.value || null) as typeof routing.text },
-            })
-          }
+              routing: { ...routing, text: route || null },
+            });
+          }}
         >
           <option value="">{t("providers.unassigned")}</option>
           {providers.map((route) => (
@@ -133,6 +138,7 @@ export function ProviderRouting({
                       trailingIcon={<ChevronRight aria-hidden="true" />}
                       isDisabled={busy}
                       onPress={() => {
+                        setAdvanced(false);
                         select(route);
                       }}
                     >
