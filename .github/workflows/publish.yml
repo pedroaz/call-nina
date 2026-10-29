@@ -1,19 +1,19 @@
-name: Publish
+name: Release desktop
 on:
   workflow_dispatch:
     inputs:
       build_run_id:
-        description: Successful complete Build run from main (or an existing complete Release dry run)
+        description: Successful Build run from main containing all four desktop platforms
         type: string
         required: true
 permissions:
   contents: read
   actions: read
 concurrency:
-  group: release-production
+  group: release-desktop-production
   cancel-in-progress: false
 env:
-  RELEASE_TARGET: all
+  RELEASE_TARGET: desktop
   RELEASE_OPERATION: publish
   RELEASE_BUILD_RUN_ID: ${{ inputs.build_run_id }}
 jobs:
@@ -44,7 +44,6 @@ jobs:
     timeout-minutes: 60
     environment:
       name: Production
-      url: ${{ steps.deploy.outputs.url }}
     permissions:
       contents: write
       actions: read
@@ -76,13 +75,6 @@ jobs:
         run: node scripts/ci/release.mjs prepare
         env:
           GH_TOKEN: ${{ github.token }}
-      - name: Install deployment CLI
-        run: npm install --global vercel@65.5.0
-      - id: deploy
-        name: Deploy existing hosting artifact
-        run: node scripts/ci/release.mjs deploy
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       - id: desktop
         name: Publish desktop release
         run: node scripts/ci/release.mjs publish

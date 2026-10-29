@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/learning-workflows",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "Portable learning prompts, structured output validation and bounded repair.",
   "type": "module",

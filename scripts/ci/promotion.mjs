@@ -1,4 +1,4 @@
-import { context, github, repository, setOutput, summary, readJson } from "./common.mjs";
+import { context, github, repository, setOutput, summary } from "./common.mjs";
 import { desktopTargets, verify } from "./artifacts.mjs";
 
 export async function resolveSource() {
@@ -37,11 +37,12 @@ export async function inspectSource(runId, publicationCommit) {
     artifacts.push(...batch.artifacts);
     if (batch.artifacts.length < 100) break;
   }
-  const expected = [...desktopTargets.map((id) => `desktop-${id}`), "hosting"];
+  const expected = desktopTargets.map((id) => `desktop-${id}`);
+  const selectedArtifacts = artifacts.filter((item) => expected.includes(item.name));
   if (
-    artifacts.length !== expected.length ||
-    expected.some((name) => artifacts.filter((item) => item.name === name).length !== 1) ||
-    artifacts.some(
+    selectedArtifacts.length !== expected.length ||
+    expected.some((name) => selectedArtifacts.filter((item) => item.name === name).length !== 1) ||
+    selectedArtifacts.some(
       (item) =>
         item.expired ||
         Date.parse(item.expires_at) <= Date.now() ||
@@ -50,9 +51,9 @@ export async function inspectSource(runId, publicationCommit) {
     )
   )
     throw new Error(
-      "Build requires all four desktop artifacts and hosting, unexpired and from the same commit",
+      "Build requires all four desktop artifacts, unexpired and from the same commit",
     );
-  const ids = artifacts
+  const ids = selectedArtifacts
     .map((item) => item.id)
     .sort((a, b) => a - b)
     .join(",");
@@ -63,7 +64,7 @@ export async function source() {
   const selected = await resolveSource();
   for (const key of ["commit", "version", "artifacts"]) await setOutput(key, selected[key]);
   await summary(
-    `Publish source: https://github.com/${repository}/actions/runs/${selected.runId}\nCommit: ${selected.commit}\nVersion: ${selected.version}\nAll five artifacts are available. Publication will not rebuild them.`,
+    `Publish source: https://github.com/${repository}/actions/runs/${selected.runId}\nCommit: ${selected.commit}\nVersion: ${selected.version}\nAll four desktop artifacts are available. Publication will not rebuild them.`,
   );
 }
 
@@ -77,10 +78,6 @@ export async function verifySource() {
   )
     throw new Error("Build identity changed after source selection");
   for (const id of desktopTargets) await verify(id);
-  const hosting = await verify("hosting");
-  const config = await readJson("scripts/admin/infrastructure.json");
-  if (hosting.projectId !== config.projectId || hosting.teamId !== config.teamId)
-    throw new Error("Hosting artifact targets a different project");
   await summary(
     "All source manifests, versions, targets and SHA-256 checksums verified before publication.",
   );
