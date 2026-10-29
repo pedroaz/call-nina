@@ -203,7 +203,7 @@ function SpeechConnections({ language }: { language: Language }) {
               </option>
             ))}
           </SelectField>
-          <ActionGroup>
+          <ActionGroup className={routingStyles.providerControls}>
             <SelectField
               label={t("providers.provider")}
               value={view.preferences[target]}

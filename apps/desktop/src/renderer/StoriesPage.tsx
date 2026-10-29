@@ -19,6 +19,14 @@ export function StoriesPage() {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<string[]>([]);
   const current = useRef(0);
+  const passage = useRef<HTMLParagraphElement>(null);
+  const focusPassage = useRef(false);
+  useEffect(() => {
+    if (focusPassage.current) {
+      passage.current?.focus({ preventScroll: true });
+      focusPassage.current = false;
+    }
+  }, [paragraph]);
   useEffect(() => {
     let active = true;
     const ticket = current.current;
@@ -53,6 +61,7 @@ export function StoriesPage() {
         paragraph: next,
       });
       if (ticket !== current.current) return;
+      focusPassage.current = true;
       setParagraph(next);
       setSnapshot({ ...snapshot, positions: { ...snapshot.positions, [story.id]: next } });
     } catch {
@@ -103,7 +112,9 @@ export function StoriesPage() {
       {story ? (
         <>
           <div className={styles.reading} lang={story.language}>
-            <p className={styles.passage}>{story.paragraphs[paragraph]}</p>
+            <p ref={passage} tabIndex={-1} data-focus-anchor className={styles.passage}>
+              {story.paragraphs[paragraph]}
+            </p>
             <SpeechButton text={story.paragraphs[paragraph] ?? ""} language={story.language} />
           </div>
           <ActionGroup>
@@ -114,7 +125,7 @@ export function StoriesPage() {
             >
               {t("stories.previous")}
             </Button>
-            <span>
+            <span role="status" aria-live="polite" aria-atomic="true">
               {t("stories.position", { current: paragraph + 1, total: story.paragraphs.length })}
             </span>
             <Button
@@ -132,6 +143,7 @@ export function StoriesPage() {
                 actions={
                   <Button
                     variant="quiet"
+                    aria-label={`${t(saved.includes(`${story.id}:${String(index)}`) ? "stories.saved" : "stories.saveWord")}: ${word.text}`}
                     isDisabled={busy || saved.includes(`${story.id}:${String(index)}`)}
                     onPress={() => void saveWord(index)}
                   >
@@ -197,6 +209,7 @@ export function StoriesPage() {
                   actions={
                     <Button
                       variant="secondary"
+                      aria-label={`${t("stories.read")}: ${item.title[locale]}`}
                       onPress={() => {
                         setSelected(item.id);
                         setParagraph(

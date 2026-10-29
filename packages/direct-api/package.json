@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/direct-api",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "Explicit personal API generation through bounded AI SDK adapters.",
   "type": "module",
