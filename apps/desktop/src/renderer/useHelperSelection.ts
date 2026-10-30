@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ContextualHelperSelection } from "./ContextualHelper.js";
 import { createDesktopSubmissionId } from "./ipc.js";
 
-const excluded = 'input[type="password"], [data-helper-selection="ignore"]';
+const excluded =
+  'input[type="password"], input[autocomplete="current-password"], input[autocomplete="new-password"], [data-helper-selection="ignore"]';
 const contextBlock = "p, li, td, th, blockquote, pre, h1, h2, h3, h4, label, article, section";
 const limit = 4_000;
 

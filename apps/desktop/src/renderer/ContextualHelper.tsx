@@ -39,6 +39,7 @@ type SubmittedRequest = Readonly<{
   intent: HelperIntent;
   clearComposer: boolean;
 }>;
+const helperOperations = ["contextual-help", "translation"] as const;
 
 export type ContextualHelperSelection = Readonly<{
   sessionId: CorrelationId;
@@ -317,8 +318,7 @@ export function ContextualHelper({
             }}
           />
         </FieldGroup>
-        <ProviderActionSummary operation="contextual-help" busy={stage !== "idle"} />
-        <ProviderActionSummary operation="translation" busy={stage !== "idle"} />
+        <ProviderActionSummary operation={helperOperations} busy={stage !== "idle"} />
         <div className={styles.helperComposerActions}>
           <Button
             variant="secondary"

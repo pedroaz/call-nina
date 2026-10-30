@@ -17,7 +17,8 @@ export function ProviderStatus({
   const { t } = useTranslation();
   const nina = useNinaAccountState();
   const connection = view.settings.connections.find((entry) => entry.routeId === route);
-  const status = view.availability.find((entry) => entry.connectionId === connection?.id)?.status;
+  const availability = view.availability.find((entry) => entry.connectionId === connection?.id);
+  const status = availability?.status;
   let label = "disconnected";
   let tone = "neutral";
   let Icon = CircleMinus;
@@ -67,7 +68,11 @@ export function ProviderStatus({
       {issue && (
         <span className={styles.statusIssue}>
           <CircleAlert aria-hidden="true" />
-          {t(`connectionSettings.status.${status}`)}
+          {t(
+            route === "managed" && status === "runtime-unavailable" && !availability.models
+              ? "ninaAccount.pending"
+              : `connectionSettings.status.${status}`,
+          )}
         </span>
       )}
       {route === "managed" &&

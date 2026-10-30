@@ -33,6 +33,7 @@ import {
   EmptyState,
   LoadingState,
   FieldGroup,
+  TextField,
   Muted,
 } from "./components/ui/index.js";
 import { ActionGroup, FilterBar, ContentRow } from "./components/layout/index.js";
@@ -92,7 +93,12 @@ export function SavedResults({
   const [activityType, setActivityType] = useState<ActivityType | "">("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const invalidDateRange = Boolean(fromDate && toDate && fromDate > toDate);
   const [curriculumTopicId, setCurriculumTopicId] = useState("");
+  const invalidCurriculumTopic = Boolean(
+    curriculumTopicId.trim() &&
+    !curriculumTopicIdSchema.safeParse(curriculumTopicId.trim()).success,
+  );
   const [mistakeCategory, setMistakeCategory] = useState("");
   const [appliedFilters, setAppliedFilters] = useState<HistoryPayload>({ maximum: 100 });
   const skillFilter = useRef<HTMLSelectElement>(null);
@@ -172,6 +178,7 @@ export function SavedResults({
   );
 
   const applyFilters = () => {
+    if (invalidDateRange || invalidCurriculumTopic) return;
     try {
       setAppliedFilters({
         ...(search.trim() ? { search: search.trim() } : {}),
@@ -202,6 +209,7 @@ export function SavedResults({
     setAppliedFilters({ maximum: 100 });
     if (filtersOpen) skillFilter.current?.focus();
   };
+  const hasAppliedFilters = Object.keys(appliedFilters).length > 1;
   const hasFilters = Boolean(
     search ||
     skill ||
@@ -210,7 +218,7 @@ export function SavedResults({
     toDate ||
     curriculumTopicId ||
     mistakeCategory ||
-    Object.keys(appliedFilters).length > 1,
+    hasAppliedFilters,
   );
 
   useEffect(() => {
@@ -463,13 +471,13 @@ export function SavedResults({
               {t("savedResults.mistakes")}
             </Button>
           )}
-          {hasFilters && (
+          {hasAppliedFilters && (
             <Button variant="quiet" onPress={clearFilters}>
               {t("vocabulary.flow.clearFilters")}
             </Button>
           )}
         </ActionGroup>
-        {hasFilters && (
+        {hasAppliedFilters && (
           <Muted>
             {[
               appliedFilters.search,
@@ -546,7 +554,11 @@ export function SavedResults({
               </SelectControl>
             </FieldGroup>
             <ActionGroup>
-              <Button variant="secondary" isDisabled={busy} type="submit">
+              <Button
+                variant="secondary"
+                isDisabled={busy || invalidDateRange || invalidCurriculumTopic}
+                type="submit"
+              >
                 {t("history.filters.apply")}
               </Button>
               {hasFilters && (
@@ -587,36 +599,34 @@ export function SavedResults({
               }
             >
               <div className={styles.advancedGrid}>
-                <FieldGroup>
-                  {t("history.filters.from")}
-                  <input
-                    type="date"
-                    value={fromDate}
-                    onChange={(event) => {
-                      setFromDate(event.target.value);
-                    }}
-                  />
-                </FieldGroup>
-                <FieldGroup>
-                  {t("history.filters.to")}
-                  <input
-                    type="date"
-                    value={toDate}
-                    onChange={(event) => {
-                      setToDate(event.target.value);
-                    }}
-                  />
-                </FieldGroup>
-                <FieldGroup>
-                  {t("history.filters.topic")}
-                  <input
-                    maxLength={96}
-                    value={curriculumTopicId}
-                    onChange={(event) => {
-                      setCurriculumTopicId(event.target.value);
-                    }}
-                  />
-                </FieldGroup>
+                <TextField
+                  label={t("history.filters.from")}
+                  type="date"
+                  max={toDate || undefined}
+                  value={fromDate}
+                  onChange={(event) => {
+                    setFromDate(event.target.value);
+                  }}
+                />
+                <TextField
+                  label={t("history.filters.to")}
+                  type="date"
+                  min={fromDate || undefined}
+                  value={toDate}
+                  error={invalidDateRange ? t("history.filters.invalidDateRange") : undefined}
+                  onChange={(event) => {
+                    setToDate(event.target.value);
+                  }}
+                />
+                <TextField
+                  label={t("history.filters.topic")}
+                  maxLength={96}
+                  value={curriculumTopicId}
+                  error={invalidCurriculumTopic ? t("history.filters.invalidTopic") : undefined}
+                  onChange={(event) => {
+                    setCurriculumTopicId(event.target.value);
+                  }}
+                />
                 <FieldGroup>
                   {t("history.filters.mistake")}
                   <input

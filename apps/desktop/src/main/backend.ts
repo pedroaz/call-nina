@@ -1330,6 +1330,7 @@ export class DesktopBackend {
               : "configured";
       }
       if (connection.routeId === "managed") {
+        entry.status = "runtime-unavailable";
         const catalog = managedCatalog();
         if (catalog) {
           entry.models = catalog.models;

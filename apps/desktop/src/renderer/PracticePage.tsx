@@ -97,6 +97,7 @@ export function PracticePage({
   onWriting,
   onResults,
   onNina,
+  onReviewVocabulary,
   resultsRequest,
   onPracticeAgain,
   onReturnToSource,
@@ -124,6 +125,8 @@ export function PracticePage({
   onWriting?: () => void;
   onResults: (language: Language, rootGeneration: DataRootGeneration) => void;
   onNina: (language: Language, rootGeneration: DataRootGeneration) => void;
+  onReviewVocabulary?:
+    ((language: Language, rootGeneration: DataRootGeneration) => void) | undefined;
 }) {
   const { t } = useTranslation();
   const [generatedResult, setGenerated] =
@@ -429,6 +432,16 @@ export function PracticePage({
           onNina={() => {
             onNina(prepared.activity.context.learningScope.targetLanguage, prepared.rootGeneration);
           }}
+          onReviewVocabulary={
+            onReviewVocabulary
+              ? () => {
+                  onReviewVocabulary(
+                    prepared.activity.context.learningScope.targetLanguage,
+                    prepared.rootGeneration,
+                  );
+                }
+              : undefined
+          }
           courseCompletionActions={courseCompletionActions}
           onClose={onCloseActivity}
           onVocabulary={onVocabulary ?? onCloseActivity}
@@ -602,6 +615,16 @@ export function PracticePage({
                     onNina={() => {
                       onNina(generated.learningScope.targetLanguage, prepared.rootGeneration);
                     }}
+                    onReviewVocabulary={
+                      onReviewVocabulary
+                        ? () => {
+                            onReviewVocabulary(
+                              generated.learningScope.targetLanguage,
+                              prepared.rootGeneration,
+                            );
+                          }
+                        : undefined
+                    }
                   />
                 ))
               }

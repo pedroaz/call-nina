@@ -34,6 +34,7 @@ export function FlashcardWorkspace({
   onVocabulary,
   onResults,
   onNina,
+  onReviewVocabulary,
 }: {
   activityId: ActivityId;
   parentLabel: string;
@@ -44,6 +45,7 @@ export function FlashcardWorkspace({
   onVocabulary: () => void;
   onResults: () => void;
   onNina: () => void;
+  onReviewVocabulary?: (() => void) | undefined;
 }) {
   const { t } = useTranslation();
   const { deck, card, saved, flipped, busy, error, load, move, save, flip, setError } =
@@ -208,6 +210,7 @@ export function FlashcardWorkspace({
                       onReturn={onClose}
                       onResults={onResults}
                       onNina={onNina}
+                      onReviewVocabulary={onReviewVocabulary}
                     />
                   )}
                   <ActionGroup>

@@ -439,13 +439,22 @@ async function serve(resume = false) {
         session.page = selected;
         return { index: request.index };
       }
-      case "snapshot":
+      case "snapshot": {
+        let snapshot = await (
+          request.target ? locate(page, request.target) : page.locator("body")
+        ).ariaSnapshot({ timeout: 15000 });
+        const passwords = await page
+          .locator(
+            'input[type="password"], input[autocomplete="current-password"], input[autocomplete="new-password"]',
+          )
+          .evaluateAll((inputs) => inputs.map((input) => input.value).filter(Boolean));
+        for (const password of passwords) {
+          snapshot = snapshot
+            .replaceAll(JSON.stringify(password).slice(1, -1), "[redacted]")
+            .replaceAll(password, "[redacted]");
+        }
         result = {
-          snapshot: (
-            await (
-              request.target ? locate(page, request.target) : page.locator("body")
-            ).ariaSnapshot({ timeout: 15000 })
-          ).slice(0, 48000),
+          snapshot: snapshot.slice(0, 48000),
           openedMaterialId: await page
             .locator("[data-material-id]")
             .first()
@@ -463,6 +472,7 @@ async function serve(resume = false) {
             .catch(() => null),
         };
         break;
+      }
       case "viewport": {
         if (
           !Number.isInteger(request.width) ||

@@ -482,7 +482,7 @@ function DesktopWorkspace({
     setPage("practice");
   };
   const openCompletionPage = async (
-    destination: "results" | "nina",
+    destination: "results" | "nina" | "vocabulary",
     language: Language,
     rootGeneration: DataRootGeneration,
   ) => {
@@ -497,7 +497,10 @@ function DesktopWorkspace({
         setLearningScope(next.settings.learningScope);
       }
       if (destination === "results") openSavedResults();
-      else navigate(destination);
+      else {
+        if (destination === "vocabulary") setVocabularyDue(true);
+        navigate(destination);
+      }
     } catch (cause) {
       setOperationError(normalizeDesktopError(cause).detail);
     }
@@ -631,6 +634,9 @@ function DesktopWorkspace({
                   }
                   onNina={(language, rootGeneration) =>
                     void openCompletionPage("nina", language, rootGeneration)
+                  }
+                  onReviewVocabulary={(language, rootGeneration) =>
+                    void openCompletionPage("vocabulary", language, rootGeneration)
                   }
                   autoStart={Boolean(preparedActivityId && quickStartId === preparedActivityId)}
                   targetLanguage={learningScope?.targetLanguage}

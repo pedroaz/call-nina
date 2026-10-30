@@ -758,7 +758,9 @@
       "activityType": "Aktivitätstyp",
       "from": "Von Datum",
       "to": "Bis Datum",
+      "invalidDateRange": "Das Enddatum muss am oder nach dem Startdatum liegen.",
       "topic": "Lehrplanthema-ID",
+      "invalidTopic": "Prüfe die Lehrplanthema-ID.",
       "mistake": "Fehlerkategorie",
       "all": "Alle",
       "apply": "Filter anwenden"

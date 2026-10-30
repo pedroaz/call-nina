@@ -77,12 +77,19 @@ export function LessonGuide({
               <h3>{t("ui.learningGoals")}</h3>
 
               <ul className={styles.lessonGoals}>
-                {selected.objectives.map((o) => (
-                  <li key={o.id}>
-                    <Target aria-hidden="true" />
-                    <span>{o.description[locale]}</span>
-                  </li>
-                ))}
+                {selected.objectives
+                  .filter(
+                    (objective, index, objectives) =>
+                      objectives.findIndex(
+                        (other) => other.description[locale] === objective.description[locale],
+                      ) === index,
+                  )
+                  .map((o) => (
+                    <li key={o.id}>
+                      <Target aria-hidden="true" />
+                      <span>{o.description[locale]}</span>
+                    </li>
+                  ))}
               </ul>
             </Section>
           ),

@@ -758,7 +758,9 @@
       "activityType": "Activity type",
       "from": "From date",
       "to": "To date",
+      "invalidDateRange": "Choose an end date on or after the start date.",
       "topic": "Curriculum topic ID",
+      "invalidTopic": "Check the curriculum topic ID.",
       "mistake": "Mistake category",
       "all": "All",
       "apply": "Apply filters"

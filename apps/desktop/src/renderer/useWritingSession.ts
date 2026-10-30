@@ -40,6 +40,9 @@ export function useWritingSession({
   const promptProgress = useOperationProgress();
   const correctionProgress = useOperationProgress();
   const [context, setContext] = useState(initialContext);
+  const contextRevision = useRef(0);
+  const promptContextRevision = useRef<number | undefined>(undefined);
+  const activeRequest = useRef<"prompt" | "correction" | undefined>(undefined);
   const [draft, setDraft] = useState(initialDraft);
   const [teachingProfile, setTeachingProfile] = useState<TeachingProfileChoice>("strict-corrector");
   const [feedback, setFeedback] = useState<FeedbackChoice>("all-meaningful");
@@ -54,7 +57,7 @@ export function useWritingSession({
   const [promptError, setPromptError] = useState<CallNinaError>();
   const correctionSubmissionId = useRef<CorrelationId | undefined>(undefined);
   const settledCorrectionSubmissions = useRef(new Set<CorrelationId>());
-  const correctionOriginals = useRef(new Map<CorrelationId, string>());
+  const correctionOriginals = useRef(new Map<CorrelationId, { draft: string; context: string }>());
   const [correctionOperationId, setCorrectionOperationId] = useState<CorrelationId>();
   const [previousCorrectionOperationId, setPreviousCorrectionOperationId] =
     useState<CorrelationId>();
@@ -64,11 +67,14 @@ export function useWritingSession({
   const [correction, setCorrection] = useState<CorrectionOutput>();
   const [correctionOriginal, setCorrectionOriginal] = useState("");
   const [correctionLanguage, setCorrectionLanguage] = useState<Language>();
-  const dirty = context.length > 0 || draft.length > 0;
+  const [savedWriting, setSavedWriting] = useState<{ draft: string; context: string }>();
+  const dirty =
+    (context.length > 0 || draft.length > 0) &&
+    (draft !== savedWriting?.draft || context !== savedWriting.context);
 
   useEffect(() => {
-    onDirtyChange(dirty);
-  }, [dirty, onDirtyChange]);
+    onDirtyChange(dirty || promptStage !== "idle" || correctionStage !== "idle");
+  }, [dirty, promptStage, correctionStage, onDirtyChange]);
 
   useEffect(
     () =>
@@ -101,9 +107,13 @@ export function useWritingSession({
           event.kind === "writing-prompt"
         ) {
           settledPromptSubmissions.current.add(event.submissionId);
+          activeRequest.current = undefined;
           setOperationId(undefined);
           setPromptStage("idle");
-          if (event.outcome.status === "validated") {
+          if (
+            event.outcome.status === "validated" &&
+            promptContextRevision.current === contextRevision.current
+          ) {
             const output = writingPromptCandidateSchema.parse(event.outcome.output);
             setPrompt(output);
             setContext(`${output.situation}\n\n${output.task}`);
@@ -132,13 +142,16 @@ export function useWritingSession({
           return;
         }
         settledCorrectionSubmissions.current.add(event.submissionId);
+        activeRequest.current = undefined;
         setCorrectionOperationId(undefined);
         setCorrectionStage("idle");
         if (event.outcome.status === "validated") {
           setPreviousCorrectionOperationId(undefined);
           setCorrection(writingCorrectionCandidateSchema.parse(event.outcome.output));
           setCorrectionLanguage(event.outcome.learningScope?.targetLanguage);
-          setCorrectionOriginal(correctionOriginals.current.get(event.submissionId) ?? "");
+          const saved = correctionOriginals.current.get(event.submissionId);
+          setCorrectionOriginal(saved?.draft ?? "");
+          if (saved) setSavedWriting(saved);
           setCorrectionError(undefined);
           setCorrectionOutcome(undefined);
         } else if (event.outcome.status === "failed") {
@@ -157,13 +170,21 @@ export function useWritingSession({
   );
 
   const generatePrompt = async () => {
-    setPromptError(undefined);
-    if (!(await requestAiAccess("writing-prompt"))) return;
-    const nextSubmissionId = createDesktopSubmissionId();
-    submissionId.current = nextSubmissionId;
-    promptProgress.begin(nextSubmissionId, "writing-prompt");
+    if (activeRequest.current) return;
+    activeRequest.current = "prompt";
+    const revision = contextRevision.current;
     setPromptStage("queued");
+    setPromptError(undefined);
     try {
+      if (!(await requestAiAccess("writing-prompt")) || revision !== contextRevision.current) {
+        activeRequest.current = undefined;
+        setPromptStage("idle");
+        return;
+      }
+      const nextSubmissionId = createDesktopSubmissionId();
+      submissionId.current = nextSubmissionId;
+      promptContextRevision.current = revision;
+      promptProgress.begin(nextSubmissionId, "writing-prompt");
       const result = await invokeDesktop("learning-operation/start", {
         submissionId: nextSubmissionId,
         input: {
@@ -175,6 +196,7 @@ export function useWritingSession({
         setOperationId(result.operationId);
       }
     } catch (cause) {
+      activeRequest.current = undefined;
       setPromptStage("idle");
       setPromptError(normalizeDesktopError(cause).detail);
     }
@@ -189,24 +211,35 @@ export function useWritingSession({
     }
   };
 
-  const useFreeWriting = () => {
+  const updateContext = (value: string) => {
+    contextRevision.current += 1;
     setPrompt(undefined);
-    setContext("");
+    setContext(value);
+  };
+
+  const useFreeWriting = () => {
+    updateContext("");
     setPromptError(undefined);
   };
 
   const startCorrection = async () => {
-    if (!draft.trim() || !(await requestAiAccess("writing-correction"))) return;
-    const nextSubmissionId = createDesktopSubmissionId();
-    correctionSubmissionId.current = nextSubmissionId;
-    correctionProgress.begin(nextSubmissionId, "writing-correction");
-    correctionOriginals.current.clear();
-    correctionOriginals.current.set(nextSubmissionId, draft);
+    if (!draft.trim() || activeRequest.current) return;
+    activeRequest.current = "correction";
     setCorrectionStage("queued");
     setCorrectionError(undefined);
     setCorrectionOutcome(undefined);
-    setCorrection(undefined);
     try {
+      if (!(await requestAiAccess("writing-correction"))) {
+        activeRequest.current = undefined;
+        setCorrectionStage("idle");
+        return;
+      }
+      const nextSubmissionId = createDesktopSubmissionId();
+      correctionSubmissionId.current = nextSubmissionId;
+      correctionProgress.begin(nextSubmissionId, "writing-correction");
+      correctionOriginals.current.clear();
+      correctionOriginals.current.set(nextSubmissionId, { draft, context });
+      setCorrection(undefined);
       const result = await invokeDesktop("learning-operation/start", {
         submissionId: nextSubmissionId,
         input: {
@@ -221,6 +254,7 @@ export function useWritingSession({
         setCorrectionOperationId(result.operationId);
       }
     } catch (cause) {
+      activeRequest.current = undefined;
       setCorrectionStage("idle");
       setCorrectionError(normalizeDesktopError(cause).detail);
     }
@@ -232,30 +266,32 @@ export function useWritingSession({
     try {
       await invokeDesktop("learning-operation/cancel", { operationId: correctionOperationId });
     } catch (cause) {
-      setCorrectionStage("idle");
+      setCorrectionStage("running");
       setCorrectionError(normalizeDesktopError(cause).detail);
     }
   };
 
   const retryCorrection = async () => {
-    if (
-      !previousCorrectionOperationId ||
-      !(await requestAiAccess("writing-correction", previousCorrectionOperationId))
-    )
-      return;
+    if (!previousCorrectionOperationId || activeRequest.current) return;
     const original = correctionSubmissionId.current
       ? correctionOriginals.current.get(correctionSubmissionId.current)
       : undefined;
     if (original === undefined) return;
-    const nextSubmissionId = createDesktopSubmissionId();
-    correctionSubmissionId.current = nextSubmissionId;
-    correctionProgress.begin(nextSubmissionId, "writing-correction");
-    correctionOriginals.current.clear();
-    correctionOriginals.current.set(nextSubmissionId, original);
+    activeRequest.current = "correction";
     setCorrectionStage("queued");
     setCorrectionError(undefined);
     setCorrectionOutcome(undefined);
     try {
+      if (!(await requestAiAccess("writing-correction", previousCorrectionOperationId))) {
+        activeRequest.current = undefined;
+        setCorrectionStage("idle");
+        return;
+      }
+      const nextSubmissionId = createDesktopSubmissionId();
+      correctionSubmissionId.current = nextSubmissionId;
+      correctionProgress.begin(nextSubmissionId, "writing-correction");
+      correctionOriginals.current.clear();
+      correctionOriginals.current.set(nextSubmissionId, original);
       const result = await invokeDesktop("learning-operation/retry", {
         previousOperationId: previousCorrectionOperationId,
         submissionId: nextSubmissionId,
@@ -264,6 +300,7 @@ export function useWritingSession({
         setCorrectionOperationId(result.operationId);
       }
     } catch (cause) {
+      activeRequest.current = undefined;
       setCorrectionStage("idle");
       setCorrectionError(normalizeDesktopError(cause).detail);
     }
@@ -274,10 +311,11 @@ export function useWritingSession({
   };
 
   return {
+    dirty,
     promptProgress,
     correctionProgress,
     context,
-    setContext,
+    setContext: updateContext,
     draft,
     setDraft,
     teachingProfile,

@@ -758,7 +758,9 @@
       "activityType": "Tipo de atividade",
       "from": "Data inicial",
       "to": "Data final",
+      "invalidDateRange": "A data final deve ser igual ou posterior à inicial.",
       "topic": "ID do tema curricular",
+      "invalidTopic": "Confira o ID do tópico do currículo.",
       "mistake": "Categoria de erro",
       "all": "Todos",
       "apply": "Aplicar filtros"

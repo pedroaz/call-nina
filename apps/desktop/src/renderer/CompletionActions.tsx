@@ -20,6 +20,7 @@ export function CompletionActions({
   onReturn,
   onResults,
   onNina,
+  onReviewVocabulary,
 }: {
   targetLanguage: Language;
   evidence?: "answers" | "self-assessment";
@@ -28,11 +29,13 @@ export function CompletionActions({
   onReturn: () => void;
   onResults: () => void;
   onNina: () => void;
+  onReviewVocabulary?: (() => void) | undefined;
 }) {
   const { t, i18n } = useTranslation();
   const heading = useRef<HTMLHeadingElement>(null);
   const [suggestion, setSuggestion] = useState<PracticeSuggestion>();
   const locale = languageSchema.parse(i18n.resolvedLanguage ?? "en-US");
+  const reviewVocabulary = suggestion?.source === "due-vocabulary" && onReviewVocabulary;
   useEffect(() => {
     heading.current?.focus();
     let current = true;
@@ -65,12 +68,19 @@ export function CompletionActions({
         <p>{t("completion.nextHint")}</p>
       )}
       <ActionGroup className={styles.actions}>
-        <Button variant="primary" onPress={onReturn}>
+        {reviewVocabulary && (
+          <Button variant="primary" onPress={reviewVocabulary}>
+            {t("vocabulary.learning.review")}
+          </Button>
+        )}
+        <Button variant={reviewVocabulary ? "secondary" : "primary"} onPress={onReturn}>
           {t("completion.return", { origin: parentLabel })}
         </Button>
-        <Button variant="secondary" onPress={onNina}>
-          {t("nav.nina")}
-        </Button>
+        {parentLabel !== t("nav.nina") && (
+          <Button variant="secondary" onPress={onNina}>
+            {t("nav.nina")}
+          </Button>
+        )}
         <Button variant="secondary" onPress={onResults}>
           {t("nav.history")}
         </Button>

@@ -59,6 +59,7 @@ export function WritingWorkspace({
   const [writingView, setWritingView] = useState("answer");
   const [contextOpen, setContextOpen] = useState(Boolean(initialContext));
   const {
+    dirty,
     promptProgress,
     correctionProgress,
     context,
@@ -231,7 +232,7 @@ export function WritingWorkspace({
           <ActionGroup className={styles.promptActionButtons}>
             <Button
               variant="secondary"
-              isDisabled={promptStage !== "idle"}
+              isDisabled={promptStage !== "idle" || correctionStage !== "idle"}
               onPress={() => void generatePrompt()}
             >
               <Sparkles aria-hidden="true" />
@@ -320,9 +321,11 @@ export function WritingWorkspace({
                       </p>
                     )}
 
-                    <Muted as="p" className={styles.draftNotice}>
-                      {t("writing.localDraftNotice")}
-                    </Muted>
+                    {dirty && (
+                      <Muted as="p" className={styles.draftNotice}>
+                        {t("writing.localDraftNotice")}
+                      </Muted>
+                    )}
                   </div>
                 </div>
               ),

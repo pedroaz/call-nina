@@ -497,7 +497,7 @@ function AccountForm() {
     </div>
   );
   return (
-    <div className={styles.accountAccess}>
+    <div className={styles.accountAccess} data-helper-selection="ignore">
       {user ? (
         <>
           {(busy || error) && feedback}

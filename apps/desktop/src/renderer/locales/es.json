@@ -758,7 +758,9 @@
       "activityType": "Tipo de actividad",
       "from": "Desde la fecha",
       "to": "Hasta la fecha",
+      "invalidDateRange": "La fecha final debe ser igual o posterior a la inicial.",
       "topic": "ID del tema del programa",
+      "invalidTopic": "Revisa el ID del tema del programa.",
       "mistake": "Categoría de error",
       "all": "Todas",
       "apply": "Aplicar filtros"
