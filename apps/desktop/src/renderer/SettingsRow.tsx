@@ -1,5 +1,25 @@
 import type { ReactNode } from "react";
 import styles from "./SettingsRow.module.css";
+import { ChevronRight } from "lucide-react";
+import { Button, type ButtonProps } from "./components/ui/index.js";
+
+export function SettingsLink({
+  leadingIcon,
+  children,
+  ...props
+}: Omit<ButtonProps, "variant" | "className" | "trailingIcon">) {
+  return (
+    <Button
+      {...props}
+      variant="quiet"
+      className={styles.link}
+      leadingIcon={leadingIcon && <span className={styles.icon}>{leadingIcon}</span>}
+      trailingIcon={<ChevronRight aria-hidden="true" />}
+    >
+      <span className={styles.linkLabel}>{children}</span>
+    </Button>
+  );
+}
 
 export function SettingsRow({
   icon,

@@ -1,3 +1,4 @@
+import { SpeechButton } from "./SpeechButton.js";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Repeat2, Sparkles } from "lucide-react";
@@ -115,7 +116,15 @@ export function SavedResultDetail({
             </section>
             <section className={styles.correctionPane}>
               <h3>{t("history.modelCorrection")}</h3>
-              <p className={styles.correctionText}>{entry.detail.correctedText}</p>
+              <p className={styles.correctionText} lang={entry.targetLanguage}>
+                {entry.detail.correctedText}
+              </p>
+              <SpeechButton
+                text={entry.detail.correctedText}
+                language={entry.targetLanguage}
+                variant="passage"
+                enabled={isOpen}
+              />
             </section>
           </div>
           <section>
@@ -140,7 +149,13 @@ export function SavedResultDetail({
               <ItemList>
                 {entry.detail.vocabularyCandidates.map((candidate) => (
                   <li key={`${candidate.lemma}:${candidate.meaning}`}>
-                    <strong>{candidate.lemma}</strong> — {candidate.meaning}. {candidate.rationale}
+                    <strong lang={entry.targetLanguage}>{candidate.lemma}</strong>{" "}
+                    <SpeechButton
+                      text={candidate.lemma}
+                      language={entry.targetLanguage}
+                      enabled={isOpen}
+                    />{" "}
+                    — {candidate.meaning}. {candidate.rationale}
                   </li>
                 ))}
               </ItemList>
@@ -351,7 +366,15 @@ export function SavedResultDetail({
           {entry.detail.readingMaterial && (
             <section>
               <h3>{entry.detail.readingMaterial.title}</h3>
-              <p className={styles.correctionText}>{entry.detail.readingMaterial.passage}</p>
+              <p className={styles.correctionText} lang={entry.targetLanguage}>
+                {entry.detail.readingMaterial.passage}
+              </p>
+              <SpeechButton
+                text={entry.detail.readingMaterial.passage}
+                language={entry.targetLanguage}
+                variant="passage"
+                enabled={isOpen}
+              />
             </section>
           )}
 
@@ -406,7 +429,31 @@ export function SavedResultDetail({
           {(entry.detail.suggestedAnswer || entry.detail.acceptedAnswerReveal.length > 0) && (
             <section>
               <h3>{t("history.acceptedEvidence")}</h3>
-              <p>{entry.detail.suggestedAnswer ?? entry.detail.acceptedAnswerReveal.join(" / ")}</p>
+              {[
+                ...new Set(
+                  [entry.detail.suggestedAnswer, ...entry.detail.acceptedAnswerReveal].filter(
+                    (answer): answer is string => Boolean(answer),
+                  ),
+                ),
+              ].map((answer, index) => (
+                <p
+                  key={index}
+                  lang={
+                    entry.detail.kind === "exercise-attempt"
+                      ? (entry.detail.answerLanguage ?? undefined)
+                      : undefined
+                  }
+                >
+                  {answer}{" "}
+                  {entry.detail.kind === "exercise-attempt" && entry.detail.answerLanguage && (
+                    <SpeechButton
+                      text={answer}
+                      language={entry.detail.answerLanguage}
+                      enabled={isOpen}
+                    />
+                  )}
+                </p>
+              ))}
             </section>
           )}
           <ActionGroup>

@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { hostingEnvironment } from "../lib/hosting-environment.mjs";
 import { checkPublicConfiguration } from "../admin/configuration.mjs";
 import { pnpmCommand } from "../lib/package-command.mjs";
 import { runStage } from "../lib/run-stage.mjs";
@@ -70,7 +71,8 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
 } else if (process.argv.length !== 2) {
   throw new Error("Usage: node scripts/build/package-hosting.mjs [--help]");
 } else {
-  await checkPublicConfiguration();
+  const environment = hostingEnvironment();
+  await checkPublicConfiguration(environment);
   run(process.execPath, ["scripts/diagnostics/check-toolchain.mjs"]);
   // Invalidate the old upload artifact before building, so failure cannot leave
   // a previous successful package looking current. This directory is ours alone.
@@ -91,7 +93,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   const pages = files.filter((file) => file.endsWith("index.html"));
   const config = {
     version: 3,
-    ...(process.env.NINA_SPEECH_RECOVERY_SCHEDULE === "enabled"
+    ...(environment === "production" && process.env.NINA_SPEECH_RECOVERY_SCHEDULE === "enabled"
       ? { crons: [{ path: "/api/speech-recovery", schedule: "* * * * *" }] }
       : {}),
     routes: [
@@ -111,7 +113,13 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   await writeFile(path.join(output, "config.json"), `${JSON.stringify(config, null, 2)}\n`);
   await writeFile(path.join(staging, "vercel.json"), vercelConfig);
 
+  await writeFile(
+    path.join(staging, "nina-environment.json"),
+    JSON.stringify({ environment }) + "\n",
+  );
+
   for (const file of [
+    "nina-environment.json",
     "vercel.json",
     ".vercel/output/config.json",
     ...["account", "generate", "mobile-sync", "speech"].flatMap((name) => [
@@ -124,7 +132,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
     process.stdout.write(`${createHash("sha256").update(bytes).digest("hex")}  ${file}\n`);
   }
   process.stdout.write(
-    `Packaged ${files.length} static website files and 3 API functions in ${destination}.\n`,
+    `Packaged ${files.length} static website files and 5 API functions in ${destination}.\n`,
   );
   process.stdout.write(
     "No remote actions. Publication uses the manual GitHub Deploy Vercel workflow; see make release.\n",

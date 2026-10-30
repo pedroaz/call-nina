@@ -48,7 +48,11 @@ export function LearningPathCompletion({
     return (
       <Section>
         <OperationError error={learning.error} />
-        <Button variant="secondary" onPress={() => void learning.refresh()}>
+        <Button
+          variant="secondary"
+          isPending={learning.busy}
+          onPress={() => void learning.refresh()}
+        >
           {t("actions.retry")}
         </Button>
         <Button variant="secondary" onPress={onReturn}>

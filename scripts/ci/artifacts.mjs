@@ -12,6 +12,7 @@ import {
   releaseVersion,
 } from "./common.mjs";
 
+import { hostingEnvironment } from "../lib/hosting-environment.mjs";
 import { desktopTargets } from "./targets.mjs";
 export { desktopTargets } from "./targets.mjs";
 export async function record(kind, id, filename, extra = {}) {
@@ -32,6 +33,8 @@ export async function record(kind, id, filename, extra = {}) {
 }
 export async function desktop() {
   context();
+  if (hostingEnvironment() !== "production")
+    throw new Error("Distributed desktop builds require production configuration");
   const id = `${process.platform}-${process.arch}`;
   if (!desktopTargets.includes(id) || process.env.RELEASE_PLATFORM !== id)
     throw new Error("Desktop runner architecture mismatch");
@@ -86,8 +89,11 @@ export async function hosting() {
   cleanSource();
   const filename = `Call-Nina-hosting-${context().commit}.tar.gz`;
   run("tar", ["-czf", path.join(output, filename), "-C", "build/hosting", "."]);
-  const { projectId, teamId } = await readJson("scripts/admin/infrastructure.json");
-  await record("hosting", "hosting", filename, { projectId, teamId });
+  const environment = hostingEnvironment();
+  const { projectId, teamId, origin } = (await readJson("scripts/admin/infrastructure.json"))[
+    environment
+  ];
+  await record("hosting", "hosting", filename, { projectId, teamId, environment, origin });
 }
 export async function verify(id) {
   const manifest = await readJson(path.join(output, `${id}.json`));
@@ -108,6 +114,7 @@ export async function verify(id) {
   const expectedKind = id === "hosting" ? "hosting" : "desktop";
   if (
     manifest.kind !== expectedKind ||
+    (expectedKind === "hosting" && manifest.environment !== hostingEnvironment()) ||
     (expectedKind === "desktop" &&
       (!desktopTargets.includes(id) || `${manifest.platform}-${manifest.arch}` !== id))
   )

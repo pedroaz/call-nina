@@ -1,4 +1,4 @@
-import { ControlError, config, output } from "./configuration.mjs";
+import { ControlError, config, environment, output } from "./configuration.mjs";
 import { need, secret } from "./credentials.mjs";
 
 export function runtimeRole() {
@@ -50,7 +50,7 @@ export function connectExisting() {
   );
   output({
     configurationValid: true,
-    source: "Existing Vercel Marketplace database; root .env PG parameters",
+    source: `Selected environment database; .env.${environment} PG parameters`,
     administrationHost: "PGHOST_UNPOOLED",
     runtimeHost: "PGHOST (adapter uses prepare:false)",
     credentialsReused: ["PGUSER", "PGPASSWORD", "PGDATABASE"],

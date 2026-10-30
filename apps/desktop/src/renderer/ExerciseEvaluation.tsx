@@ -1,3 +1,5 @@
+import { SpeechButton } from "./SpeechButton.js";
+import type { Language } from "@call-nina/contracts";
 import type { ExerciseEvaluation } from "@call-nina/domain";
 import type { ExerciseAiFeedback } from "./useExerciseSession.js";
 import { useTranslation } from "react-i18next";
@@ -8,8 +10,10 @@ export function Evaluation({
   evaluation,
   aiFeedback,
   explanation,
+  targetLanguage,
 }: {
   evaluation: ExerciseEvaluation;
+  targetLanguage?: Language | undefined;
   aiFeedback?: ExerciseAiFeedback | undefined;
   explanation?: string | undefined;
 }) {
@@ -49,10 +53,29 @@ export function Evaluation({
                 : "exercises.acceptedAnswers",
             )}
           </h3>
-          <p className={styles.correctedText}>{suggestedAnswer ?? acceptedAnswers.join(" / ")}</p>
+          {suggestedAnswer && (
+            <p className={styles.correctedText} lang={targetLanguage}>
+              {suggestedAnswer}{" "}
+              {targetLanguage && <SpeechButton text={suggestedAnswer} language={targetLanguage} />}
+            </p>
+          )}
+          {!suggestedAnswer &&
+            acceptedAnswers.map((answer, index) => (
+              <p key={index} className={styles.correctedText} lang={targetLanguage}>
+                {answer}{" "}
+                {targetLanguage && <SpeechButton text={answer} language={targetLanguage} />}
+              </p>
+            ))}
           {suggestedAnswer && acceptedAnswers.length > 0 && (
             <p className={styles.acceptedAnswers}>
-              {t("exercises.acceptedAnswers")}: {acceptedAnswers.join(" / ")}
+              {t("exercises.acceptedAnswers")}:{" "}
+              {acceptedAnswers.map((answer, index) => (
+                <span key={index} lang={targetLanguage}>
+                  {index > 0 ? " / " : ""}
+                  {answer}{" "}
+                  {targetLanguage && <SpeechButton text={answer} language={targetLanguage} />}
+                </span>
+              ))}
             </p>
           )}
         </section>

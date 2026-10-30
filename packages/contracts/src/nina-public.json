@@ -1,5 +1,6 @@
 {
-  "publishableKey": "pk_test_d2lyZWQtcGxhdHlwdXMtMzA0Ni5jbGVyay5hY2NvdW50cy5kZXYk",
-  "serviceOrigin": "https://call-nina.vercel.app",
-  "modelId": "nvidia/nemotron-3.5-lightning-free"
+  "environment": null,
+  "publishableKey": null,
+  "serviceOrigin": null,
+  "modelId": null
 }

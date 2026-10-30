@@ -2,7 +2,7 @@ import { lstat, open, rename, unlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { parseEnv } from "node:util";
-import { ControlError, root } from "./configuration.mjs";
+import { ControlError, root, environment } from "./configuration.mjs";
 export const credentialNames = [
   "CLERK_SECRET_KEY",
   "CLERK_APPLICATION_ID",
@@ -19,7 +19,7 @@ export const credentialNames = [
   "NINA_STARTER_GATEWAY_API_KEY",
   "NINA_STARTER_THROTTLE_HMAC_KEY",
 ];
-const file = new URL(".env", root);
+const file = environment ? new URL(`.env.${environment}`, root) : null;
 let values = {};
 async function privateText(location) {
   try {
@@ -40,13 +40,17 @@ async function privateText(location) {
   }
 }
 export async function loadCredentials() {
+  if (!file)
+    throw new ControlError("Select --environment preview or production before loading credentials");
   values = parseEnv(await privateText(file));
 }
 export const secret = (name) => process.env[name] ?? values[name];
 export function need(name) {
   const value = secret(name);
   if (!value)
-    throw new ControlError(`Missing credential: ${name}. Set it in the repository root .env file.`);
+    throw new ControlError(
+      `Missing credential: ${name}. Set it in the selected .env.${environment} file.`,
+    );
   return value;
 }
 export function credentialStatus() {
@@ -57,11 +61,12 @@ export function credentialStatus() {
       process.env[name] !== undefined
         ? "environment"
         : values[name] !== undefined
-          ? ".env"
+          ? `.env.${environment}`
           : "missing",
   }));
 }
 export async function saveSecrets(changes) {
+  if (!file) throw new ControlError("Select an environment before saving credentials");
   const original = await privateText(file);
   const parsed = parseEnv(original);
   for (const [name, value] of Object.entries(changes)) {
@@ -95,7 +100,7 @@ export async function saveSecrets(changes) {
   for (const [name, value] of Object.entries({ ...parsed, ...changes }))
     if (resulting[name] !== value)
       throw new ControlError("Cannot preserve dotenv content safely; edit .env manually");
-  const temporary = new URL(`.env.${randomUUID()}.tmp`, root);
+  const temporary = new URL(`.env.${environment}.${randomUUID()}.tmp`, root);
   try {
     const handle = await open(temporary, "wx", 0o600);
     try {

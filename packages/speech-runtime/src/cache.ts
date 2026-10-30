@@ -5,6 +5,8 @@ import { atomic, directory, exists, hash, read } from "./files.js";
 
 export const cacheLimit = 1_000_000_000;
 type Entry = { id: string; bytes: number; sha256: string; used: number; pins: string[] };
+const ownedCacheFile =
+  /^([a-f0-9]{64})\.(ogg|json|complete)(?:\.[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\.tmp)?$/u;
 export class AudioCache {
   #queue: Promise<unknown> = Promise.resolve();
   #run<T>(work: () => Promise<T>): Promise<T> {
@@ -15,19 +17,10 @@ export class AudioCache {
   entries() {
     return this.#run(() => this.list());
   }
-  diskEntries() {
-    return this.#run(async () => {
-      const entries: Entry[] = [];
-      for (const entry of await this.list()) {
-        try {
-          const info = await lstat(path.join(this.root, `${entry.id}.ogg`));
-          if (info.isFile() && !info.isSymbolicLink()) entries.push({ ...entry, bytes: info.size });
-        } catch {
-          /* Missing files consume no space. */
-        }
-      }
-      return entries;
-    });
+  disposableBytes() {
+    return this.#run(async () =>
+      (await this.ownedFiles(false)).reduce((sum, file) => sum + file.bytes, 0),
+    );
   }
   available() {
     return this.#run(async () => {
@@ -47,18 +40,38 @@ export class AudioCache {
     return this.#run(() => this.readClip(id, false));
   }
   clearPrivate() {
+    return this.#run(() => this.clearOwned(true));
+  }
+  clearUnpinned() {
+    return this.#run(() => this.clearOwned(false));
+  }
+  private async clearOwned(all: boolean) {
+    for (const { file } of await this.ownedFiles(all)) await unlink(file);
+  }
+  private async ownedFiles(all: boolean) {
+    await directory(this.root);
+    const pinned = new Set(
+      all ? [] : (await this.list()).filter((entry) => entry.pins.length).map((entry) => entry.id),
+    );
+    const files: Array<{ file: string; bytes: number }> = [];
+    for (const name of await readdir(this.root)) {
+      const match = ownedCacheFile.exec(name);
+      if (!match || (pinned.has(match[1] ?? "") && !name.endsWith(".tmp"))) continue;
+      const file = path.join(this.root, name);
+      const info = await lstat(file);
+      if (info.isFile() && !info.isSymbolicLink()) files.push({ file, bytes: info.size });
+    }
+    return files;
+  }
+  complete(id: string, count: number) {
     return this.#run(async () => {
-      await directory(this.root);
-      for (const name of await readdir(this.root)) {
-        if (!/^[a-f0-9]{64}\.(ogg|json|complete)$/u.test(name)) continue;
-        const file = path.join(this.root, name);
-        const info = await lstat(file);
-        if (info.isFile() && !info.isSymbolicLink()) await unlink(file);
-      }
+      if (!/^[a-f0-9]{64}$/u.test(id) || !Number.isInteger(count) || count < 1 || count > 12)
+        throw new Error("OD_SPEECH_AUDIO_INVALID");
+      await atomic(path.join(this.root, `${id}.complete`), String(count));
     });
   }
-  get(id: string) {
-    return this.#run(() => this.readClip(id));
+  get(id: string, pins: string[] = []) {
+    return this.#run(() => this.readClip(id, true, pins));
   }
   put(id: string, data: Buffer, pins: string[] = []) {
     return this.#run(() => this.writeClip(id, data, pins));
@@ -115,7 +128,7 @@ export class AudioCache {
     }
     return entries;
   }
-  async readClip(id: string, touch = true): Promise<Buffer | null> {
+  async readClip(id: string, touch = true, pins: string[] = []): Promise<Buffer | null> {
     const entry = (await this.list()).find((e) => e.id === id);
     if (!entry) return null;
     const file = path.join(this.root, `${id}.ogg`);
@@ -132,7 +145,11 @@ export class AudioCache {
     if (touch)
       await atomic(
         path.join(this.root, `${id}.json`),
-        JSON.stringify({ ...entry, used: Date.now() }),
+        JSON.stringify({
+          ...entry,
+          used: Date.now(),
+          pins: [...new Set([...entry.pins, ...pins])],
+        }),
       );
     return data;
   }
@@ -180,6 +197,10 @@ export class AudioCache {
   }
 }
 export async function trimCaches(caches: AudioCache[], clear = false) {
+  if (clear) {
+    for (const cache of caches) await cache.clearUnpinned();
+    return;
+  }
   const entries = (
     await Promise.all(
       caches.map(async (cache) =>
@@ -191,7 +212,7 @@ export async function trimCaches(caches: AudioCache[], clear = false) {
     .sort((a, b) => a.entry.used - b.entry.used);
   let bytes = entries.reduce((n, e) => n + e.entry.bytes, 0);
   for (const { cache, entry } of entries) {
-    if (!clear && bytes <= cacheLimit) break;
+    if (bytes <= cacheLimit) break;
     await cache.delete(entry);
     bytes -= entry.bytes;
   }

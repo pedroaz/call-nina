@@ -192,9 +192,10 @@ export class OfflineTransport {
       const files = await this.store.verified(signal);
       await directory(session);
       await clearSession(session);
-      const socket = path.join(session, "server.sock");
-      // Linux sockaddr_un.sun_path includes the terminating NUL.
-      if (Buffer.byteLength(socket) > 107) fail("SOCKET_PATH_TOO_LONG");
+      // sockaddr_un limits the address string to 107 bytes. The server's cwd
+      // is the private session directory; /proc keeps the address short even
+      // for a deeply nested learner folder, without storing anything elsewhere.
+      const serverSocket = "/proc/self/cwd/server.sock";
       const key = randomBytes(32).toString("hex");
       await writeNew(path.join(session, "api-key"), key);
       if (!active()) fail("INACTIVE");
@@ -213,7 +214,7 @@ export class OfflineTransport {
           "--alias",
           offlineCandidate.modelId,
           "--host",
-          socket,
+          serverSocket,
           "--api-key-file",
           path.join(session, "api-key"),
           "--offline",
@@ -275,6 +276,7 @@ export class OfflineTransport {
         exited = true;
       });
       if (!child.pid) fail("RUNTIME_START_FAILED");
+      const socket = `/proc/${String(child.pid)}/cwd/server.sock`;
       await lock.child(child.pid);
       const onAbort = () => {
         void this.stop();

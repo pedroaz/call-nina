@@ -14,6 +14,7 @@ declare module "*Button.module.css" {
     readonly buttonIcon: string;
     readonly content: string;
     readonly danger: string;
+    readonly dangerQuiet: string;
     readonly iconButton: string;
     readonly iconSlot: string;
     readonly primary: string;
@@ -63,6 +64,10 @@ declare module "*Fields.module.css" {
     readonly optionGrid: string;
     readonly radioGroup: string;
     readonly select: string;
+    readonly switch: string;
+    readonly switchField: string;
+    readonly switchThumb: string;
+    readonly switchTrack: string;
     readonly toggleGroup: string;
   };
   export default styles;

@@ -127,7 +127,11 @@ export function StoriesPage() {
             <p ref={passage} tabIndex={-1} data-focus-anchor className={styles.passage}>
               {story.paragraphs[paragraph]}
             </p>
-            <SpeechButton text={story.paragraphs[paragraph] ?? ""} language={story.language} />
+            <SpeechButton
+              text={story.paragraphs[paragraph] ?? ""}
+              language={story.language}
+              variant="passage"
+            />
           </div>
           <ActionGroup>
             <Button
@@ -167,7 +171,9 @@ export function StoriesPage() {
                   </Button>
                 }
               >
-                <strong lang={story.language}>{word.text}</strong>
+                <strong lang={story.language}>
+                  {word.text} <SpeechButton text={word.text} language={story.language} />
+                </strong>
                 <p>
                   {
                     word.meaning[

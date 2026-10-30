@@ -12,9 +12,6 @@
 .panel {
   gap: var(--od-space-4);
 }
-.providerControls[data-align] {
-  align-items: flex-end;
-}
 .connectionHeading {
   display: flex;
   align-items: center;
@@ -254,36 +251,6 @@
   color: var(--od-color-text-muted);
   font-size: var(--od-type-caption-size);
   line-height: var(--od-type-caption-line);
-}
-
-.capabilityLabel,
-.selectedCapability {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--od-space-2);
-  font-size: var(--od-type-body-small-size);
-  line-height: var(--od-type-body-small-line);
-  color: var(--od-color-text-muted);
-}
-.capabilityLabel svg,
-.selectedCapability svg {
-  width: var(--od-icon-sm);
-  height: var(--od-icon-sm);
-  flex: none;
-}
-.capabilityLabel[data-supported] {
-  color: var(--od-color-state-correct);
-}
-.selectedCapability {
-  white-space: nowrap;
-  border-radius: var(--od-radius-sm);
-  padding: var(--od-space-1) var(--od-space-2);
-  font-weight: var(--od-weight-medium);
-  background: var(--od-color-surface-brand);
-}
-.selectedCapability[data-ready="true"] {
-  color: var(--od-color-state-correct);
-  background: var(--od-color-state-correct-soft);
 }
 
 .routingMatrix td:nth-child(n + 3),

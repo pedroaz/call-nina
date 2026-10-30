@@ -1,3 +1,4 @@
+import { LessonListening } from "./LessonListening.js";
 import { SpeechButton, stopSpeech } from "./SpeechButton.js";
 import { CourseAudio } from "./SpeechSettings.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
@@ -50,7 +51,8 @@ export function LearningPathLesson({
   launchFeedback: (origin: string) => ReactNode;
   mutate: (
     ref: CourseReference,
-    action: "select" | "complete-explanation" | "skip" | "reopen" | "new-mission",
+    action:
+      "select" | "complete-explanation" | "complete-listening" | "skip" | "reopen" | "new-mission",
   ) => Promise<void>;
   onOpenResults: (ids: HistoryEntryId[]) => void;
   openLesson: (unit: CourseUnit) => void;
@@ -122,6 +124,8 @@ export function LearningPathLesson({
     );
   };
   const explanation = activity.delivery === "explanation";
+  const listening = activity.delivery === "listening";
+  const localActivity = explanation || listening;
   const firstExample = selected.examples[0];
   const finished = counts(selected).completed === counts(selected).total;
   const goForward = () => {
@@ -241,6 +245,7 @@ export function LearningPathLesson({
                               <SpeechButton
                                 text={activity.input}
                                 language={snapshot.learningContext.targetLanguage}
+                                variant="passage"
                               />
                             </div>
                           ) : firstExample ? (
@@ -305,14 +310,15 @@ export function LearningPathLesson({
                             </Disclosure>
                           )}
                         </>
+                      ) : listening ? (
+                        <LessonListening
+                          key={activity.id}
+                          activity={activity}
+                          language={snapshot.learningContext.targetLanguage}
+                          locale={locale}
+                        />
                       ) : (
                         <div className={styles.activityInvitation}>
-                          {activity.delivery === "listening" && activity.input && (
-                            <SpeechButton
-                              text={activity.input}
-                              language={snapshot.learningContext.targetLanguage}
-                            />
-                          )}
                           <Nina
                             pose={
                               finished
@@ -356,7 +362,7 @@ export function LearningPathLesson({
                             : "learningPath.skip",
                         )}
                       </Button>
-                      {!explanation && (
+                      {!localActivity && (
                         <ProviderActionSummary
                           operation={
                             activity.delivery === "listening" || activity.delivery === "speaking"
@@ -367,7 +373,7 @@ export function LearningPathLesson({
                         />
                       )}
                       <ActionGroup align="end">
-                        {!lessonNext && !explanation && (
+                        {!lessonNext && !localActivity && (
                           <Button
                             variant="secondary"
                             isDisabled={busy}
@@ -390,25 +396,33 @@ export function LearningPathLesson({
                           data-path-focus={`activity:${activity.id}`}
                           trailingIcon={<ArrowRight aria-hidden="true" />}
                           onPress={() => {
-                            if (!lessonNext || (explanation && status === "completed")) goForward();
-                            else if (explanation) void mutate(ref, "complete-explanation");
+                            if (localActivity && status !== "completed" && status !== "skipped")
+                              void mutate(
+                                ref,
+                                listening ? "complete-listening" : "complete-explanation",
+                              );
+                            else if (!lessonNext || localActivity) goForward();
                             else void launch(ref, `activity:${activity.id}`);
                           }}
                         >
                           {t(
-                            !lessonNext
-                              ? followingLesson
-                                ? "pathLibrary.nextLesson"
-                                : "pathFlow.backTrail"
-                              : explanation
-                                ? status === "completed"
-                                  ? "actions.continue"
-                                  : "lessonStudio.finishAndContinue"
-                                : attempts.some((a) => !a.completed)
-                                  ? "missions.resume"
-                                  : attempts.length
-                                    ? "missions.retry"
-                                    : "learningPath.start",
+                            localActivity && !["completed", "skipped"].includes(status)
+                              ? listening
+                                ? "speech.finishListening"
+                                : "lessonStudio.finishAndContinue"
+                              : !lessonNext
+                                ? followingLesson
+                                  ? "pathLibrary.nextLesson"
+                                  : "pathFlow.backTrail"
+                                : localActivity
+                                  ? status === "completed"
+                                    ? "actions.continue"
+                                    : "lessonStudio.finishAndContinue"
+                                  : attempts.some((a) => !a.completed)
+                                    ? "missions.resume"
+                                    : attempts.length
+                                      ? "missions.retry"
+                                      : "learningPath.start",
                           )}
                         </Button>
                       </ActionGroup>

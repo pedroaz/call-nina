@@ -1,3 +1,4 @@
+import { SpeechButton } from "./SpeechButton.js";
 import type { DataRootGeneration } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { ActionGroup } from "./components/layout/index.js";
@@ -50,7 +51,7 @@ export function VocabularyReview({
       {!queue && busy && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {!queue && !busy && (
         <Button variant="secondary" onPress={() => void load()}>
-          {t("vocabulary.refresh")}
+          {t("actions.retry")}
         </Button>
       )}
       <ActivityFrame
@@ -141,6 +142,9 @@ export function VocabularyReview({
               </SelectControl>
             </FieldGroup>
             <p>{t(`vocabulary.review.prompts.${retrieval}`)}</p>
+            {retrieval !== "recall" && !revealed && (
+              <SpeechButton text={entry.lemma} language={entry.targetLanguage} />
+            )}
             <RecallCard
               identity={index}
               cue={retrieval === "recall" && !revealed ? entry.meaning : entry.lemma}

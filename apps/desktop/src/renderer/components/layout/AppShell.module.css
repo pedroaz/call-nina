@@ -101,15 +101,15 @@
 }
 .navFooter {
   display: grid;
-  gap: var(--od-space-5);
+  gap: var(--od-space-3);
   flex: none;
 }
-.navFooter > small {
-  font-size: var(--od-font-size-sm);
-  color: var(--od-color-text-muted);
-}
-.settingsNavigation {
+.navUtilities {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
   margin-top: auto;
+  flex: none;
 }
 .workspace {
   min-width: 0;

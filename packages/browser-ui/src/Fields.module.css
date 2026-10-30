@@ -149,6 +149,60 @@ textarea.control,
   width: var(--od-icon-md, 1.25rem);
 }
 
+.switchField {
+  display: inline-flex;
+  gap: var(--od-space-3);
+}
+
+.switch {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  gap: var(--od-space-3);
+  min-height: var(--od-control-min, 2.75rem);
+  font-size: var(--od-type-body-small-size);
+  font-weight: var(--od-font-weight-semibold);
+}
+
+.switchTrack {
+  background: var(--od-color-surface-sunken);
+  border: var(--od-border-thin) solid var(--od-color-border-default);
+  border-radius: var(--od-radius-pill);
+  display: flex;
+  align-items: center;
+  flex: none;
+  padding: var(--od-space-1);
+  width: 2.75rem;
+  height: 1.5rem;
+}
+
+.switchThumb {
+  background: var(--od-color-text-muted);
+  border-radius: var(--od-radius-pill);
+  width: 1rem;
+  height: 1rem;
+}
+
+.switch[data-selected] .switchTrack {
+  background: var(--od-color-action-primary);
+  border-color: var(--od-color-action-primary);
+  justify-content: flex-end;
+}
+
+.switch[data-selected] .switchThumb {
+  background: var(--od-color-on-action);
+}
+
+.switch[data-focus-visible] .switchTrack {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: var(--od-space-2);
+}
+
+.switch[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .optionGrid {
   display: grid;
   gap: var(--od-space-4);

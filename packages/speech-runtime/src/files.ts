@@ -4,12 +4,21 @@ import { createHash, randomUUID } from "node:crypto";
 import path from "node:path";
 
 export const hash = (data: string | Uint8Array) => createHash("sha256").update(data).digest("hex");
-export async function directory(dir: string) {
-  await mkdir(dir, { recursive: true, mode: 0o700 });
-  if (!(await lstat(dir)).isDirectory() || (await lstat(dir)).isSymbolicLink())
-    throw new Error("OD_SPEECH_UNSAFE_FILE");
+export async function directory(dir: string, create = true) {
+  if (!path.isAbsolute(dir) || path.resolve(dir) !== dir) throw new Error("OD_SPEECH_UNSAFE_FILE");
+  let current = path.parse(dir).root;
+  for (const part of dir.slice(current.length).split(path.sep).filter(Boolean)) {
+    current = path.join(current, part);
+    if (create)
+      await mkdir(current, { mode: 0o700 }).catch((error: unknown) => {
+        if (!(error instanceof Error && "code" in error && error.code === "EEXIST")) throw error;
+      });
+    const info = await lstat(current);
+    if (!info.isDirectory() || info.isSymbolicLink()) throw new Error("OD_SPEECH_UNSAFE_FILE");
+  }
 }
 export async function read(file: string, maximum = 20_000_000): Promise<Buffer> {
+  await directory(path.dirname(file), false);
   const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const info = await handle.stat();
@@ -70,14 +79,19 @@ export async function boundedBody(response: Response, maximum: number, signal: A
   return Buffer.concat(chunks);
 }
 
-export async function diskUsage(root: string): Promise<number> {
+export async function diskUsage(root: string, seen = new Set<string>()): Promise<number> {
   try {
     const info = await lstat(root);
     if (info.isSymbolicLink()) return 0;
-    if (info.isFile()) return info.size;
+    if (info.isFile()) {
+      const identity = `${String(info.dev)}:${String(info.ino)}`;
+      if (seen.has(identity)) return 0;
+      seen.add(identity);
+      return info.size;
+    }
     if (!info.isDirectory()) return 0;
     let bytes = 0;
-    for (const name of await readdir(root)) bytes += await diskUsage(path.join(root, name));
+    for (const name of await readdir(root)) bytes += await diskUsage(path.join(root, name), seen);
     return bytes;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return 0;

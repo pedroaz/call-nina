@@ -332,14 +332,13 @@ export class ActivityService {
     const course = await readLearningCourse(this.#curriculumRoot, learningScope.targetLanguage);
     if (!course) throw new Error("OD_COURSE_NOT_FOUND");
     const { reference, unit, activity } = resolveCourseReference(course, action.reference);
-    if (activity.delivery !== "listening" && activity.delivery !== "speaking")
-      throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
+    if (activity.delivery !== "speaking") throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
     const teaching = await prepareCourseTeaching(this.#database, course, reference, locale);
     const activityId = activityIdSchema.parse(opaqueId("activity"));
     await this.#repository.savePreparedActivity(
       {
         activityId,
-        activityType: activity.delivery === "listening" ? "codex-listening" : "voice-speaking",
+        activityType: "voice-speaking",
         title: `${unit.title[locale]} · ${activity.title[locale]}`.slice(0, 160),
         originSurface: "desktop",
         context: {
@@ -360,9 +359,6 @@ export class ActivityService {
             difficulty: "beginner",
             correctionTiming: "end",
             objectives: teaching.objectives.map((o) => o.description.slice(0, 500)),
-            ...(activity.delivery === "listening"
-              ? { script: activity.input?.slice(0, 2400) }
-              : {}),
             questions: activity.questions.length
               ? activity.questions.map((q) => q[locale].slice(0, 500))
               : [activity.instructions[locale].slice(0, 500)],

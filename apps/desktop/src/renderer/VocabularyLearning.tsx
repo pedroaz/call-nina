@@ -1,9 +1,11 @@
+import { SpeechButton } from "./SpeechButton.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { ArrowRight, BookOpen, BookPlus, Compass } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   type ActivityId,
+  type CallNinaError,
   type DesktopIpcResponse,
   type ProviderOperation,
   vocabularyAnalysisOutputSchema,
@@ -20,6 +22,7 @@ import {
   LoadingState,
 } from "./components/ui/index.js";
 import { ActionGroup, Page, ContentRow } from "./components/layout/index.js";
+import { OperationError } from "./OperationError.js";
 import { OperationProgress } from "./OperationProgress.js";
 import styles from "./VocabularyLearning.module.css";
 
@@ -29,28 +32,43 @@ type Snapshot = Extract<
 >["result"];
 function useVocabularyLearning() {
   const [snapshot, setSnapshot] = useState<Snapshot>();
+  const [readError, setReadError] = useState<CallNinaError>();
   const [error, setError] = useState("");
+  const [reading, setReading] = useState(true);
   const [saving, setSaving] = useState(false);
   const requestVersion = useRef(0);
-  const refresh = useCallback(() => {
+  const rootEpoch = useRef(0);
+  const mounted = useRef(true);
+  const updating = useRef(false);
+  const refresh = useCallback(async () => {
+    if (updating.current) return;
     const version = ++requestVersion.current;
-    return invokeDesktop("vocabulary/learning-read", {})
-      .then((next) => {
-        if (version !== requestVersion.current) return;
-        setSnapshot(next);
-        setError("");
-        return next;
-      })
-      .catch((cause: unknown) => {
-        if (version === requestVersion.current)
-          setError(normalizeDesktopError(cause).detail.messageKey);
-      });
+    setReading(true);
+    try {
+      const next = await invokeDesktop("vocabulary/learning-read", {});
+      if (version !== requestVersion.current || !mounted.current) return;
+      setSnapshot(next);
+      setReadError(undefined);
+      return next;
+    } catch (cause) {
+      if (version === requestVersion.current && mounted.current)
+        setReadError(normalizeDesktopError(cause).detail);
+    } finally {
+      if (version === requestVersion.current && mounted.current) setReading(false);
+    }
   }, []);
   useEffect(() => {
-    void refresh();
-    return subscribeDesktop((event) => {
+    mounted.current = true;
+    const initial = window.setTimeout(() => void refresh(), 0);
+    const onFocus = () => void refresh();
+    window.addEventListener("focus", onFocus);
+    const unsubscribe = subscribeDesktop((event) => {
       if (event.event === "data-root-changed") {
+        rootEpoch.current++;
+        updating.current = false;
+        setSaving(false);
         setSnapshot(undefined);
+        setError("");
         void refresh();
       }
       if (
@@ -59,29 +77,45 @@ function useVocabularyLearning() {
       )
         void refresh();
     });
+    return () => {
+      mounted.current = false;
+      requestVersion.current++;
+      rootEpoch.current++;
+      window.clearTimeout(initial);
+      window.removeEventListener("focus", onFocus);
+      unsubscribe();
+    };
   }, [refresh]);
   const update = async (
     action: Parameters<typeof invokeDesktop<"vocabulary/learning-update">>[1]["action"],
   ) => {
-    if (!snapshot || saving) return false;
+    if (!snapshot || updating.current) return false;
+    const epoch = rootEpoch.current;
+    updating.current = true;
+    requestVersion.current++;
+    setReading(false);
     setSaving(true);
     try {
-      setSnapshot(
-        await invokeDesktop("vocabulary/learning-update", {
-          rootGeneration: snapshot.rootGeneration,
-          action,
-        }),
-      );
+      const next = await invokeDesktop("vocabulary/learning-update", {
+        rootGeneration: snapshot.rootGeneration,
+        action,
+      });
+      if (!mounted.current || epoch !== rootEpoch.current) return false;
+      setSnapshot(next);
       setError("");
       return true;
     } catch (cause) {
-      setError(normalizeDesktopError(cause).detail.messageKey);
+      if (mounted.current && epoch === rootEpoch.current)
+        setError(normalizeDesktopError(cause).detail.messageKey);
       return false;
     } finally {
-      setSaving(false);
+      if (mounted.current && epoch === rootEpoch.current) {
+        updating.current = false;
+        setSaving(false);
+      }
     }
   };
-  return { snapshot, refresh, update, error, saving };
+  return { snapshot, refresh, update, readError, reading, error, saving };
 }
 export function VocabularyLearningNotice({
   compact,
@@ -115,7 +149,6 @@ export function VocabularyLearning({
   dueCount,
   onReview,
   reviewButtonRef,
-  refreshLibrary,
   libraryBusy,
   children,
   initialTab,
@@ -130,7 +163,6 @@ export function VocabularyLearning({
   dueCount: number | undefined;
   onReview: () => void;
   reviewButtonRef: Ref<HTMLButtonElement>;
-  refreshLibrary: () => Promise<unknown>;
   libraryBusy: boolean;
   children: ReactNode;
   initialTab: string;
@@ -138,7 +170,15 @@ export function VocabularyLearning({
 }) {
   const { t } = useTranslation();
   const { notify } = useNotifications();
-  const { snapshot, refresh, update, error: readError, saving } = useVocabularyLearning();
+  const {
+    snapshot,
+    refresh,
+    update,
+    error: updateError,
+    readError,
+    reading,
+    saving,
+  } = useVocabularyLearning();
   const operation = useLearningOperation();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState(initialTab);
@@ -178,6 +218,18 @@ export function VocabularyLearning({
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
   const busy = checking || operation.busy;
+  const readFailure = readError && (
+    <OperationError error={readError}>
+      <Button
+        variant="secondary"
+        isPending={reading}
+        isDisabled={busy || saving}
+        onPress={() => void refresh()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
   useEffect(() => {
     onBusyChange(busy || saving || open || Boolean(focusId) || Boolean(wordId));
     return () => {
@@ -290,12 +342,6 @@ export function VocabularyLearning({
   return (
     <Page
       title={t("vocabulary.title")}
-      refresh={{
-        onRefresh: async () => {
-          await Promise.all([refresh(), refreshLibrary()]);
-        },
-        busy: libraryBusy,
-      }}
       actions={
         <Button
           variant="secondary"
@@ -309,11 +355,12 @@ export function VocabularyLearning({
         </Button>
       }
     >
-      {(error || readError) && !open && !focus && (
+      {(error || updateError) && !open && !focus && (
         <Feedback tone="error" live="polite">
-          {t(error || readError)}
+          {t(error || updateError)}
         </Feedback>
       )}
+      {!open && !focus && !selectedWord && readFailure}
       <Tabs
         label={t("vocabulary.title")}
         selectedKey={tab}
@@ -388,16 +435,21 @@ export function VocabularyLearning({
                   {recent.slice(0, showAllRecent ? recent.length : 3).map((word) => (
                     <ContentRow key={word.vocabularyId} density="compact">
                       <div className={styles.wordRow}>
-                        <Button
-                          variant="quiet"
-                          className={styles.wordButton}
-                          onPress={() => {
-                            setWordId(word.vocabularyId);
-                          }}
-                        >
-                          <span lang={snapshot?.language}>{word.lemma}</span>
-                        </Button>
-                        <span>{word.meaning}</span>
+                        <div className={styles.wordIdentity}>
+                          <Button
+                            variant="quiet"
+                            className={styles.wordButton}
+                            onPress={() => {
+                              setWordId(word.vocabularyId);
+                            }}
+                          >
+                            <span lang={snapshot?.language}>{word.lemma}</span>
+                          </Button>
+                          {snapshot && (
+                            <SpeechButton text={word.lemma} language={snapshot.language} />
+                          )}
+                        </div>
+                        <span className={styles.meaning}>{word.meaning}</span>
                         <span className={styles.source}>
                           {t(`vocabulary.learning.sources.${word.batch.source}`)}
                         </span>
@@ -523,11 +575,12 @@ export function VocabularyLearning({
                 }}
               />
             </label>
-            {readError && (
+            {updateError && (
               <Feedback tone="error" live="polite">
-                {t(readError)}
+                {t(updateError)}
               </Feedback>
             )}
+            {readFailure}
             <ActionGroup align="end">
               <Button
                 variant="quiet"
@@ -566,15 +619,20 @@ export function VocabularyLearning({
           }}
         >
           <div className={styles.form}>
-            {readError && (
+            {updateError && (
               <Feedback tone="error" live="polite">
-                {t(readError)}
+                {t(updateError)}
               </Feedback>
             )}
+            {readFailure}
+            {snapshot && <SpeechButton text={selectedWord.lemma} language={snapshot.language} />}
             <p className={styles.translation}>{selectedWord.meaning}</p>
             {selectedWord.examples.map((example, index) => (
               <div key={index}>
-                <p lang={snapshot?.language}>{example.text}</p>
+                <p lang={snapshot?.language}>
+                  {example.text}{" "}
+                  {snapshot && <SpeechButton text={example.text} language={snapshot.language} />}
+                </p>
                 <p className={styles.muted}>{example.meaning}</p>
               </div>
             ))}

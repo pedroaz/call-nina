@@ -12,6 +12,29 @@
   justify-self: start;
 }
 
+.settingsGroup {
+  gap: 0;
+}
+
+.settingsGroup > h2 {
+  margin-block-end: var(--od-space-5);
+}
+
+.learningProfile {
+  display: grid;
+  gap: var(--od-space-6);
+  min-width: 0;
+}
+
+.learningProfile > section + section {
+  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+  padding-top: var(--od-space-6);
+}
+
+.learningGoal {
+  grid-column: 1 / -1;
+}
+
 .switchConfirmation {
   background: var(--od-color-state-streak-soft);
   border: var(--od-border-thin) solid var(--od-color-state-streak);

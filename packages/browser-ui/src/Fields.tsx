@@ -8,6 +8,28 @@ import {
 } from "react";
 
 import styles from "./Fields.module.css";
+import {
+  SwitchField as AriaSwitchField,
+  SwitchButton,
+  type SwitchFieldProps,
+} from "react-aria-components";
+
+export function SwitchField({
+  children,
+  className,
+  ...props
+}: Omit<SwitchFieldProps, "children" | "className"> & { children: ReactNode; className?: string }) {
+  return (
+    <AriaSwitchField {...props} className={`${styles.switchField} ${className ?? ""}`}>
+      <SwitchButton className={styles.switch}>
+        <span className={styles.switchTrack} aria-hidden="true">
+          <span className={styles.switchThumb} />
+        </span>
+        <span>{children}</span>
+      </SwitchButton>
+    </AriaSwitchField>
+  );
+}
 
 type FieldFrameProps = Readonly<{
   id: string;

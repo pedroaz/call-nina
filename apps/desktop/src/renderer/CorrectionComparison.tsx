@@ -1,3 +1,5 @@
+import { SpeechButton } from "./SpeechButton.js";
+import type { Language } from "@call-nina/contracts";
 import type { GenerationCandidateOutputMap } from "@call-nina/contracts";
 import { alignCorrectionTexts } from "@call-nina/domain";
 import { useMemo, useState } from "react";
@@ -93,8 +95,10 @@ export function CorrectionComparison({
   originalText,
   correction,
   onHelperSelection,
+  targetLanguage,
 }: {
   originalText: string;
+  targetLanguage?: Language | undefined;
   correction: CorrectionOutput;
   onHelperSelection?: (selectedText: string) => void;
 }) {
@@ -125,6 +129,13 @@ export function CorrectionComparison({
       <div className={styles.reviewBody}>
         <p className={styles.eyebrow}>{t("writing.correctionReady")}</p>
         <h2>{t("writing.correctedText")}</h2>
+        {targetLanguage && (
+          <SpeechButton
+            text={correction.correctedText}
+            language={targetLanguage}
+            variant="passage"
+          />
+        )}
         {changes.length === 0 && (
           <p className={styles.correctedPriority}>{correction.correctedText}</p>
         )}

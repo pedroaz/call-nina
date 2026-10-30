@@ -23,7 +23,6 @@ export function useActivityLibrary(
     async (cursor?: NonNullable<Snapshot["nextCursor"]>) => {
       const current = ++version.current;
       setBusy(true);
-      setError(undefined);
       try {
         const targetCount = cursor ? 20 : retainedCount.current;
         let nextCursor = cursor;
@@ -48,6 +47,7 @@ export function useActivityLibrary(
         } while (entries.length < targetCount && nextCursor);
         next = { ...next, entries };
         if (current !== version.current) return;
+        setError(undefined);
         if (cursor) retainedCount.current += next.entries.length;
         setSnapshot((previous) => ({
           ...next,

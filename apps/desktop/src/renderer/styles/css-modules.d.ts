@@ -40,7 +40,7 @@ declare module "*AppShell.module.css" {
     readonly navInner: string;
     readonly navLabel: string;
     readonly navList: string;
-    readonly settingsNavigation: string;
+    readonly navUtilities: string;
     readonly shell: string;
     readonly workspace: string;
     readonly workspaceInner: string;
@@ -60,7 +60,6 @@ declare module "*CompletionActions.module.css" {
 declare module "*ConnectionSettings.module.css" {
   const styles: {
     readonly actions: string;
-    readonly capabilityLabel: string;
     readonly confirm: string;
     readonly connectionHeading: string;
     readonly connectionIcon: string;
@@ -76,14 +75,12 @@ declare module "*ConnectionSettings.module.css" {
     readonly offline: string;
     readonly panel: string;
     readonly providerButton: string;
-    readonly providerControls: string;
     readonly providerOverview: string;
     readonly providerStatus: string;
     readonly remove: string;
     readonly routingChoice: string;
     readonly routingMatrix: string;
     readonly secret: string;
-    readonly selectedCapability: string;
     readonly statusIssue: string;
     readonly statusLabel: string;
   };
@@ -225,6 +222,7 @@ declare module "*InfoHint.module.css" {
     readonly popover: string;
     readonly trigger: string;
     readonly utilityContent: string;
+    readonly utilityHeader: string;
     readonly utilityTrigger: string;
   };
   export default styles;
@@ -280,6 +278,9 @@ declare module "*LearningPathPage.module.css" {
     readonly lessonProgressHeader: string;
     readonly lessonWorkspace: string;
     readonly librarySummary: string;
+    readonly listening: string;
+    readonly listeningQuestions: string;
+    readonly listeningTranscript: string;
     readonly page: string;
     readonly pathHeading: string;
     readonly pathIcon: string;
@@ -355,7 +356,10 @@ declare module "*PersonalDataPage.module.css" {
     readonly details: string;
     readonly folder: string;
     readonly path: string;
+    readonly privacyCopy: string;
     readonly reset: string;
+    readonly settingsGroup: string;
+    readonly storageTable: string;
     readonly table: string;
     readonly tableWrap: string;
   };
@@ -427,6 +431,16 @@ declare module "*ProviderActionSummary.module.css" {
   export default styles;
 }
 
+declare module "*ProviderMatrix.module.css" {
+  const styles: {
+    readonly choice: string;
+    readonly hidden: string;
+    readonly scroll: string;
+    readonly table: string;
+  };
+  export default styles;
+}
+
 declare module "*SavedTranslation.module.css" {
   const styles: {
     readonly controls: string;
@@ -451,6 +465,8 @@ declare module "*SettingsPage.module.css" {
     readonly integrationFeedback: string;
     readonly integrationHeading: string;
     readonly integrationStatus: string;
+    readonly learningGoal: string;
+    readonly learningProfile: string;
     readonly loginStatus: string;
     readonly modelRow: string;
     readonly ninaAccount: string;
@@ -464,6 +480,7 @@ declare module "*SettingsPage.module.css" {
     readonly pendingSession: string;
     readonly settingsActions: string;
     readonly settingsControls: string;
+    readonly settingsGroup: string;
     readonly settingsPage: string;
     readonly settingsSection: string;
     readonly switchConfirmation: string;
@@ -477,7 +494,18 @@ declare module "*SettingsRow.module.css" {
     readonly action: string;
     readonly copy: string;
     readonly icon: string;
+    readonly link: string;
+    readonly linkLabel: string;
     readonly row: string;
+  };
+  export default styles;
+}
+
+declare module "*SidebarLanguages.module.css" {
+  const styles: {
+    readonly copy: string;
+    readonly summary: string;
+    readonly trigger: string;
   };
   export default styles;
 }
@@ -485,21 +513,31 @@ declare module "*SettingsRow.module.css" {
 declare module "*SidebarModelControl.module.css" {
   const styles: {
     readonly assignment: string;
-    readonly navModelPanel: string;
+    readonly assignments: string;
+    readonly rate: string;
+  };
+  export default styles;
+}
+
+declare module "*SpeechButton.module.css" {
+  const styles: {
+    readonly playback: string;
+    readonly spinner: string;
+    readonly status: string;
   };
   export default styles;
 }
 
 declare module "*SpeechSettings.module.css" {
   const styles: {
-    readonly actionLabel: string;
     readonly details: string;
+    readonly language: string;
     readonly languages: string;
     readonly pack: string;
-    readonly playback: string;
     readonly sections: string;
     readonly storage: string;
     readonly usage: string;
+    readonly voice: string;
   };
   export default styles;
 }
@@ -540,6 +578,7 @@ declare module "*VocabularyLearning.module.css" {
     readonly focusIcon: string;
     readonly focusRow: string;
     readonly form: string;
+    readonly meaning: string;
     readonly muted: string;
     readonly notice: string;
     readonly overview: string;
@@ -552,6 +591,7 @@ declare module "*VocabularyLearning.module.css" {
     readonly source: string;
     readonly translation: string;
     readonly wordButton: string;
+    readonly wordIdentity: string;
     readonly wordRow: string;
   };
   export default styles;

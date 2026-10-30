@@ -35,6 +35,7 @@ export function NinaHome({
   const [refreshing, setRefreshing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
+  const [readError, setReadError] = useState<CallNinaError>();
   const request = useRef(0);
   const mounted = useRef(true);
   const active = useRef(false);
@@ -44,10 +45,13 @@ export function NinaHome({
     setRefreshing(true);
     try {
       const home = await invokeDesktop("nina/read", {});
-      if (current === request.current && mounted.current) setSnapshot(home);
+      if (current === request.current && mounted.current) {
+        setSnapshot(home);
+        setReadError(undefined);
+      }
     } catch (cause) {
       if (current === request.current && mounted.current)
-        setError(normalizeDesktopError(cause).detail);
+        setReadError(normalizeDesktopError(cause).detail);
     } finally {
       if (current === request.current && mounted.current) setRefreshing(false);
     }
@@ -139,14 +143,21 @@ export function NinaHome({
     }
   };
   return (
-    <Page
-      width="form"
-      className={styles.home}
-      title={t("nav.nina")}
-      refresh={{ onRefresh: refresh, busy: refreshing, disabled: busy }}
-    >
+    <Page width="form" className={styles.home} title={t("nav.nina")}>
       {error && <OperationError error={error} />}
-      {!snapshot && !error && <LoadingState live>{t("dashboard.refreshing")}</LoadingState>}
+      {readError && (
+        <OperationError error={readError}>
+          <Button
+            variant="secondary"
+            isPending={refreshing}
+            isDisabled={busy}
+            onPress={() => void refresh()}
+          >
+            {t("actions.retry")}
+          </Button>
+        </OperationError>
+      )}
+      {!snapshot && !readError && <LoadingState live>{t("dashboard.refreshing")}</LoadingState>}
       {snapshot?.resume && (
         <>
           <Card as="section" variant="muted" className={styles.resume}>

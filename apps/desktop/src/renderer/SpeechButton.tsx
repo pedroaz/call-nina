@@ -1,222 +1,132 @@
-import { useEffect, useId, useState, useSyncExternalStore, useRef } from "react";
-import { Volume2, Square } from "lucide-react";
-import type { Language } from "@call-nina/contracts";
+import { useCallback, useEffect, useId, useRef, useSyncExternalStore } from "react";
+import { Volume2, Square, LoaderCircle } from "lucide-react";
+import type { Language, SpeechPlaybackRequest } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
-import { Button } from "./components/ui/index.js";
-import styles from "./SpeechSettings.module.css";
-import { invokeDesktop, subscribeDesktop } from "./ipc.js";
+import { Button, IconButton } from "./components/ui/index.js";
+import styles from "./SpeechButton.module.css";
+import {
+  stopSpeech,
+  speechAvailabilityKey,
+  readSpeechAvailability,
+  subscribeSpeechAvailability,
+  readSpeechPlayback,
+  subscribeSpeechPlayback,
+  playSpeech,
+} from "./speechPlayback.js";
+export { stopSpeech } from "./speechPlayback.js";
 
-let owner: string | null = null;
-let player: HTMLAudioElement | null = null;
-let revision = 0;
-let urls: string[] = [];
-let requestSequence = 0;
-let cancellation: Promise<unknown> = Promise.resolve();
-const listeners = new Set<() => void>();
-const changed = () => {
-  revision++;
-  for (const listener of listeners) listener();
-};
-export function stopSpeech() {
-  requestSequence++;
-  owner = null;
-  player?.pause();
-  player = null;
-  for (const url of urls) URL.revokeObjectURL(url);
-  urls = [];
-  changed();
-  cancellation = invokeDesktop("speech/manage", { action: "cancel" }).catch(() => undefined);
-}
 export function SpeechButton({
   text,
   language,
+  source,
+  voice,
+  variant = "inline",
+  enabled = true,
   showUnavailableReason = true,
 }: {
   text: string;
   language: Language;
+  source?: SpeechPlaybackRequest["source"];
+  voice?: SpeechPlaybackRequest["voice"];
+  variant?: "inline" | "passage";
+  enabled?: boolean;
   showUnavailableReason?: boolean;
 }) {
   const { t } = useTranslation();
   const id = useId();
-  const [slow, setSlow] = useState(false);
-  const playbackRate = useRef(1);
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [availability, setAvailability] = useState({ available: false, reason: "checking" });
-  useEffect(() => {
-    let mounted = true,
-      sequence = 0;
-    const refresh = async () => {
-      const ticket = ++sequence;
-      try {
-        const value = await invokeDesktop("speech/availability", {
-          id: crypto.randomUUID(),
-          text,
-          language,
-          online: navigator.onLine,
-        });
-        if (mounted && ticket === sequence) setAvailability(value);
-      } catch {
-        if (mounted && ticket === sequence)
-          setAvailability({ available: false, reason: "unavailable" });
-      }
-    };
-    const initial = window.setTimeout(() => {
-      setAvailability({ available: false, reason: "checking" });
-      void refresh();
-    }, 0);
-    const onConnection = () => {
-      void refresh();
-    };
-    const unsubscribe = subscribeDesktop((event) => {
-      if (event.event === "state-invalidated") void refresh();
-    });
-    window.addEventListener("online", onConnection);
-    window.addEventListener("offline", onConnection);
-    const timer = window.setInterval(() => void refresh(), 10000);
-    return () => {
-      mounted = false;
-      window.clearTimeout(initial);
-      unsubscribe();
-      clearInterval(timer);
-      window.removeEventListener("online", onConnection);
-      window.removeEventListener("offline", onConnection);
-    };
-  }, [text, language]);
-  useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    () => revision,
+  const root = useRef<HTMLSpanElement>(null);
+  const key = speechAvailabilityKey(text, language, source, voice);
+  const subscribe = useCallback(
+    (listener: () => void) =>
+      enabled
+        ? subscribeSpeechAvailability(key, text, language, source, voice, listener)
+        : () => {},
+    [enabled, key, text, language, source, voice],
   );
-  const active = owner === id;
+  const availability = useSyncExternalStore(subscribe, () => readSpeechAvailability(key));
+  const playback = useSyncExternalStore(subscribeSpeechPlayback, readSpeechPlayback);
+  const active = playback.owner === id;
   useEffect(
     () => () => {
-      if (owner === id) stopSpeech();
+      if (readSpeechPlayback().owner === id) stopSpeech();
     },
-    [id, text, language],
+    [id, text, language, source, voice, enabled],
   );
-  useEffect(
-    () =>
-      subscribeDesktop((event) => {
-        if (event.event === "state-invalidated" && owner === id) stopSpeech();
-      }),
-    [id],
-  );
-  const play = async () => {
-    if (active) {
-      stopSpeech();
-      return;
-    }
-    stopSpeech();
-    const ticket = requestSequence;
-    owner = id;
-    changed();
-    setLoading(true);
-    setError(false);
-    const requestId = crypto.randomUUID();
-    const stream = { received: false };
-    let complete = false,
-      index = 0,
-      starting = false;
-    const current = () => owner === id && ticket === requestSequence;
-    const fail = () => {
-      if (current()) {
-        setError(true);
+  // Kept-mounted tabs/dialogs can become hidden without unmounting their controls.
+  useEffect(() => {
+    if (!active) return;
+    const observer = new MutationObserver(() => {
+      if (root.current?.closest('[hidden], [inert], [aria-hidden="true"], details:not([open])'))
         stopSpeech();
-      }
-    };
-    const next = async () => {
-      if (!current() || starting || player) return;
-      if (index >= urls.length) {
-        if (complete) stopSpeech();
-        return;
-      }
-      starting = true;
-      try {
-        player = new Audio(urls[index++]);
-        player.playbackRate = playbackRate.current;
-        player.preservesPitch = true;
-        player.onended = () => {
-          if (current()) {
-            player = null;
-            void next().catch(fail);
-          }
-        };
-        player.onerror = fail;
-        await player.play();
-        if (current()) setLoading(false);
-      } finally {
-        starting = false;
-      }
-    };
-    const append = (encoded: string) => {
-      if (!current()) return;
-      urls.push(
-        URL.createObjectURL(
-          new Blob([Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0))], { type: "audio/ogg" }),
-        ),
-      );
-    };
-    const unsubscribe = subscribeDesktop((event) => {
-      if (event.event !== "speech-audio" || event.id !== requestId || !current()) return;
-      try {
-        stream.received = true;
-        append(event.audio);
-        void next().catch(fail);
-      } catch {
-        fail();
-      }
     });
-    try {
-      await cancellation;
-      if (!current()) return;
-      const result = await invokeDesktop("speech/synthesize", { id: requestId, text, language });
-      if (!current()) return;
-      complete = true;
-      if (!stream.received) for (const audio of result.clips) append(audio);
-      await next();
-    } catch {
-      fail();
-    } finally {
-      unsubscribe();
-      if (ticket === requestSequence) setLoading(false);
+    let element: HTMLElement | null = root.current;
+    while (element) {
+      observer.observe(element, {
+        attributes: true,
+        attributeFilter: ["hidden", "inert", "aria-hidden", "open"],
+      });
+      element = element.parentElement;
     }
+    return () => observer.disconnect();
+  }, [active]);
+  if (!enabled) return null;
+  const label = t(active ? (playback.loading ? "actions.cancel" : "speech.stop") : "speech.play");
+  const reason = t(`speech.readiness.${availability.reason}`);
+  const error = playback.error?.owner === id ? playback.error.detail : null;
+  const icon = active ? (
+    playback.loading ? (
+      <LoaderCircle className={styles.spinner} aria-hidden="true" />
+    ) : (
+      <Square aria-hidden="true" />
+    )
+  ) : (
+    <Volume2 aria-hidden="true" />
+  );
+  const play = () => {
+    if (active || availability.available) void playSpeech(id, text, language, source, voice);
   };
+  const description =
+    !active && !availability.available && showUnavailableReason ? reason : undefined;
   return (
-    <span className={styles.playback}>
-      <Button
-        variant="quiet"
-        aria-label={t(active ? "speech.stop" : "speech.play")}
-        isDisabled={!active && !availability.available}
-        {...(showUnavailableReason && !active && !availability.available
-          ? { "aria-describedby": `${id}-availability` }
-          : {})}
-        onPress={() => void play()}
-      >
-        {active ? <Square size={16} /> : <Volume2 size={16} />}{" "}
-        {loading && active ? t("speech.loading") : t(active ? "speech.stop" : "speech.play")}
-      </Button>
-      <Button
-        variant="quiet"
-        aria-label={t("speech.slow")}
-        aria-pressed={slow}
-        isDisabled={!active && !availability.available}
-        onPress={() => {
-          playbackRate.current = slow ? 1 : 0.75;
-          setSlow(!slow);
-          if (active && player) player.playbackRate = slow ? 1 : 0.75;
-        }}
-      >
-        0.75×
-      </Button>
-      {showUnavailableReason && !active && !availability.available && (
-        <span id={`${id}-availability`}>{t(`speech.readiness.${availability.reason}`)}</span>
+    <span
+      ref={root}
+      className={styles.playback}
+      data-variant={variant}
+      data-active={active || undefined}
+      lang=""
+    >
+      {variant === "inline" ? (
+        <IconButton
+          density="compact"
+          variant="quiet"
+          label={description ? `${label} · ${description}` : label}
+          leadingIcon={icon}
+          aria-disabled={!active && !availability.available}
+          {...(error ? { "aria-describedby": `${id}-error` } : {})}
+          onPress={play}
+        />
+      ) : (
+        <Button
+          density="compact"
+          variant="quiet"
+          leadingIcon={icon}
+          aria-disabled={!active && !availability.available}
+          onPress={play}
+          {...(description ? { "aria-describedby": `${id}-availability` } : {})}
+        >
+          {label}
+        </Button>
       )}
-      {error && <span role="status">{t("speech.unavailable")}</span>}
+      {description && variant === "passage" && (
+        <span id={`${id}-availability`} className={styles.status}>
+          {description}
+        </span>
+      )}
+      {error && (
+        <span id={`${id}-error`} className={styles.status} role="status">
+          {t(error === true ? "speech.unavailable" : error.messageKey)}
+        </span>
+      )}
     </span>
   );
 }

@@ -496,7 +496,6 @@ function RelatedPractice({
   const { t } = useTranslation();
   const library = useActivityLibrary([practiceType], true, reference(material));
   const [error, setError] = useState<CallNinaError>();
-  const visibleError = error ?? library.error;
   const launchIds = useRef(new Map<ActivityId, ReturnType<typeof createDesktopSubmissionId>>());
   const open = async (activityId: ActivityId) => {
     onBusyChange(true);
@@ -529,7 +528,19 @@ function RelatedPractice({
     <section className={styles.workspace}>
       <h4>{t("materialPractice.related")}</h4>
       <Muted>{t("materialPractice.relatedHint")}</Muted>
-      {visibleError && <OperationError error={visibleError} />}
+      {error && <OperationError error={error} />}
+      {library.error && (
+        <OperationError error={library.error}>
+          <Button
+            variant="secondary"
+            isPending={library.busy}
+            isDisabled={disabled}
+            onPress={() => void library.refresh()}
+          >
+            {t("actions.retry")}
+          </Button>
+        </OperationError>
+      )}
       {library.loaded && library.entries.length === 0 && (
         <Muted>{t("materialPractice.noRelated")}</Muted>
       )}
@@ -546,15 +557,8 @@ function RelatedPractice({
           </li>
         ))}
       </ItemList>
-      <ActionGroup>
-        <Button
-          variant="secondary"
-          isDisabled={disabled || library.busy}
-          onPress={() => void library.refresh()}
-        >
-          {t("materialPractice.refresh")}
-        </Button>
-        {library.hasMore && (
+      {library.hasMore && (
+        <ActionGroup>
           <Button
             variant="primary"
             isDisabled={disabled || library.busy}
@@ -562,8 +566,8 @@ function RelatedPractice({
           >
             {t("materialPractice.more")}
           </Button>
-        )}
-      </ActionGroup>
+        </ActionGroup>
+      )}
     </section>
   );
 }

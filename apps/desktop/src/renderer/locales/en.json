@@ -423,7 +423,6 @@
     "eyebrow": "Build a useful deck",
     "title": "Vocabulary",
     "body": "Confirm only the words you want to review. Call Nina keeps scheduling deterministic and explainable.",
-    "refresh": "Refresh vocabulary",
     "createTitle": "Create a vocabulary lesson set",
     "createBody": "Group existing candidate words into a set. Add candidates through a writing correction first.",
     "request": "What should this set help with?",
@@ -1062,7 +1061,7 @@
     "notReported": "Not reported by the current runtime.",
     "privacyTitle": "Local and OpenAI processing",
     "profileTitle": "Learning defaults",
-    "persistenceUnavailable": "Settings could not be loaded. Try refreshing.",
+    "persistenceUnavailable": "Settings could not be loaded. Try again.",
     "teachingProfile": "Teaching style",
     "uiLocale": "Interface language",
     "localeSeparate": "Explanation language is independent of the interface language.",
@@ -1127,7 +1126,9 @@
     "sessionPrivacy": "Your sign-in is protected on this device. Removing a connection keeps you signed in.",
     "saveBeforeAccount": "Save or discard connection changes before changing accounts.",
     "saveBeforeLogin": "Save this connection first, then choose “Use this connection” to connect ChatGPT.",
-    "saveFailed": "Could not save. Try again."
+    "saveFailed": "Could not save. Try again.",
+    "checkStatus": "Check status",
+    "checkingStatus": "Checking status…"
   },
   "errors": {
     "exerciseContextMissing": "The original learning settings are missing. Create new practice for AI feedback. Saved answers and feedback are unchanged.",
@@ -1150,7 +1151,10 @@
     "mcp": "The Codex integration failed. Check Settings → AI providers and install or refresh the integration.",
     "handoff": "Could not open the activity. Check the Codex integration in Settings → AI providers and try again.",
     "unsupportedOperation": "This action is unavailable. Check supported options in Settings → AI providers.",
-    "dataRootBusy": "Finish or cancel the active AI operation before changing the data folder."
+    "dataRootBusy": "Finish or cancel the active AI operation before changing the data folder.",
+    "speechInitializationTimeout": "The voice did not start in time. Retry or select another voice.",
+    "speechSynthesisTimeout": "Speech generation timed out. Retry with shorter text.",
+    "speechUnavailable": "Speech could not finish. Check the selected voice in Settings and retry."
   },
   "ui": {
     "about": "About {{topic}}",
@@ -1223,7 +1227,8 @@
       "status": "Status",
       "cleanup": "Data to clear",
       "removes": "What changes",
-      "action": "Action"
+      "action": "Action",
+      "size": "Size"
     },
     "supporting": "The app also keeps links between records, your privacy acknowledgement, and small save/deletion records that prevent duplicates. These support the features above.",
     "privacy": "Your learning records are saved on this device. AI features send selected content and learning context to your chosen service. Saved speech stays on this device. Speaking activities open in Codex; Call Nina keeps their learning summaries, not conversation recordings.",
@@ -1251,24 +1256,25 @@
       "practice": {
         "title": "Exercises and practice",
         "action": "Clear practice",
-        "removes": "Removes all saved activities, lessons, exercises, attempts, answers, corrections, mistakes, learning insights, Voice summaries and their history.",
-        "keeps": "Keeps your profile details, preferences and vocabulary. Linked vocabulary must be cleared first.",
+        "removes": "Removes all saved activities, lessons, exercises, attempts, answers, corrections, mistakes, learning insights, Voice summaries and their history. Clears the private speech cache.",
+        "keeps": "Keeps your profile, preferences, vocabulary and reusable source material. Linked vocabulary must be cleared first.",
         "success": "Practice, feedback and related history cleared."
       },
       "vocabulary": {
         "title": "Vocabulary deck",
         "action": "Clear vocabulary",
-        "removes": "Removes suggested, active and paused words, vocabulary sets, review schedules and review history.",
+        "removes": "Removes suggested, active and paused words, vocabulary sets, review schedules and review history. Clears the private speech cache.",
         "keeps": "Keeps your profile, exercises and feedback. Words may still appear in saved exercise text.",
         "success": "Vocabulary deck, sets and review history cleared."
       },
       "learning": {
         "title": "Start fresh",
         "action": "Clear all learning data",
-        "removes": "Removes all practice, lessons, answers, feedback, mistakes, learning insights, vocabulary, Voice summaries and learning history in this data folder.",
-        "keeps": "Keeps your profile details, preferences and selected data folder, so you can start practising again without onboarding.",
+        "removes": "Removes all practice, lessons, answers, feedback, mistakes, learning insights, vocabulary, Voice summaries and learning history in this data folder. Clears the private speech cache. Also removes saved source material.",
+        "keeps": "Keeps your profile details, preferences and selected data folder, so you can start practising again without onboarding. Keeps downloaded models and course audio.",
         "success": "All learning records cleared. Your profile and preferences are ready for a fresh start."
-      }
+      },
+      "partial": "Learning records were cleared, but private speech cleanup could not finish. Retry this cleanup to finish."
     },
     "categories": {
       "profile": {
@@ -1332,9 +1338,39 @@
       },
       "appConfig": {
         "title": "Application configuration",
-        "description": "Electron configuration and browser runtime storage, outside the portable learner folder."
+        "description": "Device credentials, sign-in and Electron browser storage; kept outside the selected data folder."
+      },
+      "textModels": {
+        "title": "Local AI models",
+        "description": "Downloaded text models and their runtimes in the selected data folder."
+      },
+      "speechModels": {
+        "title": "Speech models",
+        "description": "Installed voices and shared speech runtimes."
+      },
+      "preparedSpeech": {
+        "title": "Prepared speech downloads",
+        "description": "Local installation sources for voices and runtimes."
+      },
+      "curriculumAudio": {
+        "title": "Course audio",
+        "description": "Downloaded course recordings."
+      },
+      "privateAudio": {
+        "title": "Private speech",
+        "description": "Cached speech generated for this learner folder; excluded from exports and mobile sync."
+      },
+      "logs": {
+        "title": "Application logs",
+        "description": "Operational logs with learner content and credentials excluded."
+      },
+      "diagnostics": {
+        "title": "Diagnostics",
+        "description": "Saved redacted diagnostic reports."
       }
-    }
+    },
+    "recheckStorage": "Recheck storage",
+    "recheckingStorage": "Rechecking storage…"
   },
   "learningPath": {
     "title": "Learning path",
@@ -1433,9 +1469,7 @@
     "dismiss": "Dismiss"
   },
   "layout": {
-    "breadcrumbs": "Breadcrumbs",
-    "refresh": "Refresh",
-    "refreshing": "Refreshing…"
+    "breadcrumbs": "Breadcrumbs"
   },
   "missions": {
     "unitActivities": "Activities",
@@ -1515,7 +1549,7 @@
       "account-unavailable": "Nina could not confirm its Codex account. Check the connection in Settings, then retry.",
       "capability-unavailable": "The selected AI connection does not support this action. No other connection will be selected automatically.",
       "model-unavailable": "The selected AI connection has no usable model and reasoning setting for this action. Check its saved choice in Settings, then retry.",
-      "integration-unavailable": "Nina could not verify the external Codex integration for Voice. Refresh Settings and retry. This does not mean the plugin is missing.",
+      "integration-unavailable": "Nina could not verify the external Codex integration for Voice. Check status in Settings → AI providers, then retry.",
       "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry.",
       "secure-storage-unavailable": "Secure key storage is unavailable on this device.",
       "connection-required": "Choose an AI connection in Settings before using this action. Prepared practice remains available."
@@ -1554,7 +1588,6 @@
     "relatedHint": "Open the exact prepared content without AI. Each opening creates separate practice and attempts, without course credit.",
     "noRelated": "No prepared practice for this revision yet.",
     "open": "Practise: {{title}}",
-    "refresh": "Refresh prepared practice",
     "more": "Show more",
     "remove": "Remove material",
     "removeBody": "Remove this material and all its revisions? Material referenced by any activity or attempt is kept. No activities or attempts will be deleted.",
@@ -1682,15 +1715,15 @@
     "keyEntry": "New API key",
     "keyRequired": "Enter an API key before saving.",
     "directCatalogNotice": "Listed models and actions are shipped support information. A saved key and model choice only configure local prerequisites; provider access and billing have not been checked.",
-    "offlineTitle": "Downloaded model on this device",
-    "offlineScope": "Downloading is an explicit, multi-GB download shared by this device, outside your learner folder. Removing it affects every learner root on this device but keeps connection choices and learning records.",
+    "offlineTitle": "Downloaded local AI model",
+    "offlineScope": "The model and its runtime are downloaded into the selected data folder. Removing them keeps your connections and learning records.",
     "offlineLimits": "Performance and teaching quality are unverified. Meeting minimum resources does not qualify this model.",
     "offlineProgress": "Downloaded {{downloaded}} of {{total}} GB.",
     "offlineInstall": "Download model",
     "offlineResume": "Resume download",
     "offlineCancelDownload": "Cancel download",
     "offlineRemove": "Remove downloaded model",
-    "offlineRemoveWarning": "Remove the device-shared model files? This affects every learner root on this device. Saved connections and learning records remain.",
+    "offlineRemoveWarning": "Remove this data folder’s downloaded model and runtime? Connections and learning records remain.",
     "offlineConfirmRemove": "Remove model files",
     "offlineFailure": "The model operation failed. Review the current state and retry if appropriate.",
     "offlineBusyConflict": "Wait for the running AI action or model operation to finish, then retry.",
@@ -1958,7 +1991,19 @@
     "keyRemovalPending": "The API key will be removed when you save.",
     "selectedDefault": "Selected default",
     "checkingConnection": "Checking access…",
-    "signInIncomplete": "Sign-in incomplete"
+    "signInIncomplete": "Sign-in incomplete",
+    "none": "None",
+    "configure": "Configure",
+    "advancedAssignments": "Advanced assignments",
+    "enabled": "Enabled",
+    "installPlugin": "Install plugin",
+    "updatePlugin": "Update plugin",
+    "codexUnavailable": "Codex unavailable",
+    "pluginStatus": {
+      "installed": "Plugin installed",
+      "not-installed": "Plugin not installed",
+      "refresh-required": "Plugin update available"
+    }
   },
   "mobile": {
     "download": "Download mobile",
@@ -2017,7 +2062,7 @@
     "removeCourse": "Remove course audio",
     "states": {
       "unavailable": "Not available",
-      "absent": "Not downloaded",
+      "absent": "Not installed",
       "partial": "Partial download",
       "installed": "Installed",
       "downloading": "Downloading",
@@ -2031,11 +2076,10 @@
     "models": "Local speech models",
     "publicAudio": "Curriculum audio",
     "privateAudio": "Private speech · current learner",
-    "ownership": "Models and curriculum audio are shared on this device. Private speech belongs to the current learner folder and is excluded from exports and mobile sync.",
+    "ownership": "Models, course audio and private speech are stored in the selected data folder. Downloads and cached audio are excluded from exports and mobile sync.",
     "preparedFirst": "Prepared and cached recordings play without using your speech allowance.",
     "linuxOnly": "Local speech models require Linux x64.",
     "packSizes": "Download {{download}} · installed estimate {{installed}} · voice files on disk {{disk}}",
-    "qualification": "This voice is not yet available for download.",
     "downloadFailed": "Download failed. Resume to retry, or remove the partial download.",
     "useVoice": "Use this voice",
     "cacheTitle": "Saved speech",
@@ -2051,10 +2095,25 @@
       "allowance": "Speech allowance exhausted.",
       "unavailable": "Audio unavailable. Check Read aloud settings."
     },
-    "diskFull": "Not enough disk space. Remove unused models or clear audio, then retry."
+    "diskFull": "Not enough disk space. Remove unused models or clear audio, then retry.",
+    "languageUnavailable": "Unavailable for {{language}}",
+    "previewText": "Preview text",
+    "previewInvalid": "Enter 1–6,000 characters.",
+    "unavailableReasons": {
+      "platform": "Local speech requires Linux x64.",
+      "runtime": "Runtime unavailable."
+    },
+    "install": "Install",
+    "installSize": "{{size}} MB to install",
+    "installing": "Installing",
+    "playbackSpeed": "Playback speed",
+    "voice": "Voice",
+    "showAnswer": "Show answer",
+    "finishListening": "Finish and continue",
+    "removeFailed": "Could not remove this voice."
   },
   "setupUx": {
-    "aiPractice": "Exercise Creation",
+    "aiPractice": "Exercise AI",
     "noConnection": "No connection selected",
     "change": "Change",
     "connect": "Connect",
@@ -2098,7 +2157,7 @@
     "manageDownloads": "Manage downloads",
     "storageDetails": "Storage details",
     "privacy": "Privacy",
-    "localPrivacy": "Your learning records are saved on this device.",
+    "localPrivacy": "Learning records, downloaded models and saved audio are stored in your selected data folder.",
     "aiPrivacy": "AI features send selected content and learning context to your chosen service.",
     "audioPrivacy": "Saved speech stays on this device. Speaking activities open in Codex; Call Nina keeps their learning summaries, not conversation recordings.",
     "clearLearning": "Clear learning data",
@@ -2113,7 +2172,8 @@
     "activity": "Activity",
     "speechAi": "Audio",
     "language": "Language",
-    "exerciseSummary": "Exercise Creation",
+    "exerciseSummary": "Exercise AI",
+    "aiAudio": "AI & Audio",
     "audioSummary": "Audio"
   },
   "stories": {

@@ -82,6 +82,11 @@ export const personalDataCleanupRequestSchema = z.strictObject({
 export const personalDataCleanupResultSchema = z.discriminatedUnion("status", [
   z.strictObject({ status: z.literal("cleared"), scope: personalDataCleanupScopeSchema }),
   z.strictObject({
+    status: z.literal("partial"),
+    scope: personalDataCleanupScopeSchema,
+    reason: z.literal("private-speech"),
+  }),
+  z.strictObject({
     status: z.literal("blocked"),
     reason: z.enum(["busy", "linked-vocabulary", "attachments"]),
   }),
@@ -95,6 +100,13 @@ export const personalDataTableSummarySchema = z.strictObject({
 export const personalDataLocationIdSchema = z.enum([
   "database",
   "attachments",
+  "textModels",
+  "speechModels",
+  "preparedSpeech",
+  "curriculumAudio",
+  "privateAudio",
+  "logs",
+  "diagnostics",
   "bootstrap",
   "appConfig",
 ]);

@@ -1,0 +1,23 @@
+.trigger {
+  width: 100%;
+  justify-content: flex-start;
+  padding: var(--od-space-3) var(--od-space-4);
+  border-color: var(--od-color-border-default);
+  color: var(--od-color-text-strong);
+  gap: var(--od-space-3);
+}
+
+.copy {
+  display: grid;
+  flex: 1;
+  gap: var(--od-space-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-caption-size);
+  line-height: var(--od-type-caption-line);
+  font-weight: var(--od-font-weight-regular);
+}

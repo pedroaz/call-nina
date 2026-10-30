@@ -1,16 +1,20 @@
-:global([data-nav-collapsed="true"]) .navModelPanel {
-  display: none;
-}
-.navModelPanel {
+.assignments {
   display: grid;
-  gap: var(--od-space-4);
-  min-width: 0;
+  gap: var(--od-space-2);
   margin: 0;
-  padding: var(--od-space-3);
+}
+.rate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem;
+  align-items: center;
+  gap: var(--od-space-2);
+  font-variant-numeric: tabular-nums;
 }
 .assignment {
   display: grid;
-  gap: var(--od-space-1);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--od-space-3);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -26,4 +30,5 @@
   line-height: var(--od-type-caption-line);
   font-weight: var(--od-font-weight-regular);
   color: var(--od-color-text-muted);
+  text-align: end;
 }

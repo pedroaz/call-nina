@@ -175,12 +175,17 @@ async function logsClear() {
 try {
   if (action === "start") {
     if (!["dev", "prd"].includes(mode)) throw new Error("Start requires mode dev or prd.");
-    assertNoUnknownFlags([]);
+    const bundlePrefix = "--speech-bundles-dir=";
+    const bundleFlags = flags.filter((flag) => flag.startsWith(bundlePrefix));
+    assertNoUnknownFlags(bundleFlags);
+    if (bundleFlags.length > 1) throw new Error("Speech bundles accept one explicit directory.");
+    if (bundleFlags.some((flag) => !path.isAbsolute(flag.slice(bundlePrefix.length))))
+      throw new Error("Speech bundle directory must be absolute.");
     const state = await startMode({
       mode,
       runtimeRoot,
       cwd: root,
-      command: [process.execPath, "apps/desktop/scripts/desktop-service.mjs", mode],
+      command: [process.execPath, "apps/desktop/scripts/desktop-service.mjs", mode, ...bundleFlags],
       timeoutMs: mode === "dev" ? 180_000 : 60_000,
     });
     process.stdout.write(`${mode}: ready pid=${state.pid}\n`);

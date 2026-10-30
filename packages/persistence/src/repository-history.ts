@@ -199,6 +199,15 @@ export class HistoryRepository {
           AND (f.completed = 0 OR EXISTS (
             SELECT 1 FROM generated_activity_payloads g WHERE g.activity_id = p.activity_id
           ) OR json_type(p.context_json, '$.voiceContext') = 'object')
+          AND NOT (p.activity_type = 'codex-listening'
+            AND json_extract(p.context_json, '$.learningPath.mode') = 'course'
+            AND EXISTS (
+              SELECT 1 FROM course_marks m WHERE m.target_language = p.target_language
+                AND m.version = json_extract(p.context_json, '$.learningPath.version')
+                AND m.unit_id = json_extract(p.context_json, '$.learningPath.unitId')
+                AND m.activity_key = json_extract(p.context_json, '$.learningPath.activityKey')
+                AND m.status IN ('completed', 'skipped')
+            ))
         ORDER BY u.last_used_at DESC, p.activity_id DESC LIMIT 1`,
         )
         .get(context.targetLanguage, context.learnerId, context.courseId);

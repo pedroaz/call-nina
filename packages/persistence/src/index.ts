@@ -9,6 +9,7 @@ export {
   type DataRootLayout,
   type DataRootManifest,
 } from "./data-root-layout.js";
+export { consolidateLocalAssets, consolidatePreparedSpeech } from "./local-assets.js";
 
 export {
   assertCurrentDataRootLease,

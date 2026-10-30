@@ -18,6 +18,23 @@
   font-size: var(--od-font-size-sm);
   user-select: text;
 }
+
+.settingsGroup {
+  gap: 0;
+}
+
+.settingsGroup > header {
+  margin-block-end: var(--od-space-4);
+}
+
+.privacyCopy {
+  display: grid;
+  gap: var(--od-space-2);
+}
+
+.privacyCopy p {
+  margin: 0;
+}
 .folder .path {
   flex-basis: 100%;
   color: var(--od-color-text-muted);
@@ -44,6 +61,16 @@
 }
 .table th:last-child {
   width: 22%;
+}
+.storageTable th:first-child {
+  width: 25%;
+}
+.storageTable th:nth-child(3),
+.storageTable th:last-child {
+  width: 14%;
+}
+.storageTable td:last-child {
+  white-space: nowrap;
 }
 .description {
   display: block;

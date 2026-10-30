@@ -13,7 +13,7 @@ import styles from "./Button.module.css";
 
 export type ControlDensity = "compact" | "comfortable";
 
-export type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "quiet" | "danger" | "dangerQuiet";
 
 export type ButtonProps = Omit<AriaButtonProps, "className" | "children" | "isPending"> &
   Readonly<{

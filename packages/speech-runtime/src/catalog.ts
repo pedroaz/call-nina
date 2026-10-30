@@ -1,6 +1,12 @@
 import catalog from "./catalog.json" with { type: "json" };
 
-export type SpeechArtifact = { file: string; url: string; bytes: number; sha256: string };
+export type SpeechArtifact = {
+  file: string;
+  url: string;
+  bytes: number;
+  sha256: string;
+  executable?: boolean;
+};
 export type SpeechPack = {
   id: string;
   engine: "piper" | "pocket";

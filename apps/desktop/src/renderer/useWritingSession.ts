@@ -1,5 +1,6 @@
 import {
   type ProviderOperation,
+  type Language,
   type GenerationCandidateOutputMap,
   type CallNinaError,
   writingCorrectionCandidateSchema,
@@ -62,6 +63,7 @@ export function useWritingSession({
   const [correctionOutcome, setCorrectionOutcome] = useState<"cancelled" | "rate-limited">();
   const [correction, setCorrection] = useState<CorrectionOutput>();
   const [correctionOriginal, setCorrectionOriginal] = useState("");
+  const [correctionLanguage, setCorrectionLanguage] = useState<Language>();
   const dirty = context.length > 0 || draft.length > 0;
 
   useEffect(() => {
@@ -135,6 +137,7 @@ export function useWritingSession({
         if (event.outcome.status === "validated") {
           setPreviousCorrectionOperationId(undefined);
           setCorrection(writingCorrectionCandidateSchema.parse(event.outcome.output));
+          setCorrectionLanguage(event.outcome.learningScope?.targetLanguage);
           setCorrectionOriginal(correctionOriginals.current.get(event.submissionId) ?? "");
           setCorrectionError(undefined);
           setCorrectionOutcome(undefined);
@@ -293,6 +296,7 @@ export function useWritingSession({
     correctionOutcome,
     correction,
     correctionOriginal,
+    correctionLanguage,
     generatePrompt,
     cancelPrompt,
     useFreeWriting,

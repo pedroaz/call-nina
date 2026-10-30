@@ -4,18 +4,16 @@ import {
   type ReactNode,
   useEffect,
   useRef,
-  useState,
 } from "react";
 
 import { useTranslation } from "react-i18next";
-import { ChevronRight, RefreshCw } from "lucide-react";
-import { Button, IconButton } from "../ui/Button.js";
+import { ChevronRight } from "lucide-react";
+import { Button } from "../ui/Button.js";
 import { Card } from "../ui/Surface.js";
 import styles from "./Layout.module.css";
 
 export type PageProps = Omit<ComponentPropsWithoutRef<"section">, "title"> & {
   breadcrumbs?: ReadonlyArray<{ label: string; onPress: () => void }>;
-  refresh?: { onRefresh: () => Promise<unknown>; busy?: boolean; disabled?: boolean };
   actions?: ReactNode;
   description?: string;
   eyebrow?: string;
@@ -27,7 +25,6 @@ export type PageProps = Omit<ComponentPropsWithoutRef<"section">, "title"> & {
 export function Page({
   actions,
   breadcrumbs,
-  refresh,
   children,
   className,
   description,
@@ -58,12 +55,7 @@ export function Page({
           </h1>
           {description && <p className={styles.description}>{description}</p>}
         </div>
-        {(actions || refresh) && (
-          <ActionGroup>
-            {actions}
-            {refresh && <RefreshButton {...refresh} />}
-          </ActionGroup>
-        )}
+        {actions && <ActionGroup>{actions}</ActionGroup>}
       </header>
       {children}
     </section>
@@ -212,33 +204,5 @@ export function Breadcrumbs({
         <li aria-current="page">{current}</li>
       </ol>
     </nav>
-  );
-}
-
-export function RefreshButton({
-  onRefresh,
-  busy,
-  disabled,
-}: {
-  onRefresh: () => Promise<unknown>;
-  busy?: boolean;
-  disabled?: boolean;
-}) {
-  const { t } = useTranslation();
-  const [pending, setPending] = useState(false);
-  return (
-    <IconButton
-      variant="quiet"
-      label={pending || busy ? t("layout.refreshing") : t("layout.refresh")}
-      isPending={pending || Boolean(busy)}
-      isDisabled={Boolean(disabled)}
-      leadingIcon={<RefreshCw aria-hidden="true" />}
-      onPress={() => {
-        setPending(true);
-        void onRefresh().finally(() => {
-          setPending(false);
-        });
-      }}
-    />
   );
 }

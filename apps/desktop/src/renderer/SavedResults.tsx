@@ -64,14 +64,12 @@ export function SavedResults({
   scope,
   onClearScope,
   view,
-  refreshRequest,
   onChanged,
   requestAiAccess,
 }: {
   scope?: SavedResultsScope | undefined;
   onClearScope: () => void;
   view: "activities" | "results";
-  refreshRequest: number;
   onChanged: () => void;
   onPracticeAgain: (seed: HistoryPracticeSeed) => void;
   requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
@@ -98,7 +96,10 @@ export function SavedResults({
   const [mistakeCategory, setMistakeCategory] = useState("");
   const [appliedFilters, setAppliedFilters] = useState<HistoryPayload>({ maximum: 100 });
   const skillFilter = useRef<HTMLSelectElement>(null);
-  const [busy, setBusy] = useState(false);
+  const [actionBusy, setBusy] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [readError, setReadError] = useState<CallNinaError>();
+  const busy = actionBusy || reading;
   const [error, setError] = useState<CallNinaError>();
   const [practiceState, setPracticeState] = useState<PracticeState>();
   const practiceSubmissionId = useRef<ReturnType<typeof createDesktopSubmissionId> | undefined>(
@@ -111,8 +112,7 @@ export function SavedResults({
   const refresh = useCallback(
     async (cursor?: NonNullable<Snapshot["nextCursor"]>) => {
       const request = ++version.current;
-      setBusy(true);
-      setError(undefined);
+      setReading(true);
       try {
         let nextCursor = cursor;
         let next: Snapshot;
@@ -147,6 +147,7 @@ export function SavedResults({
           if (overview.rootGeneration !== root) throw new Error("OD_DATA_ROOT_STALE");
           setPatterns(overview.mistakePatterns);
         }
+        setReadError(undefined);
         if (cursor) retainedCount.current += entries.length;
         setSnapshot((previous) => ({
           ...next,
@@ -162,9 +163,9 @@ export function SavedResults({
               : entries,
         }));
       } catch (cause) {
-        if (request === version.current) setError(normalizeDesktopError(cause).detail);
+        if (request === version.current) setReadError(normalizeDesktopError(cause).detail);
       } finally {
-        if (request === version.current) setBusy(false);
+        if (request === version.current) setReading(false);
       }
     },
     [scopeKey, appliedFilters],
@@ -268,7 +269,7 @@ export function SavedResults({
       window.removeEventListener("focus", onFocus);
       unsubscribe();
     };
-  }, [refresh, refreshRequest]);
+  }, [refresh]);
 
   const dateFormatter = useMemo(
     () =>
@@ -414,6 +415,18 @@ export function SavedResults({
         onCancel={() => void cancelTargetedPractice()}
       />
       {error && <OperationError error={error} />}
+      {readError && (
+        <OperationError error={readError}>
+          <Button
+            variant="secondary"
+            isPending={reading}
+            isDisabled={actionBusy}
+            onPress={() => void refresh()}
+          >
+            {t("actions.retry")}
+          </Button>
+        </OperationError>
+      )}
     </>
   );
 
@@ -421,7 +434,7 @@ export function SavedResults({
     <section
       className={styles.page}
       aria-busy={busy}
-      data-history-ready={Boolean(snapshot && !busy && !error)}
+      data-history-ready={Boolean(snapshot && !busy && !error && !readError)}
       data-root-generation={snapshot?.rootGeneration}
     >
       <div className={styles.resultsBody} hidden={view !== "results"}>

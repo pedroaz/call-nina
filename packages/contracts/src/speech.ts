@@ -2,6 +2,7 @@ import { z } from "./schema-system.js";
 import { languageSchema } from "./learning-context.js";
 
 export const speechSourceSchema = z.enum(["piper", "pocket", "managed"]);
+const voiceId = z.string().regex(/^[a-zA-Z0-9-]{1,100}$/u);
 export const speechTextSchema = z
   .string()
   .min(1)
@@ -12,19 +13,32 @@ export const speechPreferencesSchema = z.strictObject({
   "en-US": speechSourceSchema,
   "pt-BR": speechSourceSchema,
   es: speechSourceSchema,
+  playbackRate: z.union([z.literal(0.75), z.literal(1)]).default(1),
+  voices: z.record(z.string().regex(/^(piper|pocket):(de|en-US|pt-BR|es)$/u), voiceId).default({}),
 });
 export const defaultSpeechPreferences = {
   de: "piper",
   "en-US": "piper",
   "pt-BR": "piper",
   es: "piper",
+  playbackRate: 1,
+  voices: {},
 } as const;
 export const speechRequestSchema = z.strictObject({
   id: z.uuid(),
   language: languageSchema,
   text: speechTextSchema,
 });
+// Local engine previews belong to desktop playback, not the hosted synthesis API.
+export const speechPlaybackRequestSchema = speechRequestSchema.extend({
+  source: z.enum(["piper", "pocket"]).optional(),
+  voice: voiceId.optional(),
+});
 export const speechActionSchema = z.discriminatedUnion("action", [
+  z.strictObject({
+    action: z.literal("playback-rate"),
+    rate: z.union([z.literal(0.75), z.literal(1)]),
+  }),
   z.strictObject({ action: z.literal("preferences"), preferences: speechPreferencesSchema }),
   z.strictObject({
     action: z.enum(["install", "remove", "cancel-download"]),
@@ -35,8 +49,9 @@ export const speechActionSchema = z.discriminatedUnion("action", [
     courseId: z.string().min(1).max(200),
   }),
   z.strictObject({
-    action: z.enum(["clear-cache", "clear-private-cache", "cancel", "cancel-course"]),
+    action: z.enum(["clear-cache", "clear-private-cache", "cancel-course"]),
   }),
+  z.strictObject({ action: z.literal("cancel"), id: z.uuid().optional() }),
 ]);
 const digest = z.string().regex(/^[a-f0-9]{64}$/u);
 export const speechManifestSchema = z.strictObject({
@@ -75,6 +90,7 @@ export const speechSnapshotSchema = z.strictObject({
       engine: z.enum(["piper", "pocket"]),
       language: languageSchema,
       voice: z.string(),
+      unavailableReason: z.enum(["platform", "runtime"]).nullable(),
       state: z.enum(["unavailable", "absent", "partial", "installed", "downloading", "update"]),
       downloadBytes: z.int().nonnegative(),
       downloadedBytes: z.int().nonnegative(),
@@ -107,6 +123,7 @@ export const speechAccountSchema = z.strictObject({
   serviceEnabled: z.boolean(),
 });
 export type SpeechRequest = z.infer<typeof speechRequestSchema>;
+export type SpeechPlaybackRequest = z.infer<typeof speechPlaybackRequestSchema>;
 export type SpeechPreferences = z.infer<typeof speechPreferencesSchema>;
 export type SpeechSnapshot = z.infer<typeof speechSnapshotSchema>;
 export type SpeechManifest = z.infer<typeof speechManifestSchema>;

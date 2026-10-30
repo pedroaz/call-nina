@@ -2,7 +2,16 @@ import { randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { pnpmCommand } from "../lib/package-command.mjs";
 import { commands, help } from "./commands.mjs";
-import { ControlError, config, root, output, results, configureClient } from "./configuration.mjs";
+import {
+  ControlError,
+  config,
+  environment,
+  selectionError,
+  root,
+  output,
+  results,
+  configureClient,
+} from "./configuration.mjs";
 import { loadCredentials, credentialStatus } from "./credentials.mjs";
 import { saveSecrets, legacyImport, childEnvironment } from "./credentials.mjs";
 import { confirm, ReviewComplete, executionReview } from "./review.mjs";
@@ -21,6 +30,10 @@ function build() {
 async function execute(tokens) {
   const yes = tokens.includes("--yes");
   const args = tokens.filter((token) => token !== "--yes");
+  const environmentIndex = args.indexOf("--environment");
+  if (environmentIndex !== -1) args.splice(environmentIndex, 2);
+  if (selectionError || !environment)
+    throw new ControlError(selectionError ?? "Select --environment preview or production");
   const definition = commands.find((command) =>
     command.name.split(" ").every((word, index) => word === args[index]),
   );
@@ -42,7 +55,7 @@ async function execute(tokens) {
       {
         operation: name,
         names: Object.keys(incoming),
-        destination: "root .env",
+        destination: `.env.${environment}`,
         originalRetained: true,
       },
       yes,
@@ -50,6 +63,11 @@ async function execute(tokens) {
     await saveSecrets(incoming);
     return output({ imported: Object.keys(incoming) });
   }
+  if (name === "infra project-setup")
+    return (await import("./project-setup.mjs")).setupProject(yes);
+  if (name === "infra clerk-provision")
+    return (await import("./clerk-provision.mjs")).provisionClerk(yes);
+  if (name === "infra domains-setup") return (await import("./domains.mjs")).setupDomains(yes);
   if (name === "infra clerk-link") return (await import("./clerk-setup.mjs")).linkExisting(yes);
   if (["infra clerk-inspect", "infra clerk-apply"].includes(name)) {
     const clerk = await import("./clerk-instance.mjs");
@@ -61,10 +79,10 @@ async function execute(tokens) {
   build();
   const infra = await import("./infrastructure.mjs");
   const target = {
-    environment: "production",
+    environment,
     clerkInstanceId: config.clerkInstanceId,
     vercelProjectId: config.projectId,
-    database: "Existing Marketplace database from root .env (values withheld)",
+    database: "Selected environment database (values withheld)",
   };
   if (name === "infra plan") return output(await infra.plan());
   if (name === "infra inspect") return output(await infra.inspect());

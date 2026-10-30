@@ -4,7 +4,7 @@
     "engine": "piper",
     "language": "de",
     "voice": "thorsten",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "model.onnx",
@@ -26,7 +26,7 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "pending-runtime-source-compliance-and-pronunciation",
+    "licenseReview": "local-use-approved-distribution-review-pending",
     "license": "GPL-3.0 (engine); see voice MODEL_CARD"
   },
   {
@@ -34,7 +34,7 @@
     "engine": "piper",
     "language": "en-US",
     "voice": "lessac",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "model.onnx",
@@ -56,7 +56,7 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "lessac-research-dataset-license-needs-redistribution-review",
+    "licenseReview": "local-use-approved-lessac-redistribution-review-pending",
     "license": "GPL-3.0 (engine); see voice MODEL_CARD"
   },
   {
@@ -64,7 +64,7 @@
     "engine": "piper",
     "language": "pt-BR",
     "voice": "cadu",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "model.onnx",
@@ -86,7 +86,7 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "pending-runtime-source-compliance-and-pronunciation",
+    "licenseReview": "local-use-approved-distribution-review-pending",
     "license": "GPL-3.0 (engine); see voice MODEL_CARD"
   },
   {
@@ -94,7 +94,7 @@
     "engine": "piper",
     "language": "es",
     "voice": "davefx",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "model.onnx",
@@ -116,7 +116,7 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "pending-runtime-source-compliance-and-pronunciation",
+    "licenseReview": "local-use-approved-distribution-review-pending",
     "license": "GPL-3.0 (engine); see voice MODEL_CARD"
   },
   {
@@ -124,7 +124,7 @@
     "engine": "pocket",
     "language": "de",
     "voice": "juergen",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "voice.safetensors",
@@ -152,7 +152,7 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "pending-runtime-source-compliance-and-pronunciation",
+    "licenseReview": "local-use-approved-distribution-review-pending",
     "license": "CC-BY-4.0 (model), MIT (engine)"
   },
   {
@@ -160,7 +160,7 @@
     "engine": "pocket",
     "language": "en-US",
     "voice": "alba",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "voice.safetensors",
@@ -188,7 +188,7 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "preset-accent-not-qualified-for-US-English",
+    "licenseReview": "local-use-approved-distribution-review-pending",
     "license": "CC-BY-4.0 (model), MIT (engine)"
   },
   {
@@ -196,7 +196,7 @@
     "engine": "pocket",
     "language": "pt-BR",
     "voice": "rafael",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "voice.safetensors",
@@ -224,7 +224,7 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "pending-runtime-source-compliance-and-pronunciation",
+    "licenseReview": "local-use-approved-distribution-review-pending",
     "license": "CC-BY-4.0 (model), MIT (engine)"
   },
   {
@@ -232,7 +232,7 @@
     "engine": "pocket",
     "language": "es",
     "voice": "lola",
-    "qualified": false,
+    "qualified": true,
     "artifacts": [
       {
         "file": "voice.safetensors",
@@ -260,7 +260,271 @@
       }
     ],
     "runtime": null,
-    "licenseReview": "pending-runtime-source-compliance-and-pronunciation",
+    "licenseReview": "local-use-approved-distribution-review-pending",
+    "license": "CC-BY-4.0 (model), MIT (engine)"
+  },
+  {
+    "id": "piper-de-kerstin",
+    "engine": "piper",
+    "language": "de",
+    "voice": "kerstin",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "model.onnx",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/de/de_DE/kerstin/low/de_DE-kerstin-low.onnx",
+        "bytes": 63104526,
+        "sha256": "d352a7641892cebf2903859af94e9ba81a141110215fe3943bcda7f7da401b7a"
+      },
+      {
+        "file": "model.onnx.json",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/de/de_DE/kerstin/low/de_DE-kerstin-low.onnx.json",
+        "bytes": 4158,
+        "sha256": "56e708556b7b9b7a53c4f8957e021421e69f11a600962bba554cffbe72cf2d47"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/de/de_DE/kerstin/low/MODEL_CARD",
+        "bytes": 272,
+        "sha256": "7019006374a5fe5358186d5f3333e9f904385e7bdfbb68bc85dafce1a3cddae5"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-selection-distribution-review-pending",
+    "license": "GPL-3.0 (engine); see voice MODEL_CARD"
+  },
+  {
+    "id": "piper-en-US-hfc-male",
+    "engine": "piper",
+    "language": "en-US",
+    "voice": "hfc_male",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "model.onnx",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/en/en_US/hfc_male/medium/en_US-hfc_male-medium.onnx",
+        "bytes": 63201294,
+        "sha256": "d11e403a02bdf5a670c877b3dc56e0e1c8cece6fb30289586314dffdc0a78cb0"
+      },
+      {
+        "file": "model.onnx.json",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/en/en_US/hfc_male/medium/en_US-hfc_male-medium.onnx.json",
+        "bytes": 5033,
+        "sha256": "f66847424aed0bf99ecbb5d7cfde47c0a906f426a0daf7c46f305e7d21afd886"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/en/en_US/hfc_male/medium/MODEL_CARD",
+        "bytes": 352,
+        "sha256": "acd9f3607969454dead836c1939d4906a7b7b618f38dfd2c282856d13e4e968c"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-selection-distribution-review-pending",
+    "license": "GPL-3.0 (engine); see voice MODEL_CARD"
+  },
+  {
+    "id": "piper-pt-BR-faber",
+    "engine": "piper",
+    "language": "pt-BR",
+    "voice": "faber",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "model.onnx",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/pt/pt_BR/faber/medium/pt_BR-faber-medium.onnx",
+        "bytes": 63201294,
+        "sha256": "858555e3a064209c57088fe6bd70c4c3dc54d03eaa00c45d5ecaf43a33f95aa7"
+      },
+      {
+        "file": "model.onnx.json",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/pt/pt_BR/faber/medium/pt_BR-faber-medium.onnx.json",
+        "bytes": 4855,
+        "sha256": "7e694de195ae3fc36dd732c445eb04fb49b649854893cb5506b978f0d50a1d6f"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/pt/pt_BR/faber/medium/MODEL_CARD",
+        "bytes": 279,
+        "sha256": "01f1a5bcfd0538782726059ae407eae9c2dd1b5b35f7298fd53a68de91afe563"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-selection-distribution-review-pending",
+    "license": "GPL-3.0 (engine); see voice MODEL_CARD"
+  },
+  {
+    "id": "piper-es-mls-10246",
+    "engine": "piper",
+    "language": "es",
+    "voice": "mls_10246",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "model.onnx",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx",
+        "bytes": 63104526,
+        "sha256": "3f9d76d2778778942297aab052aa7b2e67248d3f43614c889ee82901a230e197"
+      },
+      {
+        "file": "model.onnx.json",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx.json",
+        "bytes": 4160,
+        "sha256": "a865944d7f6972af347263b0b8152466dabba3b78b8fe5a6985f7d3b19fd06a1"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/es/es_ES/mls_10246/low/MODEL_CARD",
+        "bytes": 257,
+        "sha256": "fa4273e09b6814c17cacd4d509d62392c31db877e23a1661166886896aa461a6"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-selection-distribution-review-pending",
+    "license": "GPL-3.0 (engine); see voice MODEL_CARD"
+  },
+  {
+    "id": "pocket-de-anna",
+    "engine": "pocket",
+    "language": "de",
+    "voice": "anna",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "voice.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/languages/german/embeddings/anna.safetensors",
+        "bytes": 7620408,
+        "sha256": "54e036b70a09478ed11a5108c1e651c6d59ddd63db8191ad9b8264c0cc0d677e"
+      },
+      {
+        "file": "model.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/1e08e6a23401048648a9fdcfde2f89348215c2a7/languages/german/model.safetensors",
+        "bytes": 219029196,
+        "sha256": "9fe42605604832349e3f495177bde56b77ae8fee73b2ed4b63236092ccde7621"
+      },
+      {
+        "file": "tokenizer.json",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/4e1e0a3e611c51c0b4ed8174fc10f32a54644303/languages/german/tokenizer.json",
+        "bytes": 245966,
+        "sha256": "2d77849811e3d1b6ae80e5b11b203f57e1847901104d8a0573b34f46f8dddb53"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/README.md",
+        "bytes": 26699,
+        "sha256": "c01f4a60dca73aa844473181096618fe9b3bf6a148986c8c368190ba03627054"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-approved-distribution-review-pending",
+    "license": "CC-BY-4.0 (model), MIT (engine)"
+  },
+  {
+    "id": "pocket-en-US-marius",
+    "engine": "pocket",
+    "language": "en-US",
+    "voice": "marius",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "voice.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/languages/english/embeddings/marius.safetensors",
+        "bytes": 6244152,
+        "sha256": "05621a1fa88bfe110063dd6fd206d0262891e374a36a04edc309317e961f14c9"
+      },
+      {
+        "file": "model.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/languages/english/model.safetensors",
+        "bytes": 219029196,
+        "sha256": "4c56cbd171c63e8a26ea61f5d48b8a0cd8f3c51f4652c0ab9a19bfcced8c931d"
+      },
+      {
+        "file": "tokenizer.json",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/00eac05ed3d16bdc3f6b5d598874019c34a89214/languages/english/tokenizer.json",
+        "bytes": 245020,
+        "sha256": "f498428e1eafee50492f7be13dc9bfafcfc12e508cd0eb1b01c92ecd5d8c6687"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/README.md",
+        "bytes": 26699,
+        "sha256": "c01f4a60dca73aa844473181096618fe9b3bf6a148986c8c368190ba03627054"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-approved-distribution-review-pending",
+    "license": "CC-BY-4.0 (model), MIT (engine)"
+  },
+  {
+    "id": "pocket-pt-BR-lola",
+    "engine": "pocket",
+    "language": "pt-BR",
+    "voice": "lola",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "voice.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/languages/portuguese/embeddings/lola.safetensors",
+        "bytes": 5457720,
+        "sha256": "0169b537f8a562907eacba75bfa35ce645fa88f9f2e7da3b29aa35af8ac10bad"
+      },
+      {
+        "file": "model.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/1e08e6a23401048648a9fdcfde2f89348215c2a7/languages/portuguese/model.safetensors",
+        "bytes": 219029196,
+        "sha256": "28e20f32515ba8bd0eaec69671f11f8921414fcdc375aa072fa09f46cc1057c5"
+      },
+      {
+        "file": "tokenizer.json",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/4e1e0a3e611c51c0b4ed8174fc10f32a54644303/languages/portuguese/tokenizer.json",
+        "bytes": 247014,
+        "sha256": "b33e269f7f042a763080d71ba087d74d2f6759674b238a723c028e436b1a25ab"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/README.md",
+        "bytes": 26699,
+        "sha256": "c01f4a60dca73aa844473181096618fe9b3bf6a148986c8c368190ba03627054"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-approved-distribution-review-pending",
+    "license": "CC-BY-4.0 (model), MIT (engine)"
+  },
+  {
+    "id": "pocket-es-rafael",
+    "engine": "pocket",
+    "language": "es",
+    "voice": "rafael",
+    "qualified": true,
+    "artifacts": [
+      {
+        "file": "voice.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/languages/spanish/embeddings/rafael.safetensors",
+        "bytes": 6244152,
+        "sha256": "4d0d36bf3dd337ebd1eb45e048b6a1a7e33d3544a2ad187f5854503c5d567073"
+      },
+      {
+        "file": "model.safetensors",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/1e08e6a23401048648a9fdcfde2f89348215c2a7/languages/spanish/model.safetensors",
+        "bytes": 219029196,
+        "sha256": "c4988ff376692f2ab1e85b17350755b08f16e49c0b5f0de8b271efa9abd71de7"
+      },
+      {
+        "file": "tokenizer.json",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/4e1e0a3e611c51c0b4ed8174fc10f32a54644303/languages/spanish/tokenizer.json",
+        "bytes": 246610,
+        "sha256": "9ade09bbdc64ab2b59952b90773fa0890b780ece4fd5aef0d36a00c6ad5f0531"
+      },
+      {
+        "file": "MODEL_CARD",
+        "url": "https://huggingface.co/kyutai/pocket-tts-without-voice-cloning/resolve/a7056f505a4a8ca72d8b5fb1440071d6f1a35739/README.md",
+        "bytes": 26699,
+        "sha256": "c01f4a60dca73aa844473181096618fe9b3bf6a148986c8c368190ba03627054"
+      }
+    ],
+    "runtime": null,
+    "licenseReview": "local-use-approved-distribution-review-pending",
     "license": "CC-BY-4.0 (model), MIT (engine)"
   }
 ]

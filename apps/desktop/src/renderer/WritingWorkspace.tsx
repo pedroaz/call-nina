@@ -81,6 +81,7 @@ export function WritingWorkspace({
     correctionOutcome,
     correction,
     correctionOriginal,
+    correctionLanguage,
     generatePrompt,
     cancelPrompt,
     useFreeWriting,
@@ -334,6 +335,7 @@ export function WritingWorkspace({
                 <>
                   {correction ? (
                     <CorrectionComparison
+                      targetLanguage={correctionLanguage}
                       correction={correction}
                       originalText={correctionOriginal}
                       onHelperSelection={(selectedText) => {

@@ -536,7 +536,7 @@ export class VerificationSession {
     if (route === "managed") {
       const configuration = JSON.parse(
         await readFile(
-          path.join(this.context.targetRoot, "packages/contracts/src/nina-public.json"),
+          path.join(this.context.targetRoot, "packages/contracts/src/nina-public.preview.json"),
           "utf8",
         ),
       );
