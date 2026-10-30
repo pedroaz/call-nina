@@ -69,7 +69,7 @@ import {
   type CallNinaDatabase,
   type LearnerSettingsRecord,
 } from "@call-nina/persistence";
-import { SpeechService, loadSpeechCandidates } from "@call-nina/speech-runtime";
+import { SpeechService, loadLocalSpeechBundles } from "@call-nina/speech-runtime";
 import { managedSpeech } from "./speech-client.js";
 import { createHash, randomUUID } from "node:crypto";
 import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
@@ -156,7 +156,7 @@ export class DesktopBackend {
   #storageRoot: string | null = null;
   #rootSwitching = false;
   #storageBinding: Promise<void> | null = null;
-  readonly #speechCandidateDirectory: string | undefined;
+  readonly #speechBundleDirectory: string | undefined;
   readonly #legacySpeechCandidatesDirectory: string | undefined;
   readonly #chatgpt: ChatgptSession;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
@@ -187,7 +187,7 @@ export class DesktopBackend {
   }
 
   constructor(options: {
-    speechCandidateDirectory?: string;
+    speechBundleDirectory?: string;
     legacySpeechCandidatesDirectory?: string;
     curriculumRoot: string;
     bootstrapFile: string;
@@ -207,7 +207,7 @@ export class DesktopBackend {
     this.#secrets = options.secrets;
     this.#loginCredentials = options.loginCredentials;
     this.#offline = options.offlineRuntime;
-    this.#speechCandidateDirectory = options.speechCandidateDirectory;
+    this.#speechBundleDirectory = options.speechBundleDirectory;
     this.#legacySpeechCandidatesDirectory = options.legacySpeechCandidatesDirectory;
     // No model/cache I/O takes place until a validated learner root is bound.
     this.#speech = new SpeechService(
@@ -1109,33 +1109,15 @@ export class DesktopBackend {
       await consolidateLocalAssets(dataRoot, path.dirname(this.#bootstrapFile));
       if (this.#legacySpeechCandidatesDirectory)
         await consolidatePreparedSpeech(dataRoot, this.#legacySpeechCandidatesDirectory);
-      const legacyOverride =
-        this.#speechCandidateDirectory &&
-        this.#legacySpeechCandidatesDirectory &&
-        path.resolve(this.#speechCandidateDirectory) ===
-          path.resolve(this.#legacySpeechCandidatesDirectory);
-      const candidateDirectory = legacyOverride
-        ? layout.preparedSpeech
-        : (this.#speechCandidateDirectory ??
-          (this.#legacySpeechCandidatesDirectory ? layout.preparedSpeech : undefined));
-      const candidates =
-        candidateDirectory &&
-        (await lstat(path.join(candidateDirectory, "manifest.json")).then(
-          () => true,
-          (error: unknown) => {
-            if (
-              (error as NodeJS.ErrnoException).code === "ENOENT" &&
-              !this.#speechCandidateDirectory
-            )
-              return false;
-            throw error;
-          },
-        ))
-          ? await loadSpeechCandidates(candidateDirectory)
+      const bundleDirectory = this.#speechBundleDirectory ?? layout.preparedSpeech;
+      const bundles =
+        process.platform === "linux" && process.arch === "x64"
+          ? await loadLocalSpeechBundles(path.join(layout.speech, "models"), bundleDirectory)
           : undefined;
       await this.#offline.setRoot(layout.textModels);
       this.#speech = new SpeechService(layout.speech, this.#curriculumRoot, {
-        ...(candidates ? { candidates } : {}),
+        ...(bundles ? { bundles } : {}),
+        onChange: () => this.#emitEvent?.({ event: "state-invalidated", scope: "settings" }),
         log: (code, durationMs) =>
           this.#log?.({
             timestamp: new Date().toISOString(),
@@ -1146,6 +1128,7 @@ export class DesktopBackend {
             durationMs,
           }),
       });
+      await this.#speech.packs.rememberInstalled();
       this.#storageRoot = dataRoot;
     })();
     this.#storageBinding = task;
@@ -1916,7 +1899,7 @@ export class DesktopBackend {
         const state = await this.#nina.update(request.payload.status, request.payload.token);
         if (beforeEpoch !== this.#nina.epoch) {
           this.#mobileAbort?.abort();
-          this.#speech.stop();
+          this.#speech.stopManaged();
         }
         if (JSON.stringify(state) !== previous) {
           this.#operationLog(
@@ -1974,7 +1957,15 @@ export class DesktopBackend {
             return null;
           this.#speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
           if (request.channel === "speech/manage" && request.payload.action === "preferences")
-            await saveSpeechPreferences(this.#database, request.payload.preferences);
+            await saveSpeechPreferences(
+              this.#database,
+              this.#speech.validatePreferences(request.payload.preferences),
+            );
+          if (request.channel === "speech/manage" && request.payload.action === "playback-rate")
+            await saveSpeechPreferences(this.#database, {
+              ...this.#speech.preferences,
+              playbackRate: request.payload.rate,
+            });
           return this.#speech;
         });
         if (!speech) return this.#failure(request, "stale-data-root");
@@ -2004,7 +1995,10 @@ export class DesktopBackend {
         if (request.channel === "speech/manage") {
           await speech.manage(request.payload);
           if (request.payload.action !== "cancel")
-            this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
+            this.#emitEvent?.({
+              event: "state-invalidated",
+              scope: request.payload.action === "playback-rate" ? "speech-playback" : "settings",
+            });
         }
         return this.#success(request, await speech.inspect());
       }
@@ -3452,6 +3446,11 @@ export class DesktopBackend {
                       ...(entry.detail.translation
                         ? { translation: entry.detail.translation }
                         : {}),
+                      answerLanguage:
+                        entry.detail.snapshot.exercise.kind === "vocabulary-recall" &&
+                        entry.detail.snapshot.exercise.content.direction === "recognition"
+                          ? null
+                          : entry.targetLanguage,
                       exerciseKind: entry.detail.snapshot.exercise.kind,
                       instructions: entry.detail.snapshot.exercise.instructions,
                       prompt: exerciseHistoryPrompt(entry.detail.snapshot.exercise),
@@ -3511,6 +3510,7 @@ export class DesktopBackend {
                       };
             return {
               historyEntryId: entry.historyEntryId,
+              targetLanguage: entry.targetLanguage,
               activityAvailable: entry.activityAvailable,
               evidence: entry.evidence,
               entityKind: entry.entityKind,

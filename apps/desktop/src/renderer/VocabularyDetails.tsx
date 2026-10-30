@@ -40,7 +40,10 @@ export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
           <span lang={entry.targetLanguage}>{entry.lexeme.nounForm.article}</span> ·{" "}
           {t("vocabulary.library.plural")}:{" "}
           {entry.lexeme.plural.status === "form" ? (
-            <span lang={entry.targetLanguage}>{entry.lexeme.plural.form}</span>
+            <span lang={entry.targetLanguage}>
+              {entry.lexeme.plural.form}{" "}
+              <SpeechButton text={entry.lexeme.plural.form} language={entry.targetLanguage} />
+            </span>
           ) : (
             t(`vocabulary.library.plurals.${entry.lexeme.plural.status}`)
           )}
@@ -53,7 +56,10 @@ export function VocabularyInformation({ entry }: { entry: VocabularyEntry }) {
         </p>
       )}
       {entry.lexeme.partOfSpeech === "verb" && entry.lexeme.pattern && (
-        <p lang={entry.targetLanguage}>{entry.lexeme.pattern}</p>
+        <p lang={entry.targetLanguage}>
+          {entry.lexeme.pattern}{" "}
+          <SpeechButton text={entry.lexeme.pattern} language={entry.targetLanguage} />
+        </p>
       )}
       {entry.examples.map((example, index) => (
         <div key={index}>

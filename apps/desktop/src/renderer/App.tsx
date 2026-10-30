@@ -1,7 +1,7 @@
 import { StoriesPage } from "./StoriesPage.js";
 import { SidebarLanguages } from "./SidebarLanguages.js";
 import type { PathDestination } from "./learningPathNavigation.js";
-import { stopSpeech } from "./SpeechButton.js";
+import { stopSpeech, refreshSpeechAvailability } from "./speechPlayback.js";
 import { MobilePage } from "./MobilePage.js";
 import { openProviderSettingsEvent } from "./ProviderActionSummary.js";
 import { VocabularyLearningNotice } from "./VocabularyLearning.js";
@@ -180,6 +180,11 @@ function DesktopWorkspace({
   const [activityOrigin, setActivityOrigin] = useState<Page>();
   const [settingsTab, setSettingsTab] = useState("profile");
   const [learningScope, setLearningScope] = useState<LearningScope>();
+  const audioRoot = readiness.dataRoot.status === "ready" ? readiness.dataRoot.generation : null;
+  useEffect(() => {
+    stopSpeech();
+    refreshSpeechAvailability();
+  }, [audioRoot, learningScope?.learnerId, learningScope?.targetLanguage]);
   const [ninaDrafts, setNinaDrafts] = useState<Record<string, NinaHomeDraft>>({});
   const ninaScopeKey = JSON.stringify(learningScope ?? null);
   const [switchingLanguage, setSwitchingLanguage] = useState(false);
@@ -835,7 +840,14 @@ function DesktopWorkspace({
               collapsed={navCollapsed}
               onLanguage={(language) => void selectTarget(language)}
             />
-            <SidebarModelControl language={learningScope?.targetLanguage ?? "de"} />
+            <SidebarModelControl
+              language={learningScope?.targetLanguage ?? "de"}
+              collapsed={navCollapsed}
+              onConfigure={() => {
+                setSettingsTab("ai");
+                navigate("settings");
+              }}
+            />
           </>
         }
         navToggleLabel={

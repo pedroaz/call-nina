@@ -29,13 +29,20 @@ export class SpeechPacks {
     readonly root: string,
     readonly catalog: readonly SpeechPack[] = speechPacks,
     readonly localFiles: ReadonlyMap<string, string> = new Map(),
+    readonly onChange: () => void = () => undefined,
   ) {}
   usable(pack: SpeechPack) {
     return Boolean(
-      (pack.qualified || pack.candidate) &&
-      pack.runtime &&
-      process.platform === "linux" &&
-      process.arch === "x64",
+      pack.qualified && pack.runtime && process.platform === "linux" && process.arch === "x64",
+    );
+  }
+  async canInstall(pack: SpeechPack) {
+    if (!this.usable(pack) || !pack.runtime) return false;
+    return Boolean(
+      pack.runtime.url ||
+      this.localFiles.has(pack.runtime.sha256) ||
+      (await exists(path.join(this.runtimeLocation(pack), "runtime.tar.gz"))) ||
+      (await this.runtimeInstalled(pack)),
     );
   }
   get(id: string) {
@@ -57,6 +64,24 @@ export class SpeechPacks {
       artifacts: pack.artifacts.map((a) => a.sha256),
       runtime: pack.runtime?.sha256,
     };
+  }
+  async rememberInstalled() {
+    for (const pack of this.catalog)
+      if (
+        pack.runtime &&
+        !(await exists(path.join(this.root, "catalog", `${pack.id}.json`))) &&
+        (await this.installed(pack))
+      )
+        await this.remember(pack);
+  }
+  private async remember(pack: SpeechPack) {
+    const catalogRoot = path.join(this.root, "catalog");
+    await directory(catalogRoot);
+    // Retain artifact identity after removal so exact cached recordings remain usable.
+    await atomicRecord(path.join(catalogRoot, `${pack.id}.json`), {
+      id: pack.id,
+      runtime: pack.runtime,
+    });
   }
   async needsUpdate(pack: SpeechPack) {
     return (
@@ -133,6 +158,7 @@ export class SpeechPacks {
         this.controller = null;
         this.active = null;
         this.task = null;
+        this.onChange();
       });
   }
   async close() {
@@ -179,8 +205,9 @@ export class SpeechPacks {
       }
       const specs = [
         ...pack.artifacts.map((a) => ({ root, a })),
-        { root: runtimeRoot, a: { ...runtime, file: "runtime.tar.gz" } },
+        ...(runtimeReady ? [] : [{ root: runtimeRoot, a: { ...runtime, file: "runtime.tar.gz" } }]),
       ];
+      if (runtimeReady) this.progress = runtime.bytes;
       const prepared = await Promise.all(
         specs.map(async (item) => ({
           ...item,
@@ -216,6 +243,7 @@ export class SpeechPacks {
         );
       await atomicRecord(path.join(runtimeRoot, "inventory.json"), runtime.files);
       signal.throwIfAborted();
+      await this.remember(pack);
       await atomicRecord(path.join(root, "receipt.json"), this.receipt(pack));
     } finally {
       await lock.release();
@@ -251,6 +279,8 @@ export class SpeechPacks {
     try {
       const present = await exists(root);
       const names = [
+        "pack.json",
+        "pack.json.new",
         "receipt.json",
         "receipt.json.new",
         "removal.json",

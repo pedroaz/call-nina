@@ -10,7 +10,7 @@ import {
 } from "../../packages/persistence/dist/index.js";
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
-import { speechPacks, loadSpeechCandidates } from "../../packages/speech-runtime/dist/index.js";
+import { speechPacks, loadSpeechBundles } from "../../packages/speech-runtime/dist/index.js";
 import { atomic, directory, diskUsage } from "../../packages/speech-runtime/dist/files.js";
 import { prepareDownload, download } from "../../packages/offline-runtime/dist/download.js";
 
@@ -57,7 +57,7 @@ async function inspect() {
     console.log(JSON.stringify({ status: "not-prepared", command: "make speech prepare all" }));
     return;
   }
-  const candidates = await loadSpeechCandidates(destination, true);
+  const bundles = await loadSpeechBundles(destination, true);
   const manifest = await readFile(manifestFile);
   const metadata = JSON.parse(manifest);
   const currentSources = (
@@ -67,7 +67,7 @@ async function inspect() {
       ),
     )
   ).every(Boolean);
-  const runtimes = [...new Map(candidates.packs.map((p) => [p.engine, p.runtime])).entries()];
+  const runtimes = [...new Map(bundles.packs.map((p) => [p.engine, p.runtime])).entries()];
   console.log(
     JSON.stringify(
       {
@@ -82,7 +82,7 @@ async function inspect() {
               sum + runtime.bytes + runtime.files.reduce((n, f) => n + f.bytes, 0),
             0,
           ) +
-          candidates.packs.reduce(
+          bundles.packs.reduce(
             (sum, pack) => sum + pack.artifacts.reduce((n, a) => n + a.bytes, 0),
             0,
           ),
@@ -92,13 +92,14 @@ async function inspect() {
           archiveBytes: runtime.bytes,
           extractedBytes: runtime.files.reduce((sum, f) => sum + f.bytes, 0),
         })),
-        packs: candidates.packs.map((pack) => ({
+        packs: bundles.packs.map((pack) => ({
           id: pack.id,
           voice: pack.voice,
           modelBytes: pack.artifacts.reduce((sum, a) => sum + a.bytes, 0),
-          qualification: "candidate",
-          review: speechPacks.find((p) => p.id === pack.id).licenseReview ?? "pending",
-          manualTest: "awaiting your manual test",
+          approval: "local-use",
+          review:
+            speechPacks.find((p) => p.id === pack.id).licenseReview ??
+            "distribution-review-pending",
         })),
       },
       null,
@@ -225,7 +226,7 @@ try {
   console.error(
     /^OD_(?:SPEECH|OFFLINE)_[A-Z_]+$/.test(error.message)
       ? error.message
-      : "OD_SPEECH_CANDIDATE_PREPARATION_FAILED",
+      : "OD_SPEECH_BUNDLE_PREPARATION_FAILED",
   );
   process.exitCode = 1;
 }

@@ -1,3 +1,5 @@
+import { SpeechButton } from "./SpeechButton.js";
+import type { Language } from "@call-nina/contracts";
 import type { ExerciseDefinition } from "@call-nina/domain";
 import { useTranslation } from "react-i18next";
 import { FieldGroup, OptionCard } from "./components/ui/index.js";
@@ -6,6 +8,7 @@ import styles from "./ExerciseEngine.module.css";
 
 type AnswerProps = {
   definition: ExerciseDefinition;
+  targetLanguage: Language;
   evaluated: boolean;
   values: readonly string[];
   setValue: (position: number, value: string) => void;
@@ -75,12 +78,21 @@ function BlankAnswer({ definition, evaluated, values, setValue }: AnswerProps) {
     </div>
   );
 }
-function CorrectionAnswer({ definition, evaluated, values, setValue }: AnswerProps) {
+function CorrectionAnswer({
+  definition,
+  evaluated,
+  values,
+  setValue,
+  targetLanguage,
+}: AnswerProps) {
   const { t } = useTranslation();
   if (definition.kind !== "sentence-correction") return null;
   return (
     <>
-      <blockquote className={styles.exercisePrompt}>{definition.content.sentence}</blockquote>
+      <blockquote className={styles.exercisePrompt} lang={targetLanguage}>
+        {definition.content.sentence}{" "}
+        <SpeechButton text={definition.content.sentence} language={targetLanguage} />
+      </blockquote>
       <FieldGroup>
         {t("exercises.correctedSentence")}
         <AnswerTextarea
@@ -120,22 +132,30 @@ function ChoiceAnswer({ definition, evaluated, values, setValue }: AnswerProps) 
     </fieldset>
   );
 }
-function RecallAnswer({ definition, evaluated, values, setValue }: AnswerProps) {
+function RecallAnswer({ definition, evaluated, values, setValue, targetLanguage }: AnswerProps) {
   const { t } = useTranslation();
   if (definition.kind !== "vocabulary-recall") return null;
   return (
-    <FieldGroup>
-      {definition.content.cue}
-      <small>{t(`exercises.direction.${definition.content.direction}`)}</small>
-      <AnswerTextarea
-        aria-label={t("exercises.answer")}
-        readOnly={evaluated}
-        value={values[0] ?? ""}
-        onChange={(event) => {
-          setValue(0, event.target.value);
-        }}
-      />
-    </FieldGroup>
+    <>
+      <p lang={definition.content.direction === "recognition" ? targetLanguage : ""}>
+        {definition.content.cue}{" "}
+        {definition.content.direction === "recognition" && (
+          <SpeechButton text={definition.content.cue} language={targetLanguage} />
+        )}
+      </p>
+      <FieldGroup>
+        <span className={styles.answerLabel}>{t("exercises.answer")}</span>
+        <small>{t(`exercises.direction.${definition.content.direction}`)}</small>
+        <AnswerTextarea
+          aria-label={t("exercises.answer")}
+          readOnly={evaluated}
+          value={values[0] ?? ""}
+          onChange={(event) => {
+            setValue(0, event.target.value);
+          }}
+        />
+      </FieldGroup>
+    </>
   );
 }
 

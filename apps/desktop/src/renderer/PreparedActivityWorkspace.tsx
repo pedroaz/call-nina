@@ -1,3 +1,4 @@
+import { PreparedCourseListening } from "./PreparedCourseListening.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type {
   ProviderOperation,
@@ -102,6 +103,17 @@ export function PreparedActivityWorkspace({
       setError(normalizeDesktopError(cause).detail);
     }
   };
+  if (activity.activityType === "codex-listening" && activity.context.learningPath !== undefined)
+    return (
+      <PreparedCourseListening
+        reference={activity.context.learningPath}
+        generation={prepared.rootGeneration}
+        language={activity.context.learningScope.targetLanguage}
+        title={activityTitle ?? activity.title}
+        breadcrumbs={activityBreadcrumbs ?? [{ label: parentLabel, onPress: onClose }]}
+        onClose={onClose}
+      />
+    );
   return (
     <ActivityWorkspace
       title={activityTitle ?? activity.title}

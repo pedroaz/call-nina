@@ -34,6 +34,7 @@ export function SidebarLanguages({
       label={t("setupUx.languages")}
       triggerClassName={styles.trigger}
       placement="right bottom"
+      closePosition="top-right"
       leadingIcon={<Globe aria-hidden="true" />}
       trailingIcon={<ChevronUp aria-hidden="true" />}
       triggerContent={

@@ -48,9 +48,21 @@
 }
 .wordRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.65fr);
   align-items: center;
   gap: var(--od-space-5);
+}
+.wordIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  min-width: 0;
+}
+.wordIdentity > [data-variant] {
+  flex-shrink: 0;
+}
+.meaning {
+  overflow-wrap: anywhere;
 }
 .wordRow > .source {
   text-align: end;

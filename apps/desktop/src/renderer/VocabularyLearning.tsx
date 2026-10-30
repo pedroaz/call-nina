@@ -1,3 +1,4 @@
+import { SpeechButton } from "./SpeechButton.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { ArrowRight, BookOpen, BookPlus, Compass } from "lucide-react";
@@ -388,16 +389,21 @@ export function VocabularyLearning({
                   {recent.slice(0, showAllRecent ? recent.length : 3).map((word) => (
                     <ContentRow key={word.vocabularyId} density="compact">
                       <div className={styles.wordRow}>
-                        <Button
-                          variant="quiet"
-                          className={styles.wordButton}
-                          onPress={() => {
-                            setWordId(word.vocabularyId);
-                          }}
-                        >
-                          <span lang={snapshot?.language}>{word.lemma}</span>
-                        </Button>
-                        <span>{word.meaning}</span>
+                        <div className={styles.wordIdentity}>
+                          <Button
+                            variant="quiet"
+                            className={styles.wordButton}
+                            onPress={() => {
+                              setWordId(word.vocabularyId);
+                            }}
+                          >
+                            <span lang={snapshot?.language}>{word.lemma}</span>
+                          </Button>
+                          {snapshot && (
+                            <SpeechButton text={word.lemma} language={snapshot.language} />
+                          )}
+                        </div>
+                        <span className={styles.meaning}>{word.meaning}</span>
                         <span className={styles.source}>
                           {t(`vocabulary.learning.sources.${word.batch.source}`)}
                         </span>
@@ -571,10 +577,14 @@ export function VocabularyLearning({
                 {t(readError)}
               </Feedback>
             )}
+            {snapshot && <SpeechButton text={selectedWord.lemma} language={snapshot.language} />}
             <p className={styles.translation}>{selectedWord.meaning}</p>
             {selectedWord.examples.map((example, index) => (
               <div key={index}>
-                <p lang={snapshot?.language}>{example.text}</p>
+                <p lang={snapshot?.language}>
+                  {example.text}{" "}
+                  {snapshot && <SpeechButton text={example.text} language={snapshot.language} />}
+                </p>
                 <p className={styles.muted}>{example.meaning}</p>
               </div>
             ))}

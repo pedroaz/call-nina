@@ -226,19 +226,25 @@ export function FlashcardWorkspace({
             />
           ) : (
             <>
-              <SpeechButton
-                text={vocabularyLemma(card, deck.content.language)}
-                language={deck.content.language}
-              />
               <RecallCard
                 identity={deck.progress.position}
                 language={deck.content.language}
                 revealed={flipped}
                 answerLabel={t("flashcards.meaning")}
                 cue={
-                  card.lexeme.partOfSpeech === "noun"
-                    ? `${card.lexeme.nounForm.article ? `${card.lexeme.nounForm.article} ` : ""}${vocabularyLemma(card, deck.content.language)}`
-                    : card.lemma
+                  <>
+                    {card.lexeme.partOfSpeech === "noun"
+                      ? `${card.lexeme.nounForm.article ? `${card.lexeme.nounForm.article} ` : ""}${vocabularyLemma(card, deck.content.language)}`
+                      : card.lemma}{" "}
+                    <SpeechButton
+                      text={
+                        card.lexeme.partOfSpeech === "noun"
+                          ? `${card.lexeme.nounForm.article ? `${card.lexeme.nounForm.article} ` : ""}${vocabularyLemma(card, deck.content.language)}`
+                          : card.lemma
+                      }
+                      language={deck.content.language}
+                    />
+                  </>
                 }
                 answer={
                   <>

@@ -7,6 +7,16 @@
 .language {
   width: min(100%, 14rem);
 }
+.voice {
+  min-width: 9rem;
+}
+.voice > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
 .languages {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -56,16 +66,4 @@
   .usage {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.playback {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--od-space-2);
-  max-width: 100%;
-}
-.playback > span {
-  font-size: var(--od-font-size-sm);
-  color: var(--od-color-text-muted);
 }

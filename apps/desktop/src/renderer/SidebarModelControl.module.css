@@ -1,13 +1,14 @@
-:global([data-nav-collapsed="true"]) .navModelPanel {
-  display: none;
-}
-.navModelPanel {
+.assignments {
   display: grid;
   gap: var(--od-space-2);
-  min-width: 0;
   margin: 0;
-  padding: var(--od-space-3) 0 0;
-  border-top: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.rate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem;
+  align-items: center;
+  gap: var(--od-space-2);
+  font-variant-numeric: tabular-nums;
 }
 .assignment {
   display: grid;
@@ -15,7 +16,6 @@
   align-items: baseline;
   gap: var(--od-space-3);
   min-width: 0;
-  padding-inline: var(--od-space-4);
   overflow-wrap: anywhere;
 }
 .assignment dt {

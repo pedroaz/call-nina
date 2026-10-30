@@ -1345,15 +1345,11 @@
       },
       "speechModels": {
         "title": "Speech models",
-        "description": "Installed qualified voices and shared speech runtimes."
-      },
-      "speechCandidates": {
-        "title": "Speech candidates",
-        "description": "Installed development voices and shared speech runtimes."
+        "description": "Installed voices and shared speech runtimes."
       },
       "preparedSpeech": {
         "title": "Prepared speech downloads",
-        "description": "Staged voices, runtime archives and preparation files for local testing."
+        "description": "Local installation sources for voices and runtimes."
       },
       "curriculumAudio": {
         "title": "Course audio",
@@ -2084,7 +2080,6 @@
     "preparedFirst": "Prepared and cached recordings play without using your speech allowance.",
     "linuxOnly": "Local speech models require Linux x64.",
     "packSizes": "Download {{download}} · installed estimate {{installed}} · voice files on disk {{disk}}",
-    "qualification": "This voice is not yet available for download.",
     "downloadFailed": "Download failed. Resume to retry, or remove the partial download.",
     "useVoice": "Use this voice",
     "cacheTitle": "Saved speech",
@@ -2102,17 +2097,20 @@
     },
     "diskFull": "Not enough disk space. Remove unused models or clear audio, then retry.",
     "languageUnavailable": "Unavailable for {{language}}",
-    "candidate": "Candidate",
     "previewText": "Preview text",
     "previewInvalid": "Enter 1–6,000 characters.",
     "unavailableReasons": {
       "platform": "Local speech requires Linux x64.",
-      "runtime": "Runtime not prepared.",
-      "qualification": "Voice not qualified."
+      "runtime": "Runtime unavailable."
     },
     "install": "Install",
     "installSize": "{{size}} MB to install",
-    "installing": "Installing"
+    "installing": "Installing",
+    "playbackSpeed": "Playback speed",
+    "voice": "Voice",
+    "showAnswer": "Show answer",
+    "finishListening": "Finish and continue",
+    "removeFailed": "Could not remove this voice."
   },
   "setupUx": {
     "aiPractice": "Exercise AI",
@@ -2175,6 +2173,7 @@
     "speechAi": "Audio",
     "language": "Language",
     "exerciseSummary": "Exercise AI",
+    "aiAudio": "AI & Audio",
     "audioSummary": "Audio"
   },
   "stories": {

@@ -70,7 +70,6 @@ export async function readPersonalDataLocations(dataRoot: string, bootstrapFile:
     ["database", dataRoot, layout.database],
     ["attachments", dataRoot, layout.attachments],
     ["textModels", dataRoot, layout.textModels],
-    ["speechCandidates", dataRoot, path.join(layout.speech, "candidate-models")],
     ["speechModels", dataRoot, path.join(layout.speech, "models")],
     ["preparedSpeech", dataRoot, layout.preparedSpeech],
     ["curriculumAudio", dataRoot, path.join(layout.speech, "curriculum")],

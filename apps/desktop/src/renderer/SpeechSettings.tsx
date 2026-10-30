@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { NinaAccountSettings } from "./NinaAccount.js";
 import { ProviderMatrix, ProviderChoice } from "./ProviderMatrix.js";
 import { SpeechButton, stopSpeech } from "./SpeechButton.js";
@@ -7,6 +8,7 @@ import {
   languageDefinitions,
   speechTextSchema,
   type SpeechAction,
+  type CallNinaError,
   type SpeechSnapshot,
   type Language,
   type NinaAccountState,
@@ -19,14 +21,23 @@ import {
   ModalDialog,
 } from "./components/ui/index.js";
 import { ActionGroup, Section } from "./components/layout/index.js";
-import { invokeDesktop, subscribeDesktop } from "./ipc.js";
+import { invokeDesktop, subscribeDesktop, normalizeDesktopError } from "./ipc.js";
 import styles from "./SpeechSettings.module.css";
 
 const languages: Language[] = ["de", "en-US", "pt-BR", "es"];
+const voiceName = (voice: string) =>
+  voice === "juergen"
+    ? "Jürgen"
+    : voice === "hfc_male"
+      ? "Hi-Fi Captain"
+      : voice === "mls_10246"
+        ? "MLS 10246"
+        : voice.charAt(0).toUpperCase() + voice.slice(1).replaceAll("_", " ");
 function useSpeechSettings() {
   const [view, setView] = useState<SpeechSnapshot | null>(null);
   const [account, setAccount] = useState<NinaAccountState | null>(null);
-  const [error, setError] = useState(false);
+  const [readError, setReadError] = useState<CallNinaError>();
+  const [actionError, setActionError] = useState<CallNinaError>();
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     let live = true,
@@ -41,10 +52,10 @@ function useSpeechSettings() {
         if (live && ticket === sequence) {
           setView(next);
           setAccount(user);
-          setError(false);
+          setReadError(undefined);
         }
-      } catch {
-        if (live && ticket === sequence) setError(true);
+      } catch (cause) {
+        if (live && ticket === sequence) setReadError(normalizeDesktopError(cause).detail);
       }
     };
     void refresh();
@@ -66,18 +77,18 @@ function useSpeechSettings() {
     )
       stopSpeech();
     setBusy(true);
-    setError(false);
+    setActionError(undefined);
     try {
       setView(await invokeDesktop("speech/manage", action));
       return true;
-    } catch {
-      setError(true);
+    } catch (cause) {
+      setActionError(normalizeDesktopError(cause).detail);
       return false;
     } finally {
       setBusy(false);
     }
   }, []);
-  return { view, account, error, busy, act };
+  return { view, account, error: actionError ?? readError, busy, act };
 }
 function accountReason(account: NinaAccountState | null) {
   const access = account?.access?.speech;
@@ -112,6 +123,8 @@ function SpeechConnections({ language }: { language: Language }) {
   const [preview, setPreview] = useState(samples[language]);
   const [source, setSource] = useState<"piper" | "pocket" | "managed">("piper");
   const [target, setTarget] = useState<Language>(language);
+  const [editingVoice, setEditingVoice] = useState<string>();
+  const [voiceOnly, setVoiceOnly] = useState(false);
   const [previousLanguage, setPreviousLanguage] = useState(language);
   if (previousLanguage !== language) {
     setPreviousLanguage(language);
@@ -120,16 +133,15 @@ function SpeechConnections({ language }: { language: Language }) {
   const packStatus = (pack: SpeechSnapshot["packs"][number] | undefined) => {
     if (!pack) return t("speech.states.unavailable");
     if (pack.unavailableReason) return t(`speech.unavailableReasons.${pack.unavailableReason}`);
-    const state = t(
-      pack.qualification === "candidate" && pack.state === "downloading"
-        ? "speech.installing"
-        : `speech.states.${pack.state}`,
-    );
-    return pack.qualification === "candidate" ? `${state} · ${t("speech.candidate")}` : state;
+    return t(pack.state === "downloading" ? "speech.installing" : `speech.states.${pack.state}`);
   };
   const row = (engine: "piper" | "pocket" | "managed") => {
     if (!view) return null;
-    const pack = view.packs.find((entry) => entry.language === target && entry.engine === engine);
+    const choices = view.packs.filter(
+      (entry) => entry.language === target && entry.engine === engine,
+    );
+    const saved = view.preferences.voices[`${engine}:${target}`];
+    const pack = choices.find((entry) => entry.id === saved) ?? choices[0];
     const ready =
       engine === "managed"
         ? accountReason(account) === "ready"
@@ -153,11 +165,13 @@ function SpeechConnections({ language }: { language: Language }) {
               ? t("providers.accessRequired")
               : t(`speech.readiness.${accountReason(account)}`)
         : packStatus(pack);
-    const open = () => {
+    const open = (voiceId = pack?.id, onlyVoice = false) => {
       stopSpeech();
       setPreview(samples[target]);
       setSource(engine);
       setEditing(target);
+      setEditingVoice(voiceId);
+      setVoiceOnly(onlyVoice);
     };
     const actionLabel = ready
       ? "providers.configure"
@@ -191,13 +205,52 @@ function SpeechConnections({ language }: { language: Language }) {
           </div>
         </td>
         <td>
+          {engine === "managed" ? (
+            t("providers.default")
+          ) : (
+            <SelectField
+              density="compact"
+              className={styles.voice}
+              label={`${t("speech.voice")}: ${name}`}
+              value={pack?.id ?? ""}
+              disabled={!choices.length}
+              aria-disabled={busy || undefined}
+              aria-busy={busy || undefined}
+              onChange={(event) => {
+                if (busy) return;
+                const candidate = choices.find((entry) => entry.id === event.currentTarget.value);
+                if (!candidate) return;
+                if (candidate.state === "installed")
+                  void act({
+                    action: "preferences",
+                    preferences: {
+                      ...view.preferences,
+                      voices: {
+                        ...view.preferences.voices,
+                        [`${engine}:${target}`]: candidate.id,
+                      },
+                    },
+                  });
+                else open(candidate.id, true);
+              }}
+            >
+              {choices.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {voiceName(entry.voice)}
+                  {entry.state === "installed" ? "" : ` · ${packStatus(entry)}`}
+                </option>
+              ))}
+            </SelectField>
+          )}
+        </td>
+        <td>
           <ProviderChoice
             name={`${id}-${target}`}
             checked={selected}
             disabled={busy || !ready}
             aria-label={`${t("setupUx.speechAi")}: ${name} · ${t(`languages.${target}`)}`}
             aria-describedby={`${id}-${engine}-status`}
-            onChange={open}
+            onChange={() => open()}
           />
         </td>
         <td>
@@ -206,7 +259,7 @@ function SpeechConnections({ language }: { language: Language }) {
             isDisabled={busy}
             aria-label={`${t(actionLabel)}: ${name} · ${t(`languages.${target}`)}`}
             aria-haspopup="dialog"
-            onPress={open}
+            onPress={() => open()}
           >
             {t(actionLabel)}
           </Button>
@@ -214,7 +267,14 @@ function SpeechConnections({ language }: { language: Language }) {
       </tr>
     );
   };
-  const pack = view?.packs.find((entry) => entry.language === editing && entry.engine === source);
+  const pack = view?.packs.find((entry) => entry.id === editingVoice);
+  const sameVoice = Boolean(pack && view?.preferences.voices[`${source}:${editing}`] === pack.id);
+  const savedPack = view?.packs.find(
+    (entry) => entry.engine === source && entry.language === editing,
+  );
+  const voiceSelected =
+    sameVoice ||
+    Boolean(pack && !view?.preferences.voices[`${source}:${editing}`] && savedPack?.id === pack.id);
   const ready =
     source === "managed"
       ? accountReason(account) === "ready"
@@ -233,7 +293,14 @@ function SpeechConnections({ language }: { language: Language }) {
     }
     await act({
       action: "preferences",
-      preferences: { ...view.preferences, [editing]: source },
+      preferences: {
+        ...view.preferences,
+        ...(!voiceOnly ? { [editing]: source } : {}),
+        voices: {
+          ...view.preferences.voices,
+          ...(pack ? { [`${source}:${editing}`]: pack.id } : {}),
+        },
+      },
     });
   };
   return (
@@ -257,21 +324,17 @@ function SpeechConnections({ language }: { language: Language }) {
         </SelectField>
       }
     >
-      {error && (
-        <Feedback tone="error" live="polite">
-          {t("speech.unavailable")}
-        </Feedback>
-      )}
+      {error && !editing && <OperationError error={error} />}
       {!view && !error && <p role="status">{t("speech.loading")}</p>}
       {view && (
-        <ProviderMatrix label={`${t("setupUx.speechAi")} · ${t(`languages.${target}`)}`}>
+        <ProviderMatrix withVoice label={`${t("setupUx.speechAi")} · ${t(`languages.${target}`)}`}>
           {(["piper", "pocket", "managed"] as const).map(row)}
         </ProviderMatrix>
       )}
       <ModalDialog
         closeLabel={t("actions.close")}
         isOpen={Boolean(editing)}
-        title={`${source === "managed" ? t("connectionSettings.routes.managed") : source === "piper" ? "Piper" : "Pocket TTS"} · ${editing ? t(`languages.${editing}`) : ""}`}
+        title={`${source === "managed" ? t("connectionSettings.routes.managed") : source === "piper" ? "Piper" : "Pocket TTS"} · ${pack ? voiceName(pack.voice) : editing ? t(`languages.${editing}`) : ""}`}
         onOpenChange={(open) => {
           if (!open) {
             stopSpeech();
@@ -281,6 +344,7 @@ function SpeechConnections({ language }: { language: Language }) {
       >
         {editing && view && (
           <div className={styles.sections}>
+            {error && <OperationError error={error} />}
             <p role="status">
               {source === "managed"
                 ? t(`speech.readiness.${accountReason(account)}`)
@@ -294,15 +358,8 @@ function SpeechConnections({ language }: { language: Language }) {
                 {t("speech.balance", { count: account?.access?.speech.remainingCharacters ?? 0 })}
               </p>
             )}
-            {source !== "managed" && pack && pack.state !== "unavailable" && (
-              <p>
-                {t(
-                  pack.qualification === "candidate"
-                    ? "speech.installSize"
-                    : "setupUx.voiceDownload",
-                  { size: (pack.downloadBytes / 1e6).toFixed(0) },
-                )}
-              </p>
+            {source !== "managed" && pack && !["unavailable", "installed"].includes(pack.state) && (
+              <p>{t("speech.installSize", { size: (pack.downloadBytes / 1e6).toFixed(0) })}</p>
             )}
             {pack?.error && (
               <Feedback tone="error" live="polite">
@@ -350,11 +407,15 @@ function SpeechConnections({ language }: { language: Language }) {
                   }}
                 />
               )}
-              {view.preferences[editing] === source &&
-                (source === "managed" || speechTextSchema.safeParse(preview).success) && (
+              {ready &&
+                (source === "managed"
+                  ? view.preferences[editing] === source
+                  : speechTextSchema.safeParse(preview).success) && (
                   <SpeechButton
                     text={source === "managed" ? samples[editing] : preview}
                     language={editing}
+                    {...(source === "managed" ? {} : { source, voice: pack?.id })}
+                    variant="passage"
                     showUnavailableReason={false}
                   />
                 )}
@@ -375,7 +436,10 @@ function SpeechConnections({ language }: { language: Language }) {
                 isDisabled={
                   busy ||
                   (!ready && !downloadable) ||
-                  (ready && view.preferences[editing] === source) ||
+                  (ready &&
+                    (source === "managed"
+                      ? view.preferences[editing] === source
+                      : voiceSelected && (voiceOnly || view.preferences[editing] === source))) ||
                   Boolean(downloadable && view.packs.some((entry) => entry.state === "downloading"))
                 }
                 onPress={() => void apply()}
@@ -384,9 +448,7 @@ function SpeechConnections({ language }: { language: Language }) {
                   downloadable
                     ? pack.state === "partial"
                       ? "speech.resume"
-                      : pack.qualification === "candidate"
-                        ? "speech.install"
-                        : "speech.download"
+                      : "speech.install"
                     : "speech.useVoice",
                 )}
               </Button>
@@ -409,11 +471,7 @@ function SpeechStorage() {
   };
   return (
     <Section title={t("speech.storageTitle")}>
-      {error && (
-        <Feedback tone="error" live="polite">
-          {t("speech.unavailable")}
-        </Feedback>
-      )}
+      {error && !removal && <OperationError error={error} />}
       {!view && !error && <p role="status">{t("speech.loading")}</p>}
       {view && (
         <div className={styles.sections}>
@@ -455,15 +513,16 @@ function SpeechStorage() {
                       <strong>
                         {pack.engine === "piper" ? "Piper" : "Pocket TTS"} ·{" "}
                         {languageDefinitions[pack.language].name}
+                        {" · "}
+                        {voiceName(pack.voice)}
                       </strong>
                       <span>
                         {pack.voice} ·{" "}
                         {t(
-                          pack.qualification === "candidate" && pack.state === "downloading"
+                          pack.state === "downloading"
                             ? "speech.installing"
                             : `speech.states.${pack.state}`,
                         )}
-                        {pack.qualification === "candidate" && ` · ${t("speech.candidate")}`}
                       </span>
                       {pack.state !== "unavailable" && (
                         <span>
@@ -566,6 +625,7 @@ function SpeechStorage() {
             {removal.voice} · {languageDefinitions[removal.language].name}
           </p>
           <p>{t("speech.removeConsequences")}</p>
+          {error && <OperationError error={error} message={t("speech.removeFailed")} />}
           <ActionGroup align="end">
             <Button
               variant="secondary"

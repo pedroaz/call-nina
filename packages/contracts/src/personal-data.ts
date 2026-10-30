@@ -102,7 +102,6 @@ export const personalDataLocationIdSchema = z.enum([
   "attachments",
   "textModels",
   "speechModels",
-  "speechCandidates",
   "preparedSpeech",
   "curriculumAudio",
   "privateAudio",

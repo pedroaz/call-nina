@@ -1,3 +1,4 @@
+import { PreparedCourseListening } from "./PreparedCourseListening.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { BookOpen } from "lucide-react";
 import { ActivityHeaderActionsContext } from "./components/activity/index.js";
@@ -99,6 +100,7 @@ function LearningPathWorkspace({
   );
   const [catalogFilter, setCatalogFilter] = useState({ query: "", kind: "all", level: "all" });
   const [expandedActivity, setExpandedActivity] = useState<string>();
+  const [listeningReview, setListeningReview] = useState<CourseReference>();
   const [active, setActive] = useState<{
     id: ActivityId;
     reference: CourseReference;
@@ -109,7 +111,9 @@ function LearningPathWorkspace({
   const [launchOrigin, setLaunchOrigin] = useState<string>();
   const [changingSituation, setChangingSituation] = useState(false);
   const [changedUnit, setChangedUnit] = useState<string>();
-  const languageSwitchBlocked = Boolean(active || busy || generation.busy || changingSituation);
+  const languageSwitchBlocked = Boolean(
+    active || listeningReview || busy || generation.busy || changingSituation,
+  );
   useEffect(() => {
     onLanguageSwitchBlockedChange?.(languageSwitchBlocked);
     return () => onLanguageSwitchBlockedChange?.(false);
@@ -180,7 +184,8 @@ function LearningPathWorkspace({
   };
   const mutate = async (
     ref: CourseReference,
-    action: "select" | "complete-explanation" | "skip" | "reopen" | "new-mission",
+    action:
+      "select" | "complete-explanation" | "complete-listening" | "skip" | "reopen" | "new-mission",
   ) => {
     if (pending.current) return;
     pending.current = true;
@@ -197,7 +202,10 @@ function LearningPathWorkspace({
       const fresh = await refresh();
       if (!isAlive()) return;
       if (action === "new-mission") setChangedUnit(ref.unitId);
-      if (fresh?.course && ["complete-explanation", "skip"].includes(action)) {
+      if (
+        fresh?.course &&
+        ["complete-explanation", "complete-listening", "skip"].includes(action)
+      ) {
         const unit = fresh.course.units.find((unit) => unit.id === ref.unitId);
         if (unit) setExpandedActivity(nextLessonActivity(fresh.course, fresh.state, unit)?.id);
       }
@@ -222,7 +230,11 @@ function LearningPathWorkspace({
     const { unit, activity } = resolveCourseReference(fresh.course, ref);
     const launchDestination: PathNavigation =
       ref.mode === "course" ? { kind: "lesson", stage: unit.stage, unitId: unit.id } : navigation;
-    if (activity.delivery === "explanation") {
+    if (activity.delivery === "listening" && ref.mode === "review") {
+      setListeningReview(ref);
+      return;
+    }
+    if (activity.delivery === "explanation" || activity.delivery === "listening") {
       setActive(undefined);
       setNavigation(launchDestination);
       setExpandedActivity(activity.id);
@@ -254,10 +266,10 @@ function LearningPathWorkspace({
     try {
       let id = saved?.activityId;
       if (!id) {
-        if (activity.delivery !== "listening" && activity.delivery !== "speaking") {
+        if (activity.delivery !== "speaking") {
           if (!(await requestAiAccess("exercise-generation")) || !isAlive()) return;
         }
-        if (activity.delivery === "listening" || activity.delivery === "speaking") {
+        if (activity.delivery === "speaking") {
           const result = await invokeDesktop("learning-path/prepare-voice", {
             expectedGeneration: fresh.rootGeneration,
             reference: ref,
@@ -454,6 +466,21 @@ function LearningPathWorkspace({
           ? selected.title[locale]
           : (course?.paths.find((path) => path.id === stage)?.title[locale] ?? stage);
   const displayedError = error ?? readError;
+  if (listeningReview)
+    return (
+      <PreparedCourseListening
+        reference={listeningReview}
+        generation={snapshot.rootGeneration}
+        language={snapshot.learningContext.targetLanguage}
+        title={
+          course
+            ? resolveCourseReference(course, listeningReview).activity.title[locale]
+            : t("ui.review")
+        }
+        breadcrumbs={[{ label: t("ui.review"), onPress: () => setListeningReview(undefined) }]}
+        onClose={() => setListeningReview(undefined)}
+      />
+    );
   return (
     <>
       {player}

@@ -1,6 +1,7 @@
 import { validateSpeechAudio } from "./audio.js";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import path from "node:path";
+import { directory } from "./files.js";
 import type { SpeechPack } from "./catalog.js";
 import type { SpeechPacks } from "./packs.js";
 
@@ -55,6 +56,9 @@ export class SpeechWorker {
         bounded.throwIfAborted();
         const runtime = path.join(packs.runtimeLocation(pack), "runtime");
         const root = packs.location(pack);
+        const workerHome = path.join(packs.root, "worker-homes", pack.id);
+        await directory(workerHome);
+        bounded.throwIfAborted();
         const child = spawn(
           path.join(runtime, "bin/python3"),
           ["-I", "-B", path.join(runtime, "worker.py"), root, pack.engine, pack.language],
@@ -62,7 +66,8 @@ export class SpeechWorker {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
               PATH: path.join(runtime, "bin"),
-              HOME: root,
+              HOME: workerHome,
+              XDG_CACHE_HOME: path.join(workerHome, ".cache"),
               HF_HUB_OFFLINE: "1",
               TRANSFORMERS_OFFLINE: "1",
               OMP_NUM_THREADS: "2",

@@ -269,7 +269,14 @@ export const learningPathSnapshotSchema = z.strictObject({
 export const learningPathUpdateSchema = z.strictObject({
   expectedGeneration: dataRootGenerationSchema,
   reference: courseReferenceSchema,
-  action: z.enum(["select", "complete-explanation", "skip", "reopen", "new-mission"]),
+  action: z.enum([
+    "select",
+    "complete-explanation",
+    "complete-listening",
+    "skip",
+    "reopen",
+    "new-mission",
+  ]),
 });
 export const courseTeachingContextSchema = z.strictObject({
   objectives: z

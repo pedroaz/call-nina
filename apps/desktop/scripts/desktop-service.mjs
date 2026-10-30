@@ -17,11 +17,10 @@ const nodeTools = {
 const mode = process.argv[2];
 const desktopFlags = process.argv.slice(3);
 if (
-  desktopFlags.some((flag) => !flag.startsWith("--speech-candidates-dir=")) ||
-  desktopFlags.length > 1 ||
-  (desktopFlags.length && mode !== "dev")
+  desktopFlags.some((flag) => !flag.startsWith("--speech-bundles-dir=")) ||
+  desktopFlags.length > 1
 )
-  throw new Error("Speech candidates are available only in development.");
+  throw new Error("Invalid local speech bundle option.");
 if (mode !== "dev" && mode !== "prd") {
   throw new Error("Desktop service mode must be dev or prd.");
 }

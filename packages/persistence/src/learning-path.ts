@@ -391,6 +391,8 @@ export async function updateLearningPath(
   if (reference.mode !== "course") throw new Error("OD_COURSE_REFERENCE_INVALID");
   if (input.action === "complete-explanation" && activity.delivery !== "explanation")
     throw new Error("OD_COURSE_COMPLETION_INVALID");
+  if (input.action === "complete-listening" && activity.delivery !== "listening")
+    throw new Error("OD_COURSE_COMPLETION_INVALID");
   await withLeasedTransaction(database, (connection) => {
     assertCourseScope(connection, course);
     connection
@@ -414,7 +416,7 @@ export async function updateLearningPath(
           reference.version,
           reference.unitId,
           reference.activityKey,
-          input.action === "complete-explanation"
+          ["complete-explanation", "complete-listening"].includes(input.action)
             ? "completed"
             : input.action === "skip"
               ? "skipped"

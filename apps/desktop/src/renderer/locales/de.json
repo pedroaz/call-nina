@@ -1345,15 +1345,11 @@
       },
       "speechModels": {
         "title": "Sprachmodelle",
-        "description": "Installierte qualifizierte Stimmen und gemeinsam genutzte Sprachlaufzeitumgebungen."
-      },
-      "speechCandidates": {
-        "title": "Sprachkandidaten",
-        "description": "Installierte Entwicklungsstimmen und gemeinsam genutzte Sprachlaufzeitumgebungen."
+        "description": "Installierte Stimmen und gemeinsam genutzte Sprachlaufzeitumgebungen."
       },
       "preparedSpeech": {
         "title": "Vorbereitete Sprachdownloads",
-        "description": "Stimmen, Laufzeitarchive und Vorbereitungsdateien für lokale Tests."
+        "description": "Lokale Installationsdateien für Stimmen und Laufzeitumgebungen."
       },
       "curriculumAudio": {
         "title": "Kursaudio",
@@ -2084,7 +2080,6 @@
     "preparedFirst": "Vorbereitete und gespeicherte Aufnahmen verbrauchen kein Sprachguthaben.",
     "linuxOnly": "Lokale Sprachmodelle benötigen Linux x64.",
     "packSizes": "Download {{download}} · geschätzt installiert {{installed}} · Stimmdateien auf dem Gerät {{disk}}",
-    "qualification": "Diese Stimme ist noch nicht zum Download verfügbar.",
     "downloadFailed": "Download fehlgeschlagen. Fortsetzen oder den unvollständigen Download entfernen.",
     "useVoice": "Diese Stimme verwenden",
     "cacheTitle": "Gespeicherte Sprachausgabe",
@@ -2102,17 +2097,20 @@
     },
     "diskFull": "Nicht genug Speicherplatz. Ungenutzte Modelle oder Audio löschen und erneut versuchen.",
     "languageUnavailable": "Für {{language}} nicht verfügbar",
-    "candidate": "Testversion",
     "previewText": "Text zum Probehören",
     "previewInvalid": "Gib 1–6.000 Zeichen ein.",
     "unavailableReasons": {
       "platform": "Lokale Sprachausgabe erfordert Linux x64.",
-      "runtime": "Laufzeitumgebung nicht vorbereitet.",
-      "qualification": "Stimme noch nicht freigegeben."
+      "runtime": "Laufzeitumgebung nicht verfügbar."
     },
     "install": "Installieren",
     "installSize": "{{size}} MB für die Installation",
-    "installing": "Wird installiert"
+    "installing": "Wird installiert",
+    "playbackSpeed": "Audiotempo",
+    "voice": "Stimme",
+    "showAnswer": "Antwort anzeigen",
+    "finishListening": "Abschließen und weiter",
+    "removeFailed": "Diese Stimme konnte nicht entfernt werden."
   },
   "setupUx": {
     "aiPractice": "Übungs-KI",
@@ -2175,6 +2173,7 @@
     "speechAi": "Audio",
     "language": "Sprache",
     "exerciseSummary": "Übungs-KI",
+    "aiAudio": "KI & Audio",
     "audioSummary": "Audio"
   },
   "stories": {

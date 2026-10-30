@@ -222,6 +222,7 @@ declare module "*InfoHint.module.css" {
     readonly popover: string;
     readonly trigger: string;
     readonly utilityContent: string;
+    readonly utilityHeader: string;
     readonly utilityTrigger: string;
   };
   export default styles;
@@ -277,6 +278,9 @@ declare module "*LearningPathPage.module.css" {
     readonly lessonProgressHeader: string;
     readonly lessonWorkspace: string;
     readonly librarySummary: string;
+    readonly listening: string;
+    readonly listeningQuestions: string;
+    readonly listeningTranscript: string;
     readonly page: string;
     readonly pathHeading: string;
     readonly pathIcon: string;
@@ -509,7 +513,17 @@ declare module "*SidebarLanguages.module.css" {
 declare module "*SidebarModelControl.module.css" {
   const styles: {
     readonly assignment: string;
-    readonly navModelPanel: string;
+    readonly assignments: string;
+    readonly rate: string;
+  };
+  export default styles;
+}
+
+declare module "*SpeechButton.module.css" {
+  const styles: {
+    readonly playback: string;
+    readonly spinner: string;
+    readonly status: string;
   };
   export default styles;
 }
@@ -520,10 +534,10 @@ declare module "*SpeechSettings.module.css" {
     readonly language: string;
     readonly languages: string;
     readonly pack: string;
-    readonly playback: string;
     readonly sections: string;
     readonly storage: string;
     readonly usage: string;
+    readonly voice: string;
   };
   export default styles;
 }
@@ -564,6 +578,7 @@ declare module "*VocabularyLearning.module.css" {
     readonly focusIcon: string;
     readonly focusRow: string;
     readonly form: string;
+    readonly meaning: string;
     readonly muted: string;
     readonly notice: string;
     readonly overview: string;
@@ -576,6 +591,7 @@ declare module "*VocabularyLearning.module.css" {
     readonly source: string;
     readonly translation: string;
     readonly wordButton: string;
+    readonly wordIdentity: string;
     readonly wordRow: string;
   };
   export default styles;

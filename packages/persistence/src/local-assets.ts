@@ -249,6 +249,19 @@ export async function consolidateLocalAssets(dataRoot: string, configRoot: strin
     await moveTree(path.join(configRoot, "offline"), layout.textModels);
     for (const name of ["models", "candidate-models", "curriculum"])
       await moveTree(path.join(configRoot, "speech", name), path.join(layout.speech, name));
+    await moveTree(
+      path.join(layout.speech, "candidate-models"),
+      path.join(layout.speech, "models"),
+    );
+    for (const engine of ["piper", "pocket"])
+      for (const language of ["de", "en-US", "pt-BR", "es"]) {
+        const id = `${engine}-${language}`;
+        // Preserve runtime-generated files outside the strictly owned voice inventory.
+        await moveTree(
+          path.join(layout.speech, "models", id, ".cache"),
+          path.join(layout.speech, "models", "worker-homes", id, ".cache"),
+        );
+      }
     // Leave any unrecognised files alone.
     await rmdir(path.join(configRoot, "speech")).catch((error: unknown) => {
       if (!missing(error) && (error as NodeJS.ErrnoException).code !== "ENOTEMPTY") throw error;

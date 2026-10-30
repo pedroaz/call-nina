@@ -1,3 +1,4 @@
+import { SpeechButton } from "./SpeechButton.js";
 import { SavedResults, type SavedResultsScope, type HistoryPracticeSeed } from "./SavedResults.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { PracticeComposer } from "./PracticeComposer.js";
@@ -477,7 +478,16 @@ export function PracticePage({
           content: (
             <article>
               <h2>{reading.title}</h2>
-              <p className={styles.readingPassage}>{reading.passage}</p>
+              <p className={styles.readingPassage} lang={generated?.learningScope.targetLanguage}>
+                {reading.passage}
+              </p>
+              {generated && (
+                <SpeechButton
+                  text={reading.passage}
+                  language={generated.learningScope.targetLanguage}
+                  variant="passage"
+                />
+              )}
             </article>
           ),
         });
@@ -512,8 +522,23 @@ export function PracticePage({
                   <ItemList>
                     {lesson.vocabularyFoundations.map((item) => (
                       <li key={`${item.term}:${item.example}`}>
-                        <strong>{item.term}</strong> — {item.explanation}{" "}
-                        <Muted as="span">{item.example}</Muted>
+                        <strong lang={generated?.learningScope.targetLanguage}>{item.term}</strong>{" "}
+                        {generated && (
+                          <SpeechButton
+                            text={item.term}
+                            language={generated.learningScope.targetLanguage}
+                          />
+                        )}{" "}
+                        — {item.explanation}{" "}
+                        <Muted as="span" lang={generated?.learningScope.targetLanguage}>
+                          {item.example}
+                        </Muted>{" "}
+                        {generated && (
+                          <SpeechButton
+                            text={item.example}
+                            language={generated.learningScope.targetLanguage}
+                          />
+                        )}
                       </li>
                     ))}
                   </ItemList>

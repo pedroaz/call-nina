@@ -63,7 +63,7 @@ const checks = {
 };
 const aliases = { h: "help", d: "dev", b: "build", l: "logs" };
 const registry = {
-  speech: group("Local development speech candidates (no synthesis or publishing)", {
+  speech: group("Local speech bundles (no synthesis or publishing)", {
     prepare: leaf("Prepare pinned CPU runtimes and voices", (args) => {
       pnpm(
         "--filter",
@@ -73,9 +73,9 @@ const registry = {
         "run",
         "build",
       );
-      node("scripts/speech/candidates.mjs", "prepare", ...args);
+      node("scripts/speech/bundles.mjs", "prepare", ...args);
     }),
-    status: leaf("Validate and inspect staged candidates", () => {
+    status: leaf("Validate and inspect local bundles", () => {
       pnpm(
         "--filter",
         "@call-nina/speech-runtime...",
@@ -84,7 +84,7 @@ const registry = {
         "run",
         "build",
       );
-      node("scripts/speech/candidates.mjs", "status");
+      node("scripts/speech/bundles.mjs", "status");
     }),
   }),
   help: leaf("Show commands and shortcuts", (args) => help(args[0])),

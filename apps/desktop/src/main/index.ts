@@ -169,14 +169,7 @@ const defaultUserData = app.isPackaged
   : app.getPath("userData");
 app.setName("Call Nina");
 const configuredUserData = desktopPathOption("config-dir");
-const speechCandidateDirectory = desktopPathOption("speech-candidates-dir");
-const developmentSpeechCandidates =
-  !app.isPackaged &&
-  Boolean(process.env["CALL_NINA_RENDERER_URL"]) &&
-  new URL(rendererUrl).protocol === "http:" &&
-  new URL(rendererUrl).hostname === "127.0.0.1";
-if (speechCandidateDirectory && !developmentSpeechCandidates)
-  throw new Error("OD_SPEECH_CANDIDATES_DEVELOPMENT_ONLY");
+const speechBundleDirectory = desktopPathOption("speech-bundles-dir");
 if (configuredUserData) {
   if (!path.isAbsolute(configuredUserData) || configuredUserData.includes("\0"))
     throw new Error("OD_CONFIG_PATH_INVALID");
@@ -286,8 +279,8 @@ if (!app.requestSingleInstanceLock()) {
         openExternal: openValidatedExternalUrl,
       });
       backend = new DesktopBackend({
-        ...(speechCandidateDirectory ? { speechCandidateDirectory } : {}),
-        ...(developmentSpeechCandidates && process.platform === "linux" && process.arch === "x64"
+        ...(speechBundleDirectory ? { speechBundleDirectory } : {}),
+        ...(!app.isPackaged && process.platform === "linux" && process.arch === "x64"
           ? {
               legacySpeechCandidatesDirectory: fileURLToPath(
                 new URL("../../../../build/speech-candidates/", import.meta.url),

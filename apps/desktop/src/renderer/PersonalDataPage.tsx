@@ -283,13 +283,7 @@ export function PersonalDataPage({
                 </Button>
               }
             >
-              {storedSize([
-                "speechModels",
-                "speechCandidates",
-                "preparedSpeech",
-                "curriculumAudio",
-                "privateAudio",
-              ])}
+              {storedSize(["speechModels", "preparedSpeech", "curriculumAudio", "privateAudio"])}
             </SettingsRow>
             <SettingsLink
               leadingIcon={<HardDrive aria-hidden="true" />}

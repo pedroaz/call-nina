@@ -80,9 +80,11 @@ function ReferenceDetails({ error }: { error: CallNinaError }) {
 export function OperationError({
   error,
   children,
+  message,
 }: {
   error: CallNinaError;
   children?: ReactNode;
+  message?: string;
 }) {
   const { t } = useTranslation();
   if (error.kind === "cancellation")
@@ -90,7 +92,7 @@ export function OperationError({
   return (
     <div className={styles.error}>
       <Feedback live="assertive" tone="error">
-        <p>{t(error.messageKey)}</p>
+        <p>{message ?? t(error.messageKey)}</p>
       </Feedback>
       <ErrorReference error={error} />
       {children}

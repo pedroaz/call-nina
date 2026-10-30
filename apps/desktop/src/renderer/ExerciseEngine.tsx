@@ -103,6 +103,7 @@ export function ExerciseEngine(
                       <div className={styles.questionSection}>
                         <p>{exercises[index].instructions}</p>
                         <ExerciseContent
+                          targetLanguage={props.targetLanguage}
                           definition={exercises[index]}
                           evaluated
                           values={valuesByPosition[index] ?? []}
@@ -111,6 +112,12 @@ export function ExerciseEngine(
                       </div>
                     )}
                     <Evaluation
+                      targetLanguage={
+                        exercises[index]?.kind === "vocabulary-recall" &&
+                        exercises[index]?.content.direction === "recognition"
+                          ? undefined
+                          : props.targetLanguage
+                      }
                       evaluation={evaluation}
                       aiFeedback={aiFeedbackByPosition[index]}
                       explanation={exercises[index]?.explanation}
@@ -204,6 +211,12 @@ export function ExerciseEngine(
           )}
           {currentEvaluation && (
             <Evaluation
+              targetLanguage={
+                definition.kind === "vocabulary-recall" &&
+                definition.content.direction === "recognition"
+                  ? undefined
+                  : props.targetLanguage
+              }
               evaluation={currentEvaluation}
               aiFeedback={currentAiFeedback}
               explanation={definition.explanation}
@@ -297,6 +310,7 @@ export function ExerciseEngine(
           <ExerciseHint {...session} />
         </div>
         <ExerciseContent
+          targetLanguage={props.targetLanguage}
           definition={definition}
           evaluated={
             currentEvaluation !== undefined ||

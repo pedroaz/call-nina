@@ -1,9 +1,11 @@
+import { SpeechButton } from "./SpeechButton.js";
 import { OperationError } from "./OperationError.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { Disclosure } from "./components/ui/Disclosure.js";
 import { Nina } from "./components/ui/Nina.js";
 import {
   type ProviderOperation,
+  type Language,
   contextualHelpCandidateSchema,
   type GenerationCandidateOutputMap,
   type CallNinaError,
@@ -30,6 +32,7 @@ type HelperTurn = Readonly<{
   prompt: string;
   intent: HelperIntent;
   output: HelpOutput;
+  language?: Language | undefined;
 }>;
 type SubmittedRequest = Readonly<{
   prompt: string;
@@ -44,6 +47,26 @@ export type ContextualHelperSelection = Readonly<{
   activeResultSummary?: string;
   truncated?: boolean;
 }>;
+
+function HelperMiniExercise({
+  exercise,
+  language,
+}: {
+  exercise: HelpOutput["miniExercises"][number];
+  language: Language | undefined;
+}) {
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <Disclosure variant="inline" label={exercise.prompt} open={revealed} onOpenChange={setRevealed}>
+      <p lang={language}>
+        {exercise.suggestedAnswer}{" "}
+        {revealed && language && (
+          <SpeechButton text={exercise.suggestedAnswer} language={language} />
+        )}
+      </p>
+    </Disclosure>
+  );
+}
 
 export function ContextualHelper({
   selection,
@@ -101,6 +124,7 @@ export function ContextualHelper({
           setStage("idle");
           if (event.outcome.status === "validated") {
             const output = contextualHelpCandidateSchema.parse(event.outcome.output);
+            const language = event.outcome.learningScope?.targetLanguage;
             const submittedRequest = submittedRequests.current.get(event.submissionId);
             if (submittedRequest) {
               setTurns((current) =>
@@ -110,6 +134,7 @@ export function ContextualHelper({
                     prompt: submittedRequest.prompt,
                     intent: submittedRequest.intent,
                     output,
+                    language,
                   },
                 ].slice(-6),
               );
@@ -208,7 +233,10 @@ export function ContextualHelper({
                 {turn.output.examples.length > 0 ? (
                   <ItemList>
                     {turn.output.examples.map((example) => (
-                      <li key={example}>{example}</li>
+                      <li key={example} lang={turn.language}>
+                        {example}{" "}
+                        {turn.language && <SpeechButton text={example} language={turn.language} />}
+                      </li>
                     ))}
                   </ItemList>
                 ) : null}
@@ -239,13 +267,11 @@ export function ContextualHelper({
                   <section>
                     <h3>{t("helper.miniExercises")}</h3>
                     {turn.output.miniExercises.map((exercise) => (
-                      <Disclosure
-                        variant="inline"
+                      <HelperMiniExercise
                         key={exercise.prompt}
-                        label={<> {exercise.prompt} </>}
-                      >
-                        <p>{exercise.suggestedAnswer}</p>
-                      </Disclosure>
+                        exercise={exercise}
+                        language={turn.language}
+                      />
                     ))}
                   </section>
                 ) : null}

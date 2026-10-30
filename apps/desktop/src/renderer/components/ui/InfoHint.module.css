@@ -40,6 +40,19 @@
   gap: var(--od-space-4);
   margin-bottom: var(--od-space-4);
 }
+.utilityHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--od-space-3);
+  margin-bottom: var(--od-space-3);
+}
+.utilityHeader h2 {
+  margin: 0;
+}
+.dialog[data-close-position="top-right"] .utilityContent {
+  margin-bottom: 0;
+}
 
 .utilityTrigger {
   justify-self: start;

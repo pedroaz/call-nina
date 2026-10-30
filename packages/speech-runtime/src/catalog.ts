@@ -13,7 +13,6 @@ export type SpeechPack = {
   language: "de" | "en-US" | "es" | "pt-BR";
   voice: string;
   qualified: boolean;
-  candidate?: boolean;
   artifacts: SpeechArtifact[];
   runtime: { url: string; bytes: number; sha256: string; files: SpeechArtifact[] } | null;
 };

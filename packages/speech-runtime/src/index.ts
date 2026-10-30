@@ -6,7 +6,7 @@ import {
   speechPreferencesSchema,
   defaultSpeechPreferences,
   type SpeechPreferences,
-  type SpeechRequest,
+  type SpeechPlaybackRequest,
   type SpeechManifest,
   type SpeechSnapshot,
   type SpeechAction,
@@ -16,12 +16,12 @@ import { AudioCache, trimCaches, cacheLimit } from "./cache.js";
 import { SpeechPacks } from "./packs.js";
 import { SpeechWorker } from "./worker.js";
 import { diskUsage, directory, boundedBody, exists, hash, read } from "./files.js";
-import type { SpeechCandidates } from "./candidates.js";
+import type { SpeechBundles } from "./bundles.js";
 
 export { validateSpeechAudio } from "./audio.js";
 export { speechPacks } from "./catalog.js";
-export { loadSpeechCandidates } from "./candidates.js";
-export type { SpeechCandidates } from "./candidates.js";
+export { loadSpeechBundles, loadLocalSpeechBundles } from "./bundles.js";
+export type { SpeechBundles } from "./bundles.js";
 export { hash } from "./files.js";
 export async function curriculumDigest(root: string) {
   const catalog = await readFile(path.join(root, "catalog.json"));
@@ -44,6 +44,7 @@ export class SpeechService {
   #root: string | null = null;
   #controller: AbortController | null = null;
   #requestId: string | null = null;
+  #managed = false;
   #download: AbortController | null = null;
   #course: string | null = null;
   #downloadJob: Promise<void> | null = null;
@@ -59,14 +60,16 @@ export class SpeechService {
     readonly deviceRoot: string,
     readonly curriculumRoot: string,
     readonly options: {
-      candidates?: SpeechCandidates;
+      bundles?: SpeechBundles;
+      onChange?: () => void;
       log?: (code: string, durationMs: number) => void;
     } = {},
   ) {
     this.packs = new SpeechPacks(
-      path.join(deviceRoot, options.candidates ? "candidate-models" : "models"),
-      options.candidates?.packs,
-      options.candidates?.localFiles,
+      path.join(deviceRoot, "models"),
+      options.bundles?.packs,
+      options.bundles?.localFiles,
+      options.onChange,
     );
     this.publicCache = new AudioCache(path.join(deviceRoot, "curriculum"));
     this.#load = this.loadManifest().catch(() => {
@@ -90,9 +93,24 @@ export class SpeechService {
       this.#root = root;
       this.privateCache = new AudioCache(path.join(root, "speech-cache"));
     }
-    const parsed = speechPreferencesSchema.parse(preferences);
-    if (JSON.stringify(this.preferences) !== JSON.stringify(parsed)) this.stop();
+    const parsed = this.validatePreferences(preferences);
+    if (
+      (["de", "en-US", "pt-BR", "es"] as const).some(
+        (language) => this.preferences[language] !== parsed[language],
+      ) ||
+      JSON.stringify(this.preferences.voices) !== JSON.stringify(parsed.voices)
+    )
+      this.stop();
     this.preferences = parsed;
+  }
+  validatePreferences(preferences: SpeechPreferences) {
+    const parsed = speechPreferencesSchema.parse(preferences);
+    for (const [key, id] of Object.entries(parsed.voices)) {
+      const pack = this.packs.catalog.find((entry) => entry.id === id);
+      if (!pack || `${pack.engine}:${pack.language}` !== key)
+        throw new Error("OD_SPEECH_PACK_UNAVAILABLE");
+    }
+    return parsed;
   }
   resetRoot() {
     this.stop();
@@ -104,7 +122,11 @@ export class SpeechService {
     this.#controller?.abort();
     this.#controller = null;
     this.#requestId = null;
+    this.#managed = false;
     this.worker.stop();
+  }
+  stopManaged() {
+    if (this.#managed) this.stop();
   }
   async close() {
     this.#closed = true;
@@ -142,25 +164,18 @@ export class SpeechService {
           engine: p.engine,
           language: p.language,
           voice: p.voice,
-          qualification: p.candidate
-            ? ("candidate" as const)
-            : p.qualified
-              ? ("qualified" as const)
-              : ("unavailable" as const),
           unavailableReason:
             process.platform !== "linux" || process.arch !== "x64"
               ? ("platform" as const)
-              : !p.runtime
+              : !(await this.packs.canInstall(p)) && !(await this.packs.installed(p))
                 ? ("runtime" as const)
-                : !p.qualified && !p.candidate
-                  ? ("qualification" as const)
-                  : null,
+                : null,
           state:
             this.packs.active === p.id
               ? ("downloading" as const)
               : (await this.packs.installed(p))
                 ? ("installed" as const)
-                : !this.packs.usable(p)
+                : !(await this.packs.canInstall(p))
                   ? ("unavailable" as const)
                   : (await this.packs.needsUpdate(p))
                     ? ("update" as const)
@@ -230,9 +245,11 @@ export class SpeechService {
     return task;
   }
   private async manageAction(action: SpeechAction) {
-    if (action.action === "preferences") {
+    if (action.action === "playback-rate") {
+      this.preferences = { ...this.preferences, playbackRate: action.rate };
+    } else if (action.action === "preferences") {
       this.stop();
-      this.preferences = action.preferences;
+      this.preferences = this.validatePreferences(action.preferences);
     } else if (action.action === "cancel") {
       if (!action.id || action.id === this.#requestId) this.stop();
     } else if (action.action === "cancel-course") {
@@ -303,11 +320,14 @@ export class SpeechService {
     await this.publicCache.put(clip.id, audio, pins);
     return audio;
   }
-  identity(request: SpeechRequest) {
-    const source = this.preferences[request.language];
+  identity(request: SpeechPlaybackRequest) {
+    if (request.voice && !request.source) throw new Error("OD_SPEECH_PACK_UNAVAILABLE");
+    const source = request.source ?? this.preferences[request.language];
+    const voice = request.voice ?? this.preferences.voices[`${source}:${request.language}`];
     const pack = this.packs.catalog.find(
-      (p) => p.engine === source && p.language === request.language,
+      (p) => p.engine === source && p.language === request.language && (!voice || p.id === voice),
     );
+    if (voice && !pack) throw new Error("OD_SPEECH_PACK_UNAVAILABLE");
     const version =
       source === "managed"
         ? `google-wavenet-v1:${waveNetVoices[request.language]}`
@@ -321,7 +341,7 @@ export class SpeechService {
     return { source, pack, key };
   }
   async availability(
-    request: SpeechRequest,
+    request: SpeechPlaybackRequest,
     online: boolean,
     account: { enabled: boolean; serviceEnabled: boolean; remainingCharacters: number } | null,
   ) {
@@ -332,7 +352,7 @@ export class SpeechService {
     const prepared = this.manifest?.clips.find(
       (c) => c.language === request.language && c.textDigest === hash(request.text),
     );
-    if (prepared) {
+    if (prepared && !request.source && !request.voice) {
       const cached = await this.publicCache.peek(prepared.id);
       if (cached && hash(cached) === prepared.sha256) return result("ready");
       return result(online ? "ready" : "offline");
@@ -372,9 +392,9 @@ export class SpeechService {
     return result("ready");
   }
   async synthesize(
-    request: SpeechRequest,
+    request: SpeechPlaybackRequest,
     managed: (
-      request: SpeechRequest,
+      request: SpeechPlaybackRequest,
       signal: AbortSignal,
       save: (clips: Buffer[]) => Promise<void>,
     ) => Promise<Buffer[]>,
@@ -405,7 +425,7 @@ export class SpeechService {
       const prepared = this.manifest?.clips.find(
         (c) => c.language === request.language && c.textDigest === hash(request.text),
       );
-      if (prepared) {
+      if (prepared && !request.source && !request.voice) {
         const audio = await this.curriculumClip(prepared, signal);
         valid();
         await trimCaches([this.publicCache, privateCache]);
@@ -441,6 +461,7 @@ export class SpeechService {
         await privateCache.complete(key, clips.length);
       };
       let clips: Buffer[];
+      this.#managed = source === "managed";
       if (source === "managed") clips = await managed(request, signal, save);
       else {
         if (!pack) throw new Error("OD_SPEECH_PACK_UNAVAILABLE");
@@ -472,6 +493,7 @@ export class SpeechService {
       if (this.#controller === controller) {
         this.#controller = null;
         this.#requestId = null;
+        this.#managed = false;
       }
     }
   }

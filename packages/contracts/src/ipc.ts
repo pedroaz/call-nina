@@ -2,7 +2,7 @@ import { storySnapshotSchema, storyUpdateSchema, storyVocabularySchema } from ".
 import {
   speechAvailabilitySchema,
   speechActionSchema,
-  speechRequestSchema,
+  speechPlaybackRequestSchema,
   speechResultSchema,
   speechSnapshotSchema,
 } from "./speech.js";
@@ -802,10 +802,10 @@ export const desktopIpcRequestSchema = boundaryUnion([
   request("mobile-sync/read", emptyPayload),
   request("nina-account/read", emptyPayload),
   request("nina-account/update", ninaAccountUpdateSchema),
-  request("speech/availability", speechRequestSchema.extend({ online: z.boolean() })),
+  request("speech/availability", speechPlaybackRequestSchema.extend({ online: z.boolean() })),
   request("speech/read", emptyPayload),
   request("speech/manage", speechActionSchema),
-  request("speech/synthesize", speechRequestSchema),
+  request("speech/synthesize", speechPlaybackRequestSchema),
   request("offline-model/read", emptyPayload),
   request("offline-model/manage", offlineModelActionSchema),
   request("ai-connections/read", emptyPayload),
@@ -1496,6 +1496,7 @@ const historyDetailSchema = z.discriminatedUnion("kind", [
         }),
       })
       .optional(),
+    answerLanguage: languageSchema.nullable(),
     exerciseKind: z.enum([
       "free-writing",
       "short-answer",
@@ -1705,6 +1706,7 @@ const historyReadResponse = response(
       .array(
         z.strictObject({
           historyEntryId: historyEntryIdSchema,
+          targetLanguage: languageSchema,
           activityAvailable: z.boolean(),
           evidence: attemptEvidenceSchema.nullable(),
           entityKind: z.enum([
@@ -1987,6 +1989,7 @@ export const desktopIpcEventSchema = boundaryUnion([
       "rate-limits",
       "settings",
       "ai-connections",
+      "speech-playback",
     ]),
   }),
   strictBoundaryObject({

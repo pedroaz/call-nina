@@ -17,15 +17,21 @@
   padding-inline-start: var(--od-space-4);
 }
 
-.table th:nth-child(3),
-.table td:nth-child(3) {
+.table th[data-column="default"],
+.table td:has(.choice) {
   width: 8.5rem;
   text-align: center;
 }
 
-.table thead th:nth-child(3) {
+.table thead th[data-column="default"] {
   white-space: nowrap;
   overflow-wrap: normal;
+}
+.table[data-with-voice] {
+  min-width: 40rem;
+}
+.table[data-with-voice] th:first-child {
+  width: 20%;
 }
 
 .table th:last-child,

@@ -1,3 +1,4 @@
+import { SpeechButton } from "./SpeechButton.js";
 import { OperationError } from "./OperationError.js";
 import type { SavedResultsScope } from "./savedResultsTypes.js";
 import { VocabularyLearning } from "./VocabularyLearning.js";
@@ -447,6 +448,9 @@ function VocabularyWorkspace({
                             >
                               <span lang={targetLanguage}>{entry.lemma}</span>
                             </Button>
+                            {targetLanguage && (
+                              <SpeechButton text={entry.lemma} language={targetLanguage} />
+                            )}
                             <span className={styles.compactMeaning} lang="">
                               {entry.meaning}
                             </span>

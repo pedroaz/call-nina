@@ -1345,15 +1345,11 @@
       },
       "speechModels": {
         "title": "Modelos de voz",
-        "description": "Voces aprobadas instaladas y entornos de voz compartidos."
-      },
-      "speechCandidates": {
-        "title": "Voces candidatas",
-        "description": "Voces de desarrollo instaladas y entornos de voz compartidos."
+        "description": "Voces instaladas y entornos de voz compartidos."
       },
       "preparedSpeech": {
         "title": "Descargas de voz preparadas",
-        "description": "Voces, archivos de ejecución y archivos de preparación para pruebas locales."
+        "description": "Archivos locales de instalación de voces y entornos de ejecución."
       },
       "curriculumAudio": {
         "title": "Audio de los cursos",
@@ -2084,7 +2080,6 @@
     "preparedFirst": "Las grabaciones preparadas y guardadas no consumen tu saldo de voz.",
     "linuxOnly": "Los modelos de voz locales requieren Linux x64.",
     "packSizes": "Descarga {{download}} · instalación estimada {{installed}} · archivos de voz en disco {{disk}}",
-    "qualification": "Esta voz aún no está disponible para descargar.",
     "downloadFailed": "La descarga falló. Reanúdala o elimina la descarga parcial.",
     "useVoice": "Usar esta voz",
     "cacheTitle": "Voz guardada",
@@ -2102,17 +2097,20 @@
     },
     "diskFull": "No hay suficiente espacio. Elimina modelos o audio que no uses y vuelve a intentarlo.",
     "languageUnavailable": "No disponible para {{language}}",
-    "candidate": "Versión de prueba",
     "previewText": "Texto de prueba",
     "previewInvalid": "Introduce entre 1 y 6.000 caracteres.",
     "unavailableReasons": {
       "platform": "La voz local requiere Linux x64.",
-      "runtime": "Entorno de ejecución sin preparar.",
-      "qualification": "Voz pendiente de aprobación."
+      "runtime": "Entorno de ejecución no disponible."
     },
     "install": "Instalar",
     "installSize": "{{size}} MB para instalar",
-    "installing": "Instalando"
+    "installing": "Instalando",
+    "playbackSpeed": "Velocidad de audio",
+    "voice": "Voz",
+    "showAnswer": "Mostrar respuesta",
+    "finishListening": "Terminar y continuar",
+    "removeFailed": "No se pudo eliminar esta voz."
   },
   "setupUx": {
     "aiPractice": "IA de ejercicios",
@@ -2175,6 +2173,7 @@
     "speechAi": "Audio",
     "language": "Idioma",
     "exerciseSummary": "IA de ejercicios",
+    "aiAudio": "IA y audio",
     "audioSummary": "Audio"
   },
   "stories": {
