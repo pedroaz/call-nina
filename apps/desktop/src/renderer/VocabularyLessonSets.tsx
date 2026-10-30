@@ -45,7 +45,7 @@ function LessonSets({ rootGeneration }: { rootGeneration: DataRootGeneration }) 
               setRetry((value) => value + 1);
             }}
           >
-            {t("vocabulary.refresh")}
+            {t("actions.retry")}
           </Button>
         </>
       )}

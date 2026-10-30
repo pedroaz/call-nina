@@ -290,7 +290,7 @@ export function FlashcardWorkspace({
           <>
             <OperationError error={error} />
             <Button variant="secondary" isDisabled={busy} onPress={() => void load()}>
-              {t("vocabulary.refresh")}
+              {t("actions.retry")}
             </Button>
           </>
         )

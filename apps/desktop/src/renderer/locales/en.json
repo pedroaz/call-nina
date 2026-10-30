@@ -423,7 +423,6 @@
     "eyebrow": "Build a useful deck",
     "title": "Vocabulary",
     "body": "Confirm only the words you want to review. Call Nina keeps scheduling deterministic and explainable.",
-    "refresh": "Refresh vocabulary",
     "createTitle": "Create a vocabulary lesson set",
     "createBody": "Group existing candidate words into a set. Add candidates through a writing correction first.",
     "request": "What should this set help with?",
@@ -1062,7 +1061,7 @@
     "notReported": "Not reported by the current runtime.",
     "privacyTitle": "Local and OpenAI processing",
     "profileTitle": "Learning defaults",
-    "persistenceUnavailable": "Settings could not be loaded. Try refreshing.",
+    "persistenceUnavailable": "Settings could not be loaded. Try again.",
     "teachingProfile": "Teaching style",
     "uiLocale": "Interface language",
     "localeSeparate": "Explanation language is independent of the interface language.",
@@ -1127,7 +1126,9 @@
     "sessionPrivacy": "Your sign-in is protected on this device. Removing a connection keeps you signed in.",
     "saveBeforeAccount": "Save or discard connection changes before changing accounts.",
     "saveBeforeLogin": "Save this connection first, then choose “Use this connection” to connect ChatGPT.",
-    "saveFailed": "Could not save. Try again."
+    "saveFailed": "Could not save. Try again.",
+    "checkStatus": "Check status",
+    "checkingStatus": "Checking status…"
   },
   "errors": {
     "exerciseContextMissing": "The original learning settings are missing. Create new practice for AI feedback. Saved answers and feedback are unchanged.",
@@ -1367,7 +1368,9 @@
         "title": "Diagnostics",
         "description": "Saved redacted diagnostic reports."
       }
-    }
+    },
+    "recheckStorage": "Recheck storage",
+    "recheckingStorage": "Rechecking storage…"
   },
   "learningPath": {
     "title": "Learning path",
@@ -1466,9 +1469,7 @@
     "dismiss": "Dismiss"
   },
   "layout": {
-    "breadcrumbs": "Breadcrumbs",
-    "refresh": "Refresh",
-    "refreshing": "Refreshing…"
+    "breadcrumbs": "Breadcrumbs"
   },
   "missions": {
     "unitActivities": "Activities",
@@ -1548,7 +1549,7 @@
       "account-unavailable": "Nina could not confirm its Codex account. Check the connection in Settings, then retry.",
       "capability-unavailable": "The selected AI connection does not support this action. No other connection will be selected automatically.",
       "model-unavailable": "The selected AI connection has no usable model and reasoning setting for this action. Check its saved choice in Settings, then retry.",
-      "integration-unavailable": "Nina could not verify the external Codex integration for Voice. Refresh Settings and retry. This does not mean the plugin is missing.",
+      "integration-unavailable": "Nina could not verify the external Codex integration for Voice. Check status in Settings → AI providers, then retry.",
       "plugin-required": "Opening this Voice activity in Codex needs the Call Nina plugin. Install or refresh it in Settings, then retry.",
       "secure-storage-unavailable": "Secure key storage is unavailable on this device.",
       "connection-required": "Choose an AI connection in Settings before using this action. Prepared practice remains available."
@@ -1587,7 +1588,6 @@
     "relatedHint": "Open the exact prepared content without AI. Each opening creates separate practice and attempts, without course credit.",
     "noRelated": "No prepared practice for this revision yet.",
     "open": "Practise: {{title}}",
-    "refresh": "Refresh prepared practice",
     "more": "Show more",
     "remove": "Remove material",
     "removeBody": "Remove this material and all its revisions? Material referenced by any activity or attempt is kept. No activities or attempts will be deleted.",

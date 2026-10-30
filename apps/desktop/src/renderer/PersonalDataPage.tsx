@@ -173,18 +173,20 @@ export function PersonalDataPage({
   const [selected, setSelected] = useState<PersonalDataCleanupScope>();
   const requestSequence = useRef(0);
   const cleanupBusy = useRef(false);
+  const [cleanupPending, setCleanupPending] = useState(false);
   const refresh = useCallback(async () => {
+    if (cleanupBusy.current) return;
     const sequence = ++requestSequence.current;
     setBusy(true);
-    setError(undefined);
     try {
       const next = await invokeDesktop("personal-data/read", {});
-      if (sequence === requestSequence.current) setOverview(next);
+      if (sequence === requestSequence.current) {
+        setOverview(next);
+        setError(undefined);
+      }
     } catch (cause) {
       if (sequence === requestSequence.current) {
         setError(normalizeDesktopError(cause).detail);
-        setOverview(undefined);
-        setSelected(undefined);
       }
     } finally {
       if (sequence === requestSequence.current) setBusy(false);
@@ -192,7 +194,17 @@ export function PersonalDataPage({
   }, []);
   useEffect(() => {
     let timer = window.setTimeout(() => void refresh(), 0);
+    const onFocus = () => void refresh();
+    window.addEventListener("focus", onFocus);
     const unsubscribe = subscribeDesktop((event) => {
+      if (event.event === "data-root-changed") {
+        requestSequence.current++;
+        setOverview(undefined);
+        setDetails(undefined);
+        setSelected(undefined);
+        setError(undefined);
+        void refresh();
+      }
       if (
         event.event === "state-invalidated" &&
         ["dashboard", "history", "vocabulary", "settings", "ai-connections"].includes(
@@ -207,16 +219,21 @@ export function PersonalDataPage({
     return () => {
       requestSequence.current += 1;
       window.clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
       unsubscribe();
     };
   }, [refresh]);
 
   useEffect(() => {
     if (!details) return;
+    const initial = window.setTimeout(() => {
+      if (details === "storage" || details === "privacy") void refresh();
+    }, 0);
     const timer = window.setInterval(() => {
       if (!cleanupBusy.current) void refresh();
     }, 10_000);
     return () => {
+      window.clearTimeout(initial);
       window.clearInterval(timer);
     };
   }, [details, refresh]);
@@ -250,9 +267,21 @@ export function PersonalDataPage({
       (sum, table) => sum + (overview?.tables.find((entry) => entry.table === table)?.count ?? 0),
       0,
     );
+  const readFailure = error && (
+    <OperationError error={error}>
+      <Button
+        variant="secondary"
+        isPending={busy}
+        isDisabled={cleanupPending}
+        onPress={() => void refresh()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
   const content = (
     <>
-      {error && <OperationError error={error} />}
+      {!details && readFailure}
       {busy && !overview && <Feedback live="polite">{t("personalData.loading")}</Feedback>}
       {overview && (
         <>
@@ -367,6 +396,23 @@ export function PersonalDataPage({
             }}
           >
             {details === "audio" && <SpeechSettings mode="storage" />}
+            {details === "privacy" && readFailure}
+            {details === "storage" && (
+              <>
+                {error && <OperationError error={error} />}
+                <ActionGroup>
+                  <Button
+                    variant="secondary"
+                    isPending={busy}
+                    pendingLabel={t("personalData.recheckingStorage")}
+                    isDisabled={cleanupPending}
+                    onPress={() => void refresh()}
+                  >
+                    {t("personalData.recheckStorage")}
+                  </Button>
+                </ActionGroup>
+              </>
+            )}
             {details === "privacy" && (
               <div className={styles.details}>
                 <p>{t("folder.privacyBody")}</p>
@@ -447,6 +493,11 @@ export function PersonalDataPage({
               }}
               onBusy={(pending) => {
                 cleanupBusy.current = pending;
+                setCleanupPending(pending);
+                if (pending) {
+                  requestSequence.current++;
+                  setBusy(false);
+                } else void refresh();
               }}
               onPartial={() => {
                 onDataCleared();
@@ -467,11 +518,7 @@ export function PersonalDataPage({
   return embedded ? (
     <div className={styles.details}>{content}</div>
   ) : (
-    <Page
-      {...(breadcrumbs ? { breadcrumbs } : {})}
-      title={t("settings.tabs.data")}
-      refresh={{ onRefresh: refresh, busy }}
-    >
+    <Page {...(breadcrumbs ? { breadcrumbs } : {})} title={t("settings.tabs.data")}>
       {content}
     </Page>
   );

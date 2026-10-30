@@ -53,9 +53,17 @@ export function LearningPathPage(props: Props) {
   const snapshot = learning.snapshot;
   if (!snapshot)
     return (
-      <Page title={t("pathLibrary.title")} refresh={{ onRefresh: learning.refresh }}>
+      <Page title={t("pathLibrary.title")}>
         {learning.error ? (
-          <OperationError error={learning.error} />
+          <OperationError error={learning.error}>
+            <Button
+              variant="secondary"
+              isPending={learning.busy}
+              onPress={() => void learning.refresh()}
+            >
+              {t("actions.retry")}
+            </Button>
+          </OperationError>
         ) : (
           <LoadingState live>{t("learningPath.loading")}</LoadingState>
         )}
@@ -70,6 +78,7 @@ export function LearningPathPage(props: Props) {
       snapshot={snapshot}
       refresh={learning.refresh}
       readError={learning.error}
+      reading={learning.busy}
     />
   );
 }
@@ -79,6 +88,7 @@ function LearningPathWorkspace({
   snapshot,
   refresh,
   readError,
+  reading,
   requestAiAccess,
   onOpenResults,
   onNina,
@@ -86,6 +96,7 @@ function LearningPathWorkspace({
   snapshot: LearningPathSnapshot;
   refresh: () => Promise<LearningPathSnapshot | undefined>;
   readError: CallNinaError | undefined;
+  reading: boolean;
 }) {
   const { t } = useTranslation();
   const generation = useLearningOperation();
@@ -465,7 +476,18 @@ function LearningPathWorkspace({
         : navigation.kind === "lesson" && selected
           ? selected.title[locale]
           : (course?.paths.find((path) => path.id === stage)?.title[locale] ?? stage);
-  const displayedError = error ?? readError;
+  const readFailure = readError && (
+    <OperationError error={readError}>
+      <Button
+        variant="secondary"
+        isPending={reading}
+        isDisabled={busy}
+        onPress={() => void refresh()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
   if (listeningReview)
     return (
       <PreparedCourseListening
@@ -492,7 +514,8 @@ function LearningPathWorkspace({
           title={t("lessonStudio.resources")}
           closeLabel={t("actions.close")}
         >
-          {displayedError && <OperationError error={displayedError} />}
+          {error && <OperationError error={error} />}
+          {readFailure}
           <LessonGuide
             snapshot={snapshot}
             selected={activeUnit}
@@ -541,9 +564,9 @@ function LearningPathWorkspace({
                 ],
               }
             : {})}
-          refresh={{ onRefresh: refresh, disabled: busy }}
         >
-          {displayedError && <OperationError error={displayedError} />}
+          {error && <OperationError error={error} />}
+          {readFailure}
           {!course && <Feedback live="off">{t("learningPath.courseUnavailable")}</Feedback>}
           {busy && !launchOrigin && (
             <Feedback live="polite">{t("learningPath.preparing")}</Feedback>

@@ -10,8 +10,10 @@ export function useLearningPath() {
   const [snapshot, setSnapshot] = useState<LearningPathSnapshot>();
   const [error, setError] = useState<CallNinaError>();
   const sequence = useRef(0);
+  const [busy, setBusy] = useState(true);
   const refresh = useCallback(async () => {
     const current = ++sequence.current;
+    setBusy(true);
     try {
       const value = await invokeDesktop("learning-path/read", {});
       if (current === sequence.current) {
@@ -21,12 +23,19 @@ export function useLearningPath() {
       }
     } catch (cause) {
       if (current === sequence.current) setError(normalizeDesktopError(cause).detail);
+    } finally {
+      if (current === sequence.current) setBusy(false);
     }
   }, []);
   useEffect(() => {
     const timer = window.setTimeout(() => void refresh(), 0);
     const sequenceRef = sequence;
     const unsubscribe = subscribeDesktop((event) => {
+      if (event.event === "data-root-changed") {
+        sequence.current++;
+        setSnapshot(undefined);
+        void refresh();
+      }
       if (event.event === "state-invalidated" && ["dashboard", "history"].includes(event.scope))
         void refresh();
     });
@@ -39,5 +48,5 @@ export function useLearningPath() {
       window.removeEventListener("focus", onFocus);
     };
   }, [refresh]);
-  return { snapshot, error, refresh };
+  return { snapshot, error, refresh, busy };
 }

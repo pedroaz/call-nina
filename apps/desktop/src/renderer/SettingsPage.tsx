@@ -4,7 +4,7 @@ import { PersonalDataPage } from "./PersonalDataPage.js";
 import { SettingsRow, SettingsLink } from "./SettingsRow.js";
 import { LearningProfileFields } from "./LearningProfileFields.js";
 import { SpeechSettings } from "./SpeechSettings.js";
-import { ConnectionSettings } from "./ConnectionSettings.js";
+import { ConnectionSettings, type ConnectionSettingsHandle } from "./ConnectionSettings.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Language, type DesktopIpcResponse, type CallNinaError } from "@call-nina/contracts";
 import {
@@ -118,8 +118,21 @@ export function SettingsPage({
   const [draft, setDraft] = useState<DesktopSettingsValue>();
   const lastPersisted = useRef<DesktopSettingsResult | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const [connectionRefresh, setConnectionRefresh] = useState(0);
-  const [busy, setBusy] = useState(false);
+  const connectionSettings = useRef<ConnectionSettingsHandle>(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const statusCheckPending = useRef(false);
+  const mounted = useRef(true);
+  const readEpoch = useRef(0);
+  const settingsReadRevision = useRef(0);
+  const runtimeReadRevision = useRef(0);
+  const [settingsReadError, setSettingsReadError] = useState<CallNinaError>();
+  const [runtimeReadError, setRuntimeReadError] = useState<CallNinaError>();
+  const [integrationReadError, setIntegrationReadError] = useState<CallNinaError>();
+  const [readingRuntime, setReadingRuntime] = useState(false);
+  const [readingIntegration, setReadingIntegration] = useState(false);
+  const [connectionBusy, setConnectionBusy] = useState(false);
+  const [actionBusy, setBusy] = useState(false);
+  const busy = actionBusy || checkingStatus;
   const [connectionPending, setConnectionPending] = useState(false);
   const [error, setError] = useState<CallNinaError>();
   const [notice, setNotice] = useState<string>();
@@ -127,6 +140,7 @@ export function SettingsPage({
   const [integrationNotice, setIntegrationNotice] = useState<string>();
   const [dataRootSelection, setDataRootSelection] = useState<DataRootSelection>();
   const [diagnostics, setDiagnostics] = useState<Diagnostics>();
+  const [diagnosticsReadError, setDiagnosticsReadError] = useState<CallNinaError>();
   const [integration, setIntegration] = useState<Integration>();
   const integrationReadRevision = useRef(0);
   const integrationActionPending = useRef(false);
@@ -134,36 +148,67 @@ export function SettingsPage({
   const refreshIntegration = useCallback(async () => {
     if (integrationActionPending.current) return;
     const revision = ++integrationReadRevision.current;
+    const epoch = readEpoch.current;
+    setReadingIntegration(true);
     try {
       const result = await invokeDesktop("codex/integration/read", {});
-      if (revision === integrationReadRevision.current) setIntegration(result);
+      if (
+        !mounted.current ||
+        revision !== integrationReadRevision.current ||
+        epoch !== readEpoch.current
+      )
+        return;
+      setIntegration(result);
+      setIntegrationReadError(undefined);
     } catch (cause) {
-      if (revision !== integrationReadRevision.current) return;
-      setIntegration(undefined);
-      setError(normalizeDesktopError(cause).detail);
+      if (
+        !mounted.current ||
+        revision !== integrationReadRevision.current ||
+        epoch !== readEpoch.current
+      )
+        return;
+      setIntegrationReadError(normalizeDesktopError(cause).detail);
+    } finally {
+      if (
+        mounted.current &&
+        revision === integrationReadRevision.current &&
+        epoch === readEpoch.current
+      )
+        setReadingIntegration(false);
     }
   }, []);
 
   const refreshRuntime = useCallback(async () => {
+    const revision = ++runtimeReadRevision.current;
+    const epoch = readEpoch.current;
+    setReadingRuntime(true);
     const [accountResult, accountsResult] = await Promise.allSettled([
       invokeDesktop("chatgpt/account/read", {}),
       invokeDesktop("chatgpt/accounts/read", {}),
     ]);
-    setAccount(
-      accountResult.status === "fulfilled"
-        ? accountResult.value
-        : { status: "unavailable", reason: "runtime-not-ready" },
-    );
-    setAccounts(accountsResult.status === "fulfilled" ? accountsResult.value : undefined);
+    if (!mounted.current || revision !== runtimeReadRevision.current || epoch !== readEpoch.current)
+      return;
+    if (accountResult.status === "fulfilled") setAccount(accountResult.value);
+    if (accountsResult.status === "fulfilled") setAccounts(accountsResult.value);
     const failure = [accountResult, accountsResult].find((result) => result.status === "rejected");
-    if (failure?.status === "rejected") setError(normalizeDesktopError(failure.reason).detail);
+    setRuntimeReadError(
+      failure?.status === "rejected" ? normalizeDesktopError(failure.reason).detail : undefined,
+    );
+    setReadingRuntime(false);
   }, []);
 
   const load = useCallback(async () => {
+    const revision = ++settingsReadRevision.current;
+    const epoch = readEpoch.current;
     setLoading(true);
-    setError(undefined);
     try {
       const settings = adapter.available() ? await adapter.read() : undefined;
+      if (
+        !mounted.current ||
+        revision !== settingsReadRevision.current ||
+        epoch !== readEpoch.current
+      )
+        return;
       if (settings) {
         const previous = lastPersisted.current;
         lastPersisted.current = settings;
@@ -187,21 +232,75 @@ export function SettingsPage({
           return merged;
         });
       }
+      setSettingsReadError(undefined);
     } catch (cause) {
-      setError(normalizeDesktopError(cause).detail);
+      if (
+        mounted.current &&
+        revision === settingsReadRevision.current &&
+        epoch === readEpoch.current
+      )
+        setSettingsReadError(normalizeDesktopError(cause).detail);
     } finally {
-      setLoading(false);
-      setConnectionRefresh((value) => value + 1);
+      if (
+        mounted.current &&
+        revision === settingsReadRevision.current &&
+        epoch === readEpoch.current
+      )
+        setLoading(false);
     }
-    // Provider failures cannot prevent local settings from loading.
-    void refreshIntegration();
-    void refreshRuntime();
-  }, [adapter, refreshRuntime, refreshIntegration]);
+  }, [adapter]);
+
+  const checkStatus = useCallback(async () => {
+    if (
+      statusCheckPending.current ||
+      actionBusy ||
+      connectionBusy ||
+      loginId ||
+      integrationActionPending.current
+    )
+      return;
+    statusCheckPending.current = true;
+    const epoch = readEpoch.current;
+    setCheckingStatus(true);
+    try {
+      await Promise.allSettled([
+        connectionSettings.current?.refreshStatus(),
+        refreshRuntime(),
+        refreshIntegration(),
+      ]);
+    } finally {
+      if (mounted.current && epoch === readEpoch.current) {
+        statusCheckPending.current = false;
+        setCheckingStatus(false);
+      }
+    }
+  }, [actionBusy, connectionBusy, loginId, refreshRuntime, refreshIntegration]);
 
   useEffect(() => {
-    const initialLoad = window.setTimeout(() => void load(), 0);
+    mounted.current = true;
+    const initialLoad = window.setTimeout(() => {
+      void load();
+      void refreshRuntime();
+      void refreshIntegration();
+    }, 0);
     const unsubscribe = subscribeDesktop((event) => {
-      if (
+      if (event.event === "data-root-changed") {
+        readEpoch.current++;
+        settingsReadRevision.current++;
+        runtimeReadRevision.current++;
+        integrationReadRevision.current++;
+        lastPersisted.current = undefined;
+        statusCheckPending.current = false;
+        setCheckingStatus(false);
+        setPersisted(undefined);
+        setDraft(undefined);
+        setAccount(undefined);
+        setAccounts(undefined);
+        setIntegration(undefined);
+        void load();
+        void refreshRuntime();
+        void refreshIntegration();
+      } else if (
         event.event === "account-login" &&
         ["complete", "cancelled", "failed"].includes(event.state.status)
       ) {
@@ -214,17 +313,30 @@ export function SettingsPage({
         event.event === "state-invalidated" &&
         ["account", "models", "rate-limits", "ai-connections"].includes(event.scope)
       ) {
-        // Immediate connection saves must not reload the independent profile draft.
         void refreshRuntime();
       } else if (event.event === "state-invalidated" && event.scope === "settings") {
         void load();
+        void connectionSettings.current?.refreshStatus();
       }
     });
     return () => {
+      mounted.current = false;
+      readEpoch.current++;
       window.clearTimeout(initialLoad);
       unsubscribe();
     };
-  }, [load, refreshRuntime]);
+  }, [load, refreshRuntime, refreshIntegration]);
+
+  useEffect(() => {
+    if (selectedTab !== "ai" && selectedTab !== "speech") return;
+    const initial = window.setTimeout(() => void checkStatus(), 0);
+    const onFocus = () => void checkStatus();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.clearTimeout(initial);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [selectedTab, checkStatus]);
 
   const dirty = useMemo(
     () =>
@@ -234,6 +346,8 @@ export function SettingsPage({
 
   const save = async () => {
     if (!draft || !persisted || !dirty) return;
+    settingsReadRevision.current++;
+    setLoading(false);
     setBusy(true);
     setError(undefined);
     setNotice(undefined);
@@ -252,6 +366,8 @@ export function SettingsPage({
   };
   const selectTarget = async (targetLanguage: Language) => {
     if (!persisted || !draft || busy) return;
+    settingsReadRevision.current++;
+    setLoading(false);
     setBusy(true);
     setError(undefined);
     setNotice(undefined);
@@ -282,6 +398,8 @@ export function SettingsPage({
 
   const login = async () => {
     if (busy || loginId) return;
+    runtimeReadRevision.current++;
+    setReadingRuntime(false);
     setBusy(true);
     setError(undefined);
     try {
@@ -299,6 +417,8 @@ export function SettingsPage({
 
   const logout = async () => {
     if (busy || loginId) return;
+    runtimeReadRevision.current++;
+    setReadingRuntime(false);
     setBusy(true);
     setError(undefined);
     setNotice(undefined);
@@ -316,6 +436,8 @@ export function SettingsPage({
 
   const cancelLogin = async () => {
     if (busy || !loginId) return;
+    runtimeReadRevision.current++;
+    setReadingRuntime(false);
     setBusy(true);
     setError(undefined);
     try {
@@ -334,6 +456,7 @@ export function SettingsPage({
     integrationActionPending.current = true;
     // An older status read must not overwrite the verified action result.
     integrationReadRevision.current += 1;
+    setReadingIntegration(false);
     setBusy(true);
     setError(undefined);
     setNotice(undefined);
@@ -385,11 +508,11 @@ export function SettingsPage({
 
   const readDiagnostics = async () => {
     setBusy(true);
-    setError(undefined);
     try {
       setDiagnostics(await invokeDesktop("diagnostics/read", {}));
+      setDiagnosticsReadError(undefined);
     } catch (cause) {
-      setError(normalizeDesktopError(cause).detail);
+      setDiagnosticsReadError(normalizeDesktopError(cause).detail);
     } finally {
       setBusy(false);
     }
@@ -426,6 +549,43 @@ export function SettingsPage({
     }
   };
 
+  const diagnosticsFailure = diagnosticsReadError && (
+    <OperationError error={diagnosticsReadError}>
+      <Button
+        variant="secondary"
+        isPending={actionBusy}
+        isDisabled={checkingStatus}
+        onPress={() => void readDiagnostics()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
+  const runtimeFailure = runtimeReadError && (
+    <OperationError error={runtimeReadError}>
+      <Button
+        variant="secondary"
+        isPending={readingRuntime}
+        isDisabled={busy || Boolean(loginId)}
+        onPress={() => void refreshRuntime()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
+  const integrationReadFailure = integrationReadError && (
+    <OperationError error={integrationReadError}>
+      <Button
+        variant="secondary"
+        isPending={readingIntegration}
+        isDisabled={busy}
+        onPress={() => void refreshIntegration()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
+
   return (
     <Page
       width="form"
@@ -445,14 +605,21 @@ export function SettingsPage({
         </ActionGroup>
       }
       title={t("settings.title")}
-      refresh={{
-        onRefresh: load,
-        busy: loading || busy,
-        disabled: dirty || connectionPending || Boolean(loginId),
-      }}
     >
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
       {error && <OperationError error={error} />}
+      {settingsReadError && (
+        <OperationError error={settingsReadError}>
+          <Button
+            variant="secondary"
+            isPending={loading}
+            isDisabled={busy}
+            onPress={() => void load()}
+          >
+            {t("actions.retry")}
+          </Button>
+        </OperationError>
+      )}
       {notice && <Feedback live="polite">{notice}</Feedback>}
 
       <Tabs
@@ -488,18 +655,32 @@ export function SettingsPage({
             icon: <Plug aria-hidden="true" />,
             children: (
               <div className={styles.aiSetup}>
+                <ActionGroup align="end">
+                  <Button
+                    variant="secondary"
+                    isPending={checkingStatus}
+                    pendingLabel={t("settings.checkingStatus")}
+                    isDisabled={actionBusy || connectionBusy || Boolean(loginId)}
+                    onPress={() => void checkStatus()}
+                  >
+                    {t("settings.checkStatus")}
+                  </Button>
+                </ActionGroup>
+                {runtimeFailure}
                 <Section className={styles.aiConnections} aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
-                    refreshKey={connectionRefresh}
+                    ref={connectionSettings}
                     surface={false}
                     active={selectedTab === "ai" || selectedTab === "speech"}
                     disabled={busy || Boolean(loginId)}
                     onPendingChange={setConnectionPending}
+                    onBusyChange={setConnectionBusy}
                     chatgptConnected={account ? account.status === "signed-in" : undefined}
                     chatgptAccess={({ dirty: connectionDirty }) => {
                       const blocked = busy || Boolean(loginId) || connectionDirty;
                       return (
                         <div className={styles.accountAccess}>
+                          {runtimeFailure}
                           <div className={styles.accountSummary}>
                             <p role="status" className={styles.connectionStatus}>
                               {account?.status === "signed-in" ? (
@@ -636,6 +817,7 @@ export function SettingsPage({
                 </Section>
                 <SpeechSettings language={draft?.learningScope.targetLanguage ?? "de"} />
                 <Section title={t("setupUx.speakingPractice")}>
+                  {!integrationOpen && integrationReadFailure}
                   <LiveConversationProvider
                     status={
                       integration?.status === "available"
@@ -697,6 +879,7 @@ export function SettingsPage({
                     className={styles.optionalIntegration}
                     aria-labelledby="codex-integration-title"
                   >
+                    {integrationReadFailure}
                     <div className={styles.integrationCopy}>
                       <div className={styles.integrationHeading}>
                         <AudioLines aria-hidden="true" />
@@ -872,6 +1055,7 @@ export function SettingsPage({
                   aria-labelledby="settings-diagnostics-title"
                 >
                   <h2 id="settings-diagnostics-title">{t("settings.diagnosticsTitle")}</h2>
+                  {!technicalOpen && diagnosticsFailure}
                   <SettingsRow
                     icon={<Database aria-hidden="true" />}
                     title={t("setupUx.checkApp")}
@@ -915,6 +1099,7 @@ export function SettingsPage({
                     title={t("setupUx.technicalDetails")}
                     onOpenChange={setTechnicalOpen}
                   >
+                    {diagnosticsFailure}
                     {diagnostics && (
                       <dl className={styles.detailList}>
                         <div>

@@ -232,7 +232,6 @@ export function PracticePage({
   const [resultsScope, setResultsScope] = useState<SavedResultsScope | undefined>(
     resultsRequest?.scope,
   );
-  const [resultsRefresh, setResultsRefresh] = useState(0);
   const [librarySearch, setLibrarySearch] = useState("");
   const [previousResultsRequest, setPreviousResultsRequest] = useState(resultsRequest);
   if (resultsRequest !== previousResultsRequest) {
@@ -778,13 +777,6 @@ export function PracticePage({
           title={t("practice.title")}
           width={libraryView ? "standard" : "form"}
           className={styles.creationPage}
-          refresh={{
-            onRefresh: async () => {
-              setResultsRefresh((value) => value + 1);
-              await library.refresh();
-            },
-            busy: libraryBusy,
-          }}
           actions={
             onWriting && (
               <Button
@@ -1083,7 +1075,19 @@ export function PracticePage({
                           {t("practice.library.count", { count: preparedActivities.length })}
                         </span>
                       )}
-                      {libraryError && <OperationError error={libraryError} />}
+                      {libraryMutationError && <OperationError error={libraryMutationError} />}
+                      {library.error && (
+                        <OperationError error={library.error}>
+                          <Button
+                            variant="secondary"
+                            isPending={libraryBusy}
+                            isDisabled={deleting}
+                            onPress={() => void library.refresh()}
+                          >
+                            {t("actions.retry")}
+                          </Button>
+                        </OperationError>
+                      )}
                       {!libraryError && libraryBusy && preparedActivities.length === 0 && (
                         <Muted as="p">{t("practice.library.loading")}</Muted>
                       )}
@@ -1211,7 +1215,6 @@ export function PracticePage({
                         setResultsScope(undefined);
                       }}
                       view={savedView}
-                      refreshRequest={resultsRefresh}
                       requestAiAccess={requestAiAccess}
                       onChanged={() => {
                         void library.refresh();

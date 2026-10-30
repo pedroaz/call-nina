@@ -423,7 +423,6 @@
     "eyebrow": "Nützlichen Wortschatz aufbauen",
     "title": "Wortschatz",
     "body": "Bestätige nur Wörter, die du wiederholen möchtest. Die Planung bleibt deterministisch und nachvollziehbar.",
-    "refresh": "Wortschatz aktualisieren",
     "createTitle": "Wortschatz-Set erstellen",
     "createBody": "Fasse vorhandene Wortvorschläge in einer Sammlung zusammen. Neue Vorschläge entstehen bei einer Schreibkorrektur.",
     "request": "Wobei soll dieses Set helfen?",
@@ -1062,7 +1061,7 @@
     "notReported": "Von der aktuellen Laufzeit nicht gemeldet.",
     "privacyTitle": "Lokale Verarbeitung und OpenAI",
     "profileTitle": "Lernvorgaben",
-    "persistenceUnavailable": "Die Einstellungen konnten nicht geladen werden. Versuche, die Seite zu aktualisieren.",
+    "persistenceUnavailable": "Die Einstellungen konnten nicht geladen werden. Versuche es erneut.",
     "teachingProfile": "Lernstil",
     "uiLocale": "Oberflächensprache",
     "localeSeparate": "Die Erklärungssprache ist unabhängig von der App-Sprache.",
@@ -1127,7 +1126,9 @@
     "sessionPrivacy": "Deine Anmeldung wird auf diesem Gerät geschützt. Das Entfernen einer Verbindung meldet dich nicht ab.",
     "saveBeforeAccount": "Speichere oder verwirf die Verbindungsänderungen, bevor du das Konto wechselst.",
     "saveBeforeLogin": "Speichere diese Verbindung und wähle dann „Diese Verbindung verwenden“, um ChatGPT zu verbinden.",
-    "saveFailed": "Speichern fehlgeschlagen. Versuche es erneut."
+    "saveFailed": "Speichern fehlgeschlagen. Versuche es erneut.",
+    "checkStatus": "Status prüfen",
+    "checkingStatus": "Status wird geprüft…"
   },
   "errors": {
     "exerciseContextMissing": "Die ursprünglichen Lerneinstellungen fehlen. Erstelle eine neue Übung für KI-Feedback. Gespeicherte Antworten und Rückmeldungen bleiben unverändert.",
@@ -1367,7 +1368,9 @@
         "title": "Diagnosedaten",
         "description": "Gespeicherte bereinigte Diagnoseberichte."
       }
-    }
+    },
+    "recheckStorage": "Speicher erneut prüfen",
+    "recheckingStorage": "Speicher wird geprüft…"
   },
   "learningPath": {
     "title": "Lernpfad",
@@ -1466,9 +1469,7 @@
     "dismiss": "Verstanden"
   },
   "layout": {
-    "breadcrumbs": "Brotkrümelnavigation",
-    "refresh": "Aktualisieren",
-    "refreshing": "Wird aktualisiert…"
+    "breadcrumbs": "Brotkrümelnavigation"
   },
   "missions": {
     "unitActivities": "Aktivitäten",
@@ -1548,7 +1549,7 @@
       "account-unavailable": "Nina konnte den Codex-Kontozugriff nicht bestätigen. Prüfe die Verbindung in den Einstellungen und versuche es erneut.",
       "capability-unavailable": "Die ausgewählte KI-Verbindung unterstützt diese Aktion nicht. Es wird keine andere Verbindung automatisch ausgewählt.",
       "model-unavailable": "Die ausgewählte KI-Verbindung hat für diese Aktion kein nutzbares Modell mit passender Denkleistung. Prüfe die gespeicherte Auswahl in den Einstellungen.",
-      "integration-unavailable": "Nina konnte die externe Codex-Integration für Voice nicht überprüfen. Aktualisiere die Einstellungen und versuche es erneut. Das bedeutet nicht, dass das Plugin fehlt.",
+      "integration-unavailable": "Nina konnte die externe Codex-Integration für Voice nicht prüfen. Prüfe den Status unter Einstellungen → KI-Anbieter und versuche es erneut.",
       "plugin-required": "Zum Öffnen dieser Voice-Aktivität in Codex wird das Call-Nina-Plugin benötigt. Installiere oder aktualisiere es in den Einstellungen und versuche es erneut.",
       "secure-storage-unavailable": "Sichere Schlüsselspeicherung ist auf diesem Gerät nicht verfügbar.",
       "connection-required": "Wähle in den Einstellungen eine KI-Verbindung für diese Aktion. Vorbereitete Übungen bleiben verfügbar."
@@ -1587,7 +1588,6 @@
     "relatedHint": "Öffne den unveränderten vorbereiteten Inhalt ohne KI. Jedes Öffnen erstellt eine separate Übung mit eigenen Versuchen, ohne Kursfortschritt anzurechnen.",
     "noRelated": "Noch keine vorbereiteten Übungen für diese Version.",
     "open": "Üben: {{title}}",
-    "refresh": "Vorbereitete Übungen aktualisieren",
     "more": "Mehr anzeigen",
     "remove": "Material entfernen",
     "removeBody": "Dieses Material und alle Versionen entfernen? Material, auf das Aktivitäten oder Versuche verweisen, bleibt erhalten. Aktivitäten und Versuche werden nicht gelöscht.",

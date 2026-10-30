@@ -423,7 +423,6 @@
     "eyebrow": "Crea una colección útil",
     "title": "Vocabulario",
     "body": "Confirma solo las palabras que quieras repasar. Call Nina organiza los repasos de forma predecible y comprensible.",
-    "refresh": "Actualizar vocabulario",
     "createTitle": "Crear una serie de lecciones de vocabulario",
     "createBody": "Agrupa en una serie las palabras sugeridas existentes. Para añadir palabras sugeridas, primero corrige un texto escrito.",
     "request": "¿En qué debería ayudarte esta serie?",
@@ -1062,7 +1061,7 @@
     "notReported": "El entorno actual no lo indica.",
     "privacyTitle": "Procesamiento local y de OpenAI",
     "profileTitle": "Opciones iniciales de aprendizaje",
-    "persistenceUnavailable": "No se pudo cargar la configuración. Intenta actualizar.",
+    "persistenceUnavailable": "No se pudo cargar la configuración. Inténtalo de nuevo.",
     "teachingProfile": "Estilo de enseñanza",
     "uiLocale": "Idioma de la interfaz",
     "localeSeparate": "El idioma de las explicaciones es independiente del idioma de la interfaz.",
@@ -1127,7 +1126,9 @@
     "sessionPrivacy": "Tu sesión está protegida en este dispositivo. Eliminar una conexión no cierra la sesión.",
     "saveBeforeAccount": "Guarda o descarta los cambios de conexión antes de cambiar de cuenta.",
     "saveBeforeLogin": "Guarda esta conexión y luego elige «Usar esta conexión» para conectar ChatGPT.",
-    "saveFailed": "No se pudo guardar. Inténtalo de nuevo."
+    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+    "checkStatus": "Comprobar estado",
+    "checkingStatus": "Comprobando estado…"
   },
   "errors": {
     "exerciseContextMissing": "Faltan los ajustes de aprendizaje originales. Crea una nueva práctica para recibir comentarios de IA. Las respuestas y los comentarios guardados no cambian.",
@@ -1367,7 +1368,9 @@
         "title": "Diagnósticos",
         "description": "Informes de diagnóstico guardados con datos privados eliminados."
       }
-    }
+    },
+    "recheckStorage": "Revisar almacenamiento",
+    "recheckingStorage": "Revisando almacenamiento…"
   },
   "learningPath": {
     "title": "Ruta de aprendizaje",
@@ -1466,9 +1469,7 @@
     "dismiss": "Cerrar"
   },
   "layout": {
-    "breadcrumbs": "Ruta de navegación",
-    "refresh": "Actualizar",
-    "refreshing": "Actualizando…"
+    "breadcrumbs": "Ruta de navegación"
   },
   "missions": {
     "unitActivities": "Actividades",
@@ -1548,7 +1549,7 @@
       "account-unavailable": "Nina no pudo confirmar el acceso a su cuenta Codex. Comprueba la conexión en Configuración e inténtalo de nuevo.",
       "capability-unavailable": "La conexión de IA seleccionada no admite esta acción. No se elegirá otra conexión automáticamente.",
       "model-unavailable": "La conexión de IA seleccionada no tiene un modelo y razonamiento utilizables para esta acción. Comprueba la opción guardada en Configuración.",
-      "integration-unavailable": "Nina no pudo verificar la integración externa de Codex para Voice. Actualiza Configuración e inténtalo de nuevo. Esto no significa que falte el complemento.",
+      "integration-unavailable": "Nina no pudo verificar la integración externa de Codex para Voice. Comprueba el estado en Configuración → Proveedores de IA y vuelve a intentarlo.",
       "plugin-required": "Para abrir esta actividad de Voice en Codex se necesita el complemento Call Nina. Instálalo o actualízalo en Configuración e inténtalo de nuevo.",
       "secure-storage-unavailable": "El almacenamiento seguro de claves no está disponible en este dispositivo.",
       "connection-required": "Elige una conexión de IA en Ajustes para usar esta acción. Las actividades preparadas siguen disponibles."
@@ -1587,7 +1588,6 @@
     "relatedHint": "Abre el contenido preparado exacto sin IA. Cada apertura crea una práctica e intentos separados, sin contar para el progreso del curso.",
     "noRelated": "Todavía no hay prácticas preparadas para esta revisión.",
     "open": "Practicar: {{title}}",
-    "refresh": "Actualizar prácticas preparadas",
     "more": "Mostrar más",
     "remove": "Eliminar material",
     "removeBody": "¿Eliminar este material y todas sus revisiones? Se conserva el material vinculado a cualquier actividad o intento. No se eliminarán actividades ni intentos.",

@@ -4,7 +4,15 @@ import { ProviderRouting } from "./ProviderRouting.js";
 import { NinaAccountSettings } from "./NinaAccount.js";
 import { createPortal } from "react-dom";
 import { Check } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ReactNode,
+  type Ref,
+} from "react";
 import type {
   CallNinaError,
   AiConnection,
@@ -45,17 +53,21 @@ const withoutDraft = (drafts: Record<string, Draft>, id: string) =>
 const withoutCredential = (credentials: Record<string, CredentialDraft>, id: string) =>
   Object.fromEntries(Object.entries(credentials).filter(([key]) => key !== id));
 
+export type ConnectionSettingsHandle = { refreshStatus: () => Promise<void> };
+
 export function ConnectionSettings({
+  ref,
   active,
   disabled = false,
   onPendingChange,
+  onBusyChange,
   authHelp,
   chatgptAccess,
   chatgptConnected,
   feedbackTarget,
-  refreshKey = 0,
 }: {
-  refreshKey?: number;
+  ref?: Ref<ConnectionSettingsHandle>;
+  onBusyChange?: (busy: boolean) => void;
   feedbackTarget?: HTMLElement | null;
   active: boolean;
   chatgptConnected?: boolean | undefined;
@@ -68,6 +80,8 @@ export function ConnectionSettings({
   const { t, i18n } = useTranslation();
   const { notify } = useNotifications();
   const [view, setView] = useState<View>();
+  const [readError, setReadError] = useState<CallNinaError>();
+  const [reading, setReading] = useState(false);
   const [selectedId, setSelectedId] = useState<string>();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [credentials, setCredentials] = useState<Record<string, CredentialDraft>>({});
@@ -78,6 +92,9 @@ export function ConnectionSettings({
   const error = typeof failure === "string" ? failure : undefined;
   const operationError = typeof failure === "object" ? failure : undefined;
   const [offline, setOffline] = useState<OfflineView>();
+  const [offlineReadError, setOfflineReadError] = useState<CallNinaError>();
+  const [readingOffline, setReadingOffline] = useState(false);
+  const offlineReadSerial = useRef(0);
   const [offlineBusy, setOfflineBusy] = useState(false);
   const [confirmOfflineRemove, setConfirmOfflineRemove] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
@@ -89,16 +106,23 @@ export function ConnectionSettings({
   const load = useCallback(async () => {
     const epoch = rootEpoch.current;
     const serial = ++readSerial.current;
+    setReading(true);
     try {
       const next = await invokeDesktop("ai-connections/read", {});
       if (!mounted.current || epoch !== rootEpoch.current || serial !== readSerial.current) return;
       setView(next);
       setOffline(next.offlineModel);
+      setReadError(undefined);
+      setOfflineReadError(undefined);
     } catch (cause) {
       if (!mounted.current || epoch !== rootEpoch.current || serial !== readSerial.current) return;
-      setError(normalizeDesktopError(cause).detail);
+      setReadError(normalizeDesktopError(cause).detail);
+    } finally {
+      if (mounted.current && epoch === rootEpoch.current && serial === readSerial.current)
+        setReading(false);
     }
   }, []);
+  useImperativeHandle(ref, () => ({ refreshStatus: load }), [load]);
   useEffect(() => {
     mounted.current = true;
     const epochRef = rootEpoch;
@@ -111,6 +135,10 @@ export function ConnectionSettings({
         setBusy(false);
         setOfflineBusy(false);
         setError(undefined);
+        setReadError(undefined);
+        setOfflineReadError(undefined);
+        setReadingOffline(false);
+        offlineReadSerial.current++;
         setDrafts({});
         setCredentials({});
         setSelectedId(undefined);
@@ -136,7 +164,7 @@ export function ConnectionSettings({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [load, refreshKey]);
+  }, [load]);
 
   const offlineState = offline?.snapshot.state;
   const offlinePreflight = offline?.snapshot.preflight;
@@ -159,37 +187,51 @@ export function ConnectionSettings({
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
+  const readOffline = useCallback(async () => {
+    const epoch = rootEpoch.current;
+    const serial = ++offlineReadSerial.current;
+    setReadingOffline(true);
+    try {
+      const next = await invokeDesktop("offline-model/read", {});
+      if (!mounted.current || epoch !== rootEpoch.current || serial !== offlineReadSerial.current)
+        return;
+      setOffline(next);
+      setOfflineReadError(undefined);
+      return next;
+    } catch (cause) {
+      if (mounted.current && epoch === rootEpoch.current && serial === offlineReadSerial.current)
+        setOfflineReadError(normalizeDesktopError(cause).detail);
+    } finally {
+      if (mounted.current && epoch === rootEpoch.current && serial === offlineReadSerial.current)
+        setReadingOffline(false);
+    }
+  }, []);
   useEffect(() => {
     if (!offlineJob || !pageVisible || !active) return;
-    const epoch = rootEpoch.current;
     let cancelled = false;
     let timer: number | undefined;
     const poll = async () => {
-      try {
-        const next = await invokeDesktop("offline-model/read", {});
-        if (cancelled || !mounted.current || epoch !== rootEpoch.current) return;
-        setOffline(next);
-        if (activeOfflineStates.includes(next.snapshot.state)) {
-          timer = window.setTimeout(() => void poll(), 1500);
-        } else {
-          void load();
-        }
-      } catch (cause) {
-        if (!cancelled && mounted.current && epoch === rootEpoch.current)
-          setError(normalizeDesktopError(cause).detail);
-      }
+      const next = await readOffline();
+      if (cancelled || !next) return;
+      if (activeOfflineStates.includes(next.snapshot.state)) {
+        timer = window.setTimeout(() => void poll(), 1500);
+      } else void load();
     };
     timer = window.setTimeout(() => void poll(), 1500);
     return () => {
       cancelled = true;
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [offlineJob, pageVisible, active, load]);
+  }, [offlineJob, pageVisible, active, load, readOffline]);
 
   const manageOffline = async (action: "install" | "cancel" | "remove") => {
     if (offlineBusy || busy) return;
     const epoch = rootEpoch.current;
     setOfflineBusy(true);
+    readSerial.current++;
+    offlineReadSerial.current++;
+    setReading(false);
+    setReadingOffline(false);
     setError(undefined);
     try {
       const next = await invokeDesktop("offline-model/manage", { action });
@@ -250,6 +292,10 @@ export function ConnectionSettings({
   useEffect(() => {
     onPendingChange?.(pending);
   }, [pending, onPendingChange]);
+  useEffect(() => {
+    onBusyChange?.(saving || offlineBusy);
+    return () => onBusyChange?.(false);
+  }, [saving, offlineBusy, onBusyChange]);
   const select = (id: string) => {
     void load();
     setSelectedId(id);
@@ -271,6 +317,8 @@ export function ConnectionSettings({
   const mutate = async (action: Action) => {
     if (!view || busy) return false;
     const epoch = rootEpoch.current;
+    readSerial.current++;
+    setReading(false);
     setBusy(true);
     setError(undefined);
     try {
@@ -364,8 +412,34 @@ export function ConnectionSettings({
     setSelectedId(undefined);
   };
 
+  const readFailure = readError && (
+    <OperationError error={readError}>
+      <Button
+        variant="secondary"
+        isPending={reading}
+        isDisabled={busy || offlineBusy}
+        onPress={() => void load()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
+  const offlineReadFailure = offlineReadError && (
+    <OperationError error={offlineReadError}>
+      <Button
+        variant="secondary"
+        isPending={readingOffline}
+        isDisabled={busy || offlineBusy}
+        onPress={() => void readOffline()}
+      >
+        {t("actions.retry")}
+      </Button>
+    </OperationError>
+  );
   return (
     <div className={styles.panel} aria-busy={busy} data-provider-detail={Boolean(draft)}>
+      {!draft && readFailure}
+      {!draft && offlineReadFailure}
       <div className={styles.providerOverview} ref={listRef} tabIndex={-1} data-focus-anchor>
         {view && (
           <ProviderRouting
@@ -757,6 +831,8 @@ export function ConnectionSettings({
                 )}
               </div>
             </Disclosure>
+            {readFailure}
+            {offlineReadFailure}
             {operationError && <OperationError error={operationError} />}
             {error && error !== "connectionSettings.keyRequired" && (
               <Feedback tone="error" live="assertive">

@@ -47,10 +47,10 @@ export function useVocabularyLibrary(initialDueOnly: boolean) {
     const current = ++version.current;
     const requestedQuery = queryRef.current;
     setBusy(true);
-    setError(undefined);
     try {
       const next = await invokeDesktop("vocabulary/read", requestedQuery);
       if (current !== version.current) return;
+      setError(undefined);
       setRootGeneration(next.rootGeneration);
       setResult(next);
       if (next.page !== requestedQuery.page) {

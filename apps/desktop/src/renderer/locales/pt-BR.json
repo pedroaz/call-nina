@@ -423,7 +423,6 @@
     "eyebrow": "Monte um conjunto útil de cartões",
     "title": "Vocabulário",
     "body": "Confirme apenas as palavras que você quer revisar. O Call Nina mantém a programação das revisões previsível e fácil de entender.",
-    "refresh": "Atualizar vocabulário",
     "createTitle": "Criar um conjunto de lições de vocabulário",
     "createBody": "Agrupe sugestões de palavras existentes em um conjunto. Primeiro, adicione sugestões por meio de uma correção de texto.",
     "request": "Em que este conjunto deve ajudar?",
@@ -1062,7 +1061,7 @@
     "notReported": "Não informado pela versão atual.",
     "privacyTitle": "Processamento local e pela OpenAI",
     "profileTitle": "Preferências de aprendizagem",
-    "persistenceUnavailable": "Não foi possível carregar as configurações. Tente atualizar.",
+    "persistenceUnavailable": "Não foi possível carregar as configurações. Tente novamente.",
     "teachingProfile": "Estilo de ensino",
     "uiLocale": "Idioma da interface",
     "localeSeparate": "O idioma das explicações é independente do idioma da interface.",
@@ -1127,7 +1126,9 @@
     "sessionPrivacy": "Seu login fica protegido neste dispositivo. Remover uma conexão não encerra a sessão.",
     "saveBeforeAccount": "Salve ou descarte as alterações da conexão antes de trocar de conta.",
     "saveBeforeLogin": "Salve esta conexão e escolha “Usar esta conexão” para conectar o ChatGPT.",
-    "saveFailed": "Não foi possível salvar. Tente novamente."
+    "saveFailed": "Não foi possível salvar. Tente novamente.",
+    "checkStatus": "Verificar status",
+    "checkingStatus": "Verificando status…"
   },
   "errors": {
     "exerciseContextMissing": "As configurações de aprendizagem originais estão ausentes. Crie uma nova prática para receber comentários da IA. As respostas e os comentários salvos não mudam.",
@@ -1367,7 +1368,9 @@
         "title": "Diagnósticos",
         "description": "Relatórios de diagnóstico salvos com dados privados removidos."
       }
-    }
+    },
+    "recheckStorage": "Verificar armazenamento",
+    "recheckingStorage": "Verificando armazenamento…"
   },
   "learningPath": {
     "title": "Trilha de aprendizagem",
@@ -1466,9 +1469,7 @@
     "dismiss": "Dispensar"
   },
   "layout": {
-    "breadcrumbs": "Caminho de navegação",
-    "refresh": "Atualizar",
-    "refreshing": "Atualizando…"
+    "breadcrumbs": "Caminho de navegação"
   },
   "missions": {
     "unitActivities": "Atividades",
@@ -1548,7 +1549,7 @@
       "account-unavailable": "A Nina não conseguiu confirmar o acesso à sua conta Codex. Confira a conexão nas Configurações e tente novamente.",
       "capability-unavailable": "A conexão de IA selecionada não oferece suporte a esta ação. Nenhuma outra conexão será selecionada automaticamente.",
       "model-unavailable": "A conexão de IA selecionada não tem um modelo e raciocínio disponíveis para esta ação. Confira a escolha salva nas Configurações.",
-      "integration-unavailable": "A Nina não conseguiu verificar a integração externa do Codex para o Voice. Atualize as Configurações e tente novamente. Isso não significa que o plugin esteja ausente.",
+      "integration-unavailable": "A Nina não conseguiu verificar a integração externa do Codex para Voice. Verifique o status em Configurações → Provedores de IA e tente novamente.",
       "plugin-required": "Para abrir esta atividade do Voice no Codex, é necessário o plugin do Call Nina. Instale ou atualize o plugin nas Configurações e tente novamente.",
       "secure-storage-unavailable": "O armazenamento seguro de chaves não está disponível neste dispositivo.",
       "connection-required": "Escolha uma conexão de IA nas configurações para usar esta ação. As atividades preparadas continuam disponíveis."
@@ -1587,7 +1588,6 @@
     "relatedHint": "Abra o conteúdo preparado exato sem IA. Cada abertura cria uma prática e tentativas separadas, sem contar para o progresso do curso.",
     "noRelated": "Ainda não há práticas preparadas para esta revisão.",
     "open": "Praticar: {{title}}",
-    "refresh": "Atualizar práticas preparadas",
     "more": "Mostrar mais",
     "remove": "Remover material",
     "removeBody": "Remover este material e todas as suas revisões? Materiais vinculados a atividades ou tentativas serão mantidos. Nenhuma atividade ou tentativa será excluída.",

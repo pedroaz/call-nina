@@ -241,7 +241,6 @@ function VocabularyWorkspace({
         ? t("vocabulary.filters.suspended")
         : entry.dueOn;
   const waiting = busy || library.busy || search !== query.search;
-  const visibleError = error ?? library.error;
 
   return (
     <>
@@ -270,7 +269,6 @@ function VocabularyWorkspace({
           dueCount={result?.counts.due}
           viewRequest={viewRequest}
           initialTab={query.filter === "due" ? "words" : "learning"}
-          refreshLibrary={library.refresh}
           libraryBusy={waiting}
           reviewButtonRef={reviewButton}
           onReview={() => {
@@ -279,7 +277,19 @@ function VocabularyWorkspace({
             setReviewing(true);
           }}
         >
-          {visibleError && <OperationError error={visibleError} />}
+          {error && <OperationError error={error} />}
+          {library.error && (
+            <OperationError error={library.error}>
+              <Button
+                variant="secondary"
+                isPending={library.busy}
+                isDisabled={busy}
+                onPress={() => void library.refresh()}
+              >
+                {t("actions.retry")}
+              </Button>
+            </OperationError>
+          )}
           <div className={styles.library}>
             {result?.counts.all === 0 && <p>{t("vocabulary.flow.emptyLibrary")}</p>}
             {result && result.counts.candidate > 0 && (

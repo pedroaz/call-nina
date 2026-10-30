@@ -51,7 +51,7 @@ export function VocabularyReview({
       {!queue && busy && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {!queue && !busy && (
         <Button variant="secondary" onPress={() => void load()}>
-          {t("vocabulary.refresh")}
+          {t("actions.retry")}
         </Button>
       )}
       <ActivityFrame
