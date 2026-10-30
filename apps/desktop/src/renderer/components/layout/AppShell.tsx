@@ -228,32 +228,36 @@ export function AppShell<Page extends string>(props: {
               );
             })}
           </ul>
-          <ul className={`${styles.navList} ${styles.settingsNavigation}`}>
-            {(() => {
-              const { page, label, icon: Icon } = props.settingsNavigation;
-              const control = (
-                <Button
-                  aria-label={label}
-                  {...(props.activePage === page ? { "aria-current": "page" as const } : {})}
-                  className={styles.navButton}
-                  density="compact"
-                  data-nav
-                  onPress={() => {
-                    props.onNavigate(page);
-                  }}
-                  onKeyDown={handleNavKeyDown}
-                  variant="quiet"
-                >
-                  <Icon aria-hidden="true" />
-                  <span className={styles.navLabel}>{label}</span>
-                </Button>
-              );
-              return (
-                <li>{props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}</li>
-              );
-            })()}
-          </ul>
-          {props.navFooter && <div className={styles.navFooter}>{props.navFooter}</div>}
+          <div className={styles.navUtilities}>
+            <ul className={styles.navList}>
+              {(() => {
+                const { page, label, icon: Icon } = props.settingsNavigation;
+                const control = (
+                  <Button
+                    aria-label={label}
+                    {...(props.activePage === page ? { "aria-current": "page" as const } : {})}
+                    className={styles.navButton}
+                    density="compact"
+                    data-nav
+                    onPress={() => {
+                      props.onNavigate(page);
+                    }}
+                    onKeyDown={handleNavKeyDown}
+                    variant="quiet"
+                  >
+                    <Icon aria-hidden="true" />
+                    <span className={styles.navLabel}>{label}</span>
+                  </Button>
+                );
+                return (
+                  <li>
+                    {props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}
+                  </li>
+                );
+              })()}
+            </ul>
+            {props.navFooter && <div className={styles.navFooter}>{props.navFooter}</div>}
+          </div>
         </div>
       </nav>
       <main className={styles.workspace} id="main-content">

@@ -8,11 +8,13 @@ import {
 } from "@call-nina/contracts";
 import { useId, useState } from "react";
 import { Section, ActionGroup } from "./components/layout/index.js";
+import { ProviderMatrix, ProviderChoice } from "./ProviderMatrix.js";
+import { useNinaAccountState } from "./NinaAccount.js";
 import { ProviderStatus } from "./ProviderStatus.js";
 import { providerSupports } from "@call-nina/domain";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, ModalDialog, SelectField } from "./components/ui/index.js";
+import { Button, ModalDialog } from "./components/ui/index.js";
 import styles from "./ConnectionSettings.module.css";
 
 type View = z.infer<typeof aiConnectionsViewSchema>;
@@ -33,6 +35,7 @@ export function ProviderRouting({
 }) {
   const { t } = useTranslation();
   const id = useId();
+  const nina = useNinaAccountState();
   const routing = view.settings.routing;
   const [advanced, setAdvanced] = useState(false);
   const supports = (
@@ -44,74 +47,112 @@ export function ProviderRouting({
     const status = view.availability.find((entry) => entry.connectionId === connection?.id)?.status;
     return Boolean(
       connection &&
+      (route !== "chatgpt" || chatgptConnected !== false) &&
+      (route !== "managed" || (nina.status === "signed-in" && !nina.identity.pending)) &&
       (status === "available" || status === "configured") &&
       providerSupports(view, connection, capability, action),
     );
   };
   return (
-    <Section title={t("setupUx.aiPractice")}>
-      <ActionGroup className={styles.providerControls}>
-        <SelectField
-          label={t("providers.provider")}
-          value={routing.text ?? ""}
-          disabled={busy}
-          onChange={(event) => {
-            const route = event.target.value as (typeof providers)[number] | "";
-            if (route && !supports(route, "text")) {
-              select(route);
-              return;
-            }
-            void mutate({
-              kind: "routing",
-              routing: { ...routing, text: route || null },
-            });
-          }}
-        >
-          <option value="">{t("providers.unassigned")}</option>
-          {providers.map((route) => (
-            <option key={route} value={route}>
-              {t(`connectionSettings.routes.${route}`)}
-            </option>
-          ))}
-        </SelectField>
-        {routing.text && (
-          <>
-            <ProviderStatus route={routing.text} view={view} chatgptConnected={chatgptConnected} />
-            <Button
-              variant="secondary"
-              onPress={() => {
-                if (routing.text) select(routing.text);
-              }}
-            >
-              {t("setupUx.manage")}
-            </Button>
-          </>
-        )}
-      </ActionGroup>
-      <ActionGroup>
-        <Button
-          variant="secondary"
-          isDisabled={busy}
-          onPress={() => void mutate({ kind: "recommend" })}
-        >
-          {t("providers.recommend")}
-        </Button>
+    <Section
+      title={t("setupUx.aiPractice")}
+      actions={
         <Button
           variant="quiet"
+          aria-haspopup="dialog"
           onPress={() => {
             setAdvanced(true);
           }}
         >
-          {t("providers.actionDefaults")}
+          {t("providers.advancedAssignments")}
         </Button>
-      </ActionGroup>
+      }
+    >
+      <ProviderMatrix label={t("setupUx.aiPractice")}>
+        {providers.map((route) => {
+          const connection = view.settings.connections.find((entry) => entry.routeId === route);
+          const available = supports(route, "text");
+          const configured =
+            route === "managed"
+              ? nina.identity.signedIn && !nina.identity.pending
+              : route === "chatgpt"
+                ? chatgptConnected
+                : route === "local"
+                  ? ["installed", "generating"].includes(view.offlineModel.snapshot.state)
+                  : Boolean(connection?.secretRef);
+          const selected = routing.text === route;
+          const name = t(`connectionSettings.routes.${route}`);
+          const actionLabel = configured
+            ? "providers.configure"
+            : route === "managed" || route === "chatgpt"
+              ? "ninaAccount.signIn"
+              : "setupUx.setUp";
+          return (
+            <tr key={route} data-selected={selected}>
+              <th scope="row">{name}</th>
+              <td id={`${id}-${route}-status`}>
+                <ProviderStatus route={route} view={view} chatgptConnected={chatgptConnected} />
+              </td>
+              <td>
+                <ProviderChoice
+                  name={`${id}-text`}
+                  checked={selected}
+                  disabled={busy || !available}
+                  aria-label={`${t("setupUx.aiPractice")}: ${name}`}
+                  aria-describedby={`${id}-${route}-status`}
+                  title={t(available ? "providers.default" : "providers.setupRequired")}
+                  onChange={() =>
+                    void mutate({ kind: "routing", routing: { ...routing, text: route } })
+                  }
+                />
+              </td>
+              <td>
+                <Button
+                  variant={selected ? "secondary" : "quiet"}
+                  isDisabled={busy}
+                  aria-label={`${t(actionLabel)}: ${name}`}
+                  aria-haspopup="dialog"
+                  onPress={() => {
+                    select(route);
+                  }}
+                >
+                  {t(actionLabel)}
+                </Button>
+              </td>
+            </tr>
+          );
+        })}
+        <tr data-selected={!routing.text}>
+          <th scope="row">{t("providers.none")}</th>
+          <td />
+          <td>
+            <ProviderChoice
+              name={`${id}-text`}
+              checked={!routing.text}
+              disabled={busy}
+              aria-label={`${t("setupUx.aiPractice")}: ${t("providers.none")}`}
+              onChange={() => void mutate({ kind: "routing", routing: { ...routing, text: null } })}
+            />
+          </td>
+          <td />
+        </tr>
+      </ProviderMatrix>
       <ModalDialog
         size="large"
         closeLabel={t("actions.close")}
         isOpen={advanced}
-        title={t("providers.actionDefaults")}
+        title={t("providers.advancedAssignments")}
         onOpenChange={setAdvanced}
       >
+        <ActionGroup>
+          <Button
+            variant="secondary"
+            isDisabled={busy}
+            onPress={() => void mutate({ kind: "recommend" })}
+          >
+            {t("providers.recommend")}
+          </Button>
+        </ActionGroup>
         <div
           className={styles.matrix}
           tabIndex={0}
@@ -123,7 +164,6 @@ export function ProviderRouting({
               <tr>
                 <th scope="col">{t("providers.provider")}</th>
                 <th scope="col">{t("providers.status")}</th>
-                <th scope="col">{t("providers.text")}</th>
                 <th scope="col">{t("providers.image")}</th>
               </tr>
             </thead>
@@ -148,7 +188,7 @@ export function ProviderRouting({
                   <td>
                     <ProviderStatus route={route} view={view} chatgptConnected={chatgptConnected} />
                   </td>
-                  {(["text", "image"] as const).map((capability) => (
+                  {(["image"] as const).map((capability) => (
                     <td key={capability}>
                       <label
                         className={styles.routingChoice}
@@ -162,14 +202,7 @@ export function ProviderRouting({
                           type="radio"
                           name={`${id}-${capability}`}
                           checked={routing[capability] === route}
-                          disabled={
-                            busy ||
-                            !supports(
-                              route,
-                              capability,
-                              capability === "image" ? "vocabulary-analysis" : undefined,
-                            )
-                          }
+                          disabled={busy || !supports(route, capability, "vocabulary-analysis")}
                           aria-label={`${t(`providers.${capability}`)}: ${t(`connectionSettings.routes.${route}`)}`}
                           onChange={() =>
                             void mutate({
@@ -186,7 +219,7 @@ export function ProviderRouting({
               <tr>
                 <th scope="row">{t("providers.unassigned")}</th>
                 <td />
-                {(["text", "image"] as const).map((capability) => (
+                {(["image"] as const).map((capability) => (
                   <td key={capability}>
                     <label className={styles.routingChoice}>
                       <input

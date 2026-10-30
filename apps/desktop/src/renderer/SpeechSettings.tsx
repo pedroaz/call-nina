@@ -1,16 +1,23 @@
 import { NinaAccountSettings } from "./NinaAccount.js";
-import routingStyles from "./ConnectionSettings.module.css";
-import { SpeechButton } from "./SpeechButton.js";
-import { useEffect, useState, useCallback } from "react";
+import { ProviderMatrix, ProviderChoice } from "./ProviderMatrix.js";
+import { SpeechButton, stopSpeech } from "./SpeechButton.js";
+import { useEffect, useState, useCallback, useId } from "react";
 import { useTranslation } from "react-i18next";
 import {
   languageDefinitions,
+  speechTextSchema,
   type SpeechAction,
   type SpeechSnapshot,
   type Language,
   type NinaAccountState,
 } from "@call-nina/contracts";
-import { Button, SelectField, Feedback, ModalDialog } from "./components/ui/index.js";
+import {
+  Button,
+  SelectField,
+  TextAreaField,
+  Feedback,
+  ModalDialog,
+} from "./components/ui/index.js";
 import { ActionGroup, Section } from "./components/layout/index.js";
 import { invokeDesktop, subscribeDesktop } from "./ipc.js";
 import styles from "./SpeechSettings.module.css";
@@ -52,6 +59,12 @@ function useSpeechSettings() {
     };
   }, []);
   const act = useCallback(async (action: SpeechAction) => {
+    if (
+      ["preferences", "remove", "clear-private-cache", "clear-cache", "remove-course"].includes(
+        action.action,
+      )
+    )
+      stopSpeech();
     setBusy(true);
     setError(false);
     try {
@@ -68,7 +81,7 @@ function useSpeechSettings() {
 }
 function accountReason(account: NinaAccountState | null) {
   const access = account?.access?.speech;
-  return !access?.enabled || !access.serviceEnabled
+  return account?.status !== "signed-in" || !access?.enabled || !access.serviceEnabled
     ? "account"
     : access.remainingCharacters < 1
       ? "allowance"
@@ -93,8 +106,10 @@ export function SpeechSettings({
 
 function SpeechConnections({ language }: { language: Language }) {
   const { t } = useTranslation();
+  const id = useId();
   const { view, account, error, busy, act } = useSpeechSettings();
   const [editing, setEditing] = useState<Language>();
+  const [preview, setPreview] = useState(samples[language]);
   const [source, setSource] = useState<"piper" | "pocket" | "managed">("piper");
   const [target, setTarget] = useState<Language>(language);
   const [previousLanguage, setPreviousLanguage] = useState(language);
@@ -102,6 +117,16 @@ function SpeechConnections({ language }: { language: Language }) {
     setPreviousLanguage(language);
     setTarget(language);
   }
+  const packStatus = (pack: SpeechSnapshot["packs"][number] | undefined) => {
+    if (!pack) return t("speech.states.unavailable");
+    if (pack.unavailableReason) return t(`speech.unavailableReasons.${pack.unavailableReason}`);
+    const state = t(
+      pack.qualification === "candidate" && pack.state === "downloading"
+        ? "speech.installing"
+        : `speech.states.${pack.state}`,
+    );
+    return pack.qualification === "candidate" ? `${state} · ${t("speech.candidate")}` : state;
+  };
   const row = (engine: "piper" | "pocket" | "managed") => {
     if (!view) return null;
     const pack = view.packs.find((entry) => entry.language === target && entry.engine === engine);
@@ -115,44 +140,75 @@ function SpeechConnections({ language }: { language: Language }) {
         : engine === "piper"
           ? "Piper"
           : "Pocket TTS";
+    const selected = view.preferences[target] === engine;
+    const unavailable =
+      engine !== "managed" && (!view.supported || !pack || pack.state === "unavailable");
+    const status =
+      engine === "managed"
+        ? !account
+          ? t("providers.checkingConnection")
+          : account.status !== "signed-in"
+            ? t("providers.signInRequired")
+            : accountReason(account) === "account"
+              ? t("providers.accessRequired")
+              : t(`speech.readiness.${accountReason(account)}`)
+        : packStatus(pack);
+    const open = () => {
+      stopSpeech();
+      setPreview(samples[target]);
+      setSource(engine);
+      setEditing(target);
+    };
+    const actionLabel = ready
+      ? "providers.configure"
+      : unavailable
+        ? "ui.details"
+        : engine === "managed" && account?.status !== "signed-in"
+          ? "ninaAccount.signIn"
+          : "setupUx.setUp";
     return (
-      <tr key={engine}>
+      <tr key={engine} data-selected={selected}>
         <th scope="row">{name}</th>
-        <td>
-          <span role="status">
-            {pack?.state === "downloading"
-              ? t("speech.states.downloading")
-              : t(
-                  ready
-                    ? "speech.readiness.ready"
-                    : engine === "managed"
-                      ? "providers.disconnected"
-                      : !pack || pack.state === "unavailable"
-                        ? "speech.states.unavailable"
-                        : "providers.notInstalled",
+        <td id={`${id}-${engine}-status`}>
+          <div className={styles.details} role="status">
+            <span>{status}</span>
+            {pack?.error && (
+              <span>
+                {t(
+                  pack.error === "OD_SPEECH_DISK_FULL"
+                    ? "speech.diskFull"
+                    : "speech.downloadFailed",
                 )}
-            {view.preferences[target] === engine && ready
-              ? ` · ${t("providers.selectedDefault")}`
-              : ""}
-          </span>
-          {pack?.state === "downloading" && (
-            <progress
-              value={pack.downloadedBytes}
-              max={pack.downloadBytes}
-              aria-label={t("speech.download")}
-            />
-          )}
+              </span>
+            )}
+            {pack?.state === "downloading" && (
+              <progress
+                value={pack.downloadedBytes}
+                max={pack.downloadBytes}
+                aria-label={t("speech.download")}
+              />
+            )}
+          </div>
+        </td>
+        <td>
+          <ProviderChoice
+            name={`${id}-${target}`}
+            checked={selected}
+            disabled={busy || !ready}
+            aria-label={`${t("setupUx.speechAi")}: ${name} · ${t(`languages.${target}`)}`}
+            aria-describedby={`${id}-${engine}-status`}
+            onChange={open}
+          />
         </td>
         <td>
           <Button
-            variant="quiet"
-            onPress={() => {
-              setProvidersOpen(false);
-              setSource(engine);
-              setEditing(target);
-            }}
+            variant={selected ? "secondary" : "quiet"}
+            isDisabled={busy}
+            aria-label={`${t(actionLabel)}: ${name} · ${t(`languages.${target}`)}`}
+            aria-haspopup="dialog"
+            onPress={open}
           >
-            {t(ready ? "setupUx.manage" : "setupUx.setUp")}
+            {t(actionLabel)}
           </Button>
         </td>
       </tr>
@@ -170,18 +226,37 @@ function SpeechConnections({ language }: { language: Language }) {
     !["unavailable", "downloading", "installed"].includes(pack.state);
   const apply = async () => {
     if (!view || !editing) return;
-    if (
-      !(await act({
-        action: "preferences",
-        preferences: { ...view.preferences, [editing]: source },
-      }))
-    )
+    stopSpeech();
+    if (downloadable) {
+      await act({ action: "install", packId: pack.id });
       return;
-    if (downloadable) await act({ action: "install", packId: pack.id });
+    }
+    await act({
+      action: "preferences",
+      preferences: { ...view.preferences, [editing]: source },
+    });
   };
-  const [providersOpen, setProvidersOpen] = useState(false);
   return (
-    <Section title={t("setupUx.speechAi")}>
+    <Section
+      title={t("setupUx.speechAi")}
+      actions={
+        <SelectField
+          className={styles.language}
+          label={t("setupUx.language")}
+          value={target}
+          onChange={(event) => {
+            stopSpeech();
+            setTarget(event.target.value as Language);
+          }}
+        >
+          {languages.map((entry) => (
+            <option key={entry} value={entry}>
+              {t(`languages.${entry}`)}
+            </option>
+          ))}
+        </SelectField>
+      }
+    >
       {error && (
         <Feedback tone="error" live="polite">
           {t("speech.unavailable")}
@@ -189,90 +264,19 @@ function SpeechConnections({ language }: { language: Language }) {
       )}
       {!view && !error && <p role="status">{t("speech.loading")}</p>}
       {view && (
-        <>
-          <SelectField
-            label={t("setupUx.language")}
-            value={target}
-            onChange={(event) => {
-              setTarget(event.target.value as Language);
-            }}
-          >
-            {languages.map((entry) => (
-              <option key={entry} value={entry}>
-                {t(`languages.${entry}`)}
-              </option>
-            ))}
-          </SelectField>
-          <ActionGroup className={routingStyles.providerControls}>
-            <SelectField
-              label={t("providers.provider")}
-              value={view.preferences[target]}
-              disabled={busy}
-              onChange={(event) => {
-                setSource(event.target.value as typeof source);
-                setEditing(target);
-              }}
-            >
-              <option value="piper">Piper</option>
-              <option value="pocket">Pocket TTS</option>
-              <option value="managed">{t("connectionSettings.routes.managed")}</option>
-            </SelectField>
-            <Button
-              variant="secondary"
-              onPress={() => {
-                setSource(view.preferences[target]);
-                setEditing(target);
-              }}
-            >
-              {t("setupUx.manage")}
-            </Button>
-            <Button
-              variant="quiet"
-              onPress={() => {
-                setProvidersOpen(true);
-              }}
-            >
-              {t("providers.capabilities")}
-            </Button>
-          </ActionGroup>
-          <p role="status">
-            {view.preferences[target] === "managed"
-              ? t(`speech.readiness.${accountReason(account)}`)
-              : !view.supported
-                ? t("speech.linuxOnly")
-                : t(
-                    `speech.states.${view.packs.find((entry) => entry.language === target && entry.engine === view.preferences[target])?.state ?? "unavailable"}`,
-                  )}
-          </p>
-          <ModalDialog
-            closeLabel={t("actions.close")}
-            isOpen={providersOpen}
-            title={t("providers.capabilities")}
-            onOpenChange={setProvidersOpen}
-          >
-            <div className={routingStyles.matrix}>
-              <table className={routingStyles.routingMatrix}>
-                <thead>
-                  <tr>
-                    <th scope="col">{t("providers.provider")}</th>
-                    <th scope="col">{t("providers.status")}</th>
-                    <th scope="col">
-                      <span className={styles.actionLabel}>{t("setupUx.manage")}</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>{(["piper", "pocket", "managed"] as const).map(row)}</tbody>
-              </table>
-            </div>
-          </ModalDialog>
-        </>
+        <ProviderMatrix label={`${t("setupUx.speechAi")} · ${t(`languages.${target}`)}`}>
+          {(["piper", "pocket", "managed"] as const).map(row)}
+        </ProviderMatrix>
       )}
       <ModalDialog
         closeLabel={t("actions.close")}
         isOpen={Boolean(editing)}
         title={`${source === "managed" ? t("connectionSettings.routes.managed") : source === "piper" ? "Piper" : "Pocket TTS"} · ${editing ? t(`languages.${editing}`) : ""}`}
         onOpenChange={(open) => {
-          if (!open) setEditing(undefined);
+          if (!open) {
+            stopSpeech();
+            setEditing(undefined);
+          }
         }}
       >
         {editing && view && (
@@ -280,11 +284,7 @@ function SpeechConnections({ language }: { language: Language }) {
             <p role="status">
               {source === "managed"
                 ? t(`speech.readiness.${accountReason(account)}`)
-                : !view.supported
-                  ? t("speech.linuxOnly")
-                  : pack?.state === "unavailable"
-                    ? t("speech.qualification")
-                    : t(`speech.states.${pack?.state ?? "unavailable"}`)}
+                : packStatus(pack)}
             </p>
             {source === "managed" && accountReason(account) === "account" && (
               <NinaAccountSettings />
@@ -295,7 +295,14 @@ function SpeechConnections({ language }: { language: Language }) {
               </p>
             )}
             {source !== "managed" && pack && pack.state !== "unavailable" && (
-              <p>{t("setupUx.voiceDownload", { size: (pack.downloadBytes / 1e6).toFixed(0) })}</p>
+              <p>
+                {t(
+                  pack.qualification === "candidate"
+                    ? "speech.installSize"
+                    : "setupUx.voiceDownload",
+                  { size: (pack.downloadBytes / 1e6).toFixed(0) },
+                )}
+              </p>
             )}
             {pack?.error && (
               <Feedback tone="error" live="polite">
@@ -323,16 +330,46 @@ function SpeechConnections({ language }: { language: Language }) {
               </>
             )}
             <div className={styles.storage}>
-              <p lang={editing}>{samples[editing]}</p>
-              {view.preferences[editing] === source && (
-                <SpeechButton
-                  text={samples[editing]}
-                  language={editing}
-                  showUnavailableReason={false}
+              {source === "managed" ? (
+                <p lang={editing}>{samples[editing]}</p>
+              ) : (
+                <TextAreaField
+                  label={t("speech.previewText")}
+                  lang={editing}
+                  value={preview}
+                  rows={4}
+                  maxLength={12000}
+                  error={
+                    speechTextSchema.safeParse(preview).success
+                      ? undefined
+                      : t("speech.previewInvalid")
+                  }
+                  onChange={(event) => {
+                    stopSpeech();
+                    setPreview(event.target.value);
+                  }}
                 />
               )}
+              {view.preferences[editing] === source &&
+                (source === "managed" || speechTextSchema.safeParse(preview).success) && (
+                  <SpeechButton
+                    text={source === "managed" ? samples[editing] : preview}
+                    language={editing}
+                    showUnavailableReason={false}
+                  />
+                )}
             </div>
             <ActionGroup align="end">
+              <Button
+                variant="secondary"
+                isDisabled={busy}
+                onPress={() => {
+                  stopSpeech();
+                  setEditing(undefined);
+                }}
+              >
+                {t("actions.close")}
+              </Button>
               <Button
                 variant="primary"
                 isDisabled={
@@ -343,7 +380,15 @@ function SpeechConnections({ language }: { language: Language }) {
                 }
                 onPress={() => void apply()}
               >
-                {t(downloadable ? "setupUx.setUpVoice" : "speech.useVoice")}
+                {t(
+                  downloadable
+                    ? pack.state === "partial"
+                      ? "speech.resume"
+                      : pack.qualification === "candidate"
+                        ? "speech.install"
+                        : "speech.download"
+                    : "speech.useVoice",
+                )}
               </Button>
             </ActionGroup>
           </div>
@@ -399,6 +444,8 @@ function SpeechStorage() {
                 .filter(
                   (pack) =>
                     pack.diskBytes > 0 ||
+                    pack.state === "partial" ||
+                    pack.state === "update" ||
                     pack.state === "downloading" ||
                     pack.state === "installed",
                 )
@@ -410,7 +457,13 @@ function SpeechStorage() {
                         {languageDefinitions[pack.language].name}
                       </strong>
                       <span>
-                        {pack.voice} · {t(`speech.states.${pack.state}`)}
+                        {pack.voice} ·{" "}
+                        {t(
+                          pack.qualification === "candidate" && pack.state === "downloading"
+                            ? "speech.installing"
+                            : `speech.states.${pack.state}`,
+                        )}
+                        {pack.qualification === "candidate" && ` · ${t("speech.candidate")}`}
                       </span>
                       {pack.state !== "unavailable" && (
                         <span>
@@ -421,7 +474,9 @@ function SpeechStorage() {
                           })}
                         </span>
                       )}
-                      {pack.state === "unavailable" && <span>{t("speech.qualification")}</span>}
+                      {pack.unavailableReason && (
+                        <span>{t(`speech.unavailableReasons.${pack.unavailableReason}`)}</span>
+                      )}
                       {pack.error && (
                         <span role="status">
                           {t(

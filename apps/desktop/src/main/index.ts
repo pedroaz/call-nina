@@ -169,6 +169,14 @@ const defaultUserData = app.isPackaged
   : app.getPath("userData");
 app.setName("Call Nina");
 const configuredUserData = desktopPathOption("config-dir");
+const speechCandidateDirectory = desktopPathOption("speech-candidates-dir");
+const developmentSpeechCandidates =
+  !app.isPackaged &&
+  Boolean(process.env["CALL_NINA_RENDERER_URL"]) &&
+  new URL(rendererUrl).protocol === "http:" &&
+  new URL(rendererUrl).hostname === "127.0.0.1";
+if (speechCandidateDirectory && !developmentSpeechCandidates)
+  throw new Error("OD_SPEECH_CANDIDATES_DEVELOPMENT_ONLY");
 if (configuredUserData) {
   if (!path.isAbsolute(configuredUserData) || configuredUserData.includes("\0"))
     throw new Error("OD_CONFIG_PATH_INVALID");
@@ -242,81 +250,100 @@ if (!app.requestSingleInstanceLock()) {
       app.quit();
     });
   }
-  void app.whenReady().then(() => {
-    Menu.setApplicationMenu(null);
-    if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(windowIcon);
-    if (app.isPackaged) app.setAsDefaultProtocolClient("call-nina");
-    handleProtocolArguments(process.argv);
-    configureSessionSecurity(session.defaultSession, process.env["CALL_NINA_RENDERER_URL"]);
-    const userData = app.getPath("userData");
-    const bootstrapFile = path.join(userData, "bootstrap.json");
-    const knownInstallRoots = [app.getAppPath(), process.resourcesPath];
-    const runId = process.env["CALL_NINA_RUN_ID"] ?? `desktop_${randomUUID().replaceAll("-", "")}`;
-    const sessionId = `session_${randomUUID().replaceAll("-", "")}`;
-    const log = (record: Parameters<typeof appendDesktopLog>[1]) => {
-      void appendDesktopLog(bootstrapFile, {
-        ...record,
-        runId,
-        sessionId,
-      }).catch(() => undefined);
-    };
-    log({
-      timestamp: new Date().toISOString(),
-      severity: "info",
-      component: "desktop",
-      code: "DESKTOP_STARTED",
-      message: "Call Nina desktop process started.",
-      phase: "started",
+  void app
+    .whenReady()
+    .then(() => {
+      Menu.setApplicationMenu(null);
+      if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(windowIcon);
+      if (app.isPackaged) app.setAsDefaultProtocolClient("call-nina");
+      handleProtocolArguments(process.argv);
+      configureSessionSecurity(session.defaultSession, process.env["CALL_NINA_RENDERER_URL"]);
+      const userData = app.getPath("userData");
+      const bootstrapFile = path.join(userData, "bootstrap.json");
+      const knownInstallRoots = [app.getAppPath(), process.resourcesPath];
+      const runId =
+        process.env["CALL_NINA_RUN_ID"] ?? `desktop_${randomUUID().replaceAll("-", "")}`;
+      const sessionId = `session_${randomUUID().replaceAll("-", "")}`;
+      const log = (record: Parameters<typeof appendDesktopLog>[1]) => {
+        void appendDesktopLog(bootstrapFile, {
+          ...record,
+          runId,
+          sessionId,
+        }).catch(() => undefined);
+      };
+      log({
+        timestamp: new Date().toISOString(),
+        severity: "info",
+        component: "desktop",
+        code: "DESKTOP_STARTED",
+        message: "Call Nina desktop process started.",
+        phase: "started",
+      });
+      const secrets = new ConnectionSecretStorage(userData);
+      const chatgpt = new ChatgptSession({
+        configDirectory: userData,
+        secrets,
+        openExternal: openValidatedExternalUrl,
+      });
+      backend = new DesktopBackend({
+        ...(speechCandidateDirectory ? { speechCandidateDirectory } : {}),
+        ...(developmentSpeechCandidates && process.platform === "linux" && process.arch === "x64"
+          ? {
+              legacySpeechCandidatesDirectory: fileURLToPath(
+                new URL("../../../../build/speech-candidates/", import.meta.url),
+              ),
+            }
+          : {}),
+        loginCredentials: new NinaLoginStorage(userData),
+        curriculumRoot: app.isPackaged
+          ? path.join(process.resourcesPath, "curriculum")
+          : fileURLToPath(new URL("../../../../content/curriculum/", import.meta.url)),
+        bootstrapFile,
+        secrets,
+        offlineRuntime: new OfflineRuntime({ artifactRoot: path.join(userData, "offline") }),
+        knownInstallRoots,
+        chatgpt,
+        openExternal: openValidatedExternalUrl,
+        log,
+        emitEvent: (event) => {
+          const safeEvent = desktopIpcEventSchema.parse(event);
+          if (
+            safeEvent.event === "prepared-activity-open" &&
+            (!workspaceReady || !mainWindow || mainWindow.webContents.isLoading())
+          ) {
+            pendingActivityId = safeEvent.activityId;
+            return;
+          }
+          mainWindow?.webContents.send("call-nina:event", safeEvent);
+        },
+        exportDiagnostics: async (content) => {
+          const result = await dialog.showSaveDialog({
+            title: "Export redacted Call Nina diagnostics",
+            defaultPath: path.join(app.getPath("documents"), "call-nina-diagnostics.json"),
+            filters: [{ name: "JSON", extensions: ["json"] }],
+          });
+          if (result.canceled || !result.filePath) return { status: "cancelled" };
+          await writeFile(result.filePath, content, { encoding: "utf8", mode: 0o600, flag: "wx" });
+          return { status: "exported", displayName: path.basename(result.filePath) };
+        },
+        chooseDirectory: async () => {
+          const result = await dialog.showOpenDialog({
+            defaultPath: path.join(app.getPath("documents"), "Call Nina"),
+            title: "Choose Call Nina data folder",
+            properties: ["openDirectory", "createDirectory"],
+          });
+          return result.canceled ? undefined : result.filePaths[0];
+        },
+      });
+      installIpc();
+      mainWindow = createWindow();
+    })
+    .catch((error: unknown) => {
+      process.stderr.write(
+        error instanceof Error && /^OD_SPEECH_[A-Z_]+$/u.test(error.message)
+          ? `${error.message}\n`
+          : "OD_DESKTOP_STARTUP_FAILED\n",
+      );
+      app.exit(1);
     });
-    const secrets = new ConnectionSecretStorage(userData);
-    const chatgpt = new ChatgptSession({
-      configDirectory: userData,
-      secrets,
-      openExternal: openValidatedExternalUrl,
-    });
-    backend = new DesktopBackend({
-      loginCredentials: new NinaLoginStorage(userData),
-      curriculumRoot: app.isPackaged
-        ? path.join(process.resourcesPath, "curriculum")
-        : fileURLToPath(new URL("../../../../content/curriculum/", import.meta.url)),
-      bootstrapFile,
-      secrets,
-      offlineRuntime: new OfflineRuntime({ artifactRoot: path.join(userData, "offline") }),
-      knownInstallRoots,
-      chatgpt,
-      openExternal: openValidatedExternalUrl,
-      log,
-      emitEvent: (event) => {
-        const safeEvent = desktopIpcEventSchema.parse(event);
-        if (
-          safeEvent.event === "prepared-activity-open" &&
-          (!workspaceReady || !mainWindow || mainWindow.webContents.isLoading())
-        ) {
-          pendingActivityId = safeEvent.activityId;
-          return;
-        }
-        mainWindow?.webContents.send("call-nina:event", safeEvent);
-      },
-      exportDiagnostics: async (content) => {
-        const result = await dialog.showSaveDialog({
-          title: "Export redacted Call Nina diagnostics",
-          defaultPath: path.join(app.getPath("documents"), "call-nina-diagnostics.json"),
-          filters: [{ name: "JSON", extensions: ["json"] }],
-        });
-        if (result.canceled || !result.filePath) return { status: "cancelled" };
-        await writeFile(result.filePath, content, { encoding: "utf8", mode: 0o600, flag: "wx" });
-        return { status: "exported", displayName: path.basename(result.filePath) };
-      },
-      chooseDirectory: async () => {
-        const result = await dialog.showOpenDialog({
-          defaultPath: path.join(app.getPath("documents"), "Call Nina"),
-          title: "Choose Call Nina data folder",
-          properties: ["openDirectory", "createDirectory"],
-        });
-        return result.canceled ? undefined : result.filePaths[0];
-      },
-    });
-    installIpc();
-    mainWindow = createWindow();
-  });
 }

@@ -7,8 +7,10 @@ import { OfflineTransport } from "./transport.js";
 
 export { offlineCandidate } from "./candidate.js";
 export class OfflineRuntime {
-  private readonly store: ArtifactStore;
-  private readonly transport: OfflineTransport;
+  private store: ArtifactStore;
+  private transport: OfflineTransport;
+  private paused = false;
+  private removalTask: Promise<void> | null = null;
   private busy: "download" | "generation" | "removal" | null = null;
   private phase: "downloading" | "verifying" = "downloading";
   private bytes = 0;
@@ -18,9 +20,25 @@ export class OfflineRuntime {
   private generationController: AbortController | null = null;
   private generationTask: Promise<string> | null = null;
   constructor(options: { artifactRoot: string }) {
-    // Main supplies its dedicated device-owned directory, never a learner root or renderer path.
+    // Main supplies a validated location beneath the selected learner root.
     this.store = new ArtifactStore(options.artifactRoot);
     this.transport = new OfflineTransport(this.store);
+  }
+  suspend(): void {
+    this.paused = true;
+  }
+  async setRoot(artifactRoot: string): Promise<void> {
+    if (this.store.root === new ArtifactStore(artifactRoot).root) {
+      this.paused = false;
+      return;
+    }
+    await this.stop();
+    if (this.busy) fail("BUSY");
+    this.store = new ArtifactStore(artifactRoot);
+    this.transport = new OfflineTransport(this.store);
+    this.bytes = 0;
+    this.error = null;
+    this.paused = false;
   }
   async inspect(): Promise<OfflineSnapshot> {
     const base = {
@@ -56,7 +74,7 @@ export class OfflineRuntime {
   }
   // Starts an explicitly requested job and returns immediately. Inspect reports bounded progress.
   install(): void {
-    if (this.busy) fail("BUSY");
+    if (this.paused || this.busy) fail("BUSY");
     this.busy = "download";
     this.error = null;
     this.bytes = 0;
@@ -81,26 +99,31 @@ export class OfflineRuntime {
     this.downloadController?.abort();
     await this.downloadTask;
   }
-  async remove(): Promise<void> {
-    if (this.busy) fail("BUSY");
+  remove(): Promise<void> {
+    if (this.paused || this.busy) fail("BUSY");
     this.busy = "removal";
-    try {
-      await this.store.remove();
-      this.bytes = 0;
-      this.error = null;
-    } catch (error) {
-      this.error = safeCode(error);
-      throw new Error(this.error);
-    } finally {
-      this.busy = null;
-    }
+    this.removalTask = this.store
+      .remove()
+      .then(() => {
+        this.bytes = 0;
+        this.error = null;
+      })
+      .catch((error: unknown) => {
+        this.error = safeCode(error);
+        throw new Error(this.error);
+      })
+      .finally(() => {
+        this.busy = null;
+        this.removalTask = null;
+      });
+    return this.removalTask;
   }
   generate(
     attempt: LearningAttempt,
     isActive: () => boolean,
     onRunning?: () => void,
   ): Promise<string> {
-    if (this.busy) fail("BUSY");
+    if (this.paused || this.busy) fail("BUSY");
     if (!isActive()) fail("INACTIVE");
     this.busy = "generation";
     this.error = null;
@@ -133,6 +156,7 @@ export class OfflineRuntime {
     this.generationController?.abort();
     await this.generationTask?.catch(() => undefined);
     await this.transport.stop();
+    await this.removalTask?.catch(() => undefined);
   }
 }
 

@@ -1150,7 +1150,10 @@
     "mcp": "Die Codex-Integration ist fehlgeschlagen. Prüfe Einstellungen → KI-Anbieter und installiere oder aktualisiere die Integration.",
     "handoff": "Die Aktivität konnte nicht geöffnet werden. Prüfe die Codex-Integration unter Einstellungen → KI-Anbieter und versuche es erneut.",
     "unsupportedOperation": "Diese Aktion ist nicht verfügbar. Prüfe die unterstützten Optionen unter Einstellungen → KI-Anbieter.",
-    "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst."
+    "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst.",
+    "speechInitializationTimeout": "Die Stimme konnte nicht rechtzeitig starten. Versuche es erneut oder wähle eine andere Stimme.",
+    "speechSynthesisTimeout": "Die Spracherzeugung hat zu lange gedauert. Versuche es mit einem kürzeren Text erneut.",
+    "speechUnavailable": "Die Sprachausgabe konnte nicht abgeschlossen werden. Prüfe die gewählte Stimme in den Einstellungen und versuche es erneut."
   },
   "ui": {
     "about": "Informationen zu {{topic}}",
@@ -1223,7 +1226,8 @@
       "status": "Status",
       "cleanup": "Zu löschende Daten",
       "removes": "Was sich ändert",
-      "action": "Aktion"
+      "action": "Aktion",
+      "size": "Größe"
     },
     "supporting": "Die App speichert außerdem Verknüpfungen zwischen Datensätzen, deine Datenschutzbestätigung und kleine Speicher- und Löschvermerke zur Duplikatvermeidung. Sie unterstützen die oben genannten Funktionen.",
     "privacy": "Deine Lerndaten werden auf diesem Gerät gespeichert. KI-Funktionen senden ausgewählte Inhalte und Lernkontext an deinen gewählten Dienst. Gespeicherte Sprachausgabe bleibt auf diesem Gerät. Sprechübungen öffnen sich in Codex; Call Nina speichert Lernzusammenfassungen, keine Gesprächsaufnahmen.",
@@ -1251,24 +1255,25 @@
       "practice": {
         "title": "Übungen und Aktivitäten",
         "action": "Übungen löschen",
-        "removes": "Entfernt alle gespeicherten Aktivitäten, Lektionen, Übungen, Versuche, Antworten, Korrekturen, Fehler, Lernerkenntnisse, Voice-Zusammenfassungen und deren Verlauf.",
-        "keeps": "Behält Profilangaben, Einstellungen und Wortschatz. Verknüpfter Wortschatz muss zuerst gelöscht werden.",
+        "removes": "Entfernt alle gespeicherten Aktivitäten, Lektionen, Übungen, Versuche, Antworten, Korrekturen, Fehler, Lernerkenntnisse, Voice-Zusammenfassungen und deren Verlauf. Leert den Cache für private Sprachausgabe.",
+        "keeps": "Profil, Einstellungen, Vokabeln und wiederverwendbares Quellmaterial bleiben erhalten. Verknüpfte Vokabeln müssen zuerst gelöscht werden.",
         "success": "Übungen, Feedback und zugehöriger Verlauf gelöscht."
       },
       "vocabulary": {
         "title": "Wortschatzsammlung",
         "action": "Wortschatz löschen",
-        "removes": "Entfernt vorgeschlagene, aktive und pausierte Wörter, Wortschatzsammlungen, Wiederholungspläne und Wiederholungsverlauf.",
+        "removes": "Entfernt vorgeschlagene, aktive und pausierte Wörter, Wortschatzsammlungen, Wiederholungspläne und Wiederholungsverlauf. Leert den Cache für private Sprachausgabe.",
         "keeps": "Behält Profil, Übungen und Feedback. Wörter können weiterhin in gespeicherten Übungstexten vorkommen.",
         "success": "Wortschatz, Sammlungen und Wiederholungsverlauf gelöscht."
       },
       "learning": {
         "title": "Neu anfangen",
         "action": "Alle Lerndaten löschen",
-        "removes": "Entfernt alle Übungen, Lektionen, Antworten, Feedback, Fehler, Lernerkenntnisse, Wortschatz, Voice-Zusammenfassungen und den Lernverlauf in diesem Datenordner.",
-        "keeps": "Behält deine Profildaten, Einstellungen und den ausgewählten Datenordner, damit du ohne erneute Einrichtung weiterüben kannst.",
+        "removes": "Entfernt alle Übungen, Lektionen, Antworten, Feedback, Fehler, Lernerkenntnisse, Wortschatz, Voice-Zusammenfassungen und den Lernverlauf in diesem Datenordner. Leert den Cache für private Sprachausgabe. Löscht auch gespeichertes Quellmaterial.",
+        "keeps": "Behält deine Profildaten, Einstellungen und den ausgewählten Datenordner, damit du ohne erneute Einrichtung weiterüben kannst. Heruntergeladene Modelle und Kursaudio bleiben erhalten.",
         "success": "Alle Lerndatensätze gelöscht. Dein Profil und deine Einstellungen bleiben für den Neustart erhalten."
-      }
+      },
+      "partial": "Die Lerndaten wurden gelöscht, aber die private Sprachausgabe konnte nicht vollständig bereinigt werden. Wiederhole die Bereinigung."
     },
     "categories": {
       "profile": {
@@ -1331,8 +1336,40 @@
         "description": "Pfad und Generation zum erneuten Öffnen deines ausgewählten Datenordners."
       },
       "appConfig": {
-        "title": "App-Konfiguration",
-        "description": "Electron-Konfiguration und Browser-Laufzeitdaten außerhalb des portablen Lerndatenordners."
+        "title": "Anwendungskonfiguration",
+        "description": "Gerätegebundene Zugangsdaten, Anmeldung und Electron-Browserspeicher außerhalb des ausgewählten Datenordners."
+      },
+      "textModels": {
+        "title": "Lokale KI-Modelle",
+        "description": "Heruntergeladene Textmodelle und Laufzeitumgebungen im ausgewählten Datenordner."
+      },
+      "speechModels": {
+        "title": "Sprachmodelle",
+        "description": "Installierte qualifizierte Stimmen und gemeinsam genutzte Sprachlaufzeitumgebungen."
+      },
+      "speechCandidates": {
+        "title": "Sprachkandidaten",
+        "description": "Installierte Entwicklungsstimmen und gemeinsam genutzte Sprachlaufzeitumgebungen."
+      },
+      "preparedSpeech": {
+        "title": "Vorbereitete Sprachdownloads",
+        "description": "Stimmen, Laufzeitarchive und Vorbereitungsdateien für lokale Tests."
+      },
+      "curriculumAudio": {
+        "title": "Kursaudio",
+        "description": "Heruntergeladene Kursaufnahmen."
+      },
+      "privateAudio": {
+        "title": "Private Sprachausgabe",
+        "description": "Zwischengespeicherte Sprachausgabe dieses Lernordners; nicht in Exporten oder mobiler Synchronisierung enthalten."
+      },
+      "logs": {
+        "title": "Anwendungsprotokolle",
+        "description": "Betriebsprotokolle ohne Lerninhalte und Zugangsdaten."
+      },
+      "diagnostics": {
+        "title": "Diagnosedaten",
+        "description": "Gespeicherte bereinigte Diagnoseberichte."
       }
     }
   },
@@ -1682,15 +1719,15 @@
     "keyEntry": "Neuer API-Schlüssel",
     "keyRequired": "Gib vor dem Speichern einen API-Schlüssel ein.",
     "directCatalogNotice": "Die aufgeführten Modelle und Aktionen stammen aus der integrierten Unterstützungsliste. Gespeicherter Schlüssel und Modellwahl erfüllen nur lokale Voraussetzungen; Zugang und Abrechnung wurden nicht geprüft.",
-    "offlineTitle": "Heruntergeladenes Modell auf diesem Gerät",
-    "offlineScope": "Der Download erfolgt nur nach deiner Auswahl, umfasst mehrere GB und wird auf diesem Gerät außerhalb des Lernordners geteilt. Das Entfernen betrifft alle Lernordner auf diesem Gerät; Verbindungen und Lerndaten bleiben.",
+    "offlineTitle": "Heruntergeladenes lokales KI-Modell",
+    "offlineScope": "Modell und Laufzeitumgebung werden in den ausgewählten Datenordner geladen. Beim Entfernen bleiben Verbindungen und Lerndaten erhalten.",
     "offlineLimits": "Geschwindigkeit und Unterrichtsqualität sind ungeprüft. Ausreichende Ressourcen bestätigen nicht die Eignung des Modells.",
     "offlineProgress": "{{downloaded}} von {{total}} GB heruntergeladen.",
     "offlineInstall": "Modell herunterladen",
     "offlineResume": "Download fortsetzen",
     "offlineCancelDownload": "Download abbrechen",
     "offlineRemove": "Heruntergeladenes Modell entfernen",
-    "offlineRemoveWarning": "Die auf diesem Gerät geteilten Modelldateien entfernen? Das betrifft alle Lernordner auf diesem Gerät. Gespeicherte Verbindungen und Lerndaten bleiben.",
+    "offlineRemoveWarning": "Das heruntergeladene Modell und die Laufzeitumgebung dieses Datenordners entfernen? Verbindungen und Lerndaten bleiben erhalten.",
     "offlineConfirmRemove": "Modelldateien entfernen",
     "offlineFailure": "Die Modellaktion ist fehlgeschlagen. Prüfe den aktuellen Zustand und versuche es bei Bedarf erneut.",
     "offlineBusyConflict": "Warte, bis die laufende KI- oder Modellaktion abgeschlossen ist, und versuche es erneut.",
@@ -1958,7 +1995,19 @@
     "keyRemovalPending": "Der API-Schlüssel wird beim Speichern entfernt.",
     "selectedDefault": "Ausgewählter Standard",
     "checkingConnection": "Zugriff wird geprüft…",
-    "signInIncomplete": "Anmeldung unvollständig"
+    "signInIncomplete": "Anmeldung unvollständig",
+    "none": "Keine",
+    "configure": "Konfigurieren",
+    "advancedAssignments": "Erweiterte Zuordnungen",
+    "enabled": "Aktiviert",
+    "installPlugin": "Plugin installieren",
+    "updatePlugin": "Plugin aktualisieren",
+    "codexUnavailable": "Codex nicht verfügbar",
+    "pluginStatus": {
+      "installed": "Plugin installiert",
+      "not-installed": "Plugin nicht installiert",
+      "refresh-required": "Plugin-Update verfügbar"
+    }
   },
   "mobile": {
     "download": "Mobile App herunterladen",
@@ -2017,7 +2066,7 @@
     "removeCourse": "Kursaudio entfernen",
     "states": {
       "unavailable": "Nicht verfügbar",
-      "absent": "Nicht heruntergeladen",
+      "absent": "Nicht installiert",
       "partial": "Teilweise heruntergeladen",
       "installed": "Installiert",
       "downloading": "Wird heruntergeladen",
@@ -2031,7 +2080,7 @@
     "models": "Lokale Sprachmodelle",
     "publicAudio": "Kursaudio",
     "privateAudio": "Private Sprachausgabe · aktuelles Lernprofil",
-    "ownership": "Modelle und Kursaudio werden auf diesem Gerät gemeinsam genutzt. Private Sprachausgabe gehört zum aktuellen Lernordner und wird weder exportiert noch mit Mobilgeräten synchronisiert.",
+    "ownership": "Modelle, Kursaudio und private Sprachausgabe liegen im ausgewählten Datenordner. Downloads und zwischengespeichertes Audio werden weder exportiert noch mobil synchronisiert.",
     "preparedFirst": "Vorbereitete und gespeicherte Aufnahmen verbrauchen kein Sprachguthaben.",
     "linuxOnly": "Lokale Sprachmodelle benötigen Linux x64.",
     "packSizes": "Download {{download}} · geschätzt installiert {{installed}} · Stimmdateien auf dem Gerät {{disk}}",
@@ -2051,10 +2100,22 @@
       "allowance": "Sprachguthaben aufgebraucht.",
       "unavailable": "Audio nicht verfügbar. Vorlesen-Einstellungen prüfen."
     },
-    "diskFull": "Nicht genug Speicherplatz. Ungenutzte Modelle oder Audio löschen und erneut versuchen."
+    "diskFull": "Nicht genug Speicherplatz. Ungenutzte Modelle oder Audio löschen und erneut versuchen.",
+    "languageUnavailable": "Für {{language}} nicht verfügbar",
+    "candidate": "Testversion",
+    "previewText": "Text zum Probehören",
+    "previewInvalid": "Gib 1–6.000 Zeichen ein.",
+    "unavailableReasons": {
+      "platform": "Lokale Sprachausgabe erfordert Linux x64.",
+      "runtime": "Laufzeitumgebung nicht vorbereitet.",
+      "qualification": "Stimme noch nicht freigegeben."
+    },
+    "install": "Installieren",
+    "installSize": "{{size}} MB für die Installation",
+    "installing": "Wird installiert"
   },
   "setupUx": {
-    "aiPractice": "Übungen erstellen",
+    "aiPractice": "Übungs-KI",
     "noConnection": "Keine Verbindung ausgewählt",
     "change": "Ändern",
     "connect": "Verbinden",
@@ -2098,7 +2159,7 @@
     "manageDownloads": "Downloads verwalten",
     "storageDetails": "Speicherdetails",
     "privacy": "Datenschutz",
-    "localPrivacy": "Deine Lerndaten werden auf diesem Gerät gespeichert.",
+    "localPrivacy": "Lerndaten, heruntergeladene Modelle und gespeichertes Audio liegen im ausgewählten Datenordner.",
     "aiPrivacy": "KI-Funktionen senden ausgewählte Inhalte und Lernkontext an deinen gewählten Dienst.",
     "audioPrivacy": "Gespeicherte Sprachausgabe bleibt auf diesem Gerät. Sprechübungen öffnen sich in Codex; Call Nina speichert Lernzusammenfassungen, keine Gesprächsaufnahmen.",
     "clearLearning": "Lerndaten löschen",
@@ -2113,7 +2174,7 @@
     "activity": "Aktivität",
     "speechAi": "Audio",
     "language": "Sprache",
-    "exerciseSummary": "Übungen erstellen",
+    "exerciseSummary": "Übungs-KI",
     "audioSummary": "Audio"
   },
   "stories": {

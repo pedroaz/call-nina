@@ -175,12 +175,23 @@ async function logsClear() {
 try {
   if (action === "start") {
     if (!["dev", "prd"].includes(mode)) throw new Error("Start requires mode dev or prd.");
-    assertNoUnknownFlags([]);
+    const candidatePrefix = "--speech-candidates-dir=";
+    const candidateFlags = flags.filter((flag) => flag.startsWith(candidatePrefix));
+    assertNoUnknownFlags(candidateFlags);
+    if (candidateFlags.length > 1 || (candidateFlags.length && mode !== "dev"))
+      throw new Error("Speech candidates require one explicit development directory.");
+    if (candidateFlags.some((flag) => !path.isAbsolute(flag.slice(candidatePrefix.length))))
+      throw new Error("Speech candidate directory must be absolute.");
     const state = await startMode({
       mode,
       runtimeRoot,
       cwd: root,
-      command: [process.execPath, "apps/desktop/scripts/desktop-service.mjs", mode],
+      command: [
+        process.execPath,
+        "apps/desktop/scripts/desktop-service.mjs",
+        mode,
+        ...candidateFlags,
+      ],
       timeoutMs: mode === "dev" ? 180_000 : 60_000,
     });
     process.stdout.write(`${mode}: ready pid=${state.pid}\n`);

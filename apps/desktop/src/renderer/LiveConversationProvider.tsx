@@ -1,16 +1,24 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useProviderView } from "./useProviderView.js";
-import { SelectField, Feedback } from "./components/ui/index.js";
+import { SwitchField, Feedback } from "./components/ui/index.js";
+import { SettingsRow } from "./SettingsRow.js";
+import { MessageCircle } from "lucide-react";
 import { invokeDesktop } from "./ipc.js";
 
-export function LiveConversationProvider() {
+export function LiveConversationProvider({
+  status,
+  action,
+}: {
+  status: ReactNode;
+  action: ReactNode;
+}) {
   const view = useProviderView();
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
-  const change = async (value: string) => {
-    if (!view) return;
+  const change = async (enabled: boolean) => {
+    if (!view || busy) return;
     setBusy(true);
     setFailed(false);
     try {
@@ -21,7 +29,7 @@ export function LiveConversationProvider() {
           kind: "routing",
           routing: {
             ...view.settings.routing,
-            liveConversation: value === "codex" ? "codex" : null,
+            liveConversation: enabled ? "codex" : null,
           },
         },
       });
@@ -33,15 +41,25 @@ export function LiveConversationProvider() {
   };
   return (
     <>
-      <SelectField
-        label={t("providers.provider")}
-        disabled={busy || !view}
-        value={view?.settings.routing.liveConversation ?? ""}
-        onChange={(event) => void change(event.target.value)}
+      <SettingsRow
+        icon={<MessageCircle aria-hidden="true" />}
+        title="Codex"
+        action={
+          <>
+            <SwitchField
+              aria-label={`${t("setupUx.speakingPractice")}: Codex · ${t("providers.enabled")}`}
+              isDisabled={busy || !view}
+              isSelected={view?.settings.routing.liveConversation === "codex"}
+              onChange={(enabled) => void change(enabled)}
+            >
+              {t("providers.enabled")}
+            </SwitchField>
+            {action}
+          </>
+        }
       >
-        <option value="">{t("providers.unassigned")}</option>
-        <option value="codex">Codex</option>
-      </SelectField>
+        <span role="status">{status}</span>
+      </SettingsRow>
       {failed && (
         <Feedback tone="error" live="assertive" density="compact">
           {t("settings.saveFailed")}

@@ -32,3 +32,12 @@ Prepared curriculum recordings will use the pinned Google Cloud WaveNet voices.
 Generation and distribution require the operator's applicable Google Cloud agreement.
 Generated audio must be auditioned before publishing; no curriculum audio was generated
 or published as part of local feature implementation.
+
+Private development candidates prepared by `make speech prepare` retain the catalog's
+qualification and provenance limitations. Their local runtime archives include dependency
+version inventories, the pinned requirements lock, and installed dependency notices.
+Local preparation, artifact validation and a successful build are not distribution approval
+or pronunciation/accent qualification. No runtime binaries, voice files or corresponding
+source bundles are published by this workflow. Lessac and derivative-model provenance
+reviews, Piper/eSpeak corresponding-source obligations, preset attribution, and Pocket
+Alba's US-English accent review remain unresolved for release qualification.

@@ -1,5 +1,5 @@
 import { StoriesPage } from "./StoriesPage.js";
-import { InterfaceLanguage } from "./InterfaceLanguage.js";
+import { SidebarLanguages } from "./SidebarLanguages.js";
 import type { PathDestination } from "./learningPathNavigation.js";
 import { stopSpeech } from "./SpeechButton.js";
 import { MobilePage } from "./MobilePage.js";
@@ -53,7 +53,6 @@ import { LearningPathPage } from "./LearningPathPage.js";
 import { PracticePage } from "./PracticePage.js";
 import { PersonalDataPage } from "./PersonalDataPage.js";
 import { SettingsPage } from "./SettingsPage.js";
-import { LanguageSelect } from "./LanguageSelect.js";
 import { SidebarModelControl } from "./SidebarModelControl.js";
 import { VocabularyPage } from "./VocabularyPage.js";
 import { WritingWorkspace } from "./WritingWorkspace.js";
@@ -818,27 +817,24 @@ function DesktopWorkspace({
         navFooter={
           <>
             {learningScope && (
-              <>
-                <span
-                  hidden
-                  data-learning-root={
-                    readiness.dataRoot.status === "ready"
-                      ? readiness.dataRoot.generation
-                      : undefined
-                  }
-                />
-                <LanguageSelect
-                  label={t("onboarding.targetLanguage")}
-                  value={learningScope.targetLanguage}
-                  disabled={switchingLanguage || languageSwitchBlocked}
-                  onChange={(language) => void selectTarget(language)}
-                />
-                {languageSwitchBlocked && page !== "settings" && (
-                  <small>{t("settings.finishBeforeSwitch")}</small>
-                )}
-              </>
+              <span
+                hidden
+                data-learning-root={
+                  readiness.dataRoot.status === "ready" ? readiness.dataRoot.generation : undefined
+                }
+              />
             )}
-            <InterfaceLanguage />
+            <SidebarLanguages
+              language={learningScope?.targetLanguage}
+              disabled={switchingLanguage || languageSwitchBlocked}
+              notice={
+                languageSwitchBlocked && page !== "settings"
+                  ? t("settings.finishBeforeSwitch")
+                  : undefined
+              }
+              collapsed={navCollapsed}
+              onLanguage={(language) => void selectTarget(language)}
+            />
             <SidebarModelControl language={learningScope?.targetLanguage ?? "de"} />
           </>
         }

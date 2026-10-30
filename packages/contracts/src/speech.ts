@@ -35,8 +35,9 @@ export const speechActionSchema = z.discriminatedUnion("action", [
     courseId: z.string().min(1).max(200),
   }),
   z.strictObject({
-    action: z.enum(["clear-cache", "clear-private-cache", "cancel", "cancel-course"]),
+    action: z.enum(["clear-cache", "clear-private-cache", "cancel-course"]),
   }),
+  z.strictObject({ action: z.literal("cancel"), id: z.uuid().optional() }),
 ]);
 const digest = z.string().regex(/^[a-f0-9]{64}$/u);
 export const speechManifestSchema = z.strictObject({
@@ -75,6 +76,8 @@ export const speechSnapshotSchema = z.strictObject({
       engine: z.enum(["piper", "pocket"]),
       language: languageSchema,
       voice: z.string(),
+      qualification: z.enum(["candidate", "qualified", "unavailable"]),
+      unavailableReason: z.enum(["platform", "runtime", "qualification"]).nullable(),
       state: z.enum(["unavailable", "absent", "partial", "installed", "downloading", "update"]),
       downloadBytes: z.int().nonnegative(),
       downloadedBytes: z.int().nonnegative(),

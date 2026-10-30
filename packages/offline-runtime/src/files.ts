@@ -29,7 +29,15 @@ export async function directory(root: string, create = true, privateLeaf = true)
         if (!(error instanceof Error && "code" in error && error.code === "EEXIST")) throw error;
       });
     const info = await lstat(current);
-    if (!info.isDirectory() || info.isSymbolicLink() || (info.mode & 0o022) !== 0)
+    // A selected private learner root may live beneath an owner-managed,
+    // group-writable Desktop folder. Leaves stay private; links and public or
+    // foreign-writable ancestors still fail closed.
+    if (
+      !info.isDirectory() ||
+      info.isSymbolicLink() ||
+      (info.mode & 0o002) !== 0 ||
+      ((info.mode & 0o020) !== 0 && info.uid !== process.getuid?.())
+    )
       fail("PATH_UNSAFE");
     if (
       privateLeaf &&

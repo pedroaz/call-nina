@@ -2,6 +2,15 @@ import { correlationIdSchema, runIdSchema, sessionIdSchema, utcInstantSchema } f
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 
 export const errorDefinitions = {
+  "speech-initialization-timeout": {
+    code: "OD_SPEECH_INITIALIZATION_TIMEOUT",
+    messageKey: "errors.speechInitializationTimeout",
+  },
+  "speech-synthesis-timeout": {
+    code: "OD_SPEECH_SYNTHESIS_TIMEOUT",
+    messageKey: "errors.speechSynthesisTimeout",
+  },
+  "speech-unavailable": { code: "OD_SPEECH_UNAVAILABLE", messageKey: "errors.speechUnavailable" },
   "exercise-context-missing": {
     code: "OD_EXERCISE_CONTEXT_MISSING",
     messageKey: "errors.exerciseContextMissing",
@@ -94,6 +103,11 @@ export type CallNinaError = z.infer<typeof callNinaErrorSchema>;
 
 export const safeErrorMessages = {
   en: {
+    "speech-initialization-timeout":
+      "The voice did not start in time. Retry or select another voice.",
+    "speech-synthesis-timeout": "Speech generation timed out. Retry with shorter text.",
+    "speech-unavailable":
+      "Speech could not finish. Check the selected voice in Settings and retry.",
     "exercise-context-missing":
       "This activity did not save its original teaching settings. Create fresh practice for new AI feedback or teaching. Your saved activity, answers and feedback are unchanged.",
     validation:
@@ -130,6 +144,12 @@ export const safeErrorMessages = {
       "The selected model or reasoning setting is unavailable. Choose Automatic or another available option in the model selector, then retry.",
   },
   de: {
+    "speech-initialization-timeout":
+      "Die Stimme konnte nicht rechtzeitig starten. Versuche es erneut oder wähle eine andere Stimme.",
+    "speech-synthesis-timeout":
+      "Die Spracherzeugung hat zu lange gedauert. Versuche es mit einem kürzeren Text erneut.",
+    "speech-unavailable":
+      "Die Sprachausgabe konnte nicht abgeschlossen werden. Prüfe die gewählte Stimme in den Einstellungen und versuche es erneut.",
     "exercise-context-missing":
       "Für diese Aktivität wurden die ursprünglichen Lerneinstellungen nicht gespeichert. Erstelle eine neue Übung für neues KI-Feedback oder weitere KI-Begleitung. Deine gespeicherte Aktivität, Antworten und Rückmeldungen bleiben unverändert.",
     validation:

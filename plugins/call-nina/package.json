@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/plugin",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "private": true,
   "description": "Versioned Call Nina Codex plugin payload workspace.",
   "type": "module",

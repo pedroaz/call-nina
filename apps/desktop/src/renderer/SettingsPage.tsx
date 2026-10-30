@@ -1,7 +1,7 @@
 import { OperationError } from "./OperationError.js";
 import { LiveConversationProvider } from "./LiveConversationProvider.js";
 import { PersonalDataPage } from "./PersonalDataPage.js";
-import { SettingsRow } from "./SettingsRow.js";
+import { SettingsRow, SettingsLink } from "./SettingsRow.js";
 import { LearningProfileFields } from "./LearningProfileFields.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import { ConnectionSettings } from "./ConnectionSettings.js";
@@ -19,6 +19,9 @@ import {
   Plug,
   ShieldCheck,
   Activity,
+  Database,
+  FileText,
+  Info,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -464,15 +467,17 @@ export function SettingsPage({
             children: (
               <>
                 {draft && (
-                  <LearningProfileFields
-                    value={draft}
-                    language={draft.learningScope.targetLanguage}
-                    disabled={busy}
-                    onLanguage={(language) => void selectTarget(language)}
-                    onChange={(key, value) => {
-                      setDraft((current) => (current ? { ...current, [key]: value } : current));
-                    }}
-                  />
+                  <div className={styles.learningProfile}>
+                    <LearningProfileFields
+                      value={draft}
+                      language={draft.learningScope.targetLanguage}
+                      disabled={busy}
+                      onLanguage={(language) => void selectTarget(language)}
+                      onChange={(key, value) => {
+                        setDraft((current) => (current ? { ...current, [key]: value } : current));
+                      }}
+                    />
+                  </div>
                 )}
               </>
             ),
@@ -631,22 +636,56 @@ export function SettingsPage({
                 </Section>
                 <SpeechSettings language={draft?.learningScope.targetLanguage ?? "de"} />
                 <Section title={t("setupUx.speakingPractice")}>
-                  <LiveConversationProvider />
-                  <ActionGroup>
-                    <span role="status">
-                      {integration?.status === "available"
-                        ? t(`settings.plugin.${integration.plugin}`)
-                        : t("settings.codexUnavailable")}
-                    </span>
-                    <Button
-                      variant="secondary"
-                      onPress={() => {
-                        setIntegrationOpen(true);
-                      }}
-                    >
-                      {t("setupUx.manage")}
-                    </Button>
-                  </ActionGroup>
+                  <LiveConversationProvider
+                    status={
+                      integration?.status === "available"
+                        ? t(`providers.pluginStatus.${integration.plugin}`)
+                        : t(
+                            integration
+                              ? "providers.codexUnavailable"
+                              : "providers.checkingConnection",
+                          )
+                    }
+                    action={
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy}
+                        aria-haspopup={
+                          integration?.status === "available" && integration.plugin !== "installed"
+                            ? false
+                            : "dialog"
+                        }
+                        onPress={() => {
+                          if (
+                            integration?.status === "available" &&
+                            integration.plugin !== "installed"
+                          )
+                            void manageIntegration(
+                              integration.plugin === "not-installed" ? "install" : "refresh",
+                            );
+                          else setIntegrationOpen(true);
+                        }}
+                      >
+                        {t(
+                          integration?.status === "available" && integration.plugin !== "installed"
+                            ? integration.plugin === "not-installed"
+                              ? "providers.installPlugin"
+                              : "providers.updatePlugin"
+                            : "providers.configure",
+                        )}
+                      </Button>
+                    }
+                  />
+                  {integrationFailure && !integrationOpen && (
+                    <Feedback tone="error" live="assertive">
+                      {integrationFailure}
+                    </Feedback>
+                  )}
+                  {integrationNotice && !integrationOpen && (
+                    <Feedback tone="success" live="polite">
+                      {integrationNotice}
+                    </Feedback>
+                  )}
                 </Section>
                 <ModalDialog
                   closeLabel={t("actions.close")}
@@ -829,11 +868,12 @@ export function SettingsPage({
             children: (
               <>
                 <Section
-                  className={styles.settingsSection}
+                  className={`${styles.settingsSection} ${styles.settingsGroup}`}
                   aria-labelledby="settings-diagnostics-title"
                 >
                   <h2 id="settings-diagnostics-title">{t("settings.diagnosticsTitle")}</h2>
                   <SettingsRow
+                    icon={<Database aria-hidden="true" />}
                     title={t("setupUx.checkApp")}
                     action={
                       <Button
@@ -848,6 +888,7 @@ export function SettingsPage({
                     {diagnostics && <span role="status">{t("setupUx.storageReadable")}</span>}
                   </SettingsRow>
                   <SettingsRow
+                    icon={<FileText aria-hidden="true" />}
                     title={t("setupUx.supportReport")}
                     action={
                       <Button
@@ -859,14 +900,15 @@ export function SettingsPage({
                       </Button>
                     }
                   />
-                  <Button
-                    variant="quiet"
+                  <SettingsLink
+                    leadingIcon={<Info aria-hidden="true" />}
+                    aria-haspopup="dialog"
                     onPress={() => {
                       setTechnicalOpen(true);
                     }}
                   >
                     {t("setupUx.technicalDetails")}
-                  </Button>
+                  </SettingsLink>
                   <ModalDialog
                     closeLabel={t("actions.close")}
                     isOpen={technicalOpen}

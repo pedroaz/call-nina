@@ -1150,7 +1150,10 @@
     "mcp": "A integração com o Codex falhou. Confira Configurações → Provedores de IA e instale ou atualize a integração.",
     "handoff": "Não foi possível abrir a atividade. Confira a integração com o Codex em Configurações → Provedores de IA e tente novamente.",
     "unsupportedOperation": "Esta ação está indisponível. Veja as opções compatíveis em Configurações → Provedores de IA.",
-    "dataRootBusy": "Conclua ou cancele a operação de IA ativa antes de mudar a pasta de dados."
+    "dataRootBusy": "Conclua ou cancele a operação de IA ativa antes de mudar a pasta de dados.",
+    "speechInitializationTimeout": "A voz não iniciou a tempo. Tente novamente ou escolha outra voz.",
+    "speechSynthesisTimeout": "A geração de voz demorou demais. Tente com um texto mais curto.",
+    "speechUnavailable": "Não foi possível concluir o áudio. Confira a voz selecionada nas Configurações e tente novamente."
   },
   "ui": {
     "about": "Sobre {{topic}}",
@@ -1223,7 +1226,8 @@
       "status": "Estado",
       "cleanup": "Dados a apagar",
       "removes": "O que muda",
-      "action": "Ação"
+      "action": "Ação",
+      "size": "Tamanho"
     },
     "supporting": "O aplicativo também mantém vínculos entre registros, seu aceite do aviso de privacidade e pequenos registros de salvamento e exclusão que evitam duplicatas. Isso dá suporte aos recursos acima.",
     "privacy": "Seus dados de aprendizado são salvos neste dispositivo. Os recursos de IA enviam o conteúdo selecionado e o contexto de aprendizado ao serviço escolhido. O áudio salvo fica neste dispositivo. As atividades de conversação abrem no Codex; o Call Nina guarda os resumos de aprendizado, não as gravações das conversas.",
@@ -1251,24 +1255,25 @@
       "practice": {
         "title": "Exercícios e prática",
         "action": "Apagar prática",
-        "removes": "Exclui todas as atividades, lições, exercícios, tentativas, respostas, correções, erros, percepções sobre a aprendizagem, resumos do Voice e seus históricos salvos.",
-        "keeps": "Mantém os dados do seu perfil, suas preferências e seu vocabulário. O vocabulário vinculado precisa ser apagado primeiro.",
+        "removes": "Exclui todas as atividades, lições, exercícios, tentativas, respostas, correções, erros, percepções sobre a aprendizagem, resumos do Voice e seus históricos salvos. Também limpa o cache de voz privada.",
+        "keeps": "Mantém perfil, preferências, vocabulário e material de origem reutilizável. Apague primeiro o vocabulário vinculado.",
         "success": "Prática, avaliações e histórico relacionado apagados."
       },
       "vocabulary": {
         "title": "Conjunto de vocabulário",
         "action": "Apagar vocabulário",
-        "removes": "Exclui palavras sugeridas, ativas e pausadas, conjuntos de vocabulário, programação de revisões e histórico de revisões.",
+        "removes": "Exclui palavras sugeridas, ativas e pausadas, conjuntos de vocabulário, programação de revisões e histórico de revisões. Também limpa o cache de voz privada.",
         "keeps": "Mantém seu perfil, exercícios e avaliações. As palavras ainda podem aparecer no texto de exercícios salvos.",
         "success": "Conjunto de vocabulário, conjuntos e histórico de revisões apagados."
       },
       "learning": {
         "title": "Começar de novo",
         "action": "Apagar todos os dados de aprendizagem",
-        "removes": "Exclui todas as práticas, lições, respostas, avaliações, erros, percepções sobre a aprendizagem, vocabulário, resumos do Voice e histórico de aprendizagem desta pasta de dados.",
-        "keeps": "Mantém os dados do seu perfil, suas preferências e a pasta de dados selecionada, para que você possa voltar a praticar sem refazer a configuração inicial.",
+        "removes": "Exclui todas as práticas, lições, respostas, avaliações, erros, percepções sobre a aprendizagem, vocabulário, resumos do Voice e histórico de aprendizagem desta pasta de dados. Também limpa o cache de voz privada. Também remove o material de origem salvo.",
+        "keeps": "Mantém os dados do seu perfil, suas preferências e a pasta de dados selecionada, para que você possa voltar a praticar sem refazer a configuração inicial. Mantém os modelos baixados e o áudio dos cursos.",
         "success": "Todos os registros de aprendizagem foram apagados. Seu perfil e suas preferências estão prontos para um novo começo."
-      }
+      },
+      "partial": "Os registros de aprendizagem foram apagados, mas a limpeza da voz privada não foi concluída. Repita a limpeza para terminar."
     },
     "categories": {
       "profile": {
@@ -1332,7 +1337,39 @@
       },
       "appConfig": {
         "title": "Configuração do aplicativo",
-        "description": "Configuração do Electron e armazenamento do navegador, fora da pasta portátil do estudante."
+        "description": "Credenciais do dispositivo, sessão e armazenamento do navegador Electron fora da pasta de dados selecionada."
+      },
+      "textModels": {
+        "title": "Modelos de IA locais",
+        "description": "Modelos de texto baixados e seus ambientes de execução na pasta de dados selecionada."
+      },
+      "speechModels": {
+        "title": "Modelos de voz",
+        "description": "Vozes aprovadas instaladas e ambientes de voz compartilhados."
+      },
+      "speechCandidates": {
+        "title": "Vozes candidatas",
+        "description": "Vozes de desenvolvimento instaladas e ambientes de voz compartilhados."
+      },
+      "preparedSpeech": {
+        "title": "Downloads de voz preparados",
+        "description": "Vozes, arquivos de execução e arquivos de preparação para testes locais."
+      },
+      "curriculumAudio": {
+        "title": "Áudio dos cursos",
+        "description": "Gravações de cursos baixadas."
+      },
+      "privateAudio": {
+        "title": "Voz privada",
+        "description": "Voz gerada em cache para esta pasta; excluída das exportações e da sincronização móvel."
+      },
+      "logs": {
+        "title": "Logs do aplicativo",
+        "description": "Logs operacionais sem conteúdo de aprendizagem nem credenciais."
+      },
+      "diagnostics": {
+        "title": "Diagnósticos",
+        "description": "Relatórios de diagnóstico salvos com dados privados removidos."
       }
     }
   },
@@ -1682,15 +1719,15 @@
     "keyEntry": "Nova chave de API",
     "keyRequired": "Digite uma chave de API antes de salvar.",
     "directCatalogNotice": "Os modelos e as ações listados vêm da compatibilidade incluída no aplicativo. Salvar uma chave e escolher um modelo configura apenas requisitos locais; o acesso e a cobrança não foram verificados.",
-    "offlineTitle": "Modelo baixado neste dispositivo",
-    "offlineScope": "O download exige sua escolha explícita, ocupa vários GB e é compartilhado neste dispositivo fora da pasta de estudos. A remoção afeta todas as pastas de estudos neste dispositivo; conexões e dados de aprendizagem permanecem.",
+    "offlineTitle": "Modelo de IA local baixado",
+    "offlineScope": "O modelo e seu ambiente de execução são baixados na pasta de dados selecionada. A remoção mantém as conexões e os registros de aprendizagem.",
     "offlineLimits": "O desempenho e a qualidade de ensino não foram verificados. Atender aos requisitos mínimos não garante a adequação do modelo.",
     "offlineProgress": "Baixados {{downloaded}} de {{total}} GB.",
     "offlineInstall": "Baixar modelo",
     "offlineResume": "Retomar download",
     "offlineCancelDownload": "Cancelar download",
     "offlineRemove": "Remover modelo baixado",
-    "offlineRemoveWarning": "Remover os arquivos do modelo compartilhados neste dispositivo? Isso afeta todas as pastas de estudos neste dispositivo. Conexões salvas e registros permanecem.",
+    "offlineRemoveWarning": "Remover o modelo baixado e seu ambiente de execução desta pasta? Conexões e registros de aprendizagem permanecem.",
     "offlineConfirmRemove": "Remover arquivos do modelo",
     "offlineFailure": "A operação do modelo falhou. Confira o estado atual e tente novamente se necessário.",
     "offlineBusyConflict": "Aguarde o fim da ação de IA ou da operação do modelo e tente novamente.",
@@ -1958,7 +1995,19 @@
     "keyRemovalPending": "A chave de API será removida ao salvar.",
     "selectedDefault": "Padrão selecionado",
     "checkingConnection": "Verificando acesso…",
-    "signInIncomplete": "Login incompleto"
+    "signInIncomplete": "Login incompleto",
+    "none": "Nenhum",
+    "configure": "Configurar",
+    "advancedAssignments": "Atribuições avançadas",
+    "enabled": "Ativado",
+    "installPlugin": "Instalar plugin",
+    "updatePlugin": "Atualizar plugin",
+    "codexUnavailable": "Codex indisponível",
+    "pluginStatus": {
+      "installed": "Plugin instalado",
+      "not-installed": "Plugin não instalado",
+      "refresh-required": "Atualização do plugin disponível"
+    }
   },
   "mobile": {
     "download": "Baixar app móvel",
@@ -2017,7 +2066,7 @@
     "removeCourse": "Remover áudio do curso",
     "states": {
       "unavailable": "Indisponível",
-      "absent": "Não baixado",
+      "absent": "Não instalada",
       "partial": "Download parcial",
       "installed": "Instalado",
       "downloading": "Baixando",
@@ -2031,7 +2080,7 @@
     "models": "Modelos de voz locais",
     "publicAudio": "Áudio dos cursos",
     "privateAudio": "Voz privada · estudante atual",
-    "ownership": "Os modelos e o áudio dos cursos são compartilhados neste dispositivo. A voz privada pertence à pasta do estudante atual e fica fora das exportações e da sincronização móvel.",
+    "ownership": "Modelos, áudio dos cursos e voz privada ficam na pasta de dados selecionada. Downloads e áudio em cache não entram nas exportações nem na sincronização móvel.",
     "preparedFirst": "Gravações preparadas e salvas não consomem seu saldo de voz.",
     "linuxOnly": "Os modelos de voz locais exigem Linux x64.",
     "packSizes": "Download {{download}} · instalação estimada {{installed}} · arquivos de voz no disco {{disk}}",
@@ -2051,10 +2100,22 @@
       "allowance": "Saldo de voz esgotado.",
       "unavailable": "Áudio indisponível. Verifique as configurações de leitura."
     },
-    "diskFull": "Espaço insuficiente. Remova modelos ou áudios que não usa e tente novamente."
+    "diskFull": "Espaço insuficiente. Remova modelos ou áudios que não usa e tente novamente.",
+    "languageUnavailable": "Indisponível para {{language}}",
+    "candidate": "Versão de teste",
+    "previewText": "Texto de teste",
+    "previewInvalid": "Digite de 1 a 6.000 caracteres.",
+    "unavailableReasons": {
+      "platform": "A voz local requer Linux x64.",
+      "runtime": "Ambiente de execução não preparado.",
+      "qualification": "Voz ainda não aprovada."
+    },
+    "install": "Instalar",
+    "installSize": "{{size}} MB para instalar",
+    "installing": "Instalando"
   },
   "setupUx": {
-    "aiPractice": "Criação de exercícios",
+    "aiPractice": "IA para exercícios",
     "noConnection": "Nenhuma conexão selecionada",
     "change": "Alterar",
     "connect": "Conectar",
@@ -2098,7 +2159,7 @@
     "manageDownloads": "Gerenciar downloads",
     "storageDetails": "Detalhes do armazenamento",
     "privacy": "Privacidade",
-    "localPrivacy": "Seus dados de aprendizado são salvos neste dispositivo.",
+    "localPrivacy": "Registros de aprendizagem, modelos baixados e áudio salvo ficam na pasta de dados selecionada.",
     "aiPrivacy": "Os recursos de IA enviam o conteúdo selecionado e o contexto de aprendizado ao serviço escolhido.",
     "audioPrivacy": "O áudio salvo fica neste dispositivo. As atividades de conversação abrem no Codex; o Call Nina guarda os resumos de aprendizado, não as gravações das conversas.",
     "clearLearning": "Apagar dados de aprendizado",
@@ -2113,7 +2174,7 @@
     "activity": "Atividade",
     "speechAi": "Áudio",
     "language": "Idioma",
-    "exerciseSummary": "Criação de exercícios",
+    "exerciseSummary": "IA para exercícios",
     "audioSummary": "Áudio"
   },
   "stories": {

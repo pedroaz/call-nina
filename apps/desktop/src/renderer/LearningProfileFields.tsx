@@ -65,6 +65,7 @@ export function LearningProfileFields({
             ))}
           </SelectField>
           <SelectField
+            className={onboarding ? undefined : styles.learningGoal}
             label={t("onboarding.goal")}
             value={custom || !preset ? "custom" : preset}
             disabled={disabled}
@@ -83,6 +84,7 @@ export function LearningProfileFields({
           </SelectField>
           {(custom || !preset) && (
             <TextAreaField
+              className={onboarding ? undefined : styles.learningGoal}
               label={t("setupUx.customGoal")}
               value={value.everydayLifeGoal}
               disabled={disabled}

@@ -1,16 +1,17 @@
 import { useEffect, useId, useState, useSyncExternalStore, useRef } from "react";
 import { Volume2, Square } from "lucide-react";
-import type { Language } from "@call-nina/contracts";
+import { speechTextSchema, type Language, type CallNinaError } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { Button } from "./components/ui/index.js";
 import styles from "./SpeechSettings.module.css";
-import { invokeDesktop, subscribeDesktop } from "./ipc.js";
+import { invokeDesktop, subscribeDesktop, DesktopOperationError } from "./ipc.js";
 
 let owner: string | null = null;
 let player: HTMLAudioElement | null = null;
 let revision = 0;
 let urls: string[] = [];
 let requestSequence = 0;
+let activeRequestId: string | null = null;
 let cancellation: Promise<unknown> = Promise.resolve();
 const listeners = new Set<() => void>();
 const changed = () => {
@@ -20,12 +21,23 @@ const changed = () => {
 export function stopSpeech() {
   requestSequence++;
   owner = null;
-  player?.pause();
+  if (player) {
+    player.onended = null;
+    player.onerror = null;
+    player.pause();
+    player.removeAttribute("src");
+    player.load();
+  }
   player = null;
   for (const url of urls) URL.revokeObjectURL(url);
   urls = [];
   changed();
-  cancellation = invokeDesktop("speech/manage", { action: "cancel" }).catch(() => undefined);
+  const cancelled = activeRequestId;
+  activeRequestId = null;
+  if (cancelled)
+    cancellation = invokeDesktop("speech/manage", { action: "cancel", id: cancelled }).catch(
+      () => undefined,
+    );
 }
 export function SpeechButton({
   text,
@@ -40,7 +52,7 @@ export function SpeechButton({
   const id = useId();
   const [slow, setSlow] = useState(false);
   const playbackRate = useRef(1);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<CallNinaError | boolean>(false);
   const [loading, setLoading] = useState(false);
   const [availability, setAvailability] = useState({ available: false, reason: "checking" });
   useEffect(() => {
@@ -48,6 +60,10 @@ export function SpeechButton({
       sequence = 0;
     const refresh = async () => {
       const ticket = ++sequence;
+      if (!speechTextSchema.safeParse(text).success) {
+        if (mounted) setAvailability({ available: false, reason: "unavailable" });
+        return;
+      }
       try {
         const value = await invokeDesktop("speech/availability", {
           id: crypto.randomUUID(),
@@ -118,14 +134,15 @@ export function SpeechButton({
     setLoading(true);
     setError(false);
     const requestId = crypto.randomUUID();
+    activeRequestId = requestId;
     const stream = { received: false };
     let complete = false,
       index = 0,
       starting = false;
     const current = () => owner === id && ticket === requestSequence;
-    const fail = () => {
+    const fail = (cause?: unknown) => {
       if (current()) {
-        setError(true);
+        setError(cause instanceof DesktopOperationError ? cause.detail : true);
         stopSpeech();
       }
     };
@@ -137,17 +154,18 @@ export function SpeechButton({
       }
       starting = true;
       try {
-        player = new Audio(urls[index++]);
-        player.playbackRate = playbackRate.current;
-        player.preservesPitch = true;
-        player.onended = () => {
-          if (current()) {
+        const audio = new Audio(urls[index++]);
+        player = audio;
+        audio.playbackRate = playbackRate.current;
+        audio.preservesPitch = true;
+        audio.onended = () => {
+          if (current() && player === audio) {
             player = null;
             void next().catch(fail);
           }
         };
-        player.onerror = fail;
-        await player.play();
+        audio.onerror = fail;
+        await audio.play();
         if (current()) setLoading(false);
       } finally {
         starting = false;
@@ -179,8 +197,8 @@ export function SpeechButton({
       complete = true;
       if (!stream.received) for (const audio of result.clips) append(audio);
       await next();
-    } catch {
-      fail();
+    } catch (cause) {
+      fail(cause);
     } finally {
       unsubscribe();
       if (ticket === requestSequence) setLoading(false);
@@ -216,7 +234,11 @@ export function SpeechButton({
       {showUnavailableReason && !active && !availability.available && (
         <span id={`${id}-availability`}>{t(`speech.readiness.${availability.reason}`)}</span>
       )}
-      {error && <span role="status">{t("speech.unavailable")}</span>}
+      {typeof error === "object" ? (
+        <span role="status">{t(error.messageKey)}</span>
+      ) : (
+        error && <span role="status">{t("speech.unavailable")}</span>
+      )}
     </span>
   );
 }

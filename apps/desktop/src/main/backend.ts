@@ -59,6 +59,8 @@ import {
   readSavedTranslations,
   recoverCallNinaDataRoot,
   resolveDataRootLayout,
+  consolidateLocalAssets,
+  consolidatePreparedSpeech,
   saveFlashcardVocabulary,
   saveMaterial,
   switchCallNinaDataRoot,
@@ -67,7 +69,7 @@ import {
   type CallNinaDatabase,
   type LearnerSettingsRecord,
 } from "@call-nina/persistence";
-import { SpeechService } from "@call-nina/speech-runtime";
+import { SpeechService, loadSpeechCandidates } from "@call-nina/speech-runtime";
 import { managedSpeech } from "./speech-client.js";
 import { createHash, randomUUID } from "node:crypto";
 import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
@@ -150,7 +152,12 @@ export class DesktopBackend {
   readonly #chooseDirectory: () => Promise<string | undefined>;
   readonly #knownInstallRoots: readonly string[];
   readonly #offline: OfflineRuntime;
-  readonly #speech: SpeechService;
+  #speech: SpeechService;
+  #storageRoot: string | null = null;
+  #rootSwitching = false;
+  #storageBinding: Promise<void> | null = null;
+  readonly #speechCandidateDirectory: string | undefined;
+  readonly #legacySpeechCandidatesDirectory: string | undefined;
   readonly #chatgpt: ChatgptSession;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
   readonly #emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
@@ -180,6 +187,8 @@ export class DesktopBackend {
   }
 
   constructor(options: {
+    speechCandidateDirectory?: string;
+    legacySpeechCandidatesDirectory?: string;
     curriculumRoot: string;
     bootstrapFile: string;
     secrets: ConnectionSecretStorage;
@@ -198,6 +207,9 @@ export class DesktopBackend {
     this.#secrets = options.secrets;
     this.#loginCredentials = options.loginCredentials;
     this.#offline = options.offlineRuntime;
+    this.#speechCandidateDirectory = options.speechCandidateDirectory;
+    this.#legacySpeechCandidatesDirectory = options.legacySpeechCandidatesDirectory;
+    // No model/cache I/O takes place until a validated learner root is bound.
     this.#speech = new SpeechService(
       path.join(path.dirname(options.bootstrapFile), "speech"),
       options.curriculumRoot,
@@ -1085,7 +1097,85 @@ export class DesktopBackend {
     throw new Error("OD_LEARNING_OPERATION_UNSUPPORTED");
   }
 
+  async #bindStorage(dataRoot: string): Promise<void> {
+    if (this.#storageBinding) await this.#storageBinding;
+    if (this.#storageRoot === dataRoot) return;
+    this.#offline.suspend();
+    const task = (async () => {
+      await this.#speech.close();
+      await this.#offline.stop();
+      this.#storageRoot = null;
+      const layout = resolveDataRootLayout(dataRoot);
+      await consolidateLocalAssets(dataRoot, path.dirname(this.#bootstrapFile));
+      if (this.#legacySpeechCandidatesDirectory)
+        await consolidatePreparedSpeech(dataRoot, this.#legacySpeechCandidatesDirectory);
+      const legacyOverride =
+        this.#speechCandidateDirectory &&
+        this.#legacySpeechCandidatesDirectory &&
+        path.resolve(this.#speechCandidateDirectory) ===
+          path.resolve(this.#legacySpeechCandidatesDirectory);
+      const candidateDirectory = legacyOverride
+        ? layout.preparedSpeech
+        : (this.#speechCandidateDirectory ??
+          (this.#legacySpeechCandidatesDirectory ? layout.preparedSpeech : undefined));
+      const candidates =
+        candidateDirectory &&
+        (await lstat(path.join(candidateDirectory, "manifest.json")).then(
+          () => true,
+          (error: unknown) => {
+            if (
+              (error as NodeJS.ErrnoException).code === "ENOENT" &&
+              !this.#speechCandidateDirectory
+            )
+              return false;
+            throw error;
+          },
+        ))
+          ? await loadSpeechCandidates(candidateDirectory)
+          : undefined;
+      await this.#offline.setRoot(layout.textModels);
+      this.#speech = new SpeechService(layout.speech, this.#curriculumRoot, {
+        ...(candidates ? { candidates } : {}),
+        log: (code, durationMs) =>
+          this.#log?.({
+            timestamp: new Date().toISOString(),
+            severity: code === "OD_SPEECH_COMPLETED" ? "info" : "warn",
+            component: "desktop",
+            code,
+            message: "Speech operation settled.",
+            durationMs,
+          }),
+      });
+      this.#storageRoot = dataRoot;
+    })();
+    this.#storageBinding = task;
+    try {
+      await task;
+    } catch (error) {
+      const code =
+        error instanceof Error && /^OD_STORAGE_[A-Z_]+$/.test(error.message)
+          ? error.message
+          : "OD_STORAGE_MIGRATION_FAILED";
+      this.#log?.({
+        timestamp: new Date().toISOString(),
+        severity: "error",
+        component: "desktop",
+        code,
+        message: "Local storage migration failed.",
+      });
+      throw error;
+    } finally {
+      if (this.#storageBinding === task) this.#storageBinding = null;
+    }
+  }
+
   async #dataRootState(correlationId: string) {
+    if (this.#rootSwitching)
+      return {
+        status: "unavailable" as const,
+        reason: "database-busy",
+        error: safeError("data-root-busy", correlationId),
+      };
     const state = await readBootstrapPointer(this.#bootstrapFile);
     if (state.status === "unconfigured") return { status: "unconfigured" as const };
     if (state.status !== "ready") {
@@ -1119,6 +1209,7 @@ export class DesktopBackend {
         });
         this.#repository = new CallNinaRepository(this.#database);
       }
+      await this.#bindStorage(state.dataRoot);
       return {
         status: "ready" as const,
         generation: state.rootGeneration,
@@ -1871,20 +1962,26 @@ export class DesktopBackend {
         request.channel === "speech/manage" ||
         request.channel === "speech/synthesize"
       ) {
-        const ready = await this.#enqueue(async () => {
-          await this.#dataRootState(request.requestId);
+        const speech = await this.#enqueue(async () => {
+          const root = await this.#dataRootState(request.requestId);
           const pointer = await readBootstrapPointer(this.#bootstrapFile);
-          if (pointer.status !== "ready" || !this.#database) return false;
+          if (
+            root.status !== "ready" ||
+            pointer.status !== "ready" ||
+            !this.#database ||
+            this.#storageRoot !== pointer.dataRoot
+          )
+            return null;
           this.#speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
           if (request.channel === "speech/manage" && request.payload.action === "preferences")
             await saveSpeechPreferences(this.#database, request.payload.preferences);
-          return true;
+          return this.#speech;
         });
-        if (!ready) return this.#failure(request, "stale-data-root");
+        if (!speech) return this.#failure(request, "stale-data-root");
         if (request.channel === "speech/availability")
           return this.#success(
             request,
-            await this.#speech.availability(
+            await speech.availability(
               request.payload,
               request.payload.online,
               this.#nina.state.access?.speech ?? null,
@@ -1893,7 +1990,7 @@ export class DesktopBackend {
         if (request.channel === "speech/synthesize")
           return this.#success(
             request,
-            await this.#speech.synthesize(
+            await speech.synthesize(
               request.payload,
               (input, signal, save) => managedSpeech(this.#nina, input, signal, save),
               (audio) =>
@@ -1905,13 +2002,15 @@ export class DesktopBackend {
             ),
           );
         if (request.channel === "speech/manage") {
-          await this.#speech.manage(request.payload);
+          await speech.manage(request.payload);
           if (request.payload.action !== "cancel")
             this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
         }
-        return this.#success(request, await this.#speech.inspect());
+        return this.#success(request, await speech.inspect());
       }
       if (request.channel === "offline-model/read" || request.channel === "offline-model/manage") {
+        const root = await this.#dataRootState(request.requestId);
+        if (root.status !== "ready") return this.#failure(request, "stale-data-root");
         if (request.channel === "offline-model/manage") {
           if (
             request.payload.action !== "cancel" &&
@@ -2177,58 +2276,68 @@ export class DesktopBackend {
         });
       }
       if (request.channel === "data-root/confirm") {
+        if (this.#rootSwitching) return this.#failure(request, "data-root-busy");
         this.#mobileAbort?.abort();
         if (this.#operations.activeOperations.size > 0)
           return this.#failure(request, "data-root-busy");
         const pending = this.#pending.get(request.payload.selectionId);
         if (!pending) return this.#failure(request, "conflict");
-        await this.#connections.stopConnectionRuntime();
-        this.#pending.delete(request.payload.selectionId);
-        const timestamp = new Date().toISOString();
-        if (pending.mode === "initialize") {
-          this.#database = await initializeCallNinaDataRoot({
-            bootstrapFile: this.#bootstrapFile,
-            selection: pending.plan,
-            selectedAt: timestamp,
-            createdAt: timestamp,
-          });
-        } else if (pending.mode === "switch") {
-          if (!this.#database) return this.#failure(request, "stale-data-root");
-          this.#database = await switchCallNinaDataRoot({
-            currentDatabase: this.#database,
-            bootstrapFile: this.#bootstrapFile,
-            nextSelection: pending.plan,
-            expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
-            selectedAt: timestamp,
-            createdAt: timestamp,
-          });
-        } else {
-          if (pending.expectedGeneration === null) return this.#failure(request, "conflict");
-          this.#database = await recoverCallNinaDataRoot({
-            bootstrapFile: this.#bootstrapFile,
-            nextSelection: pending.plan,
-            expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
-            selectedAt: timestamp,
-            createdAt: timestamp,
-          });
+        this.#rootSwitching = true;
+        try {
+          this.#storageRoot = null;
+          this.#offline.suspend();
+          await this.#connections.stopConnectionRuntime();
+          await this.#speech.close();
+          this.#pending.delete(request.payload.selectionId);
+          const timestamp = new Date().toISOString();
+          if (pending.mode === "initialize") {
+            this.#database = await initializeCallNinaDataRoot({
+              bootstrapFile: this.#bootstrapFile,
+              selection: pending.plan,
+              selectedAt: timestamp,
+              createdAt: timestamp,
+            });
+          } else if (pending.mode === "switch") {
+            if (!this.#database) return this.#failure(request, "stale-data-root");
+            this.#database = await switchCallNinaDataRoot({
+              currentDatabase: this.#database,
+              bootstrapFile: this.#bootstrapFile,
+              nextSelection: pending.plan,
+              expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
+              selectedAt: timestamp,
+              createdAt: timestamp,
+            });
+          } else {
+            if (pending.expectedGeneration === null) return this.#failure(request, "conflict");
+            this.#database = await recoverCallNinaDataRoot({
+              bootstrapFile: this.#bootstrapFile,
+              nextSelection: pending.plan,
+              expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
+              selectedAt: timestamp,
+              createdAt: timestamp,
+            });
+          }
+          this.#repository = new CallNinaRepository(this.#database);
+          for (const operation of this.#operations.operationsBySubmission.values()) {
+            this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
+          }
+          this.#operations.operationsBySubmission.clear();
+          this.#operations.retryableOperations.clear();
+          this.#operations.helperSessions.clear();
+          this.#translations.translationReveals.clear();
+          this.#rootSwitching = false;
+          const state = await this.#dataRootState(request.requestId);
+          if (state.status === "ready") {
+            this.#emitEvent?.({
+              event: "data-root-changed",
+              generation: state.generation,
+              displayName: state.displayName,
+            });
+          }
+          return this.#success(request, state);
+        } finally {
+          this.#rootSwitching = false;
         }
-        this.#repository = new CallNinaRepository(this.#database);
-        for (const operation of this.#operations.operationsBySubmission.values()) {
-          this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
-        }
-        this.#operations.operationsBySubmission.clear();
-        this.#operations.retryableOperations.clear();
-        this.#operations.helperSessions.clear();
-        this.#translations.translationReveals.clear();
-        const state = await this.#dataRootState(request.requestId);
-        if (state.status === "ready") {
-          this.#emitEvent?.({
-            event: "data-root-changed",
-            generation: state.generation,
-            displayName: state.displayName,
-          });
-        }
-        return this.#success(request, state);
       }
       if (request.channel === "privacy/ai-disclosure/read") {
         const acknowledged = this.#repository
@@ -2533,15 +2642,34 @@ export class DesktopBackend {
         ) {
           return this.#failure(request, "stale-data-root");
         }
-        if (request.payload.scope === "vocabulary" || request.payload.scope === "learning") {
+        const speech = this.#speech;
+        {
           const pointer = await readBootstrapPointer(this.#bootstrapFile);
-          if (pointer.status !== "ready" || !this.#database)
+          if (
+            pointer.status !== "ready" ||
+            !this.#database ||
+            pointer.rootGeneration !== request.payload.expectedGeneration
+          )
             return this.#failure(request, "stale-data-root");
-          this.#speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
-          await this.#speech.manage({ action: "clear-private-cache" });
+          speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
         }
         const result = await this.#repository.clearPersonalData(request.payload);
         if (result.status === "cleared") {
+          let privateSpeechFailed = false;
+          try {
+            await speech.manage({ action: "clear-private-cache" });
+          } catch {
+            privateSpeechFailed = true;
+            this.#operationLog(
+              "warn",
+              "OD_PERSONAL_DATA_AUDIO_CLEANUP_FAILED",
+              request.requestId,
+              request.channel,
+              undefined,
+              "Private speech cleanup did not finish.",
+              { action: request.channel, phase: "failed", outcome: "error" },
+            );
+          }
           for (const operation of this.#operations.operationsBySubmission.values()) {
             this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
           }
@@ -2552,6 +2680,12 @@ export class DesktopBackend {
           for (const scope of ["dashboard", "history", "vocabulary", "settings"] as const) {
             this.#emitEvent?.({ event: "state-invalidated", scope });
           }
+          if (privateSpeechFailed)
+            return this.#success(request, {
+              status: "partial",
+              scope: request.payload.scope,
+              reason: "private-speech",
+            });
         }
         return this.#success(request, result);
       }
@@ -3797,6 +3931,26 @@ export class DesktopBackend {
         );
       }
       const code = diagnosticErrorCode(error);
+      if (request.channel.startsWith("speech/")) {
+        this.#operationLog(
+          "warn",
+          "DESKTOP_SPEECH_FAILED",
+          request.requestId,
+          request.channel,
+          code,
+          "Speech operation failed.",
+          { action: request.channel, phase: "failed", outcome: "error" },
+        );
+        const kind: ErrorKind =
+          code === "OD_SPEECH_INITIALIZATION_TIMEOUT"
+            ? "speech-initialization-timeout"
+            : code === "OD_SPEECH_SYNTHESIS_TIMEOUT"
+              ? "speech-synthesis-timeout"
+              : code === "OD_SPEECH_CANCELLED"
+                ? "cancellation"
+                : "speech-unavailable";
+        return this.#failure(request, kind);
+      }
       const kind =
         code === "OD_EXERCISE_CONTEXT_MISSING"
           ? "exercise-context-missing"

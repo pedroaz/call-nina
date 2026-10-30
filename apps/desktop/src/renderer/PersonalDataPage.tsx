@@ -1,6 +1,7 @@
 import { OperationError } from "./OperationError.js";
-import { SettingsRow } from "./SettingsRow.js";
+import { SettingsRow, SettingsLink } from "./SettingsRow.js";
 import { SpeechSettings } from "./SpeechSettings.js";
+import { stopSpeech } from "./SpeechButton.js";
 import tableStyles from "./components/layout/Table.module.css";
 import type {
   DesktopIpcResponse,
@@ -8,7 +9,7 @@ import type {
   PersonalDataCleanupScope,
   PersonalDataTable,
 } from "@call-nina/contracts";
-import { FolderOpen, Volume2, History, BookOpen } from "lucide-react";
+import { FolderOpen, Volume2, History, BookOpen, HardDrive, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -46,19 +47,20 @@ const categories: ReadonlyArray<{ id: string; tables: readonly PersonalDataTable
   { id: "files", tables: ["attachment_metadata"] },
 ];
 const cleanupScopes = ["practice", "vocabulary", "learning"] as const;
-const visibleLocations = ["database", "attachments", "bootstrap", "appConfig"];
 
 function CleanupDialog({
   scope,
   generation,
   onClose,
   onCleared,
+  onPartial,
   onBusy,
 }: {
   scope: PersonalDataCleanupScope;
   generation: Overview["rootGeneration"];
   onClose: () => void;
   onCleared: (scope: PersonalDataCleanupScope) => void;
+  onPartial: () => void;
   onBusy: (busy: boolean) => void;
 }) {
   const { t } = useTranslation();
@@ -66,11 +68,13 @@ function CleanupDialog({
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState<CallNinaError>();
   const [blocked, setBlocked] = useState<BlockReason>();
+  const [partial, setPartial] = useState(false);
   const clear = async () => {
     setPending(true);
     onBusy(true);
     setError(undefined);
     setBlocked(undefined);
+    setPartial(false);
     try {
       const result = await invokeDesktop("personal-data/clear", {
         scope,
@@ -78,7 +82,14 @@ function CleanupDialog({
         confirmed: true,
       });
       if (result.status === "blocked") setBlocked(result.reason);
-      else onCleared(scope);
+      else if (result.status === "partial") {
+        stopSpeech();
+        setPartial(true);
+        onPartial();
+      } else {
+        stopSpeech();
+        onCleared(scope);
+      }
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -117,6 +128,11 @@ function CleanupDialog({
         </Feedback>
       )}
       {error && <OperationError error={error} />}
+      {partial && (
+        <Feedback tone="error" live="polite">
+          {t("personalData.cleanup.partial")}
+        </Feedback>
+      )}
       <ActionGroup align="end">
         <Button variant="secondary" isDisabled={pending} onPress={onClose}>
           {t("actions.cancel")}
@@ -179,7 +195,9 @@ export function PersonalDataPage({
     const unsubscribe = subscribeDesktop((event) => {
       if (
         event.event === "state-invalidated" &&
-        ["dashboard", "history", "vocabulary", "settings"].includes(event.scope) &&
+        ["dashboard", "history", "vocabulary", "settings", "ai-connections"].includes(
+          event.scope,
+        ) &&
         !cleanupBusy.current
       ) {
         window.clearTimeout(timer);
@@ -193,6 +211,40 @@ export function PersonalDataPage({
     };
   }, [refresh]);
 
+  useEffect(() => {
+    if (!details) return;
+    const timer = window.setInterval(() => {
+      if (!cleanupBusy.current) void refresh();
+    }, 10_000);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [details, refresh]);
+  const size = (bytes: number | null) => {
+    if (bytes === null) return "—";
+    const [unit, divisor] =
+      bytes >= 1e9
+        ? (["gigabyte", 1e9] as const)
+        : bytes >= 1e6
+          ? (["megabyte", 1e6] as const)
+          : bytes >= 1e3
+            ? (["kilobyte", 1e3] as const)
+            : (["byte", 1] as const);
+    return new Intl.NumberFormat(i18n.language, {
+      style: "unit",
+      unit,
+      maximumFractionDigits: 1,
+    }).format(bytes / divisor);
+  };
+  const storedSize = (ids: readonly Overview["locations"][number]["id"][]) => {
+    const locations = overview?.locations.filter((location) => ids.includes(location.id)) ?? [];
+    return size(
+      locations.length !== ids.length ||
+        locations.some((location) => location.status === "unavailable")
+        ? null
+        : locations.reduce((sum, location) => sum + (location.bytes ?? 0), 0),
+    );
+  };
   const count = (tables: readonly PersonalDataTable[]) =>
     tables.reduce(
       (sum, table) => sum + (overview?.tables.find((entry) => entry.table === table)?.count ?? 0),
@@ -204,7 +256,7 @@ export function PersonalDataPage({
       {busy && !overview && <Feedback live="polite">{t("personalData.loading")}</Feedback>}
       {overview && (
         <>
-          <Section title={t("setupUx.onDevice")}>
+          <Section className={styles.settingsGroup} title={t("setupUx.onDevice")}>
             <SettingsRow
               icon={<FolderOpen aria-hidden="true" />}
               title={t("settings.dataFolder")}
@@ -213,8 +265,13 @@ export function PersonalDataPage({
               <span className={styles.path}>{overview.dataRoot}</span>
             </SettingsRow>
             <SettingsRow
+              icon={<HardDrive aria-hidden="true" />}
+              title={t("personalData.locations.textModels.title")}
+              action={<span className={styles.count}>{storedSize(["textModels"])}</span>}
+            />
+            <SettingsRow
               icon={<Volume2 aria-hidden="true" />}
-              title={t("speech.cacheTitle")}
+              title={t("speech.storageTitle")}
               action={
                 <Button
                   variant="secondary"
@@ -225,29 +282,40 @@ export function PersonalDataPage({
                   {t("setupUx.manageDownloads")}
                 </Button>
               }
-            />
-            <Button
-              variant="quiet"
+            >
+              {storedSize([
+                "speechModels",
+                "speechCandidates",
+                "preparedSpeech",
+                "curriculumAudio",
+                "privateAudio",
+              ])}
+            </SettingsRow>
+            <SettingsLink
+              leadingIcon={<HardDrive aria-hidden="true" />}
+              aria-haspopup="dialog"
               onPress={() => {
                 setDetails("storage");
               }}
             >
               {t("setupUx.storageDetails")}
-            </Button>
+            </SettingsLink>
           </Section>
           <Section title={t("setupUx.privacy")}>
-            <p>{t("setupUx.localPrivacy")}</p>
-            <p>{t("setupUx.aiPrivacy")}</p>
-            <Button
-              variant="quiet"
+            <div className={styles.privacyCopy}>
+              <p>{t("setupUx.localPrivacy")}</p>
+              <p>{t("setupUx.aiPrivacy")}</p>
+            </div>
+            <SettingsLink
+              aria-haspopup="dialog"
               onPress={() => {
                 setDetails("privacy");
               }}
             >
               {t("ui.details")}
-            </Button>
+            </SettingsLink>
           </Section>
-          <Section title={t("setupUx.clearLearning")}>
+          <Section className={styles.settingsGroup} title={t("setupUx.clearLearning")}>
             {cleanupScopes
               .filter((scope) => scope !== "learning")
               .map((scope) => (
@@ -263,7 +331,7 @@ export function PersonalDataPage({
                   title={t(`personalData.cleanup.${scope}.title`)}
                   action={
                     <Button
-                      variant="quiet"
+                      variant="dangerQuiet"
                       isDisabled={busy || Boolean(error)}
                       onPress={() => {
                         setSelected(scope);
@@ -274,15 +342,21 @@ export function PersonalDataPage({
                   }
                 />
               ))}
-            <Button
-              variant="quiet"
-              isDisabled={busy || Boolean(error)}
-              onPress={() => {
-                setSelected("learning");
-              }}
-            >
-              {t("personalData.cleanup.learning.action")}
-            </Button>
+            <SettingsRow
+              icon={<Trash2 aria-hidden="true" />}
+              title={t("personalData.cleanup.learning.title")}
+              action={
+                <Button
+                  variant="dangerQuiet"
+                  isDisabled={busy || Boolean(error)}
+                  onPress={() => {
+                    setSelected("learning");
+                  }}
+                >
+                  {t("personalData.cleanup.learning.action")}
+                </Button>
+              }
+            />
           </Section>
           <ModalDialog
             closeLabel={t("actions.close")}
@@ -336,34 +410,33 @@ export function PersonalDataPage({
             )}
             {details === "storage" && (
               <div className={styles.details}>
-                {" "}
                 <div className={styles.tableWrap}>
-                  <table className={`${tableStyles.table} ${styles.table}`}>
+                  <table className={`${tableStyles.table} ${styles.table} ${styles.storageTable}`}>
                     <caption>{t("personalData.storageCaption")}</caption>
                     <thead>
                       <tr>
                         <th scope="col">{t("personalData.columns.location")}</th>
                         <th scope="col">{t("personalData.columns.path")}</th>
                         <th scope="col">{t("personalData.columns.status")}</th>
+                        <th scope="col">{t("personalData.columns.size")}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {overview.locations
-                        .filter(({ id }) => visibleLocations.includes(id))
-                        .map((location) => (
-                          <tr key={location.id}>
-                            <th scope="row">
-                              {t(`personalData.locations.${location.id}.title`)}
-                              <span className={styles.description}>
-                                {t(`personalData.locations.${location.id}.description`)}
-                              </span>
-                            </th>
-                            <td>
-                              <code className={styles.path}>{location.path}</code>
-                            </td>
-                            <td>{t(`personalData.status.${location.status}`)}</td>
-                          </tr>
-                        ))}
+                      {overview.locations.map((location) => (
+                        <tr key={location.id}>
+                          <th scope="row">
+                            {t(`personalData.locations.${location.id}.title`)}
+                            <span className={styles.description}>
+                              {t(`personalData.locations.${location.id}.description`)}
+                            </span>
+                          </th>
+                          <td>
+                            <code className={styles.path}>{location.path}</code>
+                          </td>
+                          <td>{t(`personalData.status.${location.status}`)}</td>
+                          <td className={styles.count}>{size(location.bytes)}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -380,6 +453,10 @@ export function PersonalDataPage({
               }}
               onBusy={(pending) => {
                 cleanupBusy.current = pending;
+              }}
+              onPartial={() => {
+                onDataCleared();
+                void refresh();
               }}
               onCleared={(scope) => {
                 setSelected(undefined);

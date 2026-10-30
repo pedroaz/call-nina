@@ -52,6 +52,16 @@
   background: var(--od-color-state-wrong-hover);
 }
 
+.dangerQuiet {
+  background: transparent;
+  color: var(--od-color-state-wrong);
+}
+
+.dangerQuiet:hover,
+.dangerQuiet[data-pressed] {
+  background: var(--od-color-state-wrong-soft);
+}
+
 .button[data-disabled],
 .button[data-pending] {
   cursor: not-allowed;

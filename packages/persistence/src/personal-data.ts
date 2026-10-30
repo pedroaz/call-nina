@@ -9,6 +9,7 @@ import {
 } from "@call-nina/contracts";
 
 import { type CallNinaDatabase, withLeasedConnection, withLeasedTransaction } from "./sqlite.js";
+import { deletePreparedActivityAndOwnedMaterial } from "./materials.js";
 
 export async function readPersonalDataInventory(database: CallNinaDatabase) {
   return withLeasedConnection(database, (connection) =>
@@ -104,8 +105,15 @@ export async function clearPersonalData(
       connection.prepare(`DELETE FROM attempts`).run();
       connection.prepare(`DELETE FROM exercises`).run();
       connection.prepare(`DELETE FROM lessons`).run();
-      connection.prepare(`DELETE FROM prepared_activities`).run();
-      connection.prepare("DELETE FROM material_revisions").run();
+      if (scope === "learning") {
+        connection.prepare(`DELETE FROM prepared_activities`).run();
+        connection.prepare("DELETE FROM material_revisions").run();
+      } else {
+        // Practice cleanup has the same source-ownership policy as deleting
+        // individual activities. Keep imported, edited and reused library sources.
+        for (const row of connection.prepare("SELECT activity_id FROM prepared_activities").all())
+          deletePreparedActivityAndOwnedMaterial(connection, String(row["activity_id"]));
+      }
       // The mistake-deletion trigger requires the record to be absent before its marker.
       const removedMistakes = connection.prepare(`DELETE FROM mistakes RETURNING mistake_id`).all();
       const markMistake = connection.prepare(

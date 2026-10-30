@@ -48,8 +48,8 @@ const receipt = JSON.stringify({
 });
 export class ArtifactStore {
   readonly root: string;
-  constructor(deviceArtifactRoot: string) {
-    this.root = path.join(deviceArtifactRoot, offlineCandidate.id);
+  constructor(artifactRoot: string) {
+    this.root = path.join(artifactRoot, offlineCandidate.id);
   }
   async preflight(): Promise<OfflinePreflight> {
     // Read-only UI estimates do not hash artifacts or mutate recovery state.
@@ -312,6 +312,9 @@ export class ArtifactStore {
           files.push(file);
         }
       }
+      // Invalidate installation before touching payloads. A failed/interrupted
+      // removal stays retryable and must never retain an installed receipt.
+      await removeFile(path.join(this.root, "installed.json"));
       // The acquired lock proves any recorded old child is dead; never signal it.
       for (const file of files) {
         if (file.endsWith("server.sock")) await unlink(file);

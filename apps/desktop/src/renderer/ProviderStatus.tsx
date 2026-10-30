@@ -31,7 +31,9 @@ export function ProviderStatus({
       Icon = CircleCheck;
     }
   } else if (route === "local") {
-    label = view.offlineModel.snapshot.state === "installed" ? "installed" : "notInstalled";
+    label = ["installed", "generating"].includes(view.offlineModel.snapshot.state)
+      ? "installed"
+      : "notInstalled";
     if (label === "installed") Icon = CircleCheck;
   } else if (connection?.secretRef) {
     label = "configured";

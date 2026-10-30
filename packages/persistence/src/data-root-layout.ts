@@ -17,6 +17,10 @@ export const dataRootRelativeLayout = Object.freeze({
   logs: "logs",
   diagnostics: "diagnostics/redacted",
   testData: "test-data",
+  textModels: "models/text",
+  speech: "speech",
+  preparedSpeech: "speech/prepared",
+  privateAudio: "speech-cache",
 } as const);
 
 export const operationalLogPolicy = Object.freeze({
@@ -65,6 +69,10 @@ export function resolveDataRootLayout(root: string) {
     logs: containedPath(dataRoot, dataRootRelativeLayout.logs),
     diagnostics: containedPath(dataRoot, dataRootRelativeLayout.diagnostics),
     testData: containedPath(dataRoot, dataRootRelativeLayout.testData),
+    textModels: containedPath(dataRoot, dataRootRelativeLayout.textModels),
+    speech: containedPath(dataRoot, dataRootRelativeLayout.speech),
+    preparedSpeech: containedPath(dataRoot, dataRootRelativeLayout.preparedSpeech),
+    privateAudio: containedPath(dataRoot, dataRootRelativeLayout.privateAudio),
   });
 }
 
