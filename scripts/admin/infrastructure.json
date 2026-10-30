@@ -1,11 +1,28 @@
 {
-  "projectId": "prj_G6dX6jZ4E9hnlSxxLZXnRhMfndba",
-  "projectName": "call-nina",
-  "teamId": "team_8AKgpxdjIKYtsa2rynPbsFVK",
-  "origin": "https://call-nina.vercel.app",
-  "clerkInstanceId": "ins_3Jv8z9aSBihCBa3fF0o3D6Dp29V",
-  "clerkIssuer": "https://wired-platypus-3046.clerk.accounts.dev",
-  "publishableKey": "pk_test_d2lyZWQtcGxhdHlwdXMtMzA0Ni5jbGVyay5hY2NvdW50cy5kZXYk",
-  "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"],
-  "runtimeRole": "nina_runtime"
+  "preview": {
+    "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
+    "projectName": "call-nina",
+    "teamId": "team_dneRzDETT07TDCAwasa2AGyh",
+    "teamSlug": "nina-labs-projects",
+    "origin": "https://staging.callnina.de",
+    "clerkApplicationId": "app_3LQ6AdMzBg4yRCwYuK6qJcU2ylI",
+    "clerkInstanceId": "ins_3LQ6AddCxxw1E9Ru40Fea6NKkcq",
+    "clerkIssuer": "https://ready-meerkat-1510.clerk.accounts.dev",
+    "publishableKey": "pk_test_cmVhZHktbWVlcmthdC0xNTEwLmNsZXJrLmFjY291bnRzLmRldiQ",
+    "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"],
+    "runtimeRole": "nina_runtime_preview"
+  },
+  "production": {
+    "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
+    "projectName": "call-nina",
+    "teamId": "team_dneRzDETT07TDCAwasa2AGyh",
+    "teamSlug": "nina-labs-projects",
+    "origin": "https://callnina.de",
+    "clerkApplicationId": "app_3LQ6AdMzBg4yRCwYuK6qJcU2ylI",
+    "clerkInstanceId": "ins_3LQBBZ4d5QgTjHhcROkEZOl8bjx",
+    "clerkIssuer": "https://clerk.callnina.de",
+    "publishableKey": "pk_live_Y2xlcmsuY2FsbG5pbmEuZGUk",
+    "allowedOrigins": ["call-nina-ui://renderer"],
+    "runtimeRole": "nina_runtime_production"
+  }
 }

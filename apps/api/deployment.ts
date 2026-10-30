@@ -41,6 +41,7 @@ export function selectedDeployment(environment: NodeJS.ProcessEnv) {
 }
 
 const infrastructureSchema = z.object({
+  environment: z.enum(["preview", "production"]),
   projectId: z.string(),
   teamId: z.string(),
   origin: z.url(),
@@ -48,11 +49,13 @@ const infrastructureSchema = z.object({
   allowedOrigins: z.array(z.string()).min(1),
 });
 export function accountDeployment(environment: NodeJS.ProcessEnv) {
-  const parsed = infrastructureSchema.safeParse(infrastructure);
+  const name = environment["VERCEL_ENV"];
+  if (name !== "preview" && name !== "production") return null;
+  const parsed = infrastructureSchema.safeParse(infrastructure[name]);
   if (
     !parsed.success ||
     environment["VERCEL"] !== "1" ||
-    environment["VERCEL_ENV"] !== "production" ||
+    parsed.data.environment !== name ||
     environment["VERCEL_PROJECT_ID"] !== parsed.data.projectId ||
     environment["NINA_STARTER_TEAM_ID"] !== parsed.data.teamId ||
     !environment["CLERK_SECRET_KEY"]

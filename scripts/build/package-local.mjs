@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { pnpmCommand } from "../lib/package-command.mjs";
 import { runStage } from "../lib/run-stage.mjs";
+process.env.NINA_ENVIRONMENT ??= "production";
 const supported = { linux: ["x64"], darwin: ["x64", "arm64"], win32: ["x64"] };
 if (!supported[process.platform]?.includes(process.arch))
   throw new Error("OD_PLATFORM_UNSUPPORTED");

@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { hostingEnvironment } from "../lib/hosting-environment.mjs";
 import { childEnvironment } from "../lib/environment.mjs";
 
 export const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -59,7 +60,8 @@ export function context(publishing = false) {
     throw new Error("Release tooling requires this repository's manual GitHub workflow");
   if (
     publishing &&
-    (process.env.GITHUB_REF !== "refs/heads/main" ||
+    ((process.env.GITHUB_REF !== "refs/heads/main" &&
+      !(publishing === "vercel" && hostingEnvironment() === "preview")) ||
       (publishing === "vercel"
         ? process.env.RELEASE_OPERATION !== "deploy-vercel" ||
           process.env.RELEASE_TARGET !== "hosting" ||
@@ -67,7 +69,7 @@ export function context(publishing = false) {
         : process.env.RELEASE_OPERATION !== "publish" || process.env.RELEASE_TARGET !== "desktop"))
   )
     throw new Error(
-      "Publication requires an explicit desktop release or Deploy Vercel run from main",
+      "Publication requires an explicit manual workflow; production publication requires main",
     );
   const head = run("git", ["rev-parse", "HEAD"], { stdio: "pipe" });
   if (head !== GITHUB_SHA) throw new Error("Checkout does not match dispatch commit");

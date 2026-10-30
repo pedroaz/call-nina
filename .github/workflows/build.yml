@@ -29,6 +29,7 @@ concurrency:
   group: build-${{ github.run_id }}
   cancel-in-progress: false
 env:
+  NINA_ENVIRONMENT: production
   RELEASE_TARGET: ${{ inputs.target }}
   RELEASE_OPERATION: build-only
   CSC_IDENTITY_AUTO_DISCOVERY: "false"

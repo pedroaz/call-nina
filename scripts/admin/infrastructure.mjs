@@ -1,4 +1,4 @@
-import { ControlError, config, clerkPolicy, read, output } from "./configuration.mjs";
+import { ControlError, config, environment, clerkPolicy, read, output } from "./configuration.mjs";
 import { need } from "./credentials.mjs";
 import { verifiedRuntimeConnection } from "./runtime-role.mjs";
 import { identity, project, clerk, vercel } from "./providers.mjs";
@@ -20,6 +20,8 @@ export async function apply(review) {
     NINA_STARTER_DATABASE_URL: runtimeUrl,
     NINA_STARTER_TEAM_ID: config.teamId,
     NINA_STARTER_ENABLED: "false",
+    NINA_SPEECH_ENABLED: "false",
+    NINA_SPEECH_RECOVERY_READY: "false",
   };
   await vercel(
     `/v10/projects/${config.projectId}/env?upsert=true`,
@@ -28,14 +30,14 @@ export async function apply(review) {
       key,
       value,
       type: "encrypted",
-      target: ["production"],
+      target: [environment],
     })),
   );
   output({ completed: "Runtime environment upload", inferenceActivated: false });
-  const environment = await vercel(`/v10/projects/${config.projectId}/env`);
+  const runtimeEnvironment = await vercel(`/v10/projects/${config.projectId}/env`);
   for (const [key, expected] of Object.entries(secrets)) {
-    const entries = (environment.envs ?? []).filter(
-      (entry) => entry.key === key && entry.target?.includes("production") && !entry.gitBranch,
+    const entries = (runtimeEnvironment.envs ?? []).filter(
+      (entry) => entry.key === key && entry.target?.includes(environment) && !entry.gitBranch,
     );
     if (entries.length !== 1 || entries[0].type !== "encrypted")
       throw new ControlError(`Vercel environment readback failed for ${key}`);
@@ -45,7 +47,7 @@ export async function apply(review) {
     if (entry.value !== expected)
       throw new ControlError(`Vercel value readback failed for ${key}; inspect before retrying`);
   }
-  output({ completed: "Production runtime environment verified", valuesLogged: false });
+  output({ completed: "Selected runtime environment verified", valuesLogged: false });
   await project();
   const instance = await identity();
   if (!config.allowedOrigins.every((origin) => instance.allowed_origins?.includes(origin)))
@@ -99,7 +101,7 @@ export async function inspect() {
       clerkInstanceId: instance.id,
       vercelProjectId: remote.id,
       teamId: remote.accountId,
-      environment: "production",
+      environment,
     },
     clerkInstanceVerified: true,
     allowedOrigins: { current: instance.allowed_origins ?? [], desired: config.allowedOrigins },
@@ -108,14 +110,20 @@ export async function inspect() {
       "NINA_STARTER_DATABASE_URL",
       "NINA_STARTER_TEAM_ID",
       "NINA_STARTER_ENABLED",
+      "NINA_SPEECH_ENABLED",
+      "NINA_SPEECH_RECOVERY_READY",
     ].map((key) => ({
       key,
       operation: (env.envs ?? []).some(
-        (entry) => entry.key === key && entry.target?.includes("production"),
+        (entry) => entry.key === key && entry.target?.includes(environment),
       )
         ? "upsert (secret values not compared)"
         : "create",
-      ...(key === "NINA_STARTER_ENABLED" ? { desired: "false" } : {}),
+      ...(["NINA_STARTER_ENABLED", "NINA_SPEECH_ENABLED", "NINA_SPEECH_RECOVERY_READY"].includes(
+        key,
+      )
+        ? { desired: "false" }
+        : {}),
     })),
     missing: [
       !config.clerkIssuer && "clerkIssuer",

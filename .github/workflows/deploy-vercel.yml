@@ -1,15 +1,24 @@
 name: Deploy Vercel
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Hosting environment
+        type: choice
+        options: [preview, production]
+        default: preview
+        required: true
 permissions:
   contents: read
   actions: read
 concurrency:
-  group: release-production
+  group: hosting-${{ inputs.environment }}
   cancel-in-progress: false
+env:
+  NINA_ENVIRONMENT: ${{ inputs.environment }}
 jobs:
   build:
-    if: github.ref == 'refs/heads/main'
+    if: inputs.environment == 'preview' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     outputs:
@@ -39,7 +48,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
-      name: Production
+      name: ${{ inputs.environment == 'production' && 'Production' || 'Preview' }}
       url: ${{ steps.deploy.outputs.url }}
     env:
       RELEASE_TARGET: hosting

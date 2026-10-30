@@ -1,7 +1,18 @@
 {
-  "projectId": "prj_G6dX6jZ4E9hnlSxxLZXnRhMfndba",
-  "teamId": "team_8AKgpxdjIKYtsa2rynPbsFVK",
-  "origin": "https://call-nina.vercel.app",
-  "clerkIssuer": "https://wired-platypus-3046.clerk.accounts.dev",
-  "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"]
+  "preview": {
+    "environment": "preview",
+    "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
+    "teamId": "team_dneRzDETT07TDCAwasa2AGyh",
+    "origin": "https://staging.callnina.de",
+    "clerkIssuer": "https://ready-meerkat-1510.clerk.accounts.dev",
+    "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"]
+  },
+  "production": {
+    "environment": "production",
+    "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
+    "teamId": "team_dneRzDETT07TDCAwasa2AGyh",
+    "origin": "https://callnina.de",
+    "clerkIssuer": "https://clerk.callnina.de",
+    "allowedOrigins": ["call-nina-ui://renderer"]
+  }
 }

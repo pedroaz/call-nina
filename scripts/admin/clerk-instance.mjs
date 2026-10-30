@@ -1,13 +1,13 @@
 import { isDeepStrictEqual } from "node:util";
 import { spawnSync } from "node:child_process";
-import { ControlError, config, clerkPolicy, output } from "./configuration.mjs";
+import { ControlError, config, clerkPolicy, output, read } from "./configuration.mjs";
 import { need, secret, childEnvironment } from "./credentials.mjs";
 import { clerk, identity } from "./providers.mjs";
 import { confirm } from "./review.mjs";
 
 // Official contract: https://github.com/clerk/openapi-specs/blob/main/platform/beta.yml
 // Backend secret keys cannot authenticate the Platform API. Never fall back to one.
-async function platform(path, method = "GET", body, headers) {
+export async function platform(path, method = "GET", body, headers) {
   // CLI owns OAuth refresh and storage. Never extract its tokens or inherit admin secrets.
   // The CLI does not expose If-Match; recheck the version immediately before a PATCH.
   if (headers?.["If-Match"]) {
@@ -55,7 +55,7 @@ const equalOrigins = (left, right) =>
 async function target() {
   const instance = await identity();
   const applicationId = need("CLERK_APPLICATION_ID");
-  if (!/^app_[A-Za-z0-9]+$/.test(applicationId))
+  if (!/^app_[A-Za-z0-9]+$/.test(applicationId) || applicationId !== config.clerkApplicationId)
     throw new ControlError("Invalid CLERK_APPLICATION_ID");
   const application = await platform(`/applications/${applicationId}?include_secret_keys=false`);
   if (
@@ -96,6 +96,20 @@ export async function inspectClerk() {
     };
   const selected = await target();
   const native = await platform(`${selected.path}/native_settings`);
+  const mobile = await read("../../apps/mobile/app.json");
+  const androidApplications = await platform(`${selected.path}/native_applications/android`);
+  const androidEntries = Array.isArray(androidApplications)
+    ? androidApplications
+    : androidApplications.data;
+  if (!Array.isArray(androidEntries))
+    throw new ControlError("Clerk Android application readback has an unsupported shape");
+  const android = {
+    packageName: mobile.expo.android.package,
+    verified: androidEntries.some(
+      (entry) =>
+        entry.namespace === "android_app" && entry.package_name === mobile.expo.android.package,
+    ),
+  };
   if (typeof native.api_enabled !== "boolean")
     throw new ControlError("Clerk Native API readback has an unsupported shape");
   const desired = clerkPolicy.platformConfig;
@@ -125,10 +139,11 @@ export async function inspectClerk() {
     ...base,
     applicationId: selected.applicationId,
     nativeApi: { current: native.api_enabled, desired: true, verified: native.api_enabled },
+    android,
     configVersion: current.config_version,
     configuredKeys: keys,
     changedKeys,
-    verified: !changedKeys.length && native.api_enabled && origins.verified,
+    verified: !changedKeys.length && native.api_enabled && origins.verified && android.verified,
     status: "inspected",
   };
 }
@@ -166,6 +181,13 @@ export async function applyClerk(yes) {
     await identity();
     await clerk("/instance", "PATCH", { allowed_origins: config.allowedOrigins });
     output({ completed: "Clerk renderer origins updated" });
+  }
+  if (!review.android.verified) {
+    await platform(`${selected.path}/native_applications/android`, "POST", {
+      namespace: "android_app",
+      package_name: review.android.packageName,
+    });
+    output({ completed: "Clerk Android application registered" });
   }
   const readback = await inspectClerk();
   output(readback);

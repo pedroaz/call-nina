@@ -13,6 +13,7 @@ concurrency:
   group: release-desktop-production
   cancel-in-progress: false
 env:
+  NINA_ENVIRONMENT: production
   RELEASE_TARGET: desktop
   RELEASE_OPERATION: publish
   RELEASE_BUILD_RUN_ID: ${{ inputs.build_run_id }}

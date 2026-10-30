@@ -67,6 +67,29 @@ export const commands = [
     mutation: true,
   },
   {
+    name: "infra project-setup",
+    category: "Infrastructure",
+    label: "Create or verify the selected Vercel project and save its public identifiers",
+    args: [],
+    mutation: true,
+  },
+  {
+    name: "infra clerk-provision",
+    category: "Infrastructure",
+    label:
+      "Link the selected Clerk environment; create production if absent and save keys privately",
+    args: [],
+    mutation: true,
+  },
+  {
+    name: "infra domains-setup",
+    category: "Infrastructure",
+    label:
+      "Assign the production, www redirect, and staging domains; report exact DNS requirements",
+    args: [],
+    mutation: true,
+  },
+  {
     name: "infra clerk-link",
     category: "Infrastructure",
     label: "Link existing Clerk instance (live read; saves local configuration)",
@@ -118,7 +141,7 @@ export const commands = [
 ];
 export function help() {
   return {
-    usage: "node scripts/admin/index.mjs COMMAND [--yes]",
+    usage: "node scripts/admin/index.mjs COMMAND --environment preview|production [--yes]",
     mode: "Mutations return a review unless --yes is supplied. No terminal prompts.",
     grantIds:
       "Grant reviews generate a UUID. Supply that UUID when executing or retrying; --yes requires it.",

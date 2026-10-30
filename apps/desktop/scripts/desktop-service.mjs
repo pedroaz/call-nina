@@ -25,6 +25,8 @@ if (mode !== "dev" && mode !== "prd") {
   throw new Error("Desktop service mode must be dev or prd.");
 }
 
+if (mode === "dev") process.env.NINA_ENVIRONMENT ??= "preview";
+
 const children = new Set();
 let stopping = false;
 let failService;

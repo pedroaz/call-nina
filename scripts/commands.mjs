@@ -2,6 +2,7 @@ import { openRepositoryFolder } from "./lib/open-folder.mjs";
 import { spawnSync } from "node:child_process";
 import { childEnvironment } from "./lib/environment.mjs";
 import { pnpmCommand } from "./lib/package-command.mjs";
+import { hostingEnvironment } from "./lib/hosting-environment.mjs";
 import { runStage } from "./lib/run-stage.mjs";
 const root = new URL("../", import.meta.url);
 function run(command, args, environment = childEnvironment()) {
@@ -18,10 +19,12 @@ const node = (file, ...args) => run(process.execPath, [file, ...args]);
 // Only the admin entrypoint may receive operator environment overrides.
 const admin = (...args) => run(process.execPath, ["scripts/admin/index.mjs", ...args], process.env);
 const pnpm = (...args) => run(...pnpmCommand(args));
-const build = (surface) =>
-  surface === "workspace"
+const build = (surface) => {
+  process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "production");
+  return surface === "workspace"
     ? pnpm("--recursive", "--workspace-concurrency=1", "--if-present", "run", "build")
     : pnpm("--filter", `@call-nina/${surface}...`, "run", "build");
+};
 const leaf = (description, execute) => ({ description, execute });
 const group = (description, commands, defaultCommand) => ({
   description,
@@ -96,7 +99,9 @@ const registry = {
       prepare: leaf("Build combined website/API locally; no upload", () =>
         node("scripts/build/package-hosting.mjs"),
       ),
-      review: leaf("Review the production deployment target; no upload", () => admin("deploy")),
+      review: leaf("Review a selected deployment target; no upload", (args) =>
+        admin("deploy", ...args),
+      ),
       production: leaf("Open manual GitHub publication instructions; no local upload", () =>
         node("scripts/ci/release.mjs", "help"),
       ),
@@ -127,12 +132,17 @@ const registry = {
           status: "Desktop process status",
           logs: "Desktop logs; --follow / --errors / --clear",
         }[name],
-        (args) =>
-          node(
+        (args) => {
+          if (name === "dev")
+            process.env.NINA_ENVIRONMENT = hostingEnvironment(
+              process.env.NINA_ENVIRONMENT ?? "preview",
+            );
+          return node(
             "scripts/dev/lifecycle.mjs",
             ...({ dev: ["start", "dev"], start: ["start", "prd"] }[name] ?? [name]),
             ...args,
-          ),
+          );
+        },
       ),
     ]),
   ),
@@ -164,7 +174,13 @@ const registry = {
     Object.fromEntries(
       ["dev", "build", "config", "android", "ios"].map((action) => [
         action,
-        leaf(action, (args) => pnpm("--filter", "@call-nina/mobile", "run", action, ...args)),
+        leaf(action, (args) => {
+          process.env.NINA_ENVIRONMENT = hostingEnvironment(
+            process.env.NINA_ENVIRONMENT ?? (action === "build" ? "production" : "preview"),
+          );
+          process.env.EXPO_NO_DOTENV = "1";
+          return pnpm("--filter", "@call-nina/mobile", "run", action, ...args);
+        }),
       ]),
     ),
   ),
@@ -205,6 +221,9 @@ const registry = {
       node("scripts/build/package-local.mjs"),
     ),
     appimage: leaf("Linux AppImage", () => {
+      process.env.NINA_ENVIRONMENT = hostingEnvironment(
+        process.env.NINA_ENVIRONMENT ?? "production",
+      );
       runStage("Generate third-party notices", () =>
         node("scripts/build/generate-third-party-notices.mjs"),
       );
