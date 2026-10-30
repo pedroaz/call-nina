@@ -28,7 +28,7 @@ function FieldFrame(props: FieldFrameProps) {
       data-density={props.density ?? "comfortable"}
       htmlFor={props.id}
     >
-      <span>{props.label}</span>
+      <span id={`${props.id}-label`}>{props.label}</span>
       {props.children}
       {props.description && (
         <span className={styles.description} id={descriptionId}>
@@ -36,7 +36,7 @@ function FieldFrame(props: FieldFrameProps) {
         </span>
       )}
       {props.error && (
-        <span className={styles.error} id={errorId}>
+        <span className={styles.error} id={errorId} role="alert">
           {props.error}
         </span>
       )}
@@ -80,6 +80,7 @@ export function TextField({
     >
       <input
         {...inputProps}
+        aria-labelledby={inputProps["aria-labelledby"] ?? `${id}-label`}
         aria-describedby={describedBy(id, description, error)}
         aria-invalid={Boolean(error) || undefined}
         className={`${styles.control} ${error ? styles.invalid : ""}`}
@@ -117,6 +118,7 @@ export function TextAreaField({
     >
       <textarea
         {...textareaProps}
+        aria-labelledby={textareaProps["aria-labelledby"] ?? `${id}-label`}
         aria-describedby={describedBy(id, description, error)}
         aria-invalid={Boolean(error) || undefined}
         className={`${styles.control} ${error ? styles.invalid : ""}`}
@@ -160,6 +162,7 @@ export function SelectField({
     >
       <SelectControl
         {...selectProps}
+        aria-labelledby={selectProps["aria-labelledby"] ?? `${id}-label`}
         aria-describedby={describedBy(id, description, error)}
         aria-invalid={Boolean(error) || undefined}
         className={error ? styles.invalid : undefined}

@@ -5,6 +5,13 @@ description: "Teach and practise US English, Brazilian Portuguese, Spanish or Ge
 
 # Call Nina Language Teacher
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is an MVP. For maintainer-directed repository development, the repository MVP policy permits local iteration and direct hosted deployment without the full release process. This learner-facing skill does not itself authorize infrastructure or account administration; use the repository development/admin skills for that work. Keep teaching quality, learner intent, explicit save confirmation and credential boundaries unchanged.
+<!-- MVP-END -->
+
 Help the learner make practical progress in their selected target language while keeping learner state, AI work, and the desktop app behind their documented boundaries. Use the local Call Nina MCP tools when the user wants context-aware practice or asks to save a confirmed result. Inspect the connected tools' current descriptions and input schemas when choosing an operation or checking its fields. With repository access, inspect `packages/contracts/src/mcp.ts` and `apps/mcp-server/src/index.ts`; do not rely on a duplicate tool catalog.
 
 ## Teaching behavior

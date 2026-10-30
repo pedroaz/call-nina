@@ -302,6 +302,7 @@
       "grammarEvidence": "Eine kurze Aufgabe zur Artikelwahl wurde abgeschlossen.",
       "vocabularyTopic": "Termine",
       "vocabularyEvidence": "Eine Aufgabe zur Bedeutung eines Alltagswortes wurde abgeschlossen.",
+      "readingEvidence": "Eine kurze Aufgabe zum Finden einer Uhrzeit in einem Hinweis wurde abgeschlossen.",
       "readingTopic": "Eine Uhrzeit in einem Hinweis finden",
       "writingTopic": "Schreiben"
     },
@@ -1129,26 +1130,26 @@
     "saveFailed": "Speichern fehlgeschlagen. Versuche es erneut."
   },
   "errors": {
-    "exerciseContextMissing": "Für diese Aktivität wurden die ursprünglichen Lerneinstellungen nicht gespeichert. Erstelle eine neue Übung für neues KI-Feedback oder weitere KI-Begleitung. Deine gespeicherte Aktivität, Antworten und Rückmeldungen bleiben unverändert.",
+    "exerciseContextMissing": "Die ursprünglichen Lerneinstellungen fehlen. Erstelle eine neue Übung für KI-Feedback. Gespeicherte Antworten und Rückmeldungen bleiben unverändert.",
     "boundaryTitle": "Diese Ansicht konnte nicht angezeigt werden",
     "boundaryBody": "In dieser Ansicht ist ein unerwarteter Fehler aufgetreten. Öffne sie erneut. Nicht gespeicherte Eingaben musst du eventuell erneut eingeben.",
-    "validation": "Einige Angaben sind ungültig oder unvollständig. Prüfe die Pflichtfelder und versuche es erneut.",
-    "notFound": "Dieses Element ist nicht mehr verfügbar. Öffne die Liste erneut und wähle ein anderes Element.",
-    "conflict": "Dieses Element wurde vor Abschluss geändert. Öffne es erneut, um die aktuelle Version zu laden, und versuche es noch einmal.",
-    "staleDataRoot": "Der ausgewählte Lernordner wurde geändert. Öffne diese Ansicht erneut, bevor du es noch einmal versuchst.",
-    "database": "Call Nina konnte lokale Lerndaten nicht lesen oder speichern. Prüfe den Ordner unter Einstellungen → Daten & Datenschutz und versuche es erneut.",
-    "aiPolicy": "Call Nina hat diese KI-Aktion gestoppt, weil ein Vorgang außerhalb des erlaubten Lernablaufs auftrat. Versuche es einmal erneut. Melde bei erneutem Auftreten die Diagnosereferenz.",
-    "aiTimeout": "Die KI-Anfrage wurde nicht rechtzeitig abgeschlossen. Versuche eine kürzere Anfrage oder eine kleinere Übung.",
-    "modelUnavailable": "Das gewählte Modell oder die Denkeinstellung ist nicht verfügbar. Wähle in der Modellauswahl Automatisch oder eine andere verfügbare Option und versuche es erneut.",
-    "appServer": "Die KI-Aktion konnte nicht abgeschlossen werden. Prüfe die ausgewählte Verbindung in den Einstellungen und versuche es erneut.",
+    "validation": "Prüfe die Pflichtfelder und versuche es erneut.",
+    "notFound": "Dieses Element ist nicht mehr verfügbar. Wähle ein anderes aus der Liste.",
+    "conflict": "Dieses Element wurde geändert. Öffne es erneut und versuche es noch einmal.",
+    "staleDataRoot": "Der Lernordner wurde gewechselt. Öffne diese Ansicht erneut und versuche es noch einmal.",
+    "database": "Lerndaten konnten nicht gelesen oder gespeichert werden. Prüfe den Ordner unter Einstellungen → Daten & Datenschutz.",
+    "aiPolicy": "Die KI-Aktion wurde gestoppt, weil sie einen nicht unterstützten Vorgang versucht hat. Versuche es noch einmal.",
+    "aiTimeout": "Die KI-Anfrage hat zu lange gedauert. Versuche eine kürzere Anfrage oder eine kleinere Übung.",
+    "modelUnavailable": "Dieses Modell oder diese Denkeinstellung ist nicht verfügbar. Wähle Automatisch oder eine andere verfügbare Option.",
+    "appServer": "Die KI-Aktion konnte nicht abgeschlossen werden. Prüfe die Verbindung in den Einstellungen und versuche es erneut.",
     "authentication": "Verbinde deinen Anbieter erneut oder prüfe die ausgewählte Verbindung unter Einstellungen → KI-Anbieter.",
-    "unsupportedCodexVersion": "Call Nina konnte diese Codex-Installation nicht verwenden. Prüfe den Status unter Einstellungen → KI-Anbieter und aktualisiere oder installiere Codex bei Bedarf neu.",
+    "unsupportedCodexVersion": "Diese Codex-Installation konnte nicht verwendet werden. Prüfe Einstellungen → KI-Anbieter und aktualisiere oder installiere Codex neu.",
     "rateLimit": "Das Nutzungslimit des Anbieters wurde erreicht. Prüfe vor dem nächsten Versuch die Nutzungseinstellungen des Anbieters.",
     "cancellation": "Die Aktion wurde abgebrochen.",
-    "modelOutput": "Das KI-Ergebnis war unvollständig oder unbrauchbar. Versuche es erneut oder wähle ein anderes verfügbares Modell.",
-    "mcp": "Die Codex-Integration konnte diese Aktion nicht abschließen. Prüfe den Status unter Einstellungen → KI-Anbieter und installiere oder aktualisiere die Integration bei Bedarf.",
-    "handoff": "Call Nina konnte die zugehörige Aktivität nicht öffnen. Prüfe die Codex-Integration unter Einstellungen → KI-Anbieter und versuche es erneut.",
-    "unsupportedOperation": "Diese Aktion ist in der aktuellen Einrichtung nicht verfügbar. Prüfe die verfügbaren Optionen unter Einstellungen → KI-Anbieter.",
+    "modelOutput": "Das KI-Ergebnis war unvollständig oder unbrauchbar. Versuche es erneut oder wähle ein anderes Modell.",
+    "mcp": "Die Codex-Integration ist fehlgeschlagen. Prüfe Einstellungen → KI-Anbieter und installiere oder aktualisiere die Integration.",
+    "handoff": "Die Aktivität konnte nicht geöffnet werden. Prüfe die Codex-Integration unter Einstellungen → KI-Anbieter und versuche es erneut.",
+    "unsupportedOperation": "Diese Aktion ist nicht verfügbar. Prüfe die unterstützten Optionen unter Einstellungen → KI-Anbieter.",
     "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst."
   },
   "ui": {
@@ -1683,10 +1684,7 @@
     "directCatalogNotice": "Die aufgeführten Modelle und Aktionen stammen aus der integrierten Unterstützungsliste. Gespeicherter Schlüssel und Modellwahl erfüllen nur lokale Voraussetzungen; Zugang und Abrechnung wurden nicht geprüft.",
     "offlineTitle": "Heruntergeladenes Modell auf diesem Gerät",
     "offlineScope": "Der Download erfolgt nur nach deiner Auswahl, umfasst mehrere GB und wird auf diesem Gerät außerhalb des Lernordners geteilt. Das Entfernen betrifft alle Lernordner auf diesem Gerät; Verbindungen und Lerndaten bleiben.",
-    "offlineLimits": "Linux x64 unterstützt Schreibaufgaben, kontextbezogene Hilfe sowie die Erstellung und Bewertung von Übungen. Modellqualität und Hardwareeignung sind vorläufig.",
-    "offlinePlatform": "Downloads werden derzeit nur unter Linux x64 unterstützt.",
-    "offlineMemory": "Dieses Gerät erfüllt die aktuelle Speicherschätzung für lokale KI nicht.",
-    "offlineDiskEstimate": "Die Schätzung für eine vollständige Installation zeigt wenig freien Speicher. Du kannst trotzdem starten oder fortsetzen; beim Download wird der verbleibende Bedarf unter der Installationssperre geprüft.",
+    "offlineLimits": "Geschwindigkeit und Unterrichtsqualität sind ungeprüft. Ausreichende Ressourcen bestätigen nicht die Eignung des Modells.",
     "offlineProgress": "{{downloaded}} von {{total}} GB heruntergeladen.",
     "offlineInstall": "Modell herunterladen",
     "offlineResume": "Download fortsetzen",
@@ -1754,7 +1752,15 @@
     "details": "Verbindungsdetails",
     "chatgptAuth": "Verbinde oder wechsle dein ChatGPT-Konto unter Einstellungen → KI-Anbieter.",
     "chatgptLoginUnavailable": "Die ChatGPT-Anmeldung ist nicht verfügbar. Prüfe, ob auf diesem Gerät ein sicherer Anmeldedatenspeicher verfügbar ist.",
-    "manage": "Verbindungen verwalten"
+    "manage": "Verbindungen verwalten",
+    "offlineMemoryReadout": "RAM: {{total}} GiB gesamt / {{requiredTotal}} erforderlich; {{available}} GiB verfügbar / {{requiredAvailable}} erforderlich.",
+    "offlineDiskReadout": "Speicherplatz: {{available}} GiB verfügbar / voraussichtlich {{required}} GiB zusätzlich erforderlich.",
+    "offlineEligibility": {
+      "unsupported-platform": "Lokale Modelle erfordern Linux x64.",
+      "resources-unknown": "Ressourcen können nicht geprüft werden.",
+      "insufficient-memory": "Nicht genügend Arbeitsspeicher für dieses lokale Modell.",
+      "insufficient-disk": "Nicht genügend Speicherplatz, um dieses lokale Modell zu installieren oder den Download fortzusetzen."
+    }
   },
   "connections": {
     "title": "KI-Verbindung",
@@ -2123,5 +2129,15 @@
     "allLevels": "Alle Niveaus",
     "read": "Lesen",
     "empty": "Keine passenden Geschichten."
+  },
+  "feedback": {
+    "notifications": "Mitteilungen",
+    "dismiss": "Mitteilung schließen",
+    "technicalDetails": "Technische Details",
+    "copyReference": "Referenz kopieren",
+    "referenceCopied": "Referenz kopiert",
+    "copyFailed": "Kopieren fehlgeschlagen. Markiere und kopiere die Referenz oben.",
+    "policySupport": "Falls dies erneut passiert, gib diese Referenz bei der Fehlermeldung an.",
+    "undoVocabulary": "Hinzugefügte Wörter zurücknehmen"
   }
 }

@@ -5,6 +5,13 @@ description: Operate and inspect the real Call Nina Expo app on an Android emula
 
 # Call Nina Android verification
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact.
+<!-- MVP-END -->
+
 Read root `AGENTS.md` and [development guidance](../call-nina-development/SKILL.md). Prefer the running development app; no reserved checkout or separate owned session is required. Record the source/build actually observed, including uncommitted edits. Inspect its `Makefile`, `apps/mobile/package.json`, Expo configuration and affected native UI source; commands or features absent from that checkout are unavailable. Do not copy a past device inventory or journey into this skill.
 
 ## Identify the development app and discover the host

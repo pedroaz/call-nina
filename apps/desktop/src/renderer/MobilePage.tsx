@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, RefreshCw } from "lucide-react";
 import { Page, Section, ActionGroup } from "./components/layout/index.js";
-import { Button, Feedback } from "./components/ui/index.js";
+import { Button, Feedback, useNotifications } from "./components/ui/index.js";
 import { NinaAccountSettings, useNinaAccountState } from "./NinaAccount.js";
 import { invokeDesktop } from "./ipc.js";
 
@@ -17,6 +17,7 @@ export function MobilePage() {
 }
 function MobileAccountPage({ account }: { account: ReturnType<typeof useNinaAccountState> }) {
   const { t, i18n } = useTranslation();
+  const { notify } = useNotifications();
   const [busy, setBusy] = useState(false);
   const [published, setPublished] = useState<string>();
   const [message, setMessage] = useState<string>();
@@ -48,7 +49,7 @@ function MobileAccountPage({ account }: { account: ReturnType<typeof useNinaAcco
       if (!mounted.current) return;
       if (result.status === "synced") {
         setPublished(result.publishedAt);
-        setMessage(t("mobile.synced"));
+        notify({ message: t("mobile.synced"), tone: "success" });
       } else if (result.status === "failed") setMessage(t(`mobile.errors.${result.reason}`));
     } catch {
       if (mounted.current) setMessage(t("mobile.errors.unavailable"));

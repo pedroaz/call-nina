@@ -4,15 +4,9 @@ import { ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import styles from "./Startup.module.css";
+import { OperationError, ErrorReference } from "./OperationError.js";
 import { ActionGroup } from "./components/layout/index.js";
-import {
-  Button,
-  Card,
-  CheckboxContainer,
-  DiagnosticCode,
-  Feedback,
-  Muted,
-} from "./components/ui/index.js";
+import { Button, Card, CheckboxContainer, Feedback, Muted } from "./components/ui/index.js";
 import i18n from "./i18n.js";
 import { LanguageSelect } from "./LanguageSelect.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
@@ -42,28 +36,7 @@ export function LanguageButton() {
   );
 }
 
-function Diagnostic({ error }: { error: CallNinaError }) {
-  const { t } = useTranslation();
-  return (
-    <DiagnosticCode data-testid="diagnostic-reference">
-      {t("startup.diagnostic")}: {error.reference.code} · {error.reference.correlationId}
-    </DiagnosticCode>
-  );
-}
-
-export function OperationError({ error }: { error: CallNinaError }) {
-  const { t } = useTranslation();
-  if (error.kind === "cancellation")
-    return <Feedback live="polite">{t(error.messageKey)}</Feedback>;
-  return (
-    <Feedback live="assertive" tone="error">
-      <div>
-        <p>{t(error.messageKey)}</p>
-        <Diagnostic error={error} />
-      </div>
-    </Feedback>
-  );
-}
+export { OperationError } from "./OperationError.js";
 
 type BoundaryProps = Readonly<{
   children: ReactNode;
@@ -255,7 +228,7 @@ export function StartupError(props: {
         <h1 id="startup-error-title">{t(title)}</h1>
         <p>{t(body)}</p>
         <Muted as="p">{t("startup.noBlank")}</Muted>
-        <Diagnostic error={readiness.dataRoot.error} />
+        <ErrorReference error={readiness.dataRoot.error} />
         <ActionGroup>
           <Button variant="primary" onPress={() => void props.retry()}>
             {t("actions.retry")}

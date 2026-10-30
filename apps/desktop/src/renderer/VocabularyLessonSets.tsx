@@ -1,7 +1,8 @@
+import { OperationError } from "./OperationError.js";
 import { useEffect, useState } from "react";
 import type { DataRootGeneration, DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
-import { Button, Feedback, LoadingState } from "./components/ui/index.js";
+import { Button, LoadingState } from "./components/ui/index.js";
 import { invokeDesktop, normalizeDesktopError } from "./ipc.js";
 
 type Result = Extract<
@@ -35,9 +36,7 @@ function LessonSets({ rootGeneration }: { rootGeneration: DataRootGeneration }) 
     <>
       {error && (
         <>
-          <Feedback tone="error" live="assertive">
-            {t(error.messageKey)}
-          </Feedback>
+          <OperationError error={error} />
           <Button
             variant="secondary"
             onPress={() => {

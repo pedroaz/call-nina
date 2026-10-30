@@ -68,7 +68,6 @@ export function accountDeployment(environment: NodeJS.ProcessEnv) {
       issuer: config.clerkIssuer,
       authorizedParties: config.allowedOrigins,
     },
-    inferenceEnabled: selectedDeployment(environment) !== null,
   };
 }
 let database: ReturnType<typeof openBudgetSql> | undefined;

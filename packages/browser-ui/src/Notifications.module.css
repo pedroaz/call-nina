@@ -1,0 +1,58 @@
+.region {
+  position: fixed;
+  inset-block-end: var(--od-space-7);
+  inset-inline-end: var(--od-space-7);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: var(--od-space-3);
+  width: min(26rem, calc(100vw - 2 * var(--od-space-7)));
+  outline: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--od-space-3);
+  padding: var(--od-space-4);
+  background: var(--od-color-surface-card);
+  color: var(--od-color-text-strong);
+  border-radius: var(--od-radius-lg);
+  box-shadow: var(--od-shadow-pop);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--od-space-3);
+  flex: 1;
+  min-width: 0;
+  padding-block: var(--od-space-3);
+  overflow-wrap: anywhere;
+}
+
+.content > svg {
+  flex: none;
+  width: var(--od-icon-md, 1.25rem);
+  height: var(--od-icon-md, 1.25rem);
+  color: var(--od-color-text-muted);
+}
+
+.toast[data-tone="success"] .content > svg {
+  color: var(--od-color-state-correct);
+}
+
+.toast[data-focus-visible] {
+  outline: var(--od-border-outlined) solid var(--od-color-focus);
+  outline-offset: var(--od-space-1);
+}
+
+@media (max-width: 52rem) {
+  .region {
+    inset-block-end: var(--od-space-5);
+    inset-inline-end: var(--od-space-5);
+    width: min(26rem, calc(100vw - 2 * var(--od-space-5)));
+  }
+}

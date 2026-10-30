@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { SettingsRow } from "./SettingsRow.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import tableStyles from "./components/layout/Table.module.css";
@@ -14,8 +15,8 @@ import { useTranslation } from "react-i18next";
 import { ActionGroup, Page, Section } from "./components/layout/index.js";
 import {
   Button,
-  DiagnosticCode,
   Feedback,
+  useNotifications,
   ModalDialog,
   Muted,
   TextField,
@@ -36,7 +37,7 @@ type BlockReason = Extract<CleanupResult, { status: "blocked" }>["reason"];
 const categories: ReadonlyArray<{ id: string; tables: readonly PersonalDataTable[] }> = [
   { id: "profile", tables: ["learner_profiles", "language_profiles"] },
   { id: "preferences", tables: ["learner_settings"] },
-  { id: "practice", tables: ["prepared_activities"] },
+  { id: "practice", tables: ["prepared_activities", "story_positions"] },
   { id: "attempts", tables: ["attempts"] },
   { id: "vocabulary", tables: ["vocabulary_entries"] },
   { id: "voice", tables: ["voice_summaries"] },
@@ -46,18 +47,6 @@ const categories: ReadonlyArray<{ id: string; tables: readonly PersonalDataTable
 ];
 const cleanupScopes = ["practice", "vocabulary", "learning"] as const;
 const visibleLocations = ["database", "attachments", "bootstrap", "appConfig"];
-
-function DataError({ error }: { error: CallNinaError }) {
-  const { t } = useTranslation();
-  return (
-    <Feedback tone="error" live="assertive">
-      <span>{t(error.messageKey)}</span>
-      <DiagnosticCode>
-        {error.reference.code} · {error.reference.correlationId}
-      </DiagnosticCode>
-    </Feedback>
-  );
-}
 
 function CleanupDialog({
   scope,
@@ -127,7 +116,7 @@ function CleanupDialog({
           {t(`personalData.cleanup.blocked.${blocked}`)}
         </Feedback>
       )}
-      {error && <DataError error={error} />}
+      {error && <OperationError error={error} />}
       <ActionGroup align="end">
         <Button variant="secondary" isDisabled={pending} onPress={onClose}>
           {t("actions.cancel")}
@@ -160,12 +149,12 @@ export function PersonalDataPage({
   breadcrumbs?: ReadonlyArray<{ label: string; onPress: () => void }>;
 }) {
   const { t, i18n } = useTranslation();
+  const { notify } = useNotifications();
   const [details, setDetails] = useState<"storage" | "privacy" | "audio">();
   const [overview, setOverview] = useState<Overview>();
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<CallNinaError>();
   const [selected, setSelected] = useState<PersonalDataCleanupScope>();
-  const [cleared, setCleared] = useState<PersonalDataCleanupScope>();
   const requestSequence = useRef(0);
   const cleanupBusy = useRef(false);
   const refresh = useCallback(async () => {
@@ -211,13 +200,8 @@ export function PersonalDataPage({
     );
   const content = (
     <>
-      {error && <DataError error={error} />}
+      {error && <OperationError error={error} />}
       {busy && !overview && <Feedback live="polite">{t("personalData.loading")}</Feedback>}
-      {cleared && (
-        <Feedback tone="success" live="polite">
-          {t(`personalData.cleanup.${cleared}.success`)}
-        </Feedback>
-      )}
       {overview && (
         <>
           <Section title={t("setupUx.onDevice")}>
@@ -260,7 +244,7 @@ export function PersonalDataPage({
                 setDetails("privacy");
               }}
             >
-              {t("setupUx.viewDetails")}
+              {t("ui.details")}
             </Button>
           </Section>
           <Section title={t("setupUx.clearLearning")}>
@@ -282,7 +266,6 @@ export function PersonalDataPage({
                       variant="quiet"
                       isDisabled={busy || Boolean(error)}
                       onPress={() => {
-                        setCleared(undefined);
                         setSelected(scope);
                       }}
                     >
@@ -295,7 +278,6 @@ export function PersonalDataPage({
               variant="quiet"
               isDisabled={busy || Boolean(error)}
               onPress={() => {
-                setCleared(undefined);
                 setSelected("learning");
               }}
             >
@@ -401,7 +383,7 @@ export function PersonalDataPage({
               }}
               onCleared={(scope) => {
                 setSelected(undefined);
-                setCleared(scope);
+                notify({ message: t(`personalData.cleanup.${scope}.success`), tone: "success" });
                 onDataCleared();
                 void refresh();
               }}

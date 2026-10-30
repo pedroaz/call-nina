@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { Disclosure } from "./components/ui/Disclosure.js";
 import { Nina } from "./components/ui/Nina.js";
@@ -12,14 +13,7 @@ import { OperationProgress } from "./OperationProgress.js";
 import { Languages, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  DiagnosticCode,
-  Button,
-  Feedback,
-  FieldGroup,
-  ItemList,
-  InfoHint,
-} from "./components/ui/index.js";
+import { Button, Feedback, FieldGroup, ItemList, InfoHint } from "./components/ui/index.js";
 
 import styles from "./ContextualHelper.module.css";
 import {
@@ -331,14 +325,7 @@ export function ContextualHelper({
           ) : null}
         </div>
         <p className={styles.helperComposerHint}>{t("helper.sendHint")}</p>
-        {error ? (
-          <Feedback live="assertive" tone="error">
-            {t(error.messageKey)}
-            <DiagnosticCode>
-              {error.reference.code} · {error.reference.correlationId}
-            </DiagnosticCode>
-          </Feedback>
-        ) : null}
+        {error ? <OperationError error={error} /> : null}
       </div>
     </div>
   );

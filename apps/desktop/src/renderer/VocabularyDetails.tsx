@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { SpeechButton } from "./SpeechButton.js";
 import {
   vocabularyLemma,
@@ -12,7 +13,6 @@ import { ActionGroup } from "./components/layout/index.js";
 import {
   Button,
   ConfirmDialog,
-  Feedback,
   LoadingState,
   ModalDialog,
   TextField,
@@ -159,11 +159,7 @@ export function VocabularyDetails(props: {
         if (!open && !busy && !editing) props.onClose();
       }}
     >
-      {error && (
-        <Feedback tone="error" live="assertive">
-          {t(error.messageKey)}
-        </Feedback>
-      )}
+      {error && <OperationError error={error} />}
       {loading && <LoadingState live>{t("ui.loading")}</LoadingState>}
       {entry && !editing && (
         <>

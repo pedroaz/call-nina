@@ -330,6 +330,14 @@ declare module "*Nina.module.css" {
   export default styles;
 }
 
+declare module "*OperationError.module.css" {
+  const styles: {
+    readonly error: string;
+    readonly reference: string;
+  };
+  export default styles;
+}
+
 declare module "*OperationProgress.module.css" {
   const styles: {
     readonly attempt: string;

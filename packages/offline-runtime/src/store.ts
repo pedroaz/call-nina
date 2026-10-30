@@ -1,6 +1,5 @@
 import { type OfflinePreflight } from "@call-nina/contracts";
 import { lstat, readdir, rmdir, statfs, unlink } from "node:fs/promises";
-import { freemem, totalmem } from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
@@ -25,6 +24,7 @@ import {
   writeNew,
 } from "./files.js";
 import { download, prepareDownload } from "./download.js";
+import { availableMemory, assertOfflineEligibility } from "./resources.js";
 
 const artifactNames = Object.values(artifacts).flatMap(({ file }) => [
   file,
@@ -54,33 +54,72 @@ export class ArtifactStore {
   async preflight(): Promise<OfflinePreflight> {
     // Read-only UI estimates do not hash artifacts or mutate recovery state.
     // Installation computes exact remaining space under exclusive ownership.
-    return this.installationPreflight(0);
+    // Size-only estimate for Settings; install re-verifies owned bytes under its lock.
+    let ownedBytes = 0;
+    for (const spec of Object.values(artifacts)) {
+      let bytes = 0;
+      for (const suffix of ["", ".part"]) {
+        const info = await lstat(path.join(this.root, spec.file + suffix)).catch(() => null);
+        if (info?.isFile() && !info.isSymbolicLink())
+          bytes = Math.max(bytes, Math.min(info.size, spec.bytes));
+      }
+      ownedBytes += bytes;
+    }
+    for (const spec of runtimeFiles) {
+      const info = await lstat(path.join(this.root, "runtime", spec.file)).catch(() => null);
+      if (info?.isFile() && !info.isSymbolicLink()) ownedBytes += Math.min(info.size, spec.bytes);
+    }
+    return this.installationPreflight(ownedBytes);
   }
   private async installationPreflight(verifiedOwnedBytes: number): Promise<OfflinePreflight> {
     // Linux x64 is the only inspected payload; libc/library compatibility is still provisional.
     const platformSupported = process.platform === "linux" && process.arch === "x64";
     let availableDiskBytes: number | null = null;
     let probe = this.root;
-    while (!(await exists(probe)) && path.dirname(probe) !== probe) probe = path.dirname(probe);
-    if (await exists(probe)) {
-      await directory(probe, false, false);
-      const fs = await statfs(probe);
-      availableDiskBytes = fs.bavail * fs.bsize;
+    try {
+      while (!(await exists(probe)) && path.dirname(probe) !== probe) probe = path.dirname(probe);
+      if (await exists(probe)) {
+        await directory(probe, false, false);
+        const fs = await statfs(probe);
+        const bytes = fs.bavail * fs.bsize;
+        if (Number.isSafeInteger(bytes) && bytes >= 0) availableDiskBytes = bytes;
+      }
+    } catch {
+      // Disk inspection failures block installation, not an installed model's inference.
     }
     const requiredDiskBytes =
-      installedBytes - verifiedOwnedBytes + offlineCandidate.diskReserveBytes;
-    const totalMemoryBytes = totalmem();
-    const freeMemoryBytes = freemem();
+      Math.max(0, installedBytes - verifiedOwnedBytes) + offlineCandidate.diskReserveBytes;
+    const { totalMemoryBytes, freeMemoryBytes } = await availableMemory();
+    const memorySufficient =
+      totalMemoryBytes !== null &&
+      freeMemoryBytes !== null &&
+      totalMemoryBytes >= offlineCandidate.minimumMemoryBytes &&
+      freeMemoryBytes >= offlineCandidate.minimumFreeMemoryBytes;
+    const diskSufficient = availableDiskBytes !== null && availableDiskBytes >= requiredDiskBytes;
+    const generationEligibility = !platformSupported
+      ? "unsupported-platform"
+      : totalMemoryBytes === null || freeMemoryBytes === null
+        ? "resources-unknown"
+        : !memorySufficient
+          ? "insufficient-memory"
+          : "ready";
     return {
       platformSupported,
       totalMemoryBytes,
       freeMemoryBytes,
       availableDiskBytes,
       requiredDiskBytes,
-      memorySufficient:
-        totalMemoryBytes >= offlineCandidate.minimumMemoryBytes &&
-        freeMemoryBytes >= offlineCandidate.minimumFreeMemoryBytes,
-      diskSufficient: availableDiskBytes !== null && availableDiskBytes >= requiredDiskBytes,
+      memorySufficient,
+      diskSufficient,
+      generationEligibility,
+      installationEligibility:
+        generationEligibility !== "ready"
+          ? generationEligibility
+          : availableDiskBytes === null
+            ? "resources-unknown"
+            : !diskSufficient
+              ? "insufficient-disk"
+              : "ready",
       hardwareVerified: false,
     };
   }
@@ -122,8 +161,7 @@ export class ArtifactStore {
     progress: (bytes: number, phase: "downloading" | "verifying") => void,
   ) {
     const flight = await this.preflight();
-    if (!flight.platformSupported) fail("PLATFORM_UNSUPPORTED");
-    if (!flight.memorySufficient) fail("MEMORY_INSUFFICIENT");
+    assertOfflineEligibility(flight.generationEligibility);
     const lock = await acquire(this.root);
     try {
       await onlyNames(this.root, rootNames);
@@ -146,7 +184,7 @@ export class ArtifactStore {
         }
       }
       const remaining = await this.installationPreflight(verifiedOwnedBytes);
-      if (!remaining.diskSufficient) fail("DISK_INSUFFICIENT");
+      assertOfflineEligibility(remaining.installationEligibility);
       await download(
         this.root,
         artifacts.runtime,

@@ -248,7 +248,9 @@ export class DesktopBackend {
       secrets: this.#secrets,
       connectionById: (id) => this.#connectionById(id),
       projectGenerationEvent: projectEvent,
-      providerAccess: (...args) => this.#providerAccess(...args),
+      operationLog: (...args) => {
+        this.#operationLog(...args);
+      },
     });
     this.#operations = new GenerationOperations({
       repository: () => this.#repository,
@@ -1181,6 +1183,7 @@ export class DesktopBackend {
       await readAiConnections(this.#database),
     );
     const availability: ConnectionView["availability"] = [];
+    const offlineSnapshot = await this.#offline.inspect();
     for (const connection of settings.connections) {
       const entry: ConnectionView["availability"][number] = {
         connectionId: connection.id,
@@ -1238,14 +1241,13 @@ export class DesktopBackend {
       }
       if (connection.routeId === "local") {
         const catalog = offlineCatalog();
-        const snapshot = await this.#offline.inspect();
+        const snapshot = offlineSnapshot;
         entry.models = catalog.models;
         entry.operations = catalog.operations;
         entry.languages = catalog.languages;
         entry.status =
-          snapshot.state !== "installed" ||
-          !snapshot.preflight?.platformSupported ||
-          !snapshot.preflight.memorySufficient
+          (snapshot.state !== "installed" && snapshot.state !== "generating") ||
+          snapshot.preflight?.generationEligibility !== "ready"
             ? "runtime-unavailable"
             : resolveModelPreference(connection.preference, catalog.models).status !== "available"
               ? "model-unavailable"
@@ -1277,7 +1279,7 @@ export class DesktopBackend {
       settings,
       secureStorage: this.#secrets.state(),
       directApiCatalogs: directApiCatalogs(),
-      offlineModel: { catalog: offlineCatalog(), snapshot: await this.#offline.inspect() },
+      offlineModel: { catalog: offlineCatalog(), snapshot: offlineSnapshot },
       availability,
     });
   }
@@ -1382,9 +1384,8 @@ export class DesktopBackend {
         return unavailable("capability-unavailable");
       const snapshot = await this.#offline.inspect();
       if (
-        snapshot.state !== "installed" ||
-        !snapshot.preflight?.platformSupported ||
-        !snapshot.preflight.memorySufficient
+        (snapshot.state !== "installed" && snapshot.state !== "generating") ||
+        snapshot.preflight?.generationEligibility !== "ready"
       )
         return unavailable("runtime-unavailable");
       try {

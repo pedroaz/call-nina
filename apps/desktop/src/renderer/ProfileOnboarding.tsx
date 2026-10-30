@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   languageDefinitions,
@@ -471,12 +472,11 @@ export function ProfileOnboarding({
           </>
         )}
         {error && (
-          <Feedback tone="error" live="assertive">
-            <p>{t(error.messageKey)}</p>
+          <OperationError error={error}>
             <Button variant="secondary" onPress={() => void load()}>
               {t("onboarding.reloadSaved")}
             </Button>
-          </Feedback>
+          </OperationError>
         )}
       </main>
     </div>

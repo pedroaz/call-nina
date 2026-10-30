@@ -302,6 +302,7 @@
       "grammarEvidence": "A short article-selection sample was completed.",
       "vocabularyTopic": "Appointments",
       "vocabularyEvidence": "An everyday-word meaning sample was completed.",
+      "readingEvidence": "A short sample of finding a time in a notice was completed.",
       "readingTopic": "Finding a time in a notice",
       "writingTopic": "Writing"
     },
@@ -1129,26 +1130,26 @@
     "saveFailed": "Could not save. Try again."
   },
   "errors": {
-    "exerciseContextMissing": "This activity did not save its original teaching settings. Create fresh practice for new AI feedback or teaching. Your saved activity, answers and feedback are unchanged.",
+    "exerciseContextMissing": "The original learning settings are missing. Create new practice for AI feedback. Saved answers and feedback are unchanged.",
     "boundaryTitle": "This view could not be displayed",
     "boundaryBody": "This view encountered an unexpected error. Try opening it again. Unsaved input may need to be entered again.",
-    "validation": "Some information is invalid or incomplete. Check the required fields and try again.",
-    "notFound": "This item is no longer available. Reopen the list and select another item.",
-    "conflict": "This item changed before the action finished. Reopen it to load the current version, then try again.",
-    "staleDataRoot": "The selected learning folder changed. Reopen this view before trying again.",
-    "database": "Call Nina could not read or save local learning data. Check the folder in Settings → Data & privacy, then retry.",
-    "aiPolicy": "Call Nina stopped this AI action because it encountered an operation outside the allowed learning workflow. Retry once. If it happens again, report the diagnostic reference.",
-    "aiTimeout": "The AI request did not finish within the time limit. Try a shorter request or a smaller activity.",
-    "modelUnavailable": "The selected model or reasoning setting is unavailable. Choose Automatic or another available option in the model selector, then retry.",
-    "appServer": "The AI action could not finish. Check the selected connection in Settings and retry.",
+    "validation": "Check the required fields and try again.",
+    "notFound": "This item is no longer available. Choose another from the list.",
+    "conflict": "This item changed. Reopen it and try again.",
+    "staleDataRoot": "The learning folder changed. Reopen this view and try again.",
+    "database": "Could not read or save learning data. Check the folder in Settings → Data & privacy.",
+    "aiPolicy": "The AI action was stopped because it tried an unsupported operation. Try again once.",
+    "aiTimeout": "The AI request timed out. Try a shorter request or a smaller activity.",
+    "modelUnavailable": "This model or reasoning setting is unavailable. Choose Automatic or another available option.",
+    "appServer": "The AI action could not finish. Check the connection in Settings and try again.",
     "authentication": "Reconnect your provider or check the selected connection in Settings → AI providers.",
-    "unsupportedCodexVersion": "Call Nina could not use this Codex installation. Check its status in Settings → AI providers and update or reinstall Codex if needed.",
+    "unsupportedCodexVersion": "Could not use this Codex installation. Check Settings → AI providers and update or reinstall Codex.",
     "rateLimit": "The provider’s usage limit was reached. Check its usage settings before trying again.",
     "cancellation": "The action was cancelled.",
-    "modelOutput": "The AI result was incomplete or unusable. Try again or choose another available model.",
-    "mcp": "The Codex integration could not complete this action. Check its status in Settings → AI providers and install or refresh the integration if needed.",
-    "handoff": "Call Nina could not open the related activity. Check the Codex integration in Settings → AI providers, then try again.",
-    "unsupportedOperation": "This action is unavailable in the current setup. Check Settings → AI providers for supported options.",
+    "modelOutput": "The AI result was incomplete or unusable. Try again or choose another model.",
+    "mcp": "The Codex integration failed. Check Settings → AI providers and install or refresh the integration.",
+    "handoff": "Could not open the activity. Check the Codex integration in Settings → AI providers and try again.",
+    "unsupportedOperation": "This action is unavailable. Check supported options in Settings → AI providers.",
     "dataRootBusy": "Finish or cancel the active AI operation before changing the data folder."
   },
   "ui": {
@@ -1683,10 +1684,7 @@
     "directCatalogNotice": "Listed models and actions are shipped support information. A saved key and model choice only configure local prerequisites; provider access and billing have not been checked.",
     "offlineTitle": "Downloaded model on this device",
     "offlineScope": "Downloading is an explicit, multi-GB download shared by this device, outside your learner folder. Removing it affects every learner root on this device but keeps connection choices and learning records.",
-    "offlineLimits": "Linux x64 supports writing prompts, contextual help, exercise creation and feedback. Model quality and hardware suitability remain provisional.",
-    "offlinePlatform": "Downloads are currently supported only on Linux x64.",
-    "offlineMemory": "This device does not meet the current memory estimate for local inference.",
-    "offlineDiskEstimate": "The full-install disk estimate is low. You may still start or resume; the download checks remaining space under its install lock.",
+    "offlineLimits": "Performance and teaching quality are unverified. Meeting minimum resources does not qualify this model.",
     "offlineProgress": "Downloaded {{downloaded}} of {{total}} GB.",
     "offlineInstall": "Download model",
     "offlineResume": "Resume download",
@@ -1754,7 +1752,15 @@
     "details": "Connection details",
     "chatgptAuth": "Connect or change your ChatGPT account in Settings → AI providers.",
     "chatgptLoginUnavailable": "ChatGPT sign-in is unavailable. Check that secure credential storage is available on this device.",
-    "manage": "Manage connections"
+    "manage": "Manage connections",
+    "offlineMemoryReadout": "RAM: {{total}} GiB total / {{requiredTotal}} required; {{available}} GiB available / {{requiredAvailable}} required.",
+    "offlineDiskReadout": "Storage: {{available}} GiB available / {{required}} GiB estimated additional space required.",
+    "offlineEligibility": {
+      "unsupported-platform": "Local models require Linux x64.",
+      "resources-unknown": "Unable to check resources.",
+      "insufficient-memory": "Not enough memory to run this local model.",
+      "insufficient-disk": "Not enough storage to install or resume this local model."
+    }
   },
   "connections": {
     "title": "AI connection",
@@ -2123,5 +2129,15 @@
     "allLevels": "All levels",
     "read": "Read",
     "empty": "No matching stories."
+  },
+  "feedback": {
+    "notifications": "Notifications",
+    "dismiss": "Dismiss notification",
+    "technicalDetails": "Technical details",
+    "copyReference": "Copy reference",
+    "referenceCopied": "Reference copied",
+    "copyFailed": "Could not copy. Select and copy the reference above.",
+    "policySupport": "If this happens again, share this reference when reporting the problem.",
+    "undoVocabulary": "Undo vocabulary addition"
   }
 }

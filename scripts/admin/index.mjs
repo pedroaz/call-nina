@@ -87,6 +87,7 @@ async function execute(tokens) {
               "004-mobile-sync.sql",
               "005-speech.sql",
               "006-account-tiers.sql",
+              "007-service-availability.sql",
             ],
             operation: "Check supplied PG role permissions and apply missing migrations only",
           }

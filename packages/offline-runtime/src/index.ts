@@ -32,8 +32,9 @@ export class OfflineRuntime {
       downloadBytes,
       errorCode: this.error,
     };
+    let preflight: OfflineSnapshot["preflight"] = null;
     try {
-      const preflight = await this.store.preflight();
+      preflight = await this.store.preflight();
       const installed = await this.store.state();
       const state =
         this.busy === "download"
@@ -50,7 +51,7 @@ export class OfflineRuntime {
         preflight,
       };
     } catch (error) {
-      return { ...base, state: "unavailable", errorCode: safeCode(error), preflight: null };
+      return { ...base, state: "unavailable", errorCode: safeCode(error), preflight };
     }
   }
   // Starts an explicitly requested job and returns immediately. Inspect reports bounded progress.
@@ -68,7 +69,7 @@ export class OfflineRuntime {
         this.phase = phase;
       })
       .catch((error: unknown) => {
-        this.error = controller.signal.aborted ? "OD_OFFLINE_CANCELLED" : safeCode(error);
+        this.error = controller.signal.aborted ? null : safeCode(error);
       })
       .finally(() => {
         this.busy = null;
@@ -94,7 +95,11 @@ export class OfflineRuntime {
       this.busy = null;
     }
   }
-  generate(attempt: LearningAttempt, isActive: () => boolean): Promise<string> {
+  generate(
+    attempt: LearningAttempt,
+    isActive: () => boolean,
+    onRunning?: () => void,
+  ): Promise<string> {
     if (this.busy) fail("BUSY");
     if (!isActive()) fail("INACTIVE");
     this.busy = "generation";
@@ -108,10 +113,12 @@ export class OfflineRuntime {
           signal: AbortSignal.any([controller.signal, ...(attempt.signal ? [attempt.signal] : [])]),
         },
         isActive,
+        onRunning,
       )
       .catch((error: unknown) => {
-        this.error = safeCode(error);
-        throw new Error(this.error);
+        const code = safeCode(error);
+        this.error = controller.signal.aborted || attempt.signal?.aborted ? null : code;
+        throw new Error(code);
       })
       .finally(() => {
         this.busy = null;

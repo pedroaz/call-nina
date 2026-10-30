@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useProviderView } from "./useProviderView.js";
-import { SelectField } from "./components/ui/index.js";
+import { SelectField, Feedback } from "./components/ui/index.js";
 import { invokeDesktop } from "./ipc.js";
 
 export function LiveConversationProvider() {
@@ -42,7 +42,11 @@ export function LiveConversationProvider() {
         <option value="">{t("providers.unassigned")}</option>
         <option value="codex">Codex</option>
       </SelectField>
-      {failed && <p role="alert">{t("settings.saveFailed")}</p>}
+      {failed && (
+        <Feedback tone="error" live="assertive" density="compact">
+          {t("settings.saveFailed")}
+        </Feedback>
+      )}
     </>
   );
 }

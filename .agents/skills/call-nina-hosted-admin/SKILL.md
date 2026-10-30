@@ -5,6 +5,13 @@ description: Maintain Call Nina's hosted API, runtime, authentication, combined 
 
 # Call Nina hosted API and administration
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact. Local deployment may use `make package hosting` followed by pinned Vercel CLI `deploy --prebuilt --prod` against the configured project/team. Supply credentials only through the environment, isolate them from builds, preserve production environment variables, and verify deployment metadata/aliases and authenticated endpoints. Apply required migrations and restricted grants first; never deploy static website output alone.
+<!-- MVP-END -->
+
 Read the development skill for general repository and service-configuration policy. Inspect `apps/api/{deployment.ts,desired.json,api/generate.ts}`, `packages/managed-generation/src/` and `packages/managed-generation/sql/001-budget.sql`. Desktop dispatch lives in `apps/desktop/src/main/backend.ts`. Current source and remote readback establish availability, not a plan or static catalog.
 
 ## Configuration and secrets
@@ -66,6 +73,8 @@ For account operations, provisioning, configuration and deployment, use [nina-ad
 Apply forward migrations `003-ai-access.sql` and `004-mobile-sync.sql`, then reconcile restricted runtime grants before deploying the combined website/account/generation/sync artifact. The account wire contract now exposes `hostedAiEnabled`, `remainingActions` and `inferenceEnabled`; coordinate client updates with deployment, since older clients expect `eligibility`. Migration preserves existing AI balances, grants, budget epochs and reservations. No migration, grant change or deployment is implied by local implementation.
 
 ## Account speech
+
+Account service availability includes the durable database switches and the selected text budget epoch/policy lifetime. Apply forward migration `007-service-availability.sql` and reconcile restricted runtime grants before deploying this account-status implementation. The read-only functions do not admit requests or change funding. Account permissions and balances remain separate from shared service availability.
 
 Speech uses `/api/speech` and Google WaveNet directly, independently of text Gateway routing, AI action balances and learner API keys. Apply forward migration `005-speech.sql` and reconcile runtime grants before activation. Runtime receives only the listed security-definer functions in `nina_speech`; speech has separate enablement, grants and character reservations. New/existing accounts receive no automatic speech grant. Older account responses without speech fields are treated as disabled by the updated client.
 

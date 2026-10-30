@@ -302,6 +302,7 @@
       "grammarEvidence": "Foi concluída uma breve amostra de escolha de artigo.",
       "vocabularyTopic": "Consultas",
       "vocabularyEvidence": "Foi concluída uma amostra sobre o significado de uma palavra cotidiana.",
+      "readingEvidence": "Foi concluída uma breve atividade para encontrar um horário em um aviso.",
       "readingTopic": "Encontrar um horário em um aviso",
       "writingTopic": "Escrita"
     },
@@ -1129,26 +1130,26 @@
     "saveFailed": "Não foi possível salvar. Tente novamente."
   },
   "errors": {
-    "exerciseContextMissing": "Esta atividade não salvou suas configurações de aprendizagem originais. Crie uma nova prática para receber novos comentários ou orientação da IA. Sua atividade, respostas e comentários salvos permanecem inalterados.",
+    "exerciseContextMissing": "As configurações de aprendizagem originais estão ausentes. Crie uma nova prática para receber comentários da IA. As respostas e os comentários salvos não mudam.",
     "boundaryTitle": "Não foi possível exibir esta tela",
     "boundaryBody": "Ocorreu um erro inesperado nesta tela. Tente abri-la novamente. Talvez seja necessário digitar de novo o que ainda não foi salvo.",
-    "validation": "Algumas informações são inválidas ou estão incompletas. Confira os campos obrigatórios e tente novamente.",
-    "notFound": "Este item não está mais disponível. Reabra a lista e escolha outro item.",
-    "conflict": "Este item mudou antes de a ação terminar. Reabra-o para carregar a versão atual e tente novamente.",
-    "staleDataRoot": "A pasta de aprendizagem selecionada mudou. Reabra esta tela antes de tentar novamente.",
-    "database": "O Call Nina não conseguiu ler ou salvar os dados locais de aprendizagem. Confira a pasta em Configurações → Dados e privacidade e tente novamente.",
-    "aiPolicy": "O Call Nina interrompeu esta ação de IA porque encontrou uma operação fora do fluxo de aprendizagem permitido. Tente mais uma vez. Se acontecer novamente, informe a referência de diagnóstico.",
-    "aiTimeout": "A solicitação de IA não terminou dentro do prazo. Tente uma solicitação mais curta ou uma atividade menor.",
-    "modelUnavailable": "O modelo ou esforço de raciocínio selecionado está indisponível. Escolha Automático ou outra opção disponível no seletor de modelos e tente novamente.",
-    "appServer": "A ação de IA não foi concluída. Verifique a conexão selecionada nas configurações e tente novamente.",
+    "validation": "Confira os campos obrigatórios e tente novamente.",
+    "notFound": "Este item não está mais disponível. Escolha outro na lista.",
+    "conflict": "Este item mudou. Abra-o novamente e tente outra vez.",
+    "staleDataRoot": "A pasta de aprendizagem mudou. Abra esta tela novamente e tente outra vez.",
+    "database": "Não foi possível ler ou salvar os dados de aprendizagem. Confira a pasta em Configurações → Dados e privacidade.",
+    "aiPolicy": "A ação de IA foi interrompida porque tentou uma operação não compatível. Tente mais uma vez.",
+    "aiTimeout": "A solicitação de IA demorou demais. Tente uma solicitação mais curta ou uma atividade menor.",
+    "modelUnavailable": "Este modelo ou esforço de raciocínio está indisponível. Escolha Automático ou outra opção disponível.",
+    "appServer": "A ação de IA não foi concluída. Confira a conexão nas configurações e tente novamente.",
     "authentication": "Reconecte seu provedor ou confira a conexão selecionada em Configurações → Provedores de IA.",
-    "unsupportedCodexVersion": "O Call Nina não conseguiu usar esta instalação do Codex. Confira o estado em Configurações → Provedores de IA e atualize ou reinstale o Codex, se necessário.",
+    "unsupportedCodexVersion": "Não foi possível usar esta instalação do Codex. Confira Configurações → Provedores de IA e atualize ou reinstale o Codex.",
     "rateLimit": "O limite de uso do provedor foi atingido. Verifique as configurações de uso antes de tentar novamente.",
     "cancellation": "A ação foi cancelada.",
-    "modelOutput": "O resultado da IA estava incompleto ou inválido. Tente novamente ou escolha outro modelo disponível.",
-    "mcp": "A integração com o Codex não conseguiu concluir esta ação. Confira o estado em Configurações → Provedores de IA e instale ou atualize a integração, se necessário.",
-    "handoff": "O Call Nina não conseguiu abrir a atividade relacionada. Confira a integração com o Codex em Configurações → Provedores de IA e tente novamente.",
-    "unsupportedOperation": "Esta ação está indisponível na configuração atual. Veja as opções disponíveis em Configurações → Provedores de IA.",
+    "modelOutput": "O resultado da IA estava incompleto ou inválido. Tente novamente ou escolha outro modelo.",
+    "mcp": "A integração com o Codex falhou. Confira Configurações → Provedores de IA e instale ou atualize a integração.",
+    "handoff": "Não foi possível abrir a atividade. Confira a integração com o Codex em Configurações → Provedores de IA e tente novamente.",
+    "unsupportedOperation": "Esta ação está indisponível. Veja as opções compatíveis em Configurações → Provedores de IA.",
     "dataRootBusy": "Conclua ou cancele a operação de IA ativa antes de mudar a pasta de dados."
   },
   "ui": {
@@ -1683,10 +1684,7 @@
     "directCatalogNotice": "Os modelos e as ações listados vêm da compatibilidade incluída no aplicativo. Salvar uma chave e escolher um modelo configura apenas requisitos locais; o acesso e a cobrança não foram verificados.",
     "offlineTitle": "Modelo baixado neste dispositivo",
     "offlineScope": "O download exige sua escolha explícita, ocupa vários GB e é compartilhado neste dispositivo fora da pasta de estudos. A remoção afeta todas as pastas de estudos neste dispositivo; conexões e dados de aprendizagem permanecem.",
-    "offlineLimits": "Linux x64 oferece propostas de escrita, ajuda contextual, criação de exercícios e feedback. A qualidade do modelo e a adequação do hardware ainda são provisórias.",
-    "offlinePlatform": "Por enquanto, downloads são aceitos somente no Linux x64.",
-    "offlineMemory": "Este dispositivo não atende à estimativa atual de memória para IA local.",
-    "offlineDiskEstimate": "A estimativa de espaço para a instalação completa é insuficiente. Você ainda pode iniciar ou retomar; o download verifica o espaço restante sob o bloqueio de instalação.",
+    "offlineLimits": "O desempenho e a qualidade de ensino não foram verificados. Atender aos requisitos mínimos não garante a adequação do modelo.",
     "offlineProgress": "Baixados {{downloaded}} de {{total}} GB.",
     "offlineInstall": "Baixar modelo",
     "offlineResume": "Retomar download",
@@ -1754,7 +1752,15 @@
     "details": "Detalhes da conexão",
     "chatgptAuth": "Conecte ou troque sua conta do ChatGPT em Configurações → Provedores de IA.",
     "chatgptLoginUnavailable": "O login do ChatGPT está indisponível. Verifique se há armazenamento seguro de credenciais neste dispositivo.",
-    "manage": "Gerenciar conexões"
+    "manage": "Gerenciar conexões",
+    "offlineMemoryReadout": "RAM: {{total}} GiB no total / {{requiredTotal}} necessários; {{available}} GiB disponíveis / {{requiredAvailable}} necessários.",
+    "offlineDiskReadout": "Armazenamento: {{available}} GiB disponíveis / estimativa de {{required}} GiB adicionais necessários.",
+    "offlineEligibility": {
+      "unsupported-platform": "Modelos locais exigem Linux x64.",
+      "resources-unknown": "Não foi possível verificar os recursos.",
+      "insufficient-memory": "Não há memória suficiente para executar este modelo local.",
+      "insufficient-disk": "Não há espaço suficiente para instalar este modelo local ou retomar o download."
+    }
   },
   "connections": {
     "title": "Conexão de IA",
@@ -2123,5 +2129,15 @@
     "allLevels": "Todos os níveis",
     "read": "Ler",
     "empty": "Nenhum conto encontrado."
+  },
+  "feedback": {
+    "notifications": "Notificações",
+    "dismiss": "Fechar notificação",
+    "technicalDetails": "Detalhes técnicos",
+    "copyReference": "Copiar referência",
+    "referenceCopied": "Referência copiada",
+    "copyFailed": "Não foi possível copiar. Selecione e copie a referência acima.",
+    "policySupport": "Se acontecer novamente, inclua esta referência ao relatar o problema.",
+    "undoVocabulary": "Desfazer adição de vocabulário"
   }
 }

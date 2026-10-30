@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { useNotifications } from "./components/ui/index.js";
 import {
   translationRevealSchema,
   type CorrelationId,
@@ -9,12 +11,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createDesktopSubmissionId, invokeDesktop, normalizeDesktopError } from "./ipc.js";
 
 export function useFlashcardSession(activityId: ActivityId) {
+  const { t } = useTranslation();
+  const { notify } = useNotifications();
   const [deck, setDeck] = useState<FlashcardDeck>();
   const [flipped, setFlipped] = useState(false);
   const [revealId, setRevealId] = useState<CorrelationId>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<CallNinaError>();
-  const [notice, setNotice] = useState(false);
   const locked = useRef(false);
   const version = useRef(0);
   const shortcutKeys = useRef(new Set<string>());
@@ -75,19 +78,20 @@ export function useFlashcardSession(activityId: ActivityId) {
       });
       setFlipped(false);
       setRevealId(undefined);
-      setNotice(false);
       return result;
     });
   };
   const save = (positions: number[]) => {
     if (!deck) return;
+    const current = version.current;
     void mutate(async () => {
       const result = await invokeDesktop("flashcards/save-vocabulary", {
         activityId,
         rootGeneration: deck.rootGeneration,
         positions,
       });
-      setNotice(true);
+      if (version.current === current)
+        notify({ message: t("flashcards.saveNotice"), tone: "success" });
       return result;
     });
   };
@@ -193,5 +197,5 @@ export function useFlashcardSession(activityId: ActivityId) {
   });
   const card = deck?.content.cards[deck.progress.position];
   const saved = deck?.vocabulary.find((item) => item.position === deck.progress.position);
-  return { deck, card, saved, flipped, busy, error, notice, load, move, save, flip, setError };
+  return { deck, card, saved, flipped, busy, error, load, move, save, flip, setError };
 }

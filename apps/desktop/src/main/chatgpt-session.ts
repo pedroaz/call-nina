@@ -92,6 +92,8 @@ export class ChatgptError extends Error {
   }
 }
 export function chatgptFailure(status: number, code?: string): ChatgptError {
+  if (code === "invalid_json_schema")
+    return new ChatgptError("app-server", "OD_CHATGPT_SCHEMA_REJECTED");
   if (code === "subscription_sharing_usage_limit_exceeded" || status === 429)
     return new ChatgptError("rate-limit", "OD_CHATGPT_USAGE_LIMIT");
   if (

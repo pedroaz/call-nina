@@ -5,6 +5,13 @@ description: Research multilingual A1-B2 curriculum gaps, assess sources and fre
 
 # Curriculum Research
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is an MVP. For maintainer-directed repository development, the repository MVP policy permits local iteration and direct hosted deployment without the full release process. This learner-facing skill does not itself authorize infrastructure or account administration; use the repository development/admin skills for that work. Keep teaching quality, learner intent, explicit save confirmation and credential boundaries unchanged.
+<!-- MVP-END -->
+
 Complete the requested curriculum research and authoring task, including publication into the repository when it is accessible. No separate human review or approval is required. Honor an explicit research-only or draft-only request. Quality checks are the agent's responsibility; do not claim external pedagogical approval.
 
 ## Establish scope and implementation

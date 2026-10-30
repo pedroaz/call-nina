@@ -46,7 +46,7 @@ export function FlashcardWorkspace({
   onNina: () => void;
 }) {
   const { t } = useTranslation();
-  const { deck, card, saved, flipped, busy, error, notice, load, move, save, flip, setError } =
+  const { deck, card, saved, flipped, busy, error, load, move, save, flip, setError } =
     useFlashcardSession(activityId);
   const allSaved =
     deck &&
@@ -121,7 +121,6 @@ export function FlashcardWorkspace({
               {saved?.status === "suspended" && (
                 <Feedback live="polite">{t("flashcards.suspended")}</Feedback>
               )}
-              {notice && <Feedback live="polite">{t("flashcards.saveNotice")}</Feedback>}
             </>
           }
           footer={

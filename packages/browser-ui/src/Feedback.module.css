@@ -3,8 +3,11 @@
   border: var(--od-border-thin) solid var(--od-color-border-default);
   border-radius: var(--od-radius-md);
   display: flex;
-  gap: var(--od-space-4);
+  gap: var(--od-space-3);
   padding: var(--od-space-4) var(--od-space-5);
+  color: var(--od-color-text-strong);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
 }
 
 .feedback p:first-child,
@@ -17,34 +20,65 @@
   margin-bottom: 0;
 }
 
-.feedback svg {
+.feedback > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.icon {
   flex: none;
   height: var(--od-icon-md, 1.25rem);
-  margin-top: var(--od-space-2);
   width: var(--od-icon-md, 1.25rem);
 }
 
 .info {
-  background: var(--od-color-surface-brand);
-  border-color: var(--od-color-brand-ink);
-  color: var(--od-color-text-strong);
+  background: var(--od-color-surface-sunken);
 }
 
 .success {
-  background: var(--od-color-state-correct-soft);
-  border-color: var(--od-color-state-correct);
+  background: color-mix(
+    in srgb,
+    var(--od-color-state-correct-soft) 35%,
+    var(--od-color-surface-card)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--od-color-state-correct) 25%,
+    var(--od-color-border-default)
+  );
+}
+
+.success > .icon {
   color: var(--od-color-state-correct);
 }
 
 .warning {
-  background: var(--od-color-state-streak-soft);
-  border-color: var(--od-color-state-streak);
+  background: color-mix(
+    in srgb,
+    var(--od-color-state-streak-soft) 35%,
+    var(--od-color-surface-card)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--od-color-state-streak) 25%,
+    var(--od-color-border-default)
+  );
+}
+
+.warning > .icon {
   color: var(--od-color-state-streak);
 }
 
 .error {
-  background: var(--od-color-state-wrong-soft);
-  border-color: var(--od-color-state-wrong);
+  background: color-mix(
+    in srgb,
+    var(--od-color-state-wrong-soft) 30%,
+    var(--od-color-surface-card)
+  );
+  border-color: color-mix(in srgb, var(--od-color-state-wrong) 25%, var(--od-color-border-default));
+}
+
+.error > .icon {
   color: var(--od-color-state-wrong);
 }
 

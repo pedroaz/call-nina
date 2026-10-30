@@ -10,12 +10,25 @@ export const offlineOperationSchema = z.enum([
 ]);
 export const offlinePreflightSchema = z.strictObject({
   platformSupported: z.boolean(),
-  totalMemoryBytes: z.int().nonnegative(),
-  freeMemoryBytes: z.int().nonnegative(),
+  totalMemoryBytes: z.int().nonnegative().nullable(),
+  freeMemoryBytes: z.int().nonnegative().nullable(),
   availableDiskBytes: z.int().nonnegative().nullable(),
   requiredDiskBytes: z.int().nonnegative(),
   memorySufficient: z.boolean(),
   diskSufficient: z.boolean(),
+  generationEligibility: z.enum([
+    "ready",
+    "unsupported-platform",
+    "resources-unknown",
+    "insufficient-memory",
+  ]),
+  installationEligibility: z.enum([
+    "ready",
+    "unsupported-platform",
+    "resources-unknown",
+    "insufficient-memory",
+    "insufficient-disk",
+  ]),
   hardwareVerified: z.literal(false),
 });
 export const offlineSnapshotSchema = z.strictObject({

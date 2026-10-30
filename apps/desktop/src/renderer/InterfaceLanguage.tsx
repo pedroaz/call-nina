@@ -1,3 +1,4 @@
+import { Feedback } from "./components/ui/index.js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Language } from "@call-nina/contracts";
@@ -33,7 +34,11 @@ export function InterfaceLanguage() {
         disabled={busy}
         onChange={(language) => void change(language)}
       />
-      {failed && <p role="alert">{t("settings.saveFailed")}</p>}
+      {failed && (
+        <Feedback tone="error" live="assertive" density="compact">
+          {t("settings.saveFailed")}
+        </Feedback>
+      )}
     </div>
   );
 }

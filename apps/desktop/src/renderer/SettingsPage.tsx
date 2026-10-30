@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { LiveConversationProvider } from "./LiveConversationProvider.js";
 import { PersonalDataPage } from "./PersonalDataPage.js";
 import { SettingsRow } from "./SettingsRow.js";
@@ -23,9 +24,9 @@ import { useTranslation } from "react-i18next";
 import {
   Tabs,
   InfoHint,
-  DiagnosticCode,
   Button,
   Feedback,
+  useNotifications,
   SelectField,
   LoadingState,
   ItemList,
@@ -80,20 +81,6 @@ const dataRootWarningKeys = {
   "integration-restart-required": "folder.warningRestart",
 } as const;
 
-function SettingsError({ error }: { error: CallNinaError }) {
-  const { t } = useTranslation();
-  return (
-    <Feedback live="assertive" tone="error">
-      <div>
-        <p>{t(error.messageKey)}</p>
-        <DiagnosticCode>
-          {t("startup.diagnostic")}: {error.reference.code} · {error.reference.correlationId}
-        </DiagnosticCode>
-      </div>
-    </Feedback>
-  );
-}
-
 export function SettingsPage({
   readiness,
   onRunSetup,
@@ -115,6 +102,7 @@ export function SettingsPage({
   onDataRootChanged?: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
+  const { notify } = useNotifications();
   const [folderOpen, setFolderOpen] = useState(false);
   const [technicalOpen, setTechnicalOpen] = useState(false);
   const [integrationOpen, setIntegrationOpen] = useState(false);
@@ -127,6 +115,7 @@ export function SettingsPage({
   const [draft, setDraft] = useState<DesktopSettingsValue>();
   const lastPersisted = useRef<DesktopSettingsResult | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [connectionRefresh, setConnectionRefresh] = useState(0);
   const [busy, setBusy] = useState(false);
   const [connectionPending, setConnectionPending] = useState(false);
   const [error, setError] = useState<CallNinaError>();
@@ -199,6 +188,7 @@ export function SettingsPage({
       setError(normalizeDesktopError(cause).detail);
     } finally {
       setLoading(false);
+      setConnectionRefresh((value) => value + 1);
     }
     // Provider failures cannot prevent local settings from loading.
     void refreshIntegration();
@@ -250,7 +240,7 @@ export function SettingsPage({
       setPersisted(next);
       setDraft(next.settings);
       await i18n.changeLanguage(next.settings.uiLocale);
-      setNotice(i18n.t("settings.saved"));
+      notify({ message: i18n.t("settings.saved"), tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -279,7 +269,7 @@ export function SettingsPage({
       setPersisted(next);
       setDraft(next.settings);
       onLearningLanguageChange?.(next.settings.learningScope.targetLanguage);
-      setNotice(t("settings.languageSelected"));
+      notify({ message: t("settings.languageSelected"), tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -312,7 +302,7 @@ export function SettingsPage({
     try {
       setAccount(await invokeDesktop("chatgpt/account/logout", {}));
       void refreshRuntime();
-      setNotice(t("settings.loggedOut"));
+      notify({ message: t("settings.loggedOut"), tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
       void refreshRuntime();
@@ -408,7 +398,10 @@ export function SettingsPage({
     try {
       const result = await invokeDesktop("logs/clear", {});
       setDiagnostics((current) => (current ? { ...current, logFileCount: 0 } : current));
-      setNotice(t("settings.logsCleared", { count: result.clearedFileCount }));
+      notify({
+        message: t("settings.logsCleared", { count: result.clearedFileCount }),
+        tone: "success",
+      });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -421,7 +414,8 @@ export function SettingsPage({
     setError(undefined);
     try {
       const result: DiagnosticsExport = await invokeDesktop("diagnostics/export", {});
-      if (result.status === "exported") setNotice(t("settings.diagnosticsExported", result));
+      if (result.status === "exported")
+        notify({ message: t("settings.diagnosticsExported", result), tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -455,12 +449,8 @@ export function SettingsPage({
       }}
     >
       {loading && <LoadingState live>{t("settings.loading")}</LoadingState>}
-      {error && <SettingsError error={error} />}
-      {notice && (
-        <Feedback live="polite" tone="success">
-          {notice}
-        </Feedback>
-      )}
+      {error && <OperationError error={error} />}
+      {notice && <Feedback live="polite">{notice}</Feedback>}
 
       <Tabs
         selectedKey={selectedTab === "speech" ? "ai" : selectedTab}
@@ -495,6 +485,7 @@ export function SettingsPage({
               <div className={styles.aiSetup}>
                 <Section className={styles.aiConnections} aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
+                    refreshKey={connectionRefresh}
                     surface={false}
                     active={selectedTab === "ai" || selectedTab === "speech"}
                     disabled={busy || Boolean(loginId)}

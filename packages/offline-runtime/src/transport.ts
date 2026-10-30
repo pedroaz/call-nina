@@ -19,6 +19,8 @@ import {
   writeNew,
 } from "./files.js";
 import { type ArtifactStore } from "./store.js";
+import { assertOfflineEligibility } from "./resources.js";
+import { localOutputSchema } from "./schema.js";
 
 function localRequest(
   socketPath: string,
@@ -136,7 +138,11 @@ export class OfflineTransport {
     })();
     return this.stopping;
   }
-  async generate(attempt: LearningAttempt, active: () => boolean): Promise<string> {
+  async generate(
+    attempt: LearningAttempt,
+    active: () => boolean,
+    onRunning?: () => void,
+  ): Promise<string> {
     if (!active()) fail("INACTIVE");
     if (this.child) fail("BUSY");
     if (attempt.image) fail("INPUT_UNSUPPORTED");
@@ -146,10 +152,14 @@ export class OfflineTransport {
       AbortSignal.timeout(budget),
       ...(attempt.signal ? [attempt.signal] : []),
     ]);
+    const outputSchema = localOutputSchema(attempt.outputSchema);
     const body = JSON.stringify({
       model: offlineCandidate.modelId,
       messages: [
-        { role: "system", content: `${attempt.instructions}\n${attempt.teachingInstructions}` },
+        {
+          role: "system",
+          content: `${attempt.instructions}\n${attempt.teachingInstructions}\nReturn JSON matching this output schema.\n${JSON.stringify(outputSchema)}`,
+        },
         { role: "user", content: attempt.prompt },
       ],
       response_format: {
@@ -157,18 +167,23 @@ export class OfflineTransport {
         json_schema: {
           name: "nina_learning_result",
           strict: true,
-          schema: attempt.outputSchema,
+          schema: outputSchema,
         },
       },
       max_tokens: offlineCandidate.outputTokens,
-      temperature: 0.2,
+      // Qwen3.5's published non-thinking, general-task sampling settings.
+      temperature: 0.7,
+      top_p: 0.8,
+      top_k: 20,
+      min_p: 0,
+      presence_penalty: 1.5,
+      repeat_penalty: 1,
       stream: false,
       cache_prompt: false,
     });
     if (Buffer.byteLength(body) > 64 * 1024) fail("INPUT_TOO_LARGE");
     const flight = await this.store.preflight();
-    if (!flight.platformSupported) fail("PLATFORM_UNSUPPORTED");
-    if (!flight.memorySufficient) fail("MEMORY_INSUFFICIENT");
+    assertOfflineEligibility(flight.generationEligibility);
     const lock = await acquire(this.store.root);
     const session = path.join(this.store.root, "session");
     let spawned = false;
@@ -290,6 +305,11 @@ export class OfflineTransport {
           await delay(200, undefined, { signal });
         }
         if (!active()) fail("INACTIVE");
+        try {
+          onRunning?.();
+        } catch {
+          /* Progress observers cannot alter inference settlement. */
+        }
         const result = completionSchema.parse(
           await localRequest(socket, key, "/v1/chat/completions", body, signal),
         );

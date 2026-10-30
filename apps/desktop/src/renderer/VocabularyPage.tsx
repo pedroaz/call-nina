@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import type { SavedResultsScope } from "./savedResultsTypes.js";
 import { VocabularyLearning } from "./VocabularyLearning.js";
 import tableStyles from "./components/layout/Table.module.css";
@@ -98,7 +99,6 @@ function VocabularyWorkspace({
     return () => onLanguageSwitchBlockedChange?.(false);
   }, [languageSwitchBlocked, onLanguageSwitchBlockedChange]);
   const [error, setError] = useState<CallNinaError>();
-  const [notice, setNotice] = useState("");
   const operation = useRef(0);
   const locked = useRef(false);
   const reviewButton = useRef<HTMLButtonElement>(null);
@@ -163,7 +163,6 @@ function VocabularyWorkspace({
         setDetailId(undefined);
         setReviewing(false);
         setError(undefined);
-        setNotice("");
       }
     });
     return () => {
@@ -182,7 +181,6 @@ function VocabularyWorkspace({
     const current = operation.current;
     setBusy(true);
     setError(undefined);
-    setNotice("");
     try {
       await action();
       if (current !== operation.current) return;
@@ -280,16 +278,7 @@ function VocabularyWorkspace({
             setReviewing(true);
           }}
         >
-          {visibleError && (
-            <Feedback tone="error" live="assertive">
-              {t(visibleError.messageKey)}
-            </Feedback>
-          )}
-          {notice && (
-            <Feedback tone="success" live="polite">
-              {notice}
-            </Feedback>
-          )}
+          {visibleError && <OperationError error={visibleError} />}
           <div className={styles.library}>
             {result?.counts.all === 0 && <p>{t("vocabulary.flow.emptyLibrary")}</p>}
             {result && result.counts.candidate > 0 && (
