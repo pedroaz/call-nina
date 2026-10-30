@@ -5,13 +5,6 @@ description: Implement or review Call Nina Electron renderer UI, including React
 
 # Call Nina desktop UI
 
-<!-- MVP-BEGIN -->
-
-## MVP mode (temporary)
-
-Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact.
-<!-- MVP-END -->
-
 Inspect the real renderer and current styles before changing a screen. Repository-relative starting points are `apps/desktop/src/renderer/App.tsx`, the affected feature component, `components/ui/`, `components/layout/`, `styles/tokens.css`, `styles/global.css`, and the locale resources under `locales/`. Follow hooks and contracts to establish behavior; no separate design inventory establishes what is implemented.
 
 For visual design, layout, polish or UX changes, also use the available `impeccable:impeccable` skill and its relevant workflow. Resolve its location through the session skill catalog rather than a pinned plugin-cache path. Apply it within Call Nina’s existing visual language and shared components; it does not authorize replacing the app’s theme or overriding the user’s verification boundaries. Pure behavior fixes without presentation changes do not need a separate design workflow.
@@ -80,4 +73,4 @@ AI providers groups Exercise AI, Audio and Live Conversation. Exercise AI names 
 
 Settings and onboarding copy must stay minimal: labels, current values, essential errors and explicit destructive consequences. Do not add reassurance, account/provider explanations, implementation descriptions, duplicate status paragraphs, or save/discard reminder banners. Put genuinely optional help behind an intentional help control. Opening a dialog must not insert content or shift the underlying page. Provider setup remains accessible when disconnected; routing selection requires usable connection access as well as model support.
 
-Short stories use the learning-library catalog and reading layout, with paragraph navigation, local position persistence, curated vocabulary and existing speech controls. Stories and learning paths are prepared content available without an account. The sidebar footer groups Settings and compact Languages and AI & Audio popover triggers. The Languages trigger shows learning and interface languages and opens their existing independent controls in an anchored popover; share navigation icon slots and text gutters, preserve language-switch guards, and unmount the popover when navigation collapses. Language changes preserve active drafts.
+Short stories use the learning-library catalog and reading layout, with paragraph navigation, local position persistence, curated vocabulary and existing speech controls. Stories and learning paths are prepared content available without an account. The sidebar footer groups the Nina account widget above Settings and compact Languages and AI & Audio popover triggers. The account widget remains available in collapsed navigation and shares one retained account dialog with Mobile and provider settings; account access stays optional and distinct from provider routing. The Languages trigger shows learning and interface languages and opens their existing independent controls in an anchored popover; share navigation icon slots and text gutters, preserve language-switch guards, and unmount the popover when navigation collapses. Language changes preserve active drafts.

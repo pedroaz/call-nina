@@ -20,12 +20,8 @@ export const activeDeploymentSchema = z.strictObject({
   policy: servicePolicySchema,
 });
 export function selectedDeployment(environment: NodeJS.ProcessEnv) {
-  if (
-    environment["VERCEL"] !== "1" ||
-    !["preview", "production"].includes(environment["VERCEL_ENV"] ?? "")
-  )
-    return null;
-  const name = environment["VERCEL_ENV"] as "preview" | "production";
+  const name = deploymentEnvironment(environment);
+  if (environment["VERCEL"] !== "1" || !name) return null;
   const parsed = activeDeploymentSchema.safeParse(desired[name]);
   if (!parsed.success) return null;
   const value = parsed.data;
@@ -41,16 +37,26 @@ export function selectedDeployment(environment: NodeJS.ProcessEnv) {
 }
 
 const infrastructureSchema = z.object({
-  environment: z.enum(["preview", "production"]),
+  environment: z.enum(["dev", "prd"]),
   projectId: z.string(),
   teamId: z.string(),
   origin: z.url(),
   clerkIssuer: z.url(),
   allowedOrigins: z.array(z.string()).min(1),
 });
+function deploymentEnvironment(environment: NodeJS.ProcessEnv) {
+  switch (environment["VERCEL_ENV"]) {
+    case "preview":
+      return "dev";
+    case "production":
+      return "prd";
+    default:
+      return null;
+  }
+}
 export function accountDeployment(environment: NodeJS.ProcessEnv) {
-  const name = environment["VERCEL_ENV"];
-  if (name !== "preview" && name !== "production") return null;
+  const name = deploymentEnvironment(environment);
+  if (!name) return null;
   const parsed = infrastructureSchema.safeParse(infrastructure[name]);
   if (
     !parsed.success ||

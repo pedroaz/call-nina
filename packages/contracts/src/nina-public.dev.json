@@ -1,5 +1,5 @@
 {
-  "environment": "preview",
+  "environment": "dev",
   "publishableKey": "pk_test_cmVhZHktbWVlcmthdC0xNTEwLmNsZXJrLmFjY291bnRzLmRldiQ",
   "serviceOrigin": "https://staging.callnina.de",
   "modelId": null

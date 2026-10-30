@@ -501,6 +501,17 @@ declare module "*SettingsRow.module.css" {
   export default styles;
 }
 
+declare module "*SidebarAccount.module.css" {
+  const styles: {
+    readonly collapsed: string;
+    readonly copy: string;
+    readonly hiddenLabel: string;
+    readonly status: string;
+    readonly trigger: string;
+  };
+  export default styles;
+}
+
 declare module "*SidebarLanguages.module.css" {
   const styles: {
     readonly copy: string;

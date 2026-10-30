@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { parseArgs } from "node:util";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { hostingEnvironment } from "../lib/hosting-environment.mjs";
 import { chmod, lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
@@ -235,6 +236,7 @@ async function serve(resume = false) {
   }
   await rm(socketPath, { force: true });
   await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
+  process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "dev");
   await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
   if (barrier.mode === "manual") assertVerificationBarrier();
   const session = new VerificationSession(

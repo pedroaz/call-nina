@@ -1,8 +1,8 @@
 {
-  "preview": {
+  "dev": {
     "enabled": false
   },
-  "production": {
+  "prd": {
     "enabled": false
   }
 }

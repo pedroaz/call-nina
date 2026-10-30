@@ -41,7 +41,7 @@ export async function linkExisting(yes) {
   selected.clerkIssuer = issuer.origin;
   const key = /^(pk_(test|live)_)([A-Za-z0-9=]+)$/.exec(selected.publishableKey ?? "");
   if (!key) throw new ControlError("Invalid publishable key");
-  if (key[2] !== (environment === "production" ? "live" : "test"))
+  if (key[2] !== (environment === "prd" ? "live" : "test"))
     throw new ControlError("Clerk key does not match the selected environment");
   if (Buffer.from(key[3], "base64").toString("utf8") !== `${issuer.host}$`)
     throw new ControlError("Publishable key does not match the Clerk issuer URL");

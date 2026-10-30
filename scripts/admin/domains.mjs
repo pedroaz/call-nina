@@ -4,8 +4,8 @@ import { confirm } from "./review.mjs";
 
 export async function setupDomains(yes) {
   await project();
-  const apex = new URL(infrastructure.production.origin).hostname;
-  const staging = new URL(infrastructure.preview.origin).hostname;
+  const apex = new URL(infrastructure.prd.origin).hostname;
+  const staging = new URL(infrastructure.dev.origin).hostname;
   const desired = [
     { name: apex, gitBranch: null, redirect: null },
     { name: `www.${apex}`, gitBranch: null, redirect: apex, redirectStatusCode: 308 },

@@ -1901,6 +1901,10 @@
     "writingViews": "Visualizações de escrita"
   },
   "ninaAccount": {
+    "manageAccount": "Gerenciar conta",
+    "checking": "Verificando conta…",
+    "widgetSignedIn": "Conectado",
+    "statusUnavailable": "Status indisponível",
     "signInAgain": "Entrar novamente",
     "title": "Conta Nina",
     "description": "Entre para usar a IA financiada pela Nina. Suas conexões pessoais de IA funcionam de forma independente.",

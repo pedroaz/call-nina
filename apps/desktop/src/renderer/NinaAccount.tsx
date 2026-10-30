@@ -1,4 +1,4 @@
-import { Clock3, CircleAlert } from "lucide-react";
+import { Clock3, CircleAlert, UserRound } from "lucide-react";
 import { Disclosure } from "./components/ui/Disclosure.js";
 import {
   ClerkProvider,
@@ -17,7 +17,14 @@ import {
 } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import { invokeDesktop } from "./ipc.js";
-import { Button, TextField, CheckboxField, Muted, DiagnosticCode } from "./components/ui/index.js";
+import {
+  Button,
+  TextField,
+  CheckboxField,
+  Muted,
+  DiagnosticCode,
+  ModalDialog,
+} from "./components/ui/index.js";
 import { ActionGroup, Section } from "./components/layout/index.js";
 import styles from "./SettingsPage.module.css";
 
@@ -37,18 +44,31 @@ let changingAccount = false;
 function accountTransition(changing: boolean) {
   changingAccount = changing;
   transitionVersion++;
-  if (!changing) window.dispatchEvent(new Event(syncEvent));
+  window.dispatchEvent(new Event(syncEvent));
 }
 const AccountContext = createContext<NinaAccountState>({ status: "signed-out", access: null });
 const AccountIdentityContext = createContext<{
   loaded: boolean;
   signedIn: boolean;
   pending: boolean;
+  username: string | null;
+  ready: boolean;
+  changing: boolean;
 }>({
   loaded: true,
   signedIn: false,
   pending: false,
+  username: null,
+  ready: true,
+  changing: false,
 });
+const AccountDialogContext = createContext<{ open: () => void; isOpen: boolean } | null>(null);
+
+export function useNinaAccountDialog() {
+  const dialog = useContext(AccountDialogContext);
+  if (!dialog) throw new Error("OD_NINA_ACCOUNT_DIALOG_MISSING");
+  return dialog;
+}
 export function useNinaAccountState() {
   const account = useContext(AccountContext);
   const identity = useContext(AccountIdentityContext);
@@ -58,12 +78,24 @@ function SessionObserver({ children }: { children: ReactNode }) {
   const { user, isLoaded: identityLoaded } = useUser();
   const { isLoaded, session } = useSession();
   const [state, setState] = useState<NinaAccountState>({ status: "signed-out", access: null });
+  const [synchronizedSession, setSynchronizedSession] = useState<string | null>();
+  const [changing, setChanging] = useState(changingAccount);
   useEffect(() => {
     let cancelled = false;
     let running = false;
+    let queued = false;
     const isCurrent = (version: number) => !cancelled && version === transitionVersion;
+    const accept = (next: NinaAccountState, version: number) => {
+      if (!isCurrent(version)) return;
+      setState(next);
+      setSynchronizedSession(session?.id ?? null);
+    };
     const sync = async () => {
-      if (running || !isLoaded || changingAccount) return;
+      if (cancelled || !isLoaded || changingAccount) return;
+      if (running) {
+        queued = true;
+        return;
+      }
       const version = transitionVersion;
       running = true;
       try {
@@ -72,7 +104,7 @@ function SessionObserver({ children }: { children: ReactNode }) {
             status: "signing-in",
             token: null,
           });
-          if (isCurrent(version)) setState(next);
+          accept(next, version);
           return;
         }
         let timer: ReturnType<typeof setTimeout> | undefined;
@@ -92,38 +124,53 @@ function SessionObserver({ children }: { children: ReactNode }) {
           status: token ? "signed-in" : "signed-out",
           token,
         });
-        if (isCurrent(version)) setState(result);
+        accept(result, version);
       } catch {
         if (isCurrent(version)) {
-          setState({ status: "unavailable", access: null });
+          accept({ status: "unavailable", access: null }, version);
           await invokeDesktop("nina-account/update", { status: "unavailable", token: null }).catch(
             () => undefined,
           );
         }
       } finally {
         running = false;
+        if (queued) {
+          queued = false;
+          void sync();
+        }
       }
     };
     void sync();
     const timer = window.setInterval(() => void sync(), 30000);
     const onSync = () => {
+      setChanging(changingAccount);
       void sync();
     };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") onSync();
+    };
     window.addEventListener("focus", onSync);
+    window.addEventListener("online", onSync);
+    document.addEventListener("visibilitychange", onVisible);
     window.addEventListener(syncEvent, onSync);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
       window.removeEventListener("focus", onSync);
+      window.removeEventListener("online", onSync);
+      document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener(syncEvent, onSync);
     };
   }, [isLoaded, session, session?.status]);
   return (
     <AccountIdentityContext.Provider
       value={{
-        loaded: identityLoaded,
+        loaded: identityLoaded && isLoaded,
         signedIn: Boolean(user),
         pending: session?.status === "pending",
+        username: user?.username ?? null,
+        ready: synchronizedSession === (session?.id ?? null),
+        changing,
       }}
     >
       <AccountContext.Provider value={state}>{children}</AccountContext.Provider>
@@ -131,7 +178,8 @@ function SessionObserver({ children }: { children: ReactNode }) {
   );
 }
 export function NinaAccountProvider({ children }: { children: ReactNode }) {
-  if (!ninaPublicConfiguration.publishableKey) return children;
+  if (!ninaPublicConfiguration.publishableKey)
+    return <AccountDialogProvider>{children}</AccountDialogProvider>;
   return (
     <ClerkProvider
       publishableKey={ninaPublicConfiguration.publishableKey}
@@ -139,19 +187,52 @@ export function NinaAccountProvider({ children }: { children: ReactNode }) {
       routerPush={() => {}}
       routerReplace={() => {}}
     >
-      <SessionObserver>{children}</SessionObserver>
+      <SessionObserver>
+        <AccountDialogProvider>{children}</AccountDialogProvider>
+      </SessionObserver>
     </ClerkProvider>
   );
 }
+function AccountDialogProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+  const [isOpen, setOpen] = useState(false);
+  return (
+    <AccountDialogContext.Provider value={{ open: () => setOpen(true), isOpen }}>
+      {children}
+      <ModalDialog
+        isOpen={isOpen}
+        onOpenChange={setOpen}
+        keepMounted
+        title={t("ninaAccount.title")}
+        closeLabel={t("actions.close")}
+      >
+        {ninaPublicConfiguration.publishableKey ? (
+          <AccountForm />
+        ) : (
+          <p role="status">{t("ninaAccount.unconfigured")}</p>
+        )}
+      </ModalDialog>
+    </AccountDialogContext.Provider>
+  );
+}
+
 export function NinaAccountSettings() {
   const { t } = useTranslation();
+  const { open } = useNinaAccountDialog();
+  const account = useNinaAccountState();
   return (
     <Section className={styles.ninaAccount} aria-label={t("ninaAccount.title")}>
-      {ninaPublicConfiguration.publishableKey ? (
-        <AccountForm />
-      ) : (
-        <p role="status">{t("ninaAccount.unconfigured")}</p>
-      )}
+      <ActionGroup>
+        <Button variant="secondary" leadingIcon={<UserRound aria-hidden="true" />} onPress={open}>
+          {t(
+            account.status === "expired"
+              ? "ninaAccount.signInAgain"
+              : account.identity.signedIn
+                ? "ninaAccount.manageAccount"
+                : "ninaAccount.signIn",
+          )}
+        </Button>
+      </ActionGroup>
     </Section>
   );
 }

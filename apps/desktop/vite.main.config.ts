@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 import {
   clientConfigurationAlias,
   requireClientConfiguration,
+  desktopEnvironmentPlugin,
 } from "../../scripts/lib/hosting-environment.mjs";
 
 requireClientConfiguration();
@@ -11,6 +12,7 @@ requireClientConfiguration();
 const nodeBuiltins = new Set([...builtinModules, ...builtinModules.map((name) => `node:${name}`)]);
 
 export default defineConfig({
+  plugins: [desktopEnvironmentPlugin()],
   resolve: { alias: [clientConfigurationAlias()] },
   build: {
     ssr: "src/main/index.ts",

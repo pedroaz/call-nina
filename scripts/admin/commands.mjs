@@ -141,7 +141,7 @@ export const commands = [
 ];
 export function help() {
   return {
-    usage: "node scripts/admin/index.mjs COMMAND --environment preview|production [--yes]",
+    usage: "node scripts/admin/index.mjs COMMAND --environment dev|prd [--yes]",
     mode: "Mutations return a review unless --yes is supplied. No terminal prompts.",
     grantIds:
       "Grant reviews generate a UUID. Supply that UUID when executing or retrying; --yes requires it.",

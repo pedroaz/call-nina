@@ -1,5 +1,6 @@
 import { StoriesPage } from "./StoriesPage.js";
 import { SidebarLanguages } from "./SidebarLanguages.js";
+import { SidebarAccount } from "./SidebarAccount.js";
 import type { PathDestination } from "./learningPathNavigation.js";
 import { stopSpeech, refreshSpeechAvailability } from "./speechPlayback.js";
 import { MobilePage } from "./MobilePage.js";
@@ -818,6 +819,7 @@ function DesktopWorkspace({
             : {}),
         }))}
         settingsNavigation={{ page: "settings", icon: Settings, label: t("nav.settings") }}
+        accountWidget={<SidebarAccount collapsed={navCollapsed} />}
         navigationLabel={t("nav.label")}
         navFooter={
           <>

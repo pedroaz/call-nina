@@ -16,7 +16,7 @@ export async function provisionClerk(yes) {
   const application = await platform(`${path}?include_secret_keys=false`);
   if (application.application_id !== config.clerkApplicationId)
     throw new ControlError("Clerk application identity mismatch");
-  const type = environment === "production" ? "production" : "development";
+  const type = environment === "prd" ? "production" : "development";
   const instances = application.instances.filter((instance) => instance.environment_type === type);
   if (
     instances.length > 1 ||

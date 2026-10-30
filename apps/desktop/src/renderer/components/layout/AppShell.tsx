@@ -31,6 +31,7 @@ export function AppShell<Page extends string>(props: {
   helperToggleLabel: string;
   content: ReactNode;
   helper: ReactNode;
+  accountWidget?: ReactNode;
   navFooter?: ReactNode;
   onNavigate: (page: Page) => void;
   onMoveNavFocus: (event: KeyboardEvent<HTMLButtonElement>) => void;
@@ -229,6 +230,7 @@ export function AppShell<Page extends string>(props: {
             })}
           </ul>
           <div className={styles.navUtilities}>
+            {props.accountWidget}
             <ul className={styles.navList}>
               {(() => {
                 const { page, label, icon: Icon } = props.settingsNavigation;

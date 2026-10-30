@@ -61,7 +61,7 @@ export function context(publishing = false) {
   if (
     publishing &&
     ((process.env.GITHUB_REF !== "refs/heads/main" &&
-      !(publishing === "vercel" && hostingEnvironment() === "preview")) ||
+      !(publishing === "vercel" && hostingEnvironment() === "dev")) ||
       (publishing === "vercel"
         ? process.env.RELEASE_OPERATION !== "deploy-vercel" ||
           process.env.RELEASE_TARGET !== "hosting" ||
@@ -213,6 +213,6 @@ export async function github(
 }
 export function help() {
   process.stdout.write(
-    `Desktop Build: ${workflowUrl}\nChoose target=desktop for desktop releases; all/hosting remain available for artifact preparation. Build never publishes.\nDesktop Release: ${publishUrl}\nFrom main, enter a successful main-branch Desktop Build run ID containing all four desktop artifacts. Hosting is not required or deployed.\nDeploy Vercel: ${deployUrl}\nRun from main to build and deploy the combined website/API without desktop builds.\nShared versions are retained; every artifact and deployment records its exact commit and run ID.\nBuild downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
+    `Desktop Build: ${workflowUrl}\nChoose target=desktop for desktop artifacts with prd configuration; all/hosting remain available. Build never publishes.\nDesktop Release: ${publishUrl}\nFrom main, enter a successful main-branch Desktop Build run ID containing all four desktop artifacts. Hosting is not required or deployed.\nDeploy Vercel: ${deployUrl}\nSelect environment=dev or prd. Prd requires main; dev accepts working branches. Builds and deploys the combined website/API without desktop builds.\nShared versions are retained; every artifact and deployment records its exact commit, environment and run ID.\nBuild downloads expire after 30 days.\nNo local build or deployment is performed by this command.\n`,
   );
 }

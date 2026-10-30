@@ -33,7 +33,7 @@ export async function record(kind, id, filename, extra = {}) {
 }
 export async function desktop() {
   context();
-  if (hostingEnvironment() !== "production")
+  if (hostingEnvironment() !== "prd")
     throw new Error("Distributed desktop builds require production configuration");
   const id = `${process.platform}-${process.arch}`;
   if (!desktopTargets.includes(id) || process.env.RELEASE_PLATFORM !== id)

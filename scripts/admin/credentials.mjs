@@ -40,8 +40,7 @@ async function privateText(location) {
   }
 }
 export async function loadCredentials() {
-  if (!file)
-    throw new ControlError("Select --environment preview or production before loading credentials");
+  if (!file) throw new ControlError("Select --environment dev or prd before loading credentials");
   values = parseEnv(await privateText(file));
 }
 export const secret = (name) => process.env[name] ?? values[name];

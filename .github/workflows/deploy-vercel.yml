@@ -5,8 +5,8 @@ on:
       environment:
         description: Hosting environment
         type: choice
-        options: [preview, production]
-        default: preview
+        options: [dev, prd]
+        default: dev
         required: true
 permissions:
   contents: read
@@ -18,7 +18,7 @@ env:
   NINA_ENVIRONMENT: ${{ inputs.environment }}
 jobs:
   build:
-    if: inputs.environment == 'preview' || github.ref == 'refs/heads/main'
+    if: inputs.environment == 'dev' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     outputs:
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
-      name: ${{ inputs.environment == 'production' && 'Production' || 'Preview' }}
+      name: ${{ inputs.environment == 'prd' && 'Production' || 'Preview' }}
       url: ${{ steps.deploy.outputs.url }}
     env:
       RELEASE_TARGET: hosting

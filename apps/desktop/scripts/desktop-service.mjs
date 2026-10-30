@@ -6,6 +6,10 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { processOutputLevel } from "../../../scripts/dev/lib/log-view.mjs";
+import {
+  hostingEnvironment,
+  requireDesktopBuildEnvironment,
+} from "../../../scripts/lib/hosting-environment.mjs";
 
 const desktopRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = path.resolve(desktopRoot, "../..");
@@ -25,7 +29,10 @@ if (mode !== "dev" && mode !== "prd") {
   throw new Error("Desktop service mode must be dev or prd.");
 }
 
-if (mode === "dev") process.env.NINA_ENVIRONMENT ??= "preview";
+if (process.env.NINA_ENVIRONMENT && hostingEnvironment() !== mode)
+  throw new Error("Desktop launch mode conflicts with NINA_ENVIRONMENT");
+process.env.NINA_ENVIRONMENT = mode;
+if (mode === "prd") requireDesktopBuildEnvironment(mode);
 
 const children = new Set();
 let stopping = false;

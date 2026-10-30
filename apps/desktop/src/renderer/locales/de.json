@@ -1901,6 +1901,10 @@
     "writingViews": "Schreibansichten"
   },
   "ninaAccount": {
+    "manageAccount": "Konto verwalten",
+    "checking": "Konto wird geprüft…",
+    "widgetSignedIn": "Angemeldet",
+    "statusUnavailable": "Status nicht verfügbar",
     "signInAgain": "Erneut anmelden",
     "title": "Nina-Konto",
     "description": "Melde dich für Nina-finanzierte KI an. Deine eigenen KI-Anbieter funktionieren unabhängig davon.",

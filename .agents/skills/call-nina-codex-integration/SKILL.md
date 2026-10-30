@@ -5,13 +5,6 @@ description: Maintain Call Nina's direct ChatGPT/provider adapters, model select
 
 # Call Nina Codex integration
 
-<!-- MVP-BEGIN -->
-
-## MVP mode (temporary)
-
-Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact.
-<!-- MVP-END -->
-
 Inspect the current implementation and runtime capabilities before diagnosing compatibility. Repository-relative starting points:
 
 - Direct ChatGPT generation and authentication: `apps/desktop/src/main/chatgpt-session.ts`, `chatgpt-transport.ts`, `chatgpt-generation.ts` and `backend.ts`. External Codex discovery in `packages/codex-client/src/discovery.ts` serves only explicit Voice/plugin integration.

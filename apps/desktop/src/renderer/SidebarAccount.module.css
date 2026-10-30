@@ -1,0 +1,38 @@
+.trigger {
+  width: 100%;
+  justify-content: flex-start;
+  padding: var(--od-space-3);
+  color: var(--od-color-text-strong);
+  gap: var(--od-space-3);
+  text-align: start;
+}
+
+.copy {
+  display: grid;
+  gap: var(--od-space-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-caption-size);
+  line-height: var(--od-type-caption-line);
+  font-weight: var(--od-font-weight-regular);
+}
+
+.collapsed {
+  justify-content: center;
+  padding-inline: 0;
+  gap: 0;
+}
+
+.hiddenLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

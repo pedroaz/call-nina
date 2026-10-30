@@ -23,9 +23,10 @@ const output = path.join(staging, ".vercel/output");
 function help() {
   process.stdout.write(`Combined website and pilot API packaging
 
-  make package hosting          Build the complete artifact locally.
-  node scripts/admin/index.mjs infra plan            Inspect desired infrastructure.
-  make deploy                   Review the production deployment target.
+  make package hosting          Build the complete prd artifact locally.
+  NINA_ENVIRONMENT=dev make package hosting          Build the dev artifact locally.
+  node scripts/admin/index.mjs infra plan --environment dev|prd
+  make deploy dev|prd           Show selected-target deployment instructions.
   make release                  Show the manual GitHub release workflow.
 
 The artifact includes /api/account, /api/generate and /api/mobile-sync even while inference is disabled.
@@ -93,7 +94,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   const pages = files.filter((file) => file.endsWith("index.html"));
   const config = {
     version: 3,
-    ...(environment === "production" && process.env.NINA_SPEECH_RECOVERY_SCHEDULE === "enabled"
+    ...(environment === "prd" && process.env.NINA_SPEECH_RECOVERY_SCHEDULE === "enabled"
       ? { crons: [{ path: "/api/speech-recovery", schedule: "* * * * *" }] }
       : {}),
     routes: [

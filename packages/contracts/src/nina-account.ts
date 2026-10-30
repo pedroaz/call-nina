@@ -4,7 +4,7 @@ import configuration from "./nina-public.json" with { type: "json" };
 
 export const ninaPublicConfiguration = z
   .strictObject({
-    environment: z.enum(["preview", "production"]).nullable(),
+    environment: z.enum(["dev", "prd"]).nullable(),
     publishableKey: z
       .string()
       .regex(/^pk_(test|live)_/u)

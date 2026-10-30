@@ -33,7 +33,7 @@ async function execute(tokens) {
   const environmentIndex = args.indexOf("--environment");
   if (environmentIndex !== -1) args.splice(environmentIndex, 2);
   if (selectionError || !environment)
-    throw new ControlError(selectionError ?? "Select --environment preview or production");
+    throw new ControlError(selectionError ?? "Select --environment dev or prd");
   const definition = commands.find((command) =>
     command.name.split(" ").every((word, index) => word === args[index]),
   );
@@ -47,6 +47,7 @@ async function execute(tokens) {
   )
     throw new ControlError(`Usage: ${definition.name} ${definition.args.join(" ")}`);
   const name = definition.name;
+  if (name === "deploy") return (await import("./deployment.mjs")).deploy();
   if (!["infra plan", "infra configure-client"].includes(name)) await loadCredentials();
   if (name === "credentials status") return output(credentialStatus());
   if (name === "credentials import") {
@@ -94,7 +95,7 @@ async function execute(tokens) {
     return infra.apply(diff);
   }
   if (name === "infra database-check") return (await import("./database.mjs")).checkDatabase();
-  if (name.startsWith("infra ") || name === "deploy") {
+  if (name.startsWith("infra ")) {
     const details =
       name === "infra migrate"
         ? {

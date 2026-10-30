@@ -1901,6 +1901,10 @@
     "writingViews": "Writing views"
   },
   "ninaAccount": {
+    "manageAccount": "Manage account",
+    "checking": "Checking account…",
+    "widgetSignedIn": "Signed in",
+    "statusUnavailable": "Status unavailable",
     "signInAgain": "Sign in again",
     "title": "Nina account",
     "description": "Sign in for Nina-funded AI. Your personal AI providers work independently.",

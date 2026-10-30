@@ -1,14 +1,14 @@
 {
-  "preview": {
-    "environment": "preview",
+  "dev": {
+    "environment": "dev",
     "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
     "teamId": "team_dneRzDETT07TDCAwasa2AGyh",
     "origin": "https://staging.callnina.de",
     "clerkIssuer": "https://ready-meerkat-1510.clerk.accounts.dev",
     "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"]
   },
-  "production": {
-    "environment": "production",
+  "prd": {
+    "environment": "prd",
     "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
     "teamId": "team_dneRzDETT07TDCAwasa2AGyh",
     "origin": "https://callnina.de",
