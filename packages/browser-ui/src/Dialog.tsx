@@ -46,6 +46,7 @@ export function ModalDialog(props: {
   isOpen: boolean;
   keepMounted?: boolean;
   size?: "default" | "large";
+  bodyLayout?: "scroll" | "fill";
   closeLabel?: string;
   title: string;
   children: ReactNode;
@@ -85,6 +86,7 @@ export function ModalDialog(props: {
           className={styles.dialog}
           data-density={props.density ?? "comfortable"}
           data-size={props.size ?? "default"}
+          data-body-layout={props.bodyLayout ?? "scroll"}
         >
           <AriaDialog>
             {props.closeLabel ? (

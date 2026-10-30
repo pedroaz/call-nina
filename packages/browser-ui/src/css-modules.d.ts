@@ -73,6 +73,32 @@ declare module "*Fields.module.css" {
   export default styles;
 }
 
+declare module "*Interview.module.css" {
+  const styles: {
+    readonly actions: string;
+    readonly answers: string;
+    readonly artwork: string;
+    readonly check: string;
+    readonly choice: string;
+    readonly choiceText: string;
+    readonly choices: string;
+    readonly content: string;
+    readonly context: string;
+    readonly contextContent: string;
+    readonly description: string;
+    readonly heading: string;
+    readonly icon: string;
+    readonly interview: string;
+    readonly layout: string;
+    readonly progress: string;
+    readonly question: string;
+    readonly segments: string;
+    readonly srOnly: string;
+    readonly toolbar: string;
+  };
+  export default styles;
+}
+
 declare module "*Notifications.module.css" {
   const styles: {
     readonly content: string;

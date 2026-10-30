@@ -403,6 +403,7 @@ export class DesktopBackend {
   #profileSummary(settings: Awaited<ReturnType<CallNinaRepository["createLearnerSettings"]>>) {
     const profile = settings.profile;
     return {
+      learnerName: settings.learnerName,
       learningContext: settings.learningContext,
       onboardingState: profile.onboardingState,
       approximateLevel: profile.levelEstimate.currentLevel,
@@ -465,6 +466,7 @@ export class DesktopBackend {
     return {
       dataRoot: { generation: dataRoot.generation, displayName: dataRoot.displayName },
       settings: {
+        learnerName: settings.learnerName,
         learningScope: {
           learnerId: settings.learningContext.learnerId,
           courseId: settings.learningContext.courseId,
@@ -2363,6 +2365,7 @@ export class DesktopBackend {
           const summary = this.#profileSummary(existing);
           const same =
             summary.onboardingState === "in-progress" &&
+            summary.learnerName === request.payload.learnerName &&
             summary.uiLocale === request.payload.uiLocale &&
             summary.approximateLevel === request.payload.approximateLevel &&
             summary.everydayLifeGoal === request.payload.everydayLifeGoal &&
@@ -2403,6 +2406,7 @@ export class DesktopBackend {
         });
         if (!this.#repository) return this.#failure(request, "stale-data-root");
         const settings = {
+          learnerName: request.payload.learnerName,
           profile: { ...profile, uiLocale: request.payload.uiLocale },
         };
         const stored = await this.#repository.createLearnerSettings(settings);
@@ -2589,6 +2593,7 @@ export class DesktopBackend {
           editable.approximateLevel !== current.profile.levelEstimate.currentLevel;
         const next: LearnerSettingsRecord = {
           ...current,
+          learnerName: editable.learnerName,
           learningContext: { ...current.learningContext, ...editable.learningScope },
           profile: {
             ...current.profile,

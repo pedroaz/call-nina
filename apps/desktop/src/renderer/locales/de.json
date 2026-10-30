@@ -2203,5 +2203,39 @@
     "copyFailed": "Kopieren fehlgeschlagen. Markiere und kopiere die Referenz oben.",
     "policySupport": "Falls dies erneut passiert, gib diese Referenz bei der Fehlermeldung an.",
     "undoVocabulary": "Hinzugefügte Wörter zurücknehmen"
+  },
+  "interview": {
+    "nameTitle": "Hallo, ich bin Nina. Wie darf ich dich nennen?",
+    "nameLabel": "Dein Name",
+    "namePlaceholder": "Vorname oder Spitzname",
+    "skipName": "Vorerst überspringen",
+    "languageTitle": "Was möchtest du lernen?",
+    "goalTitle": "Was möchtest du auf {{language}} machen?",
+    "levelTitle": "Wie sicher fühlst du dich auf {{language}}?",
+    "explanationTitle": "In welcher Sprache soll ich Dinge erklären?",
+    "connectionTitle": "Verbinde Nina mit einer KI",
+    "connectionDescription": "Erstelle persönliche Übungen und erhalte Feedback.",
+    "otherConnections": "Weitere Verbindungen",
+    "useConnection": "Diese Verbindung verwenden",
+    "setupLater": "Später einrichten",
+    "goHome": "Zur Startseite",
+    "goToExercise": "Zur Übung",
+    "ninaAccount": "Nina-Konto",
+    "chatgpt": "ChatGPT",
+    "lessonTitle": "Deine erste Lektion ist bereit",
+    "lessonTitleNamed": "{{name}}, deine erste Lektion ist bereit",
+    "levels": {
+      "a1": "Ich fange gerade erst an",
+      "a2": "Ich kenne die Grundlagen",
+      "b1": "Ich kann Alltagsgespräche führen",
+      "b2": "Ich kann über verschiedene Themen sprechen"
+    },
+    "continue": "Weiter",
+    "goals": {
+      "everyday": "Alltagsgespräche",
+      "travel": "Reisen",
+      "work": "Arbeit",
+      "custom": "Mein eigenes Ziel"
+    }
   }
 }

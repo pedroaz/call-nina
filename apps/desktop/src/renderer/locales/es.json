@@ -2203,5 +2203,39 @@
     "copyFailed": "No se pudo copiar. Selecciona y copia la referencia de arriba.",
     "policySupport": "Si vuelve a ocurrir, incluye esta referencia al informar del problema.",
     "undoVocabulary": "Deshacer adición de vocabulario"
+  },
+  "interview": {
+    "nameTitle": "Hola, soy Nina. ¿Cómo te llamas?",
+    "nameLabel": "Tu nombre",
+    "namePlaceholder": "Nombre o apodo",
+    "skipName": "Omitir por ahora",
+    "languageTitle": "¿Qué te gustaría aprender?",
+    "goalTitle": "¿Qué te gustaría hacer en {{language}}?",
+    "levelTitle": "¿Qué tan cómodo te sientes con {{language}}?",
+    "explanationTitle": "¿En qué idioma prefieres las explicaciones?",
+    "connectionTitle": "Conecta Nina con una IA",
+    "connectionDescription": "Crea práctica personalizada y recibe comentarios.",
+    "otherConnections": "Otras conexiones",
+    "useConnection": "Usar esta conexión",
+    "setupLater": "Configurar más tarde",
+    "goHome": "Ir al inicio",
+    "goToExercise": "Ir al ejercicio",
+    "ninaAccount": "Cuenta de Nina",
+    "chatgpt": "ChatGPT",
+    "lessonTitle": "Tu primera lección está lista",
+    "lessonTitleNamed": "{{name}}, tu primera lección está lista",
+    "levels": {
+      "a1": "Estoy empezando",
+      "a2": "Conozco lo básico",
+      "b1": "Puedo mantener conversaciones cotidianas",
+      "b2": "Puedo hablar de varios temas"
+    },
+    "continue": "Continuar",
+    "goals": {
+      "everyday": "Conversaciones cotidianas",
+      "travel": "Viajes",
+      "work": "Trabajo",
+      "custom": "Mi propio objetivo"
+    }
   }
 }

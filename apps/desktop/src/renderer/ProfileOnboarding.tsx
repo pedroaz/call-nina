@@ -1,7 +1,8 @@
 import { OperationError } from "./OperationError.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   languageDefinitions,
+  languageIds,
   utcInstantSchema,
   type Language,
   type DesktopIpcResponse,
@@ -9,15 +10,24 @@ import {
   type CourseUnit,
 } from "@call-nina/contracts";
 import { courseActivityStatus } from "@call-nina/domain";
-import { ArrowRight, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, MessageCircle, Plane, Briefcase, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button, Feedback, LoadingState, Card } from "./components/ui/index.js";
+import {
+  Button,
+  LoadingState,
+  TextField,
+  TextAreaField,
+  SelectControl,
+} from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
-import { LearningProfileFields, type LearningChoices } from "./LearningProfileFields.js";
+import { type LearningChoices } from "./LearningProfileFields.js";
 import { ConnectionSettings } from "./ConnectionSettings.js";
-import { SpeechSettings } from "./SpeechSettings.js";
-import { Nina } from "./components/ui/Nina.js";
-import { LanguageSelect } from "./LanguageSelect.js";
+import { OnboardingConnections } from "./OnboardingConnections.js";
+import { InterviewLayout, InterviewProgress, InterviewChoices } from "@call-nina/browser-ui";
+import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
+import ninaListening from "@call-nina/design-system/brand/nina-listening.png";
+import ninaThinking from "@call-nina/design-system/brand/nina-thinking.png";
+import ninaCelebration from "@call-nina/design-system/brand/nina-celebration.png";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 import type { DesktopSettingsResult } from "./settings-adapter.js";
 import type { PathDestination } from "./learningPathNavigation.js";
@@ -45,14 +55,20 @@ export function ProfileOnboarding({
 }) {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
-  const heading = useRef<HTMLHeadingElement>(null);
+  const [goalChoice, setGoalChoice] = useState("everyday");
+  const [customGoal, setCustomGoal] = useState("");
+  const [explanationTouched, setExplanationTouched] = useState(false);
+  const initialLocale = (
+    i18n.resolvedLanguage === "en" ? "en-US" : (i18n.resolvedLanguage ?? "en-US")
+  ) as Language;
   const [persisted, setPersisted] = useState<DesktopSettingsResult>();
   const [choices, setChoices] = useState<LearningChoices>({
+    learnerName: "",
     approximateLevel: "a2",
     everydayLifeGoal: t("setupUx.goals.everyday"),
     defaultTeachingProfileId: "conversation-partner",
-    explanationLanguage: "en-US",
-    uiLocale: (i18n.resolvedLanguage ?? "en-US") as Language,
+    explanationLanguage: initialLocale,
+    uiLocale: initialLocale,
   });
   const [targetLanguage, setTargetLanguage] = useState<Language>("de");
   const [enrollCourse, setEnrollCourse] = useState(true);
@@ -85,9 +101,15 @@ export function ProfileOnboarding({
         const next = await invokeDesktop("learner-settings/read", {});
         setPersisted(next);
         setChoices(next.settings);
+        setCustomGoal(next.settings.everydayLifeGoal);
         setTargetLanguage(next.settings.learningScope.targetLanguage);
         setEnrollCourse(Boolean(next.settings.learningScope.courseId));
         await i18n.changeLanguage(next.settings.uiLocale);
+        setGoalChoice(
+          ["everyday", "travel", "work"].find(
+            (goal) => next.settings.everydayLifeGoal === i18n.t(`setupUx.goals.${goal}`),
+          ) ?? "custom",
+        );
       }
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
@@ -101,9 +123,6 @@ export function ProfileOnboarding({
       window.clearTimeout(timer);
     };
   }, [load]);
-  useEffect(() => {
-    if (!loading) heading.current?.focus();
-  }, [step, loading]);
   useEffect(() => {
     const refresh = () =>
       void invokeDesktop("chatgpt/account/read", {})
@@ -139,7 +158,13 @@ export function ProfileOnboarding({
       });
       setPersisted(next);
       setChoices(next.settings);
+      setCustomGoal(next.settings.everydayLifeGoal);
       setTargetLanguage(language);
+      setGoalChoice(
+        ["everyday", "travel", "work"].find(
+          (goal) => next.settings.everydayLifeGoal === i18n.t(`setupUx.goals.${goal}`),
+        ) ?? "custom",
+      );
       setEnrollCourse(Boolean(next.settings.learningScope.courseId));
       setCatalog(undefined);
     });
@@ -198,10 +223,11 @@ export function ProfileOnboarding({
   };
   const move = (next: number) =>
     void attempt(async () => {
-      if (connectionPending || !choices.everydayLifeGoal.trim()) return;
+      if (connectionPending || (next > step && step === 2 && !choices.everydayLifeGoal.trim()))
+        return;
       await cancelLogin();
-      await save();
-      if (next === 2) await readCatalog();
+      if (step >= 4 || persisted) await save();
+      if (next === 6) await readCatalog();
       setStep(next);
     });
   const finish = (destination?: PathDestination) =>
@@ -210,7 +236,7 @@ export function ProfileOnboarding({
       await cancelLogin();
       let current = await save();
       if (!current || !generation) return;
-      if (destination && !onExit && !current.settings.learningScope.courseId) {
+      if (destination && !current.settings.learningScope.courseId) {
         current = await invokeDesktop("learner-settings/update", {
           expectedUpdatedAt: current.updatedAt,
           settings: {
@@ -258,56 +284,277 @@ export function ProfileOnboarding({
     ) ?? eligible[0];
   const locale = choices.uiLocale === "en-US" ? "en" : choices.uiLocale;
   const titles = [
-    "setupUx.onboardingProfile",
-    "setupUx.onboardingOptional",
-    "setupUx.onboardingLesson",
+    "nameTitle",
+    "languageTitle",
+    "goalTitle",
+    "levelTitle",
+    "explanationTitle",
+    "connectionTitle",
+    "lessonTitle",
   ];
+  const languageOptions = languageIds.map((language) => ({
+    value: language,
+    label: t(`languages.${language}`),
+  }));
+  const goalOptions = [
+    { value: "everyday", label: t("interview.goals.everyday"), icon: <MessageCircle /> },
+    { value: "travel", label: t("interview.goals.travel"), icon: <Plane /> },
+    { value: "work", label: t("interview.goals.work"), icon: <Briefcase /> },
+    { value: "custom", label: t("interview.goals.custom"), icon: <Pencil /> },
+  ];
+  const pose =
+    step === 6
+      ? "celebration"
+      : step === 2
+        ? (
+            {
+              everyday: "listening",
+              travel: "welcome",
+              work: "thinking",
+              custom: "thinking",
+            } as const
+          )[goalChoice as "everyday" | "travel" | "work" | "custom"]
+        : step === 0
+          ? "welcome"
+          : step === 5
+            ? "listening"
+            : "thinking";
+  const blocked = busy || connectionPending;
+  const continueDisabled = blocked || (step === 2 && !choices.everydayLifeGoal.trim());
+  const complete = () => finish();
+  const back = (
+    <div>
+      {step > 0 && (
+        <Button variant="quiet" isDisabled={blocked} onPress={() => move(step - 1)}>
+          {t("onboarding.back")}
+        </Button>
+      )}
+      {onExit && step === 0 && (
+        <Button
+          variant="quiet"
+          isDisabled={blocked}
+          onPress={() =>
+            void attempt(async () => {
+              await cancelLogin();
+              if (choices.everydayLifeGoal.trim()) await save();
+              onExit();
+            })
+          }
+        >
+          {t("interview.goHome")}
+        </Button>
+      )}
+    </div>
+  );
   return (
-    <div className={styles.app}>
-      <header className={styles.topbar}>
-        <span className={styles.brand}>{t("app.name")}</span>
-        <LanguageSelect
-          label={t("onboarding.interfaceLanguage")}
-          value={choices.uiLocale}
-          interfaceOnly
-          disabled={busy || loading}
-          onChange={(language) => {
-            change("uiLocale", language);
-            void i18n.changeLanguage(language);
-          }}
-        />
-      </header>
-      <main className={styles.content}>
-        <p className={styles.progress}>
-          {t("onboarding.progress", { current: step + 1, total: onExit ? 2 : 3 })}
-        </p>
-        <div className={styles.heading}>
-          <h1 ref={heading} tabIndex={-1} data-focus-anchor>
-            {t(titles[step] ?? "onboarding.title")}
-          </h1>
-          {step === 2 && <Nina />}
-        </div>
-        {loading ? (
-          <LoadingState live>{t("startup.loading")}</LoadingState>
-        ) : (
-          <>
-            {step === 0 && (
-              <LearningProfileFields
-                value={choices}
-                language={targetLanguage}
-                disabled={busy}
-                onboarding
-                onLanguage={selectTarget}
-                onChange={change}
+    <main className={styles.app}>
+      {loading ? (
+        <LoadingState live>{t("startup.loading")}</LoadingState>
+      ) : (
+        <InterviewLayout
+          focusKey={step}
+          onContinue={step === 5 ? undefined : step === 6 ? complete : () => move(step + 1)}
+          continueDisabled={continueDisabled}
+          title={t(
+            `interview.${step === 6 && choices.learnerName.trim() ? "lessonTitleNamed" : titles[step]}`,
+            { language: t(`languages.${targetLanguage}`), name: choices.learnerName },
+          )}
+          description={step === 5 ? t("interview.connectionDescription") : undefined}
+          toolbar={
+            <>
+              <span className={styles.brand}>{t("app.name")}</span>
+              <SelectControl
+                aria-label={t("onboarding.interfaceLanguage")}
+                value={choices.uiLocale}
+                disabled={blocked}
+                onChange={(event) => {
+                  change("uiLocale", event.target.value as Language);
+                  if (!persisted && !explanationTouched)
+                    change("explanationLanguage", event.target.value as Language);
+                  void i18n.changeLanguage(event.target.value);
+                }}
+              >
+                {languageIds
+                  .filter((language) => languageDefinitions[language])
+                  .map((language) => (
+                    <option key={language} value={language}>
+                      {languageDefinitions[language].name}
+                    </option>
+                  ))}
+              </SelectControl>
+            </>
+          }
+          progress={
+            <InterviewProgress
+              current={step + 1}
+              total={7}
+              label={t("onboarding.progress", { current: step + 1, total: 7 })}
+            />
+          }
+          artwork={
+            <img
+              src={
+                {
+                  welcome: ninaWelcome,
+                  listening: ninaListening,
+                  thinking: ninaThinking,
+                  celebration: ninaCelebration,
+                }[pose]
+              }
+              alt=""
+              width={320}
+              height={320}
+            />
+          }
+          context={
+            step === 6 ? (
+              <p>
+                {t(`languages.${targetLanguage}`)} ·{" "}
+                {t(`setupUx.levels.${choices.approximateLevel}`)}
+              </p>
+            ) : undefined
+          }
+          actions={
+            <>
+              {back}
+              <div>
+                {step === 0 && (
+                  <Button
+                    variant="quiet"
+                    isDisabled={blocked}
+                    onPress={() => {
+                      change("learnerName", "");
+                      setStep(1);
+                    }}
+                  >
+                    {t("interview.skipName")}
+                  </Button>
+                )}
+                {step === 5 ? (
+                  <Button variant="quiet" isDisabled={blocked} onPress={() => move(6)}>
+                    {t("interview.setupLater")}
+                  </Button>
+                ) : step === 6 ? (
+                  <>
+                    {!onExit && first && (
+                      <Button
+                        variant="quiet"
+                        isDisabled={blocked}
+                        onPress={() => finish({ kind: "library" })}
+                      >
+                        {t("pathLibrary.title")}
+                      </Button>
+                    )}
+                    <Button
+                      isDisabled={blocked}
+                      trailingIcon={<ArrowRight aria-hidden="true" />}
+                      onPress={complete}
+                    >
+                      {t("interview.goHome")}
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    trailingIcon={<ArrowRight aria-hidden="true" />}
+                    isDisabled={continueDisabled}
+                    onPress={() => move(step + 1)}
+                  >
+                    {t("interview.continue")}
+                  </Button>
+                )}
+              </div>
+            </>
+          }
+        >
+          {step === 0 && (
+            <TextField
+              label={t("interview.nameLabel")}
+              placeholder={t("interview.namePlaceholder")}
+              value={choices.learnerName}
+              maxLength={100}
+              autoComplete="given-name"
+              disabled={blocked}
+              onChange={(event) => change("learnerName", event.target.value)}
+            />
+          )}
+          {step === 1 && (
+            <InterviewChoices
+              label={t("onboarding.targetLanguage")}
+              value={targetLanguage}
+              options={languageOptions}
+              disabled={blocked}
+              onChange={(value) => selectTarget(value as Language)}
+            />
+          )}
+          {step === 2 && (
+            <>
+              <InterviewChoices
+                label={t("onboarding.goal")}
+                value={goalChoice}
+                options={goalOptions}
+                disabled={blocked}
+                onChange={(goal) => {
+                  setGoalChoice(goal);
+                  if (goal !== "custom") change("everydayLifeGoal", t(`setupUx.goals.${goal}`));
+                  else change("everydayLifeGoal", customGoal);
+                }}
               />
-            )}
-            <div hidden={step !== 1} className={styles.options}>
-              <p>{t("setupUx.optionalLater")}</p>
+              {goalChoice === "custom" && (
+                <TextAreaField
+                  label={t("setupUx.customGoal")}
+                  value={choices.everydayLifeGoal}
+                  maxLength={500}
+                  rows={3}
+                  disabled={blocked}
+                  onChange={(event) => {
+                    setCustomGoal(event.target.value);
+                    change("everydayLifeGoal", event.target.value);
+                  }}
+                />
+              )}
+            </>
+          )}
+          {step === 3 && (
+            <InterviewChoices
+              label={t("onboarding.level")}
+              value={choices.approximateLevel}
+              disabled={blocked}
+              options={(["a1", "a2", "b1", "b2"] as const).map((level) => ({
+                value: level,
+                label: t(`interview.levels.${level}`),
+                description: t(`setupUx.levels.${level}`),
+              }))}
+              onChange={(value) =>
+                change("approximateLevel", value as LearningChoices["approximateLevel"])
+              }
+            />
+          )}
+          {step === 4 && (
+            <InterviewChoices
+              label={t("onboarding.explanationLanguage")}
+              value={choices.explanationLanguage}
+              options={languageOptions}
+              disabled={blocked}
+              onChange={(value) => {
+                setExplanationTouched(true);
+                change("explanationLanguage", value as Language);
+              }}
+            />
+          )}
+          {step === 5 && (
+            <>
               <ConnectionSettings
-                active={step === 1}
+                active
                 disabled={busy}
-                onPendingChange={setConnectionPending}
+                onBusyChange={setConnectionPending}
                 chatgptConnected={account?.status === "signed-in"}
+                overview={(props) => (
+                  <OnboardingConnections
+                    {...props}
+                    chatgptConnected={account?.status === "signed-in"}
+                    onUse={() => move(6)}
+                  />
+                )}
                 chatgptAccess={() => (
                   <div className={styles.options}>
                     <p role="status">
@@ -325,7 +572,6 @@ export function ProfileOnboarding({
                     ) : (
                       account?.status !== "signed-in" && (
                         <Button
-                          variant="primary"
                           isDisabled={busy || !account || account.status === "unavailable"}
                           onPress={() =>
                             void attempt(async () => {
@@ -344,141 +590,48 @@ export function ProfileOnboarding({
                   </div>
                 )}
               />
-              <SpeechSettings language={targetLanguage} />
-            </div>
-            {step === 2 && (
-              <div className={styles.options}>
-                <div className={styles.summary}>
-                  <span>
-                    {t(`languages.${targetLanguage}`)} ·{" "}
-                    {t(`setupUx.levels.${choices.approximateLevel}`)}
-                  </span>
-                  <Button
-                    variant="quiet"
-                    onPress={() => {
-                      move(0);
-                    }}
-                  >
-                    {t("setupUx.edit")}
-                  </Button>
-                </div>
-                {first ? (
-                  <Card variant="muted" className={styles.lesson}>
-                    <BookOpen aria-hidden="true" />
-                    <div>
-                      <h2>{first.title[locale]}</h2>
-                      <p>{first.scenario[locale]}</p>
-                    </div>
-                  </Card>
-                ) : (
-                  <p>{t(catalogError ? "setupUx.catalogFailed" : "setupUx.exploreFirst")}</p>
-                )}
-                {catalogError && (
-                  <Button variant="secondary" onPress={() => void attempt(readCatalog)}>
-                    {t("actions.retry")}
-                  </Button>
-                )}
-              </div>
-            )}
-            {connectionPending && (
-              <Feedback live="polite">{t("onboarding.connectionDraft")}</Feedback>
-            )}
-            <footer className={styles.footer}>
-              <ActionGroup>
-                {step > 0 && (
-                  <Button
-                    variant="secondary"
-                    isDisabled={busy || connectionPending}
-                    onPress={() => {
-                      move(step - 1);
-                    }}
-                  >
-                    {t("onboarding.back")}
-                  </Button>
-                )}
-                {onExit && step === 0 && (
-                  <Button
-                    variant="quiet"
-                    isDisabled={busy || connectionPending}
-                    onPress={() =>
-                      void attempt(async () => {
-                        await cancelLogin();
-                        if (choices.everydayLifeGoal.trim()) await save();
-                        onExit();
-                      })
-                    }
-                  >
-                    {t("onboarding.returnSettings")}
-                  </Button>
-                )}
-              </ActionGroup>
-              {onExit && step === 1 ? (
-                <Button
-                  variant="primary"
-                  isDisabled={busy || connectionPending}
-                  onPress={() => {
-                    finish();
-                  }}
-                >
-                  {t("onboarding.returnSettings")}
-                </Button>
-              ) : step < 2 ? (
-                <Button
-                  variant="primary"
-                  trailingIcon={<ArrowRight aria-hidden="true" />}
-                  isDisabled={busy || connectionPending || !choices.everydayLifeGoal.trim()}
-                  onPress={() => {
-                    move(step + 1);
-                  }}
-                >
-                  {t(step === 1 ? "setupUx.continueLearning" : "onboarding.next")}
-                </Button>
-              ) : (
-                <div className={styles.finish}>
-                  <Button
-                    variant="primary"
-                    isDisabled={busy || connectionPending}
-                    trailingIcon={<ArrowRight aria-hidden="true" />}
-                    onPress={() => {
-                      finish(
-                        first
-                          ? { kind: "lesson", unitId: first.id, stage: first.stage }
-                          : { kind: "library" },
-                      );
-                    }}
-                  >
-                    {t(
-                      onExit
-                        ? "onboarding.returnSettings"
-                        : first
-                          ? "setupUx.openLesson"
-                          : "pathLibrary.title",
-                    )}
-                  </Button>
-                  {!onExit && first && (
+            </>
+          )}
+          {step === 6 && (
+            <>
+              {first ? (
+                <div className={styles.lesson}>
+                  <BookOpen aria-hidden="true" />
+                  <div>
+                    <h2>{first.title[locale]}</h2>
+                    <p>{first.scenario[locale]}</p>
                     <Button
-                      variant="quiet"
-                      isDisabled={busy}
-                      onPress={() => {
-                        finish({ kind: "library" });
-                      }}
+                      className={styles.lessonAction}
+                      variant="secondary"
+                      isDisabled={blocked}
+                      trailingIcon={<ArrowRight aria-hidden="true" />}
+                      onPress={() =>
+                        finish({ kind: "lesson", unitId: first.id, stage: first.stage })
+                      }
                     >
-                      {t("pathLibrary.title")}
+                      {t("interview.goToExercise")}
                     </Button>
-                  )}
+                  </div>
                 </div>
+              ) : (
+                <p>{t(catalogError ? "setupUx.catalogFailed" : "setupUx.exploreFirst")}</p>
               )}
-            </footer>
-          </>
-        )}
-        {error && (
-          <OperationError error={error}>
-            <Button variant="secondary" onPress={() => void load()}>
-              {t("onboarding.reloadSaved")}
-            </Button>
-          </OperationError>
-        )}
-      </main>
-    </div>
+              {catalogError && (
+                <Button variant="secondary" onPress={() => void attempt(readCatalog)}>
+                  {t("actions.retry")}
+                </Button>
+              )}
+            </>
+          )}
+          {error && (
+            <OperationError error={error}>
+              <Button variant="secondary" onPress={() => void load()}>
+                {t("onboarding.reloadSaved")}
+              </Button>
+            </OperationError>
+          )}
+        </InterviewLayout>
+      )}
+    </main>
   );
 }

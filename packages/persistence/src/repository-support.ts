@@ -213,6 +213,7 @@ export type HistoryEntryRecord = Readonly<{
 }>;
 
 export const learnerSettingsInputSchema = strictBoundaryObject({
+  learnerName: z.string().trim().max(100),
   profile: learnerProfileSchema,
 });
 
@@ -598,7 +599,7 @@ export function readLearnerSettingsFromConnection(
 ): LearnerSettingsRecord | undefined {
   const row = connection
     .prepare(
-      `SELECT p.*, s.ui_locale
+      `SELECT p.*, s.ui_locale, s.learner_name
        FROM learner_profiles p
        JOIN learner_settings s ON s.learner_id = p.learner_id
        WHERE p.learner_id = ?`,
@@ -621,6 +622,7 @@ export function readLearnerSettingsFromConnection(
 
   if (scope.learnerId !== learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
   return learnerSettingsRecordSchema.parse({
+    learnerName: row["learner_name"],
     profile,
     learningContext: resolveLearningContext(scope, profile),
   });

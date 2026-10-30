@@ -1967,6 +1967,11 @@ export const callNinaMigrations = [
     name: "story-reading-positions",
     sql: `CREATE TABLE story_positions(learner_id TEXT NOT NULL, target_language TEXT NOT NULL, story_id TEXT NOT NULL, paragraph INTEGER NOT NULL CHECK(paragraph>=0), PRIMARY KEY(learner_id,target_language,story_id)) STRICT;`,
   },
+  {
+    version: 43,
+    name: "learner-display-name",
+    sql: `ALTER TABLE learner_settings ADD COLUMN learner_name TEXT NOT NULL DEFAULT '' CHECK(length(learner_name) <= 100);`,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

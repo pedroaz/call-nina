@@ -247,7 +247,9 @@ const privacyDisclosureAcknowledgeRequest = request(
   emptyPayload,
 );
 const learnerProfileReadRequest = request("learner-profile/read", emptyPayload);
+const learnerNameSchema = z.string().trim().max(100);
 const onboardingProfileInputSchema = z.strictObject({
+  learnerName: learnerNameSchema,
   expectedGeneration: dataRootGenerationSchema,
   targetLanguage: languageSchema,
   uiLocale: languageSchema,
@@ -269,6 +271,7 @@ const learnerProfileFinishOnboardingRequest = request(
   }),
 );
 const editableLearnerSettingsSchema = z.strictObject({
+  learnerName: learnerNameSchema,
   learningScope: learningScopeSchema,
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),
   everydayLifeGoal: text(500),
@@ -997,6 +1000,7 @@ const privacyDisclosureAcknowledgeResponse = response(
   z.strictObject({ acknowledged: z.literal(true) }),
 );
 const learnerProfileSummarySchema = z.strictObject({
+  learnerName: learnerNameSchema,
   learningContext: learningContextSchema,
   onboardingState: z.enum(["not-started", "in-progress", "complete"]),
   approximateLevel: z.enum(["a1", "a2", "b1", "b2"]),

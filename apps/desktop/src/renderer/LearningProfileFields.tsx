@@ -4,12 +4,19 @@ import { useState } from "react";
 import type { Language } from "@call-nina/contracts";
 import type { DesktopSettingsValue } from "./settings-adapter.js";
 import { LanguageSelect } from "./LanguageSelect.js";
-import { Button, ModalDialog, SelectField, TextAreaField } from "./components/ui/index.js";
+import {
+  Button,
+  ModalDialog,
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "./components/ui/index.js";
 import { Section } from "./components/layout/index.js";
 import styles from "./SettingsPage.module.css";
 
 export type LearningChoices = Pick<
   DesktopSettingsValue,
+  | "learnerName"
   | "approximateLevel"
   | "everydayLifeGoal"
   | "defaultTeachingProfileId"
@@ -39,6 +46,14 @@ export function LearningProfileFields({
   const [preferences, setPreferences] = useState(false);
   return (
     <>
+      <TextField
+        label={t("interview.nameLabel")}
+        value={value.learnerName}
+        maxLength={100}
+        disabled={disabled}
+        autoComplete="given-name"
+        onChange={(event) => onChange("learnerName", event.target.value)}
+      />
       <Section {...(onboarding ? {} : { title: t("setupUx.yourLearning") })}>
         <div className={styles.settingsControls}>
           <LanguageSelect

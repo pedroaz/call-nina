@@ -54,6 +54,12 @@ const withoutCredential = (credentials: Record<string, CredentialDraft>, id: str
   Object.fromEntries(Object.entries(credentials).filter(([key]) => key !== id));
 
 export type ConnectionSettingsHandle = { refreshStatus: () => Promise<void> };
+export type ConnectionOverviewProps = {
+  view: View;
+  busy: boolean;
+  select: (route: Route) => void;
+  mutate: (action: Action) => Promise<boolean>;
+};
 
 export function ConnectionSettings({
   ref,
@@ -65,7 +71,9 @@ export function ConnectionSettings({
   chatgptAccess,
   chatgptConnected,
   feedbackTarget,
+  overview,
 }: {
+  overview?: (props: ConnectionOverviewProps) => ReactNode;
   ref?: Ref<ConnectionSettingsHandle>;
   onBusyChange?: (busy: boolean) => void;
   feedbackTarget?: HTMLElement | null;
@@ -407,6 +415,7 @@ export function ConnectionSettings({
   };
   const discard = () => {
     if (!draft) return;
+    setError(undefined);
     setDrafts((current) => withoutDraft(current, draft.id));
     setCredentials((current) => withoutCredential(current, draft.id));
     setSelectedId(undefined);
@@ -441,15 +450,18 @@ export function ConnectionSettings({
       {!draft && readFailure}
       {!draft && offlineReadFailure}
       <div className={styles.providerOverview} ref={listRef} tabIndex={-1} data-focus-anchor>
-        {view && (
-          <ProviderRouting
-            view={view}
-            busy={busy}
-            mutate={mutate}
-            select={add}
-            chatgptConnected={chatgptConnected}
-          />
-        )}
+        {view &&
+          (overview ? (
+            overview({ view, busy: busy || offlineBusy, select: add, mutate })
+          ) : (
+            <ProviderRouting
+              view={view}
+              busy={busy}
+              mutate={mutate}
+              select={add}
+              chatgptConnected={chatgptConnected}
+            />
+          ))}
       </div>
       {draft ? (
         <ModalDialog

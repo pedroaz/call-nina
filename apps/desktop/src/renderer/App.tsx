@@ -998,18 +998,16 @@ export default function App() {
           ? {
               onExit: () => {
                 setRepeatSetup(false);
-                setInitialPage("settings");
+                setInitialPage("nina");
+                setInitialPath(undefined);
                 void load();
               },
             }
           : {})}
         onComplete={(destination) => {
           setProfileOnboarding(false);
-          if (!repeatSetup && destination) {
-            setInitialPage("learningPath");
-            setInitialPath(destination);
-          }
-          if (repeatSetup) setInitialPage("settings");
+          setInitialPage(destination ? "learningPath" : "nina");
+          setInitialPath(destination);
           setRepeatSetup(false);
           void load();
         }}

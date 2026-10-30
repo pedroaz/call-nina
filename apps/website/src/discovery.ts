@@ -100,6 +100,7 @@ type DiscoveryCopy = {
   languageQuestion: Record<Role, string>;
   useQuestion: string;
   connectionQuestion: string;
+  otherConnections: string;
   roles: Record<Role, string>;
   languages: Record<LearningLanguage, string>;
   uses: Record<Use, string>;
@@ -142,6 +143,7 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     useQuestion: "How could Nina help?",
     connectionQuestion: "How would you like to connect?",
+    otherConnections: "Other connections",
     roles: { student: "Student", teacher: "Teacher", school: "Language school" },
     languages: {
       de: "German",
@@ -225,6 +227,7 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     useQuestion: "Wie könnte Nina helfen?",
     connectionQuestion: "Wie möchtest du dich verbinden?",
+    otherConnections: "Weitere Verbindungen",
     roles: { student: "Lernende", teacher: "Lehrkraft", school: "Sprachschule" },
     languages: {
       de: "Deutsch",
@@ -308,6 +311,7 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     useQuestion: "¿Cómo podría ayudarte Nina?",
     connectionQuestion: "¿Cómo te gustaría conectarte?",
+    otherConnections: "Otras conexiones",
     roles: { student: "Estudiante", teacher: "Docente", school: "Escuela de idiomas" },
     languages: {
       de: "Alemán",
@@ -391,6 +395,7 @@ export const discoveryCopy: Record<Locale, DiscoveryCopy> = {
     },
     useQuestion: "Como a Nina pode ajudar?",
     connectionQuestion: "Como você gostaria de se conectar?",
+    otherConnections: "Outras conexões",
     roles: { student: "Estudante", teacher: "Professor", school: "Escola de idiomas" },
     languages: {
       de: "Alemão",

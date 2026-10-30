@@ -411,15 +411,10 @@ declare module "*ProfileOnboarding.module.css" {
   const styles: {
     readonly app: string;
     readonly brand: string;
-    readonly content: string;
-    readonly finish: string;
-    readonly footer: string;
-    readonly heading: string;
+    readonly connectionActions: string;
     readonly lesson: string;
+    readonly lessonAction: string;
     readonly options: string;
-    readonly progress: string;
-    readonly summary: string;
-    readonly topbar: string;
   };
   export default styles;
 }

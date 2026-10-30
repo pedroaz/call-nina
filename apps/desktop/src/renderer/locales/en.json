@@ -2203,5 +2203,39 @@
     "copyFailed": "Could not copy. Select and copy the reference above.",
     "policySupport": "If this happens again, share this reference when reporting the problem.",
     "undoVocabulary": "Undo vocabulary addition"
+  },
+  "interview": {
+    "nameTitle": "Hi, I’m Nina. What should I call you?",
+    "nameLabel": "Your name",
+    "namePlaceholder": "First name or nickname",
+    "skipName": "Skip for now",
+    "languageTitle": "What would you like to learn?",
+    "goalTitle": "What would you love to do in {{language}}?",
+    "levelTitle": "How comfortable do you feel in {{language}}?",
+    "explanationTitle": "Which language should I explain things in?",
+    "connectionTitle": "Give Nina an AI connection",
+    "connectionDescription": "Create personal practice and get feedback.",
+    "otherConnections": "Other connections",
+    "useConnection": "Use this connection",
+    "setupLater": "Set up later",
+    "goHome": "Go to Home",
+    "goToExercise": "Go to exercise",
+    "ninaAccount": "Nina account",
+    "chatgpt": "ChatGPT",
+    "lessonTitle": "Your first lesson is ready",
+    "lessonTitleNamed": "{{name}}, your first lesson is ready",
+    "levels": {
+      "a1": "I’m just starting",
+      "a2": "I know the basics",
+      "b1": "I can handle everyday conversations",
+      "b2": "I can discuss a range of topics"
+    },
+    "continue": "Continue",
+    "goals": {
+      "everyday": "Everyday conversations",
+      "travel": "Travel",
+      "work": "Work",
+      "custom": "My own goal"
+    }
   }
 }

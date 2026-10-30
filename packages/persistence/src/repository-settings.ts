@@ -75,8 +75,10 @@ export class SettingsRepository {
         .prepare("INSERT INTO learner_profiles(learner_id, created_at) VALUES (?, ?)")
         .run(profile.learnerId, profile.createdAt);
       connection
-        .prepare("INSERT INTO learner_settings(learner_id, ui_locale, updated_at) VALUES (?, ?, ?)")
-        .run(profile.learnerId, profile.uiLocale, profile.updatedAt);
+        .prepare(
+          "INSERT INTO learner_settings(learner_id, ui_locale, updated_at, learner_name) VALUES (?, ?, ?, ?)",
+        )
+        .run(profile.learnerId, profile.uiLocale, profile.updatedAt, settings.learnerName);
       connection
         .prepare(
           `INSERT INTO local_learning_scope
@@ -165,8 +167,10 @@ export class SettingsRepository {
         );
       if (result.changes !== 1) throw new Error("OD_LEARNER_SETTINGS_CONFLICT");
       connection
-        .prepare("UPDATE learner_settings SET ui_locale = ?, updated_at = ? WHERE learner_id = ?")
-        .run(profile.uiLocale, profile.updatedAt, profile.learnerId);
+        .prepare(
+          "UPDATE learner_settings SET ui_locale = ?, updated_at = ?, learner_name = ? WHERE learner_id = ?",
+        )
+        .run(profile.uiLocale, profile.updatedAt, update.settings.learnerName, profile.learnerId);
       connection
         .prepare("UPDATE local_learning_scope SET course_id = ? WHERE target_language = ?")
         .run(update.settings.learningContext.courseId, profile.targetLanguage);
