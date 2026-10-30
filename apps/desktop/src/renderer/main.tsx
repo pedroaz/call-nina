@@ -1,5 +1,6 @@
 import { NinaAccountProvider } from "./NinaAccount.js";
 import React from "react";
+import { DesktopNotifications } from "./Notifications.js";
 import { createRoot } from "react-dom/client";
 
 import App from "./App.js";
@@ -14,8 +15,10 @@ if (!root) throw new Error("OD_RENDERER_ROOT_MISSING");
 
 createRoot(root).render(
   <React.StrictMode>
-    <NinaAccountProvider>
-      <App />
-    </NinaAccountProvider>
+    <DesktopNotifications>
+      <NinaAccountProvider>
+        <App />
+      </NinaAccountProvider>
+    </DesktopNotifications>
   </React.StrictMode>,
 );

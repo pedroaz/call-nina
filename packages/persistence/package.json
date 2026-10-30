@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/persistence",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "description": "SQLite migrations, repositories, and data-root persistence adapters.",
   "type": "module",

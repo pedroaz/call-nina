@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { ProviderStatus } from "./ProviderStatus.js";
 import { ProviderRouting } from "./ProviderRouting.js";
 import { NinaAccountSettings } from "./NinaAccount.js";
@@ -5,6 +6,7 @@ import { createPortal } from "react-dom";
 import { Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type {
+  CallNinaError,
   AiConnection,
   AiModelPreference,
   DesktopIpcRequest,
@@ -16,6 +18,7 @@ import { resolveModelPreference } from "@call-nina/domain";
 import {
   Button,
   Feedback,
+  useNotifications,
   SelectField,
   TextField,
   ModalDialog,
@@ -50,7 +53,9 @@ export function ConnectionSettings({
   chatgptAccess,
   chatgptConnected,
   feedbackTarget,
+  refreshKey = 0,
 }: {
+  refreshKey?: number;
   feedbackTarget?: HTMLElement | null;
   active: boolean;
   chatgptConnected?: boolean | undefined;
@@ -60,7 +65,8 @@ export function ConnectionSettings({
   authHelp?: string;
   chatgptAccess?: (context: { active: boolean; saved: boolean; dirty: boolean }) => ReactNode;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { notify } = useNotifications();
   const [view, setView] = useState<View>();
   const [selectedId, setSelectedId] = useState<string>();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -68,8 +74,9 @@ export function ConnectionSettings({
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [saving, setBusy] = useState(false);
   const busy = saving || disabled;
-  const [error, setError] = useState<string>();
-  const [notice, setNotice] = useState<string>();
+  const [failure, setError] = useState<string | CallNinaError>();
+  const error = typeof failure === "string" ? failure : undefined;
+  const operationError = typeof failure === "object" ? failure : undefined;
   const [offline, setOffline] = useState<OfflineView>();
   const [offlineBusy, setOfflineBusy] = useState(false);
   const [confirmOfflineRemove, setConfirmOfflineRemove] = useState(false);
@@ -89,13 +96,12 @@ export function ConnectionSettings({
       setOffline(next.offlineModel);
     } catch (cause) {
       if (!mounted.current || epoch !== rootEpoch.current || serial !== readSerial.current) return;
-      setError(normalizeDesktopError(cause).detail.messageKey);
+      setError(normalizeDesktopError(cause).detail);
     }
   }, []);
   useEffect(() => {
     mounted.current = true;
     const epochRef = rootEpoch;
-    const timer = window.setTimeout(() => void load(), 0);
     const unsubscribe = subscribeDesktop((event) => {
       if (event.event === "data-root-changed") {
         rootEpoch.current++;
@@ -105,7 +111,6 @@ export function ConnectionSettings({
         setBusy(false);
         setOfflineBusy(false);
         setError(undefined);
-        setNotice(undefined);
         setDrafts({});
         setCredentials({});
         setSelectedId(undefined);
@@ -122,12 +127,27 @@ export function ConnectionSettings({
     return () => {
       mounted.current = false;
       epochRef.current++;
-      window.clearTimeout(timer);
       unsubscribe();
     };
   }, [load]);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => void load(), 0);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [load, refreshKey]);
+
   const offlineState = offline?.snapshot.state;
+  const offlinePreflight = offline?.snapshot.preflight;
+  const offlineEligibility =
+    offlineState === "installed" || offlineState === "generating"
+      ? offlinePreflight?.generationEligibility
+      : offlinePreflight?.installationEligibility;
+  const gib = (bytes: number | null | undefined) =>
+    bytes == null
+      ? "—"
+      : (bytes / 1024 ** 3).toLocaleString(i18n.language, { maximumFractionDigits: 1 });
   const offlineJob = Boolean(offlineState && activeOfflineStates.includes(offlineState));
   const [pageVisible, setPageVisible] = useState(document.visibilityState === "visible");
   useEffect(() => {
@@ -156,7 +176,7 @@ export function ConnectionSettings({
         }
       } catch (cause) {
         if (!cancelled && mounted.current && epoch === rootEpoch.current)
-          setError(normalizeDesktopError(cause).detail.messageKey);
+          setError(normalizeDesktopError(cause).detail);
       }
     };
     timer = window.setTimeout(() => void poll(), 1500);
@@ -171,7 +191,6 @@ export function ConnectionSettings({
     const epoch = rootEpoch.current;
     setOfflineBusy(true);
     setError(undefined);
-    setNotice(undefined);
     try {
       const next = await invokeDesktop("offline-model/manage", { action });
       if (!mounted.current || epoch !== rootEpoch.current) return;
@@ -182,9 +201,8 @@ export function ConnectionSettings({
     } catch (cause) {
       if (!mounted.current || epoch !== rootEpoch.current) return;
       const detail = normalizeDesktopError(cause).detail;
-      setError(
-        detail.kind === "conflict" ? "connectionSettings.offlineBusyConflict" : detail.messageKey,
-      );
+      if (detail.kind === "conflict") setError("connectionSettings.offlineBusyConflict");
+      else setError(detail);
       void load();
     } finally {
       if (mounted.current && epoch === rootEpoch.current) setOfflineBusy(false);
@@ -233,6 +251,7 @@ export function ConnectionSettings({
     onPendingChange?.(pending);
   }, [pending, onPendingChange]);
   const select = (id: string) => {
+    void load();
     setSelectedId(id);
     setConfirmRemove(false);
     setConfirmOfflineRemove(false);
@@ -254,7 +273,6 @@ export function ConnectionSettings({
     const epoch = rootEpoch.current;
     setBusy(true);
     setError(undefined);
-    setNotice(undefined);
     try {
       const next = await invokeDesktop("ai-connections/update", {
         expectedGeneration: view.expectedGeneration,
@@ -264,12 +282,14 @@ export function ConnectionSettings({
       if (!mounted.current || epoch !== rootEpoch.current) return false;
       setView(next);
       setOffline(next.offlineModel);
-      if (action.kind === "save") setNotice(t("connectionSettings.saved"));
+      if (action.kind === "save")
+        notify({ message: t("connectionSettings.saved"), tone: "success" });
       return true;
     } catch (cause) {
       if (!mounted.current || epoch !== rootEpoch.current) return false;
       const detail = normalizeDesktopError(cause).detail;
-      setError(detail.kind === "conflict" ? "connections.wait" : detail.messageKey);
+      if (detail.kind === "conflict") setError("connections.wait");
+      else setError(detail);
       await load();
       return false;
     } finally {
@@ -465,6 +485,7 @@ export function ConnectionSettings({
                           ? "connectionSettings.keyEntry"
                           : "connectionSettings.keyAction",
                       )}
+                      error={error === "connectionSettings.keyRequired" ? t(error) : undefined}
                       type="password"
                       maxLength={8192}
                       disabled={busy || view?.secureStorage.status !== "available"}
@@ -581,17 +602,31 @@ export function ConnectionSettings({
                   {t(`connectionSettings.offlineState.${offline.snapshot.state}`)}
                 </p>
                 {offline.snapshot.errorCode && (
-                  <p role="alert">{t("connectionSettings.offlineFailure")}</p>
+                  <Feedback tone="error" live="assertive" density="compact">
+                    {t("connectionSettings.offlineFailure")}
+                  </Feedback>
                 )}
-                {offline.snapshot.preflight && !offline.snapshot.preflight.platformSupported && (
-                  <p>{t("connectionSettings.offlinePlatform")}</p>
+                {offlineEligibility !== "ready" && offlineState !== "generating" && (
+                  <p role="status">
+                    {t(
+                      `connectionSettings.offlineEligibility.${offlineEligibility ?? "resources-unknown"}`,
+                    )}
+                  </p>
                 )}
-                {offline.snapshot.preflight && !offline.snapshot.preflight.memorySufficient && (
-                  <p>{t("connectionSettings.offlineMemory")}</p>
-                )}
-                {offline.snapshot.preflight && !offline.snapshot.preflight.diskSufficient && (
-                  <p>{t("connectionSettings.offlineDiskEstimate")}</p>
-                )}
+                <p>
+                  {t("connectionSettings.offlineMemoryReadout", {
+                    total: gib(offlinePreflight?.totalMemoryBytes),
+                    requiredTotal: gib(offline.catalog.admissionMemoryBytes),
+                    available: gib(offlinePreflight?.freeMemoryBytes),
+                    requiredAvailable: gib(offline.catalog.admissionFreeMemoryBytes),
+                  })}
+                </p>
+                <p>
+                  {t("connectionSettings.offlineDiskReadout", {
+                    available: gib(offlinePreflight?.availableDiskBytes),
+                    required: gib(offlinePreflight?.requiredDiskBytes),
+                  })}
+                </p>
                 {(offline.snapshot.state === "downloading" ||
                   offline.snapshot.state === "verifying") && (
                   <p>
@@ -610,8 +645,7 @@ export function ConnectionSettings({
                       isDisabled={
                         busy ||
                         offlineBusy ||
-                        !offline.snapshot.preflight?.platformSupported ||
-                        !offline.snapshot.preflight.memorySufficient
+                        offline.snapshot.preflight?.installationEligibility !== "ready"
                       }
                       onPress={() => void manageOffline("install")}
                     >
@@ -723,7 +757,8 @@ export function ConnectionSettings({
                 )}
               </div>
             </Disclosure>
-            {error && (
+            {operationError && <OperationError error={operationError} />}
+            {error && error !== "connectionSettings.keyRequired" && (
               <Feedback tone="error" live="assertive">
                 {t(error)}
               </Feedback>
@@ -763,23 +798,23 @@ export function ConnectionSettings({
         (feedbackTarget ? (
           createPortal(
             <>
+              {operationError && <OperationError error={operationError} />}
               {error && (
                 <Feedback tone="error" live="assertive">
                   {t(error)}
                 </Feedback>
               )}
-              {notice && <Feedback live="polite">{notice}</Feedback>}{" "}
             </>,
             feedbackTarget,
           )
         ) : (
           <>
+            {operationError && <OperationError error={operationError} />}
             {error && (
               <Feedback tone="error" live="assertive">
                 {t(error)}
               </Feedback>
             )}
-            {notice && <Feedback live="polite">{notice}</Feedback>}{" "}
           </>
         ))}
     </div>

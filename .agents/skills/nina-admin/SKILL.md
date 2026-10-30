@@ -5,6 +5,13 @@ description: Administer Nina accounts, passwords, access, action allowances, usa
 
 # Nina administration
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact. Credentials-only temporary accounts need no allowance question. Use non-mutating CLI review, inspect its target, then execute with `--yes`; standing MVP authorization is sufficient. Delete only intended identities and hosted sync data, retaining financial history. Inspect an uncertain result before retrying.
+<!-- MVP-END -->
+
 Use this repository's `scripts/admin/` tools to carry out the requested operation. Work as the current agent; no separate agent service or MCP installation is needed. For runtime changes or accounting design, use [hosted API development](../call-nina-hosted-admin/SKILL.md). Preserve unrelated working-tree changes and learner data.
 
 ## Execute an operator request

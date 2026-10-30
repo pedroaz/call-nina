@@ -30,7 +30,7 @@ export function Feedback(props: {
       className={`${styles.feedback} ${styles[tone]} ${props.className ?? ""}`}
       role={tone === "error" && live === "assertive" ? "alert" : undefined}
     >
-      {(props.showIcon ?? tone !== "info") && <Icon aria-hidden="true" />}
+      {(props.showIcon ?? tone !== "info") && <Icon className={styles.icon} aria-hidden="true" />}
       <div>{props.children}</div>
     </div>
   );

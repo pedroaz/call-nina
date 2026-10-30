@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { ActivityVisual } from "./activityPresentation.js";
 import { MistakesToPractise } from "./MistakesToPractise.js";
 import { SavedResultDetail } from "./SavedResultDetail.js";
@@ -26,13 +27,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   SelectControl,
-  DiagnosticCode,
   Button,
   Disclosure,
   ModalDialog,
   EmptyState,
   LoadingState,
-  Feedback,
   FieldGroup,
   Muted,
 } from "./components/ui/index.js";
@@ -414,14 +413,7 @@ export function SavedResults({
         }
         onCancel={() => void cancelTargetedPractice()}
       />
-      {error && (
-        <Feedback live="assertive" tone="error">
-          <span>{t(error.messageKey)}</span>
-          <DiagnosticCode>
-            {error.reference.code} · {error.reference.correlationId}
-          </DiagnosticCode>
-        </Feedback>
-      )}
+      {error && <OperationError error={error} />}
     </>
   );
 

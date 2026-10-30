@@ -4,14 +4,13 @@ import {
   type CorrelationId,
   type GenerationEvent,
   type GenerationService,
-  type ProviderAccess,
-  type ProviderOperation,
 } from "@call-nina/contracts";
 import { DirectApiGenerationService, isDirectApiRoute } from "@call-nina/direct-api";
 import { ManagedGenerationService } from "@call-nina/managed-generation/service";
 import { OfflineGenerationService, type OfflineRuntime } from "@call-nina/offline-runtime";
 import { type CallNinaDatabase } from "@call-nina/persistence";
-import { type AcceptedOperation } from "../backend-support.js";
+import { type LearningWorkflowTiming } from "@call-nina/learning-workflows";
+import { type OperationLog } from "../backend-support.js";
 import { ChatgptGenerationService } from "../chatgpt-generation.js";
 import { type ChatgptSession } from "../chatgpt-session.js";
 import { type ConnectionSecretStorage } from "../secret-storage.js";
@@ -25,12 +24,7 @@ interface Dependencies {
   secrets: ConnectionSecretStorage;
   connectionById: (id: string) => Promise<AiConnection>;
   projectGenerationEvent: (event: GenerationEvent) => void;
-  providerAccess: (
-    operation: ProviderOperation,
-    correlationId: string,
-    retainedSelection?: AcceptedOperation["operation"]["modelSelection"],
-    retainedConnection?: AiConnection,
-  ) => Promise<ProviderAccess>;
+  operationLog: OperationLog;
 }
 export class ConnectionRuntime {
   readonly #dependencies: Dependencies;
@@ -56,6 +50,32 @@ export class ConnectionRuntime {
 
   readonly chatgptServices = new Set<ChatgptGenerationService>();
 
+  #logValidation(
+    provider: "CHATGPT" | "LOCAL",
+    operationId: string,
+    event: LearningWorkflowTiming,
+  ) {
+    this.#dependencies.operationLog(
+      event.outcome === "error" ? "warn" : "info",
+      `${provider}_GENERATION_VALIDATION`,
+      operationId,
+      event.stage,
+      event.code,
+      "Generation validation completed.",
+      {
+        phase: "validating",
+        outcome: event.outcome,
+        durationMs: event.durationMs,
+        metadata: {
+          attempt: event.attempt,
+          exerciseIndex: event.exerciseIndex ?? null,
+          validationField: event.validationField ?? null,
+          answerLength: event.answerLength ?? null,
+        },
+      },
+    );
+  }
+
   async generationForConnection(connection: AiConnection): Promise<GenerationService | undefined> {
     if (connection.routeId === "chatgpt" && this.#database) {
       const database = this.#database;
@@ -79,6 +99,20 @@ export class ConnectionRuntime {
         assertActive,
         connectionId: connection.id,
         rootGeneration: database.rootGeneration,
+        onTiming: (operationId, event) => {
+          this.#logValidation("CHATGPT", operationId, event);
+        },
+        onFailure: (operationId, code) => {
+          this.#dependencies.operationLog(
+            "warn",
+            "CHATGPT_GENERATION_FAILED",
+            operationId,
+            "generation",
+            code,
+            "ChatGPT generation did not complete.",
+            { phase: "failed", outcome: "error" },
+          );
+        },
       });
       service.subscribeGeneration(this.#dependencies.projectGenerationEvent);
       this.chatgptServices.add(service);
@@ -109,6 +143,9 @@ export class ConnectionRuntime {
         connectionId: captured.id,
         rootGeneration: database.rootGeneration,
         runtime: this.#dependencies.offline,
+        onTiming: (operationId, event) => {
+          this.#logValidation("LOCAL", operationId, event);
+        },
         captureActive: () => {
           const epoch = this.offlineEpoch;
           return () =>
@@ -117,14 +154,11 @@ export class ConnectionRuntime {
             !database.closed &&
             epoch === this.offlineEpoch;
         },
-        assertActive: async (request) => {
-          const access = await this.#dependencies.providerAccess(
-            request.input.kind,
-            request.operationId,
-            request.modelSelection,
-            captured,
-          );
-          if (access.status !== "available" || access.routeId !== "local")
+        assertActive: async () => {
+          // Resource admission belongs to each transport attempt. A later memory
+          // change must not invalidate an operation that has already finished.
+          const current = await this.#dependencies.connectionById(captured.id);
+          if (current.id !== captured.id || current.routeId !== captured.routeId)
             throw new Error("OD_OFFLINE_INACTIVE");
         },
       });

@@ -1,3 +1,4 @@
+import i18n from "./i18n.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,7 +10,7 @@ import {
   type Language,
   type CorrelationId,
 } from "@call-nina/contracts";
-import { Button, Feedback } from "./components/ui/index.js";
+import { Button, Feedback, useNotifications } from "./components/ui/index.js";
 import { ActionGroup } from "./components/layout/index.js";
 import { LanguageSelect } from "./LanguageSelect.js";
 import { createDesktopSubmissionId, invokeDesktop, subscribeDesktop } from "./ipc.js";
@@ -68,6 +69,7 @@ function TranslationControls({
   requestAiAccess: TranslationAccess;
 }) {
   const { t } = useTranslation();
+  const { notify } = useNotifications();
   const requestKey = JSON.stringify(requestValue);
   const request = useMemo(
     () => translationRequestSchema.parse(JSON.parse(requestKey)),
@@ -114,8 +116,11 @@ function TranslationControls({
       locked.current = false;
       if (!alive.current) return;
       setBusy(false);
-      setNotice(event.outcome);
-      if (event.outcome === "saved") void load();
+      if (event.outcome === "saved") {
+        setNotice(undefined);
+        notify({ message: i18n.t("translation.saved"), tone: "success" });
+        void load();
+      } else setNotice(event.outcome);
     });
     const timer = window.setTimeout(() => void load(), 0);
     return () => {
@@ -128,7 +133,7 @@ function TranslationControls({
           operationId: active.current,
         }).catch(() => undefined);
     };
-  }, [request, load]);
+  }, [request, load, notify]);
   const isAlive = () => alive.current;
   const saved = translations.find((item) => item.language === language);
   const start = async () => {
@@ -152,7 +157,7 @@ function TranslationControls({
       if (result.status === "saved") {
         active.current = undefined;
         if (isAlive()) {
-          setNotice("saved");
+          notify({ message: i18n.t("translation.saved"), tone: "success" });
           await load();
         }
       }

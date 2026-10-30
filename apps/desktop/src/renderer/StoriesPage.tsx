@@ -3,13 +3,20 @@ import { useTranslation } from "react-i18next";
 import { BookOpen } from "lucide-react";
 import type { StorySnapshot } from "@call-nina/contracts";
 import { Page, ContentRow, Section, ActionGroup } from "./components/layout/index.js";
-import { Button, TextField, SelectField } from "./components/ui/index.js";
+import {
+  Button,
+  TextField,
+  SelectField,
+  Feedback,
+  useNotifications,
+} from "./components/ui/index.js";
 import { invokeDesktop } from "./ipc.js";
 import { SpeechButton, stopSpeech } from "./SpeechButton.js";
 import styles from "./StoriesPage.module.css";
 
 export function StoriesPage() {
   const { t, i18n } = useTranslation();
+  const { notify } = useNotifications();
   const [snapshot, setSnapshot] = useState<StorySnapshot>();
   const [selected, setSelected] = useState<string>();
   const [query, setQuery] = useState("");
@@ -82,6 +89,7 @@ export function StoriesPage() {
         word: index,
       });
       setSaved((values) => [...values, `${story.id}:${String(index)}`]);
+      notify({ message: t("flashcards.saveNotice"), tone: "success" });
     } catch {
       setError(true);
     } finally {
@@ -107,7 +115,11 @@ export function StoriesPage() {
           }
         : {})}
     >
-      {error && <p role="alert">{t("stories.failed")}</p>}
+      {error && (
+        <Feedback tone="error" live="assertive">
+          {t("stories.failed")}
+        </Feedback>
+      )}
       {!snapshot && !error && <p role="status">{t("stories.loading")}</p>}
       {story ? (
         <>

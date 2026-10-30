@@ -266,12 +266,22 @@ const generatedExerciseContentSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     ...candidateExerciseShape,
     kind: z.literal("fill-in-the-blank"),
-    leadingText: z.string().max(4_000),
+    leadingText: z
+      .string()
+      .max(4_000)
+      .describe(
+        "Text before the first blank. Do not include underscore placeholders; the app inserts each blank input.",
+      ),
     blanks: z
       .array(
         z.strictObject({
           acceptedAnswers: z.array(text(500)).min(1).max(20),
-          followingText: z.string().max(4_000),
+          followingText: z
+            .string()
+            .max(4_000)
+            .describe(
+              "Text immediately after this blank, up to the next blank or end. Do not include underscore placeholders.",
+            ),
         }),
       )
       .min(1)
@@ -380,6 +390,16 @@ export const generationCandidateOutputJsonSchemas = Object.freeze({
 
 /** Bind model generation to the same request constraints checked after generation. */
 export function generationOutputJsonSchemaForInput(input: GenerationInput): unknown {
+  if (input.kind === "exercise-feedback") {
+    return toStructuredOutputJsonSchema(
+      strictBoundaryObject({
+        ...exerciseFeedbackCandidateSchema.shape,
+        objectiveEvaluations: exerciseFeedbackCandidateSchema.shape.objectiveEvaluations.length(
+          input.exercise.objectives.length,
+        ),
+      }),
+    );
+  }
   if (input.kind === "flashcard-generation") {
     return toStructuredOutputJsonSchema(
       strictBoundaryObject({
@@ -400,8 +420,13 @@ export function generationOutputJsonSchemaForInput(input: GenerationInput): unkn
   if (input.kind !== "exercise-generation") {
     return generationCandidateOutputJsonSchemas[input.kind];
   }
+  const vocabularyIds = input.vocabularyToReview.map((word) => word.vocabularyId);
+  const targetedVocabularyIds = vocabularyIds.length
+    ? z.array(z.enum(vocabularyIds)).max(3)
+    : z.array(vocabularyIdSchema).length(0);
   const exercises = generatedExerciseContentSchema.options.map((schema) =>
     schema.extend({
+      targetedVocabularyIds,
       cefrBand: z.literal(input.calibration.approximateLevel),
       ...(schema.shape.kind.value === "free-writing"
         ? {}
@@ -431,6 +456,14 @@ export function generationOutputJsonSchemaForInput(input: GenerationInput): unkn
   return toStructuredOutputJsonSchema(
     strictBoundaryObject({
       ...exerciseGenerationCandidateSchema.shape,
+      readingMaterial: input.reading
+        ? z.strictObject({
+            title: text(160),
+            // Supplied passages may contain newlines, which strict output enums
+            // reject. The shared output validator enforces exact preservation.
+            passage: text(12_000),
+          })
+        : z.null(),
       exercises: z.array(z.union(exercises)).length(input.requestedExerciseCount),
     }),
   );

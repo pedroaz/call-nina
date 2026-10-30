@@ -1,5 +1,5 @@
 import { accountResponse, unavailableResponse } from "@call-nina/managed-generation/server";
-import { accountDeployment, accountSql } from "../deployment.js";
+import { accountDeployment, accountSql, selectedDeployment } from "../deployment.js";
 
 export async function GET(request: Request): Promise<Response> {
   try {
@@ -14,7 +14,7 @@ export async function GET(request: Request): Promise<Response> {
       request,
       deployment.auth,
       accountSql(),
-      deployment.inferenceEnabled,
+      selectedDeployment(process.env)?.policy ?? null,
       process.env["NINA_SPEECH_ENABLED"] === "true" &&
         process.env["NINA_SPEECH_RECOVERY_READY"] === "true" &&
         Boolean(process.env["NINA_SPEECH_GOOGLE_CREDENTIALS"]),

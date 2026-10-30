@@ -42,6 +42,7 @@ declare module "*Feedback.module.css" {
     readonly diagnostic: string;
     readonly error: string;
     readonly feedback: string;
+    readonly icon: string;
     readonly info: string;
     readonly loadingDot: string;
     readonly success: string;
@@ -63,6 +64,15 @@ declare module "*Fields.module.css" {
     readonly radioGroup: string;
     readonly select: string;
     readonly toggleGroup: string;
+  };
+  export default styles;
+}
+
+declare module "*Notifications.module.css" {
+  const styles: {
+    readonly content: string;
+    readonly region: string;
+    readonly toast: string;
   };
   export default styles;
 }

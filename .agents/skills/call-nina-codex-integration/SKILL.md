@@ -5,6 +5,13 @@ description: Maintain Call Nina's direct ChatGPT/provider adapters, model select
 
 # Call Nina Codex integration
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact.
+<!-- MVP-END -->
+
 Inspect the current implementation and runtime capabilities before diagnosing compatibility. Repository-relative starting points:
 
 - Direct ChatGPT generation and authentication: `apps/desktop/src/main/chatgpt-session.ts`, `chatgpt-transport.ts`, `chatgpt-generation.ts` and `backend.ts`. External Codex discovery in `packages/codex-client/src/discovery.ts` serves only explicit Voice/plugin integration.
@@ -45,3 +52,5 @@ Use recommended explicitly applies configured compatible providers in Nina, Chat
 Speech has dedicated `speech/read`, `speech/manage`, and `speech/synthesize` IPC contracts. Do not pass speech through structured-text generation or Gateway adapters. Main owns model execution, checksummed downloads, learner-private caches and hosted credentials. Renderer owns one Audio player with Play/Stop and pitch-preserving 0.75× speed. Prepared curriculum clips precede the selected per-language synthesis source; a cache miss must never silently select hosted speech. Cache identity includes exact text/language/provider/voice artifact version. Account/root invalidation cancels captured work, while complete cached audio remains usable after sign-out.
 
 Local CPU generation has a five-minute total deadline (including one bounded repair); cloud deadlines remain operation-specific. The desktop start/retry acknowledgement supplies its provider-specific timeout so renderer cancellation cannot cut off local work using a cloud deadline.
+
+Keep teaching prompts, schema field order and validation shared across providers; Local owns only its serialization order, schema-in-message formatting and sampling settings. Its preflight admits Linux x64 with at least 8 GiB total and 6 GiB available RAM (Linux MemAvailable, OS fallback). These are admission limits, not performance or quality qualification. Settings and routing share the eligibility readback; installation and each generation attempt recheck it. Disk remaining-space and reserve checks block installation/resume only. Unknown resources block the affected action; later resource changes do not invalidate running work.

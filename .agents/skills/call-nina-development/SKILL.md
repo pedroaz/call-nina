@@ -5,6 +5,13 @@ description: Develop and maintain Call Nina, including repository workflow, pack
 
 # Call Nina development
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact. Preserve the normal version/branch workflow. Commits, pushes, PRs, tags and desktop publication remain separate actions, not local-deployment prerequisites.
+<!-- MVP-END -->
+
 Work directly with the user as one agent. Read root and scoped `AGENTS.md`, inspect branch, worktrees and tracked/untracked status, and preserve concurrent source work. Development app data is disposable under root `AGENTS.md`. A chat request or optional ticket supplies scope; no task status or external execution record is required. Use the user's model selection and ordinary Git isolation when useful. Current code and runtime observations establish implemented behavior.
 
 ## Find the owner

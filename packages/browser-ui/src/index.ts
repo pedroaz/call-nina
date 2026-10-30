@@ -6,3 +6,4 @@ export * from "./Tabs.js";
 export * from "./Feedback.js";
 export * from "./ActivityChoice.js";
 export * from "./OverflowMenu.js";
+export * from "./Notifications.js";

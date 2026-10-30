@@ -2,6 +2,19 @@
 
 Local-first language learning: Electron/React desktop, validated preload/IPC, SQLite, direct ChatGPT and provider adapters, and a separate local STDIO MCP plugin. Source and runtime observations establish implemented behavior.
 
+<!-- MVP-BEGIN -->
+
+## MVP mode (temporary)
+
+Call Nina is in its MVP phase. For requested development and verification, the maintainer authorizes local source/configuration changes, local builds and direct deployment of the combined website/API to the existing Vercel production project. GitHub Actions, commits, pushes, PRs, merges, tags and the full release cycle are not prerequisites for these MVP deployments. Identify uncommitted builds honestly with the base commit plus an artifact digest and local deployment ID; do not claim they are committed releases.
+
+The authorization includes administering MVP accounts (create/delete, sign-in checks, tier changes), hosted test data, required forward database migrations and restricted runtime permissions. Review the exact target/diff using existing tools, then execute within this scope without asking for repeated permission. Clean up temporary accounts/data after verification and preserve financial audit records. Production is the current MVP verification environment; do not assume separate dev authentication or databases exist.
+
+MVP operations still have real effects. Preserve unrelated source work, credentials, accounting history and explicit user data-retention instructions. Keep paid-service activation, purchases, allowance grants, new infrastructure and unrelated third-party actions outside this standing authorization unless separately requested. Keep automatic Git deployments/publishing disabled. Verify live outcomes; after an uncertain write, inspect before retrying. Interactive verification and the no-automated-application-tests rule remain in force.
+
+This marked section overrides conflicting production-account approval and GitHub-only release requirements below while MVP mode is present. Individual skills carry matching `MVP-BEGIN` / `MVP-END` notes. Remove all marked blocks to restore the normal delivery policy; local deployment tooling may remain available but then requires an explicit local-deployment request.
+<!-- MVP-END -->
+
 ## Working boundaries
 
 - Work directly with the user as one agent using their selected model and effort; delegate only when asked. Inspect branch, worktrees, and tracked/untracked changes before editing. When starting implementation from `main`, follow the Development skill’s branch-first and feature-minor/bugfix-patch version procedure before source edits. Preserve concurrent source work; development app data is disposable for verification.

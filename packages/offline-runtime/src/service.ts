@@ -22,6 +22,7 @@ import {
 import {
   GenerationOutputValidationError,
   runLearningWorkflow,
+  type LearningWorkflowTiming,
 } from "@call-nina/learning-workflows";
 import { offlineSelection } from "./catalog.js";
 import { fail, safeCode } from "./files.js";
@@ -47,6 +48,7 @@ export class OfflineGenerationService implements GenerationService {
   readonly #runtime: OfflineRuntime;
   readonly #captureActive: () => () => boolean;
   readonly #assertActive: (request: GenerationOperationStart) => Promise<void>;
+  readonly #onTiming: ((operationId: string, event: LearningWorkflowTiming) => void) | undefined;
   readonly #records = new Map<string, Operation>();
   readonly #listeners = new Set<(event: GenerationEvent) => void>();
   #closed = false;
@@ -56,12 +58,14 @@ export class OfflineGenerationService implements GenerationService {
     runtime: OfflineRuntime;
     captureActive: () => () => boolean;
     assertActive: (request: GenerationOperationStart) => Promise<void>;
+    onTiming?: (operationId: string, event: LearningWorkflowTiming) => void;
   }) {
     this.#connectionId = aiConnectionIdSchema.parse(options.connectionId);
     this.#rootGeneration = dataRootGenerationSchema.parse(options.rootGeneration);
     this.#runtime = options.runtime;
     this.#captureActive = options.captureActive;
     this.#assertActive = options.assertActive;
+    this.#onTiming = options.onTiming;
   }
   subscribeGeneration(listener: (event: GenerationEvent) => void) {
     this.#listeners.add(listener);
@@ -145,6 +149,7 @@ export class OfflineGenerationService implements GenerationService {
           localExecution: true,
           signal: controller.signal,
           absoluteDeadlineMilliseconds: Math.max(1, deadline - Date.now()),
+          onTiming: (event) => this.#onTiming?.(request.operationId, event),
           onProgress: (stage, attempt) => {
             this.#emit({ event: "operation-progress", ...base, stage, attempt });
           },
@@ -160,7 +165,18 @@ export class OfflineGenerationService implements GenerationService {
             stage: "starting",
             attempt: attempt.attempt,
           });
-          return this.#runtime.generate(attempt, () => !this.#closed && isActive());
+          return this.#runtime.generate(
+            attempt,
+            () => !this.#closed && isActive(),
+            () => {
+              this.#emit({
+                event: "operation-progress",
+                ...base,
+                stage: "running",
+                attempt: attempt.attempt,
+              });
+            },
+          );
         },
       );
       controller.signal.throwIfAborted();

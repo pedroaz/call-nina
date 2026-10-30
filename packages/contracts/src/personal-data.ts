@@ -11,6 +11,7 @@ export const personalDataGroups = {
     "ai_connections",
   ],
   practice: [
+    "story_positions",
     "course_selection",
     "course_missions",
     "exercise_support",

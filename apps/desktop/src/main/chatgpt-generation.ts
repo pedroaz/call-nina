@@ -22,6 +22,7 @@ import {
 import {
   GenerationOutputValidationError,
   runLearningWorkflow,
+  type LearningWorkflowTiming,
 } from "@call-nina/learning-workflows";
 import { ChatgptError, type ChatgptSession } from "./chatgpt-session.js";
 import { generateChatgptAttempt } from "./chatgpt-transport.js";
@@ -58,6 +59,8 @@ export class ChatgptGenerationService implements GenerationService {
   readonly #assertActive: () => Promise<void>;
   readonly #connectionId: string;
   readonly #rootGeneration: number;
+  readonly #onTiming: ((operationId: string, event: LearningWorkflowTiming) => void) | undefined;
+  readonly #onFailure: ((operationId: string, code: string) => void) | undefined;
   readonly #listeners = new Set<(event: GenerationEvent) => void>();
   readonly #records = new Map<string, RecordState>();
   #closed = false;
@@ -68,12 +71,16 @@ export class ChatgptGenerationService implements GenerationService {
     assertActive: () => Promise<void>;
     connectionId: string;
     rootGeneration: number;
+    onTiming?: (operationId: string, event: LearningWorkflowTiming) => void;
+    onFailure?: (operationId: string, code: string) => void;
   }) {
     this.#session = options.session;
     this.#registrationId = options.registrationId;
     this.#assertActive = options.assertActive;
     this.#connectionId = aiConnectionIdSchema.parse(options.connectionId);
     this.#rootGeneration = dataRootGenerationSchema.parse(options.rootGeneration);
+    this.#onTiming = options.onTiming;
+    this.#onFailure = options.onFailure;
     this.generationCapabilities = generationCapabilitiesSchema.parse({
       providerId: "chatgpt",
       operations: generationKinds,
@@ -174,6 +181,7 @@ export class ChatgptGenerationService implements GenerationService {
             input: operation.input,
             signal: controller.signal,
             absoluteDeadlineMilliseconds: Math.max(1, deadline - Date.now()),
+            onTiming: (event) => this.#onTiming?.(operation.operationId, event),
             onProgress: (stage, attempt) => {
               this.#emit({ event: "operation-progress", ...base, stage, attempt });
             },
@@ -245,6 +253,12 @@ export class ChatgptGenerationService implements GenerationService {
                 ? error
                 : new ChatgptError("app-server", "OD_CHATGPT_UNAVAILABLE");
       record.status = failure.kind === "cancellation" ? "cancelled" : "failed";
+      try {
+        if (failure.kind !== "cancellation")
+          this.#onFailure?.(operation.operationId, failure.message);
+      } catch {
+        /* Diagnostics cannot change settlement. */
+      }
       const definition = errorDefinitions[failure.kind];
       const state =
         failure.kind === "cancellation"

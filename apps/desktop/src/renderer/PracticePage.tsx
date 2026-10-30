@@ -512,7 +512,7 @@ export function PracticePage({
                   <ItemList>
                     {lesson.vocabularyFoundations.map((item) => (
                       <li key={`${item.term}:${item.example}`}>
-                        <strong>{item.term}</strong> — {item.explanation}
+                        <strong>{item.term}</strong> — {item.explanation}{" "}
                         <Muted as="span">{item.example}</Muted>
                       </li>
                     ))}

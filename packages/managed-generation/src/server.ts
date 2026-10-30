@@ -8,7 +8,12 @@ import {
   runLearningWorkflow,
 } from "@call-nina/learning-workflows";
 import { PostgresBudget, type BudgetSql } from "./budget.js";
-import { policyIsCurrent, servicePolicySchema, type ServicePolicy } from "./policy.js";
+import {
+  policyDigest,
+  policyIsCurrent,
+  servicePolicySchema,
+  type ServicePolicy,
+} from "./policy.js";
 import {
   failureCodeSchema,
   limits,
@@ -193,7 +198,7 @@ export async function accountResponse(
   request: Request,
   auth: ClerkPolicy,
   sql: BudgetSql,
-  inferenceEnabled: boolean,
+  inferencePolicy: ServicePolicy | null,
   speechEnabled = false,
 ): Promise<Response> {
   try {
@@ -212,6 +217,19 @@ export async function accountResponse(
       .object({ enabled: z.boolean(), remaining_characters: z.coerce.number().int().nonnegative() })
       .optional()
       .parse(speechResult.rows[0]);
+    let inferenceEnabled = false;
+    let speechServiceEnabled = false;
+    if (inferencePolicy && policyIsCurrent(inferencePolicy)) {
+      const availability = await sql.query(
+        "select nina_starter.service_enabled($1::uuid,$2) as enabled",
+        [inferencePolicy.budgetId, policyDigest(inferencePolicy)],
+      );
+      inferenceEnabled = z.object({ enabled: z.boolean() }).parse(availability.rows[0]).enabled;
+    }
+    if (speechEnabled) {
+      const availability = await sql.query("select nina_speech.service_enabled() as enabled", []);
+      speechServiceEnabled = z.object({ enabled: z.boolean() }).parse(availability.rows[0]).enabled;
+    }
     return response(
       ninaAccessSchema.parse({
         userId,
@@ -220,7 +238,7 @@ export async function accountResponse(
         speech: {
           enabled: speech?.enabled ?? false,
           remainingCharacters: speech?.remaining_characters ?? 0,
-          serviceEnabled: speechEnabled,
+          serviceEnabled: speechServiceEnabled,
         },
         remainingActions: account?.remaining_actions ?? 0,
         inferenceEnabled,

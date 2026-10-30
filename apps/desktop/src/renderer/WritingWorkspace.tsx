@@ -1,3 +1,4 @@
+import { OperationError } from "./OperationError.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type { ProviderOperation } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
@@ -6,7 +7,6 @@ import { MousePointer2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   SelectControl,
-  DiagnosticCode,
   Disclosure,
   UtilityPopover,
   InfoHint,
@@ -211,14 +211,7 @@ export function WritingWorkspace({
             <OperationProgress
               progress={correctionStage === "idle" ? undefined : correctionProgress.progress}
             />
-            {correctionError ? (
-              <Feedback live="assertive" tone="error">
-                <p>{t(correctionError.messageKey)}</p>
-                <DiagnosticCode>
-                  {correctionError.reference.code} · {correctionError.reference.correlationId}
-                </DiagnosticCode>
-              </Feedback>
-            ) : null}
+            {correctionError ? <OperationError error={correctionError} /> : null}
             {correctionOutcome ? (
               <Feedback live="polite" tone="warning">
                 {t(`writing.correctionOutcomes.${correctionOutcome}`)}
@@ -260,14 +253,7 @@ export function WritingWorkspace({
           <OperationProgress
             progress={promptStage === "idle" ? undefined : promptProgress.progress}
           />
-          {promptError ? (
-            <Feedback live="assertive" tone="error">
-              <p>{t(promptError.messageKey)}</p>
-              <DiagnosticCode>
-                {promptError.reference.code} · {promptError.reference.correlationId}
-              </DiagnosticCode>
-            </Feedback>
-          ) : null}
+          {promptError ? <OperationError error={promptError} /> : null}
         </section>
 
         <Tabs

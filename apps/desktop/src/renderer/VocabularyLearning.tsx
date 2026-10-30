@@ -13,6 +13,7 @@ import { useLearningOperation } from "./useLearningOperation.js";
 import {
   Button,
   Feedback,
+  useNotifications,
   ModalDialog,
   TextField,
   Tabs,
@@ -38,6 +39,7 @@ function useVocabularyLearning() {
         if (version !== requestVersion.current) return;
         setSnapshot(next);
         setError("");
+        return next;
       })
       .catch((cause: unknown) => {
         if (version === requestVersion.current)
@@ -135,6 +137,7 @@ export function VocabularyLearning({
   viewRequest: number;
 }) {
   const { t } = useTranslation();
+  const { notify } = useNotifications();
   const { snapshot, refresh, update, error: readError, saving } = useVocabularyLearning();
   const operation = useLearningOperation();
   const [open, setOpen] = useState(false);
@@ -268,7 +271,16 @@ export function VocabularyLearning({
       setText("");
       setImage(undefined);
       setImageName("");
-      await refresh();
+      const next = await refresh();
+      const added =
+        next?.batches
+          .filter(
+            (batch) =>
+              !batch.undone && !snapshot.batches.some((previous) => previous.id === batch.id),
+          )
+          .reduce((count, batch) => count + batch.added, 0) ?? 0;
+      if (added > 0)
+        notify({ message: t("vocabulary.learning.added", { count: added }), tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail.messageKey);
     } finally {
@@ -339,15 +351,14 @@ export function VocabularyLearning({
                   )}
                 </div>
                 {addedBatch && (
-                  <div className={styles.added} role="status">
-                    <span>{t("vocabulary.learning.added", { count: addedBatch.added })}</span>
+                  <div className={styles.added}>
                     <Button
                       variant="quiet"
                       density="compact"
                       isDisabled={saving}
                       onPress={() => void update({ kind: "undo", batchId: addedBatch.id })}
                     >
-                      {t("vocabulary.learning.undo")}
+                      {t("feedback.undoVocabulary")}
                     </Button>
                   </div>
                 )}

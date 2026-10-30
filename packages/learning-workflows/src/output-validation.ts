@@ -114,6 +114,12 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
     );
   }
   const workloadInput: GenerationInput = input;
+  if (kind === "exercise-feedback" && workloadInput.kind === "exercise-feedback") {
+    const output = parsed.data as GenerationCandidateOutputMap["exercise-feedback"];
+    if (output.objectiveEvaluations.length !== workloadInput.exercise.objectives.length) {
+      throw new GenerationOutputValidationError("OD_EXERCISE_FEEDBACK_OBJECTIVE_MISMATCH");
+    }
+  }
   if (kind === "voice-activity-draft" && workloadInput.kind === "voice-activity-draft") {
     const output = parsed.data as GenerationCandidateOutputMap["voice-activity-draft"];
     if (
@@ -409,6 +415,17 @@ function qualityPolicy(language: Language, explanationLanguage: Language) {
         }));
       }
       const fields = visibleExerciseFields(exercise);
+      if (exercise.kind === "fill-in-the-blank") {
+        for (const { field, text, fieldIndex } of fields) {
+          if ((field === "leadingText" || field === "followingText") && /_{2,}/u.test(text)) {
+            report("OD_EXERCISE_BLANK_MARKER", {
+              exerciseIndex,
+              field,
+              ...(fieldIndex === undefined ? {} : { fieldIndex }),
+            });
+          }
+        }
+      }
       for (const [groupIndex, answers] of answerGroups.entries()) {
         const answerLocation: ExerciseValidationLocation = {
           exerciseIndex,

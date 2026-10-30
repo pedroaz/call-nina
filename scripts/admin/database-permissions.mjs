@@ -5,10 +5,12 @@ import { runtimeRole } from "./database-config.mjs";
 export const functions = [
   "nina_speech.expire()",
   "nina_speech.access(text)",
+  "nina_speech.service_enabled()",
   "nina_speech.reserve(uuid,text,integer,text)",
   "nina_speech.transition(uuid,text,text)",
   "nina_sync.exchange(text,jsonb)",
   "nina_starter.access(text)",
+  "nina_starter.service_enabled(uuid,text)",
   "nina_starter.reserve(uuid,uuid,text,text,bigint,text,text,text)",
   "nina_starter.permit(uuid,uuid,text)",
   "nina_starter.settle(uuid,uuid,bigint,integer,text,bigint,jsonb)",
