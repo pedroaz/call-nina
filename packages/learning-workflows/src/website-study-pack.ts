@@ -17,7 +17,9 @@ function sourceMatcher(source: string) {
     if (!normalized) return null;
     const start = searchable.indexOf(normalized);
     if (start < 0) return null;
-    const exact = source.slice(offsets[start], offsets[start + normalized.length - 1]! + 1);
+    const end = offsets[start + normalized.length - 1];
+    if (end === undefined) return null;
+    const exact = source.slice(offsets[start], end + 1);
     return exact.length <= limit ? exact : null;
   };
 }

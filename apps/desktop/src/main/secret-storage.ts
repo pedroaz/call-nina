@@ -1,12 +1,12 @@
-import { constants } from "node:fs";
-import { mkdir, lstat, open, unlink } from "node:fs/promises";
-import path from "node:path";
-import { safeStorage } from "electron";
 import {
   aiSecretInputSchema,
   aiSecretReferenceSchema,
   secureStorageStateSchema,
 } from "@call-nina/contracts";
+import { safeStorage } from "electron";
+import { constants } from "node:fs";
+import { lstat, mkdir, open, unlink } from "node:fs/promises";
+import path from "node:path";
 
 // Electron's documented synchronous providers: Keychain, DPAPI and Linux secret
 // stores. basic_text/unknown are explicitly forbidden, even if encryption reports

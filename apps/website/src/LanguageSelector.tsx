@@ -13,7 +13,9 @@ export function LanguageSelector({
       className="language-switch"
       aria-label={copy[locale].language}
       value={locale}
-      onChange={(event) => onChange(event.target.value as Locale)}
+      onChange={(event) => {
+        onChange(event.target.value as Locale);
+      }}
     >
       {languages.map(({ code, label }) => (
         <option key={code} value={code} lang={code}>

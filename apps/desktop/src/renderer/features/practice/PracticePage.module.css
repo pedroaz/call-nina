@@ -1,0 +1,71 @@
+.voicePreparation,
+.historyDetail,
+.creationStudio {
+  display: grid;
+  gap: var(--od-space-7);
+  min-width: 0;
+}
+.generatedLibrary {
+  display: grid;
+  gap: var(--od-space-5);
+}
+.countBadge {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+}
+.generatedActivityList {
+  display: grid;
+  gap: 0;
+}
+.generatedActivityActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--od-space-3);
+  max-width: 100%;
+}
+.generatedActivityMenu {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+.generatedActivityOpen {
+  width: 100%;
+  gap: var(--od-space-4);
+  justify-content: flex-start;
+  text-align: start;
+  padding: 0;
+}
+.generatedActivityCopy {
+  display: grid;
+  gap: var(--od-space-2);
+  min-width: 0;
+}
+.generatedActivityCopy strong {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  font-weight: var(--od-weight-medium);
+}
+.generatedActivityCopy span {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+  font-weight: normal;
+}
+.creationPage {
+  gap: var(--od-space-7);
+}
+.creationStudio {
+  max-width: var(--od-form-max);
+}
+
+.practiceControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: var(--od-space-5);
+}
+.practiceControls > * {
+  min-width: min(10rem, 100%);
+}

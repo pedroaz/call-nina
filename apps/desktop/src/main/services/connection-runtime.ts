@@ -1,4 +1,3 @@
-import type { NinaAccount } from "../nina-account.js";
 import {
   type AiConnection,
   type CorrelationId,
@@ -6,13 +5,14 @@ import {
   type GenerationService,
 } from "@call-nina/contracts";
 import { DirectApiGenerationService, isDirectApiRoute } from "@call-nina/direct-api";
+import { type LearningWorkflowTiming } from "@call-nina/learning-workflows";
 import { ManagedGenerationService } from "@call-nina/managed-generation/service";
 import { OfflineGenerationService, type OfflineRuntime } from "@call-nina/offline-runtime";
 import { type CallNinaDatabase } from "@call-nina/persistence";
-import { type LearningWorkflowTiming } from "@call-nina/learning-workflows";
 import { type OperationLog } from "../backend-support.js";
 import { ChatgptGenerationService } from "../chatgpt-generation.js";
 import { type ChatgptSession } from "../chatgpt-session.js";
+import type { NinaAccount } from "../nina-account.js";
 import { type ConnectionSecretStorage } from "../secret-storage.js";
 
 interface Dependencies {
@@ -38,17 +38,17 @@ export class ConnectionRuntime {
     return this.#dependencies.closing();
   }
 
-  readonly operationServices = new Map<string, GenerationService>();
+  readonly #operationServices = new Map<string, GenerationService>();
 
-  readonly managedServices = new Set<ManagedGenerationService>();
+  readonly #managedServices = new Set<ManagedGenerationService>();
 
-  readonly directServices = new Set<DirectApiGenerationService>();
+  readonly #directServices = new Set<DirectApiGenerationService>();
 
-  readonly offlineServices = new Set<OfflineGenerationService>();
+  readonly #offlineServices = new Set<OfflineGenerationService>();
 
-  offlineEpoch = 0;
+  #offlineEpoch = 0;
 
-  readonly chatgptServices = new Set<ChatgptGenerationService>();
+  readonly #chatgptServices = new Set<ChatgptGenerationService>();
 
   #logValidation(
     provider: "CHATGPT" | "LOCAL",
@@ -115,7 +115,7 @@ export class ConnectionRuntime {
         },
       });
       service.subscribeGeneration(this.#dependencies.projectGenerationEvent);
-      this.chatgptServices.add(service);
+      this.#chatgptServices.add(service);
       return service;
     }
     if (connection.routeId === "managed" && this.#database) {
@@ -133,7 +133,7 @@ export class ConnectionRuntime {
         },
       });
       service.subscribeGeneration(this.#dependencies.projectGenerationEvent);
-      this.managedServices.add(service);
+      this.#managedServices.add(service);
       return service;
     }
     if (connection.routeId === "local" && this.#database) {
@@ -147,12 +147,12 @@ export class ConnectionRuntime {
           this.#logValidation("LOCAL", operationId, event);
         },
         captureActive: () => {
-          const epoch = this.offlineEpoch;
+          const epoch = this.#offlineEpoch;
           return () =>
             !this.#closing &&
             database === this.#database &&
             !database.closed &&
-            epoch === this.offlineEpoch;
+            epoch === this.#offlineEpoch;
         },
         assertActive: async () => {
           // Resource admission belongs to each transport attempt. A later memory
@@ -163,7 +163,7 @@ export class ConnectionRuntime {
         },
       });
       service.subscribeGeneration(this.#dependencies.projectGenerationEvent);
-      this.offlineServices.add(service);
+      this.#offlineServices.add(service);
       return service;
     }
     if (!isDirectApiRoute(connection.routeId) || !this.#database) return undefined;
@@ -194,50 +194,77 @@ export class ConnectionRuntime {
       },
     });
     service.subscribeGeneration(this.#dependencies.projectGenerationEvent);
-    this.directServices.add(service);
+    this.#directServices.add(service);
     return service;
   }
 
   releaseOperation(operationId: CorrelationId): void {
-    const service = this.operationServices.get(operationId);
+    const service = this.#operationServices.get(operationId);
     if (
       service instanceof ChatgptGenerationService &&
-      ![...this.operationServices.entries()].some(
+      ![...this.#operationServices.entries()].some(
         ([id, current]) => id !== operationId && current === service,
       )
     ) {
-      this.chatgptServices.delete(service);
+      this.#chatgptServices.delete(service);
       void service.shutdown();
     }
     service?.releaseOperation(operationId);
-    this.operationServices.delete(operationId);
+    this.#operationServices.delete(operationId);
     if (
       service instanceof ManagedGenerationService &&
-      ![...this.operationServices.values()].includes(service)
+      ![...this.#operationServices.values()].includes(service)
     ) {
-      this.managedServices.delete(service);
+      this.#managedServices.delete(service);
       void service.shutdown();
     }
     if (
       service instanceof OfflineGenerationService &&
-      ![...this.operationServices.values()].includes(service)
+      ![...this.#operationServices.values()].includes(service)
     ) {
-      this.offlineServices.delete(service);
+      this.#offlineServices.delete(service);
       void service.shutdown();
     }
     if (
       service instanceof DirectApiGenerationService &&
-      ![...this.operationServices.values()].includes(service)
+      ![...this.#operationServices.values()].includes(service)
     ) {
-      this.directServices.delete(service);
+      this.#directServices.delete(service);
       void service.shutdown();
     }
   }
 
   async stopConnectionRuntime(): Promise<void> {
-    this.offlineEpoch++;
+    this.#offlineEpoch++;
     await this.#dependencies.offline.stop();
     if (this.#dependencies.chatgpt.pendingLoginId)
       this.#dependencies.chatgpt.cancelLogin(this.#dependencies.chatgpt.pendingLoginId);
+  }
+
+  serviceFor(operationId: string) {
+    return this.#operationServices.get(operationId);
+  }
+  retainService(operationId: string, service: GenerationService) {
+    this.#operationServices.set(operationId, service);
+  }
+  async cancel(operationId: CorrelationId) {
+    await this.#operationServices.get(operationId)?.cancelOperation(operationId);
+  }
+  async shutdownManaged() {
+    await Promise.all([...this.#managedServices].map((service) => service.shutdown()));
+  }
+  reset() {
+    this.#offlineEpoch++;
+    for (const services of [
+      this.#offlineServices,
+      this.#managedServices,
+      this.#directServices,
+      this.#chatgptServices,
+    ]) {
+      for (const service of services) void service.shutdown();
+      services.clear();
+    }
+    this.#operationServices.clear();
+    void this.#dependencies.offline.stop().catch(() => undefined);
   }
 }

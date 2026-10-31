@@ -22,13 +22,13 @@ import {
   type CallNinaDatabase,
 } from "@call-nina/persistence";
 import {
-  type OperationLog,
   diagnosticErrorCode,
   selectionId,
   type AcceptedOperation,
+  type OperationLog,
 } from "../backend-support.js";
 
-export type TranslationJob = {
+type TranslationJob = {
   request: TranslationStart;
   cancelled: boolean;
   providerOperationId: CorrelationId | undefined;
@@ -37,8 +37,9 @@ interface Dependencies {
   database: () => CallNinaDatabase | undefined;
   closing: () => boolean;
   enqueue: <T>(work: () => T | Promise<T>) => Promise<T>;
-  activeOperations: Set<string>;
-  operationServices: Map<string, GenerationService>;
+  finishOperation: (id: string) => void;
+  retainService: (id: string, service: GenerationService) => void;
+  cancelOperation: (id: CorrelationId) => Promise<void>;
   releaseOperation: (id: CorrelationId) => void;
   emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
   operationLog: OperationLog;
@@ -62,21 +63,21 @@ export class TranslationJobs {
     return this.#dependencies.closing();
   }
 
-  readonly translationJobs = new Map<string, TranslationJob>();
+  readonly #translationJobs = new Map<string, TranslationJob>();
 
-  readonly translationReveals = new Map<string, TranslationReveal>();
+  readonly #translationReveals = new Map<string, TranslationReveal>();
 
-  readonly translationProviderOperations = new Set<string>();
+  readonly #translationProviderOperations = new Set<string>();
 
   translationReveal(request: TranslationRequest) {
     return "revealId" in request.field
-      ? this.translationReveals.get(request.field.revealId)
+      ? structuredClone(this.#translationReveals.get(request.field.revealId))
       : undefined;
   }
 
-  finishTranslation(job: TranslationJob, outcome: "saved" | "cancelled" | "failed") {
-    this.translationJobs.delete(job.request.operationId);
-    this.#dependencies.activeOperations.delete(job.request.operationId);
+  #finishTranslation(job: TranslationJob, outcome: "saved" | "cancelled" | "failed") {
+    this.#translationJobs.delete(job.request.operationId);
+    this.#dependencies.finishOperation(job.request.operationId);
     if (!this.#closing)
       this.#dependencies.emitEvent?.({
         event: "translation-finished",
@@ -86,7 +87,7 @@ export class TranslationJobs {
       });
   }
 
-  async runTranslation(
+  async #runTranslation(
     job: TranslationJob,
     database: CallNinaDatabase,
     source: Awaited<ReturnType<typeof readSavedTranslations>>,
@@ -126,9 +127,9 @@ export class TranslationJobs {
         const generation = await this.#dependencies.generationForConnection(connection);
         if (!generation) throw new Error("OD_OPERATION_UNSUPPORTED");
         const operationId = selectionId();
-        this.#dependencies.operationServices.set(operationId, generation);
+        this.#dependencies.retainService(operationId, generation);
         job.providerOperationId = operationId;
-        this.translationProviderOperations.add(operationId);
+        this.#translationProviderOperations.add(operationId);
         try {
           const result = await generation.runOperation({
             operationId,
@@ -140,7 +141,7 @@ export class TranslationJobs {
           translated.push(contextualHelpCandidateSchema.parse(result.output).answer);
           provenance = { ...result.provenance, connectionId: connection.id, capability: "text" };
         } finally {
-          this.translationProviderOperations.delete(operationId);
+          this.#translationProviderOperations.delete(operationId);
           this.#dependencies.releaseOperation(operationId);
           job.providerOperationId = undefined;
         }
@@ -165,7 +166,7 @@ export class TranslationJobs {
           },
           this.translationReveal(job.request),
         );
-        this.finishTranslation(job, "saved");
+        this.#finishTranslation(job, "saved");
       });
     } catch (error) {
       await this.#dependencies.enqueue(() => {
@@ -178,8 +179,60 @@ export class TranslationJobs {
           "Saved translation did not complete.",
           { action: "translation/start", phase: "failed", outcome: "error" },
         );
-        this.finishTranslation(job, job.cancelled || this.#closing ? "cancelled" : "failed");
+        this.#finishTranslation(job, job.cancelled || this.#closing ? "cancelled" : "failed");
       });
     }
+  }
+
+  get pendingCount() {
+    return this.#translationJobs.size;
+  }
+  rootGeneration(id: string) {
+    return this.#translationJobs.get(id)?.request.rootGeneration;
+  }
+  start(
+    request: TranslationStart,
+    database: CallNinaDatabase,
+    source: Awaited<ReturnType<typeof readSavedTranslations>>,
+    context: LearningContext,
+    modelSelection: GenerationOperationStart["modelSelection"],
+    connection: AiConnection,
+  ) {
+    const job: TranslationJob = {
+      request: structuredClone(request),
+      cancelled: false,
+      providerOperationId: undefined,
+    };
+    this.#translationJobs.set(request.operationId, job);
+    void this.#runTranslation(job, database, source, context, modelSelection, connection);
+  }
+  async cancel(id: string) {
+    const job = this.#translationJobs.get(id);
+    if (!job) return false;
+    job.cancelled = true;
+    if (job.providerOperationId)
+      await this.#dependencies.cancelOperation(job.providerOperationId).catch(() => undefined);
+    return true;
+  }
+  isProviderOperation(id: string) {
+    return this.#translationProviderOperations.has(id);
+  }
+  clearReveals() {
+    this.#translationReveals.clear();
+  }
+  reveal(value: TranslationReveal) {
+    this.#translationReveals.clear();
+    this.#translationReveals.set(value.revealId, structuredClone(value));
+  }
+  hide(revealId: string) {
+    this.#translationReveals.delete(revealId);
+  }
+  reset() {
+    for (const job of this.#translationJobs.values()) {
+      job.cancelled = true;
+      if (job.providerOperationId)
+        void this.#dependencies.cancelOperation(job.providerOperationId).catch(() => undefined);
+    }
+    this.clearReveals();
   }
 }

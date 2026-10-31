@@ -81,6 +81,8 @@ Thumbs.db
 !scripts/build/**
 !scripts/diagnostics/
 !scripts/diagnostics/**
+!apps/desktop/src/renderer/runtime/
+!apps/desktop/src/renderer/runtime/**
 
 # Existing learner roots remain private after the rename.
 .open-deutsch/

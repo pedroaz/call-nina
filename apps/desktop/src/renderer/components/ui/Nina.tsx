@@ -1,7 +1,7 @@
-import welcome from "@call-nina/design-system/brand/nina-welcome.png";
+import celebration from "@call-nina/design-system/brand/nina-celebration.png";
 import listening from "@call-nina/design-system/brand/nina-listening.png";
 import thinking from "@call-nina/design-system/brand/nina-thinking.png";
-import celebration from "@call-nina/design-system/brand/nina-celebration.png";
+import welcome from "@call-nina/design-system/brand/nina-welcome.png";
 import styles from "./Nina.module.css";
 
 const poses = { welcome, listening, thinking, celebration };

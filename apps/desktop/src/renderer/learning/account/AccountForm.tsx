@@ -1,0 +1,431 @@
+import { ninaAuthFailure, type NinaLoginDiagnostic } from "@call-nina/contracts";
+import { useClerk, useSession, useSignIn, useSignUp, useUser } from "@clerk/electron/react";
+import { CircleAlert, Clock3 } from "lucide-react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ActionGroup } from "../../components/layout/index.js";
+import { Disclosure } from "../../components/ui/Disclosure.js";
+import {
+  Button,
+  CheckboxField,
+  DiagnosticCode,
+  Muted,
+  TextField,
+} from "../../components/ui/index.js";
+import { invokeDesktop } from "../../runtime/ipc.js";
+import { AccountContext, isAborted, reportLogin } from "./account-context.js";
+import { accountSession } from "./account-session.js";
+import styles from "./Account.module.css";
+
+export function AccountForm() {
+  const { t } = useTranslation();
+  const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
+  const [registering, setRegistering] = useState(false);
+  const { session } = useSession();
+  const { user, isLoaded } = useUser();
+  const clerk = useClerk();
+  const account = useContext(AccountContext);
+  const [username, setUsername] = useState(accountSession.draft.username);
+  const [password, setPassword] = useState(accountSession.draft.password);
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const [savingFailed, setSavingFailed] = useState(false);
+  const [savingConnectionFailed, setSavingConnectionFailed] = useState(false);
+  useEffect(() => {
+    if (savingFailed)
+      reportLogin({
+        stage: "storage",
+        outcome: "failed",
+        reason: savingConnectionFailed ? "network" : "unknown",
+      });
+  }, [savingFailed, savingConnectionFailed]);
+  const [cancelled, setCancelled] = useState(false);
+  const [settling, setSettling] = useState(accountSession.requestPending);
+  const attempt = useRef<AbortController | null>(null);
+  const readyWait = useRef<(() => void) | null>(null);
+  const loaded = useRef(isLoaded);
+  useEffect(() => {
+    loaded.current = isLoaded;
+  }, [isLoaded]);
+  const draftEdited = useRef(accountSession.draftChanged);
+  const saveVersion = useRef(0);
+  useEffect(() => {
+    if (cancelled) formRef.current?.querySelector("input")?.focus();
+  }, [cancelled]);
+  const saveDraft = async (nextUsername: string, nextPassword: string) => {
+    const version = ++saveVersion.current;
+    let connectionFailed = false;
+    const result = await invokeDesktop("nina-account/credentials/save", {
+      username: nextUsername,
+      password: nextPassword,
+    }).catch(() => {
+      connectionFailed = true;
+      return { saved: false };
+    });
+    if (version === saveVersion.current) {
+      setSavingFailed(!result.saved);
+      setSavingConnectionFailed(connectionFailed);
+    }
+    return result.saved;
+  };
+  useEffect(() => {
+    let active = true;
+    const timer = window.setTimeout(() => {
+      if (active) setSavingFailed(true);
+    }, 15000);
+    void invokeDesktop("nina-account/credentials/read", {}).then(
+      (result) => {
+        window.clearTimeout(timer);
+        if (!active) return;
+        if (!draftEdited.current && result.credentials) {
+          accountSession.setDraft(result.credentials);
+          setUsername(result.credentials.username);
+          setPassword(result.credentials.password);
+        }
+        if (!draftEdited.current) {
+          setSavingFailed(!result.available);
+          setSavingConnectionFailed(false);
+        }
+      },
+      () => {
+        window.clearTimeout(timer);
+        if (active && !draftEdited.current) {
+          setSavingFailed(true);
+          setSavingConnectionFailed(true);
+        }
+      },
+    );
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, []);
+  const [error, setError] = useState(false);
+  const [progress, setProgress] = useState<NinaLoginDiagnostic>();
+  useEffect(() => {
+    if (isLoaded) readyWait.current?.();
+  }, [isLoaded]);
+  useEffect(() => {
+    const syncPending = () => {
+      setSettling(accountSession.requestPending);
+    };
+    const unsubscribeAccount = accountSession.subscribe(syncPending);
+    return () => {
+      unsubscribeAccount();
+      attempt.current?.abort();
+    };
+  }, []);
+  const cancelLogin = () => {
+    attempt.current?.abort();
+    setBusy(false);
+    setCancelled(true);
+    setError(false);
+    setProgress(undefined);
+  };
+  const waitForReady = (signal: AbortSignal) =>
+    new Promise<void>((resolve, reject) => {
+      if (loaded.current) {
+        resolve();
+        return;
+      }
+      const finish = (failure?: Error) => {
+        window.clearTimeout(timer);
+        signal.removeEventListener("abort", abort);
+        readyWait.current = null;
+        if (failure) reject(failure);
+        else resolve();
+      };
+      const abort = () => {
+        finish(new Error("OD_NINA_LOGIN_CANCELLED"));
+      };
+      const timer = window.setTimeout(() => {
+        finish(new Error("OD_NINA_LOGIN_NOT_READY"));
+      }, 15000);
+      readyWait.current = () => {
+        finish();
+      };
+      signal.addEventListener("abort", abort, { once: true });
+      if (signal.aborted) abort();
+    });
+  const step = async <T,>(
+    stage: NinaLoginDiagnostic["stage"],
+    work: () => Promise<T>,
+    signal: AbortSignal,
+  ): Promise<T> => {
+    signal.throwIfAborted();
+    const started = { stage, outcome: "started", reason: "none" } as const;
+    setProgress(started);
+    reportLogin(started);
+    const timer = window.setTimeout(() => {
+      if (signal.aborted) return;
+      const slow = { stage, outcome: "slow", reason: "none" } as const;
+      setProgress(slow);
+      reportLogin(slow);
+    }, 15000);
+    try {
+      const result = await work();
+      signal.throwIfAborted();
+      const completed = { stage, outcome: "completed", reason: "none" } as const;
+      setProgress(completed);
+      reportLogin(completed);
+      return result;
+    } catch (cause) {
+      if (isAborted(signal)) throw cause;
+      const failed = { stage, outcome: "failed", reason: ninaAuthFailure(cause) } as const;
+      setProgress(failed);
+      reportLogin(failed);
+      throw cause;
+    } finally {
+      window.clearTimeout(timer);
+    }
+  };
+  const login = async () => {
+    if (accountSession.requestPending || busy) return;
+    const controller = new AbortController();
+    attempt.current = controller;
+    const { signal } = controller;
+    accountSession.setPending(true);
+    accountSession.transition(true);
+    setSettling(true);
+    setBusy(true);
+    setCancelled(false);
+    setError(false);
+    // Saving must never hold up authentication or cancellation.
+    void saveDraft(username, password);
+    try {
+      if (!loaded.current) await step("initialization", () => waitForReady(signal), signal);
+      await step(
+        "desktop",
+        () => invokeDesktop("nina-account/update", { status: "signing-in", token: null }),
+        signal,
+      );
+      await step(
+        "credentials",
+        async () => {
+          const result = registering
+            ? await signUp.password({ username: username.trim(), password })
+            : await signIn.password({ identifier: username.trim(), password });
+          if (result.error) throw result.error;
+          if ((registering ? signUp.status : signIn.status) !== "complete") {
+            const needsVerification = [
+              "needs_first_factor",
+              "needs_second_factor",
+              "needs_new_password",
+            ].includes(signIn.status);
+            throw Object.assign(new Error("OD_NINA_LOGIN_INCOMPLETE"), {
+              code: registering || needsVerification ? "additional-step" : "unknown",
+            });
+          }
+        },
+        signal,
+      );
+      // Cancel is no longer offered once session activation begins.
+      await step(
+        "session",
+        async () => {
+          const completed = await (registering ? signUp.finalize() : signIn.finalize());
+          if (completed.error) throw completed.error;
+        },
+        signal,
+      );
+    } catch {
+      if (!signal.aborted) setError(true);
+      void invokeDesktop("nina-account/update", { status: "signed-out", token: null }).catch(
+        () => undefined,
+      );
+    } finally {
+      accountSession.setPending(false);
+      setSettling(false);
+      setBusy(false);
+      accountSession.transition(false);
+    }
+  };
+  const logout = async () => {
+    accountSession.transition(true);
+    setBusy(true);
+    setError(false);
+    try {
+      await invokeDesktop("nina-account/update", { status: "signed-out", token: null });
+      await clerk.signOut();
+    } catch {
+      setError(true);
+    } finally {
+      setBusy(false);
+      accountSession.transition(false);
+    }
+  };
+  const hasDetails = error || progress?.outcome === "slow";
+  const statusText = cancelled
+    ? t(settling ? "ninaAccount.cancellingRequest" : "ninaAccount.cancelled")
+    : error
+      ? progress?.stage === "initialization"
+        ? t("ninaAccount.initializationFailed")
+        : t("ninaAccount.loginFailedTitle")
+      : busy && progress
+        ? t(`ninaAccount.loginStage.${progress.stage}`)
+        : "";
+  const feedback = (
+    <div className={styles.loginStatus} role="status" aria-live="polite">
+      {error ? <CircleAlert aria-hidden="true" /> : busy ? <Clock3 aria-hidden="true" /> : null}
+      <span>
+        {error && progress?.reason && progress.reason !== "none"
+          ? t(`ninaAccount.loginReason.${progress.reason}`)
+          : statusText}
+      </span>
+    </div>
+  );
+  return (
+    <div className={styles.accountAccess} data-helper-selection="ignore">
+      {user ? (
+        <>
+          {(busy || error) && feedback}
+          <div className={styles.ninaAccountSummary}>
+            <p>
+              {session?.status === "pending" || account.status !== "signed-in"
+                ? user.username
+                : t("ninaAccount.signedIn", { username: user.username })}
+            </p>
+            <Button variant="secondary" isDisabled={busy} onPress={() => void logout()}>
+              {t(account.status === "expired" ? "ninaAccount.signInAgain" : "ninaAccount.signOut")}
+            </Button>
+          </div>
+          {session?.status === "pending" && (
+            <div className={styles.pendingSession}>
+              <p role="status">{t("providers.signInIncomplete")}</p>
+              <p>{t("ninaAccount.expired")}</p>
+            </div>
+          )}
+          {session?.status !== "pending" &&
+            (account.status === "unavailable" || account.status === "expired") && (
+              <p role="status">{t(`ninaAccount.${account.status}`)}</p>
+            )}
+          {account.access && (
+            <>
+              <p>{t(`ninaAccount.tier.${account.access.tier}`)}</p>
+              <p>
+                {t(
+                  account.access.hostedAiEnabled
+                    ? "ninaAccount.aiEnabled"
+                    : "ninaAccount.aiDisabled",
+                )}
+              </p>
+              <p>{t("ninaAccount.remaining", { count: account.access.remainingActions })}</p>
+              {!account.access.inferenceEnabled && <Muted>{t("ninaAccount.pending")}</Muted>}
+            </>
+          )}
+        </>
+      ) : (
+        <form
+          ref={formRef}
+          className={styles.ninaAccountForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void login();
+          }}
+        >
+          <div className={styles.ninaAccountMode}>
+            <h3>{t(registering ? "ninaAccount.createAccount" : "ninaAccount.signIn")}</h3>
+            <Button
+              variant="quiet"
+              isDisabled={busy || settling}
+              onPress={() => {
+                setRegistering(!registering);
+                setError(false);
+                setProgress(undefined);
+              }}
+            >
+              {t(registering ? "ninaAccount.signIn" : "ninaAccount.createAccount")}
+            </Button>
+          </div>
+          <div id="clerk-captcha" />
+          <div className={styles.ninaAccountFields}>
+            <TextField
+              label={t("ninaAccount.username")}
+              autoComplete="username"
+              value={username}
+              onChange={(event) => {
+                draftEdited.current = true;
+                accountSession.editDraft({ username: event.target.value, password });
+                setUsername(event.target.value);
+                void saveDraft(event.target.value, password);
+              }}
+              required
+              maxLength={64}
+              disabled={busy}
+            />
+            <TextField
+              label={t("ninaAccount.password")}
+              type={showPassword ? "text" : "password"}
+              autoComplete={registering ? "new-password" : "current-password"}
+              value={password}
+              onChange={(event) => {
+                draftEdited.current = true;
+                accountSession.editDraft({ username, password: event.target.value });
+                setPassword(event.target.value);
+                void saveDraft(username, event.target.value);
+              }}
+              required
+              maxLength={256}
+              disabled={busy}
+            />
+          </div>
+          <CheckboxField
+            checked={showPassword}
+            onChange={(event) => {
+              setShowPassword(event.target.checked);
+            }}
+          >
+            {t("ninaAccount.showPassword")}
+          </CheckboxField>
+          <div className={styles.ninaAccountFooter}>
+            {feedback}
+            <ActionGroup>
+              {busy && !registering && progress?.stage !== "session" && (
+                <Button variant="quiet" onPress={cancelLogin}>
+                  {t("ninaAccount.cancelLogin")}
+                </Button>
+              )}
+              <Button
+                type="submit"
+                isDisabled={busy || settling || !username || !password}
+                variant="primary"
+              >
+                {t(
+                  busy
+                    ? registering
+                      ? "ninaAccount.creatingAccount"
+                      : "ninaAccount.signing-in"
+                    : error || cancelled
+                      ? "ninaAccount.retry"
+                      : registering
+                        ? "ninaAccount.createAccount"
+                        : "ninaAccount.signIn",
+                )}
+              </Button>
+            </ActionGroup>
+          </div>
+          {hasDetails && (
+            <Disclosure
+              label={t("ninaAccount.diagnosticDetails")}
+              variant="plain"
+              density="compact"
+            >
+              {error &&
+                progress?.stage !== "initialization" &&
+                progress?.reason !== "none" &&
+                progress && <Muted>{t(`ninaAccount.loginReason.${progress.reason}`)}</Muted>}
+              {progress && (
+                <DiagnosticCode>
+                  NINA_LOGIN_{progress.stage.toUpperCase()}_{progress.outcome.toUpperCase()}
+                </DiagnosticCode>
+              )}
+            </Disclosure>
+          )}
+        </form>
+      )}
+    </div>
+  );
+}

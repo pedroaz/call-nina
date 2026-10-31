@@ -1,12 +1,13 @@
-import { createHash } from "node:crypto";
-import { mkdir, open, readFile, lstat, unlink, realpath } from "node:fs/promises";
-import path from "node:path";
-import { nativeImage } from "electron";
 import {
   uploadImageInputSchema,
   type UploadImageInput,
   type UploadImageMetadata,
 } from "@call-nina/contracts";
+import type { CallNinaDatabase } from "@call-nina/persistence";
+import { nativeImage } from "electron";
+import { createHash } from "node:crypto";
+import { lstat, mkdir, open, readFile, realpath, unlink } from "node:fs/promises";
+import path from "node:path";
 
 function file(root: string, sha256: string) {
   if (!/^[a-f0-9]{64}$/u.test(sha256)) throw new Error("OD_VOCABULARY_IMAGE_INVALID");
@@ -107,19 +108,17 @@ export async function readUploadImage(
   }
 }
 
-export async function cleanupUploadImages(
-  database: import("@call-nina/persistence").CallNinaDatabase,
-) {
+export async function cleanupUploadImages(database: CallNinaDatabase) {
   const { pendingUploadImageCleanup, finishUploadImageCleanup, assertCallNinaDatabaseLease } =
     await import("@call-nina/persistence");
   let failed = false;
   for (const sha256 of await pendingUploadImageCleanup(database)) {
     try {
       await assertCallNinaDatabaseLease(database);
-      await assertManagedDirectory(database.dataRoot).catch((error) => {
+      await assertManagedDirectory(database.dataRoot).catch((error: unknown) => {
         if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
       });
-      await unlink(file(database.dataRoot, sha256)).catch((error) => {
+      await unlink(file(database.dataRoot, sha256)).catch((error: unknown) => {
         if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
       });
       await finishUploadImageCleanup(database, sha256);

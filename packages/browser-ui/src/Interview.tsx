@@ -33,7 +33,7 @@ export function InterviewLayout({
   const heading = useRef<HTMLHeadingElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const question = useRef<HTMLElement>(null);
-  const Heading = `h${headingLevel}` as "h1" | "h2" | "h3";
+  const Heading = headingLevel === 1 ? "h1" : headingLevel === 2 ? "h2" : "h3";
   useLayoutEffect(() => {
     // Reset only the interview's scroll panes. Focusing must not move the window or modal.
     if (content.current) content.current.scrollTop = 0;
@@ -42,6 +42,7 @@ export function InterviewLayout({
   }, [focusKey]);
   return (
     <div
+      role="presentation"
       className={styles.interview}
       onKeyDown={(event) => {
         if (
@@ -157,7 +158,9 @@ export function InterviewChoices({
             value={option.value}
             checked={value === option.value}
             disabled={option.disabled}
-            onChange={() => onChange(option.value)}
+            onChange={() => {
+              onChange(option.value);
+            }}
           />
           {option.icon && (
             <span className={styles.icon} aria-hidden="true">

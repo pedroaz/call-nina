@@ -560,13 +560,24 @@ export class HistoryRepository {
             group.sources.size === 2
               ? "mixed"
               : (group.sources.values().next().value ?? "inferred");
-          return Object.freeze({
+          const common = {
             category: group.category,
-            status: group.occurrenceCount >= 2 ? "recurring" : "single-occurrence",
-            occurrenceCount: group.occurrenceCount,
-            classificationSource,
             occurrences: Object.freeze(group.occurrences),
             targetedPractice: group.targetedPractice,
+          };
+          if (group.occurrenceCount >= 2)
+            return Object.freeze({
+              ...common,
+              status: "recurring" as const,
+              occurrenceCount: group.occurrenceCount,
+              classificationSource,
+            });
+          if (classificationSource === "mixed") throw new Error("OD_MISTAKE_PATTERN_INVALID");
+          return Object.freeze({
+            ...common,
+            status: "single-occurrence" as const,
+            occurrenceCount: 1 as const,
+            classificationSource,
           });
         }),
       );

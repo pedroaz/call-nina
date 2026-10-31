@@ -1,15 +1,15 @@
-import { desktopPathOption } from "./options.js";
-import { diagnosticErrorCode, safeError } from "./backend-support.js";
-import { appendDesktopLog } from "./logging.js";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { app } from "electron";
 import {
   ScopedPluginClient,
-  resolveCodexExecutable,
   readPluginSourceVersion,
+  resolveCodexExecutable,
   stagePluginSource,
 } from "@call-nina/codex-client";
+import { app } from "electron";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { diagnosticErrorCode, safeError } from "./backend-support.js";
+import { appendDesktopLog } from "./logging.js";
+import { desktopPathOption } from "./options.js";
 
 const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 function pluginRoot() {

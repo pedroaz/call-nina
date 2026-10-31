@@ -1,10 +1,10 @@
+import { materialSourceSchema, websiteSourceSchema, z } from "@call-nina/contracts";
+import { BrowserWindow, session } from "electron";
+import { randomUUID } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { request } from "node:https";
 import { BlockList, isIP, type LookupFunction } from "node:net";
-import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
-import { BrowserWindow, session } from "electron";
-import { materialSourceSchema, websiteSourceSchema, z } from "@call-nina/contracts";
 
 const blocked = new BlockList();
 for (const [address, prefix] of [
@@ -58,7 +58,9 @@ const publicLookup: LookupFunction = (hostname, options, callback) => {
       if (options.all) callback(null, addresses);
       else if (first) callback(null, first.address, first.family);
     })
-    .catch(() => callback(new Error("OD_WEBSITE_IMPORT_FAILED"), []));
+    .catch(() => {
+      callback(new Error("OD_WEBSITE_IMPORT_FAILED"), []);
+    });
 };
 
 // Fixed app-owned code, executed in an isolated world, never page-provided code.
@@ -101,9 +103,13 @@ export async function importWebsite(value: string, cancellation: AbortSignal) {
     pending = 0,
     lastNetwork = Date.now(),
     redirects = 0;
-  readerSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
+  readerSession.setPermissionRequestHandler((_contents, _permission, callback) => {
+    callback(false);
+  });
   readerSession.setPermissionCheckHandler(() => false);
-  readerSession.on("will-download", (event) => event.preventDefault());
+  readerSession.on("will-download", (event) => {
+    event.preventDefault();
+  });
   readerSession.webRequest.onBeforeRequest((details, callback) => {
     callback({
       cancel:
@@ -117,7 +123,10 @@ export async function importWebsite(value: string, cancellation: AbortSignal) {
     const failed = details.resourceType === "mainFrame" && details.statusCode >= 400;
     callback({ cancel: failed });
     // Never destroy a WebContents reentrantly inside a Chromium network callback.
-    if (failed) setImmediate(() => controller.abort());
+    if (failed)
+      setImmediate(() => {
+        controller.abort();
+      });
   });
   readerSession.protocol.handle("https", async (resource) => {
     let started = false;
@@ -239,8 +248,12 @@ export async function importWebsite(value: string, cancellation: AbortSignal) {
   window.webContents.setAudioMuted(true);
   window.webContents.setWebRTCIPHandlingPolicy("disable_non_proxied_udp");
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  window.webContents.on("will-navigate", (event) => event.preventDefault());
-  window.webContents.on("will-attach-webview", (event) => event.preventDefault());
+  window.webContents.on("will-navigate", (event) => {
+    event.preventDefault();
+  });
+  window.webContents.on("will-attach-webview", (event) => {
+    event.preventDefault();
+  });
   window.webContents.on("will-redirect", (event, target) => {
     try {
       pageUrl(target);
@@ -255,7 +268,9 @@ export async function importWebsite(value: string, cancellation: AbortSignal) {
     });
   };
   signal.addEventListener("abort", abort, { once: true });
-  const timeout = setTimeout(() => controller.abort(), 25_000);
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 25_000);
   try {
     await window.loadURL(initial.href);
     const loaded = Date.now();

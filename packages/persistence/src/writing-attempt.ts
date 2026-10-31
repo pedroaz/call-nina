@@ -1,10 +1,7 @@
 import { enqueueVocabularyEvidence } from "./vocabulary-learning.js";
-import { vocabularyAnalysisOutputSchema } from "@call-nina/contracts";
-import { uploadPracticeContextSchema } from "@call-nina/contracts";
-import { assertRegisteredLearningScope as assertLocalLearningScope } from "./learning-context.js";
-import { captureExerciseAttempt } from "./attempt-evidence.js";
-import { claimIdempotentWrite } from "./idempotency.js";
 import {
+  vocabularyAnalysisOutputSchema,
+  uploadPracticeContextSchema,
   activityIdSchema,
   learningScopeSchema,
   historyEntryIdSchema,
@@ -13,6 +10,9 @@ import {
   utcInstantSchema,
   z,
 } from "@call-nina/contracts";
+import { assertRegisteredLearningScope as assertLocalLearningScope } from "./learning-context.js";
+import { captureExerciseAttempt } from "./attempt-evidence.js";
+import { claimIdempotentWrite } from "./idempotency.js";
 import {
   attemptFeedbackSchema,
   correctionSchema,

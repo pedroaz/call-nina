@@ -1,5 +1,5 @@
-import { useState, type ComponentPropsWithRef, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
+import { useState, type ComponentPropsWithRef, type ReactNode } from "react";
 import styles from "./Disclosure.module.css";
 
 export function Disclosure({

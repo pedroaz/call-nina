@@ -23,14 +23,22 @@ try {
     throw new Error("OD_SPEECH_RELEASE_CATALOG_REQUIRED");
 }
 if (process.env.GITHUB_ACTIONS === "true" && process.platform === "linux") {
-  const releaseRuntimes = Array.isArray(speechRuntimes) ? speechRuntimes : [];
+  const releaseRuntimes: unknown[] = Array.isArray(speechRuntimes) ? speechRuntimes : [];
   if (
     releaseRuntimes.length !== 2 ||
     !["piper", "pocket"].every((engine) =>
       releaseRuntimes.some(
         (entry) =>
+          typeof entry === "object" &&
+          entry !== null &&
+          "engine" in entry &&
           entry.engine === engine &&
-          entry.runtime?.url?.startsWith(
+          "runtime" in entry &&
+          typeof entry.runtime === "object" &&
+          entry.runtime !== null &&
+          "url" in entry.runtime &&
+          typeof entry.runtime.url === "string" &&
+          entry.runtime.url.startsWith(
             `https://github.com/pedroaz/call-nina/releases/download/desktop-v${desktopPackage.version}/`,
           ),
       ),

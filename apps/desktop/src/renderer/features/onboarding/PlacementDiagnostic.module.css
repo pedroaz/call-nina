@@ -1,0 +1,7 @@
+.voicePreparation,
+.historyDetail,
+.creationStudio {
+  display: grid;
+  gap: var(--od-space-7);
+  min-width: 0;
+}

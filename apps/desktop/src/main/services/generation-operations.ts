@@ -1,5 +1,4 @@
 import {
-  type activityIdSchema,
   contextualHelpCandidateSchema,
   correlationIdSchema,
   desktopIpcEventSchema,
@@ -7,22 +6,23 @@ import {
   exerciseGenerationCandidateSchema,
   generationProvenanceSchema,
   modelRequestIdSchema,
+  websiteStudyPackOutputSchema,
   writingCorrectionCandidateSchema,
+  type activityIdSchema,
   type CorrelationId,
   type DesktopIpcEvent,
   type GenerationEvent,
   type GenerationService,
-  websiteStudyPackOutputSchema,
   type WebsiteStudyPack,
 } from "@call-nina/contracts";
 import { DirectApiGenerationService } from "@call-nina/direct-api";
 import { type CallNinaRepository } from "@call-nina/persistence";
 import {
-  type OperationLog,
   diagnosticErrorCode,
   maximumRetainedSubmissions,
   safeError,
   type AcceptedOperation,
+  type OperationLog,
 } from "../backend-support.js";
 import { type LearningResultService } from "./learning-results.js";
 
@@ -30,7 +30,7 @@ interface Dependencies {
   repository: () => Pick<CallNinaRepository, "saveGeneratedExerciseFeedback"> | undefined;
   closing: () => boolean;
   enqueue: <T>(work: () => T | Promise<T>) => Promise<T>;
-  operationServices: Map<string, GenerationService>;
+  operationService: (id: string) => GenerationService | undefined;
   releaseOperation: (id: CorrelationId) => void;
   emitEvent: ((event: DesktopIpcEvent) => void) | undefined;
   operationLog: OperationLog;
@@ -59,18 +59,18 @@ export class GenerationOperations {
     return this.#dependencies.closing();
   }
 
-  readonly operationsBySubmission = new Map<string, AcceptedOperation>();
+  readonly #operationsBySubmission = new Map<string, AcceptedOperation>();
 
-  readonly websitePacks = new Map<
+  readonly #websitePacks = new Map<
     string,
     { rootGeneration: number; language: string; pack: WebsiteStudyPack }
   >();
 
-  readonly activeOperations = new Set<string>();
+  readonly #activeOperations = new Set<string>();
 
-  readonly retryableOperations = new Set<string>();
+  readonly #retryableOperations = new Set<string>();
 
-  readonly helperSessions = new Map<
+  readonly #helperSessions = new Map<
     string,
     {
       activityId: ReturnType<typeof activityIdSchema.parse>;
@@ -79,19 +79,19 @@ export class GenerationOperations {
   >();
 
   makeOperationRoom(protectedOperationId?: string): boolean {
-    for (const [submissionId, operation] of this.operationsBySubmission) {
-      if (this.operationsBySubmission.size < maximumRetainedSubmissions) return true;
+    for (const [submissionId, operation] of this.#operationsBySubmission) {
+      if (this.#operationsBySubmission.size < maximumRetainedSubmissions) return true;
       if (
-        this.activeOperations.has(operation.operationId) ||
+        this.#activeOperations.has(operation.operationId) ||
         operation.operationId === protectedOperationId
       )
         continue;
       this.#dependencies.releaseOperation(correlationIdSchema.parse(operation.operationId));
-      this.websitePacks.delete(operation.operationId);
-      this.operationsBySubmission.delete(submissionId);
-      this.retryableOperations.delete(operation.operationId);
+      this.#websitePacks.delete(operation.operationId);
+      this.#operationsBySubmission.delete(submissionId);
+      this.#retryableOperations.delete(operation.operationId);
     }
-    return this.operationsBySubmission.size < maximumRetainedSubmissions;
+    return this.#operationsBySubmission.size < maximumRetainedSubmissions;
   }
 
   async rejectUnsettledOperation(
@@ -102,7 +102,7 @@ export class GenerationOperations {
       if (
         !this.#closing &&
         error !== undefined &&
-        this.#dependencies.operationServices.get(operation.operationId) instanceof
+        this.#dependencies.operationService(operation.operationId) instanceof
           DirectApiGenerationService
       )
         this.#dependencies.operationLog(
@@ -114,7 +114,7 @@ export class GenerationOperations {
           "Personal API generation did not complete.",
           { phase: "failed", outcome: "error" },
         );
-      if (!this.activeOperations.delete(operation.operationId) || this.#closing) return;
+      if (!this.#activeOperations.delete(operation.operationId) || this.#closing) return;
       this.#dependencies.emitEvent?.({
         event: "learning-operation-finished",
         operationId: operation.operationId,
@@ -128,14 +128,14 @@ export class GenerationOperations {
 
   async handleGenerationEvent(event: GenerationEvent): Promise<void> {
     if (event.event === "operation-progress") {
-      const accepted = this.operationsBySubmission.get(event.submissionId);
+      const accepted = this.#operationsBySubmission.get(event.submissionId);
       if (
         !accepted ||
         accepted.operationId !== event.operationId ||
-        !this.activeOperations.has(event.operationId)
+        !this.#activeOperations.has(event.operationId)
       )
         return;
-      this.operationsBySubmission.set(event.submissionId, {
+      this.#operationsBySubmission.set(event.submissionId, {
         ...accepted,
         attempt: event.attempt,
       });
@@ -150,17 +150,17 @@ export class GenerationOperations {
       });
     } else if (event.event === "operation-state-changed") {
       const state = event.state;
-      const owned = this.operationsBySubmission.get(state.submissionId);
+      const owned = this.#operationsBySubmission.get(state.submissionId);
       if (
         !owned ||
         owned.operationId !== state.operationId ||
-        !this.activeOperations.has(state.operationId)
+        !this.#activeOperations.has(state.operationId)
       )
         return;
       if (state.status === "validated") {
         const projectionStartedAt = performance.now();
         let savedActivityId: ReturnType<typeof activityIdSchema.parse> | undefined;
-        const acceptedOperation = this.operationsBySubmission.get(state.submissionId);
+        const acceptedOperation = this.#operationsBySubmission.get(state.submissionId);
         if (acceptedOperation)
           state.provenance = {
             ...state.provenance,
@@ -174,8 +174,8 @@ export class GenerationOperations {
           root.status !== "ready" ||
           acceptedOperation.dataRootGeneration !== root.generation
         ) {
-          this.activeOperations.delete(state.operationId);
-          this.retryableOperations.delete(state.operationId);
+          this.#activeOperations.delete(state.operationId);
+          this.#retryableOperations.delete(state.operationId);
           this.#dependencies.emitEvent?.({
             event: "learning-operation-finished",
             operationId: state.operationId,
@@ -205,7 +205,7 @@ export class GenerationOperations {
           state.kind === "website-study-pack" &&
           acceptedOperation.operation.input.kind === "website-study-pack"
         ) {
-          this.websitePacks.set(state.operationId, {
+          this.#websitePacks.set(state.operationId, {
             rootGeneration: acceptedOperation.dataRootGeneration,
             language: acceptedOperation.operation.input.learningContext.targetLanguage,
             pack: {
@@ -221,7 +221,7 @@ export class GenerationOperations {
             .persistVocabulary(acceptedOperation, state.output);
         }
         if (state.kind === "writing-correction") {
-          const accepted = [...this.operationsBySubmission.values()].find(
+          const accepted = [...this.#operationsBySubmission.values()].find(
             ({ operationId }) => operationId === state.operationId,
           );
           try {
@@ -249,7 +249,7 @@ export class GenerationOperations {
                 durationMs: Math.round(performance.now() - projectionStartedAt),
               },
             );
-            this.activeOperations.delete(state.operationId);
+            this.#activeOperations.delete(state.operationId);
             this.#dependencies.emitEvent?.({
               event: "learning-operation-finished",
               operationId: state.operationId,
@@ -261,7 +261,7 @@ export class GenerationOperations {
             return;
           }
         } else if (state.kind === "exercise-generation" || state.kind === "flashcard-generation") {
-          const accepted = [...this.operationsBySubmission.values()].find(
+          const accepted = [...this.#operationsBySubmission.values()].find(
             ({ operationId }) => operationId === state.operationId,
           );
           try {
@@ -292,7 +292,7 @@ export class GenerationOperations {
                 durationMs: Math.round(performance.now() - projectionStartedAt),
               },
             );
-            this.activeOperations.delete(state.operationId);
+            this.#activeOperations.delete(state.operationId);
             this.#dependencies.emitEvent?.({
               event: "learning-operation-finished",
               operationId: state.operationId,
@@ -304,11 +304,11 @@ export class GenerationOperations {
             return;
           }
         } else if (state.kind === "contextual-help") {
-          const accepted = [...this.operationsBySubmission.values()].find(
+          const accepted = [...this.#operationsBySubmission.values()].find(
             ({ operationId }) => operationId === state.operationId,
           );
           const session = accepted?.helperSessionId
-            ? this.helperSessions.get(accepted.helperSessionId)
+            ? this.#helperSessions.get(accepted.helperSessionId)
             : undefined;
           if (accepted && session && accepted.operation.input.kind === "contextual-help") {
             const output = contextualHelpCandidateSchema.parse(state.output);
@@ -319,7 +319,7 @@ export class GenerationOperations {
             if (session.turns.length > 6) session.turns.splice(0, session.turns.length - 6);
           }
         } else if (state.kind === "exercise-feedback") {
-          const accepted = [...this.operationsBySubmission.values()].find(
+          const accepted = [...this.#operationsBySubmission.values()].find(
             ({ operationId }) => operationId === state.operationId,
           );
           if (!accepted?.exerciseFeedback) {
@@ -370,10 +370,10 @@ export class GenerationOperations {
             metadata: { stage: "apply-output" },
           },
         );
-        this.activeOperations.delete(state.operationId);
-        this.retryableOperations.delete(state.operationId);
+        this.#activeOperations.delete(state.operationId);
+        this.#retryableOperations.delete(state.operationId);
         if (state.kind === "voice-activity-draft")
-          this.operationsBySubmission.set(state.submissionId, {
+          this.#operationsBySubmission.set(state.submissionId, {
             ...acceptedOperation,
             validatedVoiceModelRequestId: state.modelRequestId,
           });
@@ -403,11 +403,11 @@ export class GenerationOperations {
         state.status === "rate-limited" ||
         state.status === "failed"
       ) {
-        this.activeOperations.delete(state.operationId);
+        this.#activeOperations.delete(state.operationId);
         if (state.status === "failed" || state.status === "rate-limited") {
-          this.retryableOperations.add(state.operationId);
+          this.#retryableOperations.add(state.operationId);
         } else {
-          this.retryableOperations.delete(state.operationId);
+          this.#retryableOperations.delete(state.operationId);
         }
         const outcome =
           state.status === "cancelled"
@@ -432,12 +432,72 @@ export class GenerationOperations {
   }
 
   hasActiveExerciseFeedback(input: NonNullable<AcceptedOperation["exerciseFeedback"]>) {
-    return [...this.operationsBySubmission.values()].some(
+    return [...this.#operationsBySubmission.values()].some(
       (accepted) =>
-        this.activeOperations.has(accepted.operationId) &&
+        this.#activeOperations.has(accepted.operationId) &&
         accepted.dataRootGeneration === input.expectedGeneration &&
         accepted.exerciseFeedback?.activityId === input.activityId &&
         accepted.exerciseFeedback.attemptId === input.attemptId,
     );
+  }
+
+  get activeCount() {
+    return this.#activeOperations.size;
+  }
+  isActive(id: string) {
+    return this.#activeOperations.has(id);
+  }
+  activate(id: string) {
+    this.#activeOperations.add(id);
+  }
+  finish(id: string) {
+    this.#activeOperations.delete(id);
+  }
+  submission(id: string) {
+    return structuredClone(this.#operationsBySubmission.get(id));
+  }
+  retainSubmission(id: string, operation: AcceptedOperation) {
+    this.#operationsBySubmission.set(id, structuredClone(operation));
+  }
+  findSubmission(predicate: (operation: Readonly<AcceptedOperation>) => boolean) {
+    return [...this.#operationsBySubmission.values()]
+      .map((value) => structuredClone(value))
+      .find(predicate);
+  }
+  canRetry(id: string) {
+    return this.#retryableOperations.has(id);
+  }
+  websitePack(id: string) {
+    return structuredClone(this.#websitePacks.get(id));
+  }
+  helperSession(
+    key: string,
+    create: () => {
+      activityId: ReturnType<typeof activityIdSchema.parse>;
+      turns: Array<{ question: string; answer: string }>;
+    },
+  ) {
+    let session = this.#helperSessions.get(key);
+    if (!session) {
+      if (this.#helperSessions.size >= 64) {
+        const oldest = this.#helperSessions.keys().next().value;
+        if (oldest) this.#helperSessions.delete(oldest);
+      }
+      session = structuredClone(create());
+      this.#helperSessions.set(key, session);
+    }
+    return structuredClone(session);
+  }
+  resetRetained() {
+    for (const operation of this.#operationsBySubmission.values())
+      this.#dependencies.releaseOperation(correlationIdSchema.parse(operation.operationId));
+    this.#operationsBySubmission.clear();
+    this.#retryableOperations.clear();
+    this.#helperSessions.clear();
+  }
+  reset() {
+    this.resetRetained();
+    this.#websitePacks.clear();
+    this.#activeOperations.clear();
   }
 }

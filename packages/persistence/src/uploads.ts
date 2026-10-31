@@ -218,7 +218,11 @@ export async function saveUpload(
       storeItemsInTransaction(
         c,
         ref,
-        websitePack.positions.map((p) => pack.output.items[p]!),
+        websitePack.positions.map((p) => {
+          const item = pack.output.items[p];
+          if (!item) throw new Error("OD_UPLOAD_ANALYSIS_STALE");
+          return item;
+        }),
         language,
         now,
       );
@@ -322,7 +326,8 @@ export async function commitUploadWords(
       c,
       reference,
       positions.map((p) => {
-        const word = output.words[p]!;
+        const word = output.words[p];
+        if (!word) throw new Error("OD_UPLOAD_SELECTION_INVALID");
         if (!(upload.text || output.extractedText).includes(word.excerpt))
           throw new Error("OD_UPLOAD_SELECTION_INVALID");
         const sourceText = upload.studyPack?.source.text ?? upload.text;

@@ -195,7 +195,9 @@ export function Discovery({
               density="compact"
               variant="quiet"
               aria-label={t.edit(label)}
-              onPress={() => goTo(index)}
+              onPress={() => {
+                goTo(index);
+              }}
             >
               {label}
             </Button>
@@ -210,7 +212,9 @@ export function Discovery({
         ref={trigger}
         className="discovery-trigger"
         variant="secondary"
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          setOpen(true);
+        }}
       >
         {copy[locale].cta}
       </Button>
@@ -226,7 +230,7 @@ export function Discovery({
       >
         <InterviewLayout
           headingLevel={3}
-          focusKey={`${step}-${complete}`}
+          focusKey={`${String(step)}-${String(complete)}`}
           onContinue={complete ? explore : advance}
           continueDisabled={!complete && !selected}
           title={complete ? t.ready : question}
@@ -236,7 +240,9 @@ export function Discovery({
               <SelectControl
                 aria-label={copy[locale].language}
                 value={locale}
-                onChange={(event) => onLocaleChange(event.target.value as Locale)}
+                onChange={(event) => {
+                  onLocaleChange(event.target.value as Locale);
+                }}
               >
                 {languages.map(({ code, label }) => (
                   <option key={code} value={code}>
@@ -246,7 +252,9 @@ export function Discovery({
               </SelectControl>
               <Button
                 variant="quiet"
-                onPress={() => setState({ ...emptyState, seen: true, answers: {} })}
+                onPress={() => {
+                  setState({ ...emptyState, seen: true, answers: {} });
+                }}
               >
                 {t.restart}
               </Button>
@@ -280,7 +288,12 @@ export function Discovery({
             <>
               <div>
                 {(step > 0 || complete) && (
-                  <Button variant="quiet" onPress={() => goTo(complete ? 3 : step - 1)}>
+                  <Button
+                    variant="quiet"
+                    onPress={() => {
+                      goTo(complete ? 3 : step - 1);
+                    }}
+                  >
                     {t.back}
                   </Button>
                 )}

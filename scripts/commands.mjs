@@ -52,6 +52,7 @@ const verifyNames = [
   "manual-quarantine",
 ];
 const checks = {
+  architecture: leaf("Desktop architecture", () => node("scripts/architecture/check.mjs")),
   versions: leaf("Workspace version consistency", () =>
     node("scripts/diagnostics/check-versions.mjs"),
   ),
@@ -232,7 +233,7 @@ const registry = {
     "Static checks",
     {
       all: leaf("All static checks", () => {
-        for (const name of ["versions", "design-tokens", "format", "types", "lint"])
+        for (const name of ["versions", "design-tokens", "architecture", "format", "types", "lint"])
           runStage(checks[name].description, () => checks[name].execute());
       }),
       ...checks,

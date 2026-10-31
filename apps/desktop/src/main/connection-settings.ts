@@ -1,17 +1,17 @@
-import { randomUUID } from "node:crypto";
 import {
   aiConnectionsSchema,
-  type aiConnectionsViewSchema,
-  type AiConnections,
   type AiConnection,
-  type z,
   type aiConnectionMutationSchema,
+  type AiConnections,
+  type aiConnectionsViewSchema,
+  type z,
 } from "@call-nina/contracts";
 import {
   readAiConnections,
   updateAiConnections,
   type CallNinaDatabase,
 } from "@call-nina/persistence";
+import { randomUUID } from "node:crypto";
 import type { ConnectionSecretStorage } from "./secret-storage.js";
 
 export async function mutateConnections(

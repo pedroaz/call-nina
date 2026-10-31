@@ -1,24 +1,24 @@
-import { NinaLoginStorage } from "./nina-login-storage.js";
-import { createClerkBridge } from "@clerk/electron";
-import { storage } from "@clerk/electron/storage";
 import {
-  ninaPublicConfiguration,
   desktopIpcEventSchema,
   desktopIpcRequestSchema,
   desktopIpcResponseSchema,
+  ninaPublicConfiguration,
   type ActivityId,
 } from "@call-nina/contracts";
-import { pathToFileURL, fileURLToPath } from "node:url";
 import { OfflineRuntime } from "@call-nina/offline-runtime";
-import { ConnectionSecretStorage } from "./secret-storage.js";
-import { desktopPathOption } from "./options.js";
-import { writeFile } from "node:fs/promises";
-import { mkdirSync, lstatSync } from "node:fs";
+import { createClerkBridge } from "@clerk/electron";
+import { storage } from "@clerk/electron/storage";
 import { randomUUID } from "node:crypto";
+import { lstatSync, mkdirSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { NinaLoginStorage } from "./nina-login-storage.js";
+import { desktopPathOption } from "./options.js";
+import { ConnectionSecretStorage } from "./secret-storage.js";
 
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
 import { ChatgptSession } from "./chatgpt-session.js";
-import { app, BrowserWindow, dialog, ipcMain, Menu, session, net, protocol } from "electron";
 
 import { DesktopBackend } from "./backend.js";
 import { parseCallNinaActivityUrl } from "./deep-link.js";

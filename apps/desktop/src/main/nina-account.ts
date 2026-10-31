@@ -1,9 +1,9 @@
-import { readBounded } from "@call-nina/managed-generation/client";
 import {
   ninaAccessSchema,
   ninaPublicConfiguration,
   type NinaAccountState,
 } from "@call-nina/contracts";
+import { readBounded } from "@call-nina/managed-generation/client";
 
 /** Only the server establishes identity. Session JWTs are short-lived and memory-only here. */
 export class NinaAccount {

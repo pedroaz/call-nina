@@ -232,11 +232,15 @@ try {
 } finally {
   stopChildren();
   if (mode === "dev") {
-    try {
-      if (JSON.parse(readFileSync(controlFile, "utf8")).servicePid === process.pid)
-        rmSync(controlFile, { force: true });
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-    }
+    removeDevControl();
+  }
+}
+
+function removeDevControl() {
+  try {
+    if (JSON.parse(readFileSync(controlFile, "utf8")).servicePid === process.pid)
+      rmSync(controlFile, { force: true });
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
   }
 }

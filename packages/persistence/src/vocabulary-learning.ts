@@ -193,9 +193,9 @@ export async function ingestVocabulary(
   database: CallNinaDatabase,
   input: Parameters<typeof ingestVocabularyInTransaction>[1],
 ) {
-  return withLeasedTransaction(database, (connection) =>
-    ingestVocabularyInTransaction(connection, input),
-  );
+  return withLeasedTransaction(database, (connection) => {
+    ingestVocabularyInTransaction(connection, input);
+  });
 }
 
 export async function readVocabularyLearning(database: CallNinaDatabase, activityId?: string) {
@@ -414,7 +414,9 @@ export function queueVocabularyEvidence(
   const answer = exerciseAnswerSchema.parse(JSON.parse(String(row["answer_json"])));
   const evaluation = evaluateExerciseAnswer(exercise.exercise, answer, scope.targetLanguage);
   if (evaluation.status === "requires-ai" && !row["feedback_json"]) return;
-  const feedback = row["feedback_json"] ? JSON.parse(String(row["feedback_json"])) : evaluation;
+  const feedback: unknown = row["feedback_json"]
+    ? JSON.parse(String(row["feedback_json"]))
+    : evaluation;
   const revision = createHash("sha256").update(JSON.stringify(feedback)).digest("hex");
   const courseSupport = connection
     .prepare("SELECT * FROM course_activity_support WHERE activity_id=?")

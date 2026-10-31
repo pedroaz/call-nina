@@ -1,0 +1,7 @@
+.editForm {
+  display: grid;
+  gap: var(--od-space-4);
+}
+.muted {
+  color: var(--od-color-text-muted);
+}

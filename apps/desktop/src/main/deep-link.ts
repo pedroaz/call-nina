@@ -1,11 +1,11 @@
+import { callNinaMarketplaceName, callNinaPluginName } from "@call-nina/codex-client";
 import {
   activityIdSchema,
   dataRootGenerationSchema,
-  openActivityActionSchema,
   learningScopeSchema,
+  openActivityActionSchema,
   type LearningScope,
 } from "@call-nina/contracts";
-import { callNinaMarketplaceName, callNinaPluginName } from "@call-nina/codex-client";
 import path from "node:path";
 
 export function createCodexVoiceActivityUrl(
