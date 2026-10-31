@@ -101,6 +101,40 @@ export async function readMaterialRevision(
     readMaterialRevisionInTransaction(connection, reference),
   );
 }
+
+/** Usage spans every revision: older attempts can still retain an edited source. */
+export async function readMaterialUsage(database: CallNinaDatabase, reference: MaterialReference) {
+  return withLeasedConnection(database, (connection) => {
+    const material = readMaterialRevisionInTransaction(connection, reference);
+    const activities = connection
+      .prepare(
+        `
+      SELECT DISTINCT p.activity_id, p.title FROM prepared_activities p
+      LEFT JOIN activity_content_revisions c USING(activity_id)
+      LEFT JOIN material_revisions m ON m.revision_id = c.material_revision_id
+      WHERE m.material_id = ? OR json_extract(p.context_json, '$.uploadSource.material.materialId') = ? ORDER BY p.prepared_at DESC
+    `,
+      )
+      .all(material.materialId, material.materialId);
+    const attempts = connection
+      .prepare(
+        `
+      SELECT count(DISTINCT a.attempt_id) AS total
+      FROM learning_attempts a, json_each(a.ownership_json, '$.source.materials') m
+      WHERE json_extract(m.value, '$.materialId') = ?
+    `,
+      )
+      .get(material.materialId);
+    return {
+      activityCount: activities.length,
+      attemptCount: Number(attempts?.["total"] ?? 0),
+      activities: activities.slice(0, 100).map((row) => ({
+        activityId: String(row["activity_id"]),
+        title: String(row["title"]),
+      })),
+    };
+  });
+}
 export async function listMaterials(database: CallNinaDatabase, cursor?: number) {
   return withLeasedConnection(database, (connection) => {
     requireLocalLearningScope(connection);

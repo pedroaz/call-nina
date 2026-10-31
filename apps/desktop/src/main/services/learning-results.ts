@@ -1,5 +1,6 @@
 import {
   ingestVocabulary,
+  stageUploadAnalysis,
   readVocabularyAnalysis,
   assertCallNinaDatabaseLease,
   readLearningCourse,
@@ -60,7 +61,7 @@ export class LearningResultService {
   async persistWritingCorrection(
     accepted: AcceptedOperation,
     state: ValidatedWritingState,
-  ): Promise<void> {
+  ): Promise<ReturnType<typeof activityIdSchema.parse>> {
     await this.#assertGeneration(accepted);
     const repository = this.#repository;
     const operation = accepted.operation;
@@ -160,7 +161,41 @@ export class LearningResultService {
       Date.parse(completedAt) - Date.parse(accepted.startedAt),
     );
     const vocabularyEntries: never[] = [];
-    const record = writingAttemptPersistenceSchema.parse({
+    const lexicalChanges = state.output.changes.filter(
+      (c) =>
+        ["word-choice", "idiom", "register"].includes(c.category) && c.uncertainty.level === "none",
+    );
+    const words = state.output.vocabularyCandidates
+      .filter(
+        (c) =>
+          c.uncertainty.level === "none" &&
+          lexicalChanges.some(
+            (change) =>
+              change.correctedText.includes(c.lemma) ||
+              (change.correctedText.length > 0 &&
+                (c.sourceExcerpt.includes(change.correctedText) ||
+                  c.lemma.includes(change.correctedText))) ||
+              (c.sourceExcerpt.includes(change.originalText) && change.originalText.length > 0),
+          ),
+      )
+      .slice(0, 20);
+    const parsedRecord = writingAttemptPersistenceSchema.safeParse({
+      vocabularyAnalysis: {
+        title: operation.input.activityGoal.slice(0, 160),
+        readable: true,
+        extractedText: "",
+        words: words.map((w) => ({
+          lemma: w.lemma,
+          meaning: w.meaning,
+          lexeme: { partOfSpeech: "other" },
+          examples: [{ text: w.sourceExcerpt, meaning: w.meaning }],
+          reason: w.rationale,
+          excerpt: w.sourceExcerpt,
+          outcome: "difficulty",
+          attemptId,
+        })),
+      },
+      ...(operation.input.uploadSource ? { uploadSource: operation.input.uploadSource } : {}),
       learningScope: {
         learnerId: operation.input.learningContext.learnerId,
         courseId: operation.input.learningContext.courseId,
@@ -232,52 +267,33 @@ export class LearningResultService {
       vocabularyEntries,
       completedAt,
     });
-    await repository.saveWritingAttempt(record);
-    const lexicalChanges = state.output.changes.filter(
-      (c) =>
-        ["word-choice", "idiom", "register"].includes(c.category) && c.uncertainty.level === "none",
-    );
-    const words = state.output.vocabularyCandidates
-      .filter(
-        (c) =>
-          c.uncertainty.level === "none" &&
-          lexicalChanges.some(
-            (change) =>
-              change.correctedText.includes(c.lemma) ||
-              (change.correctedText.length > 0 &&
-                (c.sourceExcerpt.includes(change.correctedText) ||
-                  c.lemma.includes(change.correctedText))) ||
-              (c.sourceExcerpt.includes(change.originalText) && change.originalText.length > 0),
-          ),
-      )
-      .slice(0, 20);
-    try {
-      await ingestVocabulary(this.#database, {
-        language: operation.input.learningContext.targetLanguage,
-        sourceKey: `correction:${accepted.operationId}`,
-        output: {
-          title: operation.input.activityGoal.slice(0, 160),
-          readable: true,
-          extractedText: "",
-          words: words.map((w) => ({
-            lemma: w.lemma,
-            meaning: w.meaning,
-            lexeme: { partOfSpeech: "other" },
-            examples: [{ text: w.sourceExcerpt, meaning: w.meaning }],
-            reason: w.rationale,
-            excerpt: w.sourceExcerpt,
-            outcome: "difficulty",
-            attemptId,
-          })),
-        },
-      });
-      this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-    } catch {
-      /* The saved correction remains usable even when optional vocabulary ingestion fails. */
+    if (!parsedRecord.success) {
+      const field =
+        parsedRecord.error.issues[0]?.path
+          .map((part) =>
+            typeof part === "string" ? part.replace(/[^a-z]/giu, "").toUpperCase() : "ENTRY",
+          )
+          .join("_")
+          .slice(0, 65) || "UNKNOWN";
+      throw new Error(`OD_WRITING_RESULT_INVALID_${field}`);
     }
-
+    const record = parsedRecord.data;
+    try {
+      await repository.saveWritingAttempt(record);
+    } catch (error) {
+      if (error instanceof Error && /^OD_[A-Z0-9_]+$/u.test(error.message)) throw error;
+      const code =
+        typeof error === "object" && error && "code" in error
+          ? String(error.code)
+              .replace(/[^A-Z0-9_]/gu, "")
+              .slice(0, 45)
+          : "UNKNOWN";
+      throw new Error(`OD_WRITING_STORE_FAILED_${code}`);
+    }
     this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
     this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+    this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+    return activityId;
   }
 
   async persistVocabulary(accepted: AcceptedOperation, value: unknown) {
@@ -285,11 +301,22 @@ export class LearningResultService {
     const input = accepted.operation.input;
     if (input.kind !== "vocabulary-analysis") throw new Error("OD_VOCABULARY_INPUT_INVALID");
     const output = vocabularyAnalysisOutputSchema.parse(value);
-    if (!output.readable) return;
+    if (input.mode === "preview") return;
+    if (input.mode === "upload" && input.upload) {
+      await stageUploadAnalysis(this.#database, {
+        analysisId: accepted.operationId,
+        reference: input.upload,
+        language: input.learningContext.targetLanguage,
+        output,
+      });
+      this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+      return;
+    }
+    if (!output.readable) throw new Error("OD_VOCABULARY_SOURCE_UNREADABLE");
     if (input.mode === "activity") {
       const activityId = input.sourceKey.split(":")[1];
       if (!activityId) throw new Error("OD_VOCABULARY_SOURCE_INVALID");
-      const source = await readVocabularyAnalysis(this.#database, activityId);
+      const source = await readVocabularyAnalysis(this.#database, activityId, input.sourceKey);
       if (source.sourceKey !== input.sourceKey) throw new Error("OD_VOCABULARY_SOURCE_STALE");
       const attempts = JSON.parse(source.sourceText) as Array<{
         attemptId: string;
@@ -300,8 +327,13 @@ export class LearningResultService {
       output.words = output.words.filter((word) => {
         const attempt = attempts.find((a) => a.attemptId === word.attemptId);
         if (!attempt || word.outcome === "requested") return false;
-        const sourceText = JSON.stringify({ exercise: attempt.exercise, answer: attempt.answer });
-        if (!sourceText.includes(word.excerpt)) return false;
+        const containsExcerpt = (value: unknown): boolean => {
+          if (typeof value === "string") return value.includes(word.excerpt);
+          if (Array.isArray(value)) return value.some(containsExcerpt);
+          if (value && typeof value === "object") return Object.values(value).some(containsExcerpt);
+          return false;
+        };
+        if (!containsExcerpt({ exercise: attempt.exercise, answer: attempt.answer })) return false;
         return (
           word.outcome !== "success" ||
           (!attempt.assisted &&
@@ -326,10 +358,6 @@ export class LearningResultService {
         language: input.learningContext.targetLanguage,
         sourceKey: input.sourceKey,
         output,
-        focus: {
-          guidance: input.guidance,
-          text: input.image ? output.extractedText : input.sourceText,
-        },
       });
     }
     this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
@@ -357,6 +385,7 @@ export class LearningResultService {
         originSurface: "desktop",
         preparedAt,
         context: {
+          ...(input.uploadSource ? { uploadSource: input.uploadSource } : {}),
           learningScope: {
             learnerId: input.learningContext.learnerId,
             courseId: input.learningContext.courseId,
@@ -418,6 +447,7 @@ export class LearningResultService {
         (operation.input.targetedMistakePattern ? "Targeted practice" : "Quiz"),
       originSurface: "desktop" as const,
       context: {
+        ...(operation.input.uploadSource ? { uploadSource: operation.input.uploadSource } : {}),
         learningScope: {
           learnerId: operation.input.learningContext.learnerId,
           courseId: operation.input.learningContext.courseId,
@@ -448,7 +478,13 @@ export class LearningResultService {
       },
     } as const;
     const vocabularyEntries: never[] = [];
-    const material = operation.input.materialReference ??
+    const material = (operation.input.uploadSource
+      ? {
+          materialId: operation.input.uploadSource.material.materialId,
+          revisionId: operation.input.uploadSource.material.revisionId,
+        }
+      : undefined) ??
+      operation.input.materialReference ??
       operation.input.material ?? {
         kind: operation.input.reading?.passage ? ("pasted-text" as const) : ("topic" as const),
         title: activity.title,

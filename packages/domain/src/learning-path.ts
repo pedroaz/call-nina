@@ -51,9 +51,16 @@ export function nextCourseActivity(
     !["completed", "skipped"].includes(courseActivityStatus(state, state.current))
   )
     return state.current;
-  const selectedStage = course.paths.some((path) => path.id === state.selectedStage)
-    ? state.selectedStage
-    : course.paths[0]?.id;
+  const selectedPath = course.paths.find((path) => path.id === state.selectedStage);
+  const freshSupplement =
+    selectedPath?.presentation === "supplementary" &&
+    !state.current &&
+    !state.activities.length &&
+    !state.marks.length;
+  const selectedStage =
+    selectedPath && !freshSupplement
+      ? selectedPath.id
+      : (course.paths.find((path) => path.presentation === "primary") ?? course.paths[0])?.id;
   const units = course.units.filter((u) => u.stage === selectedStage && u.kind !== "launchpad");
   const start = Math.max(
     0,

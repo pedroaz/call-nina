@@ -1,6 +1,6 @@
 # Call Nina third-party notices
 
-This inventory covers the 134 package versions bundled into, or providing the Electron runtime for, the local application from the pinned pnpm lockfile. Build-only quality and packaging tools are excluded. Each dependency remains under its own license; consult the package metadata and upstream repository for the complete license text. This file is regenerated with `make generate third-party-notices`.
+This inventory covers the 155 package versions bundled into, or providing the Electron runtime for, the local application from the pinned pnpm lockfile. Build-only quality and packaging tools are excluded. Each dependency remains under its own license; consult the package metadata and upstream repository for the complete license text. This file is regenerated with `make generate third-party-notices`.
 
 ## Application and assets
 
@@ -13,6 +13,7 @@ This inventory covers the 134 package versions bundled into, or providing the El
 
 | Package | Version | Declared license | Homepage |
 | --- | --- | --- | --- |
+| `@acemir/cssom` | `0.9.32` | MIT | — |
 | `@adraffy/ens-normalize` | `1.11.1` | MIT | [upstream](https://github.com/adraffy/ens-normalize.js#readme) |
 | `@ai-sdk/anthropic` | `4.0.69` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
 | `@ai-sdk/gateway` | `4.0.101` | Apache-2.0 | [upstream](https://ai-sdk.dev/docs) |
@@ -35,6 +36,7 @@ This inventory covers the 134 package versions bundled into, or providing the El
 | `@internationalized/string` | `3.2.10` | Apache-2.0 | — |
 | `@modelcontextprotocol/core` | `2.3.0` | Apache-2.0 | [upstream](https://modelcontextprotocol.io) |
 | `@modelcontextprotocol/server` | `2.3.0` | Apache-2.0 | [upstream](https://modelcontextprotocol.io) |
+| `@mozilla/readability` | `0.6.0` | Apache-2.0 | [upstream](https://github.com/mozilla/readability) |
 | `@noble/ciphers` | `1.3.0` | MIT | [upstream](https://paulmillr.com/noble/) |
 | `@noble/curves` | `1.9.1` | MIT | [upstream](https://paulmillr.com/noble/) |
 | `@noble/curves` | `1.9.7` | MIT | [upstream](https://paulmillr.com/noble/) |
@@ -71,6 +73,7 @@ This inventory covers the 134 package versions bundled into, or providing the El
 | `aria-hidden` | `1.2.6` | MIT | [upstream](https://github.com/theKashey/aria-hidden#readme) |
 | `atomically` | `1.7.0` | MIT | — |
 | `base64-js` | `1.5.1` | MIT | [upstream](https://github.com/beatgammit/base64-js) |
+| `boolbase` | `2.0.0` | ISC | [upstream](https://github.com/fb55/boolbase) |
 | `browser-tabs-lock` | `1.3.0` | MIT | [upstream](https://github.com/supertokens/browser-tabs-lock#readme) |
 | `chalk` | `5.6.2` | MIT | — |
 | `client-only` | `0.0.1` | MIT | [upstream](https://reactjs.org/) |
@@ -80,13 +83,26 @@ This inventory covers the 134 package versions bundled into, or providing the El
 | `conf` | `10.2.0` | MIT | — |
 | `core-js` | `3.47.0` | MIT | [upstream](https://core-js.io) |
 | `crypto-js` | `4.2.0` | MIT | [upstream](http://github.com/brix/crypto-js) |
+| `css-select` | `7.0.0` | BSD-2-Clause | — |
+| `css-what` | `8.0.0` | BSD-2-Clause | — |
 | `csstype` | `3.2.3` | MIT | — |
 | `debounce-fn` | `4.0.0` | MIT | — |
 | `debug` | `4.4.3` | MIT | — |
 | `dequal` | `2.0.3` | MIT | — |
+| `dom-serializer` | `2.0.0` | MIT | — |
+| `dom-serializer` | `3.1.1` | MIT | — |
+| `domelementtype` | `2.3.0` | BSD-2-Clause | — |
+| `domelementtype` | `3.0.0` | BSD-2-Clause | — |
+| `domhandler` | `5.0.3` | BSD-2-Clause | — |
+| `domhandler` | `6.0.1` | BSD-2-Clause | — |
+| `domutils` | `3.2.2` | BSD-2-Clause | — |
+| `domutils` | `4.0.2` | BSD-2-Clause | — |
 | `dot-prop` | `6.0.1` | MIT | — |
 | `electron-store` | `8.2.0` | MIT | — |
 | `electron` | `42.7.1` | MIT | — |
+| `entities` | `4.5.0` | BSD-2-Clause | — |
+| `entities` | `7.0.1` | BSD-2-Clause | — |
+| `entities` | `8.1.0` | BSD-2-Clause | — |
 | `env-paths` | `2.2.1` | MIT | — |
 | `env-paths` | `3.0.0` | MIT | — |
 | `eventemitter3` | `5.0.1` | MIT | — |
@@ -99,7 +115,9 @@ This inventory covers the 134 package versions bundled into, or providing the El
 | `find-up` | `3.0.0` | MIT | — |
 | `glob-to-regexp` | `0.4.1` | BSD-2-Clause | — |
 | `graceful-fs` | `4.2.11` | ISC | — |
+| `html-escaper` | `3.0.3` | MIT | [upstream](https://github.com/WebReflection/html-escaper) |
 | `html-parse-stringify` | `4.0.1` | MIT | [upstream](https://github.com/i18next/html-parse-stringify) |
+| `htmlparser2` | `10.1.0` | MIT | — |
 | `i18next` | `26.3.6` | MIT | [upstream](https://www.i18next.com) |
 | `idb-keyval` | `6.2.1` | Apache-2.0 | [upstream](https://github.com/jakearchibald/idb-keyval#readme) |
 | `is-obj` | `2.0.0` | MIT | — |
@@ -108,12 +126,14 @@ This inventory covers the 134 package versions bundled into, or providing the El
 | `json-schema-traverse` | `1.0.0` | MIT | [upstream](https://github.com/epoberezkin/json-schema-traverse#readme) |
 | `json-schema-typed` | `7.0.3` | BSD-2-Clause | [upstream](https://github.com/typeslick/json-schema-typed) |
 | `json-schema` | `0.4.0` | (AFL-2.1 OR BSD-3-Clause) | — |
+| `linkedom` | `0.18.14` | ISC | [upstream](https://github.com/WebReflection/linkedom#readme) |
 | `locate-path` | `3.0.0` | MIT | — |
 | `lodash` | `4.18.1` | MIT | [upstream](https://lodash.com/) |
 | `lucide-react` | `1.33.0` | ISC | [upstream](https://lucide.dev) |
 | `mimic-fn` | `2.1.0` | MIT | — |
 | `mimic-fn` | `3.1.0` | MIT | — |
 | `ms` | `2.1.3` | MIT | — |
+| `nth-check` | `3.0.1` | BSD-2-Clause | [upstream](https://github.com/fb55/nth-check) |
 | `onetime` | `5.1.2` | MIT | — |
 | `ox` | `0.14.57` | MIT | [upstream](https://wevm.dev) |
 | `ox` | `0.6.9` | MIT | [upstream](https://wevm.dev) |
@@ -139,6 +159,7 @@ This inventory covers the 134 package versions bundled into, or providing the El
 | `sumchecker` | `3.0.1` | Apache-2.0 | [upstream](https://github.com/malept/sumchecker#readme) |
 | `tslib` | `2.8.1` | 0BSD | [upstream](https://www.typescriptlang.org/) |
 | `type-fest` | `2.19.0` | (MIT OR CC0-1.0) | — |
+| `uhyphen` | `0.2.0` | ISC | [upstream](https://github.com/WebReflection/uhyphen#readme) |
 | `undici-types` | `7.18.2` | MIT | [upstream](https://undici.nodejs.org) |
 | `undici` | `7.29.0` | MIT | [upstream](https://undici.nodejs.org) |
 | `use-sync-external-store` | `1.6.0` | MIT | — |

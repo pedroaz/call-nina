@@ -57,17 +57,40 @@
   gap: var(--od-space-5);
 }
 
-.dialog[data-size="default"] .header {
+.dialog:not([data-size="large"]) .header {
   margin-bottom: var(--od-space-5);
 }
 
 .header h2 {
+  flex: 1;
   margin: 0;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 .header > button {
   flex: none;
+}
+
+.dialog[data-size="reading"] {
+  max-width: calc(var(--od-reading-measure, 65ch) + 2 * var(--od-space-7));
+}
+.dialog[data-size="form"] {
+  height: min(48rem, calc(100dvh - var(--od-space-9)));
+  overflow: hidden;
+}
+.dialog[data-size="form"] > [role="dialog"] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+}
+.dialog[data-size="form"] .header {
+  flex: none;
+}
+.dialog[data-size="form"] .body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .dialog[data-size="large"] {

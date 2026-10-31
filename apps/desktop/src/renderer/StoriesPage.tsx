@@ -172,11 +172,42 @@ export function StoriesPage() {
                 }
               >
                 <strong lang={story.language}>
+                  {word.lexeme?.partOfSpeech === "noun" && word.lexeme.nounForm.article
+                    ? `${word.lexeme.nounForm.article} `
+                    : ""}
                   {word.text} <SpeechButton text={word.text} language={story.language} />
                 </strong>
+                {word.lexeme?.partOfSpeech === "noun" && word.lexeme.plural.status === "form" && (
+                  <p lang={story.language}>
+                    {t("stories.plural")}: {word.lexeme.plural.form}
+                  </p>
+                )}
                 <p>
                   {
                     word.meaning[
+                      snapshot?.learningContext.explanationLanguage === "en-US"
+                        ? "en"
+                        : (snapshot?.learningContext.explanationLanguage ?? "en")
+                    ]
+                  }
+                </p>
+                {word.usage && (
+                  <p>
+                    {
+                      word.usage[
+                        snapshot?.learningContext.explanationLanguage === "en-US"
+                          ? "en"
+                          : (snapshot?.learningContext.explanationLanguage ?? "en")
+                      ]
+                    }
+                  </p>
+                )}
+                <p lang={story.language}>
+                  {word.example} <SpeechButton text={word.example} language={story.language} />
+                </p>
+                <p>
+                  {
+                    word.exampleMeaning[
                       snapshot?.learningContext.explanationLanguage === "en-US"
                         ? "en"
                         : (snapshot?.learningContext.explanationLanguage ?? "en")
@@ -220,27 +251,27 @@ export function StoriesPage() {
                     .includes(query.trim().toLocaleLowerCase()),
               )
               .map((item) => (
-                <ContentRow
-                  key={item.id}
-                  leading={<BookOpen aria-hidden="true" />}
-                  metadata={item.level}
-                  actions={
-                    <Button
-                      variant="secondary"
-                      aria-label={`${t("stories.read")}: ${item.title[locale]}`}
-                      onPress={() => {
-                        setSelected(item.id);
-                        setParagraph(
-                          Math.min(snapshot.positions[item.id] ?? 0, item.paragraphs.length - 1),
-                        );
-                      }}
-                    >
-                      {t("stories.read")}
-                    </Button>
-                  }
-                >
-                  <h2>{item.title[locale]}</h2>
-                  <p>{item.summary[locale]}</p>
+                <ContentRow key={item.id} className={styles.storyRow}>
+                  <Button
+                    variant="quiet"
+                    className={styles.storyOpen}
+                    aria-label={`${t("stories.read")}: ${item.title[locale]} · ${item.level}`}
+                    onPress={() => {
+                      setSelected(item.id);
+                      setParagraph(
+                        Math.min(snapshot.positions[item.id] ?? 0, item.paragraphs.length - 1),
+                      );
+                    }}
+                  >
+                    <BookOpen aria-hidden="true" />
+                    <span className={styles.storyCopy}>
+                      <span className={styles.storyTitle}>
+                        <strong>{item.title[locale]}</strong>
+                        <span className={styles.storyLevel}>{item.level}</span>
+                      </span>
+                      <span className={styles.storySummary}>{item.summary[locale]}</span>
+                    </span>
+                  </Button>
                 </ContentRow>
               ))}
             {!snapshot.stories.some(

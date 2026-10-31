@@ -52,7 +52,11 @@ install these bundles into the selected learner root; installed runtime descript
 keep playback independent of the preparation files. Legacy candidate installations
 are migrated into normal model storage without changing their pinned artifacts.
 
-No runtime binaries, voice files or corresponding source bundles are published by
-this workflow. Lessac and derivative-model redistribution provenance, Piper/eSpeak
+The runtime-only build creates release-candidate archives separately from the installer.
+The manual desktop publication workflow now includes both engine archives and their
+checksum manifests; local preparation and builds do not publish anything. Voice files
+continue to download directly from their pinned upstream URLs. Before dispatching a
+public release containing these new runtime assets, complete the remaining distribution work.
+Lessac and derivative-model redistribution provenance, Piper/eSpeak
 corresponding-source materials, and preset attribution remain publication work.
 Model approval and local operation do not claim those distribution tasks are complete.

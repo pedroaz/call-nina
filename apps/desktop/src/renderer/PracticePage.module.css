@@ -51,16 +51,12 @@
   gap: 0;
 }
 .generatedActivityActions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--od-space-3);
-  width: 17rem;
   max-width: 100%;
-}
-.generatedActivityResults {
-  display: grid;
-  min-width: 0;
 }
 .generatedActivityMenu {
   display: grid;
@@ -69,8 +65,8 @@
 }
 .generatedActivityOpen {
   width: 100%;
-  gap: var(--od-space-5);
-  justify-content: space-between;
+  gap: var(--od-space-4);
+  justify-content: flex-start;
   text-align: start;
   padding: 0;
 }

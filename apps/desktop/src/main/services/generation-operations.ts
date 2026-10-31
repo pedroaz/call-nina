@@ -12,6 +12,8 @@ import {
   type DesktopIpcEvent,
   type GenerationEvent,
   type GenerationService,
+  websiteStudyPackOutputSchema,
+  type WebsiteStudyPack,
 } from "@call-nina/contracts";
 import { DirectApiGenerationService } from "@call-nina/direct-api";
 import { type CallNinaRepository } from "@call-nina/persistence";
@@ -59,6 +61,11 @@ export class GenerationOperations {
 
   readonly operationsBySubmission = new Map<string, AcceptedOperation>();
 
+  readonly websitePacks = new Map<
+    string,
+    { rootGeneration: number; language: string; pack: WebsiteStudyPack }
+  >();
+
   readonly activeOperations = new Set<string>();
 
   readonly retryableOperations = new Set<string>();
@@ -80,6 +87,7 @@ export class GenerationOperations {
       )
         continue;
       this.#dependencies.releaseOperation(correlationIdSchema.parse(operation.operationId));
+      this.websitePacks.delete(operation.operationId);
       this.operationsBySubmission.delete(submissionId);
       this.retryableOperations.delete(operation.operationId);
     }
@@ -193,6 +201,20 @@ export class GenerationOperations {
             attempt: acceptedOperation.attempt ?? 1,
           });
         }
+        if (
+          state.kind === "website-study-pack" &&
+          acceptedOperation.operation.input.kind === "website-study-pack"
+        ) {
+          this.websitePacks.set(state.operationId, {
+            rootGeneration: acceptedOperation.dataRootGeneration,
+            language: acceptedOperation.operation.input.learningContext.targetLanguage,
+            pack: {
+              source: acceptedOperation.operation.input.source,
+              output: websiteStudyPackOutputSchema.parse(state.output),
+              provenance: state.provenance,
+            },
+          });
+        }
         if (state.kind === "vocabulary-analysis") {
           await this.#dependencies
             .learningResults()
@@ -204,13 +226,15 @@ export class GenerationOperations {
           );
           try {
             if (!accepted || !this.#repository) throw new Error("OD_WRITING_ATTEMPT_UNAVAILABLE");
-            await this.#dependencies.learningResults().persistWritingCorrection(accepted, {
-              operationId: state.operationId,
-              submissionId: state.submissionId,
-              modelRequestId: state.modelRequestId,
-              provenance: state.provenance,
-              output: writingCorrectionCandidateSchema.parse(state.output),
-            });
+            savedActivityId = await this.#dependencies
+              .learningResults()
+              .persistWritingCorrection(accepted, {
+                operationId: state.operationId,
+                submissionId: state.submissionId,
+                modelRequestId: state.modelRequestId,
+                provenance: state.provenance,
+                output: writingCorrectionCandidateSchema.parse(state.output),
+              });
           } catch (error) {
             this.#dependencies.operationLog(
               "error",

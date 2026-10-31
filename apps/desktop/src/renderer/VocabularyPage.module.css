@@ -103,3 +103,62 @@
   gap: var(--od-space-5);
   min-width: 0;
 }
+
+.expression {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+}
+.expression > button {
+  flex: none;
+}
+.expressionColumn {
+  width: 42%;
+}
+.meaningColumn {
+  width: 27%;
+}
+.statusColumn {
+  width: 18%;
+}
+.actionColumn {
+  width: 13%;
+}
+.table .actionColumn {
+  text-align: end;
+}
+.example,
+.reviewDate {
+  display: block;
+  margin-top: var(--od-space-2);
+  color: var(--od-color-text-muted);
+}
+.example {
+  overflow-wrap: anywhere;
+}
+.srOnly,
+.table .caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@container (max-width: 52rem) {
+  .expressionColumn {
+    width: 50%;
+  }
+  .statusColumn {
+    width: 25%;
+  }
+  .actionColumn {
+    width: 25%;
+  }
+  .table th,
+  .table td {
+    padding: var(--od-space-4) var(--od-space-3);
+  }
+}

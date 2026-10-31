@@ -1,9 +1,11 @@
+import { VocabularyUpdateSummary } from "./VocabularyUpdateSummary.js";
+import { UploadSourceEvidence } from "./UploadSourceEvidence.js";
 import { OperationError } from "./OperationError.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
 import type { ProviderOperation } from "@call-nina/contracts";
 import { OperationProgress } from "./OperationProgress.js";
-import { useState } from "react";
-import { MousePointer2, Sparkles, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Eye, EyeOff, MousePointer2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   SelectControl,
@@ -25,7 +27,6 @@ import {
   ActivityFrame,
   ActivityReference,
   ActivityFooter,
-  ActivityFeedback,
   type ActivityReferenceItem,
 } from "./components/activity/index.js";
 import { CorrectionComparison } from "./CorrectionComparison.js";
@@ -41,6 +42,7 @@ export function WritingWorkspace({
   breadcrumbs,
   onDirtyChange,
   requestAiAccess,
+  practiceSource,
   initialContext = "",
   initialDraft = "",
   onHelperSelection,
@@ -51,6 +53,7 @@ export function WritingWorkspace({
     operation: ProviderOperation,
     previousOperationId?: CorrelationId,
   ) => Promise<boolean>;
+  practiceSource?: import("@call-nina/contracts").PracticeSource | undefined;
   initialContext?: string;
   initialDraft?: string;
   onHelperSelection: (selection: Omit<ContextualHelperSelection, "sessionId"> | undefined) => void;
@@ -58,6 +61,8 @@ export function WritingWorkspace({
   const { t } = useTranslation();
   const [writingView, setWritingView] = useState("answer");
   const [contextOpen, setContextOpen] = useState(Boolean(initialContext));
+  const [referenceVisible, setReferenceVisible] = useState(true);
+  const reviewContent = useRef<HTMLDivElement>(null);
   const {
     dirty,
     promptProgress,
@@ -81,6 +86,7 @@ export function WritingWorkspace({
     correctionError,
     correctionOutcome,
     correction,
+    correctionActivityId,
     correctionOriginal,
     correctionLanguage,
     generatePrompt,
@@ -90,12 +96,30 @@ export function WritingWorkspace({
     cancelCorrection,
     retryCorrection,
     updateSelection,
-  } = useWritingSession({ initialContext, initialDraft, onDirtyChange, requestAiAccess });
-  const [previousContext, setPreviousContext] = useState(context);
-  if (context !== previousContext) {
-    setPreviousContext(context);
-    if (context) setContextOpen(true);
+  } = useWritingSession({
+    initialContext,
+    initialDraft,
+    onDirtyChange,
+    requestAiAccess,
+    practiceSource,
+  });
+  const [previousPrompt, setPreviousPrompt] = useState(prompt);
+  if (prompt !== previousPrompt) {
+    setPreviousPrompt(prompt);
+    if (prompt) {
+      setContextOpen(false);
+      setReferenceVisible(true);
+    }
   }
+  const [previousCorrection, setPreviousCorrection] = useState(correction);
+  if (correction !== previousCorrection) {
+    setPreviousCorrection(correction);
+    setWritingView(correction ? "review" : "answer");
+  }
+  useEffect(() => {
+    if (!correction) return;
+    reviewContent.current?.focus();
+  }, [correction]);
   const references: ActivityReferenceItem[] = [];
   if (prompt)
     references.push({
@@ -103,11 +127,13 @@ export function WritingWorkspace({
       label: t("activity.brief"),
       content: (
         <article className={styles.generatedPrompt} aria-label={t("writing.generatedPrompt")}>
-          <p className={styles.eyebrow}>{t(`writing.promptFormats.${prompt.format}`)}</p>
-          <h3>{prompt.title}</h3>
+          <h2>{prompt.title}</h2>
+          <div className={styles.promptMetadata}>
+            <Muted>{t(`writing.promptFormats.${prompt.format}`)}</Muted>
+            <Muted>{t("writing.suggestedWords", { count: prompt.suggestedWordCount })}</Muted>
+          </div>
           <p>{prompt.situation}</p>
           <p>{prompt.task}</p>
-          <Muted as="p">{t("writing.suggestedWords", { count: prompt.suggestedWordCount })}</Muted>
           {prompt.helpfulVocabulary.length > 0 ? (
             <Disclosure variant="inline" label={t("nav.vocabulary")}>
               <ul>
@@ -134,76 +160,97 @@ export function WritingWorkspace({
       ),
     });
   return (
-    <ActivityWorkspace title={t("writing.title")} {...(breadcrumbs ? { breadcrumbs } : {})}>
+    <ActivityWorkspace
+      title={t("writing.title")}
+      className={styles.workspace}
+      actions={
+        practiceSource?.kind === "upload" ? (
+          <UploadSourceEvidence
+            reference={practiceSource.reference}
+            rootGeneration={practiceSource.rootGeneration}
+            title={t("uploads.preview")}
+          />
+        ) : undefined
+      }
+      {...(breadcrumbs ? { breadcrumbs } : {})}
+    >
       <ActivityFrame
         taskLabel={t("activity.task")}
+        fillViewport={writingView === "answer" && referenceVisible && references.length > 0}
         reference={
-          references.length ? (
+          writingView === "answer" && referenceVisible && references.length ? (
             <ActivityReference label={t("activity.reference")} items={references} />
           ) : undefined
         }
         footer={
-          <ActivityFooter>
-            <UtilityPopover
-              label={t("writing.optionsTitle")}
-              summary={`${t(teachingProfile === "profile-default" ? "writing.profileDefault" : teachingProfile === "conversation-partner" ? "writing.profileConversation" : "writing.profileStrict")} · ${t(feedback === "all-meaningful" ? "writing.feedbackAll" : "writing.feedbackPriority")}`}
-            >
-              <div className={styles.writingOptions}>
-                <FieldGroup>
-                  <span>{t("writing.profileLabel")}</span>
-                  <SelectControl
-                    value={teachingProfile}
-                    onChange={(event) => {
-                      setTeachingProfile(event.currentTarget.value as TeachingProfileChoice);
-                    }}
-                  >
-                    <option value="profile-default">{t("writing.profileDefault")}</option>
-                    <option value="conversation-partner">{t("writing.profileConversation")}</option>
-                    <option value="strict-corrector">{t("writing.profileStrict")}</option>
-                  </SelectControl>
-                </FieldGroup>
-                <FieldGroup>
-                  <span>{t("writing.feedbackLabel")}</span>
-                  <SelectControl
-                    value={feedback}
-                    onChange={(event) => {
-                      setFeedback(event.currentTarget.value as FeedbackChoice);
-                    }}
-                  >
-                    <option value="all-meaningful">{t("writing.feedbackAll")}</option>
-                    <option value="priority-only">{t("writing.feedbackPriority")}</option>
-                  </SelectControl>
-                </FieldGroup>
-              </div>
-            </UtilityPopover>
-            <ProviderActionSummary
-              operation="writing-correction"
-              busy={correctionStage !== "idle"}
-              previousOperationId={
-                correctionError || correctionOutcome === "rate-limited"
-                  ? previousCorrectionOperationId
-                  : undefined
+          writingView === "answer" ? (
+            <ActivityFooter
+              utilities={
+                <UtilityPopover
+                  label={t("writing.optionsTitle")}
+                  summary={`${t(teachingProfile === "profile-default" ? "writing.profileDefault" : teachingProfile === "conversation-partner" ? "writing.profileConversation" : "writing.profileStrict")} · ${t(feedback === "all-meaningful" ? "writing.feedbackAll" : "writing.feedbackPriority")}`}
+                >
+                  <div className={styles.writingOptions}>
+                    <FieldGroup>
+                      <span>{t("writing.profileLabel")}</span>
+                      <SelectControl
+                        value={teachingProfile}
+                        onChange={(event) => {
+                          setTeachingProfile(event.currentTarget.value as TeachingProfileChoice);
+                        }}
+                      >
+                        <option value="profile-default">{t("writing.profileDefault")}</option>
+                        <option value="conversation-partner">
+                          {t("writing.profileConversation")}
+                        </option>
+                        <option value="strict-corrector">{t("writing.profileStrict")}</option>
+                      </SelectControl>
+                    </FieldGroup>
+                    <FieldGroup>
+                      <span>{t("writing.feedbackLabel")}</span>
+                      <SelectControl
+                        value={feedback}
+                        onChange={(event) => {
+                          setFeedback(event.currentTarget.value as FeedbackChoice);
+                        }}
+                      >
+                        <option value="all-meaningful">{t("writing.feedbackAll")}</option>
+                        <option value="priority-only">{t("writing.feedbackPriority")}</option>
+                      </SelectControl>
+                    </FieldGroup>
+                  </div>
+                </UtilityPopover>
               }
-            />
-            {correctionOperationId ? (
-              <Button variant="secondary" onPress={() => void cancelCorrection()}>
-                <X aria-hidden="true" /> {t("writing.cancelCorrection")}
-              </Button>
-            ) : null}
-            <Button
-              variant="primary"
-              isDisabled={!draft.trim() || correctionStage !== "idle" || promptStage !== "idle"}
-              onPress={() => void startCorrection()}
             >
-              <Sparkles aria-hidden="true" /> {t("writing.correctNow")}
-            </Button>
-            {(correctionError || correctionOutcome === "rate-limited") &&
-            previousCorrectionOperationId ? (
-              <Button variant="primary" onPress={() => void retryCorrection()}>
-                {t("writing.retryCorrection")}
+              <ProviderActionSummary
+                operation="writing-correction"
+                busy={correctionStage !== "idle"}
+                previousOperationId={
+                  correctionError || correctionOutcome === "rate-limited"
+                    ? previousCorrectionOperationId
+                    : undefined
+                }
+              />
+              {correctionOperationId ? (
+                <Button variant="secondary" onPress={() => void cancelCorrection()}>
+                  <X aria-hidden="true" /> {t("writing.cancelCorrection")}
+                </Button>
+              ) : null}
+              <Button
+                variant="primary"
+                isDisabled={!draft.trim() || correctionStage !== "idle" || promptStage !== "idle"}
+                onPress={() => void startCorrection()}
+              >
+                <Sparkles aria-hidden="true" /> {t("writing.correctNow")}
               </Button>
-            ) : null}
-          </ActivityFooter>
+              {(correctionError || correctionOutcome === "rate-limited") &&
+              previousCorrectionOperationId ? (
+                <Button variant="primary" onPress={() => void retryCorrection()}>
+                  {t("writing.retryCorrection")}
+                </Button>
+              ) : null}
+            </ActivityFooter>
+          ) : undefined
         }
         feedback={
           <>
@@ -219,45 +266,9 @@ export function WritingWorkspace({
                 {t(`writing.correctionOutcomes.${correctionOutcome}`)}
               </Feedback>
             ) : null}
-            {correction && writingView === "answer" && (
-              <ActivityFeedback tone="info" live="polite">
-                {t("writing.correctionReady")}
-              </ActivityFeedback>
-            )}
           </>
         }
       >
-        <section className={styles.promptActions} aria-label={t("writing.promptTitle")}>
-          <ProviderActionSummary operation="writing-prompt" busy={promptStage !== "idle"} />
-          <ActionGroup className={styles.promptActionButtons}>
-            <Button
-              variant="secondary"
-              isDisabled={promptStage !== "idle" || correctionStage !== "idle"}
-              onPress={() => void generatePrompt()}
-            >
-              <Sparkles aria-hidden="true" />
-              {promptStage === "idle"
-                ? t("writing.generatePrompt")
-                : t(`writing.promptStages.${promptStage}`)}
-            </Button>
-            {operationId ? (
-              <Button variant="secondary" onPress={() => void cancelPrompt()}>
-                <X aria-hidden="true" /> {t("actions.cancel")}
-              </Button>
-            ) : null}
-            {context && (
-              <Button variant="quiet" onPress={useFreeWriting}>
-                {t("writing.freeWriting")}
-              </Button>
-            )}
-            <InfoHint label={t("writing.generatePrompt")}>{t("writing.promptBody")}</InfoHint>
-          </ActionGroup>
-          <OperationProgress
-            progress={promptStage === "idle" ? undefined : promptProgress.progress}
-          />
-          {promptError ? <OperationError error={promptError} /> : null}
-        </section>
-
         <Tabs
           label={t("activity.writingViews")}
           selectedKey={writingView}
@@ -269,9 +280,55 @@ export function WritingWorkspace({
               children: (
                 <div className={styles.writingLayout}>
                   <div className={styles.writingEditor}>
+                    <section className={styles.promptActions} aria-label={t("writing.promptTitle")}>
+                      <ProviderActionSummary
+                        operation="writing-prompt"
+                        busy={promptStage !== "idle"}
+                      />
+                      <ActionGroup className={styles.promptActionButtons}>
+                        <Button
+                          variant="secondary"
+                          isDisabled={promptStage !== "idle" || correctionStage !== "idle"}
+                          onPress={() => void generatePrompt()}
+                        >
+                          <Sparkles aria-hidden="true" />
+                          {promptStage === "idle"
+                            ? t("writing.generatePrompt")
+                            : t(`writing.promptStages.${promptStage}`)}
+                        </Button>
+                        {operationId ? (
+                          <Button variant="secondary" onPress={() => void cancelPrompt()}>
+                            <X aria-hidden="true" /> {t("actions.cancel")}
+                          </Button>
+                        ) : null}
+                        {references.length > 0 && (
+                          <Button
+                            variant="secondary"
+                            leadingIcon={
+                              referenceVisible ? (
+                                <EyeOff aria-hidden="true" />
+                              ) : (
+                                <Eye aria-hidden="true" />
+                              )
+                            }
+                            aria-expanded={referenceVisible}
+                            onPress={() => setReferenceVisible((visible) => !visible)}
+                          >
+                            {t(referenceVisible ? "writing.hidePrompt" : "writing.showPrompt")}
+                          </Button>
+                        )}
+                        <InfoHint label={t("writing.generatePrompt")}>
+                          {t("writing.promptBody")}
+                        </InfoHint>
+                      </ActionGroup>
+                      <OperationProgress
+                        progress={promptStage === "idle" ? undefined : promptProgress.progress}
+                      />
+                      {promptError ? <OperationError error={promptError} /> : null}
+                    </section>
                     <Disclosure
                       variant="inline"
-                      label={t("writing.contextLabel")}
+                      label={t("writing.setupTitle")}
                       open={contextOpen}
                       onOpenChange={setContextOpen}
                     >
@@ -288,6 +345,11 @@ export function WritingWorkspace({
                           }}
                         />
                       </FieldGroup>
+                      {context && (
+                        <Button variant="quiet" onPress={useFreeWriting}>
+                          {t("writing.freeWriting")}
+                        </Button>
+                      )}
                     </Disclosure>
                     <FieldGroup>
                       <span>{t("writing.editorLabel")}</span>
@@ -335,7 +397,15 @@ export function WritingWorkspace({
               label: t("activity.review"),
               isDisabled: !correction,
               children: (
-                <>
+                <div
+                  ref={reviewContent}
+                  tabIndex={-1}
+                  data-focus-anchor
+                  aria-label={t("activity.review")}
+                >
+                  {correction && correctionActivityId && (
+                    <VocabularyUpdateSummary activityId={correctionActivityId} />
+                  )}
                   {correction ? (
                     <CorrectionComparison
                       targetLanguage={correctionLanguage}
@@ -350,7 +420,7 @@ export function WritingWorkspace({
                       }}
                     />
                   ) : null}
-                </>
+                </div>
               ),
             },
           ]}

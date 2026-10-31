@@ -106,7 +106,13 @@ export {
   saveFlashcardVocabulary,
 } from "./flashcards.js";
 
-export { saveMaterial, readMaterialRevision, listMaterials, deleteMaterial } from "./materials.js";
+export {
+  saveMaterial,
+  readMaterialRevision,
+  readMaterialUsage,
+  listMaterials,
+  deleteMaterial,
+} from "./materials.js";
 
 export {
   readSavedTranslations,
@@ -121,3 +127,15 @@ export { exportMobileFlashcards } from "./flashcards.js";
 export * from "./speech.js";
 
 export * from "./stories.js";
+export {
+  readUpload,
+  listUploads,
+  saveUpload,
+  archiveUpload,
+  stageUploadAnalysis,
+  readUploadAnalyses,
+  readUploadWords,
+  commitUploadWords,
+} from "./uploads.js";
+
+export { pendingUploadImageCleanup, finishUploadImageCleanup } from "./personal-data.js";

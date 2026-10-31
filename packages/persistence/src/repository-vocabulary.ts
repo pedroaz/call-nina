@@ -407,7 +407,7 @@ export class VocabularyRepository {
       const { fold, normalize } = vocabularySearchPolicy(connection);
       const search = normalize(filter.search);
       const where = `(? = '' OR instr(${fold("lemma")}, ?) > 0 OR instr(${fold("meaning")}, ?) > 0)
-        AND (? = 'all' OR status = ? OR (? = 'due' AND status = 'active' AND due_on <= ?))`;
+        AND (? = 'all' OR status = ? OR (? = 'due' AND status = 'active' AND due_on <= ?) OR (? = 'recent' AND created_at >= datetime('now','-30 days'))) AND (? IS NULL OR EXISTS (SELECT 1 FROM upload_words uw JOIN upload_revisions ur ON ur.revision_id=uw.upload_revision_id JOIN uploads u USING(upload_id) WHERE uw.vocabulary_id=vocabulary_entries_filtered.vocabulary_id AND u.upload_id=? AND u.archived_at IS NULL)) AND (? IS NULL OR EXISTS (SELECT 1 FROM vocabulary_observations vo JOIN vocabulary_batches vb ON vb.id=vo.batch_id WHERE vo.vocabulary_id=vocabulary_entries_filtered.vocabulary_id AND vb.activity_id=? AND vb.undone=0 AND (vo.was_added=1 OR vo.outcome='difficulty')))`;
       const parameters = [
         search,
         search,
@@ -416,6 +416,11 @@ export class VocabularyRepository {
         filter.filter,
         filter.filter,
         today,
+        filter.filter,
+        filter.uploadId ?? null,
+        filter.uploadId ?? null,
+        filter.activityId ?? null,
+        filter.activityId ?? null,
       ];
       const total = z
         .int()
@@ -423,19 +428,21 @@ export class VocabularyRepository {
         .parse(
           connection
             .prepare(
-              `SELECT COUNT(*) AS count FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE ${where}`,
+              `SELECT COUNT(*) AS count FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) vocabulary_entries_filtered WHERE ${where}`,
             )
             .get(...parameters)?.["count"],
         );
       const page = Math.min(filter.page, Math.max(0, Math.ceil(total / 30) - 1));
       const order =
-        filter.sort === "due"
-          ? `due_on IS NULL, due_on, ${fold("lemma")}, vocabulary_id`
-          : `${fold("lemma")}, vocabulary_id`;
+        filter.sort === "recent"
+          ? "created_at DESC, vocabulary_id"
+          : filter.sort === "due"
+            ? `due_on IS NULL, due_on, ${fold("lemma")}, vocabulary_id`
+            : `${fold("lemma")}, vocabulary_id`;
       const entries = connection
         .prepare(
-          `SELECT vocabulary_id, lemma, meaning, status, due_on, revision, updated_at
-         FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE ${where} ORDER BY ${order} LIMIT 30 OFFSET ?`,
+          `SELECT vocabulary_id, lemma, meaning, examples_json, status, due_on, revision, updated_at
+         FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) vocabulary_entries_filtered WHERE ${where} ORDER BY ${order} LIMIT 30 OFFSET ?`,
         )
         .all(...parameters, page * 30)
         .map((row) =>
@@ -443,6 +450,7 @@ export class VocabularyRepository {
             vocabularyId: row["vocabulary_id"],
             lemma: row["lemma"],
             meaning: row["meaning"],
+            examples: parseJson(String(row["examples_json"])),
             status: row["status"],
             dueOn: row["due_on"],
             revision: row["revision"],
@@ -457,9 +465,9 @@ export class VocabularyRepository {
         COUNT(CASE WHEN status = 'active' THEN 1 END) AS active,
         COUNT(CASE WHEN status = 'suspended' THEN 1 END) AS suspended,
         COUNT(CASE WHEN status = 'active' AND due_on <= ? THEN 1 END) AS due
-        FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1))`,
+        FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) vocabulary_entries_filtered WHERE (? IS NULL OR EXISTS (SELECT 1 FROM upload_words uw JOIN upload_revisions ur ON ur.revision_id=uw.upload_revision_id JOIN uploads u USING(upload_id) WHERE uw.vocabulary_id=vocabulary_entries_filtered.vocabulary_id AND u.upload_id=? AND u.archived_at IS NULL))`,
           )
-          .get(today),
+          .get(today, filter.uploadId ?? null, filter.uploadId ?? null),
       );
       return { entries, total, page, counts };
     });
@@ -500,14 +508,17 @@ export class VocabularyRepository {
     });
   }
 
-  async readVocabularyReviewQueue(todayValue: string): Promise<readonly VocabularyRecord[]> {
+  async readVocabularyReviewQueue(
+    todayValue: string,
+    uploadId?: string,
+  ): Promise<readonly VocabularyRecord[]> {
     const today = calendarDateSchema.parse(todayValue);
     return withLeasedConnection(this.#database, (connection) =>
       connection
         .prepare(
-          "SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) WHERE status = 'active' AND due_on <= ? ORDER BY due_on, vocabulary_id LIMIT 20",
+          "SELECT * FROM (SELECT * FROM vocabulary_entries WHERE target_language = (SELECT target_language FROM local_learning_scope WHERE singleton = 1)) vocabulary_entries_filtered WHERE status = 'active' AND due_on <= ? AND (? IS NULL OR EXISTS (SELECT 1 FROM upload_words uw JOIN upload_revisions ur ON ur.revision_id=uw.upload_revision_id JOIN uploads u USING(upload_id) WHERE uw.vocabulary_id=vocabulary_entries_filtered.vocabulary_id AND u.upload_id=? AND u.archived_at IS NULL)) ORDER BY due_on, vocabulary_id LIMIT 20",
         )
-        .all(today)
+        .all(today, uploadId ?? null, uploadId ?? null)
         .map(vocabularyRecordFromRow),
     );
   }

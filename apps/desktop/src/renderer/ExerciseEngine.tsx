@@ -1,3 +1,4 @@
+import { VocabularyUpdateSummary } from "./VocabularyUpdateSummary.js";
 import { type ReactNode, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -16,6 +17,7 @@ import styles from "./ExerciseEngine.module.css";
 
 export function ExerciseEngine(
   props: ExerciseSessionOptions & {
+    activityId?: string;
     reference?: ReactNode;
     evaluationProgress?: ReactNode;
     completionActions?: ReactNode;
@@ -77,7 +79,12 @@ export function ExerciseEngine(
         <ActivityCompletion
           companion="listening"
           title={t("exercises.abandoned")}
-          summary={<p>{t("exercises.abandonedBody")}</p>}
+          summary={
+            <>
+              <p>{t("exercises.abandonedBody")}</p>
+              {props.activityId && <VocabularyUpdateSummary activityId={props.activityId} />}
+            </>
+          }
         />
       </ActivityFrame>
     );
@@ -88,6 +95,7 @@ export function ExerciseEngine(
         <ActivityCompletion
           companion="celebration"
           title={t("exercises.complete")}
+          summary={props.activityId && <VocabularyUpdateSummary activityId={props.activityId} />}
           actions={completionActions}
           reviewLabel={t("exercises.reviewAnswers")}
           review={

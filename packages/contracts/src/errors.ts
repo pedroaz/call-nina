@@ -2,6 +2,27 @@ import { correlationIdSchema, runIdSchema, sessionIdSchema, utcInstantSchema } f
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 
 export const errorDefinitions = {
+  "upload-image-unavailable": {
+    code: "OD_UPLOAD_IMAGE_UNAVAILABLE",
+    messageKey: "errors.uploadImageUnavailable",
+  },
+  "upload-save-failed": { code: "OD_UPLOAD_SAVE_FAILED", messageKey: "errors.uploadSaveFailed" },
+  "upload-text-required": {
+    code: "OD_UPLOAD_TEXT_REQUIRED",
+    messageKey: "errors.uploadTextRequired",
+  },
+  "upload-image-invalid": {
+    code: "OD_VOCABULARY_IMAGE_INVALID",
+    messageKey: "errors.uploadImageInvalid",
+  },
+  "material-referenced": {
+    code: "OD_MATERIAL_REFERENCED",
+    messageKey: "errors.materialReferenced",
+  },
+  "website-import": {
+    code: "OD_WEBSITE_IMPORT_FAILED",
+    messageKey: "errors.websiteImport",
+  },
   "speech-initialization-timeout": {
     code: "OD_SPEECH_INITIALIZATION_TIMEOUT",
     messageKey: "errors.speechInitializationTimeout",
@@ -103,6 +124,15 @@ export type CallNinaError = z.infer<typeof callNinaErrorSchema>;
 
 export const safeErrorMessages = {
   en: {
+    "upload-image-unavailable":
+      "The original image could not be read. Choose the image again and save a new revision.",
+    "upload-save-failed": "Could not save this upload. Check available storage and try again.",
+    "upload-text-required": "Read the image or enter its text before practising.",
+    "upload-image-invalid": "Choose a valid PNG, JPEG or WebP image of up to 10 MB.",
+    "material-referenced":
+      "This content is used by saved activities or attempts. Remove those records before deleting it.",
+    "website-import":
+      "Could not import readable text from this website. Try another public HTTPS page or paste its text.",
     "speech-initialization-timeout":
       "The voice did not start in time. Retry or select another voice.",
     "speech-synthesis-timeout": "Speech generation timed out. Retry with shorter text.",
@@ -144,6 +174,16 @@ export const safeErrorMessages = {
       "The selected model or reasoning setting is unavailable. Choose Automatic or another available option in the model selector, then retry.",
   },
   de: {
+    "upload-image-unavailable":
+      "Das Originalbild konnte nicht gelesen werden. Wähle das Bild erneut und speichere eine neue Version.",
+    "upload-save-failed":
+      "Der Upload konnte nicht gespeichert werden. Prüfe den verfügbaren Speicher und versuche es erneut.",
+    "upload-text-required": "Lies den Bildtext ein oder gib ihn vor dem Üben ein.",
+    "upload-image-invalid": "Wähle ein gültiges PNG-, JPEG- oder WebP-Bild mit höchstens 10 MB.",
+    "material-referenced":
+      "Dieser Inhalt wird von gespeicherten Aktivitäten oder Versuchen verwendet. Entferne diese Einträge vor dem Löschen.",
+    "website-import":
+      "Von dieser Website konnte kein lesbarer Text importiert werden. Versuche eine andere öffentliche HTTPS-Seite oder füge den Text ein.",
     "speech-initialization-timeout":
       "Die Stimme konnte nicht rechtzeitig starten. Versuche es erneut oder wähle eine andere Stimme.",
     "speech-synthesis-timeout":

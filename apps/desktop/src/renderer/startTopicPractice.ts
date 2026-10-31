@@ -16,18 +16,25 @@ export async function startTopicPractice(
     topic,
     targetLevel,
     count,
+    practiceSource,
   }: {
     kind: PracticeKind;
     topic: string;
     targetLevel: "a1" | "a2" | "b1" | "b2";
     count?: number;
+    practiceSource?: import("@call-nina/contracts").PracticeSource | undefined;
   },
   run: ReturnType<typeof useLearningOperation>["run"],
 ) {
-  const naturalRequest = topic.trim();
+  const naturalRequest =
+    topic.trim() ||
+    (practiceSource?.kind === "upload"
+      ? "Practise the selected upload."
+      : "Practise vocabulary relevant to my learning needs.");
   if (kind === "flashcards") {
     const result = await run({
       kind: "flashcard-generation",
+      ...(practiceSource ? { practiceSource } : {}),
       topic: naturalRequest,
       targetLevel,
       cardCount: count ?? practiceDefaults.cardCount,
@@ -43,6 +50,7 @@ export async function startTopicPractice(
     } as const;
     const result = await run({
       kind: "voice-activity-draft",
+      ...(practiceSource ? { practiceSource } : {}),
       voiceKind: kind,
       naturalRequest,
       ...settings,
@@ -74,5 +82,7 @@ export async function startTopicPractice(
       exerciseCount: count ?? practiceDefaults.exerciseCount,
     },
     run,
+    undefined,
+    practiceSource,
   );
 }

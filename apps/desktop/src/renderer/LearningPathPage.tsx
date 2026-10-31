@@ -109,7 +109,15 @@ function LearningPathWorkspace({
       ? initialDestination
       : { kind: "library" },
   );
-  const [catalogFilter, setCatalogFilter] = useState({ query: "", kind: "all", level: "all" });
+  const [catalogFilter, setCatalogFilter] = useState({
+    query: "",
+    kind: snapshot.course?.paths.some(
+      (path) => path.kind === "course" && path.presentation !== "supplementary",
+    )
+      ? "course"
+      : "scenario",
+    level: "all",
+  });
   const [expandedActivity, setExpandedActivity] = useState<string>();
   const [listeningReview, setListeningReview] = useState<CourseReference>();
   const [active, setActive] = useState<{

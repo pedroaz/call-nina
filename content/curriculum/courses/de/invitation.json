@@ -19,7 +19,26 @@
         "de": "Nimm eine Einladung an, frage, was du mitbringen kannst, und bestätige die Adresse.",
         "es": "Acepta una invitación, pregunta qué llevar y confirma la dirección.",
         "pt-BR": "Aceite um convite, pergunte o que levar e confirme o endereço."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "invitation-mission",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Reply to an invitation",
+        "de": "Auf eine Einladung antworten",
+        "es": "Responder a una invitación",
+        "pt-BR": "Responder a um convite"
+      },
+      "description": {
+        "en": "Accept an invitation, check what to bring, and confirm the address.",
+        "de": "Nimm eine Einladung an, frage, was du mitbringen kannst, und bestätige die Adresse.",
+        "es": "Acepta una invitación, pregunta qué llevar y confirma la dirección.",
+        "pt-BR": "Aceite um convite, pergunte o que levar e confirme o endereço."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Fragen, was man zur Feier beitragen kann.",
         "es": "¿Qué debo llevar?",
         "pt-BR": "O que devo levar?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-invitation-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Danke für die Einladung!",
+      "meaning": {
+        "en": "Thank you for the invitation!",
+        "de": "Sich für eine Einladung bedanken.",
+        "es": "¡Gracias por la invitación!",
+        "pt-BR": "Obrigado pelo convite!"
+      },
+      "example": "Danke für die Einladung!",
+      "exampleMeaning": {
+        "en": "Thank you for the invitation!",
+        "de": "Sich für eine Einladung bedanken.",
+        "es": "¡Gracias por la invitación!",
+        "pt-BR": "Obrigado pelo convite!"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-invitation-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich bringe gern einen Salat mit.",
+      "meaning": {
+        "en": "I am happy to bring a salad.",
+        "de": "Ich übernehme den Salat.",
+        "es": "Con gusto llevo una ensalada.",
+        "pt-BR": "Levo uma salada com prazer."
+      },
+      "example": "Ich bringe gern einen Salat mit.",
+      "exampleMeaning": {
+        "en": "I am happy to bring a salad.",
+        "de": "Ich übernehme den Salat.",
+        "es": "Con gusto llevo una ensalada.",
+        "pt-BR": "Levo uma salada com prazer."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-invitation-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ich komme gern.",
+      "meaning": {
+        "en": "I would love to come.",
+        "de": "Eine Einladung freundlich annehmen.",
+        "es": "Me encantaría ir.",
+        "pt-BR": "Vou com prazer."
+      },
+      "example": "Ich komme gern.",
+      "exampleMeaning": {
+        "en": "I would love to come.",
+        "de": "Eine Einladung freundlich annehmen.",
+        "es": "Me encantaría ir.",
+        "pt-BR": "Vou com prazer."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-invitation-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich kann ab achtzehn Uhr helfen.",
+      "meaning": {
+        "en": "I can help from six.",
+        "de": "Ich bin vor Beginn zum Helfen da.",
+        "es": "Puedo ayudar desde las seis.",
+        "pt-BR": "Posso ajudar a partir das seis."
+      },
+      "example": "Ich kann ab achtzehn Uhr helfen.",
+      "exampleMeaning": {
+        "en": "I can help from six.",
+        "de": "Ich bin vor Beginn zum Helfen da.",
+        "es": "Puedo ayudar desde las seis.",
+        "pt-BR": "Posso ajudar a partir das seis."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-invitation-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Was soll ich mitbringen?",
+      "meaning": {
+        "en": "What should I bring?",
+        "de": "Fragen, was man zur Feier beitragen kann.",
+        "es": "¿Qué debo llevar?",
+        "pt-BR": "O que devo levar?"
+      },
+      "example": "Was soll ich mitbringen?",
+      "exampleMeaning": {
+        "en": "What should I bring?",
+        "de": "Fragen, was man zur Feier beitragen kann.",
+        "es": "¿Qué debo llevar?",
+        "pt-BR": "O que devo levar?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-invitation-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Soll ich auch Brot mitbringen?",
+      "meaning": {
+        "en": "Should I bring bread too?",
+        "de": "Ich biete Brot als weiteren Beitrag an.",
+        "es": "¿Llevo también pan?",
+        "pt-BR": "Devo levar pão também?"
+      },
+      "example": "Soll ich auch Brot mitbringen?",
+      "exampleMeaning": {
+        "en": "Should I bring bread too?",
+        "de": "Ich biete Brot als weiteren Beitrag an.",
+        "es": "¿Llevo también pan?",
+        "pt-BR": "Devo levar pão também?"
       },
       "register": "neutral"
     }
@@ -1024,6 +1157,951 @@
             "de": "Etwas zum Mitbringen anbieten. Fragen, was man zur Feier beitragen kann.\nBring bitte einen Salat mit. Getränke haben wir schon.",
             "es": "Ofrecer llevar algo. ¿Qué debo llevar?\nBring bitte einen Salat mit. Getränke haben wir schon.",
             "pt-BR": "Oferecer levar algo. O que devo levar?\nBring bitte einen Salat mit. Getränke haben wir schon."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-invitation-v2",
+      "stage": "invitation-mission",
+      "kind": "module",
+      "title": {
+        "en": "A Friday celebration",
+        "de": "Eine Feier am Freitag",
+        "es": "Una fiesta el viernes",
+        "pt-BR": "Uma festa na sexta-feira"
+      },
+      "scenario": {
+        "en": "Accept the invitation and respond to the changed request about what to bring.",
+        "de": "Nimm die Einladung an und reagiere auf den geänderten Mitbringwunsch.",
+        "es": "Acepta la invitación y responde al cambio de qué llevar.",
+        "pt-BR": "Aceite o convite e responda à mudança sobre o que levar."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000001"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+        "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+        "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+        "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+      },
+      "explanation": {
+        "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+        "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+        "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+        "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+      },
+      "examples": [
+        {
+          "text": "Danke für die Einladung!",
+          "meaning": {
+            "en": "Thank you for the invitation!",
+            "de": "Sich für eine Einladung bedanken.",
+            "es": "¡Gracias por la invitación!",
+            "pt-BR": "Obrigado pelo convite!"
+          }
+        },
+        {
+          "text": "Ich bringe gern einen Salat mit.",
+          "meaning": {
+            "en": "I am happy to bring a salad.",
+            "de": "Ich übernehme den Salat.",
+            "es": "Con gusto llevo una ensalada.",
+            "pt-BR": "Levo uma salada com prazer."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-invitation-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-invitation-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What should the guest now bring?",
+            "de": "Was soll der Gast jetzt mitbringen?",
+            "es": "¿Qué debe llevar ahora el invitado?",
+            "pt-BR": "O que o convidado deve levar agora?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-invitation-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Accept the invitation and respond to the changed request about what to bring.",
+            "de": "Nimm die Einladung an und reagiere auf den geänderten Mitbringwunsch.",
+            "es": "Acepta la invitación y responde al cambio de qué llevar.",
+            "pt-BR": "Aceite o convite e responda à mudança sobre o que levar."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-invitation-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Accept the invitation and respond to the changed request about what to bring.",
+            "de": "Nimm die Einladung an und reagiere auf den geänderten Mitbringwunsch.",
+            "es": "Acepta la invitación y responde al cambio de qué llevar.",
+            "pt-BR": "Aceite o convite e responda à mudança sobre o que levar."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-invitation-v2-reading"],
+          "targetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What should you bring?",
+              "de": "Was sollst du mitbringen?",
+              "es": "¿Qué debes llevar?",
+              "pt-BR": "O que você deve levar?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "etwas zu trinken",
+              "de": "etwas zu trinken",
+              "es": "etwas zu trinken",
+              "pt-BR": "etwas zu trinken"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Hallo! Ich feiere am Freitag um neunzehn Uhr. Kommst du? Meine Adresse ist Parkstraße 5. Bring bitte etwas zu trinken mit."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-invitation-v2-listening"],
+          "targetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What should the guest now bring?",
+              "de": "Was soll der Gast jetzt mitbringen?",
+              "es": "¿Qué debe llevar ahora el invitado?",
+              "pt-BR": "O que o convidado deve levar agora?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Einen Salat.",
+              "de": "Einen Salat.",
+              "es": "Einen Salat.",
+              "pt-BR": "Einen Salat."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+          "instructions": {
+            "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+            "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+            "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+            "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-invitation-v2-writing"],
+          "targetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+          "instructions": {
+            "en": "Accept the invitation and respond to the changed request about what to bring.",
+            "de": "Nimm die Einladung an und reagiere auf den geänderten Mitbringwunsch.",
+            "es": "Acepta la invitación y responde al cambio de qué llevar.",
+            "pt-BR": "Aceite o convite e responda à mudança sobre o que levar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-invitation-v2-writing"],
+          "targetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+          "instructions": {
+            "en": "Accept the invitation and respond to the changed request about what to bring.",
+            "de": "Nimm die Einladung an und reagiere auf den geänderten Mitbringwunsch.",
+            "es": "Acepta la invitación y responde al cambio de qué llevar.",
+            "pt-BR": "Aceite o convite e responda à mudança sobre o que levar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-invitation-v2-speaking"],
+          "targetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+          "instructions": {
+            "en": "Accept the invitation and respond to the changed request about what to bring.",
+            "de": "Nimm die Einladung an und reagiere auf den geänderten Mitbringwunsch.",
+            "es": "Acepta la invitación y responde al cambio de qué llevar.",
+            "pt-BR": "Aceite o convite e responda à mudança sobre o que levar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Hallo! Ich feiere am Freitag um neunzehn Uhr. Kommst du? Meine Adresse ist Parkstraße 5. Bring bitte etwas zu trinken mit.\nUpdate: Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit.",
+            "de": "Ursprüngliche Nachricht: Hallo! Ich feiere am Freitag um neunzehn Uhr. Kommst du? Meine Adresse ist Parkstraße 5. Bring bitte etwas zu trinken mit.\nAktualisierung: Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit.",
+            "es": "Aviso original: Hallo! Ich feiere am Freitag um neunzehn Uhr. Kommst du? Meine Adresse ist Parkstraße 5. Bring bitte etwas zu trinken mit.\nActualización: Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit.",
+            "pt-BR": "Aviso original: Hallo! Ich feiere am Freitag um neunzehn Uhr. Kommst du? Meine Adresse ist Parkstraße 5. Bring bitte etwas zu trinken mit.\nAtualização: Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit.",
+            "de": "Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit.",
+            "es": "Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit.",
+            "pt-BR": "Hallo, ich freue mich, wenn du am Freitag kommst. Es bleibt bei neunzehn Uhr in der Parkstraße fünf. Getränke sind jetzt schon da; bring lieber einen Salat mit."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-invitation-2-v2",
+      "stage": "invitation-mission",
+      "kind": "module",
+      "title": {
+        "en": "Accept and confirm the time",
+        "de": "Zusagen und die Zeit bestätigen",
+        "es": "Aceptar y confirmar la hora",
+        "pt-BR": "Aceitar e confirmar o horário"
+      },
+      "scenario": {
+        "en": "Confirm whether you arrive for preparation or for the official start, using an exact time.",
+        "de": "Bestätige mit genauer Zeit, ob du zum Vorbereiten oder zum Beginn kommst.",
+        "es": "Confirma con hora exacta si vas a preparar o al inicio oficial.",
+        "pt-BR": "Confirme com horário exato se vai preparar ou ao início oficial."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000001"],
+      "prerequisites": ["de-invitation-v2"],
+      "grammar": {
+        "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+        "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+        "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+        "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+      },
+      "explanation": {
+        "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+        "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+        "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+        "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+      },
+      "examples": [
+        {
+          "text": "Ich komme gern.",
+          "meaning": {
+            "en": "I would love to come.",
+            "de": "Eine Einladung freundlich annehmen.",
+            "es": "Me encantaría ir.",
+            "pt-BR": "Vou com prazer."
+          }
+        },
+        {
+          "text": "Ich kann ab achtzehn Uhr helfen.",
+          "meaning": {
+            "en": "I can help from six.",
+            "de": "Ich bin vor Beginn zum Helfen da.",
+            "es": "Puedo ayudar desde las seis.",
+            "pt-BR": "Posso ajudar a partir das seis."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-invitation-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-invitation-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Is the official start time changed?",
+            "de": "Ändert sich der offizielle Beginn?",
+            "es": "¿Cambia el inicio oficial?",
+            "pt-BR": "O início oficial muda?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-invitation-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm whether you arrive for preparation or for the official start, using an exact time.",
+            "de": "Bestätige mit genauer Zeit, ob du zum Vorbereiten oder zum Beginn kommst.",
+            "es": "Confirma con hora exacta si vas a preparar o al inicio oficial.",
+            "pt-BR": "Confirme com horário exato se vai preparar ou ao início oficial."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-invitation-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm whether you arrive for preparation or for the official start, using an exact time.",
+            "de": "Bestätige mit genauer Zeit, ob du zum Vorbereiten oder zum Beginn kommst.",
+            "es": "Confirma con hora exacta si vas a preparar o al inicio oficial.",
+            "pt-BR": "Confirme com horário exato se vai preparar ou ao início oficial."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-invitation-2-v2-phrase-1", "de-invitation-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-invitation-v2-phrase-1", "de-invitation-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-invitation-2-v2-reading"],
+          "targetIds": ["de-invitation-2-v2-phrase-1", "de-invitation-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Schön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir.",
+              "de": "Schön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir.",
+              "es": "Schön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir.",
+              "pt-BR": "Schön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ich komme gern.\nSchön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-invitation-2-v2-listening"],
+          "targetIds": ["de-invitation-2-v2-phrase-1", "de-invitation-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Is the official start time changed?",
+              "de": "Ändert sich der offizielle Beginn?",
+              "es": "¿Cambia el inicio oficial?",
+              "pt-BR": "O início oficial muda?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Nein, neunzehn Uhr bleibt.",
+              "de": "Nein, neunzehn Uhr bleibt.",
+              "es": "Nein, neunzehn Uhr bleibt.",
+              "pt-BR": "Nein, neunzehn Uhr bleibt."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-invitation-2-v2-phrase-1", "de-invitation-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+            "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+            "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+            "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-invitation-2-v2-writing"],
+          "targetIds": ["de-invitation-2-v2-phrase-1", "de-invitation-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm whether you arrive for preparation or for the official start, using an exact time.",
+            "de": "Bestätige mit genauer Zeit, ob du zum Vorbereiten oder zum Beginn kommst.",
+            "es": "Confirma con hora exacta si vas a preparar o al inicio oficial.",
+            "pt-BR": "Confirme com horário exato se vai preparar ou ao início oficial."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-invitation-2-v2-writing"],
+          "targetIds": ["de-invitation-2-v2-phrase-1", "de-invitation-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm whether you arrive for preparation or for the official start, using an exact time.",
+            "de": "Bestätige mit genauer Zeit, ob du zum Vorbereiten oder zum Beginn kommst.",
+            "es": "Confirma con hora exacta si vas a preparar o al inicio oficial.",
+            "pt-BR": "Confirme com horário exato se vai preparar ou ao início oficial."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Schön! Die Feier beginnt am Samstag um achtzehn Uhr bei mir."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-invitation-2-v2-speaking"],
+          "targetIds": ["de-invitation-2-v2-phrase-1", "de-invitation-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm whether you arrive for preparation or for the official start, using an exact time.",
+            "de": "Bestätige mit genauer Zeit, ob du zum Vorbereiten oder zum Beginn kommst.",
+            "es": "Confirma con hora exacta si vas a preparar o al inicio oficial.",
+            "pt-BR": "Confirme com horário exato se vai preparar ou ao início oficial."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Schön! Die Feier beginnt am Samstag um achtzehn Uhr bei mir."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Ich komme gern.\nSchön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir.\nUpdate: Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen.",
+            "de": "Ursprüngliche Nachricht: Ich komme gern.\nSchön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir.\nAktualisierung: Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen.",
+            "es": "Aviso original: Ich komme gern.\nSchön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir.\nActualización: Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen.",
+            "pt-BR": "Aviso original: Ich komme gern.\nSchön! Die Feier beginnt am Freitag um neunzehn Uhr bei mir.\nAtualização: Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen.",
+            "de": "Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen.",
+            "es": "Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen.",
+            "pt-BR": "Die Feier beginnt weiterhin um neunzehn Uhr. Ich bin aber schon ab achtzehn Uhr zu Hause. Wenn du helfen möchtest, kannst du früher kommen."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-invitation-3-v2",
+      "stage": "invitation-mission",
+      "kind": "module",
+      "title": {
+        "en": "Offer to bring something",
+        "de": "Etwas zum Mitbringen anbieten",
+        "es": "Ofrecer llevar algo",
+        "pt-BR": "Oferecer levar algo"
+      },
+      "scenario": {
+        "en": "Offer one needed item and confirm you will not bring unnecessary dishes.",
+        "de": "Biete einen benötigten Gegenstand an und bestätige, dass du kein unnötiges Geschirr mitbringst.",
+        "es": "Ofrece algo necesario y confirma que no llevarás vajilla innecesaria.",
+        "pt-BR": "Ofereça algo necessário e confirme que não levará louça desnecessária."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000001"],
+      "prerequisites": ["de-invitation-2-v2"],
+      "grammar": {
+        "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+        "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+        "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+        "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+      },
+      "explanation": {
+        "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+        "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+        "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+        "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+      },
+      "examples": [
+        {
+          "text": "Was soll ich mitbringen?",
+          "meaning": {
+            "en": "What should I bring?",
+            "de": "Fragen, was man zur Feier beitragen kann.",
+            "es": "¿Qué debo llevar?",
+            "pt-BR": "O que devo levar?"
+          }
+        },
+        {
+          "text": "Soll ich auch Brot mitbringen?",
+          "meaning": {
+            "en": "Should I bring bread too?",
+            "de": "Ich biete Brot als weiteren Beitrag an.",
+            "es": "¿Llevo también pan?",
+            "pt-BR": "Devo levar pão também?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-invitation-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-invitation-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What is still missing?",
+            "de": "Was fehlt noch?",
+            "es": "¿Qué falta todavía?",
+            "pt-BR": "O que ainda falta?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-invitation-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Offer one needed item and confirm you will not bring unnecessary dishes.",
+            "de": "Biete einen benötigten Gegenstand an und bestätige, dass du kein unnötiges Geschirr mitbringst.",
+            "es": "Ofrece algo necesario y confirma que no llevarás vajilla innecesaria.",
+            "pt-BR": "Ofereça algo necessário e confirme que não levará louça desnecessária."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-invitation-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Offer one needed item and confirm you will not bring unnecessary dishes.",
+            "de": "Biete einen benötigten Gegenstand an und bestätige, dass du kein unnötiges Geschirr mitbringst.",
+            "es": "Ofrece algo necesario y confirma que no llevarás vajilla innecesaria.",
+            "pt-BR": "Ofereça algo necessário e confirme que não levará louça desnecessária."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-invitation-3-v2-phrase-1", "de-invitation-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-invitation-v2-phrase-1",
+        "de-invitation-v2-phrase-2",
+        "de-invitation-2-v2-phrase-1",
+        "de-invitation-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-invitation-3-v2-reading"],
+          "targetIds": ["de-invitation-3-v2-phrase-1", "de-invitation-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Bring bitte einen Salat mit. Getränke haben wir schon.",
+              "de": "Bring bitte einen Salat mit. Getränke haben wir schon.",
+              "es": "Bring bitte einen Salat mit. Getränke haben wir schon.",
+              "pt-BR": "Bring bitte einen Salat mit. Getränke haben wir schon."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Was soll ich mitbringen?\nBring bitte einen Salat mit. Getränke haben wir schon."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-invitation-3-v2-listening"],
+          "targetIds": ["de-invitation-3-v2-phrase-1", "de-invitation-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What is still missing?",
+              "de": "Was fehlt noch?",
+              "es": "¿Qué falta todavía?",
+              "pt-BR": "O que ainda falta?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Brot.",
+              "de": "Brot.",
+              "es": "Brot.",
+              "pt-BR": "Brot."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-invitation-3-v2-phrase-1", "de-invitation-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Mitbringen is separable: ich bringe Brot mit. Use ab for availability and um for the event time. A changed contribution does not necessarily change the place or time.",
+            "de": "Mitbringen ist trennbar: ich bringe Brot mit. Ab nennt Verfügbarkeit, um die Veranstaltungszeit. Ein anderer Beitrag ändert nicht automatisch Ort oder Zeit.",
+            "es": "Mitbringen es separable. Ab indica disponibilidad y um la hora. Cambiar qué llevas no cambia automáticamente lugar ni hora.",
+            "pt-BR": "Mitbringen é separável. Ab indica disponibilidade e um o horário. Mudar o que leva não muda automaticamente local nem horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-invitation-3-v2-writing"],
+          "targetIds": ["de-invitation-3-v2-phrase-1", "de-invitation-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Offer one needed item and confirm you will not bring unnecessary dishes.",
+            "de": "Biete einen benötigten Gegenstand an und bestätige, dass du kein unnötiges Geschirr mitbringst.",
+            "es": "Ofrece algo necesario y confirma que no llevarás vajilla innecesaria.",
+            "pt-BR": "Ofereça algo necessário e confirme que não levará louça desnecessária."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-invitation-3-v2-writing"],
+          "targetIds": ["de-invitation-3-v2-phrase-1", "de-invitation-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Offer one needed item and confirm you will not bring unnecessary dishes.",
+            "de": "Biete einen benötigten Gegenstand an und bestätige, dass du kein unnötiges Geschirr mitbringst.",
+            "es": "Ofrece algo necesario y confirma que no llevarás vajilla innecesaria.",
+            "pt-BR": "Ofereça algo necessário e confirme que não levará louça desnecessária."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Bring bitte einen Salat mit. Getränke haben wir schon."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-invitation-3-v2-speaking"],
+          "targetIds": ["de-invitation-3-v2-phrase-1", "de-invitation-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Offer one needed item and confirm you will not bring unnecessary dishes.",
+            "de": "Biete einen benötigten Gegenstand an und bestätige, dass du kein unnötiges Geschirr mitbringst.",
+            "es": "Ofrece algo necesario y confirma que no llevarás vajilla innecesaria.",
+            "pt-BR": "Ofereça algo necessário e confirme que não levará louça desnecessária."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Bring bitte einen Salat mit. Getränke haben wir schon."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Was soll ich mitbringen?\nBring bitte einen Salat mit. Getränke haben wir schon.\nUpdate: Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns.",
+            "de": "Ursprüngliche Nachricht: Was soll ich mitbringen?\nBring bitte einen Salat mit. Getränke haben wir schon.\nAktualisierung: Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns.",
+            "es": "Aviso original: Was soll ich mitbringen?\nBring bitte einen Salat mit. Getränke haben wir schon.\nActualización: Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns.",
+            "pt-BR": "Aviso original: Was soll ich mitbringen?\nBring bitte einen Salat mit. Getränke haben wir schon.\nAtualização: Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns.",
+            "de": "Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns.",
+            "es": "Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns.",
+            "pt-BR": "Danke für den Salat! Bitte bring keine große Schüssel mit. Ich habe genug Geschirr. Wenn du möchtest, kannst du noch Brot holen; das fehlt uns."
           }
         }
       ],

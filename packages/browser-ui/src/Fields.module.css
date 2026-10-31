@@ -85,6 +85,21 @@
     margin-block-start: var(--od-space-1);
   }
 
+  .select optgroup {
+    border-top: var(--od-border-thin) solid var(--od-color-border-default);
+    margin-block-start: var(--od-space-3);
+    padding-block-start: var(--od-space-3);
+    color: var(--od-color-text-muted);
+    font-size: var(--od-font-size-sm);
+    font-weight: var(--od-weight-strong);
+  }
+
+  .select optgroup option {
+    color: var(--od-color-text-strong);
+    font-weight: normal;
+    padding-inline-start: var(--od-space-5);
+  }
+
   .select option:checked,
   .select option:not(:disabled):hover,
   .select option:not(:disabled):focus {
@@ -98,9 +113,7 @@
   }
 
   .select option::checkmark {
-    order: 1;
-    margin-inline-start: auto;
-    flex: none;
+    display: none;
   }
 
   .select option:disabled {

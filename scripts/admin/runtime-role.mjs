@@ -1,24 +1,16 @@
-import { createHash, randomBytes } from "node:crypto";
-import { openBudgetSql } from "@call-nina/managed-generation/server";
+import { randomBytes } from "node:crypto";
 import { ControlError, output } from "./configuration.mjs";
 import { need, secret, saveSecrets } from "./credentials.mjs";
 import { database } from "./database.mjs";
-import { runtimeConnection, runtimeRole } from "./database-config.mjs";
+import { runtimeRole } from "./database-config.mjs";
 import {
   functions,
   migrationPermissions,
   requireMigrationPermissions,
-  runtimePermissions,
 } from "./database-permissions.mjs";
+import { marker, reconcileRuntime } from "./runtime-grants.mjs";
+export { verifiedRuntimeConnection } from "./runtime-grants.mjs";
 const quote = (value) => `'${String(value).replaceAll("'", "''")}'`;
-function marker() {
-  return (
-    "nina-runtime:" +
-    createHash("sha256")
-      .update(JSON.stringify([need("PGHOST_UNPOOLED"), need("PGDATABASE"), need("PGUSER")]))
-      .digest("hex")
-  );
-}
 export async function setupRuntime() {
   await database(async (sql) => {
     const permissions = await migrationPermissions(sql);
@@ -73,46 +65,16 @@ export async function setupRuntime() {
       END $role$;
       ALTER ROLE ${role} PASSWORD ${quote(password)} LOGIN NOINHERIT;
       COMMENT ON ROLE ${role} IS ${quote(marker())};
-      REVOKE ALL ON SCHEMA nina_starter FROM ${role};
-      REVOKE ALL ON ALL TABLES IN SCHEMA nina_starter FROM ${role};
-      REVOKE ALL ON ALL SEQUENCES IN SCHEMA nina_starter FROM ${role};
-      REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nina_starter FROM ${role};
-      REVOKE ALL ON SCHEMA nina_sync FROM ${role};
-      REVOKE ALL ON ALL TABLES IN SCHEMA nina_sync FROM ${role};
-      REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nina_sync FROM ${role};
-      REVOKE ALL ON SCHEMA nina_speech FROM ${role};
-      REVOKE ALL ON ALL TABLES IN SCHEMA nina_speech FROM ${role};
-      REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nina_speech FROM ${role};
-      GRANT USAGE ON SCHEMA nina_starter,nina_sync,nina_speech TO ${role};
-      GRANT EXECUTE ON FUNCTION ${functions.join(", ")} TO ${role}; COMMIT;`,
+      COMMIT;`,
       [],
     );
     output({ completed: "Restricted runtime role reconciliation" });
-    await runtimePermissions(sql);
   });
-  await verifiedRuntimeConnection();
+  await reconcileRuntime();
   output({
     runtimeRoleConfigured: true,
     runtimeCredentialStored: true,
     inferenceActivated: false,
     next: "Run infra apply explicitly to configure Vercel; deployment is separate",
   });
-}
-export async function verifiedRuntimeConnection() {
-  const connectionString = runtimeConnection();
-  await database((sql) => runtimePermissions(sql));
-  const sql = openBudgetSql(connectionString);
-  try {
-    const result = await sql.query(
-      "SELECT current_user=$1 AND session_user=$1 AND current_database()=$2 AND (SELECT shobj_description(oid,'pg_authid') FROM pg_roles WHERE rolname=current_user)=$3 AS expected_identity",
-      [runtimeRole(), need("PGDATABASE"), marker()],
-    );
-    if (result.rows[0]?.expected_identity !== true)
-      throw new ControlError("Runtime database identity mismatch; deployment refused");
-    // Verify effective privileges on the pooled endpoint as well, rather than assuming both hosts match.
-    await runtimePermissions(sql);
-  } finally {
-    await sql.close();
-  }
-  return connectionString;
 }

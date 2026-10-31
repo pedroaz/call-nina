@@ -19,7 +19,26 @@
         "de": "Nenne deinen Buchungsnamen, frage nach dem Frühstück und finde dein Zimmer.",
         "es": "Da el nombre de tu reserva, pregunta por el desayuno y localiza tu habitación.",
         "pt-BR": "Informe o nome da reserva, pergunte sobre o café da manhã e encontre seu quarto."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "hotel-mission",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Check in at a hotel",
+        "de": "Im Hotel einchecken",
+        "es": "Registrarse en un hotel",
+        "pt-BR": "Fazer check-in em um hotel"
+      },
+      "description": {
+        "en": "Give your booking name, ask about breakfast, and find your room.",
+        "de": "Nenne deinen Buchungsnamen, frage nach dem Frühstück und finde dein Zimmer.",
+        "es": "Da el nombre de tu reserva, pregunta por el desayuno y localiza tu habitación.",
+        "pt-BR": "Informe o nome da reserva, pergunte sobre o café da manhã e encontre seu quarto."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Nach dem Ort des Aufzugs fragen.",
         "es": "¿Dónde está el ascensor?",
         "pt-BR": "Onde fica o elevador?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hotel-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ich habe ein Zimmer reserviert.",
+      "meaning": {
+        "en": "I have booked a room.",
+        "de": "Sagen, dass bereits eine Buchung vorliegt.",
+        "es": "He reservado una habitación.",
+        "pt-BR": "Reservei um quarto."
+      },
+      "example": "Ich habe ein Zimmer reserviert.",
+      "exampleMeaning": {
+        "en": "I have booked a room.",
+        "de": "Sagen, dass bereits eine Buchung vorliegt.",
+        "es": "He reservado una habitación.",
+        "pt-BR": "Reservei um quarto."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hotel-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Kann ich meine Tasche hier lassen?",
+      "meaning": {
+        "en": "May I leave my bag here?",
+        "de": "Ich bitte um Aufbewahrung meiner Tasche.",
+        "es": "¿Puedo dejar aquí mi bolsa?",
+        "pt-BR": "Posso deixar minha bolsa aqui?"
+      },
+      "example": "Kann ich meine Tasche hier lassen?",
+      "exampleMeaning": {
+        "en": "May I leave my bag here?",
+        "de": "Ich bitte um Aufbewahrung meiner Tasche.",
+        "es": "¿Puedo dejar aquí mi bolsa?",
+        "pt-BR": "Posso deixar minha bolsa aqui?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hotel-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Wann gibt es Frühstück?",
+      "meaning": {
+        "en": "When is breakfast served?",
+        "de": "Nach der Frühstückszeit fragen.",
+        "es": "¿Cuándo se sirve el desayuno?",
+        "pt-BR": "Qual é o horário do café da manhã?"
+      },
+      "example": "Wann gibt es Frühstück?",
+      "exampleMeaning": {
+        "en": "When is breakfast served?",
+        "de": "Nach der Frühstückszeit fragen.",
+        "es": "¿Cuándo se sirve el desayuno?",
+        "pt-BR": "Qual é o horário do café da manhã?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hotel-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich reise vor acht ab.",
+      "meaning": {
+        "en": "I leave before eight.",
+        "de": "Meine Abreise ist vor Frühstücksbeginn.",
+        "es": "Salgo antes de las ocho.",
+        "pt-BR": "Saio antes das oito."
+      },
+      "example": "Ich reise vor acht ab.",
+      "exampleMeaning": {
+        "en": "I leave before eight.",
+        "de": "Meine Abreise ist vor Frühstücksbeginn.",
+        "es": "Salgo antes de las ocho.",
+        "pt-BR": "Saio antes das oito."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hotel-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Wo ist der Aufzug?",
+      "meaning": {
+        "en": "Where is the elevator?",
+        "de": "Nach dem Ort des Aufzugs fragen.",
+        "es": "¿Dónde está el ascensor?",
+        "pt-BR": "Onde fica o elevador?"
+      },
+      "example": "Wo ist der Aufzug?",
+      "exampleMeaning": {
+        "en": "Where is the elevator?",
+        "de": "Nach dem Ort des Aufzugs fragen.",
+        "es": "¿Dónde está el ascensor?",
+        "pt-BR": "Onde fica o elevador?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hotel-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Können Sie mir mit dem Gepäck helfen?",
+      "meaning": {
+        "en": "Can you help with my luggage?",
+        "de": "Ich bitte um Hilfe beim Tragen.",
+        "es": "¿Puede ayudarme con el equipaje?",
+        "pt-BR": "Pode me ajudar com a bagagem?"
+      },
+      "example": "Können Sie mir mit dem Gepäck helfen?",
+      "exampleMeaning": {
+        "en": "Can you help with my luggage?",
+        "de": "Ich bitte um Hilfe beim Tragen.",
+        "es": "¿Puede ayudarme con el equipaje?",
+        "pt-BR": "Pode me ajudar com a bagagem?"
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Sich im Hotel orientieren. Nach dem Ort des Aufzugs fragen.\nDer Aufzug ist rechts neben der Treppe. Ihr Zimmer liegt im zweiten Stock.",
             "es": "Orientarse en el hotel. ¿Dónde está el ascensor?\nDer Aufzug ist rechts neben der Treppe. Ihr Zimmer liegt im zweiten Stock.",
             "pt-BR": "Orientar-se no hotel. Onde fica o elevador?\nDer Aufzug ist rechts neben der Treppe. Ihr Zimmer liegt im zweiten Stock."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-hotel-v2",
+      "stage": "hotel-mission",
+      "kind": "module",
+      "title": {
+        "en": "Arriving at reception",
+        "de": "Ankunft an der Rezeption",
+        "es": "Llegar a la recepción",
+        "pt-BR": "Chegar à recepção"
+      },
+      "scenario": {
+        "en": "Check in, confirm room number and ask what to do before the room is ready.",
+        "de": "Checke ein, bestätige die Zimmernummer und frage nach der Wartezeit bis zur Zimmerfreigabe.",
+        "es": "Regístrate, confirma habitación y pregunta qué hacer mientras no está lista.",
+        "pt-BR": "Faça check-in, confirme o quarto e pergunte o que fazer enquanto não está pronto."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000005"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+        "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+        "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+        "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+      },
+      "explanation": {
+        "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+        "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+        "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+        "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+      },
+      "examples": [
+        {
+          "text": "Ich habe ein Zimmer reserviert.",
+          "meaning": {
+            "en": "I have booked a room.",
+            "de": "Sagen, dass bereits eine Buchung vorliegt.",
+            "es": "He reservado una habitación.",
+            "pt-BR": "Reservei um quarto."
+          }
+        },
+        {
+          "text": "Kann ich meine Tasche hier lassen?",
+          "meaning": {
+            "en": "May I leave my bag here?",
+            "de": "Ich bitte um Aufbewahrung meiner Tasche.",
+            "es": "¿Puedo dejar aquí mi bolsa?",
+            "pt-BR": "Posso deixar minha bolsa aqui?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-hotel-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-hotel-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "When can the key be collected?",
+            "de": "Ab wann gibt es den Schlüssel?",
+            "es": "¿Desde cuándo se puede recoger la llave?",
+            "pt-BR": "A partir de quando é possível pegar a chave?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hotel-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Check in, confirm room number and ask what to do before the room is ready.",
+            "de": "Checke ein, bestätige die Zimmernummer und frage nach der Wartezeit bis zur Zimmerfreigabe.",
+            "es": "Regístrate, confirma habitación y pregunta qué hacer mientras no está lista.",
+            "pt-BR": "Faça check-in, confirme o quarto e pergunte o que fazer enquanto não está pronto."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hotel-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Check in, confirm room number and ask what to do before the room is ready.",
+            "de": "Checke ein, bestätige die Zimmernummer und frage nach der Wartezeit bis zur Zimmerfreigabe.",
+            "es": "Regístrate, confirma habitación y pregunta qué hacer mientras no está lista.",
+            "pt-BR": "Faça check-in, confirme o quarto e pergunte o que fazer enquanto não está pronto."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-hotel-v2-reading"],
+          "targetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Where is the elevator?",
+              "de": "Wo ist der Aufzug?",
+              "es": "¿Dónde está el ascensor?",
+              "pt-BR": "Onde fica o elevador?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "links",
+              "de": "links",
+              "es": "links",
+              "pt-BR": "links"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Willkommen! Ihr Zimmer ist Nummer zwölf im ersten Stock. Das Frühstück ist von sieben bis zehn Uhr. Der Aufzug ist links."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-hotel-v2-listening"],
+          "targetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "When can the key be collected?",
+              "de": "Ab wann gibt es den Schlüssel?",
+              "es": "¿Desde cuándo se puede recoger la llave?",
+              "pt-BR": "A partir de quando é possível pegar a chave?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ab fünfzehn Uhr.",
+              "de": "Ab fünfzehn Uhr.",
+              "es": "Ab fünfzehn Uhr.",
+              "pt-BR": "Ab fünfzehn Uhr."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+          "instructions": {
+            "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+            "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+            "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+            "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-hotel-v2-writing"],
+          "targetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+          "instructions": {
+            "en": "Check in, confirm room number and ask what to do before the room is ready.",
+            "de": "Checke ein, bestätige die Zimmernummer und frage nach der Wartezeit bis zur Zimmerfreigabe.",
+            "es": "Regístrate, confirma habitación y pregunta qué hacer mientras no está lista.",
+            "pt-BR": "Faça check-in, confirme o quarto e pergunte o que fazer enquanto não está pronto."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-hotel-v2-writing"],
+          "targetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+          "instructions": {
+            "en": "Check in, confirm room number and ask what to do before the room is ready.",
+            "de": "Checke ein, bestätige die Zimmernummer und frage nach der Wartezeit bis zur Zimmerfreigabe.",
+            "es": "Regístrate, confirma habitación y pregunta qué hacer mientras no está lista.",
+            "pt-BR": "Faça check-in, confirme o quarto e pergunte o que fazer enquanto não está pronto."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-hotel-v2-speaking"],
+          "targetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+          "instructions": {
+            "en": "Check in, confirm room number and ask what to do before the room is ready.",
+            "de": "Checke ein, bestätige die Zimmernummer und frage nach der Wartezeit bis zur Zimmerfreigabe.",
+            "es": "Regístrate, confirma habitación y pregunta qué hacer mientras no está lista.",
+            "pt-BR": "Faça check-in, confirme o quarto e pergunte o que fazer enquanto não está pronto."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Willkommen! Ihr Zimmer ist Nummer zwölf im ersten Stock. Das Frühstück ist von sieben bis zehn Uhr. Der Aufzug ist links.\nUpdate: Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel.",
+            "de": "Ursprüngliche Nachricht: Willkommen! Ihr Zimmer ist Nummer zwölf im ersten Stock. Das Frühstück ist von sieben bis zehn Uhr. Der Aufzug ist links.\nAktualisierung: Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel.",
+            "es": "Aviso original: Willkommen! Ihr Zimmer ist Nummer zwölf im ersten Stock. Das Frühstück ist von sieben bis zehn Uhr. Der Aufzug ist links.\nActualización: Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel.",
+            "pt-BR": "Aviso original: Willkommen! Ihr Zimmer ist Nummer zwölf im ersten Stock. Das Frühstück ist von sieben bis zehn Uhr. Der Aufzug ist links.\nAtualização: Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel.",
+            "de": "Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel.",
+            "es": "Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel.",
+            "pt-BR": "Willkommen! Ihr Zimmer zwölf ist noch nicht fertig. Sie können Ihre Tasche an der Rezeption lassen. Ab fünfzehn Uhr bekommen Sie den Schlüssel."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-hotel-2-v2",
+      "stage": "hotel-mission",
+      "kind": "module",
+      "title": {
+        "en": "Ask about breakfast",
+        "de": "Nach dem Frühstück fragen",
+        "es": "Preguntar por el desayuno",
+        "pt-BR": "Perguntar sobre o café da manhã"
+      },
+      "scenario": {
+        "en": "Explain an early departure and ask about breakfast without assuming a replacement is guaranteed.",
+        "de": "Erkläre eine frühe Abreise und frage nach Frühstück, ohne einen Ersatz als sicher anzunehmen.",
+        "es": "Explica una salida temprana y pregunta por desayuno sin dar por garantizada una alternativa.",
+        "pt-BR": "Explique uma saída cedo e pergunte pelo café sem presumir alternativa garantida."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000005"],
+      "prerequisites": ["de-hotel-v2"],
+      "grammar": {
+        "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+        "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+        "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+        "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+      },
+      "explanation": {
+        "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+        "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+        "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+        "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+      },
+      "examples": [
+        {
+          "text": "Wann gibt es Frühstück?",
+          "meaning": {
+            "en": "When is breakfast served?",
+            "de": "Nach der Frühstückszeit fragen.",
+            "es": "¿Cuándo se sirve el desayuno?",
+            "pt-BR": "Qual é o horário do café da manhã?"
+          }
+        },
+        {
+          "text": "Ich reise vor acht ab.",
+          "meaning": {
+            "en": "I leave before eight.",
+            "de": "Meine Abreise ist vor Frühstücksbeginn.",
+            "es": "Salgo antes de las ocho.",
+            "pt-BR": "Saio antes das oito."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-hotel-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-hotel-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which part of the breakfast time changes?",
+            "de": "Welcher Teil der Frühstückszeit ändert sich?",
+            "es": "¿Qué parte del horario cambia?",
+            "pt-BR": "Qual parte do horário muda?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hotel-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Explain an early departure and ask about breakfast without assuming a replacement is guaranteed.",
+            "de": "Erkläre eine frühe Abreise und frage nach Frühstück, ohne einen Ersatz als sicher anzunehmen.",
+            "es": "Explica una salida temprana y pregunta por desayuno sin dar por garantizada una alternativa.",
+            "pt-BR": "Explique uma saída cedo e pergunte pelo café sem presumir alternativa garantida."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hotel-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Explain an early departure and ask about breakfast without assuming a replacement is guaranteed.",
+            "de": "Erkläre eine frühe Abreise und frage nach Frühstück, ohne einen Ersatz als sicher anzunehmen.",
+            "es": "Explica una salida temprana y pregunta por desayuno sin dar por garantizada una alternativa.",
+            "pt-BR": "Explique uma saída cedo e pergunte pelo café sem presumir alternativa garantida."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-hotel-2-v2-phrase-1", "de-hotel-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-hotel-v2-phrase-1", "de-hotel-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-hotel-2-v2-reading"],
+          "targetIds": ["de-hotel-2-v2-phrase-1", "de-hotel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Frühstück gibt es von sieben bis zehn Uhr im Erdgeschoss.",
+              "de": "Frühstück gibt es von sieben bis zehn Uhr im Erdgeschoss.",
+              "es": "Frühstück gibt es von sieben bis zehn Uhr im Erdgeschoss.",
+              "pt-BR": "Frühstück gibt es von sieben bis zehn Uhr im Erdgeschoss."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wann gibt es Frühstück?\nFrühstück gibt es von sieben bis zehn Uhr im Erdgeschoss."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-hotel-2-v2-listening"],
+          "targetIds": ["de-hotel-2-v2-phrase-1", "de-hotel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which part of the breakfast time changes?",
+              "de": "Welcher Teil der Frühstückszeit ändert sich?",
+              "es": "¿Qué parte del horario cambia?",
+              "pt-BR": "Qual parte do horário muda?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Beginn: acht statt sieben Uhr.",
+              "de": "Der Beginn: acht statt sieben Uhr.",
+              "es": "Der Beginn: acht statt sieben Uhr.",
+              "pt-BR": "Der Beginn: acht statt sieben Uhr."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-hotel-2-v2-phrase-1", "de-hotel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+            "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+            "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+            "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-hotel-2-v2-writing"],
+          "targetIds": ["de-hotel-2-v2-phrase-1", "de-hotel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain an early departure and ask about breakfast without assuming a replacement is guaranteed.",
+            "de": "Erkläre eine frühe Abreise und frage nach Frühstück, ohne einen Ersatz als sicher anzunehmen.",
+            "es": "Explica una salida temprana y pregunta por desayuno sin dar por garantizada una alternativa.",
+            "pt-BR": "Explique uma saída cedo e pergunte pelo café sem presumir alternativa garantida."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-hotel-2-v2-writing"],
+          "targetIds": ["de-hotel-2-v2-phrase-1", "de-hotel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain an early departure and ask about breakfast without assuming a replacement is guaranteed.",
+            "de": "Erkläre eine frühe Abreise und frage nach Frühstück, ohne einen Ersatz als sicher anzunehmen.",
+            "es": "Explica una salida temprana y pregunta por desayuno sin dar por garantizada una alternativa.",
+            "pt-BR": "Explique uma saída cedo e pergunte pelo café sem presumir alternativa garantida."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Frühstück gibt es von sieben bis zehn Uhr im Erdgeschoss."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-hotel-2-v2-speaking"],
+          "targetIds": ["de-hotel-2-v2-phrase-1", "de-hotel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain an early departure and ask about breakfast without assuming a replacement is guaranteed.",
+            "de": "Erkläre eine frühe Abreise und frage nach Frühstück, ohne einen Ersatz als sicher anzunehmen.",
+            "es": "Explica una salida temprana y pregunta por desayuno sin dar por garantizada una alternativa.",
+            "pt-BR": "Explique uma saída cedo e pergunte pelo café sem presumir alternativa garantida."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Frühstück gibt es von sieben bis zehn Uhr im Erdgeschoss."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Wann gibt es Frühstück?\nFrühstück gibt es von sieben bis zehn Uhr im Erdgeschoss.\nUpdate: Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid.",
+            "de": "Ursprüngliche Nachricht: Wann gibt es Frühstück?\nFrühstück gibt es von sieben bis zehn Uhr im Erdgeschoss.\nAktualisierung: Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid.",
+            "es": "Aviso original: Wann gibt es Frühstück?\nFrühstück gibt es von sieben bis zehn Uhr im Erdgeschoss.\nActualización: Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid.",
+            "pt-BR": "Aviso original: Wann gibt es Frühstück?\nFrühstück gibt es von sieben bis zehn Uhr im Erdgeschoss.\nAtualização: Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid.",
+            "de": "Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid.",
+            "es": "Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid.",
+            "pt-BR": "Morgen gibt es Frühstück ausnahmsweise erst ab acht Uhr. Es endet wie immer um zehn. Wenn Sie früher abreisen, sagen Sie uns bitte heute Bescheid."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-hotel-3-v2",
+      "stage": "hotel-mission",
+      "kind": "module",
+      "title": {
+        "en": "Find your way inside",
+        "de": "Sich im Hotel orientieren",
+        "es": "Orientarse en el hotel",
+        "pt-BR": "Orientar-se no hotel"
+      },
+      "scenario": {
+        "en": "Ask for the route to the room and request help after learning the elevator is unavailable.",
+        "de": "Frage nach dem Weg zum Zimmer und bitte nach der Aufzugsstörung um Hilfe.",
+        "es": "Pregunta cómo llegar y pide ayuda tras saber que no funciona el ascensor.",
+        "pt-BR": "Pergunte como chegar e peça ajuda após saber que o elevador não funciona."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000005"],
+      "prerequisites": ["de-hotel-2-v2"],
+      "grammar": {
+        "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+        "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+        "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+        "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+      },
+      "explanation": {
+        "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+        "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+        "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+        "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+      },
+      "examples": [
+        {
+          "text": "Wo ist der Aufzug?",
+          "meaning": {
+            "en": "Where is the elevator?",
+            "de": "Nach dem Ort des Aufzugs fragen.",
+            "es": "¿Dónde está el ascensor?",
+            "pt-BR": "Onde fica o elevador?"
+          }
+        },
+        {
+          "text": "Können Sie mir mit dem Gepäck helfen?",
+          "meaning": {
+            "en": "Can you help with my luggage?",
+            "de": "Ich bitte um Hilfe beim Tragen.",
+            "es": "¿Puede ayudarme con el equipaje?",
+            "pt-BR": "Pode me ajudar com a bagagem?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-hotel-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-hotel-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What help is offered?",
+            "de": "Welche Hilfe wird angeboten?",
+            "es": "¿Qué ayuda se ofrece?",
+            "pt-BR": "Qual ajuda é oferecida?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hotel-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the route to the room and request help after learning the elevator is unavailable.",
+            "de": "Frage nach dem Weg zum Zimmer und bitte nach der Aufzugsstörung um Hilfe.",
+            "es": "Pregunta cómo llegar y pide ayuda tras saber que no funciona el ascensor.",
+            "pt-BR": "Pergunte como chegar e peça ajuda após saber que o elevador não funciona."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hotel-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the route to the room and request help after learning the elevator is unavailable.",
+            "de": "Frage nach dem Weg zum Zimmer und bitte nach der Aufzugsstörung um Hilfe.",
+            "es": "Pregunta cómo llegar y pide ayuda tras saber que no funciona el ascensor.",
+            "pt-BR": "Pergunte como chegar e peça ajuda após saber que o elevador não funciona."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-hotel-3-v2-phrase-1", "de-hotel-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-hotel-v2-phrase-1",
+        "de-hotel-v2-phrase-2",
+        "de-hotel-2-v2-phrase-1",
+        "de-hotel-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-hotel-3-v2-reading"],
+          "targetIds": ["de-hotel-3-v2-phrase-1", "de-hotel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock.",
+              "de": "Der Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock.",
+              "es": "Der Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock.",
+              "pt-BR": "Der Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wo ist der Aufzug?\nDer Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-hotel-3-v2-listening"],
+          "targetIds": ["de-hotel-3-v2-phrase-1", "de-hotel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What help is offered?",
+              "de": "Welche Hilfe wird angeboten?",
+              "es": "¿Qué ayuda se ofrece?",
+              "pt-BR": "Qual ajuda é oferecida?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Hilfe mit dem Gepäck.",
+              "de": "Hilfe mit dem Gepäck.",
+              "es": "Hilfe mit dem Gepäck.",
+              "pt-BR": "Hilfe mit dem Gepäck."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-hotel-3-v2-phrase-1", "de-hotel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Use ab for a starting time and von … bis for a window. Zimmer is neuter: das Zimmer. Können Sie mir helfen uses dative mir for the person receiving help.",
+            "de": "Nutze ab für einen Beginn und von … bis für einen Zeitraum. Zimmer ist neutral: das Zimmer. Können Sie mir helfen nutzt Dativ mir für die Person, die Hilfe erhält.",
+            "es": "Usa ab para inicio y von … bis para intervalo. Zimmer es neutro. Helfen usa dativo: mir.",
+            "pt-BR": "Use ab para início e von … bis para intervalo. Zimmer é neutro. Helfen usa dativo: mir."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-hotel-3-v2-writing"],
+          "targetIds": ["de-hotel-3-v2-phrase-1", "de-hotel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for the route to the room and request help after learning the elevator is unavailable.",
+            "de": "Frage nach dem Weg zum Zimmer und bitte nach der Aufzugsstörung um Hilfe.",
+            "es": "Pregunta cómo llegar y pide ayuda tras saber que no funciona el ascensor.",
+            "pt-BR": "Pergunte como chegar e peça ajuda após saber que o elevador não funciona."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-hotel-3-v2-writing"],
+          "targetIds": ["de-hotel-3-v2-phrase-1", "de-hotel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for the route to the room and request help after learning the elevator is unavailable.",
+            "de": "Frage nach dem Weg zum Zimmer und bitte nach der Aufzugsstörung um Hilfe.",
+            "es": "Pregunta cómo llegar y pide ayuda tras saber que no funciona el ascensor.",
+            "pt-BR": "Pergunte como chegar e peça ajuda após saber que o elevador não funciona."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der Aufzug ist rechts neben der Treppe. Ihr Zimmer liegt im zweiten Stock."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-hotel-3-v2-speaking"],
+          "targetIds": ["de-hotel-3-v2-phrase-1", "de-hotel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for the route to the room and request help after learning the elevator is unavailable.",
+            "de": "Frage nach dem Weg zum Zimmer und bitte nach der Aufzugsstörung um Hilfe.",
+            "es": "Pregunta cómo llegar y pide ayuda tras saber que no funciona el ascensor.",
+            "pt-BR": "Pergunte como chegar e peça ajuda após saber que o elevador não funciona."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der Aufzug ist rechts neben der Treppe. Ihr Zimmer liegt im zweiten Stock."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Wo ist der Aufzug?\nDer Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock.\nUpdate: Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption.",
+            "de": "Ursprüngliche Nachricht: Wo ist der Aufzug?\nDer Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock.\nAktualisierung: Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption.",
+            "es": "Aviso original: Wo ist der Aufzug?\nDer Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock.\nActualización: Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption.",
+            "pt-BR": "Aviso original: Wo ist der Aufzug?\nDer Aufzug ist links neben der Treppe. Ihr Zimmer liegt im ersten Stock.\nAtualização: Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption.",
+            "de": "Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption.",
+            "es": "Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption.",
+            "pt-BR": "Der Aufzug ist links neben der Treppe, aber heute außer Betrieb. Ihr Zimmer liegt im ersten Stock. Wir können Ihnen beim Gepäck helfen. Bitte melden Sie sich an der Rezeption."
           }
         }
       ],

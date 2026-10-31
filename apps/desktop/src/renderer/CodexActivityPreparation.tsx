@@ -33,6 +33,7 @@ function lines(value: string): string[] {
 
 export function CodexActivityPreparation({
   kind,
+  practiceSource,
   initialScenario,
   request: controlledRequest,
   onRequestChange,
@@ -42,6 +43,7 @@ export function CodexActivityPreparation({
   onOpenActivity,
 }: {
   kind: "listening" | "speaking";
+  practiceSource?: import("@call-nina/contracts").PracticeSource | undefined;
   initialScenario?: string;
   request?: string;
   onRequestChange?: (request: string) => void;
@@ -100,14 +102,15 @@ export function CodexActivityPreparation({
   const valid = voiceActivityContextSchema.safeParse(context).success;
 
   const generateDraft = async () => {
-    if (!request.trim() || !(await requestAiAccess("voice-activity-draft"))) return;
+    if (!(await requestAiAccess("voice-activity-draft"))) return;
     onBusyChange(true);
     setError(undefined);
     try {
       const result = await draft.run({
         kind: "voice-activity-draft",
         voiceKind: kind,
-        naturalRequest: request.trim(),
+        naturalRequest: request.trim() || "Practise using the selected vocabulary source.",
+        ...(practiceSource ? { practiceSource } : {}),
         targetLevel,
         difficulty,
         correctionTiming,

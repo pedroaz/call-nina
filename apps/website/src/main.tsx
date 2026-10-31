@@ -1,202 +1,158 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ActionLink, Button, Tabs } from "@call-nina/browser-ui";
+import { Button } from "@call-nina/browser-ui";
 import ninaPhone from "@call-nina/design-system/brand/nina-phone.png";
 import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
-import ninaThinking from "@call-nina/design-system/brand/nina-thinking.png";
-import ninaListening from "@call-nina/design-system/brand/nina-listening.png";
-import ninaCelebration from "@call-nina/design-system/brand/nina-celebration.png";
+import { featureDetails } from "./feature-details";
+import { Downloads } from "./Downloads";
 import { Discovery } from "./Discovery";
 import { LanguageSelector } from "./LanguageSelector";
 import { copy, featureIds, languages, type FeatureId, type Locale } from "./locales";
-
 import "@call-nina/design-system/tokens.css";
 import "@call-nina/design-system/fonts.css";
 import "./styles.css";
 
+const isAboutPage = /^\/about(?:\/|\/index\.html)?$/.test(window.location.pathname);
 const repository = "https://github.com/pedroaz/call-nina";
-const featureImages: Record<FeatureId, string> = {
-  exercises: ninaThinking,
-  paths: ninaWelcome,
-  writing: ninaListening,
-  vocabulary: ninaCelebration,
-};
-
 function localeFromUrl(): Locale {
   const requested = new URLSearchParams(window.location.search).get("lang");
   return languages.find(({ code }) => code === requested)?.code ?? "en";
 }
-
-function StatusRow({
-  label,
-  available,
-  yes,
-  notYet,
-}: {
-  label: string;
-  available: boolean;
-  yes: string;
-  notYet: string;
-}) {
-  return (
-    <li className="status-row">
-      <span>{label}</span>
-      <span className="status" data-available={available}>
-        {available ? yes : notYet}
-      </span>
-    </li>
-  );
-}
-
 function App() {
   const [locale, setLocale] = useState<Locale>(localeFromUrl);
-  const [feature, setFeature] = useState("exercises");
+  const [feature, setFeature] = useState<FeatureId>("paths");
   const t = copy[locale];
-
   useEffect(() => {
-    function syncLocale() {
+    const syncLocale = () => {
       setLocale(localeFromUrl());
-    }
+    };
     window.addEventListener("popstate", syncLocale);
     return () => {
       window.removeEventListener("popstate", syncLocale);
     };
   }, []);
-
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title = t.title;
+    document.title = isAboutPage ? `${t.about} — Call Nina` : t.title;
     document.querySelector('meta[name="description"]')?.setAttribute("content", t.description);
   }, [locale, t]);
-
   function changeLanguage(next: Locale) {
     setLocale(next);
     const url = new URL(window.location.href);
     url.searchParams.set("lang", next);
     window.history.replaceState(null, "", url);
   }
-
   return (
     <>
       <a className="skip-link" href="#main">
         {t.skip}
       </a>
       <header className="site-header wrap">
-        <a className="wordmark" href="#main">
+        <a className="wordmark" href={`/?lang=${locale}`}>
           <img src={ninaPhone} alt="" width="40" height="40" />
           Call Nina
         </a>
-        <LanguageSelector locale={locale} onChange={changeLanguage} />
+        <nav className="header-actions" aria-label="Call Nina">
+          <a
+            className="about-link"
+            href={`/about/?lang=${locale}`}
+            aria-current={isAboutPage ? "page" : undefined}
+          >
+            {t.about}
+          </a>
+          <a className="github-link" href={repository} aria-label={t.github} title={t.github}>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.56 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.1 1.15a10.8 10.8 0 0 1 5.63 0c2.15-1.46 3.09-1.15 3.09-1.15.62 1.55.23 2.7.12 2.98.72.79 1.15 1.79 1.15 3.02 0 4.32-2.63 5.27-5.14 5.55.4.35.76 1.03.76 2.08v3.11c0 .3.21.65.78.54A11.25 11.25 0 0 0 12 .75Z" />
+            </svg>
+          </a>
+          <LanguageSelector locale={locale} onChange={changeLanguage} />
+        </nav>
       </header>
       <main id="main" tabIndex={-1}>
-        <section className="hero wrap" aria-labelledby="hero-title">
-          <div className="hero-copy">
-            <h1 id="hero-title">{t.headline}</h1>
-            <p className="lead">
-              {t.introduction}
-              <br />
-              {t.free}
-            </p>
-            <div className="hero-actions">
-              <Discovery
-                locale={locale}
-                onLocaleChange={changeLanguage}
-                onExplore={(next) => {
-                  if (next) setFeature(next);
-                  requestAnimationFrame(() => {
-                    const target = next
-                      ? document.querySelector<HTMLElement>(
-                          '.features [role="tab"][aria-selected="true"]',
-                        )
-                      : document.getElementById("features-title");
-                    target?.focus({ preventScroll: true });
-                    target?.scrollIntoView({ block: "center" });
-                  });
-                }}
-              />
-              <Button isDisabled>{t.download}</Button>
-              <ActionLink href={repository} variant="secondary">
-                {t.github}
-                <span aria-hidden="true">↗</span>
-              </ActionLink>
-            </div>
-            <p className="platform-note">{t.mobile}</p>
-          </div>
-          <div className="hero-art">
-            <img src={ninaWelcome} alt="" width="1280" height="1280" fetchPriority="high" />
-          </div>
-        </section>
-        <section className="features wrap" aria-labelledby="features-title">
-          <h2 id="features-title" tabIndex={-1}>
-            {t.featuresTitle}
-          </h2>
-          <Tabs
-            label={t.featuresTitle}
-            selectedKey={feature}
-            onSelectionChange={setFeature}
-            items={featureIds.map((id, index) => ({
-              id,
-              label: t.features[id].label,
-              children: (
-                <div className="feature-content">
-                  <div className="feature-art">
-                    <img src={featureImages[id]} alt="" width="1280" height="1280" loading="lazy" />
-                  </div>
-                  <div className="feature-copy">
-                    <span className="feature-number" aria-hidden="true">
-                      0{index + 1} / 04
-                    </span>
-                    <h3>{t.features[id].label}</h3>
-                    <p>{t.features[id].text}</p>
-                  </div>
+        {isAboutPage ? (
+          <section className="about wrap" aria-labelledby="about-title">
+            <h1 id="about-title">{t.about}</h1>
+            <p>{t.aboutPlaceholder}</p>
+          </section>
+        ) : (
+          <>
+            <section className="hero wrap" aria-labelledby="hero-title">
+              <div className="hero-copy">
+                <h1 id="hero-title">{t.headline}</h1>
+                <p className="lead">{t.mission}</p>
+                <div className="hero-actions">
+                  <Downloads locale={locale} />
+                  <Discovery
+                    locale={locale}
+                    onLocaleChange={changeLanguage}
+                    onExplore={(next) => {
+                      setFeature(next ?? "paths");
+                      requestAnimationFrame(() => {
+                        const target = document.getElementById(
+                          next ? `feature-${next}` : "features",
+                        );
+                        target?.focus({ preventScroll: true });
+                        target?.scrollIntoView({ block: "center" });
+                      });
+                    }}
+                  />
                 </div>
-              ),
-            }))}
-          />
-        </section>
-        <div className="availability wrap">
-          <section aria-labelledby="connections-title">
-            <h2 id="connections-title">{t.connections}</h2>
-            <p className="connection-intro">{t.subscriptions}</p>
-            <ul className="status-list">
-              <StatusRow label="ChatGPT" available yes={t.yes} notYet={t.notYet} />
-              {t.providers.map(({ label, status }) => (
-                <StatusRow
-                  key={label}
-                  label={label}
-                  available
-                  yes={status ?? t.yes}
-                  notYet={t.notYet}
-                />
-              ))}
-            </ul>
-          </section>
-          <section aria-labelledby="languages-title">
-            <h2 id="languages-title">{t.languagesTitle}</h2>
-            <ul className="status-list">
-              {t.learningLanguages.map((label) => (
-                <StatusRow key={label} label={label} available yes={t.yes} notYet={t.notYet} />
-              ))}
-              <StatusRow label={t.moreLanguages} available={false} yes={t.yes} notYet={t.notYet} />
-            </ul>
-          </section>
-        </div>
+              </div>
+              <div className="hero-art">
+                <img src={ninaWelcome} alt="" width="1280" height="1280" fetchPriority="high" />
+              </div>
+            </section>
+            <section
+              className="features wrap"
+              id="features"
+              tabIndex={-1}
+              aria-label={t.featuresTitle}
+            >
+              <div className="feature-strip" role="group" aria-label={t.featuresTitle}>
+                {featureIds.map((id) => (
+                  <Button
+                    key={id}
+                    id={`feature-${id}`}
+                    variant="quiet"
+                    aria-pressed={feature === id}
+                    aria-controls={`detail-${id}`}
+                    onPress={() => {
+                      setFeature(id);
+                    }}
+                  >
+                    {t.features[id].label}
+                  </Button>
+                ))}
+              </div>
+              <div className="feature-panels">
+                {featureIds.map((id) => (
+                  <section
+                    className="feature-detail"
+                    id={`detail-${id}`}
+                    key={id}
+                    aria-hidden={feature !== id}
+                    inert={feature !== id}
+                    aria-labelledby={`detail-title-${id}`}
+                  >
+                    <div className="feature-overview">
+                      <h2 id={`detail-title-${id}`}>{featureDetails[locale][id].title}</h2>
+                      <p>{featureDetails[locale][id].description}</p>
+                    </div>
+                    <ul className="feature-points">
+                      {featureDetails[locale][id].points.map((point) => (
+                        <li key={point}>{point}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
       </main>
-      <footer className="site-footer wrap">
-        <div className="footer-copy">
-          <p>{t.local}</p>
-          <p>{t.costs}</p>
-        </div>
-        <div className="footer-links">
-          <a href="mailto:pedro.azvm@gmail.com">{t.contact}</a>
-          <a href={repository}>{t.source}</a>
-          <a href={`${repository}/blob/main/LICENSE`}>{t.license}</a>
-        </div>
-      </footer>
     </>
   );
 }
-
 const root = document.getElementById("root");
 if (!root) throw new Error("Website root element is missing");
 createRoot(root).render(

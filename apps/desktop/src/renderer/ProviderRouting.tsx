@@ -12,7 +12,6 @@ import { ProviderMatrix, ProviderChoice } from "./ProviderMatrix.js";
 import { useNinaAccountState } from "./NinaAccount.js";
 import { ProviderStatus } from "./ProviderStatus.js";
 import { providerSupports } from "@call-nina/domain";
-import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, ModalDialog } from "./components/ui/index.js";
 import styles from "./ConnectionSettings.module.css";
@@ -26,7 +25,9 @@ export function ProviderRouting({
   mutate,
   select,
   chatgptConnected,
+  capability = "text",
 }: {
+  capability?: "text" | "image";
   view: View;
   chatgptConnected?: boolean | undefined;
   busy: boolean;
@@ -55,23 +56,29 @@ export function ProviderRouting({
   };
   return (
     <Section
-      title={t("setupUx.aiPractice")}
+      title={t(capability === "image" ? "providers.image" : "setupUx.aiPractice")}
       actions={
-        <Button
-          variant="quiet"
-          aria-haspopup="dialog"
-          onPress={() => {
-            setAdvanced(true);
-          }}
-        >
-          {t("providers.advancedAssignments")}
-        </Button>
+        capability === "text" ? (
+          <Button
+            variant="quiet"
+            aria-haspopup="dialog"
+            onPress={() => {
+              setAdvanced(true);
+            }}
+          >
+            {t("providers.advancedAssignments")}
+          </Button>
+        ) : undefined
       }
     >
-      <ProviderMatrix label={t("setupUx.aiPractice")}>
+      <ProviderMatrix label={t(capability === "image" ? "providers.image" : "setupUx.aiPractice")}>
         {providers.map((route) => {
           const connection = view.settings.connections.find((entry) => entry.routeId === route);
-          const available = supports(route, "text");
+          const available = supports(
+            route,
+            capability,
+            capability === "image" ? "vocabulary-analysis" : undefined,
+          );
           const configured =
             route === "managed"
               ? nina.identity.signedIn && !nina.identity.pending
@@ -80,7 +87,7 @@ export function ProviderRouting({
                 : route === "local"
                   ? ["installed", "generating"].includes(view.offlineModel.snapshot.state)
                   : Boolean(connection?.secretRef);
-          const selected = routing.text === route;
+          const selected = routing[capability] === route;
           const name = t(`connectionSettings.routes.${route}`);
           const actionLabel = configured
             ? "providers.configure"
@@ -95,14 +102,14 @@ export function ProviderRouting({
               </td>
               <td>
                 <ProviderChoice
-                  name={`${id}-text`}
+                  name={`${id}-${capability}`}
                   checked={selected}
                   disabled={busy || !available}
-                  aria-label={`${t("setupUx.aiPractice")}: ${name}`}
+                  aria-label={`${t(capability === "image" ? "providers.image" : "setupUx.aiPractice")}: ${name}`}
                   aria-describedby={`${id}-${route}-status`}
                   title={t(available ? "providers.default" : "providers.setupRequired")}
                   onChange={() =>
-                    void mutate({ kind: "routing", routing: { ...routing, text: route } })
+                    void mutate({ kind: "routing", routing: { ...routing, [capability]: route } })
                   }
                 />
               </td>
@@ -122,16 +129,18 @@ export function ProviderRouting({
             </tr>
           );
         })}
-        <tr data-selected={!routing.text}>
+        <tr data-selected={!routing[capability]}>
           <th scope="row">{t("providers.none")}</th>
           <td />
           <td>
             <ProviderChoice
-              name={`${id}-text`}
-              checked={!routing.text}
+              name={`${id}-${capability}`}
+              checked={!routing[capability]}
               disabled={busy}
-              aria-label={`${t("setupUx.aiPractice")}: ${t("providers.none")}`}
-              onChange={() => void mutate({ kind: "routing", routing: { ...routing, text: null } })}
+              aria-label={`${t(capability === "image" ? "providers.image" : "setupUx.aiPractice")}: ${t("providers.none")}`}
+              onChange={() =>
+                void mutate({ kind: "routing", routing: { ...routing, [capability]: null } })
+              }
             />
           </td>
           <td />
@@ -153,95 +162,6 @@ export function ProviderRouting({
             {t("providers.recommend")}
           </Button>
         </ActionGroup>
-        <div
-          className={styles.matrix}
-          tabIndex={0}
-          role="region"
-          aria-label={t("providers.capabilities")}
-        >
-          <table className={styles.routingMatrix}>
-            <thead>
-              <tr>
-                <th scope="col">{t("providers.provider")}</th>
-                <th scope="col">{t("providers.status")}</th>
-                <th scope="col">{t("providers.image")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {providers.map((route) => (
-                <tr key={route}>
-                  <th scope="row">
-                    <Button
-                      variant="quiet"
-                      className={styles.providerButton}
-                      aria-haspopup="dialog"
-                      trailingIcon={<ChevronRight aria-hidden="true" />}
-                      isDisabled={busy}
-                      onPress={() => {
-                        setAdvanced(false);
-                        select(route);
-                      }}
-                    >
-                      {t(`connectionSettings.routes.${route}`)}
-                    </Button>
-                  </th>
-                  <td>
-                    <ProviderStatus route={route} view={view} chatgptConnected={chatgptConnected} />
-                  </td>
-                  {(["image"] as const).map((capability) => (
-                    <td key={capability}>
-                      <label
-                        className={styles.routingChoice}
-                        title={t(
-                          supports(route, capability)
-                            ? "providers.selectedDefault"
-                            : "providers.setupRequired",
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          name={`${id}-${capability}`}
-                          checked={routing[capability] === route}
-                          disabled={busy || !supports(route, capability, "vocabulary-analysis")}
-                          aria-label={`${t(`providers.${capability}`)}: ${t(`connectionSettings.routes.${route}`)}`}
-                          onChange={() =>
-                            void mutate({
-                              kind: "routing",
-                              routing: { ...routing, [capability]: route },
-                            })
-                          }
-                        />
-                      </label>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              <tr>
-                <th scope="row">{t("providers.unassigned")}</th>
-                <td />
-                {(["image"] as const).map((capability) => (
-                  <td key={capability}>
-                    <label className={styles.routingChoice}>
-                      <input
-                        type="radio"
-                        name={`${id}-${capability}`}
-                        checked={!routing[capability]}
-                        disabled={busy}
-                        aria-label={`${t(`providers.${capability}`)}: ${t("providers.unassigned")}`}
-                        onChange={() =>
-                          void mutate({
-                            kind: "routing",
-                            routing: { ...routing, [capability]: null },
-                          })
-                        }
-                      />
-                    </label>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
         <div
           className={styles.matrix}
           tabIndex={0}

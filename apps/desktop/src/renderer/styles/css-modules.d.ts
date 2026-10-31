@@ -36,6 +36,7 @@ declare module "*AppShell.module.css" {
     readonly nav: string;
     readonly navButton: string;
     readonly navCollapsed: string;
+    readonly navFeedback: string;
     readonly navFooter: string;
     readonly navInner: string;
     readonly navLabel: string;
@@ -197,19 +198,25 @@ declare module "*FlashcardWorkspace.module.css" {
 
 declare module "*HistoryPage.module.css" {
   const styles: {
+    readonly acceptedAnswer: string;
     readonly advancedFilters: string;
     readonly advancedGrid: string;
     readonly correctionGrid: string;
     readonly correctionPane: string;
     readonly correctionText: string;
+    readonly exercisePrompt: string;
     readonly eyebrow: string;
     readonly historyDetail: string;
-    readonly historyEntryHeader: string;
     readonly historyEvidenceList: string;
     readonly historyList: string;
     readonly historyMistakeGrid: string;
     readonly page: string;
     readonly patternTitle: string;
+    readonly resultActions: string;
+    readonly resultCopy: string;
+    readonly resultDetailBody: string;
+    readonly resultMetadata: string;
+    readonly resultOpen: string;
     readonly resultsBody: string;
   };
   export default styles;
@@ -314,16 +321,6 @@ declare module "*LearningPathPage.module.css" {
   export default styles;
 }
 
-declare module "*MaterialPractice.module.css" {
-  const styles: {
-    readonly reference: string;
-    readonly source: string;
-    readonly sourceList: string;
-    readonly workspace: string;
-  };
-  export default styles;
-}
-
 declare module "*Nina.module.css" {
   const styles: {
     readonly nina: string;
@@ -370,6 +367,7 @@ declare module "*PracticeComposer.module.css" {
   const styles: {
     readonly activityVisual: string;
     readonly choices: string;
+    readonly choicesWithWriting: string;
     readonly composer: string;
   };
   export default styles;
@@ -385,7 +383,6 @@ declare module "*PracticePage.module.css" {
     readonly generatedActivityList: string;
     readonly generatedActivityMenu: string;
     readonly generatedActivityOpen: string;
-    readonly generatedActivityResults: string;
     readonly generatedLibrary: string;
     readonly historyDetail: string;
     readonly practiceControls: string;
@@ -403,6 +400,15 @@ declare module "*PracticePage.module.css" {
     readonly voiceSetupGrid: string;
     readonly voiceSteps: string;
     readonly voiceSupport: string;
+  };
+  export default styles;
+}
+
+declare module "*PracticeSourceControl.module.css" {
+  const styles: {
+    readonly controls: string;
+    readonly selection: string;
+    readonly source: string;
   };
   export default styles;
 }
@@ -566,6 +572,12 @@ declare module "*StoriesPage.module.css" {
     readonly filters: string;
     readonly passage: string;
     readonly reading: string;
+    readonly storyCopy: string;
+    readonly storyLevel: string;
+    readonly storyOpen: string;
+    readonly storyRow: string;
+    readonly storySummary: string;
+    readonly storyTitle: string;
   };
   export default styles;
 }
@@ -577,45 +589,58 @@ declare module "*Table.module.css" {
   export default styles;
 }
 
+declare module "*UploadsLibrary.module.css" {
+  const styles: {
+    readonly chooseImage: string;
+    readonly form: string;
+    readonly image: string;
+    readonly imageChooser: string;
+    readonly imageInput: string;
+    readonly importError: string;
+    readonly itemContent: string;
+    readonly library: string;
+    readonly meta: string;
+    readonly preview: string;
+    readonly proposal: string;
+    readonly proposals: string;
+    readonly secondary: string;
+    readonly sourceAction: string;
+    readonly sourceText: string;
+    readonly uploadCopy: string;
+    readonly uploadIcon: string;
+    readonly uploadOpen: string;
+    readonly uploadRow: string;
+  };
+  export default styles;
+}
+
 declare module "*VocabularyLearning.module.css" {
   const styles: {
-    readonly added: string;
-    readonly focusButton: string;
-    readonly focusIcon: string;
-    readonly focusRow: string;
-    readonly form: string;
-    readonly meaning: string;
-    readonly muted: string;
     readonly notice: string;
-    readonly overview: string;
-    readonly preview: string;
-    readonly review: string;
-    readonly reviewIcon: string;
-    readonly reviewText: string;
-    readonly row: string;
-    readonly sectionHeading: string;
-    readonly source: string;
-    readonly translation: string;
-    readonly wordButton: string;
-    readonly wordIdentity: string;
-    readonly wordRow: string;
   };
   export default styles;
 }
 
 declare module "*VocabularyPage.module.css" {
   const styles: {
+    readonly actionColumn: string;
     readonly caption: string;
     readonly compactDue: string;
     readonly compactMeaning: string;
     readonly dueColumn: string;
     readonly editForm: string;
     readonly empty: string;
+    readonly example: string;
+    readonly expression: string;
+    readonly expressionColumn: string;
     readonly library: string;
     readonly meaningColumn: string;
     readonly muted: string;
     readonly reviewCard: string;
+    readonly reviewDate: string;
     readonly selection: string;
+    readonly srOnly: string;
+    readonly statusColumn: string;
     readonly steps: string;
     readonly summary: string;
     readonly table: string;
@@ -629,11 +654,12 @@ declare module "*VocabularyPage.module.css" {
 declare module "*WritingWorkspace.module.css" {
   const styles: {
     readonly draftNotice: string;
-    readonly eyebrow: string;
     readonly generatedPrompt: string;
     readonly promptActionButtons: string;
     readonly promptActions: string;
+    readonly promptMetadata: string;
     readonly selectionStatus: string;
+    readonly workspace: string;
     readonly writingEditor: string;
     readonly writingLayout: string;
     readonly writingOptions: string;

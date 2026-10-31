@@ -16,7 +16,6 @@ export async function GET(request: Request): Promise<Response> {
       accountSql(),
       selectedDeployment(process.env)?.policy ?? null,
       process.env["NINA_SPEECH_ENABLED"] === "true" &&
-        process.env["NINA_SPEECH_RECOVERY_READY"] === "true" &&
         Boolean(process.env["NINA_SPEECH_GOOGLE_CREDENTIALS"]),
     );
   } catch {

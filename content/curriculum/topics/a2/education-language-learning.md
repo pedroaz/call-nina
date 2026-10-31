@@ -5,34 +5,78 @@ slug: education-language-learning
 band: a2
 domain: education-language-learning
 title: "A2: Education and language learning"
-
 communicativeGoals:
-  [
-    "Handle a practical education and language learning interaction at A2 level.",
-    "Understand and respond to the most useful education and language learning language.",
-  ]
-prerequisiteTopicIds: [curriculum-topic_0000000000000008]
-grammarFoundations: []
-vocabularyFoundations: []
-exerciseConcepts: []
-sourceIds: [curriculum-source_0000000000000001, curriculum-source_0000000000000002]
+  - Request a trial lesson. Describe your interest and availability, ask one
+    practical question and state a condition for attending.
+  - Compare two study schedules. Explain what you do if work finishes late and
+    agree on a realistic learning plan.
+prerequisiteTopicIds:
+  - curriculum-topic_0000000000000008
+grammarFoundations:
+  - key: de-structured-a2-05
+    description: "Reflexive verbs refer back to the subject: ich interessiere mich,
+      du interessierst dich. Learn verbs with their preposition: sich
+      interessieren für + accusative. Wenn expresses a condition and sends the
+      verb to the end. If that clause comes first, the main verb follows
+      immediately: Wenn ich Zeit habe, lerne ich."
+vocabularyFoundations:
+  - key: de-structured-a2-05-lex-1
+    description: "Probestunde: trial lesson"
+  - key: de-structured-a2-05-lex-2
+    description: "Anmeldung: registration"
+  - key: de-structured-a2-05-lex-3
+    description: "Lernraum: study room"
+  - key: de-structured-a2-05-lex-6
+    description: "Bedingung: condition"
+exerciseConcepts:
+  - key: de-structured-a2-05
+    description: Request a trial lesson. Describe your interest and availability,
+      ask one practical question and state a condition for attending.
+sourceIds:
+  - curriculum-source_0000000000000001
+  - curriculum-source_0000000000000002
+  - curriculum-source_0000000000001002
+  - curriculum-source_0000000000001005
+  - curriculum-source_0000000000001006
 coverage:
   reception:
     status: mapped
-    outcomes: ["Understand a short education and language learning message at A2 level."]
+    outcomes:
+      - Which course is online?
+      - What is the registration deadline?
   production:
     status: mapped
-    outcomes: ["Produce a clear education and language learning message at A2 level."]
+    outcomes:
+      - Request a trial lesson. Describe your interest and availability, ask one
+        practical question and state a condition for attending.
   interaction:
     status: mapped
-    outcomes: ["Take turns and ask a follow-up in a education and language learning exchange."]
+    outcomes:
+      - Compare two study schedules. Explain what you do if work finishes late
+        and agree on a realistic learning plan.
   mediation:
     status: mapped
-    outcomes: ["Pass on the essential meaning of education and language learning information."]
+    outcomes:
+      - Send a message to a person who did not read the passage. Pass on the
+        decision, one reason and the next action. Use your own words; do not
+        invent details.
+lessonFoundation:
+  explanation: "Reflexive verbs refer back to the subject: ich interessiere mich,
+    du interessierst dich. Learn verbs with their preposition: sich
+    interessieren für + accusative. Wenn expresses a condition and sends the
+    verb to the end. If that clause comes first, the main verb follows
+    immediately: Wenn ich Zeit habe, lerne ich. Practise ng in lange without a
+    separate hard g at the end."
+  examples:
+    - Ich interessiere mich für Technik.
+    - Wenn ich frei habe, lerne ich.
+    - Ich bereite mich auf den Kurs vor.
 ---
 
 # A2: Education and language learning
 
-This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
+Original German lessons linked to this topic are registered in catalog.json.
 
-The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.
+- de-structured-a2-05: Learning plans and conditions
+
+The reference outlines establish scope and sequence. Explanations, examples and activities are original Nina content; participation alone does not establish proficiency.

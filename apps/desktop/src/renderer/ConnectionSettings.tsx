@@ -264,10 +264,38 @@ export function ConnectionSettings({
   const credential = selectedId ? (credentials[selectedId]?.secret ?? "") : "";
   const credentialAction = selectedId ? (credentials[selectedId]?.action ?? "keep") : "keep";
   const availability = view?.availability.find((entry) => entry.connectionId === selectedId);
+  const [chatgptModels, setChatgptModels] = useState<
+    NonNullable<View["availability"][number]["models"]>
+  >();
+  const [chatgptModelsError, setChatgptModelsError] = useState<CallNinaError>();
+  const [chatgptModelsRetry, setChatgptModelsRetry] = useState(0);
+  const needsChatgptModels =
+    draft?.routeId === "chatgpt" && !saved && chatgptConnected === true;
+  useEffect(() => {
+    let cancelled = false;
+    setChatgptModels(undefined);
+    setChatgptModelsError(undefined);
+    if (needsChatgptModels) {
+      void invokeDesktop("chatgpt/models/read", {})
+        .then((models) => {
+          if (!cancelled) setChatgptModels(models);
+        })
+        .catch((cause) => {
+          if (!cancelled) setChatgptModelsError(normalizeDesktopError(cause).detail);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [needsChatgptModels, selectedId, view?.expectedGeneration, chatgptModelsRetry]);
   const directCatalog = view?.directApiCatalogs.find((entry) => entry.routeId === draft?.routeId);
   const modelCatalog =
     directCatalog?.models ??
-    (draft?.routeId === "local" ? offline?.catalog.models : availability?.models);
+    (draft?.routeId === "local"
+      ? offline?.catalog.models
+      : needsChatgptModels
+        ? chatgptModels
+        : availability?.models);
   const resolution =
     saved && modelCatalog ? resolveModelPreference(saved.preference, modelCatalog) : undefined;
   const effectiveModel = modelCatalog?.models.find(
@@ -599,6 +627,20 @@ export function ConnectionSettings({
             {draft.routeId !== "claude-code" && (
               <Disclosure label={t("connectionSettings.advanced")}>
                 <div className={styles.modelControls}>
+                  {needsChatgptModels && !chatgptModels && !chatgptModelsError && (
+                    <p role="status">{t("providers.checkingConnection")}</p>
+                  )}
+                  {needsChatgptModels && chatgptModelsError && (
+                    <OperationError error={chatgptModelsError}>
+                      <Button
+                        variant="secondary"
+                        isDisabled={busy}
+                        onPress={() => setChatgptModelsRetry((value) => value + 1)}
+                      >
+                        {t("actions.retry")}
+                      </Button>
+                    </OperationError>
+                  )}
                   <SelectField
                     label={t("modelControl.model")}
                     disabled={busy || !modelCatalog}

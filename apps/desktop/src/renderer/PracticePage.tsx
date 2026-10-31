@@ -1,3 +1,6 @@
+import { UploadSourceEvidence } from "./UploadSourceEvidence.js";
+import { ActivitySourceContext } from "./components/activity/ActivityWorkspace.js";
+import { PracticeSourceControl } from "./PracticeSourceControl.js";
 import { SpeechButton } from "./SpeechButton.js";
 import { SavedResults, type SavedResultsScope, type HistoryPracticeSeed } from "./SavedResults.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
@@ -6,11 +9,6 @@ import { ActivityVisual } from "./activityPresentation.js";
 import type { PracticeKind } from "./PracticeTypeChooser.js";
 import { startTopicPractice, practiceDefaults } from "./startTopicPractice.js";
 import { CompletionActions } from "./CompletionActions.js";
-import {
-  MaterialPractice,
-  emptyMaterialPracticeState,
-  type MaterialPracticeState,
-} from "./MaterialPractice.js";
 import {
   type ProviderOperation,
   exerciseFeedbackCandidateSchema,
@@ -33,7 +31,7 @@ import { reusePracticeActivity } from "./generatePracticeActivity.js";
 import { OperationError } from "./Startup.js";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { materializeContentExercises } from "@call-nina/domain";
-import { FilePenLine, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -95,6 +93,7 @@ export function PracticePage({
   onCloseActivity,
   onVocabulary,
   onWriting,
+  initialPracticeSource,
   onResults,
   onNina,
   onReviewVocabulary,
@@ -122,7 +121,8 @@ export function PracticePage({
   onOpenActivity: (activityId: PreparedActivityId) => void;
   onCloseActivity: () => void;
   onVocabulary?: () => void;
-  onWriting?: () => void;
+  onWriting?: (source?: import("@call-nina/contracts").PracticeSource) => void;
+  initialPracticeSource?: import("@call-nina/contracts").PracticeSource | undefined;
   onResults: (language: Language, rootGeneration: DataRootGeneration) => void;
   onNina: (language: Language, rootGeneration: DataRootGeneration) => void;
   onReviewVocabulary?:
@@ -165,18 +165,17 @@ export function PracticePage({
   const [readingTopic, setReadingTopic] = useState(
     initialPreparation?.kind === "reading" ? initialPreparation.prompt : "",
   );
-  const [vocabularyMaterialState, setVocabularyMaterialState] = useState<MaterialPracticeState>(
-    emptyMaterialPracticeState,
-  );
-  const [readingMaterialState, setReadingMaterialState] = useState<MaterialPracticeState>(
-    emptyMaterialPracticeState,
-  );
+  const [practiceSource, setPracticeSource] = useState<
+    import("@call-nina/contracts").PracticeSource
+  >(initialPracticeSource ?? { kind: "adaptive" });
+  useEffect(() => {
+    setPracticeSource(initialPracticeSource ?? { kind: "adaptive" });
+  }, [initialPracticeSource]);
   const exerciseCount = Number(quizCount);
   const quizCountValid = validPracticeCount(quizCount);
   const [targetLevel, setTargetLevel] = useState<PracticeLevel>("a2");
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [readingBusy, setReadingBusy] = useState(false);
-  const [materialBusy, setMaterialBusy] = useState(false);
   const levelEdited = useRef(false);
   useEffect(() => {
     let current = true;
@@ -194,7 +193,7 @@ export function PracticePage({
   const generation = useLearningOperation();
   const feedback = useLearningOperation();
   const generating = generation.busy;
-  const formBusy = generating || voiceBusy || readingBusy || materialBusy;
+  const formBusy = generating || voiceBusy || readingBusy;
   const [generationError, setGenerationError] = useState<CallNinaError>();
   const [deleting, setDeleting] = useState(false);
   const [localLibraryView, setLocalLibraryView] = useState(Boolean(resultsRequest));
@@ -288,10 +287,7 @@ export function PracticePage({
       listeningTopic,
       speakingTopic,
       readingTopic,
-    ].some((text) => text.trim().length > 0) ||
-    [vocabularyMaterialState, readingMaterialState].some(
-      (state) => state.selected || state.view === "edit" || Object.keys(state.drafts).length > 0,
-    ),
+    ].some((text) => text.trim().length > 0),
   );
   useEffect(() => {
     onLanguageSwitchBlockedChange?.(languageSwitchBlocked);
@@ -595,6 +591,7 @@ export function PracticePage({
           {error && <OperationError error={error} />}
           {generated && (
             <ExerciseEngine
+              activityId={activityId}
               reference={
                 references.length > 0 ? (
                   <ActivityReference label={t("activity.reference")} items={references} />
@@ -722,18 +719,14 @@ export function PracticePage({
     requestedLesson: string,
     source: "natural-request" | "grammar",
   ) => {
-    if (
-      !quizCountValid ||
-      !requestedLesson.trim() ||
-      !(await requestAiAccess("exercise-generation"))
-    )
-      return;
+    if (!quizCountValid || !(await requestAiAccess("exercise-generation"))) return;
     setGenerationError(undefined);
     try {
       const createdId = await startTopicPractice(
         {
           kind: source === "grammar" ? "grammar" : "custom",
           topic: requestedLesson,
+          practiceSource,
           count: exerciseCount,
           targetLevel,
         },
@@ -775,16 +768,17 @@ export function PracticePage({
     </div>
   );
   const generateFlashcards = async () => {
-    if (
-      !validPracticeCount(cardCount) ||
-      !flashcardTopic.trim() ||
-      !(await requestAiAccess("flashcard-generation"))
-    )
-      return;
+    if (!validPracticeCount(cardCount) || !(await requestAiAccess("flashcard-generation"))) return;
     setGenerationError(undefined);
     try {
       const activityId = await startTopicPractice(
-        { kind: "flashcards", topic: flashcardTopic, count: Number(cardCount), targetLevel },
+        {
+          kind: "flashcards",
+          topic: flashcardTopic,
+          count: Number(cardCount),
+          targetLevel,
+          practiceSource,
+        },
         generation.run,
       );
       onOpenActivity(activityId);
@@ -800,17 +794,6 @@ export function PracticePage({
           title={t("practice.title")}
           width={libraryView ? "standard" : "form"}
           className={styles.creationPage}
-          actions={
-            onWriting && (
-              <Button
-                variant="secondary"
-                leadingIcon={<FilePenLine aria-hidden="true" />}
-                onPress={onWriting}
-              >
-                {t("nav.writing")}
-              </Button>
-            )
-          }
         >
           <Tabs
             label={t("practice.title")}
@@ -825,6 +808,14 @@ export function PracticePage({
                 children: (
                   <div className={styles.creationStudio}>
                     <PracticeComposer
+                      onWriting={onWriting ? () => onWriting(practiceSource) : undefined}
+                      sourceControl={
+                        <PracticeSourceControl
+                          value={practiceSource}
+                          onChange={setPracticeSource}
+                          disabled={formBusy}
+                        />
+                      }
                       kind={selectedKind}
                       onKindChange={(kind) => {
                         const topics = {
@@ -884,9 +875,7 @@ export function PracticePage({
                           <ActionGroup>
                             <Button
                               variant="primary"
-                              isDisabled={
-                                formBusy || !validPracticeCount(cardCount) || !flashcardTopic.trim()
-                              }
+                              isDisabled={formBusy || !validPracticeCount(cardCount)}
                               onPress={() => void generateFlashcards()}
                             >
                               {t("flashcards.generate")}
@@ -897,18 +886,6 @@ export function PracticePage({
                               </Button>
                             )}
                           </ActionGroup>
-                          <MaterialPractice
-                            state={vocabularyMaterialState}
-                            setState={setVocabularyMaterialState}
-                            practiceType="vocabulary-review"
-                            targetLevel={targetLevel}
-                            exerciseCount={Number(cardCount)}
-                            countValid={validPracticeCount(cardCount)}
-                            disabled={generating}
-                            onBusyChange={setMaterialBusy}
-                            requestAiAccess={requestAiAccess}
-                            onOpenActivity={onOpenActivity}
-                          />
                         </Section>
                       </div>
                       <div hidden={selectedKind !== "custom"}>
@@ -922,7 +899,7 @@ export function PracticePage({
                           <ActionGroup>
                             <Button
                               variant="primary"
-                              isDisabled={generating || !quizCountValid || !customRequest.trim()}
+                              isDisabled={generating || !quizCountValid}
                               onPress={() =>
                                 void generateCustomLesson(customRequest, "natural-request")
                               }
@@ -960,7 +937,7 @@ export function PracticePage({
                           <ActionGroup>
                             <Button
                               variant="primary"
-                              isDisabled={generating || !quizCountValid || !grammarRequest.trim()}
+                              isDisabled={generating || !quizCountValid}
                               onPress={() => void generateCustomLesson(grammarRequest, "grammar")}
                             >
                               <BookOpen aria-hidden="true" />
@@ -982,8 +959,7 @@ export function PracticePage({
                           settings={practiceSettings}
                           topic={readingTopic}
                           setTopic={setReadingTopic}
-                          materialState={readingMaterialState}
-                          setMaterialState={setReadingMaterialState}
+                          practiceSource={practiceSource}
                           exerciseCount={exerciseCount}
                           countValid={quizCountValid}
                           targetLevel={targetLevel}
@@ -994,6 +970,7 @@ export function PracticePage({
                       </div>
                       <div hidden={selectedKind !== "listening"}>
                         <CodexActivityPreparation
+                          practiceSource={practiceSource}
                           kind="listening"
                           targetLevel={targetLevel}
                           onBusyChange={setVoiceBusy}
@@ -1005,6 +982,7 @@ export function PracticePage({
                       </div>
                       <div hidden={selectedKind !== "speaking"}>
                         <CodexActivityPreparation
+                          practiceSource={practiceSource}
                           kind="speaking"
                           targetLevel={targetLevel}
                           onBusyChange={setVoiceBusy}
@@ -1134,34 +1112,24 @@ export function PracticePage({
                               : t("practice.library.deleteAction", { title: activity.title });
                             return (
                               <ContentRow
-                                leading={<ActivityVisual kind={activity.activityType} />}
                                 key={activity.activityId}
                                 actions={
                                   <div className={styles.generatedActivityActions}>
-                                    <Button
-                                      variant="primary"
-                                      density="compact"
-                                      onPress={() => void openSavedActivity(activity.activityId)}
-                                    >
-                                      {t("savedResults.practise")}
-                                    </Button>
-                                    <div className={styles.generatedActivityResults}>
-                                      {activity.resultCount > 0 && (
-                                        <Button
-                                          variant="secondary"
-                                          density="compact"
-                                          onPress={() => {
-                                            setResultsScope({
-                                              activityId: activity.activityId,
-                                              label: activity.title,
-                                            });
-                                            setSavedView("results");
-                                          }}
-                                        >
-                                          {t("savedResults.results")}
-                                        </Button>
-                                      )}
-                                    </div>
+                                    {activity.resultCount > 0 && (
+                                      <Button
+                                        variant="secondary"
+                                        density="compact"
+                                        onPress={() => {
+                                          setResultsScope({
+                                            activityId: activity.activityId,
+                                            label: activity.title,
+                                          });
+                                          setSavedView("results");
+                                        }}
+                                      >
+                                        {t("savedResults.results")}
+                                      </Button>
+                                    )}
                                     <div className={styles.generatedActivityMenu}>
                                       {deletionBlocked ? (
                                         <InfoHint
@@ -1185,8 +1153,16 @@ export function PracticePage({
                                           title={t("practice.library.deleteTitle", {
                                             title: activity.title,
                                           })}
-                                          trigger={deleteLabel}
-                                          menuLabel={deleteLabel}
+                                          trigger={t("practice.library.delete")}
+                                          triggerNode={
+                                            <Button
+                                              variant="quiet"
+                                              density="compact"
+                                              aria-label={deleteLabel}
+                                            >
+                                              {t("practice.library.delete")}
+                                            </Button>
+                                          }
                                           onConfirm={() => deletePreparedActivity(activity)}
                                         />
                                       )}
@@ -1203,6 +1179,7 @@ export function PracticePage({
                                     void openSavedActivity(activity.activityId);
                                   }}
                                 >
+                                  <ActivityVisual kind={activity.activityType} />
                                   <span className={styles.generatedActivityCopy}>
                                     <strong>{activity.title}</strong>
                                     <span>
@@ -1260,7 +1237,15 @@ export function PracticePage({
           />
         </Page>
       </div>
+      <ActivitySourceContext.Provider value={activityId && prepared?.activity.context.uploadSource ? (
+          <UploadSourceEvidence
+            reference={prepared.activity.context.uploadSource.upload}
+            rootGeneration={prepared.rootGeneration}
+            title={prepared.activity.context.uploadSource.material.title}
+          />
+      ) : null}>
       {activeWorkspace}
+      </ActivitySourceContext.Provider>
     </>
   );
 }

@@ -19,7 +19,26 @@
         "de": "Verstehe eine Verspätung, frage nach Alternativen und informiere einen Freund.",
         "es": "Entiende un retraso, pregunta por alternativas y avisa a un amigo.",
         "pt-BR": "Entenda um atraso, pergunte sobre alternativas e avise um amigo."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "delay-mission",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Handle a travel delay",
+        "de": "Mit einer Verspätung umgehen",
+        "es": "Gestionar un retraso de viaje",
+        "pt-BR": "Lidar com um atraso na viagem"
+      },
+      "description": {
+        "en": "Understand a delay, ask about alternatives, and update a friend.",
+        "de": "Verstehe eine Verspätung, frage nach Alternativen und informiere einen Freund.",
+        "es": "Entiende un retraso, pregunta por alternativas y avisa a un amigo.",
+        "pt-BR": "Entenda um atraso, pergunte sobre alternativas e avise um amigo."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Die spätere Ankunft ankündigen.",
         "es": "Llegaré veinte minutos más tarde.",
         "pt-BR": "Vou chegar vinte minutos mais tarde."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-delay-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Wie lange hat der Zug Verspätung?",
+      "meaning": {
+        "en": "How long is the train delayed?",
+        "de": "Nach der Dauer einer Verspätung fragen.",
+        "es": "¿Cuánto retraso tiene el tren?",
+        "pt-BR": "Quanto tempo o trem está atrasado?"
+      },
+      "example": "Wie lange hat der Zug Verspätung?",
+      "exampleMeaning": {
+        "en": "How long is the train delayed?",
+        "de": "Nach der Dauer einer Verspätung fragen.",
+        "es": "¿Cuánto retraso tiene el tren?",
+        "pt-BR": "Quanto tempo o trem está atrasado?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-delay-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Hat sich auch das Gleis geändert?",
+      "meaning": {
+        "en": "Has the platform changed too?",
+        "de": "Ich frage nach einer zusätzlichen Gleisänderung.",
+        "es": "¿También cambió la vía?",
+        "pt-BR": "A plataforma também mudou?"
+      },
+      "example": "Hat sich auch das Gleis geändert?",
+      "exampleMeaning": {
+        "en": "Has the platform changed too?",
+        "de": "Ich frage nach einer zusätzlichen Gleisänderung.",
+        "es": "¿También cambió la vía?",
+        "pt-BR": "A plataforma também mudou?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-delay-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Gibt es eine andere Verbindung?",
+      "meaning": {
+        "en": "Is there another connection?",
+        "de": "Nach einer alternativen Reisemöglichkeit fragen.",
+        "es": "¿Hay otra conexión?",
+        "pt-BR": "Existe outra conexão?"
+      },
+      "example": "Gibt es eine andere Verbindung?",
+      "exampleMeaning": {
+        "en": "Is there another connection?",
+        "de": "Nach einer alternativen Reisemöglichkeit fragen.",
+        "es": "¿Hay otra conexión?",
+        "pt-BR": "Existe outra conexão?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-delay-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Welche Verbindung kommt früher an?",
+      "meaning": {
+        "en": "Which connection arrives earlier?",
+        "de": "Ich vergleiche Ankunft statt nur Abfahrt.",
+        "es": "¿Qué conexión llega antes?",
+        "pt-BR": "Qual conexão chega antes?"
+      },
+      "example": "Welche Verbindung kommt früher an?",
+      "exampleMeaning": {
+        "en": "Which connection arrives earlier?",
+        "de": "Ich vergleiche Ankunft statt nur Abfahrt.",
+        "es": "¿Qué conexión llega antes?",
+        "pt-BR": "Qual conexão chega antes?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-delay-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ich komme zwanzig Minuten später.",
+      "meaning": {
+        "en": "I will arrive twenty minutes later.",
+        "de": "Die spätere Ankunft ankündigen.",
+        "es": "Llegaré veinte minutos más tarde.",
+        "pt-BR": "Vou chegar vinte minutos mais tarde."
+      },
+      "example": "Ich komme zwanzig Minuten später.",
+      "exampleMeaning": {
+        "en": "I will arrive twenty minutes later.",
+        "de": "Die spätere Ankunft ankündigen.",
+        "es": "Llegaré veinte minutos más tarde.",
+        "pt-BR": "Vou chegar vinte minutos mais tarde."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-delay-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich melde mich bei der Ankunft.",
+      "meaning": {
+        "en": "I will message when I arrive.",
+        "de": "Ich schreibe nach meiner Ankunft.",
+        "es": "Te aviso al llegar.",
+        "pt-BR": "Aviso quando chegar."
+      },
+      "example": "Ich melde mich bei der Ankunft.",
+      "exampleMeaning": {
+        "en": "I will message when I arrive.",
+        "de": "Ich schreibe nach meiner Ankunft.",
+        "es": "Te aviso al llegar.",
+        "pt-BR": "Aviso quando chegar."
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Eine Verspätung mitteilen. Die spätere Ankunft ankündigen.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof.",
             "es": "Avisar de un retraso. Llegaré veinte minutos más tarde.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof.",
             "pt-BR": "Avisar sobre um atraso. Vou chegar vinte minutos mais tarde.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-delay-v2",
+      "stage": "delay-mission",
+      "kind": "module",
+      "title": {
+        "en": "A changed departure",
+        "de": "Eine geänderte Abfahrt",
+        "es": "Un cambio en la salida",
+        "pt-BR": "Uma mudança na partida"
+      },
+      "scenario": {
+        "en": "Report the delay and new platform, separating the original notice from the update.",
+        "de": "Melde Verspätung und neues Gleis und trenne ursprüngliche Nachricht und Änderung.",
+        "es": "Comunica retraso y vía nueva distinguiendo aviso original y actualización.",
+        "pt-BR": "Comunique atraso e plataforma nova distinguindo aviso original e atualização."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000017"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+        "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+        "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+        "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+      },
+      "explanation": {
+        "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+        "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+        "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+        "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+      },
+      "examples": [
+        {
+          "text": "Wie lange hat der Zug Verspätung?",
+          "meaning": {
+            "en": "How long is the train delayed?",
+            "de": "Nach der Dauer einer Verspätung fragen.",
+            "es": "¿Cuánto retraso tiene el tren?",
+            "pt-BR": "Quanto tempo o trem está atrasado?"
+          }
+        },
+        {
+          "text": "Hat sich auch das Gleis geändert?",
+          "meaning": {
+            "en": "Has the platform changed too?",
+            "de": "Ich frage nach einer zusätzlichen Gleisänderung.",
+            "es": "¿También cambió la vía?",
+            "pt-BR": "A plataforma também mudou?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-delay-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-delay-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which platform should passengers use now?",
+            "de": "Welches Gleis gilt jetzt?",
+            "es": "¿Qué vía deben usar ahora?",
+            "pt-BR": "Qual plataforma vale agora?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-delay-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Report the delay and new platform, separating the original notice from the update.",
+            "de": "Melde Verspätung und neues Gleis und trenne ursprüngliche Nachricht und Änderung.",
+            "es": "Comunica retraso y vía nueva distinguiendo aviso original y actualización.",
+            "pt-BR": "Comunique atraso e plataforma nova distinguindo aviso original e atualização."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-delay-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Report the delay and new platform, separating the original notice from the update.",
+            "de": "Melde Verspätung und neues Gleis und trenne ursprüngliche Nachricht und Änderung.",
+            "es": "Comunica retraso y vía nueva distinguiendo aviso original y actualización.",
+            "pt-BR": "Comunique atraso e plataforma nova distinguindo aviso original e atualização."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-delay-v2-reading"],
+          "targetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Which platform will the train use today?",
+              "de": "Von welchem Gleis fährt der Zug heute?",
+              "es": "¿De qué andén sale hoy el tren?",
+              "pt-BR": "De qual plataforma o trem sai hoje?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Gleis vier",
+              "de": "Gleis vier",
+              "es": "Gleis vier",
+              "pt-BR": "Gleis vier"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der Zug nach Köln hat zwanzig Minuten Verspätung. Er fährt heute von Gleis vier. Der Bus vor dem Bahnhof fährt in zehn Minuten nach Köln."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-delay-v2-listening"],
+          "targetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which platform should passengers use now?",
+              "de": "Welches Gleis gilt jetzt?",
+              "es": "¿Qué vía deben usar ahora?",
+              "pt-BR": "Qual plataforma vale agora?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Gleis sechs.",
+              "de": "Gleis sechs.",
+              "es": "Gleis sechs.",
+              "pt-BR": "Gleis sechs."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+          "instructions": {
+            "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+            "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+            "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+            "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-delay-v2-writing"],
+          "targetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+          "instructions": {
+            "en": "Report the delay and new platform, separating the original notice from the update.",
+            "de": "Melde Verspätung und neues Gleis und trenne ursprüngliche Nachricht und Änderung.",
+            "es": "Comunica retraso y vía nueva distinguiendo aviso original y actualización.",
+            "pt-BR": "Comunique atraso e plataforma nova distinguindo aviso original e atualização."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-delay-v2-writing"],
+          "targetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+          "instructions": {
+            "en": "Report the delay and new platform, separating the original notice from the update.",
+            "de": "Melde Verspätung und neues Gleis und trenne ursprüngliche Nachricht und Änderung.",
+            "es": "Comunica retraso y vía nueva distinguiendo aviso original y actualización.",
+            "pt-BR": "Comunique atraso e plataforma nova distinguindo aviso original e atualização."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-delay-v2-speaking"],
+          "targetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+          "instructions": {
+            "en": "Report the delay and new platform, separating the original notice from the update.",
+            "de": "Melde Verspätung und neues Gleis und trenne ursprüngliche Nachricht und Änderung.",
+            "es": "Comunica retraso y vía nueva distinguiendo aviso original y actualización.",
+            "pt-BR": "Comunique atraso e plataforma nova distinguindo aviso original e atualização."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Der Zug nach Köln hat zwanzig Minuten Verspätung. Er fährt heute von Gleis vier. Der Bus vor dem Bahnhof fährt in zehn Minuten nach Köln.\nUpdate: Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier.",
+            "de": "Ursprüngliche Nachricht: Der Zug nach Köln hat zwanzig Minuten Verspätung. Er fährt heute von Gleis vier. Der Bus vor dem Bahnhof fährt in zehn Minuten nach Köln.\nAktualisierung: Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier.",
+            "es": "Aviso original: Der Zug nach Köln hat zwanzig Minuten Verspätung. Er fährt heute von Gleis vier. Der Bus vor dem Bahnhof fährt in zehn Minuten nach Köln.\nActualización: Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier.",
+            "pt-BR": "Aviso original: Der Zug nach Köln hat zwanzig Minuten Verspätung. Er fährt heute von Gleis vier. Der Bus vor dem Bahnhof fährt in zehn Minuten nach Köln.\nAtualização: Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier.",
+            "de": "Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier.",
+            "es": "Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier.",
+            "pt-BR": "Der Zug nach Köln fährt heute von Gleis sechs statt vier. Die Verspätung beträgt weiterhin zwanzig Minuten. Bitte bleiben Sie nicht auf Gleis vier."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-delay-2-v2",
+      "stage": "delay-mission",
+      "kind": "module",
+      "title": {
+        "en": "Ask about another connection",
+        "de": "Nach einer anderen Verbindung fragen",
+        "es": "Preguntar por otra conexión",
+        "pt-BR": "Perguntar sobre outra conexão"
+      },
+      "scenario": {
+        "en": "Compare arrival times before choosing a connection; do not assume earlier departure means earlier arrival.",
+        "de": "Vergleiche Ankunftszeiten vor der Wahl; frühere Abfahrt bedeutet nicht automatisch frühere Ankunft.",
+        "es": "Compara llegadas antes de elegir; salir antes no significa llegar antes.",
+        "pt-BR": "Compare chegadas antes de escolher; sair antes não significa chegar antes."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000017"],
+      "prerequisites": ["de-delay-v2"],
+      "grammar": {
+        "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+        "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+        "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+        "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+      },
+      "explanation": {
+        "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+        "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+        "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+        "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+      },
+      "examples": [
+        {
+          "text": "Gibt es eine andere Verbindung?",
+          "meaning": {
+            "en": "Is there another connection?",
+            "de": "Nach einer alternativen Reisemöglichkeit fragen.",
+            "es": "¿Hay otra conexión?",
+            "pt-BR": "Existe outra conexão?"
+          }
+        },
+        {
+          "text": "Welche Verbindung kommt früher an?",
+          "meaning": {
+            "en": "Which connection arrives earlier?",
+            "de": "Ich vergleiche Ankunft statt nur Abfahrt.",
+            "es": "¿Qué conexión llega antes?",
+            "pt-BR": "Qual conexão chega antes?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-delay-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-delay-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which option arrives earlier?",
+            "de": "Welche Verbindung kommt früher an?",
+            "es": "¿Qué conexión llega antes?",
+            "pt-BR": "Qual conexão chega antes?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-delay-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Compare arrival times before choosing a connection; do not assume earlier departure means earlier arrival.",
+            "de": "Vergleiche Ankunftszeiten vor der Wahl; frühere Abfahrt bedeutet nicht automatisch frühere Ankunft.",
+            "es": "Compara llegadas antes de elegir; salir antes no significa llegar antes.",
+            "pt-BR": "Compare chegadas antes de escolher; sair antes não significa chegar antes."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-delay-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Compare arrival times before choosing a connection; do not assume earlier departure means earlier arrival.",
+            "de": "Vergleiche Ankunftszeiten vor der Wahl; frühere Abfahrt bedeutet nicht automatisch frühere Ankunft.",
+            "es": "Compara llegadas antes de elegir; salir antes no significa llegar antes.",
+            "pt-BR": "Compare chegadas antes de escolher; sair antes não significa chegar antes."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-delay-2-v2-phrase-1", "de-delay-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-delay-v2-phrase-1", "de-delay-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-delay-2-v2-reading"],
+          "targetIds": ["de-delay-2-v2-phrase-1", "de-delay-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ja, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof.",
+              "de": "Ja, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof.",
+              "es": "Ja, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof.",
+              "pt-BR": "Ja, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Gibt es eine andere Verbindung?\nJa, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-delay-2-v2-listening"],
+          "targetIds": ["de-delay-2-v2-phrase-1", "de-delay-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which option arrives earlier?",
+              "de": "Welche Verbindung kommt früher an?",
+              "es": "¿Qué conexión llega antes?",
+              "pt-BR": "Qual conexão chega antes?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Zug.",
+              "de": "Der Zug.",
+              "es": "Der Zug.",
+              "pt-BR": "Der Zug."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-delay-2-v2-phrase-1", "de-delay-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+            "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+            "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+            "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-delay-2-v2-writing"],
+          "targetIds": ["de-delay-2-v2-phrase-1", "de-delay-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Compare arrival times before choosing a connection; do not assume earlier departure means earlier arrival.",
+            "de": "Vergleiche Ankunftszeiten vor der Wahl; frühere Abfahrt bedeutet nicht automatisch frühere Ankunft.",
+            "es": "Compara llegadas antes de elegir; salir antes no significa llegar antes.",
+            "pt-BR": "Compare chegadas antes de escolher; sair antes não significa chegar antes."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-delay-2-v2-writing"],
+          "targetIds": ["de-delay-2-v2-phrase-1", "de-delay-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Compare arrival times before choosing a connection; do not assume earlier departure means earlier arrival.",
+            "de": "Vergleiche Ankunftszeiten vor der Wahl; frühere Abfahrt bedeutet nicht automatisch frühere Ankunft.",
+            "es": "Compara llegadas antes de elegir; salir antes no significa llegar antes.",
+            "pt-BR": "Compare chegadas antes de escolher; sair antes não significa chegar antes."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, um fünfzehn Uhr fährt ein Bus nach Bonn. Er hält vor dem Bahnhof."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-delay-2-v2-speaking"],
+          "targetIds": ["de-delay-2-v2-phrase-1", "de-delay-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Compare arrival times before choosing a connection; do not assume earlier departure means earlier arrival.",
+            "de": "Vergleiche Ankunftszeiten vor der Wahl; frühere Abfahrt bedeutet nicht automatisch frühere Ankunft.",
+            "es": "Compara llegadas antes de elegir; salir antes no significa llegar antes.",
+            "pt-BR": "Compare chegadas antes de escolher; sair antes não significa chegar antes."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, um fünfzehn Uhr fährt ein Bus nach Bonn. Er hält vor dem Bahnhof."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Gibt es eine andere Verbindung?\nJa, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof.\nUpdate: Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug.",
+            "de": "Ursprüngliche Nachricht: Gibt es eine andere Verbindung?\nJa, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof.\nAktualisierung: Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug.",
+            "es": "Aviso original: Gibt es eine andere Verbindung?\nJa, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof.\nActualización: Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug.",
+            "pt-BR": "Aviso original: Gibt es eine andere Verbindung?\nJa, um fünfzehn Uhr fährt ein Bus nach Köln. Er hält vor dem Bahnhof.\nAtualização: Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug.",
+            "de": "Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug.",
+            "es": "Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug.",
+            "pt-BR": "Der Bus nach Köln fährt zwar in zehn Minuten, braucht aber eine Stunde. Der verspätete Zug ist in dreißig Minuten in Köln. Für eine frühere Ankunft nehmen Sie den Zug."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-delay-3-v2",
+      "stage": "delay-mission",
+      "kind": "module",
+      "title": {
+        "en": "Tell someone you will be late",
+        "de": "Eine Verspätung mitteilen",
+        "es": "Avisar de un retraso",
+        "pt-BR": "Avisar sobre um atraso"
+      },
+      "scenario": {
+        "en": "Update a friend about your delay, confirm the new meeting point and say when you will message.",
+        "de": "Informiere über die Verspätung, bestätige den neuen Treffpunkt und sage, wann du dich meldest.",
+        "es": "Informa del retraso, confirma el punto nuevo y cuándo avisarás.",
+        "pt-BR": "Informe o atraso, confirme o ponto novo e quando avisará."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000017"],
+      "prerequisites": ["de-delay-2-v2"],
+      "grammar": {
+        "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+        "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+        "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+        "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+      },
+      "explanation": {
+        "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+        "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+        "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+        "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+      },
+      "examples": [
+        {
+          "text": "Ich komme zwanzig Minuten später.",
+          "meaning": {
+            "en": "I will arrive twenty minutes later.",
+            "de": "Die spätere Ankunft ankündigen.",
+            "es": "Llegaré veinte minutos más tarde.",
+            "pt-BR": "Vou chegar vinte minutos mais tarde."
+          }
+        },
+        {
+          "text": "Ich melde mich bei der Ankunft.",
+          "meaning": {
+            "en": "I will message when I arrive.",
+            "de": "Ich schreibe nach meiner Ankunft.",
+            "es": "Te aviso al llegar.",
+            "pt-BR": "Aviso quando chegar."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-delay-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-delay-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Where is the friend waiting now?",
+            "de": "Wo wartet die andere Person jetzt?",
+            "es": "¿Dónde espera ahora la otra persona?",
+            "pt-BR": "Onde a outra pessoa espera agora?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-delay-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Update a friend about your delay, confirm the new meeting point and say when you will message.",
+            "de": "Informiere über die Verspätung, bestätige den neuen Treffpunkt und sage, wann du dich meldest.",
+            "es": "Informa del retraso, confirma el punto nuevo y cuándo avisarás.",
+            "pt-BR": "Informe o atraso, confirme o ponto novo e quando avisará."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-delay-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Update a friend about your delay, confirm the new meeting point and say when you will message.",
+            "de": "Informiere über die Verspätung, bestätige den neuen Treffpunkt und sage, wann du dich meldest.",
+            "es": "Informa del retraso, confirma el punto nuevo y cuándo avisarás.",
+            "pt-BR": "Informe o atraso, confirme o ponto novo e quando avisará."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-delay-3-v2-phrase-1", "de-delay-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-delay-v2-phrase-1",
+        "de-delay-v2-phrase-2",
+        "de-delay-2-v2-phrase-1",
+        "de-delay-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-delay-3-v2-reading"],
+          "targetIds": ["de-delay-3-v2-phrase-1", "de-delay-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Danke für die Nachricht. Ich warte im Café neben dem Bahnhof.",
+              "de": "Danke für die Nachricht. Ich warte im Café neben dem Bahnhof.",
+              "es": "Danke für die Nachricht. Ich warte im Café neben dem Bahnhof.",
+              "pt-BR": "Danke für die Nachricht. Ich warte im Café neben dem Bahnhof."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ich komme zwanzig Minuten später.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-delay-3-v2-listening"],
+          "targetIds": ["de-delay-3-v2-phrase-1", "de-delay-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Where is the friend waiting now?",
+              "de": "Wo wartet die andere Person jetzt?",
+              "es": "¿Dónde espera ahora la otra persona?",
+              "pt-BR": "Onde a outra pessoa espera agora?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Vor dem Haupteingang.",
+              "de": "Vor dem Haupteingang.",
+              "es": "Vor dem Haupteingang.",
+              "pt-BR": "Vor dem Haupteingang."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-delay-3-v2-phrase-1", "de-delay-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Distinguish departure from arrival. Statt introduces a replacement in the announcement. Although a connection leaves earlier, it may arrive later; compare the complete route before choosing.",
+            "de": "Unterscheide Abfahrt und Ankunft. Statt nennt in der Durchsage einen Ersatz. Eine frühere Abfahrt kann später ankommen; vergleiche die ganze Verbindung.",
+            "es": "Distingue salida y llegada. Statt introduce sustitución. Compara el trayecto completo antes de elegir.",
+            "pt-BR": "Diferencie saída e chegada. Statt introduz substituição. Compare o trajeto completo antes de escolher."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-delay-3-v2-writing"],
+          "targetIds": ["de-delay-3-v2-phrase-1", "de-delay-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Update a friend about your delay, confirm the new meeting point and say when you will message.",
+            "de": "Informiere über die Verspätung, bestätige den neuen Treffpunkt und sage, wann du dich meldest.",
+            "es": "Informa del retraso, confirma el punto nuevo y cuándo avisarás.",
+            "pt-BR": "Informe o atraso, confirme o ponto novo e quando avisará."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-delay-3-v2-writing"],
+          "targetIds": ["de-delay-3-v2-phrase-1", "de-delay-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Update a friend about your delay, confirm the new meeting point and say when you will message.",
+            "de": "Informiere über die Verspätung, bestätige den neuen Treffpunkt und sage, wann du dich meldest.",
+            "es": "Informa del retraso, confirma el punto nuevo y cuándo avisarás.",
+            "pt-BR": "Informe o atraso, confirme o ponto novo e quando avisará."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Danke für die Nachricht. Ich warte im Café neben dem Bahnhof."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-delay-3-v2-speaking"],
+          "targetIds": ["de-delay-3-v2-phrase-1", "de-delay-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Update a friend about your delay, confirm the new meeting point and say when you will message.",
+            "de": "Informiere über die Verspätung, bestätige den neuen Treffpunkt und sage, wann du dich meldest.",
+            "es": "Informa del retraso, confirma el punto nuevo y cuándo avisarás.",
+            "pt-BR": "Informe o atraso, confirme o ponto novo e quando avisará."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Danke für die Nachricht. Ich warte im Café neben dem Bahnhof."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Ich komme zwanzig Minuten später.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof.\nUpdate: Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist.",
+            "de": "Ursprüngliche Nachricht: Ich komme zwanzig Minuten später.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof.\nAktualisierung: Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist.",
+            "es": "Aviso original: Ich komme zwanzig Minuten später.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof.\nActualización: Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist.",
+            "pt-BR": "Aviso original: Ich komme zwanzig Minuten später.\nDanke für die Nachricht. Ich warte im Café neben dem Bahnhof.\nAtualização: Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist.",
+            "de": "Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist.",
+            "es": "Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist.",
+            "pt-BR": "Danke für deine Nachricht. Das Café schließt gleich. Ich warte jetzt vor dem Haupteingang, nicht mehr im Café. Schreib bitte kurz, wenn du angekommen bist."
           }
         }
       ],

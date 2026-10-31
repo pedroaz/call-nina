@@ -1,3 +1,13 @@
+import { websiteSourceSchema } from "./website-study-pack.js";
+import {
+  uploadDraftSchema,
+  uploadDetailSchema,
+  uploadSummarySchema,
+  uploadReferenceSchema,
+  uploadIdSchema,
+  uploadImageInputSchema,
+  practiceSourceSchema,
+} from "./uploads.js";
 import { storySnapshotSchema, storyUpdateSchema, storyVocabularySchema } from "./stories.js";
 import {
   speechAvailabilitySchema,
@@ -7,7 +17,11 @@ import {
   speechSnapshotSchema,
 } from "./speech.js";
 import { mobileSyncResultSchema } from "./mobile-sync.js";
-import { vocabularyImageSchema, vocabularyLearningSnapshotSchema } from "./vocabulary-learning.js";
+import {
+  vocabularyImageSchema,
+  vocabularyLearningSnapshotSchema,
+  vocabularyAnalysisOutputSchema,
+} from "./vocabulary-learning.js";
 import {
   ninaAccountStateSchema,
   ninaAccountUpdateSchema,
@@ -178,7 +192,16 @@ export const desktopIpcChannels = [
   "vocabulary/suspend",
   "vocabulary/resume",
   "vocabulary/delete",
+  "uploads/list",
+  "uploads/read",
+  "uploads/save",
+  "uploads/archive",
+  "uploads/image",
+  "uploads/analyses",
+  "uploads/commit",
   "material/list",
+  "material/import-web",
+  "material/cancel-import",
   "material/read",
   "material/save",
   "material/delete",
@@ -368,13 +391,17 @@ const learningPathPrepareVoiceRequest = request(
     reference: courseReferenceSchema,
   }),
 );
-const vocabularyLearningReadRequest = request("vocabulary/learning-read", emptyPayload);
+const vocabularyLearningReadRequest = request(
+  "vocabulary/learning-read",
+  z.strictObject({ activityId: activityIdSchema.optional() }),
+);
 const vocabularyLearningUpdateRequest = request(
   "vocabulary/learning-update",
   z.strictObject({
     rootGeneration: dataRootGenerationSchema,
     action: z.discriminatedUnion("kind", [
-      z.strictObject({ kind: z.literal("read") }),
+      z.strictObject({ kind: z.literal("read"), batchIds: z.array(text(100)).max(50) }),
+      z.strictObject({ kind: z.literal("retry"), activityId: activityIdSchema }),
       z.strictObject({ kind: z.literal("undo"), batchId: text(100) }),
       z.strictObject({
         kind: z.literal("focus"),
@@ -393,7 +420,7 @@ const vocabularyDetailRequest = request(
 );
 const vocabularyQueueRequest = request(
   "vocabulary/review-queue",
-  z.strictObject({ rootGeneration: dataRootGenerationSchema }),
+  z.strictObject({ rootGeneration: dataRootGenerationSchema, uploadId: uploadIdSchema.optional() }),
 );
 const vocabularyBulkRequest = request("vocabulary/bulk", vocabularyBulkRequestSchema);
 const vocabularySetListRequest = request(
@@ -454,9 +481,72 @@ const vocabularyDeleteRequest = request(
   }),
 );
 
+const uploadsListRequest = request(
+  "uploads/list",
+  z.strictObject({ vocabularyId: vocabularyIdSchema.optional() }),
+);
+const uploadsReadRequest = request(
+  "uploads/read",
+  z.strictObject({ rootGeneration: dataRootGenerationSchema, reference: uploadReferenceSchema }),
+);
+const uploadsSaveRequest = request(
+  "uploads/save",
+  z.strictObject({
+    saveId: correlationIdSchema,
+    rootGeneration: dataRootGenerationSchema,
+    language: targetLanguageSchema,
+    draft: uploadDraftSchema,
+    previous: uploadReferenceSchema.optional(),
+    websitePack: z
+      .strictObject({
+        operationId: correlationIdSchema,
+        positions: z
+          .array(z.int().min(0).max(19))
+          .max(20)
+          .refine((p) => new Set(p).size === p.length),
+      })
+      .optional(),
+  }),
+);
+const uploadsArchiveRequest = request(
+  "uploads/archive",
+  z.strictObject({ rootGeneration: dataRootGenerationSchema, reference: uploadReferenceSchema }),
+);
+const uploadsImageRequest = request(
+  "uploads/image",
+  z.strictObject({ rootGeneration: dataRootGenerationSchema, reference: uploadReferenceSchema }),
+);
+const uploadsAnalysesRequest = request(
+  "uploads/analyses",
+  z.strictObject({ rootGeneration: dataRootGenerationSchema, reference: uploadReferenceSchema }),
+);
+const uploadsCommitRequest = request(
+  "uploads/commit",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    analysisId: correlationIdSchema,
+    positions: z
+      .array(z.int().min(0).max(19))
+      .max(20)
+      .refine((values) => new Set(values).size === values.length),
+  }),
+);
 const materialListRequest = request(
   "material/list",
   z.strictObject({ cursor: z.int().positive().optional() }),
+);
+const materialCancelImportRequest = request(
+  "material/cancel-import",
+  z.strictObject({ importId: correlationIdSchema }),
+);
+const materialImportWebRequest = request(
+  "material/import-web",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    language: targetLanguageSchema,
+    url: materialSourceSchema.shape.url,
+    importId: correlationIdSchema,
+  }),
 );
 const materialReadRequest = request(
   "material/read",
@@ -635,6 +725,7 @@ const accountsReadRequest = request("chatgpt/accounts/read", emptyPayload);
 
 export const learningOperationKinds = [
   "vocabulary-analysis",
+  "website-study-pack",
   "writing-prompt",
   "voice-activity-draft",
   "writing-correction",
@@ -647,6 +738,11 @@ export const learningOperationKindSchema = z.enum(learningOperationKinds);
 
 export const learningOperationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
+    kind: z.literal("website-study-pack"),
+    rootGeneration: dataRootGenerationSchema,
+    captureId: correlationIdSchema,
+  }),
+  z.strictObject({
     kind: z.literal("vocabulary-analysis"),
     rootGeneration: dataRootGenerationSchema,
     source: z.discriminatedUnion("kind", [
@@ -656,21 +752,30 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
         text: z.string().max(12000),
         image: vocabularyImageSchema.optional(),
       }),
-      z.strictObject({ kind: z.literal("activity"), activityId: activityIdSchema }),
+      z.strictObject({ kind: z.literal("upload"), reference: uploadReferenceSchema }),
+      z.strictObject({ kind: z.literal("preview"), image: uploadImageInputSchema }),
+      z.strictObject({
+        kind: z.literal("activity"),
+        activityId: activityIdSchema,
+        sourceKey: text(200).optional(),
+      }),
     ]),
   }),
   z.strictObject({
     kind: z.literal("flashcard-generation"),
+    practiceSource: practiceSourceSchema.optional(),
     topic: text(2_000),
     cardCount: z.int().min(3).max(30),
     targetLevel: z.enum(["a1", "a2", "b1", "b2"]),
   }),
   z.strictObject({
     kind: z.literal("writing-prompt"),
+    practiceSource: practiceSourceSchema.optional(),
     naturalRequest: text(1_000).optional(),
   }),
   z.strictObject({
     kind: z.literal("voice-activity-draft"),
+    practiceSource: practiceSourceSchema.optional(),
     voiceKind: z.enum(["listening", "speaking"]),
     naturalRequest: text(2_000),
     targetLevel: z.enum(["a1", "a2", "b1", "b2"]),
@@ -680,6 +785,7 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
   }),
   z.strictObject({
     kind: z.literal("writing-correction"),
+    practiceSource: practiceSourceSchema.optional(),
     learnerText: text(12_000),
     activityGoal: text(1_000).optional(),
     teachingProfile: z
@@ -698,6 +804,7 @@ export const learningOperationInputSchema = z.discriminatedUnion("kind", [
   }),
   z.strictObject({
     kind: z.literal("exercise-generation"),
+    practiceSource: practiceSourceSchema.optional(),
     context: exerciseEntryContextSchema,
     request: z.discriminatedUnion("source", [
       ninaGenerationRequestSchema,
@@ -870,7 +977,16 @@ export const desktopIpcRequestSchema = boundaryUnion([
   vocabularySuspendRequest,
   vocabularyResumeRequest,
   vocabularyDeleteRequest,
+  uploadsListRequest,
+  uploadsReadRequest,
+  uploadsSaveRequest,
+  uploadsArchiveRequest,
+  uploadsImageRequest,
+  uploadsAnalysesRequest,
+  uploadsCommitRequest,
   materialListRequest,
+  materialImportWebRequest,
+  materialCancelImportRequest,
   materialReadRequest,
   materialSaveRequest,
   materialDeleteRequest,
@@ -1376,6 +1492,54 @@ const generatedActivityProvenanceSchema = z.strictObject({
   modelId: text(128),
   effortId: text(128),
 });
+const uploadsListResponse = response(
+  "uploads/list",
+  z.strictObject({
+    rootGeneration: dataRootGenerationSchema,
+    language: targetLanguageSchema,
+    uploads: z.array(uploadSummarySchema).max(500),
+  }),
+);
+const uploadsReadResponse = response(
+  "uploads/read",
+  z.strictObject({
+    upload: uploadDetailSchema,
+    words: z.array(vocabularySummarySchema).max(500),
+    usage: z.strictObject({
+      activityCount: z.int().nonnegative(),
+      attemptCount: z.int().nonnegative(),
+      activities: z
+        .array(z.strictObject({ activityId: activityIdSchema, title: text(160) }))
+        .max(100),
+    }),
+  }),
+);
+const uploadsSaveResponse = response(
+  "uploads/save",
+  z.strictObject({ upload: uploadDetailSchema }),
+);
+const uploadsArchiveResponse = response(
+  "uploads/archive",
+  z.strictObject({ archived: z.literal(true) }),
+);
+const uploadsImageResponse = response(
+  "uploads/image",
+  z.strictObject({ image: uploadImageInputSchema.nullable() }),
+);
+const uploadsAnalysesResponse = response(
+  "uploads/analyses",
+  z.strictObject({
+    analyses: z
+      .array(
+        z.strictObject({ analysisId: correlationIdSchema, output: vocabularyAnalysisOutputSchema }),
+      )
+      .max(20),
+  }),
+);
+const uploadsCommitResponse = response(
+  "uploads/commit",
+  z.strictObject({ saved: z.int().nonnegative() }),
+);
 const materialListResponse = response(
   "material/list",
   z.strictObject({
@@ -1388,7 +1552,29 @@ const materialListResponse = response(
 );
 const materialReadResponse = response(
   "material/read",
-  z.strictObject({ material: materialRevisionSchema }),
+  z.strictObject({
+    material: materialRevisionSchema,
+    usage: z.strictObject({
+      activityCount: z.int().nonnegative(),
+      attemptCount: z.int().nonnegative(),
+      activities: z
+        .array(
+          z.strictObject({
+            activityId: activityIdSchema,
+            title: z.string().min(1).max(160),
+          }),
+        )
+        .max(100),
+    }),
+  }),
+);
+const materialCancelImportResponse = response(
+  "material/cancel-import",
+  z.strictObject({ cancelled: z.boolean() }),
+);
+const materialImportWebResponse = response(
+  "material/import-web",
+  z.strictObject({ captureId: correlationIdSchema, source: websiteSourceSchema }),
 );
 const materialDeleteResponse = response(
   "material/delete",
@@ -1896,8 +2082,17 @@ export const desktopIpcResponseSchema = boundaryUnion([
   vocabularySuspendResponse,
   vocabularyResumeResponse,
   vocabularyDeleteResponse,
+  uploadsListResponse,
+  uploadsReadResponse,
+  uploadsSaveResponse,
+  uploadsArchiveResponse,
+  uploadsImageResponse,
+  uploadsAnalysesResponse,
+  uploadsCommitResponse,
   materialListResponse,
   materialReadResponse,
+  materialImportWebResponse,
+  materialCancelImportResponse,
   materialSaveResponse,
   materialDeleteResponse,
   preparedActivityReadResponse,

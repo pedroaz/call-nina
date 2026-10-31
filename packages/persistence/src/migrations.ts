@@ -1972,6 +1972,89 @@ export const callNinaMigrations = [
     name: "learner-display-name",
     sql: `ALTER TABLE learner_settings ADD COLUMN learner_name TEXT NOT NULL DEFAULT '' CHECK(length(learner_name) <= 100);`,
   },
+  {
+    version: 44,
+    name: "explicit-upload-library",
+    sql: `
+      CREATE TABLE uploads (
+        upload_id TEXT PRIMARY KEY, target_language TEXT NOT NULL,
+        created_at TEXT NOT NULL, archived_at TEXT
+      ) STRICT;
+      CREATE TABLE upload_images (
+        sha256 TEXT PRIMARY KEY, media_type TEXT NOT NULL, byte_size INTEGER NOT NULL
+      ) STRICT;
+      CREATE TABLE upload_revisions (
+        revision_id TEXT PRIMARY KEY, upload_id TEXT NOT NULL REFERENCES uploads(upload_id) ON DELETE CASCADE,
+        revision INTEGER NOT NULL CHECK(revision > 0), format TEXT NOT NULL CHECK(format IN ('text','website','image')),
+        title TEXT NOT NULL, text TEXT NOT NULL, source_url TEXT,
+        image_sha256 TEXT REFERENCES upload_images(sha256) ON DELETE RESTRICT,
+        material_revision_id TEXT REFERENCES material_revisions(revision_id) ON DELETE RESTRICT,
+        created_at TEXT NOT NULL, UNIQUE(upload_id, revision)
+      ) STRICT;
+      CREATE TRIGGER upload_revision_immutable BEFORE UPDATE ON upload_revisions
+      BEGIN SELECT RAISE(ABORT, 'OD_UPLOAD_REVISION_IMMUTABLE'); END;
+      CREATE TABLE upload_words (
+        upload_revision_id TEXT NOT NULL REFERENCES upload_revisions(revision_id) ON DELETE CASCADE,
+        vocabulary_id TEXT NOT NULL REFERENCES vocabulary_entries(vocabulary_id) ON DELETE CASCADE,
+        created_at TEXT NOT NULL, PRIMARY KEY(upload_revision_id,vocabulary_id)
+      ) STRICT;
+      CREATE TABLE upload_analyses (
+        analysis_id TEXT PRIMARY KEY, upload_revision_id TEXT NOT NULL REFERENCES upload_revisions(revision_id) ON DELETE CASCADE,
+        target_language TEXT NOT NULL, output_json TEXT NOT NULL CHECK(json_valid(output_json)),
+        selection_json TEXT CHECK(selection_json IS NULL OR json_valid(selection_json)), created_at TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE upload_saves(save_id TEXT PRIMARY KEY, request_sha256 TEXT NOT NULL, upload_revision_id TEXT NOT NULL REFERENCES upload_revisions(revision_id) ON DELETE CASCADE) STRICT;
+      CREATE TABLE upload_pending_cleanup (sha256 TEXT PRIMARY KEY) STRICT;
+      CREATE INDEX upload_words_by_word ON upload_words(vocabulary_id);
+      CREATE INDEX uploads_by_language ON uploads(target_language, created_at);
+    `,
+  },
+  {
+    version: 45,
+    name: "durable-vocabulary-evidence",
+    sql: `
+      CREATE TABLE vocabulary_evidence_jobs (
+        source_key TEXT PRIMARY KEY, learner_id TEXT NOT NULL, target_language TEXT NOT NULL,
+        activity_id TEXT NOT NULL,
+        attempt_id TEXT REFERENCES attempts(attempt_id) ON DELETE CASCADE,
+        revision TEXT NOT NULL, source_text TEXT NOT NULL, output_json TEXT,
+        state TEXT NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','running','blocked','failed','done')),
+        tries INTEGER NOT NULL DEFAULT 0, next_at INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+      ) STRICT;
+      UPDATE vocabulary_batches SET is_read=1 WHERE NOT EXISTS (
+        SELECT 1 FROM vocabulary_observations o WHERE o.batch_id=vocabulary_batches.id AND (o.was_added=1 OR o.outcome='difficulty'));
+      CREATE INDEX vocabulary_jobs_pending ON vocabulary_evidence_jobs(state,next_at);
+      ALTER TABLE vocabulary_batches ADD COLUMN activity_id TEXT;
+      UPDATE vocabulary_batches SET activity_id = substr(source_key,10,instr(substr(source_key,10),':')-1)
+        WHERE source_key LIKE 'activity:%' AND substr(source_key,10,instr(substr(source_key,10),':')-1) IN (SELECT activity_id FROM prepared_activities);
+    `,
+  },
+  {
+    version: 46,
+    name: "separate-upload-study-items",
+    sql: `
+      CREATE TABLE upload_items (
+        item_id TEXT NOT NULL, upload_id TEXT NOT NULL REFERENCES uploads(upload_id) ON DELETE CASCADE,
+        upload_revision_id TEXT NOT NULL REFERENCES upload_revisions(revision_id) ON DELETE CASCADE,
+        identity TEXT NOT NULL, item_json TEXT NOT NULL CHECK(json_valid(item_json)), created_at TEXT NOT NULL,
+        PRIMARY KEY(item_id,upload_revision_id), UNIQUE(upload_revision_id,identity)
+      ) STRICT;
+      CREATE INDEX upload_items_by_upload ON upload_items(upload_id);
+      CREATE TABLE upload_study_packs (
+        upload_revision_id TEXT PRIMARY KEY REFERENCES upload_revisions(revision_id) ON DELETE CASCADE,
+        pack_json TEXT NOT NULL CHECK(json_valid(pack_json))
+      ) STRICT;
+    `,
+  },
+  {
+    version: 47,
+    name: "upload-writing-source-snapshots",
+    sql: `CREATE TABLE upload_attempt_sources (
+      attempt_id TEXT PRIMARY KEY REFERENCES attempts(attempt_id) ON DELETE CASCADE,
+      source_json TEXT NOT NULL CHECK(json_valid(source_json))
+    ) STRICT;`,
+  },
 ] as const satisfies readonly DatabaseMigration[];
 
 export function openCallNinaDatabase(options: {

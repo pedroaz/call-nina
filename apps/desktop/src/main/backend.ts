@@ -1,4 +1,30 @@
 import {
+  claimVocabularyEvidence,
+  resumeVocabularyEvidence,
+  settleVocabularyFailure,
+  retryBlockedVocabulary,
+  hasBlockedVocabulary,
+  ingestVocabulary,
+} from "@call-nina/persistence";
+import {
+  readUpload,
+  listUploads,
+  saveUpload,
+  archiveUpload,
+  readUploadAnalyses,
+  readUploadWords,
+  commitUploadWords,
+} from "@call-nina/persistence";
+
+import { gunzipSync } from "node:zlib";
+
+import {
+  storeUploadImage,
+  readUploadImage,
+  cleanupUploadImages,
+  validateUploadImage,
+} from "./services/upload-images.js";
+import {
   generationDeadlineFor,
   ninaPublicConfiguration,
   routedProvider,
@@ -23,6 +49,7 @@ import {
   type DesktopIpcResponse,
   type ErrorKind,
   type GenerationEvent,
+  type WebsiteSource,
   type LearningScope,
   type NinaPlan,
   type ProviderAccess,
@@ -41,7 +68,6 @@ import {
   updateVocabularyLearning,
   vocabularyPracticeContext,
   readVocabularyAnalysis,
-  queueVocabularyAnalysis,
   CallNinaRepository,
   addCourseVocabulary,
   createVocabularyFlashcards,
@@ -56,6 +82,7 @@ import {
   readFlashcards,
   readLearningCourse,
   readMaterialRevision,
+  readMaterialUsage,
   readSavedTranslations,
   recoverCallNinaDataRoot,
   resolveDataRootLayout,
@@ -71,6 +98,7 @@ import {
 } from "@call-nina/persistence";
 import { SpeechService, loadLocalSpeechBundles } from "@call-nina/speech-runtime";
 import { managedSpeech } from "./speech-client.js";
+import { importWebsite } from "./services/website-import.js";
 import { createHash, randomUUID } from "node:crypto";
 import { publishSnapshot, readPublished, SyncError } from "@call-nina/mobile-sync";
 import {
@@ -136,10 +164,28 @@ import {
   type PendingSelection,
 } from "./backend-support.js";
 
+declare const __NINA_SPEECH_RUNTIMES__: string;
+
 type CodexIntegration = Extract<
   DesktopIpcResponse,
   { status: "ok"; channel: "codex/integration/read" }
 >["result"];
+
+// Compare the channel alone: narrowing the full IPC union through a long
+// boolean chain makes TypeScript's control-flow analysis prohibitively slow.
+function bypassesLearnerQueue(channel: DesktopIpcRequest["channel"]): boolean {
+  return (
+    channel.startsWith("speech/") ||
+    channel === "material/import-web" ||
+    channel === "mobile-sync/publish" ||
+    channel === "mobile-sync/read" ||
+    channel === "nina-account/read" ||
+    channel === "nina-account/update" ||
+    channel === "nina-account/diagnostic" ||
+    channel === "nina-account/credentials/read" ||
+    channel === "nina-account/credentials/save"
+  );
+}
 
 export class DesktopBackend {
   readonly #connections: ConnectionRuntime;
@@ -157,6 +203,7 @@ export class DesktopBackend {
   #rootSwitching = false;
   #storageBinding: Promise<void> | null = null;
   readonly #speechBundleDirectory: string | undefined;
+  readonly #developmentSpeechBundlesDirectory: string | undefined;
   readonly #legacySpeechCandidatesDirectory: string | undefined;
   readonly #chatgpt: ChatgptSession;
   readonly #log: ((record: AppServerLogRecord) => void) | undefined;
@@ -172,6 +219,11 @@ export class DesktopBackend {
   #repository: CallNinaRepository | undefined;
   #requestQueue: Promise<void> = Promise.resolve();
   #closing = false;
+  readonly #websiteReaders = new Map<string, AbortController>();
+  readonly #websiteCaptures = new Map<
+    string,
+    { source: WebsiteSource; rootGeneration: number; language: string }
+  >();
   readonly #nina = new NinaAccount(async () => {
     await Promise.all([...this.#connections.managedServices].map((service) => service.shutdown()));
     this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
@@ -188,6 +240,7 @@ export class DesktopBackend {
 
   constructor(options: {
     speechBundleDirectory?: string;
+    developmentSpeechBundlesDirectory?: string;
     legacySpeechCandidatesDirectory?: string;
     curriculumRoot: string;
     bootstrapFile: string;
@@ -208,6 +261,7 @@ export class DesktopBackend {
     this.#loginCredentials = options.loginCredentials;
     this.#offline = options.offlineRuntime;
     this.#speechBundleDirectory = options.speechBundleDirectory;
+    this.#developmentSpeechBundlesDirectory = options.developmentSpeechBundlesDirectory;
     this.#legacySpeechCandidatesDirectory = options.legacySpeechCandidatesDirectory;
     // No model/cache I/O takes place until a validated learner root is bound.
     this.#speech = new SpeechService(
@@ -221,7 +275,35 @@ export class DesktopBackend {
     this.#chatgpt = options.chatgpt;
     this.#chatgpt.subscribe((event) => this.#emitEvent?.(event));
     this.#log = options.log;
-    this.#emitEvent = options.emitEvent;
+    this.#emitEvent = (event) => {
+      options.emitEvent?.(event);
+      if (
+        event.event === "learning-operation-finished" &&
+        this.#vocabularyOperation?.operationId === event.operationId &&
+        event.outcome.status === "failed"
+      )
+        this.#vocabularyOperation.blocked = [
+          "authentication",
+          "model-unavailable",
+          "unsupported-operation",
+          "ai-policy",
+        ].includes(event.outcome.error.kind);
+
+      if (
+        event.event === "state-invalidated" &&
+        event.scope === "ai-connections" &&
+        this.#database
+      ) {
+        const database = this.#database;
+        void this.#enqueue(async () => {
+          if (database !== this.#database || database.closed || this.#closing) return;
+          if (!(await hasBlockedVocabulary(database))) return;
+          const access = await this.#providerAccess("vocabulary-analysis", selectionId());
+          if (access.status === "available" && database === this.#database && !database.closed)
+            await retryBlockedVocabulary(database);
+        }).catch(() => undefined);
+      }
+    };
     this.#openExternal = options.openExternal;
     this.#exportDiagnostics = options.exportDiagnostics;
     const projectEvent = (event: GenerationEvent) => {
@@ -298,7 +380,115 @@ export class DesktopBackend {
     });
   }
 
+  #vocabularyTimer: ReturnType<typeof setTimeout> | undefined;
+  #vocabularyRoot: CallNinaDatabase | undefined;
+  #vocabularyOperation:
+    | { database: CallNinaDatabase; sourceKey: string; operationId: string; blocked?: boolean }
+    | undefined;
+
+  #scheduleVocabulary() {
+    if (this.#closing || this.#vocabularyTimer) return;
+    this.#vocabularyTimer = setTimeout(() => {
+      this.#vocabularyTimer = undefined;
+      void this.#enqueue(() => this.#processVocabulary())
+        .catch(() => {
+          this.#operationLog(
+            "warn",
+            "VOCABULARY_QUEUE_FAILED",
+            selectionId(),
+            "vocabulary-analysis",
+            undefined,
+            "Vocabulary processing remains pending.",
+          );
+        })
+        .finally(() => this.#scheduleVocabulary());
+    }, 1000);
+    this.#vocabularyTimer.unref();
+  }
+
+  async #processVocabulary() {
+    const database = this.#database;
+    if (this.#closing || !database || database.closed || this.#rootSwitching) return;
+    if (this.#vocabularyRoot !== database) {
+      await resumeVocabularyEvidence(database);
+      this.#vocabularyRoot = database;
+      this.#vocabularyOperation = undefined;
+    }
+    const previous = this.#vocabularyOperation;
+    if (previous) {
+      if (this.#operations.activeOperations.has(previous.operationId)) return;
+      // Successful ingestion has already marked this job done atomically.
+      await settleVocabularyFailure(database, previous.sourceKey, previous.blocked);
+      this.#vocabularyOperation = undefined;
+      this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+    }
+    if (this.#operations.activeOperations.size >= 3) return;
+    const job = await claimVocabularyEvidence(database);
+    if (!job) return;
+    this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+    try {
+      if (job.output) {
+        await ingestVocabulary(database, {
+          language: job.language,
+          sourceKey: job.sourceKey,
+          activityId: job.activityId,
+          output: job.output,
+        });
+        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+        return;
+      }
+      const result = await this.#handleRequest(
+        desktopIpcRequestSchema.parse({
+          requestId: selectionId(),
+          channel: "learning-operation/start",
+          payload: {
+            submissionId: selectionId(),
+            input: {
+              kind: "vocabulary-analysis",
+              rootGeneration: database.rootGeneration,
+              source: { kind: "activity", activityId: job.activityId, sourceKey: job.sourceKey },
+            },
+          },
+        }),
+      );
+      if (result.status === "ok" && result.channel === "learning-operation/start") {
+        this.#vocabularyOperation = {
+          database,
+          sourceKey: job.sourceKey,
+          operationId: result.result.operationId,
+        };
+      } else {
+        await settleVocabularyFailure(
+          database,
+          job.sourceKey,
+          result.status === "error" &&
+            ["authentication", "model-unavailable", "unsupported-operation", "ai-policy"].includes(
+              result.error.kind,
+            ),
+        );
+        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+      }
+    } catch {
+      await settleVocabularyFailure(database, job.sourceKey);
+      this.#operationLog(
+        "warn",
+        "VOCABULARY_ANALYSIS_PENDING",
+        selectionId(),
+        "vocabulary-analysis",
+        undefined,
+        "Vocabulary analysis remains available for retry.",
+      );
+      this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+    }
+  }
+
   close(): void {
+    for (const controller of this.#websiteReaders.values()) controller.abort();
+    this.#websiteReaders.clear();
+    this.#websiteCaptures.clear();
+    this.#operations.websitePacks.clear();
+    if (this.#vocabularyTimer) clearTimeout(this.#vocabularyTimer);
+    this.#vocabularyTimer = undefined;
     this.#connections.offlineEpoch++;
     for (const service of this.#connections.offlineServices) void service.shutdown();
     this.#connections.offlineServices.clear();
@@ -530,11 +720,31 @@ export class DesktopBackend {
   ): Promise<LearnerSettingsRecord & { capturedContext?: CapturedTeachingContext }> {
     const repository = this.#repository;
     if (!repository || !this.#database) throw new Error("OD_DATA_ROOT_STALE");
+    if ("practiceSource" in input && input.practiceSource?.kind === "upload") {
+      if (input.practiceSource.rootGeneration !== this.#database.rootGeneration)
+        throw new Error("OD_DATA_ROOT_STALE");
+      const upload = await readUpload(
+        this.#database,
+        input.practiceSource.reference,
+        settings.learningContext.targetLanguage,
+      );
+      if (upload.archived) throw new Error("OD_UPLOAD_NOT_FOUND");
+      if (!upload.material) throw new Error("OD_UPLOAD_TEXT_REQUIRED");
+    }
+    if (
+      input.kind === "website-study-pack" &&
+      input.rootGeneration !== this.#database.rootGeneration
+    )
+      throw new Error("OD_DATA_ROOT_STALE");
     if (input.kind === "vocabulary-analysis") {
       if (input.rootGeneration !== this.#database.rootGeneration)
         throw new Error("OD_DATA_ROOT_STALE");
       if (input.source.kind === "activity") {
-        const source = await readVocabularyAnalysis(this.#database, input.source.activityId);
+        const source = await readVocabularyAnalysis(
+          this.#database,
+          input.source.activityId,
+          input.source.sourceKey,
+        );
         return repository.readLearnerSettingsForScope(source.scope);
       }
     }
@@ -628,10 +838,59 @@ export class DesktopBackend {
       ReturnType<CallNinaRepository["saveGeneratedExerciseAnswer"]>
     >["snapshot"],
   ) {
+    const resolvedUpload =
+      "practiceSource" in input && input.practiceSource?.kind === "upload" && this.#database
+        ? await readUpload(
+            this.#database,
+            input.practiceSource.reference,
+            settings.learningContext.targetLanguage,
+          )
+        : undefined;
+    const review = await this.#reviewContext(settings.learningContext);
+    const sourceTerms = resolvedUpload
+      ? [resolvedUpload.text, ...resolvedUpload.items.map((item) => item.lemma)]
+          .join("\n")
+          .normalize("NFKC")
+          .toLocaleLowerCase(settings.learningContext.targetLanguage)
+      : undefined;
+    const inSource = (lemma: string) =>
+      sourceTerms?.includes(
+        lemma.normalize("NFKC").toLocaleLowerCase(settings.learningContext.targetLanguage),
+      ) ?? true;
+    // History can shape scaffolding, but an upload must not inherit unrelated topics/words.
+    const adaptiveContext = resolvedUpload
+      ? {
+          relevantMistakes: review.relevantMistakes.filter(
+            (mistake) => mistake.kind === "grammar" || inSource(mistake.lemma),
+          ),
+          vocabularyFocuses: [],
+          vocabularyToReview: review.vocabularyToReview.filter((word) => inSource(word.lemma)),
+        }
+      : review;
+    const uploadContext = resolvedUpload?.material
+      ? {
+          uploadSource: {
+            upload: { uploadId: resolvedUpload.uploadId, revisionId: resolvedUpload.revisionId },
+            material: resolvedUpload.material,
+            items: resolvedUpload.items,
+          },
+        }
+      : {};
     const profile = settings.profile;
     const calibration =
       settings.capturedContext?.calibration ??
       buildLearningCalibration(settings.learningContext, profile);
+    if (input.kind === "website-study-pack") {
+      const capture = this.#websiteCaptures.get(input.captureId);
+      if (
+        !capture ||
+        input.rootGeneration !== this.#database?.rootGeneration ||
+        capture.rootGeneration !== input.rootGeneration ||
+        capture.language !== settings.learningContext.targetLanguage
+      )
+        throw new Error("OD_UPLOAD_ANALYSIS_STALE");
+      return { kind: input.kind, source: capture.source, calibration };
+    }
     if (input.kind === "vocabulary-analysis") {
       if (!this.#database || input.rootGeneration !== this.#database.rootGeneration)
         throw new Error("OD_DATA_ROOT_STALE");
@@ -640,7 +899,11 @@ export class DesktopBackend {
         settings.learningContext.targetLanguage,
       );
       if (input.source.kind === "activity") {
-        const source = await readVocabularyAnalysis(this.#database, input.source.activityId);
+        const source = await readVocabularyAnalysis(
+          this.#database,
+          input.source.activityId,
+          input.source.sourceKey,
+        );
         return {
           kind: input.kind,
           mode: "activity",
@@ -648,11 +911,44 @@ export class DesktopBackend {
           sourceText: source.sourceText,
           guidance: "",
           calibration,
-          knownWords: known.words.map((w) => ({
-            vocabularyId: w.vocabularyId,
-            lemma: w.lemma,
-            meaning: w.meaning,
-          })),
+          knownWords: source.knownWords,
+        };
+      }
+      if (input.source.kind === "upload") {
+        const upload = await readUpload(
+          this.#database,
+          input.source.reference,
+          settings.learningContext.targetLanguage,
+        );
+        if (upload.archived) throw new Error("OD_UPLOAD_NOT_FOUND");
+        const image =
+          upload.image && !upload.hasText
+            ? await readUploadImage(this.#database.dataRoot, upload.image)
+            : undefined;
+        return {
+          kind: input.kind,
+          mode: "upload",
+          upload: input.source.reference,
+          sourceKey: `upload:${selectionId()}`,
+          sourceText: upload.text,
+          guidance:
+            "Extract vocabulary only from this supplied content. Read image text when present.",
+          ...(image ? { image } : {}),
+          calibration,
+          knownWords: [],
+        };
+      }
+      if (input.source.kind === "preview") {
+        validateUploadImage(input.source.image);
+        return {
+          kind: input.kind,
+          mode: "preview",
+          sourceKey: `preview:${selectionId()}`,
+          sourceText: "",
+          guidance: "Read the image text verbatim. Return no proposed vocabulary.",
+          image: input.source.image,
+          calibration,
+          knownWords: [],
         };
       }
       const { image, guidance, text } = input.source;
@@ -684,16 +980,33 @@ export class DesktopBackend {
       };
     }
     if (input.kind === "flashcard-generation")
-      return { ...input, targetLevel: generationLevel[input.targetLevel] };
+      return {
+        kind: input.kind,
+        topic: input.topic,
+        cardCount: input.cardCount,
+        targetLevel: generationLevel[input.targetLevel],
+        adaptiveContext,
+        ...uploadContext,
+      };
     if (input.kind === "writing-prompt") {
       return {
-        ...input,
+        kind: input.kind,
+        ...(input.naturalRequest ? { naturalRequest: input.naturalRequest } : {}),
+        ...uploadContext,
+        adaptiveContext,
         calibration,
       };
     }
     if (input.kind === "voice-activity-draft") {
       return {
-        ...input,
+        kind: input.kind,
+        voiceKind: input.voiceKind,
+        naturalRequest: input.naturalRequest,
+        difficulty: input.difficulty,
+        correctionTiming: input.correctionTiming,
+        ...(input.speakingPace ? { speakingPace: input.speakingPace } : {}),
+        ...uploadContext,
+        adaptiveContext,
         targetLevel: generationLevel[input.targetLevel],
         calibration: { ...calibration, approximateLevel: generationLevel[input.targetLevel] },
       };
@@ -701,6 +1014,8 @@ export class DesktopBackend {
     if (input.kind === "writing-correction") {
       return {
         kind: input.kind,
+        ...uploadContext,
+        adaptiveContext,
         learnerText: input.learnerText,
         activityGoal: input.activityGoal ?? settings.learningContext.goal.description,
         calibration: {
@@ -715,9 +1030,7 @@ export class DesktopBackend {
           showConciseExplanation: profile.correctionPreferences.showConciseExplanation,
           showNaturalAlternative: profile.correctionPreferences.showNaturalAlternative,
         },
-        relevantMistakes: this.#repository
-          ? await this.#repository.readCorrectionMistakeSample(6, settings.learningContext)
-          : [],
+        relevantMistakes: adaptiveContext.relevantMistakes,
       };
     }
     if (input.kind === "contextual-help") {
@@ -756,6 +1069,9 @@ export class DesktopBackend {
       const generated = await this.#repository.readGeneratedActivity(input.activityId);
       const readingPassage = generated?.content.payload.readingMaterial?.passage;
       const readingContext = {
+        ...(generated?.context.uploadSource
+          ? { uploadSource: generated.context.uploadSource }
+          : {}),
         ...(readingPassage ? { readingPassage } : {}),
         ...(generated?.context.courseTeaching?.objectives.length
           ? {
@@ -819,7 +1135,8 @@ export class DesktopBackend {
     {
       assertExerciseGenerationContext(input);
       const reviewContext = {
-        ...(await this.#reviewContext(settings.learningContext)),
+        ...uploadContext,
+        ...adaptiveContext,
         entry: input.context,
       };
       if (input.request.source === "nina") {
@@ -1029,6 +1346,7 @@ export class DesktopBackend {
         return {
           kind: input.kind,
           ...reviewContext,
+          ...(prepared.context.uploadSource ? { uploadSource: prepared.context.uploadSource } : {}),
           naturalRequest: (prepared.context.instructions ?? prepared.context.naturalRequest).slice(
             0,
             2_000,
@@ -1114,7 +1432,12 @@ export class DesktopBackend {
       const bundleDirectory = this.#speechBundleDirectory ?? layout.preparedSpeech;
       const bundles =
         process.platform === "linux" && process.arch === "x64"
-          ? await loadLocalSpeechBundles(path.join(layout.speech, "models"), bundleDirectory)
+          ? await loadLocalSpeechBundles(
+              path.join(layout.speech, "models"),
+              bundleDirectory,
+              JSON.parse(gunzipSync(Buffer.from(__NINA_SPEECH_RUNTIMES__, "base64")).toString()),
+              this.#speechBundleDirectory ? undefined : this.#developmentSpeechBundlesDirectory,
+            )
           : undefined;
       await this.#offline.setRoot(layout.textModels);
       this.#speech = new SpeechService(layout.speech, this.#curriculumRoot, {
@@ -1195,6 +1518,7 @@ export class DesktopBackend {
         this.#repository = new CallNinaRepository(this.#database);
       }
       await this.#bindStorage(state.dataRoot);
+      this.#scheduleVocabulary();
       return {
         status: "ready" as const,
         generation: state.rootGeneration,
@@ -1420,11 +1744,7 @@ export class DesktopBackend {
       return unavailable("capability-unavailable");
     if (isDirectApiRoute(connection.routeId)) {
       const catalog = directApiCatalog(connection.routeId);
-      if (
-        !catalog.operations.includes(
-          generationKind as Exclude<typeof generationKind, "voice-handoff">,
-        )
-      )
+      if (!catalog.operations.some((kind) => kind === generationKind))
         return unavailable("capability-unavailable");
       if (this.#secrets.state().status !== "available")
         return unavailable("secure-storage-unavailable");
@@ -1498,11 +1818,7 @@ export class DesktopBackend {
       if (!this.#nina.state.access.inferenceEnabled) return unavailable("runtime-unavailable");
       const catalog = managedCatalog();
       if (!catalog) return unavailable("runtime-unavailable");
-      if (
-        !catalog.operations.includes(
-          generationKind as Exclude<typeof generationKind, "voice-handoff">,
-        )
-      )
+      if (!catalog.operations.some((kind) => kind === generationKind))
         return unavailable("capability-unavailable");
       if (retainedSelection) {
         if (
@@ -1704,18 +2020,55 @@ export class DesktopBackend {
   #mobilePublishing = false;
   #mobileAbort: AbortController | undefined;
 
+  async #captureWebsite(
+    request: Extract<DesktopIpcRequest, { channel: "material/import-web" }>,
+  ): Promise<DesktopIpcResponse> {
+    const { importId, rootGeneration, language, url } = request.payload;
+    if (this.#closing || this.#websiteReaders.size >= 4 || this.#websiteReaders.has(importId))
+      return this.#failure(request, "conflict");
+    const controller = new AbortController();
+    this.#websiteReaders.set(importId, controller);
+    try {
+      const ready = await this.#enqueue(async () => {
+        const root = await this.#dataRootState(request.requestId);
+        return (
+          root.status === "ready" &&
+          root.generation === rootGeneration &&
+          (await this.#repository?.requireLearningScope())?.targetLanguage === language
+        );
+      });
+      if (!ready) return this.#failure(request, "stale-data-root");
+      controller.signal.throwIfAborted();
+      const source = await importWebsite(url, controller.signal);
+      return await this.#enqueue(async () => {
+        if (controller.signal.aborted || this.#closing)
+          return this.#failure(request, "cancellation");
+        if (this.#database?.rootGeneration !== rootGeneration)
+          return this.#failure(request, "stale-data-root");
+        if ((await this.#repository?.requireLearningScope())?.targetLanguage !== language)
+          return this.#failure(request, "conflict");
+        while (this.#websiteCaptures.size >= 32)
+          this.#websiteCaptures.delete(this.#websiteCaptures.keys().next().value!);
+        this.#websiteCaptures.set(importId, { source, rootGeneration, language });
+        return this.#success(request, { captureId: importId, source });
+      });
+    } catch {
+      return this.#failure(request, controller.signal.aborted ? "cancellation" : "website-import");
+    } finally {
+      this.#websiteReaders.delete(importId);
+    }
+  }
+
   async handle(request: DesktopIpcRequest): Promise<DesktopIpcResponse> {
+    if (request.channel === "material/import-web") return this.#captureWebsite(request);
+    if (request.channel === "material/cancel-import") {
+      const reader = this.#websiteReaders.get(request.payload.importId);
+      reader?.abort();
+      this.#websiteCaptures.delete(request.payload.importId);
+      return this.#success(request, { cancelled: Boolean(reader) });
+    }
     // Account network calls have their own serialized queue and cannot stall local learning.
-    if (
-      request.channel.startsWith("speech/") ||
-      request.channel === "mobile-sync/publish" ||
-      request.channel === "mobile-sync/read" ||
-      request.channel === "nina-account/read" ||
-      request.channel === "nina-account/update" ||
-      request.channel === "nina-account/diagnostic" ||
-      request.channel === "nina-account/credentials/read" ||
-      request.channel === "nina-account/credentials/save"
-    ) {
+    if (bypassesLearnerQueue(request.channel)) {
       if (this.#closing) return this.#failure(request, "cancellation");
       return this.#handleRequest(request);
     }
@@ -1802,123 +2155,6 @@ export class DesktopBackend {
     integration?: CodexIntegration,
   ): Promise<DesktopIpcResponse> {
     try {
-      if (request.channel === "nina-account/credentials/read") {
-        try {
-          return this.#success(request, {
-            available: true,
-            credentials: await this.#loginCredentials.read(),
-          });
-        } catch {
-          return this.#success(request, { available: false, credentials: null });
-        }
-      }
-      if (request.channel === "nina-account/credentials/save") {
-        try {
-          await this.#loginCredentials.save(request.payload);
-          return this.#success(request, { saved: true });
-        } catch {
-          return this.#success(request, { saved: false });
-        }
-      }
-      if (request.channel === "nina-account/diagnostic") {
-        const { stage, outcome, reason } = request.payload;
-        this.#operationLog(
-          outcome === "failed" || outcome === "slow" ? "warn" : "info",
-          "NINA_LOGIN_STAGE",
-          request.requestId,
-          reason,
-          undefined,
-          "Nina sign-in stage.",
-          { action: "nina-account/login", metadata: { stage, status: outcome, reason } },
-        );
-        return this.#success(request, { recorded: true });
-      }
-      if (request.channel === "mobile-sync/publish" || request.channel === "mobile-sync/read") {
-        const publishing = request.channel === "mobile-sync/publish";
-        if (publishing) await this.#enqueue(() => this.#dataRootState(request.requestId));
-        if (publishing && this.#mobilePublishing)
-          return this.#success(request, { status: "failed", reason: "busy" });
-        if (!ninaPublicConfiguration.serviceOrigin || this.#nina.state.status !== "signed-in")
-          return this.#success(request, { status: "failed", reason: "sign-in" });
-        const epoch = this.#nina.epoch;
-        const database = this.#database;
-        if (publishing && !database)
-          return this.#success(request, { status: "failed", reason: "changed" });
-        const controller = new AbortController();
-        if (publishing) {
-          this.#mobilePublishing = true;
-          this.#mobileAbort = controller;
-        }
-        try {
-          const connection = {
-            origin: ninaPublicConfiguration.serviceOrigin,
-            token: () => this.#nina.token(epoch),
-            hash: (bytes: Uint8Array) =>
-              Promise.resolve(createHash("sha256").update(bytes).digest("hex")),
-            signal: controller.signal,
-            assertCurrent: async () => {
-              if (database) await assertCallNinaDatabaseLease(database);
-              this.#nina.assert(epoch);
-              if (
-                controller.signal.aborted ||
-                this.#closing ||
-                database !== this.#database ||
-                database?.closed
-              )
-                throw new SyncError("changed");
-            },
-          };
-          const result =
-            publishing && database
-              ? await publishSnapshot(
-                  connection,
-                  await exportMobileFlashcards(database),
-                  randomUUID(),
-                )
-              : await readPublished(connection);
-          return this.#success(
-            request,
-            result ? { status: "synced", publishedAt: result.publishedAt } : { status: "empty" },
-          );
-        } catch (error) {
-          return this.#success(request, {
-            status: "failed",
-            reason:
-              error instanceof SyncError && error.reason !== "update-required"
-                ? error.reason
-                : "unavailable",
-          });
-        } finally {
-          if (publishing) {
-            this.#mobilePublishing = false;
-            this.#mobileAbort = undefined;
-          }
-        }
-      }
-      if (request.channel === "nina-account/read") return this.#success(request, this.#nina.state);
-      if (request.channel === "nina-account/update") {
-        const previous = JSON.stringify(this.#nina.state);
-        const beforeEpoch = this.#nina.epoch;
-        const state = await this.#nina.update(request.payload.status, request.payload.token);
-        if (beforeEpoch !== this.#nina.epoch) {
-          this.#mobileAbort?.abort();
-          this.#speech.stopManaged();
-        }
-        if (JSON.stringify(state) !== previous) {
-          this.#operationLog(
-            state.status === "unavailable" || state.status === "expired" ? "warn" : "info",
-            "NINA_ACCOUNT_STATE",
-            request.requestId,
-            "account-sync",
-            undefined,
-            "Nina account state updated.",
-            { action: "nina-account/update", metadata: { status: state.status } },
-          );
-        }
-        if (JSON.stringify(state) !== previous)
-          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
-        return this.#success(request, state);
-      }
       if (
         (request.channel.startsWith("vocabulary/") ||
           request.channel.startsWith("vocabulary-set/") ||
@@ -1928,1567 +2164,1742 @@ export class DesktopBackend {
       ) {
         return this.#failure(request, "stale-data-root");
       }
-      if (
-        request.channel === "vocabulary/learning-read" ||
-        request.channel === "vocabulary/learning-update"
-      ) {
-        await this.#dataRootState(request.requestId);
-        if (!this.#database) return this.#failure(request, "stale-data-root");
-        const result =
-          request.channel === "vocabulary/learning-read"
-            ? await readVocabularyLearning(this.#database)
-            : await updateVocabularyLearning(this.#database, request.payload);
-        if (request.channel === "vocabulary/learning-update")
+      // Dispatch each channel independently without repeatedly narrowing the full IPC union.
+      switch (request.channel) {
+        case "material/import-web":
+        case "material/cancel-import":
+          return this.#failure(request, "unsupported-operation");
+        case "nina-account/credentials/read": {
+          try {
+            return this.#success(request, {
+              available: true,
+              credentials: await this.#loginCredentials.read(),
+            });
+          } catch {
+            return this.#success(request, { available: false, credentials: null });
+          }
+        }
+        case "nina-account/credentials/save": {
+          try {
+            await this.#loginCredentials.save(request.payload);
+            return this.#success(request, { saved: true });
+          } catch {
+            return this.#success(request, { saved: false });
+          }
+        }
+        case "nina-account/diagnostic": {
+          const { stage, outcome, reason } = request.payload;
+          this.#operationLog(
+            outcome === "failed" || outcome === "slow" ? "warn" : "info",
+            "NINA_LOGIN_STAGE",
+            request.requestId,
+            reason,
+            undefined,
+            "Nina sign-in stage.",
+            { action: "nina-account/login", metadata: { stage, status: outcome, reason } },
+          );
+          return this.#success(request, { recorded: true });
+        }
+        case "mobile-sync/publish":
+        case "mobile-sync/read": {
+          const publishing = request.channel === "mobile-sync/publish";
+          if (publishing) await this.#enqueue(() => this.#dataRootState(request.requestId));
+          if (publishing && this.#mobilePublishing)
+            return this.#success(request, { status: "failed", reason: "busy" });
+          if (!ninaPublicConfiguration.serviceOrigin || this.#nina.state.status !== "signed-in")
+            return this.#success(request, { status: "failed", reason: "sign-in" });
+          const epoch = this.#nina.epoch;
+          const database = this.#database;
+          if (publishing && !database)
+            return this.#success(request, { status: "failed", reason: "changed" });
+          const controller = new AbortController();
+          if (publishing) {
+            this.#mobilePublishing = true;
+            this.#mobileAbort = controller;
+          }
+          try {
+            const connection = {
+              origin: ninaPublicConfiguration.serviceOrigin,
+              token: () => this.#nina.token(epoch),
+              hash: (bytes: Uint8Array) =>
+                Promise.resolve(createHash("sha256").update(bytes).digest("hex")),
+              signal: controller.signal,
+              assertCurrent: async () => {
+                if (database) await assertCallNinaDatabaseLease(database);
+                this.#nina.assert(epoch);
+                if (
+                  controller.signal.aborted ||
+                  this.#closing ||
+                  database !== this.#database ||
+                  database?.closed
+                )
+                  throw new SyncError("changed");
+              },
+            };
+            const result =
+              publishing && database
+                ? await publishSnapshot(
+                    connection,
+                    await exportMobileFlashcards(database),
+                    randomUUID(),
+                  )
+                : await readPublished(connection);
+            return this.#success(
+              request,
+              result ? { status: "synced", publishedAt: result.publishedAt } : { status: "empty" },
+            );
+          } catch (error) {
+            return this.#success(request, {
+              status: "failed",
+              reason:
+                error instanceof SyncError && error.reason !== "update-required"
+                  ? error.reason
+                  : "unavailable",
+            });
+          } finally {
+            if (publishing) {
+              this.#mobilePublishing = false;
+              this.#mobileAbort = undefined;
+            }
+          }
+        }
+        case "nina-account/read": {
+          return this.#success(request, this.#nina.state);
+        }
+        case "nina-account/update": {
+          const previous = JSON.stringify(this.#nina.state);
+          const beforeEpoch = this.#nina.epoch;
+          const state = await this.#nina.update(request.payload.status, request.payload.token);
+          if (beforeEpoch !== this.#nina.epoch) {
+            this.#mobileAbort?.abort();
+            this.#speech.stopManaged();
+          }
+          if (JSON.stringify(state) !== previous) {
+            this.#operationLog(
+              state.status === "unavailable" || state.status === "expired" ? "warn" : "info",
+              "NINA_ACCOUNT_STATE",
+              request.requestId,
+              "account-sync",
+              undefined,
+              "Nina account state updated.",
+              { action: "nina-account/update", metadata: { status: state.status } },
+            );
+          }
+          if (JSON.stringify(state) !== previous)
+            this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+          return this.#success(request, state);
+        }
+        case "vocabulary/learning-read":
+        case "vocabulary/learning-update": {
+          await this.#dataRootState(request.requestId);
+          if (!this.#database) return this.#failure(request, "stale-data-root");
+          const result =
+            request.channel === "vocabulary/learning-read"
+              ? await readVocabularyLearning(this.#database, request.payload.activityId)
+              : await updateVocabularyLearning(this.#database, request.payload);
+          if (request.channel === "vocabulary/learning-update")
+            this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          return this.#success(request, result);
+        }
+        case "speech/availability":
+        case "speech/read":
+        case "speech/manage":
+        case "speech/synthesize": {
+          const speech = await this.#enqueue(async () => {
+            const root = await this.#dataRootState(request.requestId);
+            const pointer = await readBootstrapPointer(this.#bootstrapFile);
+            if (
+              root.status !== "ready" ||
+              pointer.status !== "ready" ||
+              !this.#database ||
+              this.#storageRoot !== pointer.dataRoot
+            )
+              return null;
+            this.#speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
+            if (request.channel === "speech/manage" && request.payload.action === "preferences")
+              await saveSpeechPreferences(
+                this.#database,
+                this.#speech.validatePreferences(request.payload.preferences),
+              );
+            if (request.channel === "speech/manage" && request.payload.action === "playback-rate")
+              await saveSpeechPreferences(this.#database, {
+                ...this.#speech.preferences,
+                playbackRate: request.payload.rate,
+              });
+            return this.#speech;
+          });
+          if (!speech) return this.#failure(request, "stale-data-root");
+          if (request.channel === "speech/availability")
+            return this.#success(
+              request,
+              await speech.availability(
+                request.payload,
+                request.payload.online,
+                this.#nina.state.access?.speech ?? null,
+              ),
+            );
+          if (request.channel === "speech/synthesize")
+            return this.#success(
+              request,
+              await speech.synthesize(
+                request.payload,
+                (input, signal, save) => managedSpeech(this.#nina, input, signal, save),
+                (audio) =>
+                  this.#emitEvent?.({
+                    event: "speech-audio",
+                    id: request.payload.id,
+                    audio: audio.toString("base64"),
+                  }),
+              ),
+            );
+          if (request.channel === "speech/manage") {
+            await speech.manage(request.payload);
+            if (request.payload.action !== "cancel")
+              this.#emitEvent?.({
+                event: "state-invalidated",
+                scope: request.payload.action === "playback-rate" ? "speech-playback" : "settings",
+              });
+          }
+          return this.#success(request, await speech.inspect());
+        }
+        case "offline-model/read":
+        case "offline-model/manage": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready") return this.#failure(request, "stale-data-root");
+          if (request.channel === "offline-model/manage") {
+            if (
+              request.payload.action !== "cancel" &&
+              (this.#operations.activeOperations.size > 0 ||
+                this.#translations.translationJobs.size > 0)
+            )
+              return this.#failure(request, "conflict");
+            if (request.payload.action === "install") this.#offline.install();
+            else if (request.payload.action === "cancel") await this.#offline.cancelDownload();
+            else await this.#offline.remove();
+            this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+          }
+          return this.#success(request, {
+            catalog: offlineCatalog(),
+            snapshot: await this.#offline.inspect(),
+          });
+        }
+        case "ai-connections/read":
+        case "ai-connections/update": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready" || !this.#database)
+            return this.#failure(request, "stale-data-root");
+          if (request.channel === "ai-connections/update") {
+            let mutation = request.payload;
+            if (mutation.action.kind === "recommend") {
+              const view = await this.#connectionsView();
+              for (const connection of view.settings.connections) {
+                connection.preference = {
+                  model: { mode: "automatic" },
+                  effort: { mode: "semantic", effort: "balanced" },
+                };
+                const state = view.availability.find(
+                  (entry) => entry.connectionId === connection.id,
+                );
+                if (
+                  state?.status === "model-unavailable" &&
+                  state.models &&
+                  resolveModelPreference(connection.preference, state.models).status === "available"
+                )
+                  state.status = "configured";
+              }
+              mutation = {
+                ...mutation,
+                action: {
+                  kind: "routing",
+                  routing: recommendedRouting(view),
+                  resetModelDefaults: true,
+                },
+              };
+              // Recommendations reset model choices atomically in the mutation owner.
+            }
+            if (
+              request.payload.action.kind !== "routing" &&
+              request.payload.action.kind !== "recommend" &&
+              (this.#operations.activeOperations.size > 0 ||
+                this.#translations.translationJobs.size > 0)
+            )
+              return this.#failure(request, "conflict");
+            if (mutation.action.kind === "routing") {
+              const view = await this.#connectionsView();
+              const next = mutation.action.routing;
+              const previous = view.settings.routing;
+              const assignments = [
+                { route: next.text, prior: previous.text, capability: "text" as const },
+                { route: next.image, prior: previous.image, capability: "image" as const },
+                ...Object.entries(next.actions).map(([action, route]) => ({
+                  route,
+                  prior: previous.actions[action as keyof typeof previous.actions],
+                  capability: "text" as const,
+                })),
+              ];
+              for (const assignment of assignments) {
+                if (!assignment.route || assignment.route === assignment.prior) continue;
+                const connection = view.settings.connections.find(
+                  (entry) => entry.routeId === assignment.route,
+                );
+                const status = view.availability.find(
+                  (entry) => entry.connectionId === connection?.id,
+                )?.status;
+                if (
+                  !connection ||
+                  (status !== "available" && status !== "configured") ||
+                  !providerSupports(view, connection, assignment.capability)
+                )
+                  return this.#failure(request, "conflict");
+              }
+            }
+            await mutateConnections(this.#database, this.#secrets, mutation, async () => {});
+            this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+          }
+          return this.#success(request, await this.#connectionsView());
+        }
+        case "translation/flashcard-visibility": {
+          const root = await this.#dataRootState(request.requestId);
+          if (
+            root.status !== "ready" ||
+            root.generation !== request.payload.rootGeneration ||
+            !this.#database
+          )
+            return this.#failure(request, "stale-data-root");
+          if (request.payload.visible) {
+            await validateTranslationReveal(this.#database, request.payload);
+            // Only the currently displayed back is authorized; a new flip revokes old capabilities.
+            this.#translations.translationReveals.clear();
+            this.#translations.translationReveals.set(request.payload.revealId, request.payload);
+          } else this.#translations.translationReveals.delete(request.payload.revealId);
+          return this.#success(request, { visible: request.payload.visible });
+        }
+        case "translation/read":
+        case "translation/start": {
+          const root = await this.#dataRootState(request.requestId);
+          if (
+            root.status !== "ready" ||
+            root.generation !== request.payload.rootGeneration ||
+            !this.#database ||
+            !this.#repository
+          )
+            return this.#failure(request, "stale-data-root");
+          const database = this.#database;
+          const source = await readSavedTranslations(
+            database,
+            translationRequestSchema.parse({
+              rootGeneration: request.payload.rootGeneration,
+              activityId: request.payload.activityId,
+              content: request.payload.content,
+              field: request.payload.field,
+            }),
+            this.#translations.translationReveal(request.payload),
+          );
+          if (request.channel === "translation/read")
+            return this.#success(request, { translations: source.translations });
+          if (source.translations.some((item) => item.language === request.payload.language))
+            return this.#success(request, {
+              operationId: request.payload.operationId,
+              status: "saved",
+            });
+          if (
+            this.#translations.translationJobs.size > 0 ||
+            this.#operations.activeOperations.has(request.payload.operationId)
+          )
+            return this.#failure(request, "conflict");
+          if (!(await this.#hasAcknowledgedAiDisclosure()))
+            return this.#failure(request, "validation");
+          const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
+          const access = await this.#providerAccess("translation", request.requestId);
+          if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
+          if (
+            (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+            this.#operations.activeOperations.size >= 4
+          )
+            return this.#failure(request, "conflict");
+          if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
+          const job: TranslationJob = {
+            request: request.payload,
+            cancelled: false,
+            providerOperationId: undefined,
+          };
+          this.#translations.translationJobs.set(request.payload.operationId, job);
+          this.#operations.activeOperations.add(request.payload.operationId);
+          void this.#translations.runTranslation(
+            job,
+            database,
+            source,
+            settings.learningContext,
+            {
+              model: { selection: "exact", modelId: access.modelSelection.modelId },
+              effort:
+                access.routeId === "managed"
+                  ? { selection: "runtime-default" }
+                  : { selection: "exact", effortId: access.modelSelection.effortId },
+            },
+            await this.#requireRoutedConnection("translation"),
+          );
+          return this.#success(request, {
+            operationId: request.payload.operationId,
+            status: "accepted",
+          });
+        }
+        case "translation/cancel": {
+          const job = this.#translations.translationJobs.get(request.payload.operationId);
+          if (job && job.request.rootGeneration !== request.payload.rootGeneration)
+            return this.#failure(request, "stale-data-root");
+          if (job) {
+            job.cancelled = true;
+            if (job.providerOperationId)
+              await this.#connections.operationServices
+                .get(job.providerOperationId)
+                ?.cancelOperation(job.providerOperationId);
+          }
+          return this.#success(request, { status: job ? "cancelling" : "already-finished" });
+        }
+        case "app/readiness": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          return this.#success(request, {
+            status: dataRoot.status === "ready" ? "ready" : "degraded",
+            dataRoot,
+            codex: integration,
+          });
+        }
+        case "provider/access/read": {
+          let retainedSelection: AcceptedOperation["operation"]["modelSelection"] | undefined;
+          let retainedConnection: AiConnection | undefined;
+          let hasImage = request.payload.hasImage ?? false;
+          if (request.payload.previousOperationId) {
+            const dataRoot = await this.#dataRootState(request.requestId);
+            if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
+            const prior = [...this.#operations.operationsBySubmission.values()].find(
+              ({ operationId }) => operationId === request.payload.previousOperationId,
+            );
+            if (!prior) return this.#failure(request, "not-found");
+            if (prior.dataRootGeneration !== dataRoot.generation)
+              return this.#failure(request, "stale-data-root");
+            if (
+              prior.operation.input.kind !== request.payload.operation ||
+              !this.#operations.retryableOperations.has(prior.operationId)
+            )
+              return this.#failure(request, "conflict");
+            // Resolve retry access from main-owned state, never the current sidebar preference.
+            retainedSelection = prior.operation.modelSelection;
+            retainedConnection = prior.connection;
+            hasImage = prior.operation.capability === "image";
+          }
+          return this.#success(
+            request,
+            await this.#providerAccess(
+              request.payload.operation,
+              request.requestId,
+              retainedSelection,
+              retainedConnection,
+              integration,
+              hasImage,
+            ),
+          );
+        }
+        case "data-root/read": {
+          return this.#success(request, await this.#dataRootState(request.requestId));
+        }
+        case "data-root/choose": {
+          const current = await this.#dataRootState(request.requestId);
+          const chosen = await this.#chooseDirectory();
+          if (!chosen) return this.#success(request, { status: "cancelled" });
+          const plan = await inspectDataRootChoice(chosen, {
+            knownInstallRoots: this.#knownInstallRoots,
+          });
+          const pointer = await readBootstrapPointer(this.#bootstrapFile);
+          const pointerGeneration = "rootGeneration" in pointer ? pointer.rootGeneration : null;
+          const expectedGeneration =
+            current.status === "ready" ? current.generation : pointerGeneration;
+          const mode =
+            expectedGeneration === null
+              ? "initialize"
+              : this.#database && !this.#database.closed
+                ? "switch"
+                : "recover";
+          const id = selectionId();
+          this.#pending.clear();
+          this.#pending.set(id, { plan, expectedGeneration, mode });
+          return this.#success(request, {
+            status: "selected",
+            selectionId: id,
+            generation: dataRootGenerationSchema.parse((expectedGeneration ?? 0) + 1),
+            displayName: plan.dataRoot,
+            warnings: plan.warnings,
+          });
+        }
+        case "data-root/confirm": {
+          if (this.#rootSwitching) return this.#failure(request, "data-root-busy");
+          this.#mobileAbort?.abort();
+          if (this.#operations.activeOperations.size > 0)
+            return this.#failure(request, "data-root-busy");
+          const pending = this.#pending.get(request.payload.selectionId);
+          if (!pending) return this.#failure(request, "conflict");
+          this.#rootSwitching = true;
+          try {
+            this.#storageRoot = null;
+            this.#offline.suspend();
+            await this.#connections.stopConnectionRuntime();
+            await this.#speech.close();
+            this.#pending.delete(request.payload.selectionId);
+            const timestamp = new Date().toISOString();
+            if (pending.mode === "initialize") {
+              this.#database = await initializeCallNinaDataRoot({
+                bootstrapFile: this.#bootstrapFile,
+                selection: pending.plan,
+                selectedAt: timestamp,
+                createdAt: timestamp,
+              });
+            } else if (pending.mode === "switch") {
+              if (!this.#database) return this.#failure(request, "stale-data-root");
+              this.#database = await switchCallNinaDataRoot({
+                currentDatabase: this.#database,
+                bootstrapFile: this.#bootstrapFile,
+                nextSelection: pending.plan,
+                expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
+                selectedAt: timestamp,
+                createdAt: timestamp,
+              });
+            } else {
+              if (pending.expectedGeneration === null) return this.#failure(request, "conflict");
+              this.#database = await recoverCallNinaDataRoot({
+                bootstrapFile: this.#bootstrapFile,
+                nextSelection: pending.plan,
+                expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
+                selectedAt: timestamp,
+                createdAt: timestamp,
+              });
+            }
+            this.#repository = new CallNinaRepository(this.#database);
+            for (const operation of this.#operations.operationsBySubmission.values()) {
+              this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
+            }
+            this.#operations.operationsBySubmission.clear();
+            this.#operations.retryableOperations.clear();
+            this.#operations.helperSessions.clear();
+            this.#translations.translationReveals.clear();
+            this.#rootSwitching = false;
+            const state = await this.#dataRootState(request.requestId);
+            if (state.status === "ready") {
+              this.#emitEvent?.({
+                event: "data-root-changed",
+                generation: state.generation,
+                displayName: state.displayName,
+              });
+            }
+            return this.#success(request, state);
+          } finally {
+            this.#rootSwitching = false;
+          }
+        }
+        case "privacy/ai-disclosure/read": {
+          const acknowledged = this.#repository
+            ? await this.#repository.hasAcknowledgedFirstAiDisclosure()
+            : false;
+          return this.#success(request, { acknowledged });
+        }
+        case "privacy/ai-disclosure/acknowledge": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.acknowledgeFirstAiDisclosure(new Date().toISOString());
+          return this.#success(request, { acknowledged: true });
+        }
+        case "learner-profile/read": {
+          const settings = await this.#readActiveLearnerSettings();
+          return this.#success(
+            request,
+            settings
+              ? { status: "ready", profile: this.#profileSummary(settings) }
+              : { status: "not-created" },
+          );
+        }
+        case "learner-profile/start-onboarding": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready" || root.generation !== request.payload.expectedGeneration)
+            return this.#failure(request, "stale-data-root");
+          const learnerId = learnerIdSchema.parse(opaqueId("learner"));
+          const existing = await this.#readActiveLearnerSettings();
+          if (existing) {
+            const summary = this.#profileSummary(existing);
+            const same =
+              summary.onboardingState === "in-progress" &&
+              summary.learnerName === request.payload.learnerName &&
+              summary.uiLocale === request.payload.uiLocale &&
+              summary.approximateLevel === request.payload.approximateLevel &&
+              summary.everydayLifeGoal === request.payload.everydayLifeGoal &&
+              summary.defaultTeachingProfileId === request.payload.defaultTeachingProfileId &&
+              summary.explanationLanguage === request.payload.explanationLanguage &&
+              summary.placement.status === request.payload.placement.status;
+            if (!same) return this.#failure(request, "conflict");
+            return this.#success(request, { status: "ready", profile: summary });
+          }
+          const timestamp = utcInstantSchema.parse(new Date().toISOString());
+          const profile = createInitialLearnerProfile({
+            targetLanguage: request.payload.targetLanguage,
+            schemaVersion: 1,
+            learnerId,
+            levelEstimate: {
+              currentLevel: request.payload.approximateLevel,
+              targetLevel: request.payload.approximateLevel,
+              basis: "self-reported",
+              updatedAt: timestamp,
+            },
+            everydayLifeGoal: request.payload.everydayLifeGoal,
+            motivation: request.payload.everydayLifeGoal,
+            interests: [],
+            preferredTopics: [],
+            correctionPreferences: {
+              timing: "immediate",
+              coverage: "all-meaningful",
+              showConciseExplanation: true,
+              showNaturalAlternative: true,
+            },
+            onboardingState: "in-progress",
+            inferredStrengths: [],
+            inferredWeaknesses: [],
+            explanationLanguage: request.payload.explanationLanguage,
+            defaultTeachingProfileId: request.payload.defaultTeachingProfileId,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          });
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const settings = {
+            learnerName: request.payload.learnerName,
+            profile: { ...profile, uiLocale: request.payload.uiLocale },
+          };
+          const stored = await this.#repository.createLearnerSettings(settings);
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            status: "ready",
+            profile: this.#profileSummary(stored),
+          });
+        }
+        case "learner-profile/finish-onboarding": {
+          const root = await this.#dataRootState(request.requestId);
+          if (
+            root.status !== "ready" ||
+            root.generation !== request.payload.expectedGeneration ||
+            !this.#repository
+          )
+            return this.#failure(request, "stale-data-root");
+          const repository = this.#repository;
+          const current = await repository.readCurrentLearnerSettings();
+          if (!current) return this.#failure(request, "not-found");
+          if (current.profile.updatedAt !== request.payload.expectedUpdatedAt)
+            return this.#failure(request, "conflict");
+          if (current.profile.onboardingState === "complete")
+            return this.#success(request, {
+              status: "ready",
+              profile: this.#profileSummary(current),
+            });
+          if (repository !== this.#repository) return this.#failure(request, "stale-data-root");
+          const stored = await repository.updateLearnerSettings({
+            expectedUpdatedAt: current.profile.updatedAt,
+            settings: {
+              ...current,
+              profile: {
+                ...current.profile,
+                onboardingState: "complete",
+                updatedAt: freshTimestampAfter(current.profile.updatedAt),
+              },
+            },
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
+          return this.#success(request, { status: "ready", profile: this.#profileSummary(stored) });
+        }
+        case "placement/complete": {
+          const current = await this.#readActiveLearnerSettings();
+          if (!current) return this.#failure(request, "not-found");
+          // A short local diagnostic records evidence; level changes remain explicit Settings edits.
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const historyEntryId = (
+            await this.#repository.savePlacementResult(request.payload.result, request.requestId)
+          ).historyEntryId;
+          this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            status: "completed",
+            historyEntryId,
+            profile: this.#profileSummary(current),
+          });
+        }
+        case "codex-activity/prepare": {
+          if (
+            !this.#database ||
+            (await readAiConnections(this.#database)).routing.liveConversation !== "codex"
+          )
+            return this.#failure(request, "not-found");
+          const activities = await this.#activities(request.requestId);
+          const accepted = [...this.#operations.operationsBySubmission.values()].find(
+            (operation) =>
+              operation.validatedVoiceModelRequestId === request.payload.draftModelRequestId,
+          );
+          if (!accepted || accepted.dataRootGeneration !== activities.generation)
+            return this.#failure(request, "exercise-context-missing");
+          const input = accepted.operation.input;
+          if (
+            input.kind !== "voice-activity-draft" ||
+            input.voiceKind !== request.payload.context.kind ||
+            input.targetLevel !== generationLevel[request.payload.context.targetLevel]
+          )
+            return this.#failure(request, "validation");
+          return this.#success(
+            request,
+            await activities.prepareVoice(
+              {
+                action: "prepare-voice",
+                title: request.payload.title,
+                context: request.payload.context,
+                learningScope: {
+                  learnerId: input.learningContext.learnerId,
+                  courseId: input.learningContext.courseId,
+                  targetLanguage: input.learningContext.targetLanguage,
+                },
+                expectedGeneration: activities.generation,
+              },
+              request.requestId,
+              { learningContext: input.learningContext, calibration: input.calibration },
+              input.uploadSource,
+            ),
+          );
+        }
+        case "development-notice/read":
+        case "development-notice/dismiss": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready" || !this.#repository)
+            return this.#failure(request, "stale-data-root");
+          if (request.channel === "development-notice/read")
+            return this.#success(request, {
+              pending: await this.#repository.readDevelopmentNotice(),
+            });
+          await this.#repository.dismissDevelopmentNotice();
+          return this.#success(request, { dismissed: true });
+        }
+        case "learner-settings/select-language": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (
+            dataRoot.status !== "ready" ||
+            dataRoot.generation !== request.payload.expectedGeneration ||
+            !this.#repository
+          )
+            return this.#failure(request, "stale-data-root");
+          const settings = await this.#repository.selectLearningLanguage(
+            request.payload.targetLanguage,
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
           this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        return this.#success(request, result);
-      }
-      if (
-        request.channel === "speech/availability" ||
-        request.channel === "speech/read" ||
-        request.channel === "speech/manage" ||
-        request.channel === "speech/synthesize"
-      ) {
-        const speech = await this.#enqueue(async () => {
+          return this.#success(request, this.#settingsProjection(settings, dataRoot));
+        }
+        case "stories/read":
+        case "stories/position":
+        case "stories/vocabulary": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready" || !this.#repository || !this.#database)
+            return this.#failure(request, "stale-data-root");
+          const db = this.#database;
+          const context = await this.#repository.requireLearningContext();
+          const stories = (await readStories(this.#curriculumRoot)).filter(
+            (story) => story.language === context.targetLanguage,
+          );
+          if (request.channel === "stories/read")
+            return this.#success(request, {
+              rootGeneration: root.generation,
+              learningContext: context,
+              stories,
+              positions: await storyPositions(db, context),
+            });
+          if (
+            request.payload.expectedGeneration !== root.generation ||
+            request.payload.language !== context.targetLanguage
+          )
+            return this.#failure(request, "stale-data-root");
+          const story = stories.find((item) => item.id === request.payload.storyId);
+          if (!story) return this.#failure(request, "not-found");
+          if (request.channel === "stories/position") {
+            await saveStoryPosition(db, context, story, request.payload.paragraph);
+            return this.#success(request, { saved: true });
+          }
+          const added = await saveStoryWord(db, context, story, request.payload.word);
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          return this.#success(request, { added });
+        }
+        case "learner-settings/read": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
+          const settings = await this.#readActiveLearnerSettings();
+          if (!settings) return this.#failure(request, "not-found");
+          return this.#success(request, this.#settingsProjection(settings, dataRoot));
+        }
+        case "learner-settings/update": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
+          const current = await this.#readActiveLearnerSettings();
+          if (!current) return this.#failure(request, "not-found");
+          const timestamp = freshTimestampAfter(current.profile.updatedAt);
+          const editable = request.payload.settings;
+          if (
+            editable.learningScope.learnerId !== current.profile.learnerId ||
+            editable.learningScope.targetLanguage !== current.profile.targetLanguage
+          )
+            return this.#failure(request, "conflict");
+          const levelChanged =
+            editable.approximateLevel !== current.profile.levelEstimate.currentLevel;
+          const next: LearnerSettingsRecord = {
+            ...current,
+            learnerName: editable.learnerName,
+            learningContext: { ...current.learningContext, ...editable.learningScope },
+            profile: {
+              ...current.profile,
+              levelEstimate: levelChanged
+                ? {
+                    ...current.profile.levelEstimate,
+                    currentLevel: editable.approximateLevel,
+                    basis: "self-reported",
+                    updatedAt: timestamp,
+                  }
+                : current.profile.levelEstimate,
+              everydayLifeGoal: editable.everydayLifeGoal,
+              defaultTeachingProfileId: editable.defaultTeachingProfileId,
+              explanationLanguage: editable.explanationLanguage,
+              uiLocale: editable.uiLocale,
+              correctionPreferences: editable.correctionPreferences,
+              updatedAt: timestamp,
+            },
+          };
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          let stored: LearnerSettingsRecord;
+          try {
+            stored = await this.#repository.updateLearnerSettings({
+              expectedUpdatedAt: utcInstantSchema.parse(request.payload.expectedUpdatedAt),
+              settings: next,
+            });
+          } catch (error) {
+            if (error instanceof Error && error.message === "OD_LEARNER_SETTINGS_CONFLICT") {
+              return this.#failure(request, "conflict");
+            }
+            throw error;
+          }
+          this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
+          return this.#success(request, this.#settingsProjection(stored, dataRoot));
+        }
+        case "personal-data/clear": {
+          if (this.#operations.activeOperations.size > 0) {
+            return this.#success(request, { status: "blocked", reason: "busy" });
+          }
+          const root = await this.#dataRootState(request.requestId);
+          if (
+            root.status !== "ready" ||
+            !this.#repository ||
+            root.generation !== request.payload.expectedGeneration
+          ) {
+            return this.#failure(request, "stale-data-root");
+          }
+          const speech = this.#speech;
+          {
+            const pointer = await readBootstrapPointer(this.#bootstrapFile);
+            if (
+              pointer.status !== "ready" ||
+              !this.#database ||
+              pointer.rootGeneration !== request.payload.expectedGeneration
+            )
+              return this.#failure(request, "stale-data-root");
+            speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
+          }
+          const result = await this.#repository.clearPersonalData(request.payload);
+          if (result.status === "cleared") {
+            const uploadImagesCleared = this.#database
+              ? await cleanupUploadImages(this.#database)
+              : false;
+            let privateSpeechFailed = false;
+            try {
+              await speech.manage({ action: "clear-private-cache" });
+            } catch {
+              privateSpeechFailed = true;
+              this.#operationLog(
+                "warn",
+                "OD_PERSONAL_DATA_AUDIO_CLEANUP_FAILED",
+                request.requestId,
+                request.channel,
+                undefined,
+                "Private speech cleanup did not finish.",
+                { action: request.channel, phase: "failed", outcome: "error" },
+              );
+            }
+            for (const operation of this.#operations.operationsBySubmission.values()) {
+              this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
+            }
+            this.#operations.operationsBySubmission.clear();
+            this.#operations.retryableOperations.clear();
+            this.#operations.helperSessions.clear();
+            this.#translations.translationReveals.clear();
+            for (const scope of ["dashboard", "history", "vocabulary", "settings"] as const) {
+              this.#emitEvent?.({ event: "state-invalidated", scope });
+            }
+            if (!uploadImagesCleared)
+              return this.#success(request, {
+                status: "partial",
+                scope: request.payload.scope,
+                reason: "upload-images",
+              });
+            if (privateSpeechFailed)
+              return this.#success(request, {
+                status: "partial",
+                scope: request.payload.scope,
+                reason: "private-speech",
+              });
+          }
+          return this.#success(request, result);
+        }
+        case "personal-data/read": {
           const root = await this.#dataRootState(request.requestId);
           const pointer = await readBootstrapPointer(this.#bootstrapFile);
           if (
             root.status !== "ready" ||
             pointer.status !== "ready" ||
+            !this.#repository ||
             !this.#database ||
-            this.#storageRoot !== pointer.dataRoot
-          )
-            return null;
-          this.#speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
-          if (request.channel === "speech/manage" && request.payload.action === "preferences")
-            await saveSpeechPreferences(
-              this.#database,
-              this.#speech.validatePreferences(request.payload.preferences),
-            );
-          if (request.channel === "speech/manage" && request.payload.action === "playback-rate")
-            await saveSpeechPreferences(this.#database, {
-              ...this.#speech.preferences,
-              playbackRate: request.payload.rate,
-            });
-          return this.#speech;
-        });
-        if (!speech) return this.#failure(request, "stale-data-root");
-        if (request.channel === "speech/availability")
-          return this.#success(
-            request,
-            await speech.availability(
-              request.payload,
-              request.payload.online,
-              this.#nina.state.access?.speech ?? null,
-            ),
-          );
-        if (request.channel === "speech/synthesize")
-          return this.#success(
-            request,
-            await speech.synthesize(
-              request.payload,
-              (input, signal, save) => managedSpeech(this.#nina, input, signal, save),
-              (audio) =>
-                this.#emitEvent?.({
-                  event: "speech-audio",
-                  id: request.payload.id,
-                  audio: audio.toString("base64"),
-                }),
-            ),
-          );
-        if (request.channel === "speech/manage") {
-          await speech.manage(request.payload);
-          if (request.payload.action !== "cancel")
-            this.#emitEvent?.({
-              event: "state-invalidated",
-              scope: request.payload.action === "playback-rate" ? "speech-playback" : "settings",
-            });
-        }
-        return this.#success(request, await speech.inspect());
-      }
-      if (request.channel === "offline-model/read" || request.channel === "offline-model/manage") {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready") return this.#failure(request, "stale-data-root");
-        if (request.channel === "offline-model/manage") {
-          if (
-            request.payload.action !== "cancel" &&
-            (this.#operations.activeOperations.size > 0 ||
-              this.#translations.translationJobs.size > 0)
-          )
-            return this.#failure(request, "conflict");
-          if (request.payload.action === "install") this.#offline.install();
-          else if (request.payload.action === "cancel") await this.#offline.cancelDownload();
-          else await this.#offline.remove();
-          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
-        }
-        return this.#success(request, {
-          catalog: offlineCatalog(),
-          snapshot: await this.#offline.inspect(),
-        });
-      }
-      if (
-        request.channel === "ai-connections/read" ||
-        request.channel === "ai-connections/update"
-      ) {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready" || !this.#database)
-          return this.#failure(request, "stale-data-root");
-        if (request.channel === "ai-connections/update") {
-          let mutation = request.payload;
-          if (mutation.action.kind === "recommend") {
-            const view = await this.#connectionsView();
-            for (const connection of view.settings.connections) {
-              connection.preference = {
-                model: { mode: "automatic" },
-                effort: { mode: "semantic", effort: "balanced" },
-              };
-              const state = view.availability.find((entry) => entry.connectionId === connection.id);
-              if (
-                state?.status === "model-unavailable" &&
-                state.models &&
-                resolveModelPreference(connection.preference, state.models).status === "available"
-              )
-                state.status = "configured";
-            }
-            mutation = {
-              ...mutation,
-              action: {
-                kind: "routing",
-                routing: recommendedRouting(view),
-                resetModelDefaults: true,
-              },
-            };
-            // Recommendations reset model choices atomically in the mutation owner.
-          }
-          if (
-            request.payload.action.kind !== "routing" &&
-            request.payload.action.kind !== "recommend" &&
-            (this.#operations.activeOperations.size > 0 ||
-              this.#translations.translationJobs.size > 0)
-          )
-            return this.#failure(request, "conflict");
-          if (mutation.action.kind === "routing") {
-            const view = await this.#connectionsView();
-            const next = mutation.action.routing;
-            const previous = view.settings.routing;
-            const assignments = [
-              { route: next.text, prior: previous.text, capability: "text" as const },
-              { route: next.image, prior: previous.image, capability: "image" as const },
-              ...Object.entries(next.actions).map(([action, route]) => ({
-                route,
-                prior: previous.actions[action as keyof typeof previous.actions],
-                capability: "text" as const,
-              })),
-            ];
-            for (const assignment of assignments) {
-              if (!assignment.route || assignment.route === assignment.prior) continue;
-              const connection = view.settings.connections.find(
-                (entry) => entry.routeId === assignment.route,
-              );
-              const status = view.availability.find(
-                (entry) => entry.connectionId === connection?.id,
-              )?.status;
-              if (
-                !connection ||
-                (status !== "available" && status !== "configured") ||
-                !providerSupports(view, connection, assignment.capability)
-              )
-                return this.#failure(request, "conflict");
-            }
-          }
-          await mutateConnections(this.#database, this.#secrets, mutation, async () => {});
-          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
-        }
-        return this.#success(request, await this.#connectionsView());
-      }
-      if (request.channel === "translation/flashcard-visibility") {
-        const root = await this.#dataRootState(request.requestId);
-        if (
-          root.status !== "ready" ||
-          root.generation !== request.payload.rootGeneration ||
-          !this.#database
-        )
-          return this.#failure(request, "stale-data-root");
-        if (request.payload.visible) {
-          await validateTranslationReveal(this.#database, request.payload);
-          // Only the currently displayed back is authorized; a new flip revokes old capabilities.
-          this.#translations.translationReveals.clear();
-          this.#translations.translationReveals.set(request.payload.revealId, request.payload);
-        } else this.#translations.translationReveals.delete(request.payload.revealId);
-        return this.#success(request, { visible: request.payload.visible });
-      }
-      if (request.channel === "translation/read" || request.channel === "translation/start") {
-        const root = await this.#dataRootState(request.requestId);
-        if (
-          root.status !== "ready" ||
-          root.generation !== request.payload.rootGeneration ||
-          !this.#database ||
-          !this.#repository
-        )
-          return this.#failure(request, "stale-data-root");
-        const database = this.#database;
-        const source = await readSavedTranslations(
-          database,
-          translationRequestSchema.parse({
-            rootGeneration: request.payload.rootGeneration,
-            activityId: request.payload.activityId,
-            content: request.payload.content,
-            field: request.payload.field,
-          }),
-          this.#translations.translationReveal(request.payload),
-        );
-        if (request.channel === "translation/read")
-          return this.#success(request, { translations: source.translations });
-        if (source.translations.some((item) => item.language === request.payload.language))
-          return this.#success(request, {
-            operationId: request.payload.operationId,
-            status: "saved",
-          });
-        if (
-          this.#translations.translationJobs.size > 0 ||
-          this.#operations.activeOperations.has(request.payload.operationId)
-        )
-          return this.#failure(request, "conflict");
-        if (!(await this.#hasAcknowledgedAiDisclosure()))
-          return this.#failure(request, "validation");
-        const settings = await this.#repository.readLearnerSettingsForScope(source.learningScope);
-        const access = await this.#providerAccess("translation", request.requestId);
-        if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (
-          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#operations.activeOperations.size >= 4
-        )
-          return this.#failure(request, "conflict");
-        if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
-        const job: TranslationJob = {
-          request: request.payload,
-          cancelled: false,
-          providerOperationId: undefined,
-        };
-        this.#translations.translationJobs.set(request.payload.operationId, job);
-        this.#operations.activeOperations.add(request.payload.operationId);
-        void this.#translations.runTranslation(
-          job,
-          database,
-          source,
-          settings.learningContext,
-          {
-            model: { selection: "exact", modelId: access.modelSelection.modelId },
-            effort:
-              access.routeId === "managed"
-                ? { selection: "runtime-default" }
-                : { selection: "exact", effortId: access.modelSelection.effortId },
-          },
-          await this.#requireRoutedConnection("translation"),
-        );
-        return this.#success(request, {
-          operationId: request.payload.operationId,
-          status: "accepted",
-        });
-      }
-      if (request.channel === "translation/cancel") {
-        const job = this.#translations.translationJobs.get(request.payload.operationId);
-        if (job && job.request.rootGeneration !== request.payload.rootGeneration)
-          return this.#failure(request, "stale-data-root");
-        if (job) {
-          job.cancelled = true;
-          if (job.providerOperationId)
-            await this.#connections.operationServices
-              .get(job.providerOperationId)
-              ?.cancelOperation(job.providerOperationId);
-        }
-        return this.#success(request, { status: job ? "cancelling" : "already-finished" });
-      }
-      if (request.channel === "app/readiness") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        return this.#success(request, {
-          status: dataRoot.status === "ready" ? "ready" : "degraded",
-          dataRoot,
-          codex: integration,
-        });
-      }
-      if (request.channel === "provider/access/read") {
-        let retainedSelection: AcceptedOperation["operation"]["modelSelection"] | undefined;
-        let retainedConnection: AiConnection | undefined;
-        let hasImage = request.payload.hasImage ?? false;
-        if (request.payload.previousOperationId) {
-          const dataRoot = await this.#dataRootState(request.requestId);
-          if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-          const prior = [...this.#operations.operationsBySubmission.values()].find(
-            ({ operationId }) => operationId === request.payload.previousOperationId,
-          );
-          if (!prior) return this.#failure(request, "not-found");
-          if (prior.dataRootGeneration !== dataRoot.generation)
+            root.generation !== pointer.rootGeneration
+          ) {
             return this.#failure(request, "stale-data-root");
-          if (
-            prior.operation.input.kind !== request.payload.operation ||
-            !this.#operations.retryableOperations.has(prior.operationId)
-          )
-            return this.#failure(request, "conflict");
-          // Resolve retry access from main-owned state, never the current sidebar preference.
-          retainedSelection = prior.operation.modelSelection;
-          retainedConnection = prior.connection;
-          hasImage = prior.operation.capability === "image";
-        }
-        return this.#success(
-          request,
-          await this.#providerAccess(
-            request.payload.operation,
-            request.requestId,
-            retainedSelection,
-            retainedConnection,
-            integration,
-            hasImage,
-          ),
-        );
-      }
-      if (request.channel === "data-root/read") {
-        return this.#success(request, await this.#dataRootState(request.requestId));
-      }
-      if (request.channel === "data-root/choose") {
-        const current = await this.#dataRootState(request.requestId);
-        const chosen = await this.#chooseDirectory();
-        if (!chosen) return this.#success(request, { status: "cancelled" });
-        const plan = await inspectDataRootChoice(chosen, {
-          knownInstallRoots: this.#knownInstallRoots,
-        });
-        const pointer = await readBootstrapPointer(this.#bootstrapFile);
-        const pointerGeneration = "rootGeneration" in pointer ? pointer.rootGeneration : null;
-        const expectedGeneration =
-          current.status === "ready" ? current.generation : pointerGeneration;
-        const mode =
-          expectedGeneration === null
-            ? "initialize"
-            : this.#database && !this.#database.closed
-              ? "switch"
-              : "recover";
-        const id = selectionId();
-        this.#pending.clear();
-        this.#pending.set(id, { plan, expectedGeneration, mode });
-        return this.#success(request, {
-          status: "selected",
-          selectionId: id,
-          generation: dataRootGenerationSchema.parse((expectedGeneration ?? 0) + 1),
-          displayName: plan.dataRoot,
-          warnings: plan.warnings,
-        });
-      }
-      if (request.channel === "data-root/confirm") {
-        if (this.#rootSwitching) return this.#failure(request, "data-root-busy");
-        this.#mobileAbort?.abort();
-        if (this.#operations.activeOperations.size > 0)
-          return this.#failure(request, "data-root-busy");
-        const pending = this.#pending.get(request.payload.selectionId);
-        if (!pending) return this.#failure(request, "conflict");
-        this.#rootSwitching = true;
-        try {
-          this.#storageRoot = null;
-          this.#offline.suspend();
-          await this.#connections.stopConnectionRuntime();
-          await this.#speech.close();
-          this.#pending.delete(request.payload.selectionId);
-          const timestamp = new Date().toISOString();
-          if (pending.mode === "initialize") {
-            this.#database = await initializeCallNinaDataRoot({
-              bootstrapFile: this.#bootstrapFile,
-              selection: pending.plan,
-              selectedAt: timestamp,
-              createdAt: timestamp,
-            });
-          } else if (pending.mode === "switch") {
-            if (!this.#database) return this.#failure(request, "stale-data-root");
-            this.#database = await switchCallNinaDataRoot({
-              currentDatabase: this.#database,
-              bootstrapFile: this.#bootstrapFile,
-              nextSelection: pending.plan,
-              expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
-              selectedAt: timestamp,
-              createdAt: timestamp,
-            });
-          } else {
-            if (pending.expectedGeneration === null) return this.#failure(request, "conflict");
-            this.#database = await recoverCallNinaDataRoot({
-              bootstrapFile: this.#bootstrapFile,
-              nextSelection: pending.plan,
-              expectedGeneration: dataRootGenerationSchema.parse(pending.expectedGeneration),
-              selectedAt: timestamp,
-              createdAt: timestamp,
-            });
           }
-          this.#repository = new CallNinaRepository(this.#database);
-          for (const operation of this.#operations.operationsBySubmission.values()) {
-            this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
-          }
-          this.#operations.operationsBySubmission.clear();
-          this.#operations.retryableOperations.clear();
-          this.#operations.helperSessions.clear();
-          this.#translations.translationReveals.clear();
-          this.#rootSwitching = false;
-          const state = await this.#dataRootState(request.requestId);
-          if (state.status === "ready") {
-            this.#emitEvent?.({
-              event: "data-root-changed",
-              generation: state.generation,
-              displayName: state.displayName,
-            });
-          }
-          return this.#success(request, state);
-        } finally {
-          this.#rootSwitching = false;
-        }
-      }
-      if (request.channel === "privacy/ai-disclosure/read") {
-        const acknowledged = this.#repository
-          ? await this.#repository.hasAcknowledgedFirstAiDisclosure()
-          : false;
-        return this.#success(request, { acknowledged });
-      }
-      if (request.channel === "privacy/ai-disclosure/acknowledge") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.acknowledgeFirstAiDisclosure(new Date().toISOString());
-        return this.#success(request, { acknowledged: true });
-      }
-      if (request.channel === "learner-profile/read") {
-        const settings = await this.#readActiveLearnerSettings();
-        return this.#success(
-          request,
-          settings
-            ? { status: "ready", profile: this.#profileSummary(settings) }
-            : { status: "not-created" },
-        );
-      }
-      if (request.channel === "learner-profile/start-onboarding") {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready" || root.generation !== request.payload.expectedGeneration)
-          return this.#failure(request, "stale-data-root");
-        const learnerId = learnerIdSchema.parse(opaqueId("learner"));
-        const existing = await this.#readActiveLearnerSettings();
-        if (existing) {
-          const summary = this.#profileSummary(existing);
-          const same =
-            summary.onboardingState === "in-progress" &&
-            summary.learnerName === request.payload.learnerName &&
-            summary.uiLocale === request.payload.uiLocale &&
-            summary.approximateLevel === request.payload.approximateLevel &&
-            summary.everydayLifeGoal === request.payload.everydayLifeGoal &&
-            summary.defaultTeachingProfileId === request.payload.defaultTeachingProfileId &&
-            summary.explanationLanguage === request.payload.explanationLanguage &&
-            summary.placement.status === request.payload.placement.status;
-          if (!same) return this.#failure(request, "conflict");
-          return this.#success(request, { status: "ready", profile: summary });
-        }
-        const timestamp = utcInstantSchema.parse(new Date().toISOString());
-        const profile = createInitialLearnerProfile({
-          targetLanguage: request.payload.targetLanguage,
-          schemaVersion: 1,
-          learnerId,
-          levelEstimate: {
-            currentLevel: request.payload.approximateLevel,
-            targetLevel: request.payload.approximateLevel,
-            basis: "self-reported",
-            updatedAt: timestamp,
-          },
-          everydayLifeGoal: request.payload.everydayLifeGoal,
-          motivation: request.payload.everydayLifeGoal,
-          interests: [],
-          preferredTopics: [],
-          correctionPreferences: {
-            timing: "immediate",
-            coverage: "all-meaningful",
-            showConciseExplanation: true,
-            showNaturalAlternative: true,
-          },
-          onboardingState: "in-progress",
-          inferredStrengths: [],
-          inferredWeaknesses: [],
-          explanationLanguage: request.payload.explanationLanguage,
-          defaultTeachingProfileId: request.payload.defaultTeachingProfileId,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        });
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const settings = {
-          learnerName: request.payload.learnerName,
-          profile: { ...profile, uiLocale: request.payload.uiLocale },
-        };
-        const stored = await this.#repository.createLearnerSettings(settings);
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          status: "ready",
-          profile: this.#profileSummary(stored),
-        });
-      }
-      if (request.channel === "learner-profile/finish-onboarding") {
-        const root = await this.#dataRootState(request.requestId);
-        if (
-          root.status !== "ready" ||
-          root.generation !== request.payload.expectedGeneration ||
-          !this.#repository
-        )
-          return this.#failure(request, "stale-data-root");
-        const repository = this.#repository;
-        const current = await repository.readCurrentLearnerSettings();
-        if (!current) return this.#failure(request, "not-found");
-        if (current.profile.updatedAt !== request.payload.expectedUpdatedAt)
-          return this.#failure(request, "conflict");
-        if (current.profile.onboardingState === "complete")
-          return this.#success(request, {
-            status: "ready",
-            profile: this.#profileSummary(current),
-          });
-        if (repository !== this.#repository) return this.#failure(request, "stale-data-root");
-        const stored = await repository.updateLearnerSettings({
-          expectedUpdatedAt: current.profile.updatedAt,
-          settings: {
-            ...current,
-            profile: {
-              ...current.profile,
-              onboardingState: "complete",
-              updatedAt: freshTimestampAfter(current.profile.updatedAt),
-            },
-          },
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
-        return this.#success(request, { status: "ready", profile: this.#profileSummary(stored) });
-      }
-      if (request.channel === "placement/complete") {
-        const current = await this.#readActiveLearnerSettings();
-        if (!current) return this.#failure(request, "not-found");
-        // A short local diagnostic records evidence; level changes remain explicit Settings edits.
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const historyEntryId = (
-          await this.#repository.savePlacementResult(request.payload.result, request.requestId)
-        ).historyEntryId;
-        this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          status: "completed",
-          historyEntryId,
-          profile: this.#profileSummary(current),
-        });
-      }
-      if (request.channel === "codex-activity/prepare") {
-        if (
-          !this.#database ||
-          (await readAiConnections(this.#database)).routing.liveConversation !== "codex"
-        )
-          return this.#failure(request, "not-found");
-        const activities = await this.#activities(request.requestId);
-        const accepted = [...this.#operations.operationsBySubmission.values()].find(
-          (operation) =>
-            operation.validatedVoiceModelRequestId === request.payload.draftModelRequestId,
-        );
-        if (!accepted || accepted.dataRootGeneration !== activities.generation)
-          return this.#failure(request, "exercise-context-missing");
-        const input = accepted.operation.input;
-        if (
-          input.kind !== "voice-activity-draft" ||
-          input.voiceKind !== request.payload.context.kind ||
-          input.targetLevel !== generationLevel[request.payload.context.targetLevel]
-        )
-          return this.#failure(request, "validation");
-        return this.#success(
-          request,
-          await activities.prepareVoice(
-            {
-              action: "prepare-voice",
-              title: request.payload.title,
-              context: request.payload.context,
-              learningScope: {
-                learnerId: input.learningContext.learnerId,
-                courseId: input.learningContext.courseId,
-                targetLanguage: input.learningContext.targetLanguage,
-              },
-              expectedGeneration: activities.generation,
-            },
-            request.requestId,
-            { learningContext: input.learningContext, calibration: input.calibration },
-          ),
-        );
-      }
-      if (
-        request.channel === "development-notice/read" ||
-        request.channel === "development-notice/dismiss"
-      ) {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready" || !this.#repository)
-          return this.#failure(request, "stale-data-root");
-        if (request.channel === "development-notice/read")
-          return this.#success(request, {
-            pending: await this.#repository.readDevelopmentNotice(),
-          });
-        await this.#repository.dismissDevelopmentNotice();
-        return this.#success(request, { dismissed: true });
-      }
-      if (request.channel === "learner-settings/select-language") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (
-          dataRoot.status !== "ready" ||
-          dataRoot.generation !== request.payload.expectedGeneration ||
-          !this.#repository
-        )
-          return this.#failure(request, "stale-data-root");
-        const settings = await this.#repository.selectLearningLanguage(
-          request.payload.targetLanguage,
-        );
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        return this.#success(request, this.#settingsProjection(settings, dataRoot));
-      }
-      if (
-        request.channel === "stories/read" ||
-        request.channel === "stories/position" ||
-        request.channel === "stories/vocabulary"
-      ) {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready" || !this.#repository || !this.#database)
-          return this.#failure(request, "stale-data-root");
-        const db = this.#database;
-        const context = await this.#repository.requireLearningContext();
-        const stories = (await readStories(this.#curriculumRoot)).filter(
-          (story) => story.language === context.targetLanguage,
-        );
-        if (request.channel === "stories/read")
+          const locations = await readPersonalDataLocations(pointer.dataRoot, this.#bootstrapFile);
+          const tables = await this.#repository.readPersonalDataInventory();
           return this.#success(request, {
             rootGeneration: root.generation,
-            learningContext: context,
-            stories,
-            positions: await storyPositions(db, context),
+            dataRoot: pointer.dataRoot,
+            schemaVersion: this.#database.schemaVersion,
+            refreshedAt: new Date().toISOString(),
+            locations,
+            tables,
           });
-        if (
-          request.payload.expectedGeneration !== root.generation ||
-          request.payload.language !== context.targetLanguage
-        )
-          return this.#failure(request, "stale-data-root");
-        const story = stories.find((item) => item.id === request.payload.storyId);
-        if (!story) return this.#failure(request, "not-found");
-        if (request.channel === "stories/position") {
-          await saveStoryPosition(db, context, story, request.payload.paragraph);
-          return this.#success(request, { saved: true });
         }
-        const added = await saveStoryWord(db, context, story, request.payload.word);
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        return this.#success(request, { added });
-      }
-      if (request.channel === "learner-settings/read") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-        const settings = await this.#readActiveLearnerSettings();
-        if (!settings) return this.#failure(request, "not-found");
-        return this.#success(request, this.#settingsProjection(settings, dataRoot));
-      }
-      if (request.channel === "learner-settings/update") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-        const current = await this.#readActiveLearnerSettings();
-        if (!current) return this.#failure(request, "not-found");
-        const timestamp = freshTimestampAfter(current.profile.updatedAt);
-        const editable = request.payload.settings;
-        if (
-          editable.learningScope.learnerId !== current.profile.learnerId ||
-          editable.learningScope.targetLanguage !== current.profile.targetLanguage
-        )
-          return this.#failure(request, "conflict");
-        const levelChanged =
-          editable.approximateLevel !== current.profile.levelEstimate.currentLevel;
-        const next: LearnerSettingsRecord = {
-          ...current,
-          learnerName: editable.learnerName,
-          learningContext: { ...current.learningContext, ...editable.learningScope },
-          profile: {
-            ...current.profile,
-            levelEstimate: levelChanged
-              ? {
-                  ...current.profile.levelEstimate,
-                  currentLevel: editable.approximateLevel,
-                  basis: "self-reported",
-                  updatedAt: timestamp,
-                }
-              : current.profile.levelEstimate,
-            everydayLifeGoal: editable.everydayLifeGoal,
-            defaultTeachingProfileId: editable.defaultTeachingProfileId,
-            explanationLanguage: editable.explanationLanguage,
-            uiLocale: editable.uiLocale,
-            correctionPreferences: editable.correctionPreferences,
-            updatedAt: timestamp,
-          },
-        };
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        let stored: LearnerSettingsRecord;
-        try {
-          stored = await this.#repository.updateLearnerSettings({
-            expectedUpdatedAt: utcInstantSchema.parse(request.payload.expectedUpdatedAt),
-            settings: next,
-          });
-        } catch (error) {
-          if (error instanceof Error && error.message === "OD_LEARNER_SETTINGS_CONFLICT") {
-            return this.#failure(request, "conflict");
-          }
-          throw error;
-        }
-        this.#emitEvent?.({ event: "state-invalidated", scope: "settings" });
-        return this.#success(request, this.#settingsProjection(stored, dataRoot));
-      }
-      if (request.channel === "personal-data/clear") {
-        if (this.#operations.activeOperations.size > 0) {
-          return this.#success(request, { status: "blocked", reason: "busy" });
-        }
-        const root = await this.#dataRootState(request.requestId);
-        if (
-          root.status !== "ready" ||
-          !this.#repository ||
-          root.generation !== request.payload.expectedGeneration
-        ) {
-          return this.#failure(request, "stale-data-root");
-        }
-        const speech = this.#speech;
-        {
+        case "diagnostics/read": {
           const pointer = await readBootstrapPointer(this.#bootstrapFile);
           if (
             pointer.status !== "ready" ||
             !this.#database ||
-            pointer.rootGeneration !== request.payload.expectedGeneration
+            this.#database.closed ||
+            pointer.rootGeneration !== this.#database.rootGeneration
+          ) {
+            return this.#failure(request, "stale-data-root");
+          }
+          return this.#success(request, {
+            dataRootGeneration: this.#database.rootGeneration,
+            dataRootFormatVersion: pointer.dataRootFormatVersion,
+            databaseSchemaVersion: this.#database.schemaVersion,
+            journalMode: this.#database.journalMode,
+            foreignKeysEnabled: this.#database.foreignKeysEnabled,
+            logFileCount: (await this.#activeLogFiles()).length,
+            recentLogs: await this.#recentOperationalLogs(),
+          });
+        }
+        case "diagnostics/export": {
+          const pointer = await readBootstrapPointer(this.#bootstrapFile);
+          if (
+            pointer.status !== "ready" ||
+            !this.#database ||
+            this.#database.closed ||
+            pointer.rootGeneration !== this.#database.rootGeneration
+          ) {
+            return this.#failure(request, "stale-data-root");
+          }
+          if (!this.#exportDiagnostics) return this.#success(request, { status: "cancelled" });
+          const diagnostics = {
+            schemaVersion: 1,
+            dataRootGeneration: this.#database.rootGeneration,
+            dataRootFormatVersion: pointer.dataRootFormatVersion,
+            databaseSchemaVersion: this.#database.schemaVersion,
+            journalMode: this.#database.journalMode,
+            foreignKeysEnabled: this.#database.foreignKeysEnabled,
+            logFileCount: (await this.#activeLogFiles()).length,
+            recentLogs: await this.#recentOperationalLogs(),
+          };
+          return this.#success(
+            request,
+            await this.#exportDiagnostics(
+              `${JSON.stringify({ exportedAt: new Date().toISOString(), diagnostics })}\n`,
+            ),
+          );
+        }
+        case "logs/clear": {
+          const files = await this.#activeLogFiles();
+          for (const file of files) {
+            const metadata = await lstat(file);
+            if (metadata.isSymbolicLink() || !metadata.isFile()) {
+              throw new Error("OD_LOG_FILE_INVALID");
+            }
+            await unlink(file);
+          }
+          return this.#success(request, { clearedFileCount: files.length });
+        }
+        case "learning-path/vocabulary":
+        case "learning-path/read":
+        case "learning-path/update":
+        case "learning-path/prepare-voice": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready" || !this.#repository || !this.#database)
+            return this.#failure(request, "stale-data-root");
+          const learningContext = await this.#repository.requireLearningContext();
+          const course =
+            learningContext.courseId !== null
+              ? await readLearningCourse(this.#curriculumRoot, learningContext.targetLanguage)
+              : null;
+          const explanationLanguage =
+            learningContext.explanationLanguage === "en-US"
+              ? "en"
+              : learningContext.explanationLanguage;
+          if (request.channel === "learning-path/read")
+            return this.#success(request, {
+              rootGeneration: root.generation,
+              learningContext,
+              course,
+              state: await this.#repository.readLearningPathState(),
+            });
+          if (request.payload.expectedGeneration !== root.generation)
+            return this.#failure(request, "stale-data-root");
+          if (!course) return this.#failure(request, "not-found");
+          if (request.channel === "learning-path/vocabulary") {
+            const added = await addCourseVocabulary(
+              this.#database,
+              course,
+              request.payload.reference,
+              explanationLanguage,
+            );
+            this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+            return this.#success(request, { added });
+          }
+          if (request.channel === "learning-path/update") {
+            await this.#repository.updateLearningPath(course, request.payload, explanationLanguage);
+            this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+            return this.#success(request, {
+              rootGeneration: root.generation,
+              learningContext,
+              course,
+              state: await this.#repository.readLearningPathState(),
+            });
+          }
+          if ((await readAiConnections(this.#database)).routing.liveConversation !== "codex")
+            return this.#failure(request, "not-found");
+          const activities = await this.#activities(request.requestId);
+          return this.#success(
+            request,
+            await activities.prepareCourseVoice(
+              {
+                action: "prepare-course-voice",
+                ...request.payload,
+              },
+              request.requestId,
+              explanationLanguage,
+            ),
+          );
+        }
+        case "nina/read":
+        case "nina/plan": {
+          const root = await this.#dataRootState(request.requestId);
+          const repository = this.#repository;
+          const database = this.#database;
+          if (root.status !== "ready" || !repository || !database)
+            return this.#failure(request, "stale-data-root");
+          const settings = await this.#readActiveLearnerSettings();
+          if (!settings) return this.#failure(request, "not-found");
+          const context = settings.learningContext;
+          if (request.channel === "nina/read")
+            return this.#success(request, {
+              rootGeneration: root.generation,
+              learningContext: context,
+              resume: await repository.readNinaContinue(context),
+            });
+          const input = request.payload;
+          if (input.expectedGeneration !== root.generation)
+            return this.#failure(request, "stale-data-root");
+          if (
+            input.scope.learnerId !== context.learnerId ||
+            input.scope.targetLanguage !== context.targetLanguage ||
+            input.scope.courseId !== context.courseId
+          )
+            return this.#failure(request, "conflict");
+          const kind = interpretNinaRequest(input);
+          if (!kind || (input.material && !["reading", "vocabulary-review"].includes(kind)))
+            return this.#success(request, { status: "clarification" });
+          if (input.material) {
+            const material = await readMaterialRevision(database, input.material);
+            if (material.language !== context.targetLanguage)
+              return this.#failure(request, "conflict");
+          }
+          const generationRequest = ninaGenerationRequestSchema.parse({
+            source: "nina",
+            expectedGeneration: root.generation,
+            learningContext: context,
+            naturalRequest: input.naturalRequest,
+            kind,
+            estimatedMinutes: input.minutes ?? 10,
+            ...(input.material ? { material: input.material } : {}),
+          });
+          let prepared: Extract<NinaPlan, { status: "ready" }>["prepared"] = null;
+          let cursor: Awaited<ReturnType<typeof repository.listPreparedActivities>>["nextCursor"] =
+            null;
+          do {
+            const candidates = await repository.listPreparedActivities({
+              activityTypes: kind === "writing" ? ["writing", "custom-lesson"] : [kind],
+              maximum: 50,
+              ...(input.material ? { material: input.material } : {}),
+              ...(cursor ? { cursor } : {}),
+            });
+            cursor = candidates.nextCursor;
+            for (const candidate of candidates.entries) {
+              if (!candidate.generated) continue;
+              const saved = await repository.readGeneratedActivity(candidate.activityId);
+              if (
+                !saved ||
+                saved.context.learningScope.learnerId !== context.learnerId ||
+                saved.context.learningScope.targetLanguage !== context.targetLanguage ||
+                (saved.context.learningScope.courseId !== null &&
+                  saved.context.learningScope.courseId !== context.courseId)
+              )
+                continue;
+              const expectedRequest =
+                kind === "writing"
+                  ? `Create short free-writing exercises for this request: ${input.naturalRequest}`
+                  : input.naturalRequest;
+              if (
+                expectedRequest.length > 1000 ||
+                !matchesNinaRequest(saved.content.goal.request, expectedRequest) ||
+                saved.content.payload.exercises.length > 12 ||
+                (input.minutes !== undefined &&
+                  saved.content.payload.exercises.length !== ninaExerciseCount(input.minutes)) ||
+                saved.content.payload.exercises.some(
+                  (exercise) =>
+                    exercise.cefrBand !==
+                    generationLevel[settings.profile.levelEstimate.currentLevel],
+                )
+              )
+                continue;
+              if (
+                input.material &&
+                !saved.content.materials.some(
+                  (material) =>
+                    material.materialId === input.material?.materialId &&
+                    material.revisionId === input.material.revisionId,
+                )
+              )
+                continue;
+              if (input.minutes === undefined)
+                generationRequest.estimatedMinutes = Math.max(
+                  5,
+                  saved.content.payload.exercises.length * 2,
+                );
+              prepared = {
+                activityId: candidate.activityId,
+                title: candidate.title,
+                content: {
+                  contentId: saved.content.contentId,
+                  revisionId: saved.content.revisionId,
+                },
+              };
+              break;
+            }
+          } while (!prepared && cursor);
+          return this.#success(request, { status: "ready", request: generationRequest, prepared });
+        }
+        case "dashboard/read": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
+          const refreshedAt = new Date().toISOString();
+          const snapshot = this.#repository
+            ? await this.#repository.readDashboardSnapshot(refreshedAt.slice(0, 10))
+            : {
+                rootGeneration: dataRoot.generation,
+                preparedActivities: [],
+                dueVocabulary: [],
+                recentCorrections: [],
+                recurringMistakes: [],
+              };
+          const settings = await this.#readActiveLearnerSettings();
+          const courseEvidence =
+            settings && this.#repository
+              ? await this.#repository.readRecommendationEvidence(settings.learningContext)
+              : [];
+          const preparedCandidates =
+            settings && this.#repository
+              ? await this.#repository.readRecommendationPreparedActivities(
+                  settings.learningContext,
+                )
+              : [];
+          const suggestions = settings
+            ? buildPracticeSuggestions({
+                ...snapshot,
+                preparedActivities: preparedCandidates,
+                today: refreshedAt.slice(0, 10),
+                locale: request.payload.locale ?? settings.profile.uiLocale,
+                level: settings.profile.levelEstimate.currentLevel,
+                learningContext: settings.learningContext,
+                courseEvidence,
+              })
+            : [];
+          return this.#success(request, {
+            rootGeneration: snapshot.rootGeneration,
+            refreshedAt,
+            suggestions,
+            preparedActivities: snapshot.preparedActivities,
+            dueVocabulary: snapshot.dueVocabulary,
+            recentCorrections: snapshot.recentCorrections,
+            recurringMistakes: snapshot.recurringMistakes.map((mistake) => ({
+              mistakeId: mistake.mistakeId,
+              category:
+                mistake.category.kind === "grammar"
+                  ? { kind: "grammar" as const, categoryKey: mistake.category.categoryKey }
+                  : {
+                      kind: "vocabulary" as const,
+                      categoryKey: mistake.category.categoryKey,
+                      lemma: mistake.category.lemma,
+                    },
+              occurrenceCount: mistake.occurrenceCount,
+              lastObservedOn: mistake.lastObservedOn,
+            })),
+          });
+        }
+        case "activity/list": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready" || !this.#repository)
+            return this.#failure(request, "stale-data-root");
+          return this.#success(
+            request,
+            await this.#repository.listPreparedActivities(request.payload),
+          );
+        }
+        case "activity/reuse": {
+          return this.#success(
+            request,
+            await (await this.#activities(request.requestId)).reuseExercises(request.payload),
+          );
+        }
+        case "activity/resolve": {
+          const resolved = await (
+            await this.#activities(request.requestId)
+          ).resolve(request.payload);
+          if (request.payload.recordUse)
+            await this.#repository?.recordActivityUse(
+              resolved.activity.activityId,
+              resolved.rootGeneration,
+            );
+          return this.#success(request, resolved);
+        }
+        case "flashcards/create":
+        case "flashcards/read":
+        case "flashcards/progress":
+        case "flashcards/save-vocabulary": {
+          if (!this.#database) return this.#failure(request, "stale-data-root");
+          const result =
+            request.channel === "flashcards/create"
+              ? await createVocabularyFlashcards(this.#database, request.payload, request.requestId)
+              : request.channel === "flashcards/read"
+                ? await readFlashcards(this.#database, request.payload)
+                : request.channel === "flashcards/progress"
+                  ? await updateFlashcardProgress(this.#database, request.payload)
+                  : await saveFlashcardVocabulary(
+                      this.#database,
+                      request.payload,
+                      request.requestId,
+                    );
+          if (request.channel === "flashcards/save-vocabulary")
+            this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          if (request.channel === "flashcards/create")
+            this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, result);
+        }
+        case "vocabulary/read": {
+          const root = await this.#dataRootState(request.requestId);
+          if (root.status !== "ready" || !this.#repository)
+            return this.#failure(request, "stale-data-root");
+          const result = await this.#repository.readVocabularyLibrary(
+            request.payload,
+            new Date().toISOString().slice(0, 10),
+          );
+          return this.#success(request, { rootGeneration: root.generation, ...result });
+        }
+        case "vocabulary/detail": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const record = await this.#repository.readVocabularyRecord(request.payload.vocabularyId);
+          if (!record) return this.#failure(request, "not-found");
+          return this.#success(request, {
+            rootGeneration: request.payload.rootGeneration,
+            entry: vocabularyProjection(record),
+          });
+        }
+        case "vocabulary/review-queue": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const records = await this.#repository.readVocabularyReviewQueue(
+            new Date().toISOString().slice(0, 10),
+            request.payload.uploadId,
+          );
+          return this.#success(request, {
+            rootGeneration: request.payload.rootGeneration,
+            entries: await Promise.all(
+              records.map(async (record) => ({
+                ...vocabularyProjection(record),
+                retrievalSchedules: (
+                  await this.#repository?.readVocabularyRetrievalSchedules(
+                    record.entry.vocabularyId,
+                  )
+                )?.map(({ retrieval, dueOn }) => ({ retrieval, dueOn })),
+              })),
+            ),
+          });
+        }
+        case "vocabulary/bulk": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.mutateVocabularyBulk(request.payload, new Date().toISOString());
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, { status: "updated" });
+        }
+        case "vocabulary-set/list": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const sets = await this.#repository.listVocabularyLessonSets();
+          return this.#success(request, {
+            entries: sets.map((set) => ({
+              setId: set.setId,
+              title: set.title,
+              candidateCount: set.items.length,
+            })),
+          });
+        }
+        case "vocabulary-set/create": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready" || !this.#repository) {
+            return this.#failure(request, "stale-data-root");
+          }
+          const records = (await this.#repository.listVocabularyRecords("candidate")).filter(
+            ({ entry }) => entry.state.status === "candidate",
+          );
+          if (records.length === 0) return this.#failure(request, "not-found");
+          const settings = await this.#readActiveLearnerSettings();
+          const mistakeCategories = (await this.#repository.readCorrectionMistakeSample(6)).map(
+            ({ categoryKey }) => categoryKey,
+          );
+          const candidates = records.slice(0, 50).map(vocabularyCandidateFromRecord);
+          const requestValue = {
+            learningScope: await this.#repository.requireLearningScope(),
+            requestedFrom: "desktop" as const,
+            title: request.payload.title,
+            naturalRequest: request.payload.naturalRequest,
+            ...(settings?.learningContext.goal.description
+              ? { goal: settings.learningContext.goal.description }
+              : {}),
+            ...(request.payload.topic ? { topic: request.payload.topic } : {}),
+            curriculumTopicIds: [],
+            mistakeCategories,
+            candidates,
+          };
+          const setId = activityIdSchema.parse(opaqueId("activity"));
+          await this.#repository.saveVocabularyLessonSet(
+            requestValue,
+            records.slice(0, 50).map(({ entry }) => entry),
+            setId,
+            new Date().toISOString(),
+            `vocabulary-set:${request.requestId}`,
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            setId,
+            status: "created",
+            candidateCount: candidates.length,
+          });
+        }
+        case "vocabulary/confirm": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.confirmVocabulary(
+            request.payload.vocabularyId,
+            new Date().toISOString(),
+            request.payload.dueOn,
+            `vocabulary-confirm:${request.requestId}`,
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            vocabularyId: request.payload.vocabularyId,
+            status: "updated",
+          });
+        }
+        case "vocabulary/review": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const reviewed = await this.#repository.reviewVocabularyCard({
+            vocabularyId: request.payload.vocabularyId,
+            grade: request.payload.grade,
+            retrieval: request.payload.retrieval,
+            expectedRevision: request.payload.expectedRevision,
+            expectedUpdatedAt: request.payload.expectedUpdatedAt,
+            reviewedAt: new Date().toISOString(),
+            idempotencyKey: `vocabulary-review:${request.requestId}`,
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+          return this.#success(request, {
+            vocabularyId: request.payload.vocabularyId,
+            status: "updated",
+            dueOn: reviewed.dueOn,
+          });
+        }
+        case "vocabulary/edit": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.editVocabulary({
+            vocabularyId: request.payload.vocabularyId,
+            expectedRevision: request.payload.expectedRevision,
+            expectedUpdatedAt: request.payload.expectedUpdatedAt,
+            lemma: request.payload.lemma,
+            meaning: request.payload.meaning,
+            example: { text: request.payload.example, meaning: request.payload.exampleMeaning },
+            updatedAt: new Date().toISOString(),
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          return this.#success(request, {
+            vocabularyId: request.payload.vocabularyId,
+            status: "updated",
+          });
+        }
+        case "vocabulary/suspend": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.suspendVocabulary({
+            ...request.payload,
+            suspendedAt: new Date().toISOString(),
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            vocabularyId: request.payload.vocabularyId,
+            status: "updated",
+          });
+        }
+        case "vocabulary/resume": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.resumeVocabulary({
+            ...request.payload,
+            resumedAt: new Date().toISOString(),
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          return this.#success(request, {
+            vocabularyId: request.payload.vocabularyId,
+            status: "updated",
+          });
+        }
+        case "vocabulary/delete": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.deleteVocabulary(
+            request.payload.vocabularyId,
+            new Date().toISOString(),
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            vocabularyId: request.payload.vocabularyId,
+            status: "updated",
+          });
+        }
+        case "uploads/list":
+        case "uploads/read":
+        case "uploads/save":
+        case "uploads/archive":
+        case "uploads/image":
+        case "uploads/analyses":
+        case "uploads/commit": {
+          const database = this.#database;
+          if (
+            !database ||
+            !this.#repository ||
+            ("rootGeneration" in request.payload &&
+              request.payload.rootGeneration !== database.rootGeneration)
           )
             return this.#failure(request, "stale-data-root");
-          speech.setRoot(pointer.dataRoot, await readSpeechPreferences(this.#database));
-        }
-        const result = await this.#repository.clearPersonalData(request.payload);
-        if (result.status === "cleared") {
-          let privateSpeechFailed = false;
-          try {
-            await speech.manage({ action: "clear-private-cache" });
-          } catch {
-            privateSpeechFailed = true;
-            this.#operationLog(
-              "warn",
-              "OD_PERSONAL_DATA_AUDIO_CLEANUP_FAILED",
-              request.requestId,
-              request.channel,
-              undefined,
-              "Private speech cleanup did not finish.",
-              { action: request.channel, phase: "failed", outcome: "error" },
+          if (request.channel === "uploads/list")
+            return this.#success(
+              request,
+              await listUploads(database, request.payload.vocabularyId),
             );
-          }
-          for (const operation of this.#operations.operationsBySubmission.values()) {
-            this.#connections.releaseOperation(correlationIdSchema.parse(operation.operationId));
-          }
-          this.#operations.operationsBySubmission.clear();
-          this.#operations.retryableOperations.clear();
-          this.#operations.helperSessions.clear();
-          this.#translations.translationReveals.clear();
-          for (const scope of ["dashboard", "history", "vocabulary", "settings"] as const) {
-            this.#emitEvent?.({ event: "state-invalidated", scope });
-          }
-          if (privateSpeechFailed)
+          if (request.channel === "uploads/read") {
+            const upload = await readUpload(database, request.payload.reference);
+            const usage = upload.material
+              ? await readMaterialUsage(database, {
+                  materialId: upload.material.materialId,
+                  revisionId: upload.material.revisionId,
+                })
+              : { activityCount: 0, attemptCount: 0, activities: [] };
             return this.#success(request, {
-              status: "partial",
-              scope: request.payload.scope,
-              reason: "private-speech",
+              upload,
+              words: await readUploadWords(database, request.payload.reference),
+              usage,
             });
-        }
-        return this.#success(request, result);
-      }
-      if (request.channel === "personal-data/read") {
-        const root = await this.#dataRootState(request.requestId);
-        const pointer = await readBootstrapPointer(this.#bootstrapFile);
-        if (
-          root.status !== "ready" ||
-          pointer.status !== "ready" ||
-          !this.#repository ||
-          !this.#database ||
-          root.generation !== pointer.rootGeneration
-        ) {
-          return this.#failure(request, "stale-data-root");
-        }
-        const locations = await readPersonalDataLocations(pointer.dataRoot, this.#bootstrapFile);
-        const tables = await this.#repository.readPersonalDataInventory();
-        return this.#success(request, {
-          rootGeneration: root.generation,
-          dataRoot: pointer.dataRoot,
-          schemaVersion: this.#database.schemaVersion,
-          refreshedAt: new Date().toISOString(),
-          locations,
-          tables,
-        });
-      }
-      if (request.channel === "diagnostics/read") {
-        const pointer = await readBootstrapPointer(this.#bootstrapFile);
-        if (
-          pointer.status !== "ready" ||
-          !this.#database ||
-          this.#database.closed ||
-          pointer.rootGeneration !== this.#database.rootGeneration
-        ) {
-          return this.#failure(request, "stale-data-root");
-        }
-        return this.#success(request, {
-          dataRootGeneration: this.#database.rootGeneration,
-          dataRootFormatVersion: pointer.dataRootFormatVersion,
-          databaseSchemaVersion: this.#database.schemaVersion,
-          journalMode: this.#database.journalMode,
-          foreignKeysEnabled: this.#database.foreignKeysEnabled,
-          logFileCount: (await this.#activeLogFiles()).length,
-          recentLogs: await this.#recentOperationalLogs(),
-        });
-      }
-      if (request.channel === "diagnostics/export") {
-        const pointer = await readBootstrapPointer(this.#bootstrapFile);
-        if (
-          pointer.status !== "ready" ||
-          !this.#database ||
-          this.#database.closed ||
-          pointer.rootGeneration !== this.#database.rootGeneration
-        ) {
-          return this.#failure(request, "stale-data-root");
-        }
-        if (!this.#exportDiagnostics) return this.#success(request, { status: "cancelled" });
-        const diagnostics = {
-          schemaVersion: 1,
-          dataRootGeneration: this.#database.rootGeneration,
-          dataRootFormatVersion: pointer.dataRootFormatVersion,
-          databaseSchemaVersion: this.#database.schemaVersion,
-          journalMode: this.#database.journalMode,
-          foreignKeysEnabled: this.#database.foreignKeysEnabled,
-          logFileCount: (await this.#activeLogFiles()).length,
-          recentLogs: await this.#recentOperationalLogs(),
-        };
-        return this.#success(
-          request,
-          await this.#exportDiagnostics(
-            `${JSON.stringify({ exportedAt: new Date().toISOString(), diagnostics })}\n`,
-          ),
-        );
-      }
-      if (request.channel === "logs/clear") {
-        const files = await this.#activeLogFiles();
-        for (const file of files) {
-          const metadata = await lstat(file);
-          if (metadata.isSymbolicLink() || !metadata.isFile()) {
-            throw new Error("OD_LOG_FILE_INVALID");
           }
-          await unlink(file);
-        }
-        return this.#success(request, { clearedFileCount: files.length });
-      }
-      if (
-        request.channel === "learning-path/vocabulary" ||
-        request.channel === "learning-path/read" ||
-        request.channel === "learning-path/update" ||
-        request.channel === "learning-path/prepare-voice"
-      ) {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready" || !this.#repository || !this.#database)
-          return this.#failure(request, "stale-data-root");
-        const learningContext = await this.#repository.requireLearningContext();
-        const course =
-          learningContext.courseId !== null
-            ? await readLearningCourse(this.#curriculumRoot, learningContext.targetLanguage)
-            : null;
-        const explanationLanguage =
-          learningContext.explanationLanguage === "en-US"
-            ? "en"
-            : learningContext.explanationLanguage;
-        if (request.channel === "learning-path/read")
-          return this.#success(request, {
-            rootGeneration: root.generation,
-            learningContext,
-            course,
-            state: await this.#repository.readLearningPathState(),
-          });
-        if (request.payload.expectedGeneration !== root.generation)
-          return this.#failure(request, "stale-data-root");
-        if (!course) return this.#failure(request, "not-found");
-        if (request.channel === "learning-path/vocabulary") {
-          const added = await addCourseVocabulary(
-            this.#database,
-            course,
-            request.payload.reference,
-            explanationLanguage,
-          );
-          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-          return this.#success(request, { added });
-        }
-        if (request.channel === "learning-path/update") {
-          await this.#repository.updateLearningPath(course, request.payload, explanationLanguage);
-          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-          return this.#success(request, {
-            rootGeneration: root.generation,
-            learningContext,
-            course,
-            state: await this.#repository.readLearningPathState(),
-          });
-        }
-        if ((await readAiConnections(this.#database)).routing.liveConversation !== "codex")
-          return this.#failure(request, "not-found");
-        const activities = await this.#activities(request.requestId);
-        return this.#success(
-          request,
-          await activities.prepareCourseVoice(
-            {
-              action: "prepare-course-voice",
-              ...request.payload,
-            },
-            request.requestId,
-            explanationLanguage,
-          ),
-        );
-      }
-      if (request.channel === "nina/read" || request.channel === "nina/plan") {
-        const root = await this.#dataRootState(request.requestId);
-        const repository = this.#repository;
-        const database = this.#database;
-        if (root.status !== "ready" || !repository || !database)
-          return this.#failure(request, "stale-data-root");
-        const settings = await this.#readActiveLearnerSettings();
-        if (!settings) return this.#failure(request, "not-found");
-        const context = settings.learningContext;
-        if (request.channel === "nina/read")
-          return this.#success(request, {
-            rootGeneration: root.generation,
-            learningContext: context,
-            resume: await repository.readNinaContinue(context),
-          });
-        const input = request.payload;
-        if (input.expectedGeneration !== root.generation)
-          return this.#failure(request, "stale-data-root");
-        if (
-          input.scope.learnerId !== context.learnerId ||
-          input.scope.targetLanguage !== context.targetLanguage ||
-          input.scope.courseId !== context.courseId
-        )
-          return this.#failure(request, "conflict");
-        const kind = interpretNinaRequest(input);
-        if (!kind || (input.material && !["reading", "vocabulary-review"].includes(kind)))
-          return this.#success(request, { status: "clarification" });
-        if (input.material) {
-          const material = await readMaterialRevision(database, input.material);
-          if (material.language !== context.targetLanguage)
-            return this.#failure(request, "conflict");
-        }
-        const generationRequest = ninaGenerationRequestSchema.parse({
-          source: "nina",
-          expectedGeneration: root.generation,
-          learningContext: context,
-          naturalRequest: input.naturalRequest,
-          kind,
-          estimatedMinutes: input.minutes ?? 10,
-          ...(input.material ? { material: input.material } : {}),
-        });
-        let prepared: Extract<NinaPlan, { status: "ready" }>["prepared"] = null;
-        let cursor: Awaited<ReturnType<typeof repository.listPreparedActivities>>["nextCursor"] =
-          null;
-        do {
-          const candidates = await repository.listPreparedActivities({
-            activityTypes: kind === "writing" ? ["writing", "custom-lesson"] : [kind],
-            maximum: 50,
-            ...(input.material ? { material: input.material } : {}),
-            ...(cursor ? { cursor } : {}),
-          });
-          cursor = candidates.nextCursor;
-          for (const candidate of candidates.entries) {
-            if (!candidate.generated) continue;
-            const saved = await repository.readGeneratedActivity(candidate.activityId);
+          if (request.channel === "uploads/save") {
+            const preview = request.payload.websitePack
+              ? this.#operations.websitePacks.get(request.payload.websitePack.operationId)
+              : undefined;
             if (
-              !saved ||
-              saved.context.learningScope.learnerId !== context.learnerId ||
-              saved.context.learningScope.targetLanguage !== context.targetLanguage ||
-              (saved.context.learningScope.courseId !== null &&
-                saved.context.learningScope.courseId !== context.courseId)
+              request.payload.websitePack &&
+              (!preview ||
+                preview.rootGeneration !== database.rootGeneration ||
+                preview.language !== request.payload.language ||
+                preview.pack.source.url !== request.payload.draft.url)
             )
-              continue;
-            const expectedRequest =
-              kind === "writing"
-                ? `Create short free-writing exercises for this request: ${input.naturalRequest}`
-                : input.naturalRequest;
-            if (
-              expectedRequest.length > 1000 ||
-              !matchesNinaRequest(saved.content.goal.request, expectedRequest) ||
-              saved.content.payload.exercises.length > 12 ||
-              (input.minutes !== undefined &&
-                saved.content.payload.exercises.length !== ninaExerciseCount(input.minutes)) ||
-              saved.content.payload.exercises.some(
-                (exercise) =>
-                  exercise.cefrBand !==
-                  generationLevel[settings.profile.levelEstimate.currentLevel],
-              )
-            )
-              continue;
-            if (
-              input.material &&
-              !saved.content.materials.some(
-                (material) =>
-                  material.materialId === input.material?.materialId &&
-                  material.revisionId === input.material.revisionId,
-              )
-            )
-              continue;
-            if (input.minutes === undefined)
-              generationRequest.estimatedMinutes = Math.max(
-                5,
-                saved.content.payload.exercises.length * 2,
-              );
-            prepared = {
-              activityId: candidate.activityId,
-              title: candidate.title,
-              content: { contentId: saved.content.contentId, revisionId: saved.content.revisionId },
-            };
-            break;
-          }
-        } while (!prepared && cursor);
-        return this.#success(request, { status: "ready", request: generationRequest, prepared });
-      }
-      if (request.channel === "dashboard/read") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-        const refreshedAt = new Date().toISOString();
-        const snapshot = this.#repository
-          ? await this.#repository.readDashboardSnapshot(refreshedAt.slice(0, 10))
-          : {
-              rootGeneration: dataRoot.generation,
-              preparedActivities: [],
-              dueVocabulary: [],
-              recentCorrections: [],
-              recurringMistakes: [],
-            };
-        const settings = await this.#readActiveLearnerSettings();
-        const courseEvidence =
-          settings && this.#repository
-            ? await this.#repository.readRecommendationEvidence(settings.learningContext)
-            : [];
-        const preparedCandidates =
-          settings && this.#repository
-            ? await this.#repository.readRecommendationPreparedActivities(settings.learningContext)
-            : [];
-        const suggestions = settings
-          ? buildPracticeSuggestions({
-              ...snapshot,
-              preparedActivities: preparedCandidates,
-              today: refreshedAt.slice(0, 10),
-              locale: request.payload.locale ?? settings.profile.uiLocale,
-              level: settings.profile.levelEstimate.currentLevel,
-              learningContext: settings.learningContext,
-              courseEvidence,
-            })
-          : [];
-        return this.#success(request, {
-          rootGeneration: snapshot.rootGeneration,
-          refreshedAt,
-          suggestions,
-          preparedActivities: snapshot.preparedActivities,
-          dueVocabulary: snapshot.dueVocabulary,
-          recentCorrections: snapshot.recentCorrections,
-          recurringMistakes: snapshot.recurringMistakes.map((mistake) => ({
-            mistakeId: mistake.mistakeId,
-            category:
-              mistake.category.kind === "grammar"
-                ? { kind: "grammar" as const, categoryKey: mistake.category.categoryKey }
-                : {
-                    kind: "vocabulary" as const,
-                    categoryKey: mistake.category.categoryKey,
-                    lemma: mistake.category.lemma,
-                  },
-            occurrenceCount: mistake.occurrenceCount,
-            lastObservedOn: mistake.lastObservedOn,
-          })),
-        });
-      }
-      if (request.channel === "activity/list") {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready" || !this.#repository)
-          return this.#failure(request, "stale-data-root");
-        return this.#success(
-          request,
-          await this.#repository.listPreparedActivities(request.payload),
-        );
-      }
-      if (request.channel === "activity/reuse") {
-        return this.#success(
-          request,
-          await (await this.#activities(request.requestId)).reuseExercises(request.payload),
-        );
-      }
-      if (request.channel === "activity/resolve") {
-        const resolved = await (await this.#activities(request.requestId)).resolve(request.payload);
-        if (request.payload.recordUse)
-          await this.#repository?.recordActivityUse(
-            resolved.activity.activityId,
-            resolved.rootGeneration,
-          );
-        return this.#success(request, resolved);
-      }
-      if (
-        request.channel === "flashcards/create" ||
-        request.channel === "flashcards/read" ||
-        request.channel === "flashcards/progress" ||
-        request.channel === "flashcards/save-vocabulary"
-      ) {
-        if (!this.#database) return this.#failure(request, "stale-data-root");
-        const result =
-          request.channel === "flashcards/create"
-            ? await createVocabularyFlashcards(this.#database, request.payload, request.requestId)
-            : request.channel === "flashcards/read"
-              ? await readFlashcards(this.#database, request.payload)
-              : request.channel === "flashcards/progress"
-                ? await updateFlashcardProgress(this.#database, request.payload)
-                : await saveFlashcardVocabulary(this.#database, request.payload, request.requestId);
-        if (request.channel === "flashcards/save-vocabulary")
-          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        if (request.channel === "flashcards/create")
-          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, result);
-      }
-      if (request.channel === "vocabulary/read") {
-        const root = await this.#dataRootState(request.requestId);
-        if (root.status !== "ready" || !this.#repository)
-          return this.#failure(request, "stale-data-root");
-        const result = await this.#repository.readVocabularyLibrary(
-          request.payload,
-          new Date().toISOString().slice(0, 10),
-        );
-        return this.#success(request, { rootGeneration: root.generation, ...result });
-      }
-      if (request.channel === "vocabulary/detail") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const record = await this.#repository.readVocabularyRecord(request.payload.vocabularyId);
-        if (!record) return this.#failure(request, "not-found");
-        return this.#success(request, {
-          rootGeneration: request.payload.rootGeneration,
-          entry: vocabularyProjection(record),
-        });
-      }
-      if (request.channel === "vocabulary/review-queue") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const records = await this.#repository.readVocabularyReviewQueue(
-          new Date().toISOString().slice(0, 10),
-        );
-        return this.#success(request, {
-          rootGeneration: request.payload.rootGeneration,
-          entries: await Promise.all(
-            records.map(async (record) => ({
-              ...vocabularyProjection(record),
-              retrievalSchedules: (
-                await this.#repository?.readVocabularyRetrievalSchedules(record.entry.vocabularyId)
-              )?.map(({ retrieval, dueOn }) => ({ retrieval, dueOn })),
-            })),
-          ),
-        });
-      }
-      if (request.channel === "vocabulary/bulk") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.mutateVocabularyBulk(request.payload, new Date().toISOString());
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, { status: "updated" });
-      }
-      if (request.channel === "vocabulary-set/list") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const sets = await this.#repository.listVocabularyLessonSets();
-        return this.#success(request, {
-          entries: sets.map((set) => ({
-            setId: set.setId,
-            title: set.title,
-            candidateCount: set.items.length,
-          })),
-        });
-      }
-
-      if (request.channel === "vocabulary-set/create") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready" || !this.#repository) {
-          return this.#failure(request, "stale-data-root");
-        }
-        const records = (await this.#repository.listVocabularyRecords("candidate")).filter(
-          ({ entry }) => entry.state.status === "candidate",
-        );
-        if (records.length === 0) return this.#failure(request, "not-found");
-        const settings = await this.#readActiveLearnerSettings();
-        const mistakeCategories = (await this.#repository.readCorrectionMistakeSample(6)).map(
-          ({ categoryKey }) => categoryKey,
-        );
-        const candidates = records.slice(0, 50).map(vocabularyCandidateFromRecord);
-        const requestValue = {
-          learningScope: await this.#repository.requireLearningScope(),
-          requestedFrom: "desktop" as const,
-          title: request.payload.title,
-          naturalRequest: request.payload.naturalRequest,
-          ...(settings?.learningContext.goal.description
-            ? { goal: settings.learningContext.goal.description }
-            : {}),
-          ...(request.payload.topic ? { topic: request.payload.topic } : {}),
-          curriculumTopicIds: [],
-          mistakeCategories,
-          candidates,
-        };
-        const setId = activityIdSchema.parse(opaqueId("activity"));
-        await this.#repository.saveVocabularyLessonSet(
-          requestValue,
-          records.slice(0, 50).map(({ entry }) => entry),
-          setId,
-          new Date().toISOString(),
-          `vocabulary-set:${request.requestId}`,
-        );
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          setId,
-          status: "created",
-          candidateCount: candidates.length,
-        });
-      }
-      if (request.channel === "vocabulary/confirm") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.confirmVocabulary(
-          request.payload.vocabularyId,
-          new Date().toISOString(),
-          request.payload.dueOn,
-          `vocabulary-confirm:${request.requestId}`,
-        );
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          vocabularyId: request.payload.vocabularyId,
-          status: "updated",
-        });
-      }
-      if (request.channel === "vocabulary/review") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const reviewed = await this.#repository.reviewVocabularyCard({
-          vocabularyId: request.payload.vocabularyId,
-          grade: request.payload.grade,
-          retrieval: request.payload.retrieval,
-          expectedRevision: request.payload.expectedRevision,
-          expectedUpdatedAt: request.payload.expectedUpdatedAt,
-          reviewedAt: new Date().toISOString(),
-          idempotencyKey: `vocabulary-review:${request.requestId}`,
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
-        return this.#success(request, {
-          vocabularyId: request.payload.vocabularyId,
-          status: "updated",
-          dueOn: reviewed.dueOn,
-        });
-      }
-      if (request.channel === "vocabulary/edit") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.editVocabulary({
-          vocabularyId: request.payload.vocabularyId,
-          expectedRevision: request.payload.expectedRevision,
-          expectedUpdatedAt: request.payload.expectedUpdatedAt,
-          lemma: request.payload.lemma,
-          meaning: request.payload.meaning,
-          example: { text: request.payload.example, meaning: request.payload.exampleMeaning },
-          updatedAt: new Date().toISOString(),
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        return this.#success(request, {
-          vocabularyId: request.payload.vocabularyId,
-          status: "updated",
-        });
-      }
-      if (request.channel === "vocabulary/suspend") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.suspendVocabulary({
-          ...request.payload,
-          suspendedAt: new Date().toISOString(),
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          vocabularyId: request.payload.vocabularyId,
-          status: "updated",
-        });
-      }
-      if (request.channel === "vocabulary/resume") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.resumeVocabulary({
-          ...request.payload,
-          resumedAt: new Date().toISOString(),
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        return this.#success(request, {
-          vocabularyId: request.payload.vocabularyId,
-          status: "updated",
-        });
-      }
-      if (request.channel === "vocabulary/delete") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.deleteVocabulary(
-          request.payload.vocabularyId,
-          new Date().toISOString(),
-        );
-        this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          vocabularyId: request.payload.vocabularyId,
-          status: "updated",
-        });
-      }
-      if (
-        request.channel === "material/list" ||
-        request.channel === "material/read" ||
-        request.channel === "material/save" ||
-        request.channel === "material/delete"
-      ) {
-        const root = await this.#dataRootState(request.requestId);
-        const database = this.#database;
-        if (
-          root.status !== "ready" ||
-          !database ||
-          !this.#repository ||
-          ("rootGeneration" in request.payload &&
-            request.payload.rootGeneration !== database.rootGeneration)
-        )
-          return this.#failure(request, "stale-data-root");
-        const scope = await this.#repository.requireLearningScope();
-        if (request.channel === "material/list")
-          return this.#success(request, {
-            rootGeneration: database.rootGeneration,
-            language: scope.targetLanguage,
-            learningScope: scope,
-            ...(await listMaterials(database, request.payload.cursor)),
-          });
-        if (request.channel === "material/read")
-          return this.#success(request, {
-            material: await readMaterialRevision(database, request.payload.reference),
-          });
-        if (request.channel === "material/delete") {
-          await deleteMaterial(database, request.payload.reference, request.payload.learningScope);
-          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-          return this.#success(request, { deleted: true });
-        }
-        if (request.payload.draft.language !== scope.targetLanguage)
-          return this.#failure(request, "conflict");
-        const material = await saveMaterial(
-          database,
-          request.payload.draft,
-          request.payload.previous,
-        );
-        return this.#success(request, { material });
-      }
-      if (request.channel === "prepared-activity/read") {
-        return this.#success(
-          request,
-          await (
-            await this.#activities(request.requestId)
-          ).readGenerated(request.payload.activityId),
-        );
-      }
-      if (request.channel === "voice-activity/open-in-codex") {
-        const activities = await this.#activities(request.requestId);
-        return this.#success(
-          request,
-          await activities.openVoice(request.payload.activityId, {
-            isCodexVoiceAvailable: async () => {
-              return (
-                (
-                  await this.#providerAccess(
-                    "voice-handoff",
-                    request.requestId,
-                    undefined,
-                    undefined,
-                    integration,
-                  )
-                ).status === "available"
-              );
-            },
-            ...(this.#openExternal ? { openExternal: this.#openExternal } : {}),
-          }),
-        );
-      }
-      if (request.channel === "voice-activity/read") {
-        return this.#success(
-          request,
-          await (await this.#activities(request.requestId)).readVoice(request.payload.activityId),
-        );
-      }
-      if (request.channel === "prepared-activity/delete") {
-        return this.#success(
-          request,
-          await (await this.#activities(request.requestId)).delete(request.payload.activityId),
-        );
-      }
-      if (request.channel === "exercise-set/support") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.recordExerciseSupport(
-          request.payload.activityId,
-          request.payload.attemptId,
-        );
-        return this.#success(request, { recorded: true });
-      }
-      if (request.channel === "exercise-set/answer") {
-        if (
-          !this.#repository ||
-          request.payload.expectedGeneration !== this.#database?.rootGeneration
-        )
-          return this.#failure(request, "stale-data-root");
-        const saved = await this.#repository.saveGeneratedExerciseAnswer({
-          activityId: request.payload.activityId,
-          attemptId: request.payload.attemptId,
-          answer: request.payload.answer,
-          submittedAt: utcInstantSchema.parse(new Date().toISOString()),
-        });
-        return this.#success(request, {
-          saved: true,
-          feedback: saved.feedback?.output ?? null,
-          feedbackProvenance: saved.feedback?.provenance ?? null,
-        });
-      }
-      if (request.channel === "exercise-set/start") {
-        return this.#success(
-          request,
-          await (await this.#activities(request.requestId)).startExercises(request.payload),
-        );
-      }
-      if (request.channel === "exercise-set/complete") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const completedAt = utcInstantSchema.parse(new Date().toISOString());
-        await this.#repository.completeGeneratedExerciseSet({
-          activityId: request.payload.activityId,
-          completedAt,
-          answers: request.payload.answers.map((answer) => ({
-            ...answer,
-            historyEntryId: historyEntryIdSchema.parse(opaqueId("history-entry")),
-          })),
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
-        const database = this.#database;
-        const activityId = request.payload.activityId;
-        if (database)
-          void this.#enqueue(async () => {
+              return this.#failure(request, "conflict");
+            const stored = request.payload.draft.image
+              ? await storeUploadImage(database.dataRoot, request.payload.draft.image)
+              : undefined;
             try {
-              if (
-                database !== this.#database ||
-                !(await queueVocabularyAnalysis(
-                  database,
-                  activityId,
-                  request.payload.answers.map((a) => a.attemptId),
-                ))
-              )
-                return;
+              const upload = await saveUpload(
+                database,
+                request.payload.draft,
+                request.payload.previous,
+                stored?.metadata,
+                request.payload.language,
+                request.payload.saveId,
+                preview && request.payload.websitePack
+                  ? { pack: preview.pack, positions: request.payload.websitePack.positions }
+                  : undefined,
+              );
               this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-              await this.#handleRequest(
-                desktopIpcRequestSchema.parse({
-                  requestId: selectionId(),
-                  channel: "learning-operation/start",
-                  payload: {
-                    submissionId: selectionId(),
-                    input: {
-                      kind: "vocabulary-analysis",
-                      rootGeneration: database.rootGeneration,
-                      source: { kind: "activity", activityId },
-                    },
-                  },
-                }),
-              );
-            } catch {
-              this.#operationLog(
-                "warn",
-                "VOCABULARY_ANALYSIS_PENDING",
-                request.requestId,
-                "vocabulary-analysis",
-                undefined,
-                "Vocabulary analysis remains available for retry.",
-              );
+              return this.#success(request, { upload });
+            } catch (error) {
+              if (stored?.created) await stored.discard().catch(() => {});
+              if (
+                error instanceof Error &&
+                "code" in error &&
+                ["ENOSPC", "EACCES", "EROFS", "EIO"].includes(String(error.code))
+              )
+                throw new Error("OD_UPLOAD_SAVE_FAILED");
+              throw error;
             }
-          });
-        return this.#success(request, {
-          activityId: request.payload.activityId,
-          status: "completed",
-          completedAt,
-        });
-      }
-      if (request.channel === "exercise-set/abandon") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        const abandonedAt = utcInstantSchema.parse(new Date().toISOString());
-        await this.#repository.abandonGeneratedExerciseSet({
-          activityId: request.payload.activityId,
-          abandonedAt,
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          activityId: request.payload.activityId,
-          status: "abandoned",
-          abandonedAt,
-        });
-      }
-      if (request.channel === "history/read") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready" || !this.#repository) {
-          return this.#failure(request, "stale-data-root");
+          }
+          if (request.channel === "uploads/archive") {
+            await archiveUpload(database, request.payload.reference);
+            this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+            return this.#success(request, { archived: true });
+          }
+          if (request.channel === "uploads/image") {
+            const upload = await readUpload(database, request.payload.reference);
+            return this.#success(request, {
+              image: upload.image ? await readUploadImage(database.dataRoot, upload.image) : null,
+            });
+          }
+          if (request.channel === "uploads/analyses")
+            return this.#success(request, {
+              analyses: await readUploadAnalyses(database, request.payload.reference),
+            });
+          const saved = await commitUploadWords(
+            database,
+            request.payload.analysisId,
+            request.payload.positions,
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+          return this.#success(request, { saved });
         }
-        const [history, mistakePatterns, allTimeSkillTotals] = await Promise.all([
-          this.#repository.listHistory(request.payload),
-          this.#repository.listMistakePatterns({
-            ...(request.payload.fromDate ? { fromDate: request.payload.fromDate } : {}),
-            ...(request.payload.toDate ? { toDate: request.payload.toDate } : {}),
-            ...(request.payload.curriculumTopicId
-              ? { curriculumTopicId: request.payload.curriculumTopicId }
-              : {}),
-            ...(request.payload.mistakeCategory
-              ? { mistakeCategory: request.payload.mistakeCategory }
-              : {}),
-            maximum: 50,
-          }),
-          this.#repository.readHistorySkillTotals(),
-        ]);
-        return this.#success(request, {
-          rootGeneration: dataRoot.generation,
-          mistakePatterns,
-          allTimeSkillTotals,
-          nextCursor: history.nextCursor,
-          entries: history.entries.map((entry) => {
-            const detail =
-              entry.detail.kind === "reference" || entry.detail.kind === "attempt-feedback"
-                ? entry.detail
-                : entry.detail.kind === "exercise-attempt"
-                  ? {
-                      kind: entry.detail.kind,
-                      readingMaterial: entry.detail.readingMaterial,
-                      activityId: entry.detail.activityId,
-                      ...(entry.detail.translation
-                        ? { translation: entry.detail.translation }
-                        : {}),
-                      answerLanguage:
-                        entry.detail.snapshot.exercise.kind === "vocabulary-recall" &&
-                        entry.detail.snapshot.exercise.content.direction === "recognition"
-                          ? null
-                          : entry.targetLanguage,
-                      exerciseKind: entry.detail.snapshot.exercise.kind,
-                      instructions: entry.detail.snapshot.exercise.instructions,
-                      prompt: exerciseHistoryPrompt(entry.detail.snapshot.exercise),
-                      answer: entry.detail.answer,
-                      objectiveEvaluations: entry.detail.objectiveEvaluations.map(
-                        ({ outcome, evidence }) => ({ outcome, evidence }),
-                      ),
-                      feedback: {
-                        summary: entry.detail.feedback.summary,
-                        strengths: entry.detail.feedback.strengths,
-                        improvements: entry.detail.feedback.improvements,
-                        ...(entry.detail.feedback.nextStep
-                          ? { nextStep: entry.detail.feedback.nextStep }
-                          : {}),
-                      },
-                      feedbackProvenance: entry.detail.feedbackProvenance,
-                      acceptedAnswerReveal: evaluateExerciseAnswer(
-                        entry.detail.snapshot.exercise,
-                        entry.detail.answer,
-                        entry.targetLanguage,
-                      ).acceptedAnswerReveal,
-                      suggestedAnswer: entry.detail.suggestedAnswer,
-                    }
-                  : entry.detail.kind === "voice-summary" ||
-                      entry.detail.kind === "placement" ||
-                      entry.detail.kind === "listening"
-                    ? entry.detail
-                    : {
+        case "material/list":
+        case "material/read":
+        case "material/save":
+        case "material/delete": {
+          const root = await this.#dataRootState(request.requestId);
+          const database = this.#database;
+          if (
+            root.status !== "ready" ||
+            !database ||
+            !this.#repository ||
+            ("rootGeneration" in request.payload &&
+              request.payload.rootGeneration !== database.rootGeneration)
+          )
+            return this.#failure(request, "stale-data-root");
+          const scope = await this.#repository.requireLearningScope();
+          if (request.channel === "material/list")
+            return this.#success(request, {
+              rootGeneration: database.rootGeneration,
+              language: scope.targetLanguage,
+              learningScope: scope,
+              ...(await listMaterials(database, request.payload.cursor)),
+            });
+          if (request.channel === "material/read")
+            return this.#success(request, {
+              material: await readMaterialRevision(database, request.payload.reference),
+              usage: await readMaterialUsage(database, request.payload.reference),
+            });
+          if (request.channel === "material/delete") {
+            await deleteMaterial(
+              database,
+              request.payload.reference,
+              request.payload.learningScope,
+            );
+            this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+            return this.#success(request, { deleted: true });
+          }
+          if (request.payload.draft.language !== scope.targetLanguage)
+            return this.#failure(request, "conflict");
+          const material = await saveMaterial(
+            database,
+            request.payload.draft,
+            request.payload.previous,
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, { material });
+        }
+        case "prepared-activity/read": {
+          return this.#success(
+            request,
+            await (
+              await this.#activities(request.requestId)
+            ).readGenerated(request.payload.activityId),
+          );
+        }
+        case "voice-activity/open-in-codex": {
+          const activities = await this.#activities(request.requestId);
+          return this.#success(
+            request,
+            await activities.openVoice(request.payload.activityId, {
+              isCodexVoiceAvailable: async () => {
+                return (
+                  (
+                    await this.#providerAccess(
+                      "voice-handoff",
+                      request.requestId,
+                      undefined,
+                      undefined,
+                      integration,
+                    )
+                  ).status === "available"
+                );
+              },
+              ...(this.#openExternal ? { openExternal: this.#openExternal } : {}),
+            }),
+          );
+        }
+        case "voice-activity/read": {
+          return this.#success(
+            request,
+            await (await this.#activities(request.requestId)).readVoice(request.payload.activityId),
+          );
+        }
+        case "prepared-activity/delete": {
+          return this.#success(
+            request,
+            await (await this.#activities(request.requestId)).delete(request.payload.activityId),
+          );
+        }
+        case "exercise-set/support": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.recordExerciseSupport(
+            request.payload.activityId,
+            request.payload.attemptId,
+          );
+          return this.#success(request, { recorded: true });
+        }
+        case "exercise-set/answer": {
+          if (
+            !this.#repository ||
+            request.payload.expectedGeneration !== this.#database?.rootGeneration
+          )
+            return this.#failure(request, "stale-data-root");
+          const saved = await this.#repository.saveGeneratedExerciseAnswer({
+            activityId: request.payload.activityId,
+            attemptId: request.payload.attemptId,
+            answer: request.payload.answer,
+            submittedAt: utcInstantSchema.parse(new Date().toISOString()),
+          });
+          return this.#success(request, {
+            saved: true,
+            feedback: saved.feedback?.output ?? null,
+            feedbackProvenance: saved.feedback?.provenance ?? null,
+          });
+        }
+        case "exercise-set/start": {
+          return this.#success(
+            request,
+            await (await this.#activities(request.requestId)).startExercises(request.payload),
+          );
+        }
+        case "exercise-set/complete": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const completedAt = utcInstantSchema.parse(new Date().toISOString());
+          await this.#repository.completeGeneratedExerciseSet({
+            activityId: request.payload.activityId,
+            completedAt,
+            answers: request.payload.answers.map((answer) => ({
+              ...answer,
+              historyEntryId: historyEntryIdSchema.parse(opaqueId("history-entry")),
+            })),
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+          return this.#success(request, {
+            activityId: request.payload.activityId,
+            status: "completed",
+            completedAt,
+          });
+        }
+        case "exercise-set/abandon": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          const abandonedAt = utcInstantSchema.parse(new Date().toISOString());
+          await this.#repository.abandonGeneratedExerciseSet({
+            activityId: request.payload.activityId,
+            abandonedAt,
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            activityId: request.payload.activityId,
+            status: "abandoned",
+            abandonedAt,
+          });
+        }
+        case "history/read": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready" || !this.#repository) {
+            return this.#failure(request, "stale-data-root");
+          }
+          const [history, mistakePatterns, allTimeSkillTotals] = await Promise.all([
+            this.#repository.listHistory(request.payload),
+            this.#repository.listMistakePatterns({
+              ...(request.payload.fromDate ? { fromDate: request.payload.fromDate } : {}),
+              ...(request.payload.toDate ? { toDate: request.payload.toDate } : {}),
+              ...(request.payload.curriculumTopicId
+                ? { curriculumTopicId: request.payload.curriculumTopicId }
+                : {}),
+              ...(request.payload.mistakeCategory
+                ? { mistakeCategory: request.payload.mistakeCategory }
+                : {}),
+              maximum: 50,
+            }),
+            this.#repository.readHistorySkillTotals(),
+          ]);
+          return this.#success(request, {
+            rootGeneration: dataRoot.generation,
+            mistakePatterns,
+            allTimeSkillTotals,
+            nextCursor: history.nextCursor,
+            entries: history.entries.map((entry) => {
+              const detail =
+                entry.detail.kind === "reference" || entry.detail.kind === "attempt-feedback"
+                  ? entry.detail
+                  : entry.detail.kind === "exercise-attempt"
+                    ? {
                         kind: entry.detail.kind,
-                        learnerText: entry.detail.learnerText,
-                        correctedText: entry.detail.correctedText,
-                        vocabularyCandidates: entry.detail.vocabularyCandidates,
+                        readingMaterial: entry.detail.readingMaterial,
+                        activityId: entry.detail.activityId,
+                        ...(entry.detail.translation
+                          ? { translation: entry.detail.translation }
+                          : {}),
+                        answerLanguage:
+                          entry.detail.snapshot.exercise.kind === "vocabulary-recall" &&
+                          entry.detail.snapshot.exercise.content.direction === "recognition"
+                            ? null
+                            : entry.targetLanguage,
+                        exerciseKind: entry.detail.snapshot.exercise.kind,
+                        instructions: entry.detail.snapshot.exercise.instructions,
+                        prompt: exerciseHistoryPrompt(entry.detail.snapshot.exercise),
+                        answer: entry.detail.answer,
+                        objectiveEvaluations: entry.detail.objectiveEvaluations.map(
+                          ({ outcome, evidence }) => ({ outcome, evidence }),
+                        ),
                         feedback: {
                           summary: entry.detail.feedback.summary,
                           strengths: entry.detail.feedback.strengths,
@@ -3496,431 +3907,497 @@ export class DesktopBackend {
                           ...(entry.detail.feedback.nextStep
                             ? { nextStep: entry.detail.feedback.nextStep }
                             : {}),
-                          overallUncertainty: entry.detail.feedback.overallUncertainty,
                         },
-                        provenance:
-                          entry.detail.aiProvenance.modelSelection.availability === "reported"
-                            ? {
-                                availability: "reported" as const,
-                                modelRequestId: entry.detail.aiProvenance.modelRequestId,
-                                generatedAt: entry.detail.aiProvenance.generatedAt,
-                                modelId: entry.detail.aiProvenance.modelSelection.modelId,
-                                effortId: entry.detail.aiProvenance.modelSelection.effortId,
-                              }
-                            : {
-                                availability: "not-reported" as const,
-                                modelRequestId: entry.detail.aiProvenance.modelRequestId,
-                                generatedAt: entry.detail.aiProvenance.generatedAt,
-                              },
-                        changes: entry.detail.changes,
-                      };
-            return {
-              historyEntryId: entry.historyEntryId,
-              targetLanguage: entry.targetLanguage,
-              activityAvailable: entry.activityAvailable,
-              evidence: entry.evidence,
-              entityKind: entry.entityKind,
-              skill: entry.skill,
-              activityType: entry.activityType,
-              title: entry.title,
-              occurredAt: entry.occurredAt,
-              curriculumTopicIds: entry.curriculumTopicIds,
-              mistakeCategories: entry.mistakeCategories,
-              detail,
-            };
-          }),
-        });
-      }
-      if (request.channel === "history/mistake-amend") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready" || !this.#repository) {
-          return this.#failure(request, "stale-data-root");
-        }
-        if (dataRoot.generation !== request.payload.expectedGeneration) {
-          return this.#failure(request, "stale-data-root");
-        }
-        const amendedAt = utcInstantSchema.parse(new Date().toISOString());
-        await this.#repository.amendMistakeClassification({
-          amendmentId: opaqueId("amendment"),
-          mistakeId: request.payload.mistakeId,
-          effectiveCategory: request.payload.effectiveCategory,
-          ...(request.payload.note ? { note: request.payload.note } : {}),
-          amendedAt,
-        });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          mistakeId: request.payload.mistakeId,
-          rootGeneration: dataRoot.generation,
-          status: "amended",
-        });
-      }
-      if (request.channel === "history/delete") {
-        if (!this.#repository) return this.#failure(request, "stale-data-root");
-        await this.#repository.deleteHistoryEntry(
-          request.payload.historyEntryId,
-          new Date().toISOString(),
-        );
-        this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
-        this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-        return this.#success(request, {
-          historyEntryId: request.payload.historyEntryId,
-          status: "deleted",
-        });
-      }
-      if (request.channel === "codex/integration/read") {
-        return this.#success(request, integration);
-      }
-      if (request.channel === "codex/integration/action") {
-        const current = await this.#codexState(request.requestId);
-        if (current.status !== "available") return this.#failure(request, "app-server");
-        return this.#success(
-          request,
-          await runPluginIntegrationAction(
-            request.payload.action,
-            current.codexVersion,
-            request.requestId,
-          ),
-        );
-      }
-      if (request.channel === "chatgpt/usage/open") {
-        if (!this.#openExternal) return this.#failure(request, "app-server");
-        await this.#openExternal("https://chatgpt.com/settings/usage");
-        return this.#success(request, { status: "opened" });
-      }
-      if (request.channel === "chatgpt/account/read")
-        return this.#success(request, await this.#chatgpt.account());
-      if (request.channel === "chatgpt/accounts/read")
-        return this.#success(request, await this.#chatgpt.accounts());
-      if (request.channel === "chatgpt/account/logout") {
-        if (
-          this.#operations.activeOperations.size > 0 ||
-          this.#translations.translationJobs.size > 0
-        )
-          return this.#failure(request, "conflict");
-        return this.#success(request, await this.#chatgpt.logout());
-      }
-      if (request.channel === "chatgpt/account/login/start") {
-        if (
-          this.#operations.activeOperations.size > 0 ||
-          this.#translations.translationJobs.size > 0
-        )
-          return this.#failure(request, "conflict");
-        // Sign-in creates the provider configuration if needed; routing remains an explicit Settings choice.
-        if (!this.#database) return this.#failure(request, "stale-data-root");
-        const connections = await readAiConnections(this.#database);
-        let connection = connections.connections.find((entry) => entry.routeId === "chatgpt");
-        if (!connection) {
-          const created = await mutateConnections(
-            this.#database,
-            this.#secrets,
-            {
-              expectedGeneration: this.#database.rootGeneration,
-              expectedRevision: connections.revision,
-              action: {
-                kind: "save",
-                connection: {
-                  id: crypto.randomUUID(),
-                  label: "ChatGPT",
-                  routeId: "chatgpt",
-                  preference: {
-                    model: { mode: "automatic" },
-                    effort: { mode: "semantic", effort: "balanced" },
-                  },
-                },
-                credential: { action: "keep" },
-              },
-            },
-            async () => this.#connections.stopConnectionRuntime(),
-          );
-          connection = created.connections.find((entry) => entry.routeId === "chatgpt");
-        }
-        const loginId = await this.#chatgpt.startLogin(request.payload.registrationId);
-        this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
-        return this.#success(request, { loginId, status: "started" });
-      }
-      if (request.channel === "chatgpt/account/login/cancel") {
-        const cancelled = this.#chatgpt.cancelLogin(request.payload.loginId);
-        return this.#success(request, {
-          loginId: request.payload.loginId,
-          status: cancelled ? "cancelled" : "already-finished",
-        });
-      }
-      if (request.channel === "chatgpt/models/read")
-        return this.#success(request, await this.#chatgpt.models());
-      if (request.channel === "learning-operation/start") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready") {
-          return this.#operationRequestFailure(
-            request,
-            "stale-data-root",
-            "OD_DATA_ROOT_STALE",
-            "data-root-not-ready",
-          );
-        }
-        const inputFingerprint = operationInputFingerprint(request.payload.input);
-        const previous = this.#operations.operationsBySubmission.get(request.payload.submissionId);
-        if (
-          previous &&
-          (previous.inputFingerprint !== inputFingerprint ||
-            previous.dataRootGeneration !== dataRoot.generation)
-        )
-          return this.#failure(request, "conflict");
-        // Requests and result projections share the queue. A cancelled UI waiter
-        // can therefore recover a committed result before any provider access.
-        const savedFeedback =
-          request.payload.input.kind === "exercise-feedback"
-            ? await this.#prepareExerciseFeedback(request.payload.input)
-            : undefined;
-        if (request.payload.input.kind === "exercise-feedback") {
-          const feedback = savedFeedback?.feedback;
-          if (feedback)
-            return this.#success(request, {
-              operationId: previous?.operationId ?? selectionId(),
-              submissionId: request.payload.submissionId,
-              status: "retained-feedback",
-              submission: "retained",
-              ...feedback,
-            });
-          if (!previous && this.#operations.hasActiveExerciseFeedback(request.payload.input))
-            return this.#failure(request, "conflict");
-        }
-        if (previous) {
-          return this.#success(request, {
-            operationId: previous.operationId,
-            submissionId: request.payload.submissionId,
-            status: "accepted",
-            timeoutMilliseconds: generationDeadlineFor(
-              previous.operation.input.kind,
-              previous.connection.routeId === "local",
-            ),
-            submission: "retained",
-          });
-        }
-        if (!(await this.#hasAcknowledgedAiDisclosure())) {
-          return this.#operationRequestFailure(
-            request,
-            "validation",
-            "OD_AI_DISCLOSURE_REQUIRED",
-            "ai-disclosure",
-          );
-        }
-        if (!this.#operations.makeOperationRoom()) {
-          return this.#failure(request, "conflict");
-        }
-        const activeSettings = await this.#readActiveLearnerSettings();
-        if (!activeSettings) {
-          return this.#operationRequestFailure(
-            request,
-            "not-found",
-            "OD_LEARNER_SETTINGS_NOT_FOUND",
-            "learner-settings-missing",
-          );
-        }
-        const learnerSettings = await this.#operationLearnerSettings(
-          request.payload.input,
-          activeSettings,
-        );
-        const hasImage =
-          request.payload.input.kind === "vocabulary-analysis" &&
-          request.payload.input.source.kind === "import" &&
-          Boolean(request.payload.input.source.image);
-        const action =
-          request.payload.input.kind === "contextual-help" &&
-          request.payload.input.intent === "translate"
-            ? "translation"
-            : request.payload.input.kind;
-        const access = await this.#providerAccess(
-          action,
-          request.requestId,
-          undefined,
-          undefined,
-          undefined,
-          hasImage,
-        );
-        if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (
-          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#operations.activeOperations.size >= 4
-        )
-          return this.#failure(request, "conflict");
-        if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
-        const connection = await this.#requireRoutedConnection(action, hasImage);
-        const operationId = selectionId();
-        const operation = generationOperationStartSchema.parse({
-          operationId,
-          submissionId: request.payload.submissionId,
-          dataRootGeneration: dataRoot.generation,
-          capability: hasImage ? "image" : "text",
-          modelSelection: {
-            model: { selection: "exact", modelId: access.modelSelection.modelId },
-            effort:
-              access.routeId === "managed"
-                ? { selection: "runtime-default" }
-                : { selection: "exact", effortId: access.modelSelection.effortId },
-          },
-          input: {
-            learningContext: learnerSettings.learningContext,
-            ...(await this.#enrichedOperationInput(
-              request.payload.input,
-              learnerSettings,
-              savedFeedback?.snapshot,
-            )),
-          },
-        });
-        const generation = await this.#connections.generationForConnection(connection);
-        if (!generation) return this.#failure(request, "unsupported-operation");
-        this.#operations.operationsBySubmission.set(request.payload.submissionId, {
-          connection,
-          operationId,
-          inputFingerprint,
-          dataRootGeneration: dataRoot.generation,
-          operation,
-          startedAt: utcInstantSchema.parse(new Date().toISOString()),
-          ...(request.payload.input.kind === "contextual-help"
-            ? {
-                helperSessionId: `${request.payload.input.sessionId}:${learnerSettings.learningContext.targetLanguage}`,
-              }
-            : {}),
-          ...(request.payload.input.kind === "exercise-feedback"
-            ? {
-                exerciseFeedback: request.payload.input,
-              }
-            : {}),
-        });
-        this.#connections.operationServices.set(operationId, generation);
-        this.#operations.activeOperations.add(operationId);
-        void Promise.resolve()
-          .then(() => generation.runOperation(operation))
-          .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
-        return this.#success(request, {
-          operationId,
-          submissionId: request.payload.submissionId,
-          status: "accepted",
-          timeoutMilliseconds: generationDeadlineFor(
-            operation.input.kind,
-            connection.routeId === "local",
-          ),
-          submission: "retained",
-        });
-      }
-      if (request.channel === "learning-operation/retry") {
-        const dataRoot = await this.#dataRootState(request.requestId);
-        if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
-        const prior = [...this.#operations.operationsBySubmission.values()].find(
-          ({ operationId }) => operationId === request.payload.previousOperationId,
-        );
-        if (!prior) return this.#failure(request, "not-found");
-        if (prior.dataRootGeneration !== dataRoot.generation) {
-          return this.#failure(request, "stale-data-root");
-        }
-        const replay = this.#operations.operationsBySubmission.get(request.payload.submissionId);
-        if (
-          replay &&
-          (replay.inputFingerprint !== prior.inputFingerprint ||
-            replay.dataRootGeneration !== dataRoot.generation)
-        )
-          return this.#failure(request, "conflict");
-        if (prior.exerciseFeedback) {
-          const { feedback } = await this.#prepareExerciseFeedback(prior.exerciseFeedback);
-          if (feedback)
-            return this.#success(request, {
-              operationId: replay?.operationId ?? selectionId(),
-              submissionId: request.payload.submissionId,
-              status: "retained-feedback",
-              submission: "retained",
-              ...feedback,
-            });
-        }
-        if (!this.#operations.retryableOperations.has(prior.operationId)) {
-          return this.#failure(request, "conflict");
-        }
-        if (!(await this.#hasAcknowledgedAiDisclosure())) {
-          return this.#failure(request, "validation");
-        }
-        if (replay) {
-          return this.#success(request, {
-            operationId: replay.operationId,
-            submissionId: request.payload.submissionId,
-            status: "accepted",
-            timeoutMilliseconds: generationDeadlineFor(
-              replay.operation.input.kind,
-              replay.connection.routeId === "local",
-            ),
-            submission: "retained",
-          });
-        }
-        if (
-          prior.exerciseFeedback &&
-          this.#operations.hasActiveExerciseFeedback(prior.exerciseFeedback)
-        )
-          return this.#failure(request, "conflict");
-        if (!this.#operations.makeOperationRoom(prior.operationId)) {
-          return this.#failure(request, "conflict");
-        }
-        const access = await this.#providerAccess(
-          prior.operation.input.kind,
-          request.requestId,
-          prior.operation.modelSelection,
-          prior.connection,
-          undefined,
-          prior.operation.capability === "image",
-        );
-        if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
-        if (
-          (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
-          this.#operations.activeOperations.size >= 4
-        )
-          return this.#failure(request, "conflict");
-        const generation = this.#connections.operationServices.get(prior.operationId);
-        if (!generation) return this.#failure(request, "unsupported-operation");
-        const operationId = selectionId();
-        const operation = generationOperationStartSchema.parse({
-          ...prior.operation,
-          operationId,
-          submissionId: request.payload.submissionId,
-          dataRootGeneration: dataRoot.generation,
-        });
-        this.#operations.operationsBySubmission.set(request.payload.submissionId, {
-          connection: prior.connection,
-          operationId,
-          inputFingerprint: prior.inputFingerprint,
-          dataRootGeneration: dataRoot.generation,
-          operation,
-          startedAt: prior.startedAt,
-          ...(prior.helperSessionId ? { helperSessionId: prior.helperSessionId } : {}),
-          ...(prior.exerciseFeedback ? { exerciseFeedback: prior.exerciseFeedback } : {}),
-        });
-        this.#connections.operationServices.set(operationId, generation);
-        this.#operations.activeOperations.add(operationId);
-        void Promise.resolve()
-          .then(() =>
-            generation.retryOperation({
-              previousOperationId: correlationIdSchema.parse(request.payload.previousOperationId),
-              operationId,
-              submissionId: request.payload.submissionId,
+                        feedbackProvenance: entry.detail.feedbackProvenance,
+                        acceptedAnswerReveal: evaluateExerciseAnswer(
+                          entry.detail.snapshot.exercise,
+                          entry.detail.answer,
+                          entry.targetLanguage,
+                        ).acceptedAnswerReveal,
+                        suggestedAnswer: entry.detail.suggestedAnswer,
+                      }
+                    : entry.detail.kind === "voice-summary" ||
+                        entry.detail.kind === "placement" ||
+                        entry.detail.kind === "listening"
+                      ? entry.detail
+                      : {
+                          kind: entry.detail.kind,
+                          learnerText: entry.detail.learnerText,
+                          correctedText: entry.detail.correctedText,
+                          vocabularyCandidates: entry.detail.vocabularyCandidates,
+                          feedback: {
+                            summary: entry.detail.feedback.summary,
+                            strengths: entry.detail.feedback.strengths,
+                            improvements: entry.detail.feedback.improvements,
+                            ...(entry.detail.feedback.nextStep
+                              ? { nextStep: entry.detail.feedback.nextStep }
+                              : {}),
+                            overallUncertainty: entry.detail.feedback.overallUncertainty,
+                          },
+                          provenance:
+                            entry.detail.aiProvenance.modelSelection.availability === "reported"
+                              ? {
+                                  availability: "reported" as const,
+                                  modelRequestId: entry.detail.aiProvenance.modelRequestId,
+                                  generatedAt: entry.detail.aiProvenance.generatedAt,
+                                  modelId: entry.detail.aiProvenance.modelSelection.modelId,
+                                  effortId: entry.detail.aiProvenance.modelSelection.effortId,
+                                }
+                              : {
+                                  availability: "not-reported" as const,
+                                  modelRequestId: entry.detail.aiProvenance.modelRequestId,
+                                  generatedAt: entry.detail.aiProvenance.generatedAt,
+                                },
+                          changes: entry.detail.changes,
+                        };
+              return {
+                historyEntryId: entry.historyEntryId,
+                targetLanguage: entry.targetLanguage,
+                activityAvailable: entry.activityAvailable,
+                evidence: entry.evidence,
+                entityKind: entry.entityKind,
+                skill: entry.skill,
+                activityType: entry.activityType,
+                title: entry.title,
+                occurredAt: entry.occurredAt,
+                curriculumTopicIds: entry.curriculumTopicIds,
+                mistakeCategories: entry.mistakeCategories,
+                detail,
+              };
             }),
+          });
+        }
+        case "history/mistake-amend": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready" || !this.#repository) {
+            return this.#failure(request, "stale-data-root");
+          }
+          if (dataRoot.generation !== request.payload.expectedGeneration) {
+            return this.#failure(request, "stale-data-root");
+          }
+          const amendedAt = utcInstantSchema.parse(new Date().toISOString());
+          await this.#repository.amendMistakeClassification({
+            amendmentId: opaqueId("amendment"),
+            mistakeId: request.payload.mistakeId,
+            effectiveCategory: request.payload.effectiveCategory,
+            ...(request.payload.note ? { note: request.payload.note } : {}),
+            amendedAt,
+          });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            mistakeId: request.payload.mistakeId,
+            rootGeneration: dataRoot.generation,
+            status: "amended",
+          });
+        }
+        case "history/delete": {
+          if (!this.#repository) return this.#failure(request, "stale-data-root");
+          await this.#repository.deleteHistoryEntry(
+            request.payload.historyEntryId,
+            new Date().toISOString(),
+          );
+          this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+          this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
+          return this.#success(request, {
+            historyEntryId: request.payload.historyEntryId,
+            status: "deleted",
+          });
+        }
+        case "codex/integration/read": {
+          return this.#success(request, integration);
+        }
+        case "codex/integration/action": {
+          const current = await this.#codexState(request.requestId);
+          if (current.status !== "available") return this.#failure(request, "app-server");
+          return this.#success(
+            request,
+            await runPluginIntegrationAction(
+              request.payload.action,
+              current.codexVersion,
+              request.requestId,
+            ),
+          );
+        }
+        case "chatgpt/usage/open": {
+          if (!this.#openExternal) return this.#failure(request, "app-server");
+          await this.#openExternal("https://chatgpt.com/settings/usage");
+          return this.#success(request, { status: "opened" });
+        }
+        case "chatgpt/account/read": {
+          return this.#success(request, await this.#chatgpt.account());
+        }
+        case "chatgpt/accounts/read": {
+          return this.#success(request, await this.#chatgpt.accounts());
+        }
+        case "chatgpt/account/logout": {
+          if (
+            this.#operations.activeOperations.size > 0 ||
+            this.#translations.translationJobs.size > 0
           )
-          .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
-        return this.#success(request, {
-          operationId,
-          submissionId: request.payload.submissionId,
-          status: "accepted",
-          timeoutMilliseconds: generationDeadlineFor(
-            operation.input.kind,
-            prior.connection.routeId === "local",
-          ),
-          submission: "retained",
-        });
+            return this.#failure(request, "conflict");
+          return this.#success(request, await this.#chatgpt.logout());
+        }
+        case "chatgpt/account/login/start": {
+          if (
+            this.#operations.activeOperations.size > 0 ||
+            this.#translations.translationJobs.size > 0
+          )
+            return this.#failure(request, "conflict");
+          // Sign-in creates the provider configuration if needed; routing remains an explicit Settings choice.
+          if (!this.#database) return this.#failure(request, "stale-data-root");
+          const connections = await readAiConnections(this.#database);
+          let connection = connections.connections.find((entry) => entry.routeId === "chatgpt");
+          if (!connection) {
+            const created = await mutateConnections(
+              this.#database,
+              this.#secrets,
+              {
+                expectedGeneration: this.#database.rootGeneration,
+                expectedRevision: connections.revision,
+                action: {
+                  kind: "save",
+                  connection: {
+                    id: crypto.randomUUID(),
+                    label: "ChatGPT",
+                    routeId: "chatgpt",
+                    preference: {
+                      model: { mode: "automatic" },
+                      effort: { mode: "semantic", effort: "balanced" },
+                    },
+                  },
+                  credential: { action: "keep" },
+                },
+              },
+              async () => this.#connections.stopConnectionRuntime(),
+            );
+            connection = created.connections.find((entry) => entry.routeId === "chatgpt");
+          }
+          const loginId = await this.#chatgpt.startLogin(request.payload.registrationId);
+          this.#emitEvent?.({ event: "state-invalidated", scope: "ai-connections" });
+          return this.#success(request, { loginId, status: "started" });
+        }
+        case "chatgpt/account/login/cancel": {
+          const cancelled = this.#chatgpt.cancelLogin(request.payload.loginId);
+          return this.#success(request, {
+            loginId: request.payload.loginId,
+            status: cancelled ? "cancelled" : "already-finished",
+          });
+        }
+        case "chatgpt/models/read": {
+          return this.#success(request, await this.#chatgpt.models());
+        }
+        case "learning-operation/start": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready") {
+            return this.#operationRequestFailure(
+              request,
+              "stale-data-root",
+              "OD_DATA_ROOT_STALE",
+              "data-root-not-ready",
+            );
+          }
+          const inputFingerprint = operationInputFingerprint(request.payload.input);
+          const previous = this.#operations.operationsBySubmission.get(
+            request.payload.submissionId,
+          );
+          if (
+            previous &&
+            (previous.inputFingerprint !== inputFingerprint ||
+              previous.dataRootGeneration !== dataRoot.generation)
+          )
+            return this.#failure(request, "conflict");
+          // Requests and result projections share the queue. A cancelled UI waiter
+          // can therefore recover a committed result before any provider access.
+          const savedFeedback =
+            request.payload.input.kind === "exercise-feedback"
+              ? await this.#prepareExerciseFeedback(request.payload.input)
+              : undefined;
+          if (request.payload.input.kind === "exercise-feedback") {
+            const feedback = savedFeedback?.feedback;
+            if (feedback)
+              return this.#success(request, {
+                operationId: previous?.operationId ?? selectionId(),
+                submissionId: request.payload.submissionId,
+                status: "retained-feedback",
+                submission: "retained",
+                ...feedback,
+              });
+            if (!previous && this.#operations.hasActiveExerciseFeedback(request.payload.input))
+              return this.#failure(request, "conflict");
+          }
+          if (previous) {
+            return this.#success(request, {
+              operationId: previous.operationId,
+              submissionId: request.payload.submissionId,
+              status: "accepted",
+              timeoutMilliseconds: generationDeadlineFor(
+                previous.operation.input.kind,
+                previous.connection.routeId === "local",
+              ),
+              submission: "retained",
+            });
+          }
+          if (!(await this.#hasAcknowledgedAiDisclosure())) {
+            return this.#operationRequestFailure(
+              request,
+              "validation",
+              "OD_AI_DISCLOSURE_REQUIRED",
+              "ai-disclosure",
+            );
+          }
+          if (!this.#operations.makeOperationRoom()) {
+            return this.#failure(request, "conflict");
+          }
+          const activeSettings = await this.#readActiveLearnerSettings();
+          if (!activeSettings) {
+            return this.#operationRequestFailure(
+              request,
+              "not-found",
+              "OD_LEARNER_SETTINGS_NOT_FOUND",
+              "learner-settings-missing",
+            );
+          }
+          const learnerSettings = await this.#operationLearnerSettings(
+            request.payload.input,
+            activeSettings,
+          );
+          const uploadForAnalysis =
+            request.payload.input.kind === "vocabulary-analysis" &&
+            request.payload.input.source.kind === "upload"
+              ? await readUpload(
+                  this.#database!,
+                  request.payload.input.source.reference,
+                  learnerSettings.learningContext.targetLanguage,
+                )
+              : undefined;
+          const hasImage =
+            request.payload.input.kind === "vocabulary-analysis" &&
+            (request.payload.input.source.kind === "import" ||
+            request.payload.input.source.kind === "preview"
+              ? Boolean(request.payload.input.source.image)
+              : Boolean(uploadForAnalysis?.image && !uploadForAnalysis.hasText));
+          const action =
+            request.payload.input.kind === "contextual-help" &&
+            request.payload.input.intent === "translate"
+              ? "translation"
+              : request.payload.input.kind;
+          const access = await this.#providerAccess(
+            action,
+            request.requestId,
+            undefined,
+            undefined,
+            undefined,
+            hasImage,
+          );
+          if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
+          if (
+            (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+            this.#operations.activeOperations.size >= 4
+          )
+            return this.#failure(request, "conflict");
+          if (!access.modelSelection) return this.#failure(request, "unsupported-operation");
+          const connection = await this.#requireRoutedConnection(action, hasImage);
+          const operationId = selectionId();
+          const enriched = await this.#enrichedOperationInput(
+            request.payload.input,
+            learnerSettings,
+            savedFeedback?.snapshot,
+          );
+          if (
+            enriched.kind === "exercise-generation" &&
+            "uploadSource" in enriched &&
+            enriched.uploadSource
+          ) {
+            const source = enriched.uploadSource.material;
+            const sourceDraft = {
+              kind: source.kind,
+              title: source.title,
+              language: source.language,
+              text: source.text,
+              ...(source.source ? { source: source.source } : {}),
+            };
+            Object.assign(enriched, {
+              material: sourceDraft,
+              materialReference: { materialId: source.materialId, revisionId: source.revisionId },
+              ...("reading" in enriched && enriched.reading
+                ? { reading: { passage: source.text } }
+                : {}),
+            });
+          }
+          const operation = generationOperationStartSchema.parse({
+            operationId,
+            submissionId: request.payload.submissionId,
+            dataRootGeneration: dataRoot.generation,
+            capability: hasImage ? "image" : "text",
+            modelSelection: {
+              model: { selection: "exact", modelId: access.modelSelection.modelId },
+              effort:
+                access.routeId === "managed"
+                  ? { selection: "runtime-default" }
+                  : { selection: "exact", effortId: access.modelSelection.effortId },
+            },
+            input: {
+              learningContext: learnerSettings.learningContext,
+              ...enriched,
+            },
+          });
+          const generation = await this.#connections.generationForConnection(connection);
+          if (!generation) return this.#failure(request, "unsupported-operation");
+          this.#operations.operationsBySubmission.set(request.payload.submissionId, {
+            connection,
+            operationId,
+            inputFingerprint,
+            dataRootGeneration: dataRoot.generation,
+            operation,
+            startedAt: utcInstantSchema.parse(new Date().toISOString()),
+            ...(request.payload.input.kind === "contextual-help"
+              ? {
+                  helperSessionId: `${request.payload.input.sessionId}:${learnerSettings.learningContext.targetLanguage}`,
+                }
+              : {}),
+            ...(request.payload.input.kind === "exercise-feedback"
+              ? {
+                  exerciseFeedback: request.payload.input,
+                }
+              : {}),
+          });
+          this.#connections.operationServices.set(operationId, generation);
+          this.#operations.activeOperations.add(operationId);
+          void Promise.resolve()
+            .then(() => generation.runOperation(operation))
+            .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
+          return this.#success(request, {
+            operationId,
+            submissionId: request.payload.submissionId,
+            status: "accepted",
+            timeoutMilliseconds: generationDeadlineFor(
+              operation.input.kind,
+              connection.routeId === "local",
+            ),
+            submission: "retained",
+          });
+        }
+        case "learning-operation/retry": {
+          const dataRoot = await this.#dataRootState(request.requestId);
+          if (dataRoot.status !== "ready") return this.#failure(request, "stale-data-root");
+          const prior = [...this.#operations.operationsBySubmission.values()].find(
+            ({ operationId }) => operationId === request.payload.previousOperationId,
+          );
+          if (!prior) return this.#failure(request, "not-found");
+          if (prior.dataRootGeneration !== dataRoot.generation) {
+            return this.#failure(request, "stale-data-root");
+          }
+          const replay = this.#operations.operationsBySubmission.get(request.payload.submissionId);
+          if (
+            replay &&
+            (replay.inputFingerprint !== prior.inputFingerprint ||
+              replay.dataRootGeneration !== dataRoot.generation)
+          )
+            return this.#failure(request, "conflict");
+          if (prior.exerciseFeedback) {
+            const { feedback } = await this.#prepareExerciseFeedback(prior.exerciseFeedback);
+            if (feedback)
+              return this.#success(request, {
+                operationId: replay?.operationId ?? selectionId(),
+                submissionId: request.payload.submissionId,
+                status: "retained-feedback",
+                submission: "retained",
+                ...feedback,
+              });
+          }
+          if (!this.#operations.retryableOperations.has(prior.operationId)) {
+            return this.#failure(request, "conflict");
+          }
+          if (!(await this.#hasAcknowledgedAiDisclosure())) {
+            return this.#failure(request, "validation");
+          }
+          if (replay) {
+            return this.#success(request, {
+              operationId: replay.operationId,
+              submissionId: request.payload.submissionId,
+              status: "accepted",
+              timeoutMilliseconds: generationDeadlineFor(
+                replay.operation.input.kind,
+                replay.connection.routeId === "local",
+              ),
+              submission: "retained",
+            });
+          }
+          if (
+            prior.exerciseFeedback &&
+            this.#operations.hasActiveExerciseFeedback(prior.exerciseFeedback)
+          )
+            return this.#failure(request, "conflict");
+          if (!this.#operations.makeOperationRoom(prior.operationId)) {
+            return this.#failure(request, "conflict");
+          }
+          const access = await this.#providerAccess(
+            prior.operation.input.kind,
+            request.requestId,
+            prior.operation.modelSelection,
+            prior.connection,
+            undefined,
+            prior.operation.capability === "image",
+          );
+          if (access.status === "unavailable") return this.#providerAccessFailure(request, access);
+          if (
+            (isDirectApiRoute(access.routeId) || access.routeId === "managed") &&
+            this.#operations.activeOperations.size >= 4
+          )
+            return this.#failure(request, "conflict");
+          const generation = this.#connections.operationServices.get(prior.operationId);
+          if (!generation) return this.#failure(request, "unsupported-operation");
+          const operationId = selectionId();
+          const operation = generationOperationStartSchema.parse({
+            ...prior.operation,
+            operationId,
+            submissionId: request.payload.submissionId,
+            dataRootGeneration: dataRoot.generation,
+          });
+          this.#operations.operationsBySubmission.set(request.payload.submissionId, {
+            connection: prior.connection,
+            operationId,
+            inputFingerprint: prior.inputFingerprint,
+            dataRootGeneration: dataRoot.generation,
+            operation,
+            startedAt: prior.startedAt,
+            ...(prior.helperSessionId ? { helperSessionId: prior.helperSessionId } : {}),
+            ...(prior.exerciseFeedback ? { exerciseFeedback: prior.exerciseFeedback } : {}),
+          });
+          this.#connections.operationServices.set(operationId, generation);
+          this.#operations.activeOperations.add(operationId);
+          void Promise.resolve()
+            .then(() =>
+              generation.retryOperation({
+                previousOperationId: correlationIdSchema.parse(request.payload.previousOperationId),
+                operationId,
+                submissionId: request.payload.submissionId,
+              }),
+            )
+            .catch((error: unknown) => this.#operations.rejectUnsettledOperation(operation, error));
+          return this.#success(request, {
+            operationId,
+            submissionId: request.payload.submissionId,
+            status: "accepted",
+            timeoutMilliseconds: generationDeadlineFor(
+              operation.input.kind,
+              prior.connection.routeId === "local",
+            ),
+            submission: "retained",
+          });
+        }
+        case "learning-operation/cancel": {
+          const active = this.#operations.activeOperations.has(request.payload.operationId);
+          if (active) {
+            await this.#connections.operationServices
+              .get(request.payload.operationId)
+              ?.cancelOperation(request.payload.operationId);
+          }
+          const status = active ? "cancelling" : "already-finished";
+          return this.#success(request, { operationId: request.payload.operationId, status });
+        }
       }
-      const active = this.#operations.activeOperations.has(request.payload.operationId);
-      if (active) {
-        await this.#connections.operationServices
-          .get(request.payload.operationId)
-          ?.cancelOperation(request.payload.operationId);
-      }
-      const status = active ? "cancelling" : "already-finished";
-      return this.#success(request, { operationId: request.payload.operationId, status });
     } catch (error) {
       if (
         request.channel === "learning-operation/start" ||
@@ -3958,21 +4435,36 @@ export class DesktopBackend {
         return this.#failure(request, kind);
       }
       const kind =
-        code === "OD_EXERCISE_CONTEXT_MISSING"
-          ? "exercise-context-missing"
-          : code === "OD_MATERIAL_REVISION_STALE"
-            ? "conflict"
-            : code.includes("HANDOFF")
-              ? "handoff"
-              : code.includes("STALE")
-                ? "stale-data-root"
-                : code.includes("CONFLICT") || code.includes("DELETE_BLOCKED")
-                  ? "conflict"
-                  : code.includes("NOT_FOUND")
-                    ? "not-found"
-                    : code.includes("DATABASE") || code.includes("SQLITE")
-                      ? "database"
-                      : "validation";
+        request.channel === "uploads/save" &&
+        error instanceof Error &&
+        "code" in error &&
+        ["ENOSPC", "EACCES", "EROFS", "EIO"].includes(String(error.code))
+          ? "upload-save-failed"
+          : code === "OD_UPLOAD_IMAGE_UNAVAILABLE"
+            ? "upload-image-unavailable"
+            : code === "OD_UPLOAD_SAVE_FAILED"
+              ? "upload-save-failed"
+              : code === "OD_UPLOAD_TEXT_REQUIRED"
+                ? "upload-text-required"
+                : code === "OD_VOCABULARY_IMAGE_INVALID"
+                  ? "upload-image-invalid"
+                  : code === "OD_MATERIAL_REFERENCED"
+                    ? "material-referenced"
+                    : code === "OD_EXERCISE_CONTEXT_MISSING"
+                      ? "exercise-context-missing"
+                      : code === "OD_MATERIAL_REVISION_STALE"
+                        ? "conflict"
+                        : code.includes("HANDOFF")
+                          ? "handoff"
+                          : code.includes("STALE")
+                            ? "stale-data-root"
+                            : code.includes("CONFLICT") || code.includes("DELETE_BLOCKED")
+                              ? "conflict"
+                              : code.includes("NOT_FOUND")
+                                ? "not-found"
+                                : code.includes("DATABASE") || code.includes("SQLITE")
+                                  ? "database"
+                                  : "validation";
       return this.#failure(request, kind);
     }
   }

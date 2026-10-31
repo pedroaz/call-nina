@@ -1,3 +1,5 @@
+import { websiteSourceSchema, websiteStudyPackOutputSchema } from "./website-study-pack.js";
+import { uploadPracticeContextSchema, uploadReferenceSchema } from "./uploads.js";
 import { vocabularyImageSchema, vocabularyAnalysisOutputSchema } from "./vocabulary-learning.js";
 import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
@@ -32,6 +34,7 @@ const runtimeId = (maximum = 200) => text(maximum).regex(/^[A-Za-z0-9][A-Za-z0-9
 
 export const generationKinds = [
   "vocabulary-analysis",
+  "website-study-pack",
   "writing-prompt",
   "voice-activity-draft",
   "writing-correction",
@@ -44,6 +47,7 @@ export const generationKindSchema = z.enum(generationKinds);
 
 export const generationOutputSchemaIds = {
   "vocabulary-analysis": "call-nina/vocabulary-analysis@1",
+  "website-study-pack": "call-nina/website-study-pack@1",
   "writing-prompt": "call-nina/writing-prompt@1",
   "voice-activity-draft": "call-nina/voice-activity-draft@1",
   "writing-correction": "call-nina/writing-correction@1",
@@ -368,6 +372,7 @@ export const exerciseFeedbackCandidateSchema = strictBoundaryObject({
 
 export const generationCandidateOutputSchemas = Object.freeze({
   "vocabulary-analysis": vocabularyAnalysisOutputSchema,
+  "website-study-pack": websiteStudyPackOutputSchema,
   "writing-prompt": writingPromptCandidateSchema,
   "voice-activity-draft": voiceActivityDraftCandidateSchema,
   "writing-correction": writingCorrectionCandidateSchema,
@@ -379,6 +384,7 @@ export const generationCandidateOutputSchemas = Object.freeze({
 
 export const generationCandidateOutputJsonSchemas = Object.freeze({
   "vocabulary-analysis": toStructuredOutputJsonSchema(vocabularyAnalysisOutputSchema),
+  "website-study-pack": toStructuredOutputJsonSchema(websiteStudyPackOutputSchema),
   "writing-prompt": toStructuredOutputJsonSchema(writingPromptCandidateSchema),
   "voice-activity-draft": toStructuredOutputJsonSchema(voiceActivityDraftCandidateSchema),
   "writing-correction": toStructuredOutputJsonSchema(writingCorrectionCandidateSchema),
@@ -531,9 +537,16 @@ const learningContextFields = {
 
 export const generationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
+    kind: z.literal("website-study-pack"),
+    learningContext: learningContextSchema,
+    source: websiteSourceSchema,
+    calibration: learnerCalibrationSchema,
+  }),
+  z.strictObject({
     kind: z.literal("vocabulary-analysis"),
     learningContext: learningContextSchema,
-    mode: z.enum(["import", "activity"]),
+    mode: z.enum(["import", "activity", "upload", "preview"]),
+    upload: uploadReferenceSchema.optional(),
     sourceKey: text(200),
     guidance: z.string().max(2_000),
     sourceText: z.string().max(120_000),
@@ -548,6 +561,8 @@ export const generationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("flashcard-generation"),
+    adaptiveContext: z.strictObject(learningContextFields).optional(),
+    uploadSource: uploadPracticeContextSchema.optional(),
     topic: text(2_000),
     cardCount: practiceCountSchema,
     targetLevel: z.enum(["A1", "A2", "B1", "B2"]),
@@ -555,12 +570,16 @@ export const generationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("writing-prompt"),
+    adaptiveContext: z.strictObject(learningContextFields).optional(),
+    uploadSource: uploadPracticeContextSchema.optional(),
     naturalRequest: text(1_000).optional(),
     calibration: learnerCalibrationSchema,
   }),
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("voice-activity-draft"),
+    adaptiveContext: z.strictObject(learningContextFields).optional(),
+    uploadSource: uploadPracticeContextSchema.optional(),
     voiceKind: z.enum(["listening", "speaking"]),
     naturalRequest: text(2_000),
     targetLevel: z.enum(["A1", "A2", "B1", "B2"]),
@@ -572,6 +591,8 @@ export const generationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("writing-correction"),
+    adaptiveContext: z.strictObject(learningContextFields).optional(),
+    uploadSource: uploadPracticeContextSchema.optional(),
     learnerText: text(12_000),
     activityGoal: text(1_000),
     calibration: learnerCalibrationSchema,
@@ -605,6 +626,7 @@ export const generationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("exercise-generation"),
+    uploadSource: uploadPracticeContextSchema.optional(),
     entry: exerciseEntryContextSchema,
     material: materialDraftSchema.optional(),
     materialReference: materialReferenceSchema.optional(),
@@ -650,6 +672,7 @@ export const generationInputSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     learningContext: learningContextSchema,
     kind: z.literal("exercise-feedback"),
+    uploadSource: uploadPracticeContextSchema.optional(),
     courseCriterion: text(4000).optional(),
     readingPassage: text(12_000).optional(),
     exercise: z.discriminatedUnion("kind", [
@@ -789,6 +812,7 @@ export type GenerationOperationStart = z.infer<typeof generationOperationStartSc
 export type GenerationOperationState = z.infer<typeof generationOperationStateSchema>;
 export type GenerationCandidateOutputMap = {
   readonly "vocabulary-analysis": z.infer<typeof vocabularyAnalysisOutputSchema>;
+  readonly "website-study-pack": z.infer<typeof websiteStudyPackOutputSchema>;
   readonly "writing-prompt": z.infer<typeof writingPromptCandidateSchema>;
   readonly "voice-activity-draft": z.infer<typeof voiceActivityDraftCandidateSchema>;
   readonly "writing-correction": z.infer<typeof writingCorrectionCandidateSchema>;
@@ -838,6 +862,7 @@ export interface GenerationService<Outputs extends GenerationOutputMap = Generat
 }
 export const generationDeadlineMilliseconds = Object.freeze({
   "vocabulary-analysis": 120_000,
+  "website-study-pack": 120_000,
   "writing-prompt": 60_000,
   "voice-activity-draft": 60_000,
   "writing-correction": 60_000,

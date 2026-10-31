@@ -5,38 +5,20 @@ import { SavedResultDetail } from "./SavedResultDetail.js";
 import type {
   Snapshot,
   Entry,
-  HistoryPayload,
-  Skill,
-  ActivityType,
   SavedResultsScope,
   HistoryPracticeSeed,
   PracticeState,
 } from "./savedResultsTypes.js";
 import { ProviderActionSummary } from "./ProviderActionSummary.js";
-import {
-  type ProviderOperation,
-  type CallNinaError,
-  calendarDateSchema,
-  curriculumTopicIdSchema,
-} from "@call-nina/contracts";
+import { type ProviderOperation, type CallNinaError } from "@call-nina/contracts";
 import { useOperationProgress } from "./useOperationProgress.js";
 import { OperationProgress } from "./OperationProgress.js";
 import { SavedTranslation } from "./SavedTranslation.js";
 import { History } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  SelectControl,
-  Button,
-  Disclosure,
-  ModalDialog,
-  EmptyState,
-  LoadingState,
-  FieldGroup,
-  TextField,
-  Muted,
-} from "./components/ui/index.js";
-import { ActionGroup, FilterBar, ContentRow } from "./components/layout/index.js";
+import { Button, EmptyState, LoadingState } from "./components/ui/index.js";
+import { ActionGroup, ContentRow } from "./components/layout/index.js";
 
 import styles from "./HistoryPage.module.css";
 import {
@@ -48,17 +30,13 @@ import {
 
 export type { SavedResultsScope, HistoryPracticeSeed } from "./savedResultsTypes.js";
 
-const skills: readonly Skill[] = ["writing", "reading", "listening", "speaking"];
-const activityTypes: readonly ActivityType[] = [
-  "writing",
-  "grammar",
-  "vocabulary-review",
-  "reading",
-  "codex-listening",
-  "voice-speaking",
-  "placement",
-  "custom-lesson",
-];
+function hasWrongAnswer(entry: Entry) {
+  if (entry.detail.kind === "exercise-attempt")
+    return entry.detail.objectiveEvaluations.some(
+      ({ outcome }) => outcome === "developing" || outcome === "not-demonstrated",
+    );
+  return entry.mistakeCategories.length > 0;
+}
 
 export function SavedResults({
   onPracticeAgain,
@@ -78,8 +56,7 @@ export function SavedResults({
   const { i18n, t } = useTranslation();
   const progress = useOperationProgress();
   const [detail, setDetail] = useState<string>();
-  const [search, setSearch] = useState("");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [resultFilter, setResultFilter] = useState<"wrong" | "all">("wrong");
   const version = useRef(0);
   const onChangedRef = useRef(onChanged);
   useEffect(() => {
@@ -89,19 +66,6 @@ export function SavedResults({
   const scopeKey = JSON.stringify(scope ?? {});
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [patterns, setPatterns] = useState<Snapshot["mistakePatterns"]>([]);
-  const [skill, setSkill] = useState<Skill | "">("");
-  const [activityType, setActivityType] = useState<ActivityType | "">("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const invalidDateRange = Boolean(fromDate && toDate && fromDate > toDate);
-  const [curriculumTopicId, setCurriculumTopicId] = useState("");
-  const invalidCurriculumTopic = Boolean(
-    curriculumTopicId.trim() &&
-    !curriculumTopicIdSchema.safeParse(curriculumTopicId.trim()).success,
-  );
-  const [mistakeCategory, setMistakeCategory] = useState("");
-  const [appliedFilters, setAppliedFilters] = useState<HistoryPayload>({ maximum: 100 });
-  const skillFilter = useRef<HTMLSelectElement>(null);
   const [actionBusy, setBusy] = useState(false);
   const [reading, setReading] = useState(false);
   const [readError, setReadError] = useState<CallNinaError>();
@@ -136,7 +100,6 @@ export function SavedResults({
                   : {}),
               };
             })(),
-            ...appliedFilters,
             maximum: 50,
             ...(nextCursor ? { cursor: nextCursor } : {}),
           });
@@ -144,9 +107,11 @@ export function SavedResults({
           if (root !== undefined && root !== next.rootGeneration)
             throw new Error("OD_DATA_ROOT_STALE");
           root = next.rootGeneration;
-          entries.push(...next.entries);
+          entries.push(
+            ...next.entries.filter((entry) => resultFilter === "all" || hasWrongAnswer(entry)),
+          );
           nextCursor = next.nextCursor ?? undefined;
-        } while (!cursor && entries.length < retainedCount.current && nextCursor);
+        } while (entries.length < (cursor ? 50 : retainedCount.current) && nextCursor);
         if (!cursor) {
           const overview = await invokeDesktop("history/read", { maximum: 1 });
           if (request !== version.current) return;
@@ -174,51 +139,7 @@ export function SavedResults({
         if (request === version.current) setReading(false);
       }
     },
-    [scopeKey, appliedFilters],
-  );
-
-  const applyFilters = () => {
-    if (invalidDateRange || invalidCurriculumTopic) return;
-    try {
-      setAppliedFilters({
-        ...(search.trim() ? { search: search.trim() } : {}),
-        ...(skill ? { skill } : {}),
-        ...(activityType ? { activityType } : {}),
-        ...(fromDate ? { fromDate: calendarDateSchema.parse(fromDate) } : {}),
-        ...(toDate ? { toDate: calendarDateSchema.parse(toDate) } : {}),
-        ...(curriculumTopicId.trim()
-          ? { curriculumTopicId: curriculumTopicIdSchema.parse(curriculumTopicId.trim()) }
-          : {}),
-        ...(mistakeCategory.trim() ? { mistakeCategory: mistakeCategory.trim() } : {}),
-        maximum: 100,
-      });
-      setFiltersOpen(false);
-      setError(undefined);
-    } catch (cause) {
-      setError(normalizeDesktopError(cause).detail);
-    }
-  };
-  const clearFilters = () => {
-    setSearch("");
-    setSkill("");
-    setActivityType("");
-    setFromDate("");
-    setToDate("");
-    setCurriculumTopicId("");
-    setMistakeCategory("");
-    setAppliedFilters({ maximum: 100 });
-    if (filtersOpen) skillFilter.current?.focus();
-  };
-  const hasAppliedFilters = Object.keys(appliedFilters).length > 1;
-  const hasFilters = Boolean(
-    search ||
-    skill ||
-    activityType ||
-    fromDate ||
-    toDate ||
-    curriculumTopicId ||
-    mistakeCategory ||
-    hasAppliedFilters,
+    [scopeKey, resultFilter],
   );
 
   useEffect(() => {
@@ -452,15 +373,23 @@ export function SavedResults({
               {scope.label ?? t("savedResults.selection")} · {t("savedResults.clearScope")}
             </Button>
           )}
-          <Button
-            variant="secondary"
-            onPress={() => {
-              setFiltersOpen(true);
-            }}
-          >
-            {t("savedResults.filters")}{" "}
-            {Object.keys(appliedFilters).filter((key) => key !== "maximum").length || ""}
-          </Button>
+          {(["wrong", "all"] as const).map((filter) => (
+            <Button
+              key={filter}
+              variant="secondary"
+              density="compact"
+              aria-pressed={resultFilter === filter}
+              onPress={() => {
+                if (resultFilter === filter) return;
+                version.current++;
+                retainedCount.current = 50;
+                setSnapshot(undefined);
+                setResultFilter(filter);
+              }}
+            >
+              {t(filter === "wrong" ? "savedResults.wrongAnswers" : "savedResults.allResults")}
+            </Button>
+          ))}
           {snapshot && snapshot.mistakePatterns.length > 0 && (
             <Button
               variant="quiet"
@@ -471,176 +400,7 @@ export function SavedResults({
               {t("savedResults.mistakes")}
             </Button>
           )}
-          {hasAppliedFilters && (
-            <Button variant="quiet" onPress={clearFilters}>
-              {t("vocabulary.flow.clearFilters")}
-            </Button>
-          )}
         </ActionGroup>
-        {hasAppliedFilters && (
-          <Muted>
-            {[
-              appliedFilters.search,
-              appliedFilters.skill ? t(`history.skills.${appliedFilters.skill}`) : undefined,
-              appliedFilters.activityType
-                ? t(`history.activityTypes.${appliedFilters.activityType}`)
-                : undefined,
-              appliedFilters.fromDate,
-              appliedFilters.toDate,
-              appliedFilters.curriculumTopicId,
-              appliedFilters.mistakeCategory,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </Muted>
-        )}
-        <ModalDialog
-          keepMounted
-          isOpen={filtersOpen}
-          onOpenChange={setFiltersOpen}
-          title={t("savedResults.filters")}
-          closeLabel={t("actions.close")}
-        >
-          <FilterBar
-            as="form"
-            columns={3}
-            label={t("history.title")}
-            onSubmit={(event) => {
-              event.preventDefault();
-              applyFilters();
-            }}
-          >
-            <FieldGroup>
-              {t("savedResults.search")}
-              <input
-                value={search}
-                maxLength={160}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                }}
-              />
-            </FieldGroup>
-            <FieldGroup>
-              {t("history.filters.skill")}
-              <SelectControl
-                ref={skillFilter}
-                value={skill}
-                onChange={(event) => {
-                  setSkill(event.target.value as Skill | "");
-                }}
-              >
-                <option value="">{t("history.filters.all")}</option>
-                {skills.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`history.skills.${value}`)}
-                  </option>
-                ))}
-              </SelectControl>
-            </FieldGroup>
-            <FieldGroup>
-              {t("history.filters.activityType")}
-              <SelectControl
-                value={activityType}
-                onChange={(event) => {
-                  setActivityType(event.target.value as ActivityType | "");
-                }}
-              >
-                <option value="">{t("history.filters.all")}</option>
-                {activityTypes.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`history.activityTypes.${value}`)}
-                  </option>
-                ))}
-              </SelectControl>
-            </FieldGroup>
-            <ActionGroup>
-              <Button
-                variant="secondary"
-                isDisabled={busy || invalidDateRange || invalidCurriculumTopic}
-                type="submit"
-              >
-                {t("history.filters.apply")}
-              </Button>
-              {hasFilters && (
-                <Button variant="quiet" isDisabled={busy} onPress={clearFilters}>
-                  {t("vocabulary.flow.clearFilters")}
-                </Button>
-              )}
-            </ActionGroup>
-            <Disclosure
-              className={styles.advancedFilters}
-              label={
-                <>
-                  {t("ui.moreFilters")}
-                  {[
-                    appliedFilters.fromDate,
-                    appliedFilters.toDate,
-                    appliedFilters.curriculumTopicId,
-                    appliedFilters.mistakeCategory,
-                  ].filter(Boolean).length > 0 && (
-                    <span>
-                      {" "}
-                      ·{" "}
-                      {[
-                        appliedFilters.fromDate &&
-                          `${t("history.filters.from")}: ${appliedFilters.fromDate}`,
-                        appliedFilters.toDate &&
-                          `${t("history.filters.to")}: ${appliedFilters.toDate}`,
-                        appliedFilters.curriculumTopicId &&
-                          `${t("history.filters.topic")}: ${appliedFilters.curriculumTopicId}`,
-                        appliedFilters.mistakeCategory &&
-                          `${t("history.filters.mistake")}: ${appliedFilters.mistakeCategory}`,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  )}
-                </>
-              }
-            >
-              <div className={styles.advancedGrid}>
-                <TextField
-                  label={t("history.filters.from")}
-                  type="date"
-                  max={toDate || undefined}
-                  value={fromDate}
-                  onChange={(event) => {
-                    setFromDate(event.target.value);
-                  }}
-                />
-                <TextField
-                  label={t("history.filters.to")}
-                  type="date"
-                  min={fromDate || undefined}
-                  value={toDate}
-                  error={invalidDateRange ? t("history.filters.invalidDateRange") : undefined}
-                  onChange={(event) => {
-                    setToDate(event.target.value);
-                  }}
-                />
-                <TextField
-                  label={t("history.filters.topic")}
-                  maxLength={96}
-                  value={curriculumTopicId}
-                  error={invalidCurriculumTopic ? t("history.filters.invalidTopic") : undefined}
-                  onChange={(event) => {
-                    setCurriculumTopicId(event.target.value);
-                  }}
-                />
-                <FieldGroup>
-                  {t("history.filters.mistake")}
-                  <input
-                    maxLength={120}
-                    value={mistakeCategory}
-                    onChange={(event) => {
-                      setMistakeCategory(event.target.value);
-                    }}
-                  />
-                </FieldGroup>
-              </div>
-            </Disclosure>
-          </FilterBar>
-        </ModalDialog>
       </div>
 
       {!detail && operationStatus}
@@ -662,17 +422,14 @@ export function SavedResults({
         {busy && !snapshot && <LoadingState>{t("startup.loading")}</LoadingState>}
         {snapshot && snapshot.entries.length === 0 ? (
           <EmptyState>
-            <History aria-hidden="true" /> {t("history.empty")}
+            <History aria-hidden="true" />{" "}
+            {t(resultFilter === "wrong" ? "savedResults.noWrongAnswers" : "history.empty")}
           </EmptyState>
         ) : null}
 
         <div className={styles.historyList}>
           {snapshot?.entries.map((entry) => (
             <ContentRow
-              leading={<ActivityVisual kind={entry.activityType} />}
-              metadata={
-                entry.evidence ? t(`savedResults.basis.${entry.evidence.basis}`) : undefined
-              }
               key={entry.historyEntryId}
               data-history-entry-id={entry.historyEntryId}
               data-history-vocabulary-id={
@@ -691,26 +448,31 @@ export function SavedResults({
               data-learning-language={entry.evidence?.ownership.learningScope.targetLanguage}
               data-root-generation={snapshot.rootGeneration}
             >
-              <header className={styles.historyEntryHeader}>
-                <div>
-                  <p className={styles.eyebrow}>
-                    {t(`history.activityTypes.${entry.activityType}`)}
-                  </p>
-                  <h2>
-                    <Button
-                      variant="quiet"
-                      onPress={() => {
-                        setDetail(entry.historyEntryId);
-                      }}
-                    >
-                      {entry.title}
-                    </Button>
-                  </h2>
-                </div>
-                <time dateTime={entry.occurredAt}>
-                  {dateFormatter.format(new Date(entry.occurredAt))}
-                </time>
-              </header>
+              <Button
+                variant="quiet"
+                className={styles.resultOpen}
+                onPress={() => {
+                  setDetail(entry.historyEntryId);
+                }}
+              >
+                <ActivityVisual kind={entry.activityType} />
+                <span className={styles.resultCopy}>
+                  <strong>{entry.title}</strong>
+                  <span className={styles.resultMetadata}>
+                    <span>{t(`history.activityTypes.${entry.activityType}`)}</span>
+                    <span aria-hidden="true">·</span>
+                    <time dateTime={entry.occurredAt}>
+                      {dateFormatter.format(new Date(entry.occurredAt))}
+                    </time>
+                    {entry.evidence && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span>{t(`savedResults.basis.${entry.evidence.basis}`)}</span>
+                      </>
+                    )}
+                  </span>
+                </span>
+              </Button>
               <SavedResultDetail
                 entry={entry}
                 isOpen={detail === entry.historyEntryId}

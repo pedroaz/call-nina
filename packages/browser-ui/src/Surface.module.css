@@ -33,6 +33,38 @@
   margin-top: 0;
 }
 
+.emptyPlain {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--od-space-4);
+  min-block-size: 18rem;
+  padding: var(--od-space-8) var(--od-space-5);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.emptyPlain > :where(h2, p) {
+  margin: 0;
+}
+.emptyPlain h2 {
+  color: var(--od-color-text-strong);
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-section-title-size);
+  line-height: var(--od-type-section-title-line);
+  font-weight: var(--od-font-weight-semibold);
+}
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: var(--od-icon-container, 2.75rem);
+  height: var(--od-icon-container, 2.75rem);
+  color: var(--od-color-text-muted);
+}
+.emptyIcon svg {
+  width: var(--od-icon-activity, 1.5rem);
+  height: var(--od-icon-activity, 1.5rem);
+}
+
 .mutedText {
   color: var(--od-color-text-muted);
 }

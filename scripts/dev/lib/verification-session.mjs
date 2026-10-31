@@ -474,6 +474,7 @@ export class VerificationSession {
     this.phase = "settings-provider";
     await this.page
       .getByRole("tabpanel")
+      .getByRole("region", { name: await this.t("setupUx.aiPractice"), exact: true })
       .getByRole("button", {
         name: `${await this.t("providers.configure")}: ${await this.t("connectionSettings.routes.chatgpt")}`,
         exact: true,

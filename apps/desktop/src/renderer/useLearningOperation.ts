@@ -8,6 +8,7 @@ import {
   type DesktopIpcRequest,
   type DesktopIpcResponse,
   type ErrorKind,
+  type CorrelationId,
 } from "@call-nina/contracts";
 import {
   createDesktopSubmissionId,
@@ -22,7 +23,7 @@ type Input = Extract<
 >["payload"]["input"];
 type Finished = Extract<DesktopIpcEvent, { event: "learning-operation-finished" }>;
 type Result =
-  | Extract<Finished["outcome"], { status: "validated" }>
+  | (Extract<Finished["outcome"], { status: "validated" }> & { operationId: CorrelationId })
   | (Extract<
       Extract<DesktopIpcResponse, { status: "ok"; channel: "learning-operation/start" }>["result"],
       { status: "retained-feedback" }
@@ -80,7 +81,7 @@ export function runLearningOperation(
         return;
       cleanup();
       const outcome = event.outcome;
-      if (outcome.status === "validated") resolve(outcome);
+      if (outcome.status === "validated") resolve({ ...outcome, operationId: event.operationId });
       else if (outcome.status === "failed") reject(new DesktopOperationError(outcome.error));
       else
         reject(

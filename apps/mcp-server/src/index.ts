@@ -536,6 +536,9 @@ export function createProductionServer(runtime: Runtime) {
             learningContext: learningContextProjection(captured.learningContext, true),
             preparedAt: activity.preparedAt,
             context: activity.context.voiceContext,
+            ...(activity.context.uploadSource
+              ? { uploadSource: activity.context.uploadSource }
+              : {}),
             ...(activity.context.learningPath
               ? { learningPath: activity.context.learningPath }
               : {}),

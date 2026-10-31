@@ -29,7 +29,7 @@ function help() {
   make deploy dev|prd           Show selected-target deployment instructions.
   make release                  Show the manual GitHub release workflow.
 
-The artifact includes /api/account, /api/generate and /api/mobile-sync even while inference is disabled.
+The artifact includes /api/downloads, /api/account, /api/generate, /api/mobile-sync and /api/speech even while inference is disabled.
 Never deploy static website output alone to the shared project.
 Git-triggered deployments remain disabled. Packaging does not publish anything.
 `);
@@ -52,6 +52,7 @@ async function filesIn(directory, prefix = "") {
     } else if (
       entry.isFile() &&
       (relative === "index.html" ||
+        relative === "about/index.html" ||
         /^notices\/fonts\/OFL-(?:Fredoka|Figtree|JetBrainsMono|NotoSansMono|SourceSans3|SourceSerif4)\.txt$/.test(
           relative,
         ) ||
@@ -94,9 +95,6 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   const pages = files.filter((file) => file.endsWith("index.html"));
   const config = {
     version: 3,
-    ...(environment === "prd" && process.env.NINA_SPEECH_RECOVERY_SCHEDULE === "enabled"
-      ? { crons: [{ path: "/api/speech-recovery", schedule: "* * * * *" }] }
-      : {}),
     routes: [
       { handle: "filesystem" },
       ...pages.map((file) => ({
@@ -123,7 +121,7 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
     "nina-environment.json",
     "vercel.json",
     ".vercel/output/config.json",
-    ...["account", "generate", "mobile-sync", "speech"].flatMap((name) => [
+    ...["account", "downloads", "generate", "mobile-sync", "speech"].flatMap((name) => [
       `.vercel/output/functions/api/${name}.func/index.mjs`,
       `.vercel/output/functions/api/${name}.func/.vc-config.json`,
     ]),

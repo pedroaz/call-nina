@@ -3,7 +3,6 @@ import { need } from "./credentials.mjs";
 import { runtimeRole } from "./database-config.mjs";
 
 export const functions = [
-  "nina_speech.expire()",
   "nina_speech.access(text)",
   "nina_speech.service_enabled()",
   "nina_speech.reserve(uuid,text,integer,text)",

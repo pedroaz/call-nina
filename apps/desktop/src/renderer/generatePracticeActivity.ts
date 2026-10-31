@@ -19,8 +19,14 @@ export async function generatePracticeActivity(
     : request.source === "saved-material"
       ? { origin: "materials" }
       : { origin: "free-practice" },
+  practiceSource?: import("@call-nina/contracts").PracticeSource,
 ) {
-  const result = await run({ kind: "exercise-generation", request, context });
+  const result = await run({
+    kind: "exercise-generation",
+    request,
+    context,
+    ...(practiceSource ? { practiceSource } : {}),
+  });
   return activityIdSchema.parse(result.activityId);
 }
 

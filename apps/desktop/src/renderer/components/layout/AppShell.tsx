@@ -219,12 +219,12 @@ export function AppShell<Page extends string>(props: {
                 >
                   <Icon aria-hidden="true" />
                   <span className={styles.navLabel}>{label}</span>
+                  {feedback && <span className={styles.navFeedback}>{feedback}</span>}
                 </Button>
               );
               return (
                 <li key={page}>
                   {props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}
-                  {feedback}
                 </li>
               );
             })}

@@ -1,4 +1,7 @@
 import { builtinModules } from "node:module";
+import { readFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
+import desktopPackage from "./package.json" with { type: "json" };
 
 import { defineConfig } from "vite";
 import {
@@ -10,9 +13,40 @@ import {
 requireClientConfiguration();
 
 const nodeBuiltins = new Set([...builtinModules, ...builtinModules.map((name) => `node:${name}`)]);
+const speechCatalogFile = new URL("../../build/speech-distribution/catalog.json", import.meta.url);
+let speechRuntimes: unknown = [];
+try {
+  speechRuntimes = JSON.parse(readFileSync(speechCatalogFile, "utf8"));
+} catch (error) {
+  if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  if (process.env.GITHUB_ACTIONS === "true" && process.platform === "linux")
+    throw new Error("OD_SPEECH_RELEASE_CATALOG_REQUIRED");
+}
+if (process.env.GITHUB_ACTIONS === "true" && process.platform === "linux") {
+  const releaseRuntimes = Array.isArray(speechRuntimes) ? speechRuntimes : [];
+  if (
+    releaseRuntimes.length !== 2 ||
+    !["piper", "pocket"].every((engine) =>
+      releaseRuntimes.some(
+        (entry) =>
+          entry.engine === engine &&
+          entry.runtime?.url?.startsWith(
+            `https://github.com/pedroaz/call-nina/releases/download/desktop-v${desktopPackage.version}/`,
+          ),
+      ),
+    )
+  )
+    throw new Error("OD_SPEECH_RELEASE_CATALOG_REQUIRED");
+}
 
 export default defineConfig({
   plugins: [desktopEnvironmentPlugin()],
+  define: {
+    __NINA_APP_VERSION__: JSON.stringify(desktopPackage.version),
+    __NINA_SPEECH_RUNTIMES__: JSON.stringify(
+      gzipSync(JSON.stringify(speechRuntimes)).toString("base64"),
+    ),
+  },
   resolve: { alias: [clientConfigurationAlias()] },
   build: {
     ssr: "src/main/index.ts",

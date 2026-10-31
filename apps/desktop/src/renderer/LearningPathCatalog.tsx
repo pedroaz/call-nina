@@ -52,7 +52,9 @@ export function LearningPathCatalog({
   const normalized = query.trim().toLocaleLowerCase();
   const paths = course.paths.filter(
     (path) =>
-      (kind === "all" || path.kind === kind) &&
+      (kind === "supplementary"
+        ? path.presentation === "supplementary"
+        : path.kind === kind && path.presentation !== "supplementary") &&
       (level === "all" || path.level === level) &&
       (!normalized ||
         `${path.title[locale]} ${path.description[locale]}`
@@ -142,19 +144,45 @@ export function LearningPathCatalog({
           </Card>
           {review}
         </div>
+        <ActionGroup>
+          {[
+            "course",
+            "scenario",
+            ...(course.paths.some((path) => path.presentation === "supplementary")
+              ? ["supplementary"]
+              : []),
+          ].map((value) => (
+            <Button
+              key={value}
+              variant={kind === value ? "primary" : "secondary"}
+              aria-pressed={kind === value}
+              onPress={() => onFilter({ ...filter, kind: value })}
+            >
+              {t(
+                `pathCatalog.${value === "course" ? "structuredCourses" : value === "scenario" ? "everydayMissions" : "supplementary"}`,
+              )}
+            </Button>
+          ))}
+        </ActionGroup>
         <Section
-          title={t("pathFlow.explorePaths")}
+          title={t(
+            kind === "course"
+              ? "pathCatalog.structuredCourses"
+              : kind === "scenario"
+                ? "pathCatalog.everydayMissions"
+                : "pathCatalog.supplementary",
+          )}
           actions={
             <ActionGroup>
               <Muted as="span" className={styles.resultCount} role="status">
-                {t("pathCatalog.results", { count: paths.length, total: course.paths.length })}
+                {t("pathCatalog.viewResults", { count: paths.length })}
               </Muted>
-              {(query || kind !== "all" || level !== "all") && (
+              {(query || level !== "all") && (
                 <Button
                   variant="quiet"
                   density="compact"
                   onPress={() => {
-                    onFilter({ query: "", kind: "all", level: "all" });
+                    onFilter({ query: "", kind, level: "all" });
                     filters.current?.querySelector("input")?.focus();
                   }}
                 >
@@ -174,18 +202,6 @@ export function LearningPathCatalog({
                 onFilter({ ...filter, query: event.target.value });
               }}
             />
-            <SelectField
-              density="compact"
-              label={t("pathCatalog.kind")}
-              value={kind}
-              onChange={(event) => {
-                onFilter({ ...filter, kind: event.target.value });
-              }}
-            >
-              <option value="all">{t("pathCatalog.allKinds")}</option>
-              <option value="course">{t("pathCatalog.course")}</option>
-              <option value="scenario">{t("pathCatalog.scenario")}</option>
-            </SelectField>
             <SelectField
               density="compact"
               label={t("pathCatalog.level")}
@@ -280,7 +296,7 @@ export function LearningPathCatalog({
                 ) : unit.kind === "checkpoint" ? (
                   <Flag aria-hidden="true" />
                 ) : (
-                  index + 1
+                  (unit.syllabus?.chapters[0] ?? index + 1)
                 )}
               </span>
               <span className={styles.trailStop}>

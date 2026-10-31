@@ -43,7 +43,12 @@ export function preparePortableContent(
       : saveMaterialInTransaction(connection, input.material, activity.preparedAt);
   if (material.language !== activity.context.learningScope.targetLanguage)
     throw new Error("OD_MATERIAL_LANGUAGE_MISMATCH");
-  if (material.kind === "pasted-text" && output.readingMaterial?.passage !== material.text)
+  // Quizzes and grammar exercises can use a pasted source without a reading passage.
+  if (
+    material.kind === "pasted-text" &&
+    output.readingMaterial &&
+    output.readingMaterial.passage !== material.text
+  )
     throw new Error("OD_CONTENT_MATERIAL_MISMATCH");
   return parsePortableExerciseContent({
     schemaVersion: 1,

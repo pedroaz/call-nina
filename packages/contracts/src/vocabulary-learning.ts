@@ -41,6 +41,7 @@ export const vocabularyBatchSchema = z.strictObject({
   id: text(100),
   title: text(160),
   added: z.int().nonnegative(),
+  activityId: z.string().nullable(),
   createdAt: text(40),
   read: z.boolean(),
   undone: z.boolean(),
@@ -55,6 +56,7 @@ export const vocabularyBatchSchema = z.strictObject({
         reason: text(800),
         examples: z.array(vocabularyExampleSchema).max(10),
         added: z.boolean(),
+        outcome: z.enum(["requested", "difficulty", "success"]),
       }),
     )
     .max(20),
@@ -62,8 +64,17 @@ export const vocabularyBatchSchema = z.strictObject({
 export const vocabularyLearningSnapshotSchema = z.strictObject({
   rootGeneration: dataRootGenerationSchema,
   language: targetLanguageSchema,
+  unreadCount: z.int().nonnegative(),
   focuses: z.array(vocabularyFocusSchema).max(100),
   dueWords: z.array(text(160)).max(3),
-  batches: z.array(vocabularyBatchSchema).max(50),
+  batches: z.array(vocabularyBatchSchema).max(500),
+  jobs: z
+    .array(
+      z.strictObject({
+        activityId: text(100),
+        state: z.enum(["pending", "running", "blocked", "failed"]),
+      }),
+    )
+    .max(500),
   pendingActivities: z.array(z.strictObject({ activityId: text(100), title: text(160) })).max(50),
 });

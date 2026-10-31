@@ -96,7 +96,7 @@ export function Discovery({
   onExplore: (feature?: FeatureId) => void;
 }) {
   const [state, setState] = useState(readDiscovery);
-  const [open, setOpen] = useState(() => !state.seen);
+  const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const t = discoveryCopy[locale];
   const { answers, step, complete } = state;
@@ -206,8 +206,13 @@ export function Discovery({
   );
   return (
     <>
-      <Button ref={trigger} variant="secondary" onPress={() => setOpen(true)}>
-        {t.title}
+      <Button
+        ref={trigger}
+        className="discovery-trigger"
+        variant="secondary"
+        onPress={() => setOpen(true)}
+      >
+        {copy[locale].cta}
       </Button>
       <ModalDialog
         isOpen={open}

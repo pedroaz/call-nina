@@ -122,6 +122,8 @@ declare module "*Surface.module.css" {
     readonly brand: string;
     readonly card: string;
     readonly empty: string;
+    readonly emptyIcon: string;
+    readonly emptyPlain: string;
     readonly itemList: string;
     readonly muted: string;
     readonly mutedText: string;

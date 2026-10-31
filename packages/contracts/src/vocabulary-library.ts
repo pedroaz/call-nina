@@ -4,12 +4,16 @@ import {
   utcInstantSchema,
   vocabularyIdSchema,
 } from "./common.js";
+import { uploadIdSchema } from "./uploads.js";
+import { vocabularyExampleSchema } from "./vocabulary-content.js";
 import { z } from "./schema-system.js";
 
 export const vocabularyLibraryFilterSchema = z.strictObject({
+  uploadId: uploadIdSchema.optional(),
+  activityId: z.string().min(1).max(100).optional(),
   search: z.string().max(500).default(""),
-  filter: z.enum(["all", "candidate", "due", "active", "suspended"]).default("all"),
-  sort: z.enum(["word", "due"]).default("word"),
+  filter: z.enum(["all", "recent", "candidate", "due", "active", "suspended"]).default("all"),
+  sort: z.enum(["word", "due", "recent"]).default("word"),
   page: z.int().nonnegative().max(1_000_000).default(0),
 });
 export const vocabularyVersionSchema = z.strictObject({
@@ -32,6 +36,7 @@ export const vocabularySummarySchema = z.strictObject({
   vocabularyId: vocabularyIdSchema,
   lemma: z.string().min(1).max(160).regex(/\S/u),
   meaning: z.string().min(1).max(500).regex(/\S/u),
+  examples: z.array(vocabularyExampleSchema).max(12).default([]),
   status: z.enum(["candidate", "active", "suspended"]),
   dueOn: calendarDateSchema.nullable(),
   revision: z.int().nonnegative(),

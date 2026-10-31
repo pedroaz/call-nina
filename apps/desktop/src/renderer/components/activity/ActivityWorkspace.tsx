@@ -12,19 +12,22 @@ import { ActionGroup, Page } from "../layout/index.js";
 import styles from "./Activity.module.css";
 
 export const ActivityHeaderActionsContext = createContext<ReactNode>(null);
+export const ActivitySourceContext = createContext<ReactNode>(null);
 
 export const ActivityLayoutContext = createContext(false);
 
 /** Route-independent page chrome; feature controllers retain all learning state. */
 export function ActivityWorkspace(props: ComponentProps<typeof Page>) {
   const contextualActions = useContext(ActivityHeaderActionsContext);
+  const source = useContext(ActivitySourceContext);
   return (
     <Page
       {...props}
       presentation="activity"
       actions={
-        contextualActions ? (
+        contextualActions || source ? (
           <ActionGroup>
+            {source}
             {contextualActions}
             {props.actions}
           </ActionGroup>

@@ -19,7 +19,26 @@
         "de": "Wähle ein Gericht, frage nach einer Zutat und bitte um die Rechnung.",
         "es": "Elige un plato, pregunta por un ingrediente y pide la cuenta.",
         "pt-BR": "Escolha um prato, pergunte sobre um ingrediente e peça a conta."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "restaurant-mission",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Order at a restaurant",
+        "de": "Im Restaurant bestellen",
+        "es": "Pedir en un restaurante",
+        "pt-BR": "Pedir em um restaurante"
+      },
+      "description": {
+        "en": "Choose a meal, ask about an ingredient, and request the bill.",
+        "de": "Wähle ein Gericht, frage nach einer Zutat und bitte um die Rechnung.",
+        "es": "Elige un plato, pregunta por un ingrediente y pide la cuenta.",
+        "pt-BR": "Escolha um prato, pergunte sobre um ingrediente e peça a conta."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Darum bitten, bezahlen zu dürfen.",
         "es": "La cuenta, por favor.",
         "pt-BR": "A conta, por favor."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-restaurant-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ich hätte gern die Gemüsesuppe.",
+      "meaning": {
+        "en": "Could I have the vegetable soup, please?",
+        "de": "Höflich eine Gemüsesuppe bestellen.",
+        "es": "Quisiera la sopa de verduras.",
+        "pt-BR": "Eu gostaria da sopa de legumes."
+      },
+      "example": "Ich hätte gern die Gemüsesuppe.",
+      "exampleMeaning": {
+        "en": "Could I have the vegetable soup, please?",
+        "de": "Höflich eine Gemüsesuppe bestellen.",
+        "es": "Quisiera la sopa de verduras.",
+        "pt-BR": "Eu gostaria da sopa de legumes."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-restaurant-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Dann nehme ich Reis mit Gemüse.",
+      "meaning": {
+        "en": "Then I will have rice with vegetables.",
+        "de": "Ich wähle das Ersatzgericht.",
+        "es": "Entonces pido arroz con verduras.",
+        "pt-BR": "Então peço arroz com legumes."
+      },
+      "example": "Dann nehme ich Reis mit Gemüse.",
+      "exampleMeaning": {
+        "en": "Then I will have rice with vegetables.",
+        "de": "Ich wähle das Ersatzgericht.",
+        "es": "Entonces pido arroz con verduras.",
+        "pt-BR": "Então peço arroz com legumes."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-restaurant-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ist Milch in der Suppe?",
+      "meaning": {
+        "en": "Does the soup contain milk?",
+        "de": "Nach der Zutat Milch fragen.",
+        "es": "¿La sopa lleva leche?",
+        "pt-BR": "A sopa leva leite?"
+      },
+      "example": "Ist Milch in der Suppe?",
+      "exampleMeaning": {
+        "en": "Does the soup contain milk?",
+        "de": "Nach der Zutat Milch fragen.",
+        "es": "¿La sopa lleva leche?",
+        "pt-BR": "A sopa leva leite?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-restaurant-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Bitte prüfen Sie die Zutaten noch einmal.",
+      "meaning": {
+        "en": "Please check the ingredients again.",
+        "de": "Ich bitte um erneute Prüfung.",
+        "es": "Compruebe otra vez los ingredientes, por favor.",
+        "pt-BR": "Confira os ingredientes novamente, por favor."
+      },
+      "example": "Bitte prüfen Sie die Zutaten noch einmal.",
+      "exampleMeaning": {
+        "en": "Please check the ingredients again.",
+        "de": "Ich bitte um erneute Prüfung.",
+        "es": "Compruebe otra vez los ingredientes, por favor.",
+        "pt-BR": "Confira os ingredientes novamente, por favor."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-restaurant-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Die Rechnung, bitte.",
+      "meaning": {
+        "en": "Could we have the check, please?",
+        "de": "Darum bitten, bezahlen zu dürfen.",
+        "es": "La cuenta, por favor.",
+        "pt-BR": "A conta, por favor."
+      },
+      "example": "Die Rechnung, bitte.",
+      "exampleMeaning": {
+        "en": "Could we have the check, please?",
+        "de": "Darum bitten, bezahlen zu dürfen.",
+        "es": "La cuenta, por favor.",
+        "pt-BR": "A conta, por favor."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-restaurant-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich habe leider kein Bargeld dabei.",
+      "meaning": {
+        "en": "I have no cash with me.",
+        "de": "Ich kann gerade nicht bar bezahlen.",
+        "es": "No llevo efectivo.",
+        "pt-BR": "Estou sem dinheiro em espécie."
+      },
+      "example": "Ich habe leider kein Bargeld dabei.",
+      "exampleMeaning": {
+        "en": "I have no cash with me.",
+        "de": "Ich kann gerade nicht bar bezahlen.",
+        "es": "No llevo efectivo.",
+        "pt-BR": "Estou sem dinheiro em espécie."
       },
       "register": "neutral"
     }
@@ -1024,6 +1157,951 @@
             "de": "Um die Rechnung bitten. Darum bitten, bezahlen zu dürfen.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen.",
             "es": "Pedir la cuenta. La cuenta, por favor.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen.",
             "pt-BR": "Pedir a conta. A conta, por favor.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-restaurant-v2",
+      "stage": "restaurant-mission",
+      "kind": "module",
+      "title": {
+        "en": "Choosing lunch",
+        "de": "Das Mittagessen auswählen",
+        "es": "Elegir el almuerzo",
+        "pt-BR": "Escolher o almoço"
+      },
+      "scenario": {
+        "en": "Order a meal and drink, respond to a sold-out dish and confirm the total.",
+        "de": "Bestelle Gericht und Getränk, reagiere auf ein ausverkauftes Essen und bestätige den Preis.",
+        "es": "Pide plato y bebida, responde al agotado y confirma el total.",
+        "pt-BR": "Peça prato e bebida, responda ao esgotado e confirme o total."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+        "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+        "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+        "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+      },
+      "explanation": {
+        "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+        "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+        "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+        "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+      },
+      "examples": [
+        {
+          "text": "Ich hätte gern die Gemüsesuppe.",
+          "meaning": {
+            "en": "Could I have the vegetable soup, please?",
+            "de": "Höflich eine Gemüsesuppe bestellen.",
+            "es": "Quisiera la sopa de verduras.",
+            "pt-BR": "Eu gostaria da sopa de legumes."
+          }
+        },
+        {
+          "text": "Dann nehme ich Reis mit Gemüse.",
+          "meaning": {
+            "en": "Then I will have rice with vegetables.",
+            "de": "Ich wähle das Ersatzgericht.",
+            "es": "Entonces pido arroz con verduras.",
+            "pt-BR": "Então peço arroz com legumes."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-restaurant-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-restaurant-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What does the alternative meal with water cost?",
+            "de": "Was kostet die Alternative mit Wasser?",
+            "es": "¿Cuánto cuesta la alternativa con agua?",
+            "pt-BR": "Quanto custa a alternativa com água?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-restaurant-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Order a meal and drink, respond to a sold-out dish and confirm the total.",
+            "de": "Bestelle Gericht und Getränk, reagiere auf ein ausverkauftes Essen und bestätige den Preis.",
+            "es": "Pide plato y bebida, responde al agotado y confirma el total.",
+            "pt-BR": "Peça prato e bebida, responda ao esgotado e confirme o total."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-restaurant-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Order a meal and drink, respond to a sold-out dish and confirm the total.",
+            "de": "Bestelle Gericht und Getränk, reagiere auf ein ausverkauftes Essen und bestätige den Preis.",
+            "es": "Pide plato y bebida, responde al agotado y confirma el total.",
+            "pt-BR": "Peça prato e bebida, responda ao esgotado e confirme o total."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-restaurant-v2-reading"],
+          "targetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "How much does the soup cost?",
+              "de": "Wie viel kostet die Suppe?",
+              "es": "¿Cuánto cuesta la sopa?",
+              "pt-BR": "Quanto custa a sopa?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "sechs Euro",
+              "de": "sechs Euro",
+              "es": "sechs Euro",
+              "pt-BR": "sechs Euro"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Heute gibt es Gemüsesuppe und Reis mit Hähnchen. Die Suppe kostet sechs Euro. Sie enthält Milch. Wasser kostet zwei Euro."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-restaurant-v2-listening"],
+          "targetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What does the alternative meal with water cost?",
+              "de": "Was kostet die Alternative mit Wasser?",
+              "es": "¿Cuánto cuesta la alternativa con agua?",
+              "pt-BR": "Quanto custa a alternativa com água?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Neun Euro.",
+              "de": "Neun Euro.",
+              "es": "Neun Euro.",
+              "pt-BR": "Neun Euro."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+          "instructions": {
+            "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+            "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+            "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+            "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-restaurant-v2-writing"],
+          "targetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+          "instructions": {
+            "en": "Order a meal and drink, respond to a sold-out dish and confirm the total.",
+            "de": "Bestelle Gericht und Getränk, reagiere auf ein ausverkauftes Essen und bestätige den Preis.",
+            "es": "Pide plato y bebida, responde al agotado y confirma el total.",
+            "pt-BR": "Peça prato e bebida, responda ao esgotado e confirme o total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-restaurant-v2-writing"],
+          "targetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+          "instructions": {
+            "en": "Order a meal and drink, respond to a sold-out dish and confirm the total.",
+            "de": "Bestelle Gericht und Getränk, reagiere auf ein ausverkauftes Essen und bestätige den Preis.",
+            "es": "Pide plato y bebida, responde al agotado y confirma el total.",
+            "pt-BR": "Peça prato e bebida, responda ao esgotado e confirme o total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-restaurant-v2-speaking"],
+          "targetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+          "instructions": {
+            "en": "Order a meal and drink, respond to a sold-out dish and confirm the total.",
+            "de": "Bestelle Gericht und Getränk, reagiere auf ein ausverkauftes Essen und bestätige den Preis.",
+            "es": "Pide plato y bebida, responde al agotado y confirma el total.",
+            "pt-BR": "Peça prato e bebida, responda ao esgotado e confirme o total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Heute gibt es Gemüsesuppe und Reis mit Hähnchen. Die Suppe kostet sechs Euro. Sie enthält Milch. Wasser kostet zwei Euro.\nUpdate: Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?",
+            "de": "Ursprüngliche Nachricht: Heute gibt es Gemüsesuppe und Reis mit Hähnchen. Die Suppe kostet sechs Euro. Sie enthält Milch. Wasser kostet zwei Euro.\nAktualisierung: Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?",
+            "es": "Aviso original: Heute gibt es Gemüsesuppe und Reis mit Hähnchen. Die Suppe kostet sechs Euro. Sie enthält Milch. Wasser kostet zwei Euro.\nActualización: Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?",
+            "pt-BR": "Aviso original: Heute gibt es Gemüsesuppe und Reis mit Hähnchen. Die Suppe kostet sechs Euro. Sie enthält Milch. Wasser kostet zwei Euro.\nAtualização: Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?"
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?",
+            "de": "Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?",
+            "es": "Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?",
+            "pt-BR": "Die Gemüsesuppe ist heute ausverkauft. Wir haben noch Reis mit Gemüse für sieben Euro. Wasser kostet weiterhin zwei Euro. Möchten Sie die Alternative?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-restaurant-2-v2",
+      "stage": "restaurant-mission",
+      "kind": "module",
+      "title": {
+        "en": "Ask about ingredients",
+        "de": "Nach Zutaten fragen",
+        "es": "Preguntar por los ingredientes",
+        "pt-BR": "Perguntar sobre os ingredientes"
+      },
+      "scenario": {
+        "en": "Explain a dietary requirement and request a checked alternative after contradictory information.",
+        "de": "Erkläre einen Essenswunsch und bitte nach widersprüchlicher Auskunft um eine geprüfte Alternative.",
+        "es": "Explica un requisito alimentario y pide alternativa comprobada tras datos contradictorios.",
+        "pt-BR": "Explique um requisito alimentar e peça alternativa verificada após informações contraditórias."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": ["de-restaurant-v2"],
+      "grammar": {
+        "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+        "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+        "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+        "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+      },
+      "explanation": {
+        "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+        "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+        "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+        "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+      },
+      "examples": [
+        {
+          "text": "Ist Milch in der Suppe?",
+          "meaning": {
+            "en": "Does the soup contain milk?",
+            "de": "Nach der Zutat Milch fragen.",
+            "es": "¿La sopa lleva leche?",
+            "pt-BR": "A sopa leva leite?"
+          }
+        },
+        {
+          "text": "Bitte prüfen Sie die Zutaten noch einmal.",
+          "meaning": {
+            "en": "Please check the ingredients again.",
+            "de": "Ich bitte um erneute Prüfung.",
+            "es": "Compruebe otra vez los ingredientes, por favor.",
+            "pt-BR": "Confira os ingredientes novamente, por favor."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-restaurant-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-restaurant-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What earlier information is corrected?",
+            "de": "Welche frühere Auskunft wird korrigiert?",
+            "es": "¿Qué información anterior se corrige?",
+            "pt-BR": "Qual informação anterior é corrigida?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-restaurant-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Explain a dietary requirement and request a checked alternative after contradictory information.",
+            "de": "Erkläre einen Essenswunsch und bitte nach widersprüchlicher Auskunft um eine geprüfte Alternative.",
+            "es": "Explica un requisito alimentario y pide alternativa comprobada tras datos contradictorios.",
+            "pt-BR": "Explique um requisito alimentar e peça alternativa verificada após informações contraditórias."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-restaurant-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Explain a dietary requirement and request a checked alternative after contradictory information.",
+            "de": "Erkläre einen Essenswunsch und bitte nach widersprüchlicher Auskunft um eine geprüfte Alternative.",
+            "es": "Explica un requisito alimentario y pide alternativa comprobada tras datos contradictorios.",
+            "pt-BR": "Explique um requisito alimentar e peça alternativa verificada após informações contraditórias."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-restaurant-2-v2-phrase-1", "de-restaurant-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-restaurant-v2-phrase-1", "de-restaurant-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-restaurant-2-v2-reading"],
+          "targetIds": ["de-restaurant-2-v2-phrase-1", "de-restaurant-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ja, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch.",
+              "de": "Ja, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch.",
+              "es": "Ja, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch.",
+              "pt-BR": "Ja, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ist Milch in der Suppe?\nJa, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-restaurant-2-v2-listening"],
+          "targetIds": ["de-restaurant-2-v2-phrase-1", "de-restaurant-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What earlier information is corrected?",
+              "de": "Welche frühere Auskunft wird korrigiert?",
+              "es": "¿Qué información anterior se corrige?",
+              "pt-BR": "Qual informação anterior é corrigida?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Die Tomatensoße enthält heute Sahne.",
+              "de": "Die Tomatensoße enthält heute Sahne.",
+              "es": "Die Tomatensoße enthält heute Sahne.",
+              "pt-BR": "Die Tomatensoße enthält heute Sahne."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-restaurant-2-v2-phrase-1", "de-restaurant-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+            "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+            "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+            "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-restaurant-2-v2-writing"],
+          "targetIds": ["de-restaurant-2-v2-phrase-1", "de-restaurant-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain a dietary requirement and request a checked alternative after contradictory information.",
+            "de": "Erkläre einen Essenswunsch und bitte nach widersprüchlicher Auskunft um eine geprüfte Alternative.",
+            "es": "Explica un requisito alimentario y pide alternativa comprobada tras datos contradictorios.",
+            "pt-BR": "Explique um requisito alimentar e peça alternativa verificada após informações contraditórias."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-restaurant-2-v2-writing"],
+          "targetIds": ["de-restaurant-2-v2-phrase-1", "de-restaurant-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain a dietary requirement and request a checked alternative after contradictory information.",
+            "de": "Erkläre einen Essenswunsch und bitte nach widersprüchlicher Auskunft um eine geprüfte Alternative.",
+            "es": "Explica un requisito alimentario y pide alternativa comprobada tras datos contradictorios.",
+            "pt-BR": "Explique um requisito alimentar e peça alternativa verificada após informações contraditórias."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-restaurant-2-v2-speaking"],
+          "targetIds": ["de-restaurant-2-v2-phrase-1", "de-restaurant-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain a dietary requirement and request a checked alternative after contradictory information.",
+            "de": "Erkläre einen Essenswunsch und bitte nach widersprüchlicher Auskunft um eine geprüfte Alternative.",
+            "es": "Explica un requisito alimentario y pide alternativa comprobada tras datos contradictorios.",
+            "pt-BR": "Explique um requisito alimentar e peça alternativa verificada após informações contraditórias."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Ist Milch in der Suppe?\nJa, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch.\nUpdate: Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten.",
+            "de": "Ursprüngliche Nachricht: Ist Milch in der Suppe?\nJa, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch.\nAktualisierung: Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten.",
+            "es": "Aviso original: Ist Milch in der Suppe?\nJa, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch.\nActualización: Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten.",
+            "pt-BR": "Aviso original: Ist Milch in der Suppe?\nJa, die Suppe enthält Milch. Die Tomatensoße enthält keine Milch.\nAtualização: Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten.",
+            "de": "Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten.",
+            "es": "Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten.",
+            "pt-BR": "Ich habe in der Küche nachgefragt: Die Tomatensoße ist heute mit Sahne. Unsere erste Auskunft war falsch. Möchten Sie ein anderes Gericht? Ich prüfe gern die Zutaten."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-restaurant-3-v2",
+      "stage": "restaurant-mission",
+      "kind": "module",
+      "title": {
+        "en": "Ask for the bill",
+        "de": "Um die Rechnung bitten",
+        "es": "Pedir la cuenta",
+        "pt-BR": "Pedir a conta"
+      },
+      "scenario": {
+        "en": "Request the bill and resolve a payment problem without assuming a method that is unavailable.",
+        "de": "Bitte um die Rechnung und kläre ein Zahlungsproblem, ohne eine nicht verfügbare Methode vorauszusetzen.",
+        "es": "Pide la cuenta y resuelve un problema de pago sin asumir un método no disponible.",
+        "pt-BR": "Peça a conta e resolva um problema de pagamento sem presumir um método indisponível."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": ["de-restaurant-2-v2"],
+      "grammar": {
+        "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+        "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+        "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+        "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+      },
+      "explanation": {
+        "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+        "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+        "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+        "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+      },
+      "examples": [
+        {
+          "text": "Die Rechnung, bitte.",
+          "meaning": {
+            "en": "Could we have the check, please?",
+            "de": "Darum bitten, bezahlen zu dürfen.",
+            "es": "La cuenta, por favor.",
+            "pt-BR": "A conta, por favor."
+          }
+        },
+        {
+          "text": "Ich habe leider kein Bargeld dabei.",
+          "meaning": {
+            "en": "I have no cash with me.",
+            "de": "Ich kann gerade nicht bar bezahlen.",
+            "es": "No llevo efectivo.",
+            "pt-BR": "Estou sem dinheiro em espécie."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-restaurant-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-restaurant-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What payment method is currently available?",
+            "de": "Welche Zahlungsart ist gerade möglich?",
+            "es": "¿Qué forma de pago funciona ahora?",
+            "pt-BR": "Qual forma de pagamento funciona agora?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-restaurant-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Request the bill and resolve a payment problem without assuming a method that is unavailable.",
+            "de": "Bitte um die Rechnung und kläre ein Zahlungsproblem, ohne eine nicht verfügbare Methode vorauszusetzen.",
+            "es": "Pide la cuenta y resuelve un problema de pago sin asumir un método no disponible.",
+            "pt-BR": "Peça a conta e resolva um problema de pagamento sem presumir um método indisponível."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-restaurant-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Request the bill and resolve a payment problem without assuming a method that is unavailable.",
+            "de": "Bitte um die Rechnung und kläre ein Zahlungsproblem, ohne eine nicht verfügbare Methode vorauszusetzen.",
+            "es": "Pide la cuenta y resuelve un problema de pago sin asumir un método no disponible.",
+            "pt-BR": "Peça a conta e resolva um problema de pagamento sem presumir um método indisponível."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-restaurant-3-v2-phrase-1", "de-restaurant-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-restaurant-v2-phrase-1",
+        "de-restaurant-v2-phrase-2",
+        "de-restaurant-2-v2-phrase-1",
+        "de-restaurant-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-restaurant-3-v2-reading"],
+          "targetIds": ["de-restaurant-3-v2-phrase-1", "de-restaurant-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Gern. Das macht acht Euro. Sie können mit Karte bezahlen.",
+              "de": "Gern. Das macht acht Euro. Sie können mit Karte bezahlen.",
+              "es": "Gern. Das macht acht Euro. Sie können mit Karte bezahlen.",
+              "pt-BR": "Gern. Das macht acht Euro. Sie können mit Karte bezahlen."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Rechnung, bitte.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-restaurant-3-v2-listening"],
+          "targetIds": ["de-restaurant-3-v2-phrase-1", "de-restaurant-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What payment method is currently available?",
+              "de": "Welche Zahlungsart ist gerade möglich?",
+              "es": "¿Qué forma de pago funciona ahora?",
+              "pt-BR": "Qual forma de pagamento funciona agora?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Barzahlung.",
+              "de": "Barzahlung.",
+              "es": "Barzahlung.",
+              "pt-BR": "Barzahlung."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-restaurant-3-v2-phrase-1", "de-restaurant-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Möchte and hätte gern express polite orders. Negate a noun with kein: kein Bargeld. A request to check ingredients is different from a guarantee; repeat the checked information before choosing.",
+            "de": "Möchte und hätte gern formulieren höfliche Bestellungen. Verneine Nomen mit kein: kein Bargeld. Eine Zutatenprüfung ist keine Garantie; wiederhole die geprüfte Information vor der Wahl.",
+            "es": "Möchte y hätte gern expresan pedidos corteses. Niega sustantivos con kein. Pedir comprobación de ingredientes no equivale a garantía.",
+            "pt-BR": "Möchte e hätte gern expressam pedidos educados. Negue substantivos com kein. Pedir verificação de ingredientes não equivale a garantia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-restaurant-3-v2-writing"],
+          "targetIds": ["de-restaurant-3-v2-phrase-1", "de-restaurant-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request the bill and resolve a payment problem without assuming a method that is unavailable.",
+            "de": "Bitte um die Rechnung und kläre ein Zahlungsproblem, ohne eine nicht verfügbare Methode vorauszusetzen.",
+            "es": "Pide la cuenta y resuelve un problema de pago sin asumir un método no disponible.",
+            "pt-BR": "Peça a conta e resolva um problema de pagamento sem presumir um método indisponível."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-restaurant-3-v2-writing"],
+          "targetIds": ["de-restaurant-3-v2-phrase-1", "de-restaurant-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request the bill and resolve a payment problem without assuming a method that is unavailable.",
+            "de": "Bitte um die Rechnung und kläre ein Zahlungsproblem, ohne eine nicht verfügbare Methode vorauszusetzen.",
+            "es": "Pide la cuenta y resuelve un problema de pago sin asumir un método no disponible.",
+            "pt-BR": "Peça a conta e resolva um problema de pagamento sem presumir um método indisponível."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gern. Das macht acht Euro. Sie können mit Karte bezahlen."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-restaurant-3-v2-speaking"],
+          "targetIds": ["de-restaurant-3-v2-phrase-1", "de-restaurant-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request the bill and resolve a payment problem without assuming a method that is unavailable.",
+            "de": "Bitte um die Rechnung und kläre ein Zahlungsproblem, ohne eine nicht verfügbare Methode vorauszusetzen.",
+            "es": "Pide la cuenta y resuelve un problema de pago sin asumir un método no disponible.",
+            "pt-BR": "Peça a conta e resolva um problema de pagamento sem presumir um método indisponível."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gern. Das macht acht Euro. Sie können mit Karte bezahlen."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Die Rechnung, bitte.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen.\nUpdate: Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse.",
+            "de": "Ursprüngliche Nachricht: Die Rechnung, bitte.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen.\nAktualisierung: Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse.",
+            "es": "Aviso original: Die Rechnung, bitte.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen.\nActualización: Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse.",
+            "pt-BR": "Aviso original: Die Rechnung, bitte.\nGern. Das macht acht Euro. Sie können mit Karte bezahlen.\nAtualização: Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse.",
+            "de": "Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse.",
+            "es": "Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse.",
+            "pt-BR": "Ihre Rechnung ist acht Euro. Unser Kartengerät funktioniert gerade nicht. Barzahlung ist möglich. Wenn Sie nicht bar zahlen können, sprechen Sie bitte mit der Kollegin an der Kasse."
           }
         }
       ],

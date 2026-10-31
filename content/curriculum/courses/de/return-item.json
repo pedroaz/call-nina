@@ -19,7 +19,26 @@
         "de": "Erkläre ein Problem mit einem Artikel und frage nach den Möglichkeiten.",
         "es": "Explica un problema con un artículo y pregunta por las opciones disponibles.",
         "pt-BR": "Explique um problema com um produto e pergunte sobre as opções disponíveis."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "return-item-mission",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Return a purchase",
+        "de": "Einen Einkauf zurückgeben",
+        "es": "Devolver una compra",
+        "pt-BR": "Devolver uma compra"
+      },
+      "description": {
+        "en": "Explain a problem with an item and ask about the available options.",
+        "de": "Erkläre ein Problem mit einem Artikel und frage nach den Möglichkeiten.",
+        "es": "Explica un problema con un artículo y pregunta por las opciones disponibles.",
+        "pt-BR": "Explique um problema com um produto e pergunte sobre as opções disponíveis."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Den Beleg für den Einkauf vorzeigen.",
         "es": "Aquí está el recibo.",
         "pt-BR": "Aqui está o recibo."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-return-item-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Die Jacke ist mir zu klein.",
+      "meaning": {
+        "en": "The jacket is too small for me.",
+        "de": "Erklären, dass die Größe der Jacke nicht passt.",
+        "es": "La chaqueta me queda demasiado pequeña.",
+        "pt-BR": "A jaqueta ficou pequena demais para mim."
+      },
+      "example": "Die Jacke ist mir zu klein.",
+      "exampleMeaning": {
+        "en": "The jacket is too small for me.",
+        "de": "Erklären, dass die Größe der Jacke nicht passt.",
+        "es": "La chaqueta me queda demasiado pequeña.",
+        "pt-BR": "A jaqueta ficou pequena demais para mim."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-return-item-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich möchte zuerst die passende Größe anprobieren.",
+      "meaning": {
+        "en": "I would like to try the right size first.",
+        "de": "Vor der Wahl möchte ich die Größe prüfen.",
+        "es": "Quisiera probarme primero la talla adecuada.",
+        "pt-BR": "Gostaria de experimentar primeiro o tamanho certo."
+      },
+      "example": "Ich möchte zuerst die passende Größe anprobieren.",
+      "exampleMeaning": {
+        "en": "I would like to try the right size first.",
+        "de": "Vor der Wahl möchte ich die Größe prüfen.",
+        "es": "Quisiera probarme primero la talla adecuada.",
+        "pt-BR": "Gostaria de experimentar primeiro o tamanho certo."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-return-item-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Kann ich sie umtauschen?",
+      "meaning": {
+        "en": "Can I exchange it?",
+        "de": "Fragen, ob ein Austausch möglich ist.",
+        "es": "¿Puedo cambiarla?",
+        "pt-BR": "Posso trocá-la?"
+      },
+      "example": "Kann ich sie umtauschen?",
+      "exampleMeaning": {
+        "en": "Can I exchange it?",
+        "de": "Fragen, ob ein Austausch möglich ist.",
+        "es": "¿Puedo cambiarla?",
+        "pt-BR": "Posso trocá-la?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-return-item-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Könnten Sie in einer anderen Filiale nachfragen?",
+      "meaning": {
+        "en": "Could you check with another branch?",
+        "de": "Ich bitte um eine Prüfung in einer anderen Filiale.",
+        "es": "¿Podría preguntar en otra sucursal?",
+        "pt-BR": "Poderia perguntar em outra filial?"
+      },
+      "example": "Könnten Sie in einer anderen Filiale nachfragen?",
+      "exampleMeaning": {
+        "en": "Could you check with another branch?",
+        "de": "Ich bitte um eine Prüfung in einer anderen Filiale.",
+        "es": "¿Podría preguntar en otra sucursal?",
+        "pt-BR": "Poderia perguntar em outra filial?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-return-item-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Hier ist der Kassenbon.",
+      "meaning": {
+        "en": "Here is the receipt.",
+        "de": "Den Beleg für den Einkauf vorzeigen.",
+        "es": "Aquí está el recibo.",
+        "pt-BR": "Aqui está o recibo."
+      },
+      "example": "Hier ist der Kassenbon.",
+      "exampleMeaning": {
+        "en": "Here is the receipt.",
+        "de": "Den Beleg für den Einkauf vorzeigen.",
+        "es": "Aquí está el recibo.",
+        "pt-BR": "Aqui está o recibo."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-return-item-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich bringe morgen Jacke und Kassenbon mit.",
+      "meaning": {
+        "en": "I will bring the jacket and receipt tomorrow.",
+        "de": "Ich bestätige die beiden nötigen Dinge.",
+        "es": "Mañana llevo chaqueta y recibo.",
+        "pt-BR": "Amanhã trago jaqueta e recibo."
+      },
+      "example": "Ich bringe morgen Jacke und Kassenbon mit.",
+      "exampleMeaning": {
+        "en": "I will bring the jacket and receipt tomorrow.",
+        "de": "Ich bestätige die beiden nötigen Dinge.",
+        "es": "Mañana llevo chaqueta y recibo.",
+        "pt-BR": "Amanhã trago jaqueta e recibo."
       },
       "register": "neutral"
     }
@@ -1028,6 +1161,951 @@
             "de": "Den Kassenbon vorlegen. Den Beleg für den Einkauf vorzeigen.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.",
             "es": "Presentar el recibo. Aquí está el recibo.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.",
             "pt-BR": "Apresentar o comprovante. Aqui está o recibo.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-return-item-v2",
+      "stage": "return-item-mission",
+      "kind": "module",
+      "title": {
+        "en": "A jacket that does not fit",
+        "de": "Eine Jacke, die nicht passt",
+        "es": "Una chaqueta que no queda bien",
+        "pt-BR": "Uma jaqueta que não serve"
+      },
+      "scenario": {
+        "en": "Explain a fit problem, ask about available sizes and distinguish color from size.",
+        "de": "Erkläre ein Passformproblem, frage nach Größen und unterscheide Farbe und Größe.",
+        "es": "Explica un problema de talla, consulta opciones y distingue color y tamaño.",
+        "pt-BR": "Explique um problema de tamanho, consulte opções e diferencie cor e tamanho."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000015"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+        "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+        "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+        "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+      },
+      "explanation": {
+        "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+        "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+        "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+        "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+      },
+      "examples": [
+        {
+          "text": "Die Jacke ist mir zu klein.",
+          "meaning": {
+            "en": "The jacket is too small for me.",
+            "de": "Erklären, dass die Größe der Jacke nicht passt.",
+            "es": "La chaqueta me queda demasiado pequeña.",
+            "pt-BR": "A jaqueta ficou pequena demais para mim."
+          }
+        },
+        {
+          "text": "Ich möchte zuerst die passende Größe anprobieren.",
+          "meaning": {
+            "en": "I would like to try the right size first.",
+            "de": "Vor der Wahl möchte ich die Größe prüfen.",
+            "es": "Quisiera probarme primero la talla adecuada.",
+            "pt-BR": "Gostaria de experimentar primeiro o tamanho certo."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-return-item-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-return-item-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which color is available in the required size?",
+            "de": "Welche Farbe gibt es in der gewünschten Größe?",
+            "es": "¿Qué color hay en la talla necesaria?",
+            "pt-BR": "Qual cor existe no tamanho necessário?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-return-item-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Explain a fit problem, ask about available sizes and distinguish color from size.",
+            "de": "Erkläre ein Passformproblem, frage nach Größen und unterscheide Farbe und Größe.",
+            "es": "Explica un problema de talla, consulta opciones y distingue color y tamaño.",
+            "pt-BR": "Explique um problema de tamanho, consulte opções e diferencie cor e tamanho."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-return-item-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Explain a fit problem, ask about available sizes and distinguish color from size.",
+            "de": "Erkläre ein Passformproblem, frage nach Größen und unterscheide Farbe und Größe.",
+            "es": "Explica un problema de talla, consulta opciones y distingue color y tamaño.",
+            "pt-BR": "Explique um problema de tamanho, consulte opções e diferencie cor e tamanho."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-return-item-v2-reading"],
+          "targetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Which colours are available?",
+              "de": "Welche Farben sind verfügbar?",
+              "es": "¿Qué colores están disponibles?",
+              "pt-BR": "Quais cores estão disponíveis?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Blau und Grün",
+              "de": "Blau und Grün",
+              "es": "Blau und Grün",
+              "pt-BR": "Blau und Grün"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Guten Tag. Sie können die Jacke hier umtauschen. Haben Sie den Kassenbon dabei? Die gleiche Jacke gibt es noch in Blau und Grün."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-return-item-v2-listening"],
+          "targetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which color is available in the required size?",
+              "de": "Welche Farbe gibt es in der gewünschten Größe?",
+              "es": "¿Qué color hay en la talla necesaria?",
+              "pt-BR": "Qual cor existe no tamanho necessário?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Grün.",
+              "de": "Grün.",
+              "es": "Grün.",
+              "pt-BR": "Grün."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+            "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+            "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+            "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-return-item-v2-writing"],
+          "targetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain a fit problem, ask about available sizes and distinguish color from size.",
+            "de": "Erkläre ein Passformproblem, frage nach Größen und unterscheide Farbe und Größe.",
+            "es": "Explica un problema de talla, consulta opciones y distingue color y tamaño.",
+            "pt-BR": "Explique um problema de tamanho, consulte opções e diferencie cor e tamanho."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-return-item-v2-writing"],
+          "targetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain a fit problem, ask about available sizes and distinguish color from size.",
+            "de": "Erkläre ein Passformproblem, frage nach Größen und unterscheide Farbe und Größe.",
+            "es": "Explica un problema de talla, consulta opciones y distingue color y tamaño.",
+            "pt-BR": "Explique um problema de tamanho, consulte opções e diferencie cor e tamanho."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-return-item-v2-speaking"],
+          "targetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain a fit problem, ask about available sizes and distinguish color from size.",
+            "de": "Erkläre ein Passformproblem, frage nach Größen und unterscheide Farbe und Größe.",
+            "es": "Explica un problema de talla, consulta opciones y distingue color y tamaño.",
+            "pt-BR": "Explique um problema de tamanho, consulte opções e diferencie cor e tamanho."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Guten Tag. Sie können die Jacke hier umtauschen. Haben Sie den Kassenbon dabei? Die gleiche Jacke gibt es noch in Blau und Grün.\nUpdate: Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?",
+            "de": "Ursprüngliche Nachricht: Guten Tag. Sie können die Jacke hier umtauschen. Haben Sie den Kassenbon dabei? Die gleiche Jacke gibt es noch in Blau und Grün.\nAktualisierung: Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?",
+            "es": "Aviso original: Guten Tag. Sie können die Jacke hier umtauschen. Haben Sie den Kassenbon dabei? Die gleiche Jacke gibt es noch in Blau und Grün.\nActualización: Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?",
+            "pt-BR": "Aviso original: Guten Tag. Sie können die Jacke hier umtauschen. Haben Sie den Kassenbon dabei? Die gleiche Jacke gibt es noch in Blau und Grün.\nAtualização: Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?"
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?",
+            "de": "Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?",
+            "es": "Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?",
+            "pt-BR": "Die Jacke gibt es noch in Blau und Grün, aber nur die grüne in Ihrer Größe. Ein Umtausch ist hier im Szenario mit Jacke und Kassenbon möglich. Möchten Sie die grüne anprobieren?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-return-item-2-v2",
+      "stage": "return-item-mission",
+      "kind": "module",
+      "title": {
+        "en": "Ask for an exchange",
+        "de": "Um einen Umtausch bitten",
+        "es": "Pedir un cambio",
+        "pt-BR": "Pedir uma troca"
+      },
+      "scenario": {
+        "en": "Ask for a stock check and state a fallback without treating unconfirmed availability as guaranteed.",
+        "de": "Bitte um Bestandsprüfung und nenne eine Alternative, ohne ungeprüfte Verfügbarkeit als sicher anzunehmen.",
+        "es": "Pide comprobar existencias y da alternativa sin asumir disponibilidad no confirmada.",
+        "pt-BR": "Peça consulta de estoque e dê alternativa sem presumir disponibilidade não confirmada."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000015"],
+      "prerequisites": ["de-return-item-v2"],
+      "grammar": {
+        "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+        "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+        "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+        "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+      },
+      "explanation": {
+        "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+        "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+        "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+        "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+      },
+      "examples": [
+        {
+          "text": "Kann ich sie umtauschen?",
+          "meaning": {
+            "en": "Can I exchange it?",
+            "de": "Fragen, ob ein Austausch möglich ist.",
+            "es": "¿Puedo cambiarla?",
+            "pt-BR": "Posso trocá-la?"
+          }
+        },
+        {
+          "text": "Könnten Sie in einer anderen Filiale nachfragen?",
+          "meaning": {
+            "en": "Could you check with another branch?",
+            "de": "Ich bitte um eine Prüfung in einer anderen Filiale.",
+            "es": "¿Podría preguntar en otra sucursal?",
+            "pt-BR": "Poderia perguntar em outra filial?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-return-item-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-return-item-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Is the other store’s availability confirmed?",
+            "de": "Ist die Verfügbarkeit in der anderen Filiale bestätigt?",
+            "es": "¿Está confirmada la disponibilidad en otra tienda?",
+            "pt-BR": "A disponibilidade em outra loja está confirmada?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-return-item-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Ask for a stock check and state a fallback without treating unconfirmed availability as guaranteed.",
+            "de": "Bitte um Bestandsprüfung und nenne eine Alternative, ohne ungeprüfte Verfügbarkeit als sicher anzunehmen.",
+            "es": "Pide comprobar existencias y da alternativa sin asumir disponibilidad no confirmada.",
+            "pt-BR": "Peça consulta de estoque e dê alternativa sem presumir disponibilidade não confirmada."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-return-item-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Ask for a stock check and state a fallback without treating unconfirmed availability as guaranteed.",
+            "de": "Bitte um Bestandsprüfung und nenne eine Alternative, ohne ungeprüfte Verfügbarkeit als sicher anzunehmen.",
+            "es": "Pide comprobar existencias y da alternativa sin asumir disponibilidad no confirmada.",
+            "pt-BR": "Peça consulta de estoque e dê alternativa sem presumir disponibilidade não confirmada."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-return-item-2-v2-phrase-1", "de-return-item-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-return-item-v2-phrase-1", "de-return-item-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-return-item-2-v2-reading"],
+          "targetIds": ["de-return-item-2-v2-phrase-1", "de-return-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ja, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?",
+              "de": "Ja, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?",
+              "es": "Ja, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?",
+              "pt-BR": "Ja, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Kann ich sie umtauschen?\nJa, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?"
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-return-item-2-v2-listening"],
+          "targetIds": ["de-return-item-2-v2-phrase-1", "de-return-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Is the other store’s availability confirmed?",
+              "de": "Ist die Verfügbarkeit in der anderen Filiale bestätigt?",
+              "es": "¿Está confirmada la disponibilidad en otra tienda?",
+              "pt-BR": "A disponibilidade em outra loja está confirmada?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Nein.",
+              "de": "Nein.",
+              "es": "Nein.",
+              "pt-BR": "Nein."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-return-item-2-v2-phrase-1", "de-return-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+            "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+            "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+            "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-return-item-2-v2-writing"],
+          "targetIds": ["de-return-item-2-v2-phrase-1", "de-return-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for a stock check and state a fallback without treating unconfirmed availability as guaranteed.",
+            "de": "Bitte um Bestandsprüfung und nenne eine Alternative, ohne ungeprüfte Verfügbarkeit als sicher anzunehmen.",
+            "es": "Pide comprobar existencias y da alternativa sin asumir disponibilidad no confirmada.",
+            "pt-BR": "Peça consulta de estoque e dê alternativa sem presumir disponibilidade não confirmada."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-return-item-2-v2-writing"],
+          "targetIds": ["de-return-item-2-v2-phrase-1", "de-return-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for a stock check and state a fallback without treating unconfirmed availability as guaranteed.",
+            "de": "Bitte um Bestandsprüfung und nenne eine Alternative, ohne ungeprüfte Verfügbarkeit als sicher anzunehmen.",
+            "es": "Pide comprobar existencias y da alternativa sin asumir disponibilidad no confirmada.",
+            "pt-BR": "Peça consulta de estoque e dê alternativa sem presumir disponibilidade não confirmada."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?"
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-return-item-2-v2-speaking"],
+          "targetIds": ["de-return-item-2-v2-phrase-1", "de-return-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for a stock check and state a fallback without treating unconfirmed availability as guaranteed.",
+            "de": "Bitte um Bestandsprüfung und nenne eine Alternative, ohne ungeprüfte Verfügbarkeit als sicher anzunehmen.",
+            "es": "Pide comprobar existencias y da alternativa sin asumir disponibilidad no confirmada.",
+            "pt-BR": "Peça consulta de estoque e dê alternativa sem presumir disponibilidade não confirmada."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?"
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Kann ich sie umtauschen?\nJa, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?\nUpdate: Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?",
+            "de": "Ursprüngliche Nachricht: Kann ich sie umtauschen?\nJa, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?\nAktualisierung: Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?",
+            "es": "Aviso original: Kann ich sie umtauschen?\nJa, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?\nActualización: Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?",
+            "pt-BR": "Aviso original: Kann ich sie umtauschen?\nJa, wir haben die Jacke auch in Größe M. Möchten Sie sie anprobieren?\nAtualização: Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?"
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?",
+            "de": "Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?",
+            "es": "Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?",
+            "pt-BR": "Die Größe M ist inzwischen reserviert. Ich kann nachsehen, ob eine andere Filiale sie hat. Das ist noch keine Zusage. Möchten Sie warten oder eine andere Jacke ansehen?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-return-item-3-v2",
+      "stage": "return-item-mission",
+      "kind": "module",
+      "title": {
+        "en": "Present the receipt",
+        "de": "Den Kassenbon vorlegen",
+        "es": "Presentar el recibo",
+        "pt-BR": "Apresentar o comprovante"
+      },
+      "scenario": {
+        "en": "Confirm what is needed for the scenario’s exchange and arrange a return visit without asserting universal store policy.",
+        "de": "Bestätige die im Szenario nötigen Dinge und einen neuen Besuch, ohne allgemeine Geschäftsregeln zu behaupten.",
+        "es": "Confirma los requisitos del caso y otra visita sin afirmar políticas universales.",
+        "pt-BR": "Confirme os requisitos do caso e outra visita sem afirmar políticas universais."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000015"],
+      "prerequisites": ["de-return-item-2-v2"],
+      "grammar": {
+        "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+        "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+        "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+        "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+      },
+      "explanation": {
+        "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+        "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+        "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+        "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+      },
+      "examples": [
+        {
+          "text": "Hier ist der Kassenbon.",
+          "meaning": {
+            "en": "Here is the receipt.",
+            "de": "Den Beleg für den Einkauf vorzeigen.",
+            "es": "Aquí está el recibo.",
+            "pt-BR": "Aqui está o recibo."
+          }
+        },
+        {
+          "text": "Ich bringe morgen Jacke und Kassenbon mit.",
+          "meaning": {
+            "en": "I will bring the jacket and receipt tomorrow.",
+            "de": "Ich bestätige die beiden nötigen Dinge.",
+            "es": "Mañana llevo chaqueta y recibo.",
+            "pt-BR": "Amanhã trago jaqueta e recibo."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-return-item-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-return-item-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What is missing for the exchange?",
+            "de": "Was fehlt für den Umtausch?",
+            "es": "¿Qué falta para el cambio?",
+            "pt-BR": "O que falta para a troca?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-return-item-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm what is needed for the scenario’s exchange and arrange a return visit without asserting universal store policy.",
+            "de": "Bestätige die im Szenario nötigen Dinge und einen neuen Besuch, ohne allgemeine Geschäftsregeln zu behaupten.",
+            "es": "Confirma los requisitos del caso y otra visita sin afirmar políticas universales.",
+            "pt-BR": "Confirme os requisitos do caso e outra visita sem afirmar políticas universais."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-return-item-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm what is needed for the scenario’s exchange and arrange a return visit without asserting universal store policy.",
+            "de": "Bestätige die im Szenario nötigen Dinge und einen neuen Besuch, ohne allgemeine Geschäftsregeln zu behaupten.",
+            "es": "Confirma los requisitos del caso y otra visita sin afirmar políticas universales.",
+            "pt-BR": "Confirme os requisitos do caso e outra visita sem afirmar políticas universais."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-return-item-3-v2-phrase-1", "de-return-item-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-return-item-v2-phrase-1",
+        "de-return-item-v2-phrase-2",
+        "de-return-item-2-v2-phrase-1",
+        "de-return-item-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-return-item-3-v2-reading"],
+          "targetIds": ["de-return-item-3-v2-phrase-1", "de-return-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Danke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.",
+              "de": "Danke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.",
+              "es": "Danke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.",
+              "pt-BR": "Danke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Hier ist der Kassenbon.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-return-item-3-v2-listening"],
+          "targetIds": ["de-return-item-3-v2-phrase-1", "de-return-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What is missing for the exchange?",
+              "de": "Was fehlt für den Umtausch?",
+              "es": "¿Qué falta para el cambio?",
+              "pt-BR": "O que falta para a troca?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Die Jacke.",
+              "de": "Die Jacke.",
+              "es": "Die Jacke.",
+              "pt-BR": "Die Jacke."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-return-item-3-v2-phrase-1", "de-return-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Umtauschen is separable; after können its infinitive stays together at the end. Distinguish a request from an approved exchange. The terms here belong to this fictional shop, not a general legal rule.",
+            "de": "Umtauschen ist trennbar; nach können steht der ganze Infinitiv hinten. Trenne Bitte und zugesagten Umtausch. Die Bedingungen gehören zum fiktiven Laden, nicht zu einer allgemeinen Rechtsregel.",
+            "es": "Umtauschen es separable; tras können va completo al final. Distingue petición y cambio autorizado. Son condiciones de esta tienda ficticia.",
+            "pt-BR": "Umtauschen é separável; após können vai inteiro ao final. Diferencie pedido e troca autorizada. São condições desta loja fictícia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-return-item-3-v2-writing"],
+          "targetIds": ["de-return-item-3-v2-phrase-1", "de-return-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm what is needed for the scenario’s exchange and arrange a return visit without asserting universal store policy.",
+            "de": "Bestätige die im Szenario nötigen Dinge und einen neuen Besuch, ohne allgemeine Geschäftsregeln zu behaupten.",
+            "es": "Confirma los requisitos del caso y otra visita sin afirmar políticas universales.",
+            "pt-BR": "Confirme os requisitos do caso e outra visita sem afirmar políticas universais."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-return-item-3-v2-writing"],
+          "targetIds": ["de-return-item-3-v2-phrase-1", "de-return-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm what is needed for the scenario’s exchange and arrange a return visit without asserting universal store policy.",
+            "de": "Bestätige die im Szenario nötigen Dinge und einen neuen Besuch, ohne allgemeine Geschäftsregeln zu behaupten.",
+            "es": "Confirma los requisitos del caso y otra visita sin afirmar políticas universales.",
+            "pt-BR": "Confirme os requisitos do caso e outra visita sem afirmar políticas universais."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Danke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-return-item-3-v2-speaking"],
+          "targetIds": ["de-return-item-3-v2-phrase-1", "de-return-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm what is needed for the scenario’s exchange and arrange a return visit without asserting universal store policy.",
+            "de": "Bestätige die im Szenario nötigen Dinge und einen neuen Besuch, ohne allgemeine Geschäftsregeln zu behaupten.",
+            "es": "Confirma los requisitos del caso y otra visita sin afirmar políticas universales.",
+            "pt-BR": "Confirme os requisitos do caso e outra visita sem afirmar políticas universais."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Danke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Hier ist der Kassenbon.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.\nUpdate: Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit.",
+            "de": "Ursprüngliche Nachricht: Hier ist der Kassenbon.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.\nAktualisierung: Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit.",
+            "es": "Aviso original: Hier ist der Kassenbon.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.\nActualización: Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit.",
+            "pt-BR": "Aviso original: Hier ist der Kassenbon.\nDanke. Der Kassenbon ist vom Montag. Für den Umtausch brauchen wir auch die Jacke.\nAtualização: Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit.",
+            "de": "Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit.",
+            "es": "Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit.",
+            "pt-BR": "Danke für den Kassenbon. Sie haben die Jacke heute nicht dabei? Dann können wir den Umtausch noch nicht durchführen. Bringen Sie bitte beides morgen mit."
           }
         }
       ],

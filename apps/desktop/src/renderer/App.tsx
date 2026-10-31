@@ -1,3 +1,4 @@
+import { VocabularyNavigation } from "./VocabularyUpdateSummary.js";
 import { StoriesPage } from "./StoriesPage.js";
 import { SidebarLanguages } from "./SidebarLanguages.js";
 import { SidebarAccount } from "./SidebarAccount.js";
@@ -98,8 +99,8 @@ const navigation: ReadonlyArray<{
   { page: "nina", icon: House },
   { page: "practice", icon: Gauge },
   { page: "learningPath", icon: Route },
-  { page: "stories", icon: BookOpen },
   { page: "vocabulary", icon: LibraryBig },
+  { page: "stories", icon: BookOpen },
   { page: "mobile", icon: Smartphone },
   { page: "community", icon: UsersRound },
 ];
@@ -293,6 +294,12 @@ function DesktopWorkspace({
   const [writingSeed, setWritingSeed] =
     useState<Extract<HistoryPracticeSeed, { kind: "writing" }>>();
   const [preparedActivityId, setPreparedActivityId] = useState<PreparedActivityId>();
+  const [uploadPracticeSource, setUploadPracticeSource] = useState<
+    import("@call-nina/contracts").PracticeSource
+  >({ kind: "adaptive" });
+  const [writingPracticeSource, setWritingPracticeSource] = useState<
+    import("@call-nina/contracts").PracticeSource
+  >({ kind: "adaptive" });
   const [suggestedWriting, setSuggestedWriting] = useState<string>();
   const [practiceTab, setPracticeTab] = useState<"new" | "saved">("new");
   const [practiceSeed, setPracticeSeed] =
@@ -319,9 +326,19 @@ function DesktopWorkspace({
     setPage("practice");
   };
   const [vocabularyDue, setVocabularyDue] = useState(false);
+  const [vocabularySelection, setVocabularySelection] = useState<{
+    activityId: string;
+    language: Language;
+  }>();
+  const vocabularyActivityId =
+    vocabularySelection?.language === learningScope?.targetLanguage
+      ? vocabularySelection?.activityId
+      : undefined;
   const [vocabularyViewRequest, setVocabularyViewRequest] = useState(0);
   const [quickStartId, setQuickStartId] = useState<PreparedActivityId>();
   const launchPractice = (intent: PracticeLaunch) => {
+    setUploadPracticeSource({ kind: "adaptive" });
+    setWritingPracticeSource({ kind: "adaptive" });
     setQuickStartId(
       intent.destination === "activity" && intent.autoStart ? intent.activityId : undefined,
     );
@@ -431,6 +448,7 @@ function DesktopWorkspace({
     setResultsOrigin(undefined);
 
     if (destination === "writing" && page !== "writing") {
+      setWritingPracticeSource({ kind: "adaptive" });
       setWritingOrigin(page);
       setWritingSeed(undefined);
       setSuggestedWriting(undefined);
@@ -531,7 +549,21 @@ function DesktopWorkspace({
           : page;
 
   return (
-    <>
+    <VocabularyNavigation.Provider
+      value={{
+        activityId: vocabularyActivityId,
+        view: (activityId) => {
+          setVocabularySelection(
+            activityId && learningScope
+              ? { activityId, language: learningScope.targetLanguage }
+              : undefined,
+          );
+          setVocabularyDue(false);
+          setVocabularyViewRequest((value) => value + 1);
+          navigate("vocabulary");
+        },
+      }}
+    >
       <ApplicationShell
         activePage={shellPage}
         brandName={t("app.name")}
@@ -618,6 +650,7 @@ function DesktopWorkspace({
                       setPracticeSeed(undefined);
                       setPreparedActivityId(seed.activityId as PreparedActivityId);
                     } else {
+                      setWritingPracticeSource({ kind: "adaptive" });
                       setWritingOrigin("practice");
                       setWritingSeed(seed);
                       setWritingDirty(false);
@@ -626,8 +659,10 @@ function DesktopWorkspace({
                   }}
                   selectedTab={practiceTab}
                   onTabChange={setPracticeTab}
-                  onWriting={() => {
+                  initialPracticeSource={uploadPracticeSource}
+                  onWriting={(source) => {
                     navigate("writing");
+                    setWritingPracticeSource(source ?? { kind: "adaptive" });
                   }}
                   onResults={(language, rootGeneration) =>
                     void openCompletionPage("results", language, rootGeneration)
@@ -662,6 +697,7 @@ function DesktopWorkspace({
             ) : null}
             {page === "writing" ? (
               <WritingWorkspace
+                practiceSource={writingPracticeSource}
                 {...(parent ? { breadcrumbs: [parent] } : {})}
                 key={writingSeed?.historyEntryId ?? "new-writing"}
                 {...(writingSeed
@@ -741,6 +777,10 @@ function DesktopWorkspace({
             {page === "vocabulary" || resultsOrigin === "vocabulary" ? (
               <div hidden={page !== "vocabulary"}>
                 <VocabularyPage
+                  onUploadPractice={(source) => {
+                    setUploadPracticeSource(source);
+                    setPracticeTab("new");
+                  }}
                   onLanguageSwitchBlockedChange={setVocabularyLanguageBlocked}
                   requestAiAccess={openAi}
                   targetLanguage={learningScope?.targetLanguage}
@@ -812,15 +852,7 @@ function DesktopWorkspace({
           label: t(`nav.${destination}`),
           ...(destination === "vocabulary"
             ? {
-                feedback: (
-                  <VocabularyLearningNotice
-                    compact={navCollapsed}
-                    onView={() => {
-                      navigate("vocabulary");
-                      setVocabularyViewRequest((value) => value + 1);
-                    }}
-                  />
-                ),
+                feedback: <VocabularyLearningNotice />,
               }
             : {}),
         }))}
@@ -916,7 +948,7 @@ function DesktopWorkspace({
           </ActionGroup>
         </ModalDialog>
       )}
-    </>
+    </VocabularyNavigation.Provider>
   );
 }
 

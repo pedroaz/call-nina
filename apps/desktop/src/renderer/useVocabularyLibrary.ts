@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { VocabularyNavigation } from "./VocabularyUpdateSummary.js";
+import { useCallback, useEffect, useRef, useState, useContext } from "react";
 import type { DesktopIpcRequest, DesktopIpcResponse, CallNinaError } from "@call-nina/contracts";
 import { invokeDesktop, normalizeDesktopError, subscribeDesktop } from "./ipc.js";
 
@@ -31,7 +32,9 @@ export function vocabularyVersion(
 }
 
 export function useVocabularyLibrary(initialDueOnly: boolean) {
+  const { activityId } = useContext(VocabularyNavigation);
   const [query, setQuery] = useState<VocabularyFilter>({
+    ...(activityId ? { activityId } : {}),
     search: "",
     filter: initialDueOnly ? "due" : "all",
     sort: "word",
@@ -87,6 +90,11 @@ export function useVocabularyLibrary(initialDueOnly: boolean) {
       unsubscribe();
     };
   }, [refresh, query]);
+  useEffect(() => {
+    queryRef.current = { ...queryRef.current, activityId, page: 0 };
+    setQuery(queryRef.current);
+    void refresh();
+  }, [activityId, refresh]);
   const changeQuery = useCallback((patch: Partial<VocabularyFilter>) => {
     version.current += 1;
     setBusy(true);

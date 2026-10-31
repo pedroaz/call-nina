@@ -7,15 +7,22 @@ export type { PracticeKind } from "./activityPresentation.js";
 export function PracticeTypeChooser({
   value,
   onChange,
+  onWriting,
   disabled = false,
 }: {
   value: PracticeKind;
   onChange: (kind: PracticeKind) => void;
+  onWriting?: (() => void) | undefined;
   disabled?: boolean;
 }) {
   const { t } = useTranslation();
+  const WritingIcon = activityIcons.writing;
   return (
-    <div className={styles.choices} role="group" aria-label={t("practice.chooser.title")}>
+    <div
+      className={`${styles.choices} ${onWriting ? styles.choicesWithWriting : ""}`}
+      role="group"
+      aria-label={t("practice.chooser.title")}
+    >
       {practiceKinds.map((kind) => {
         const Icon = activityIcons[kind];
         return (
@@ -33,6 +40,16 @@ export function PracticeTypeChooser({
           </ActivityChoice>
         );
       })}
+      {onWriting && (
+        <ActivityChoice
+          orientation="vertical"
+          icon={<WritingIcon aria-hidden="true" />}
+          isDisabled={disabled}
+          onPress={onWriting}
+        >
+          {t("practice.freeWriting")}
+        </ActivityChoice>
+      )}
     </div>
   );
 }

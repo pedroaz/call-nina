@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { context, github, output, releaseVersion, digest, summary, progress } from "./common.mjs";
 import { desktopTargets, verify } from "./artifacts.mjs";
+import { speechTargets } from "../speech/distribution.mjs";
 
 async function identity() {
   const current = context(true);
@@ -50,7 +51,7 @@ async function assets(release) {
 }
 async function expectedAssets() {
   const files = [];
-  for (const id of desktopTargets) {
+  for (const id of [...desktopTargets, ...speechTargets]) {
     const manifest = await verify(id);
     files.push(manifest.filename, `${id}.json`, `${id}.sha256`);
   }

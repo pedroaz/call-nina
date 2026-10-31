@@ -19,7 +19,26 @@
         "de": "Beschreibe eine verlorene Tasche, sage, wo du sie zuletzt gesehen hast, und vereinbare die Abholung.",
         "es": "Describe una bolsa perdida, di dónde la viste por última vez y acuerda cómo recogerla.",
         "pt-BR": "Descreva uma bolsa perdida, diga onde a viu pela última vez e combine a retirada."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "lost-item-mission",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Ask about a lost item",
+        "de": "Nach einer Fundsache fragen",
+        "es": "Preguntar por un objeto perdido",
+        "pt-BR": "Perguntar sobre um objeto perdido"
+      },
+      "description": {
+        "en": "Describe a lost bag, say where you last saw it, and arrange collection.",
+        "de": "Beschreibe eine verlorene Tasche, sage, wo du sie zuletzt gesehen hast, und vereinbare die Abholung.",
+        "es": "Describe una bolsa perdida, di dónde la viste por última vez y acuerda cómo recogerla.",
+        "pt-BR": "Descreva uma bolsa perdida, diga onde a viu pela última vez e combine a retirada."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Fragen, ob die Abholung noch heute möglich ist.",
         "es": "¿Puedo recogerla hoy?",
         "pt-BR": "Posso retirá-la hoje?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-lost-item-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ich habe meine Tasche verloren.",
+      "meaning": {
+        "en": "I have lost my bag.",
+        "de": "Den Verlust einer Tasche melden.",
+        "es": "He perdido mi bolsa.",
+        "pt-BR": "Perdi minha bolsa."
+      },
+      "example": "Ich habe meine Tasche verloren.",
+      "exampleMeaning": {
+        "en": "I have lost my bag.",
+        "de": "Den Verlust einer Tasche melden.",
+        "es": "He perdido mi bolsa.",
+        "pt-BR": "Perdi minha bolsa."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-lost-item-v2-phrase-2",
+      "kind": "chunk",
+      "text": "In meiner Tasche war ein kleines Buch.",
+      "meaning": {
+        "en": "There was a small book in my bag.",
+        "de": "Ich nenne den Inhalt als Erkennungsmerkmal.",
+        "es": "Había un libro pequeño en mi bolsa.",
+        "pt-BR": "Havia um livro pequeno na minha bolsa."
+      },
+      "example": "In meiner Tasche war ein kleines Buch.",
+      "exampleMeaning": {
+        "en": "There was a small book in my bag.",
+        "de": "Ich nenne den Inhalt als Erkennungsmerkmal.",
+        "es": "Había un libro pequeño en mi bolsa.",
+        "pt-BR": "Havia um livro pequeno na minha bolsa."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-lost-item-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Sie ist blau und hat einen langen Gurt.",
+      "meaning": {
+        "en": "It is blue and has a long strap.",
+        "de": "Farbe und ein besonderes Merkmal der Tasche beschreiben.",
+        "es": "Es azul y tiene una correa larga.",
+        "pt-BR": "Ela é azul e tem uma alça longa."
+      },
+      "example": "Sie ist blau und hat einen langen Gurt.",
+      "exampleMeaning": {
+        "en": "It is blue and has a long strap.",
+        "de": "Farbe und ein besonderes Merkmal der Tasche beschreiben.",
+        "es": "Es azul y tiene una correa larga.",
+        "pt-BR": "Ela é azul e tem uma alça longa."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-lost-item-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Der Gurt meiner Tasche ist lang.",
+      "meaning": {
+        "en": "My bag has a long strap.",
+        "de": "Die Länge ist ein wichtiges Merkmal.",
+        "es": "La correa de mi bolsa es larga.",
+        "pt-BR": "A alça da minha bolsa é longa."
+      },
+      "example": "Der Gurt meiner Tasche ist lang.",
+      "exampleMeaning": {
+        "en": "My bag has a long strap.",
+        "de": "Die Länge ist ein wichtiges Merkmal.",
+        "es": "La correa de mi bolsa es larga.",
+        "pt-BR": "A alça da minha bolsa é longa."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-lost-item-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Kann ich sie heute abholen?",
+      "meaning": {
+        "en": "Can I collect it today?",
+        "de": "Fragen, ob die Abholung noch heute möglich ist.",
+        "es": "¿Puedo recogerla hoy?",
+        "pt-BR": "Posso retirá-la hoje?"
+      },
+      "example": "Kann ich sie heute abholen?",
+      "exampleMeaning": {
+        "en": "Can I collect it today?",
+        "de": "Fragen, ob die Abholung noch heute möglich ist.",
+        "es": "¿Puedo recogerla hoy?",
+        "pt-BR": "Posso retirá-la hoje?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-lost-item-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich komme morgen vor zwölf.",
+      "meaning": {
+        "en": "I will come tomorrow before twelve.",
+        "de": "Ich wähle die neue Abholzeit.",
+        "es": "Voy mañana antes de las doce.",
+        "pt-BR": "Vou amanhã antes do meio-dia."
+      },
+      "example": "Ich komme morgen vor zwölf.",
+      "exampleMeaning": {
+        "en": "I will come tomorrow before twelve.",
+        "de": "Ich wähle die neue Abholzeit.",
+        "es": "Voy mañana antes de las doce.",
+        "pt-BR": "Vou amanhã antes do meio-dia."
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Die Abholung vereinbaren. Fragen, ob die Abholung noch heute möglich ist.\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.",
             "es": "Acordar la recogida. ¿Puedo recogerla hoy?\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.",
             "pt-BR": "Combinar a retirada. Posso retirá-la hoje?\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-lost-item-v2",
+      "stage": "lost-item-mission",
+      "kind": "module",
+      "title": {
+        "en": "The blue bag",
+        "de": "Die blaue Tasche",
+        "es": "La bolsa azul",
+        "pt-BR": "A bolsa azul"
+      },
+      "scenario": {
+        "en": "Describe the lost item with color and contents, avoiding a claim that either blue bag must be yours.",
+        "de": "Beschreibe Farbe und Inhalt, ohne jede blaue Tasche automatisch als deine auszugeben.",
+        "es": "Describe color y contenido sin dar por hecho que cualquier bolsa azul es tuya.",
+        "pt-BR": "Descreva cor e conteúdo sem presumir que qualquer bolsa azul é sua."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000015"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+        "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+        "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+        "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+      },
+      "explanation": {
+        "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+        "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+        "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+        "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+      },
+      "examples": [
+        {
+          "text": "Ich habe meine Tasche verloren.",
+          "meaning": {
+            "en": "I have lost my bag.",
+            "de": "Den Verlust einer Tasche melden.",
+            "es": "He perdido mi bolsa.",
+            "pt-BR": "Perdi minha bolsa."
+          }
+        },
+        {
+          "text": "In meiner Tasche war ein kleines Buch.",
+          "meaning": {
+            "en": "There was a small book in my bag.",
+            "de": "Ich nenne den Inhalt als Erkennungsmerkmal.",
+            "es": "Había un libro pequeño en mi bolsa.",
+            "pt-BR": "Havia um livro pequeno na minha bolsa."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-lost-item-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-lost-item-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which detail distinguishes the bags?",
+            "de": "Welche Angabe unterscheidet die Taschen?",
+            "es": "¿Qué dato distingue las bolsas?",
+            "pt-BR": "Qual dado distingue as bolsas?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-lost-item-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Describe the lost item with color and contents, avoiding a claim that either blue bag must be yours.",
+            "de": "Beschreibe Farbe und Inhalt, ohne jede blaue Tasche automatisch als deine auszugeben.",
+            "es": "Describe color y contenido sin dar por hecho que cualquier bolsa azul es tuya.",
+            "pt-BR": "Descreva cor e conteúdo sem presumir que qualquer bolsa azul é sua."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-lost-item-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Describe the lost item with color and contents, avoiding a claim that either blue bag must be yours.",
+            "de": "Beschreibe Farbe und Inhalt, ohne jede blaue Tasche automatisch als deine auszugeben.",
+            "es": "Describe color y contenido sin dar por hecho que cualquier bolsa azul es tuya.",
+            "pt-BR": "Descreva cor e conteúdo sem presumir que qualquer bolsa azul é sua."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-lost-item-v2-reading"],
+          "targetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Where was the bag found?",
+              "de": "Wo wurde die Tasche gefunden?",
+              "es": "¿Dónde encontraron la bolsa?",
+              "pt-BR": "Onde a bolsa foi encontrada?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "im Café",
+              "de": "im Café",
+              "es": "im Café",
+              "pt-BR": "im Café"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wir haben gestern eine blaue Tasche im Café gefunden. In der Tasche ist ein kleines Buch. Sie können die Tasche heute bis siebzehn Uhr abholen."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-lost-item-v2-listening"],
+          "targetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which detail distinguishes the bags?",
+              "de": "Welche Angabe unterscheidet die Taschen?",
+              "es": "¿Qué dato distingue las bolsas?",
+              "pt-BR": "Qual dado distingue as bolsas?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Inhalt: Buch oder Trinkflasche.",
+              "de": "Der Inhalt: Buch oder Trinkflasche.",
+              "es": "Der Inhalt: Buch oder Trinkflasche.",
+              "pt-BR": "Der Inhalt: Buch oder Trinkflasche."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+            "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+            "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+            "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-lost-item-v2-writing"],
+          "targetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe the lost item with color and contents, avoiding a claim that either blue bag must be yours.",
+            "de": "Beschreibe Farbe und Inhalt, ohne jede blaue Tasche automatisch als deine auszugeben.",
+            "es": "Describe color y contenido sin dar por hecho que cualquier bolsa azul es tuya.",
+            "pt-BR": "Descreva cor e conteúdo sem presumir que qualquer bolsa azul é sua."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-lost-item-v2-writing"],
+          "targetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe the lost item with color and contents, avoiding a claim that either blue bag must be yours.",
+            "de": "Beschreibe Farbe und Inhalt, ohne jede blaue Tasche automatisch als deine auszugeben.",
+            "es": "Describe color y contenido sin dar por hecho que cualquier bolsa azul es tuya.",
+            "pt-BR": "Descreva cor e conteúdo sem presumir que qualquer bolsa azul é sua."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-lost-item-v2-speaking"],
+          "targetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe the lost item with color and contents, avoiding a claim that either blue bag must be yours.",
+            "de": "Beschreibe Farbe und Inhalt, ohne jede blaue Tasche automatisch als deine auszugeben.",
+            "es": "Describe color y contenido sin dar por hecho que cualquier bolsa azul es tuya.",
+            "pt-BR": "Descreva cor e conteúdo sem presumir que qualquer bolsa azul é sua."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Wir haben gestern eine blaue Tasche im Café gefunden. In der Tasche ist ein kleines Buch. Sie können die Tasche heute bis siebzehn Uhr abholen.\nUpdate: Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?",
+            "de": "Ursprüngliche Nachricht: Wir haben gestern eine blaue Tasche im Café gefunden. In der Tasche ist ein kleines Buch. Sie können die Tasche heute bis siebzehn Uhr abholen.\nAktualisierung: Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?",
+            "es": "Aviso original: Wir haben gestern eine blaue Tasche im Café gefunden. In der Tasche ist ein kleines Buch. Sie können die Tasche heute bis siebzehn Uhr abholen.\nActualización: Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?",
+            "pt-BR": "Aviso original: Wir haben gestern eine blaue Tasche im Café gefunden. In der Tasche ist ein kleines Buch. Sie können die Tasche heute bis siebzehn Uhr abholen.\nAtualização: Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?"
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?",
+            "de": "Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?",
+            "es": "Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?",
+            "pt-BR": "Wir haben zwei blaue Taschen gefunden. Eine enthält ein Buch, die andere eine Trinkflasche. Können Sie uns sagen, was in Ihrer Tasche war?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-lost-item-2-v2",
+      "stage": "lost-item-mission",
+      "kind": "module",
+      "title": {
+        "en": "Describe the missing bag",
+        "de": "Die verlorene Tasche beschreiben",
+        "es": "Describir la bolsa perdida",
+        "pt-BR": "Descrever a bolsa perdida"
+      },
+      "scenario": {
+        "en": "Clarify the mismatched strap and ask for another identifying detail instead of claiming certainty.",
+        "de": "Kläre den abweichenden Gurt und frage nach einem weiteren Merkmal statt Sicherheit zu behaupten.",
+        "es": "Aclara la correa distinta y pide otro rasgo antes de afirmar certeza.",
+        "pt-BR": "Esclareça a alça diferente e peça outra característica antes de afirmar certeza."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000015"],
+      "prerequisites": ["de-lost-item-v2"],
+      "grammar": {
+        "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+        "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+        "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+        "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+      },
+      "explanation": {
+        "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+        "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+        "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+        "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+      },
+      "examples": [
+        {
+          "text": "Sie ist blau und hat einen langen Gurt.",
+          "meaning": {
+            "en": "It is blue and has a long strap.",
+            "de": "Farbe und ein besonderes Merkmal der Tasche beschreiben.",
+            "es": "Es azul y tiene una correa larga.",
+            "pt-BR": "Ela é azul e tem uma alça longa."
+          }
+        },
+        {
+          "text": "Der Gurt meiner Tasche ist lang.",
+          "meaning": {
+            "en": "My bag has a long strap.",
+            "de": "Die Länge ist ein wichtiges Merkmal.",
+            "es": "La correa de mi bolsa es larga.",
+            "pt-BR": "A alça da minha bolsa é longa."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-lost-item-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-lost-item-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What does not match the description?",
+            "de": "Welches Merkmal passt nicht?",
+            "es": "¿Qué rasgo no coincide?",
+            "pt-BR": "Qual característica não coincide?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-lost-item-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Clarify the mismatched strap and ask for another identifying detail instead of claiming certainty.",
+            "de": "Kläre den abweichenden Gurt und frage nach einem weiteren Merkmal statt Sicherheit zu behaupten.",
+            "es": "Aclara la correa distinta y pide otro rasgo antes de afirmar certeza.",
+            "pt-BR": "Esclareça a alça diferente e peça outra característica antes de afirmar certeza."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-lost-item-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Clarify the mismatched strap and ask for another identifying detail instead of claiming certainty.",
+            "de": "Kläre den abweichenden Gurt und frage nach einem weiteren Merkmal statt Sicherheit zu behaupten.",
+            "es": "Aclara la correa distinta y pide otro rasgo antes de afirmar certeza.",
+            "pt-BR": "Esclareça a alça diferente e peça outra característica antes de afirmar certeza."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-lost-item-2-v2-phrase-1", "de-lost-item-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-lost-item-v2-phrase-1", "de-lost-item-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-lost-item-2-v2-reading"],
+          "targetIds": ["de-lost-item-2-v2-phrase-1", "de-lost-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Wir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch.",
+              "de": "Wir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch.",
+              "es": "Wir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch.",
+              "pt-BR": "Wir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Sie ist blau und hat einen langen Gurt.\nWir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-lost-item-2-v2-listening"],
+          "targetIds": ["de-lost-item-2-v2-phrase-1", "de-lost-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What does not match the description?",
+              "de": "Welches Merkmal passt nicht?",
+              "es": "¿Qué rasgo no coincide?",
+              "pt-BR": "Qual característica não coincide?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Die Länge des Gurts.",
+              "de": "Die Länge des Gurts.",
+              "es": "Die Länge des Gurts.",
+              "pt-BR": "Die Länge des Gurts."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-lost-item-2-v2-phrase-1", "de-lost-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+            "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+            "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+            "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-lost-item-2-v2-writing"],
+          "targetIds": ["de-lost-item-2-v2-phrase-1", "de-lost-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Clarify the mismatched strap and ask for another identifying detail instead of claiming certainty.",
+            "de": "Kläre den abweichenden Gurt und frage nach einem weiteren Merkmal statt Sicherheit zu behaupten.",
+            "es": "Aclara la correa distinta y pide otro rasgo antes de afirmar certeza.",
+            "pt-BR": "Esclareça a alça diferente e peça outra característica antes de afirmar certeza."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-lost-item-2-v2-writing"],
+          "targetIds": ["de-lost-item-2-v2-phrase-1", "de-lost-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Clarify the mismatched strap and ask for another identifying detail instead of claiming certainty.",
+            "de": "Kläre den abweichenden Gurt und frage nach einem weiteren Merkmal statt Sicherheit zu behaupten.",
+            "es": "Aclara la correa distinta y pide otro rasgo antes de afirmar certeza.",
+            "pt-BR": "Esclareça a alça diferente e peça outra característica antes de afirmar certeza."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Wir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-lost-item-2-v2-speaking"],
+          "targetIds": ["de-lost-item-2-v2-phrase-1", "de-lost-item-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Clarify the mismatched strap and ask for another identifying detail instead of claiming certainty.",
+            "de": "Kläre den abweichenden Gurt und frage nach einem weiteren Merkmal statt Sicherheit zu behaupten.",
+            "es": "Aclara la correa distinta y pide otro rasgo antes de afirmar certeza.",
+            "pt-BR": "Esclareça a alça diferente e peça outra característica antes de afirmar certeza."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Wir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Sie ist blau und hat einen langen Gurt.\nWir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch.\nUpdate: Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen.",
+            "de": "Ursprüngliche Nachricht: Sie ist blau und hat einen langen Gurt.\nWir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch.\nAktualisierung: Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen.",
+            "es": "Aviso original: Sie ist blau und hat einen langen Gurt.\nWir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch.\nActualización: Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen.",
+            "pt-BR": "Aviso original: Sie ist blau und hat einen langen Gurt.\nWir haben eine blaue Tasche mit langem Gurt gefunden. Darin liegt ein Buch.\nAtualização: Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen.",
+            "de": "Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen.",
+            "es": "Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen.",
+            "pt-BR": "Die Tasche mit dem Buch hat einen kurzen Gurt. Sie sagten aber, Ihre habe einen langen. Bitte beschreiben Sie noch ein anderes Merkmal, bevor Sie zur Abholung kommen."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-lost-item-3-v2",
+      "stage": "lost-item-mission",
+      "kind": "module",
+      "title": {
+        "en": "Arrange collection",
+        "de": "Die Abholung vereinbaren",
+        "es": "Acordar la recogida",
+        "pt-BR": "Combinar a retirada"
+      },
+      "scenario": {
+        "en": "Arrange collection after the closing-time change and confirm what to bring.",
+        "de": "Vereinbare nach der geänderten Schließzeit die Abholung und bestätige das Mitbringen.",
+        "es": "Acuerda recogida tras el cambio de cierre y confirma qué llevar.",
+        "pt-BR": "Combine retirada após a mudança de fechamento e confirme o que levar."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000015"],
+      "prerequisites": ["de-lost-item-2-v2"],
+      "grammar": {
+        "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+        "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+        "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+        "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+      },
+      "explanation": {
+        "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+        "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+        "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+        "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+      },
+      "examples": [
+        {
+          "text": "Kann ich sie heute abholen?",
+          "meaning": {
+            "en": "Can I collect it today?",
+            "de": "Fragen, ob die Abholung noch heute möglich ist.",
+            "es": "¿Puedo recogerla hoy?",
+            "pt-BR": "Posso retirá-la hoje?"
+          }
+        },
+        {
+          "text": "Ich komme morgen vor zwölf.",
+          "meaning": {
+            "en": "I will come tomorrow before twelve.",
+            "de": "Ich wähle die neue Abholzeit.",
+            "es": "Voy mañana antes de las doce.",
+            "pt-BR": "Vou amanhã antes do meio-dia."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-lost-item-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-lost-item-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What collection window is offered instead?",
+            "de": "Welche Abholzeit wird stattdessen angeboten?",
+            "es": "¿Qué horario alternativo se ofrece?",
+            "pt-BR": "Qual horário alternativo é oferecido?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-lost-item-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Arrange collection after the closing-time change and confirm what to bring.",
+            "de": "Vereinbare nach der geänderten Schließzeit die Abholung und bestätige das Mitbringen.",
+            "es": "Acuerda recogida tras el cambio de cierre y confirma qué llevar.",
+            "pt-BR": "Combine retirada após a mudança de fechamento e confirme o que levar."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-lost-item-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Arrange collection after the closing-time change and confirm what to bring.",
+            "de": "Vereinbare nach der geänderten Schließzeit die Abholung und bestätige das Mitbringen.",
+            "es": "Acuerda recogida tras el cambio de cierre y confirma qué llevar.",
+            "pt-BR": "Combine retirada após a mudança de fechamento e confirme o que levar."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-lost-item-3-v2-phrase-1", "de-lost-item-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-lost-item-v2-phrase-1",
+        "de-lost-item-v2-phrase-2",
+        "de-lost-item-2-v2-phrase-1",
+        "de-lost-item-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-lost-item-3-v2-reading"],
+          "targetIds": ["de-lost-item-3-v2-phrase-1", "de-lost-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ja, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.",
+              "de": "Ja, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.",
+              "es": "Ja, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.",
+              "pt-BR": "Ja, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Kann ich sie heute abholen?\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-lost-item-3-v2-listening"],
+          "targetIds": ["de-lost-item-3-v2-phrase-1", "de-lost-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What collection window is offered instead?",
+              "de": "Welche Abholzeit wird stattdessen angeboten?",
+              "es": "¿Qué horario alternativo se ofrece?",
+              "pt-BR": "Qual horário alternativo é oferecido?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Morgen von neun bis zwölf.",
+              "de": "Morgen von neun bis zwölf.",
+              "es": "Morgen von neun bis zwölf.",
+              "pt-BR": "Morgen von neun bis zwölf."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-lost-item-3-v2-phrase-1", "de-lost-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe features with haben and sein, then use a comparison to distinguish similar items. A matching color alone does not establish ownership. Before a collection deadline use vor or bis with a clear time.",
+            "de": "Beschreibe Merkmale mit haben und sein und vergleiche ähnliche Gegenstände. Gleiche Farbe beweist keinen Besitz. Nenne Abholfristen mit vor oder bis und klarer Uhrzeit.",
+            "es": "Describe rasgos con haben y sein y compara objetos. El color no prueba propiedad. Da límites de recogida con vor o bis.",
+            "pt-BR": "Descreva características com haben e sein e compare objetos. A cor não prova propriedade. Dê limites de retirada com vor ou bis."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-lost-item-3-v2-writing"],
+          "targetIds": ["de-lost-item-3-v2-phrase-1", "de-lost-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Arrange collection after the closing-time change and confirm what to bring.",
+            "de": "Vereinbare nach der geänderten Schließzeit die Abholung und bestätige das Mitbringen.",
+            "es": "Acuerda recogida tras el cambio de cierre y confirma qué llevar.",
+            "pt-BR": "Combine retirada após a mudança de fechamento e confirme o que levar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-lost-item-3-v2-writing"],
+          "targetIds": ["de-lost-item-3-v2-phrase-1", "de-lost-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Arrange collection after the closing-time change and confirm what to bring.",
+            "de": "Vereinbare nach der geänderten Schließzeit die Abholung und bestätige das Mitbringen.",
+            "es": "Acuerda recogida tras el cambio de cierre y confirma qué llevar.",
+            "pt-BR": "Combine retirada após a mudança de fechamento e confirme o que levar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-lost-item-3-v2-speaking"],
+          "targetIds": ["de-lost-item-3-v2-phrase-1", "de-lost-item-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Arrange collection after the closing-time change and confirm what to bring.",
+            "de": "Vereinbare nach der geänderten Schließzeit die Abholung und bestätige das Mitbringen.",
+            "es": "Acuerda recogida tras el cambio de cierre y confirma qué llevar.",
+            "pt-BR": "Combine retirada após a mudança de fechamento e confirme o que levar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Kann ich sie heute abholen?\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.\nUpdate: Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit.",
+            "de": "Ursprüngliche Nachricht: Kann ich sie heute abholen?\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.\nAktualisierung: Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit.",
+            "es": "Aviso original: Kann ich sie heute abholen?\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.\nActualización: Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit.",
+            "pt-BR": "Aviso original: Kann ich sie heute abholen?\nJa, kommen Sie bitte vor siebzehn Uhr zum Schalter zwei.\nAtualização: Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit.",
+            "de": "Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit.",
+            "es": "Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit.",
+            "pt-BR": "Heute ist der Schalter schon ab sechzehn Uhr geschlossen. Morgen können Sie zwischen neun und zwölf kommen. Bringen Sie bitte die Abholnummer aus unserer Nachricht mit."
           }
         }
       ],

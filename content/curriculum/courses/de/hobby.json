@@ -19,7 +19,26 @@
         "de": "Frage nach einer Gruppe, ihrem Treffen und einem ersten Besuch.",
         "es": "Pregunta por un grupo, su horario y una primera visita.",
         "pt-BR": "Pergunte sobre um grupo, o horário dos encontros e uma primeira visita."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "hobby-mission",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Join a hobby group",
+        "de": "Eine Freizeitgruppe kennenlernen",
+        "es": "Conocer un grupo de aficiones",
+        "pt-BR": "Conhecer um grupo de lazer"
+      },
+      "description": {
+        "en": "Ask about a group, its meeting time, and a first visit.",
+        "de": "Frage nach einer Gruppe, ihrem Treffen und einem ersten Besuch.",
+        "es": "Pregunta por un grupo, su horario y una primera visita.",
+        "pt-BR": "Pergunte sobre um grupo, o horário dos encontros e uma primeira visita."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Fragen, ob ein Besuch am Samstag möglich ist.",
         "es": "¿Puedo ir el sábado?",
         "pt-BR": "Posso ir no sábado?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hobby-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ich interessiere mich für Fotografie.",
+      "meaning": {
+        "en": "I am interested in photography.",
+        "de": "Das eigene Interesse an Fotografie nennen.",
+        "es": "Me interesa la fotografía.",
+        "pt-BR": "Tenho interesse em fotografia."
+      },
+      "example": "Ich interessiere mich für Fotografie.",
+      "exampleMeaning": {
+        "en": "I am interested in photography.",
+        "de": "Das eigene Interesse an Fotografie nennen.",
+        "es": "Me interesa la fotografía.",
+        "pt-BR": "Tenho interesse em fotografia."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hobby-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Reicht ein Handy für den ersten Besuch?",
+      "meaning": {
+        "en": "Is a phone enough for the first visit?",
+        "de": "Ich frage nach der nötigen Ausrüstung.",
+        "es": "¿Basta un móvil para la primera visita?",
+        "pt-BR": "Um celular basta para a primeira visita?"
+      },
+      "example": "Reicht ein Handy für den ersten Besuch?",
+      "exampleMeaning": {
+        "en": "Is a phone enough for the first visit?",
+        "de": "Ich frage nach der nötigen Ausrüstung.",
+        "es": "¿Basta un móvil para la primera visita?",
+        "pt-BR": "Um celular basta para a primeira visita?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hobby-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Wann trifft sich die Gruppe?",
+      "meaning": {
+        "en": "When does the group meet?",
+        "de": "Nach dem Zeitpunkt des Gruppentreffens fragen.",
+        "es": "¿Cuándo se reúne el grupo?",
+        "pt-BR": "Quando o grupo se reúne?"
+      },
+      "example": "Wann trifft sich die Gruppe?",
+      "exampleMeaning": {
+        "en": "When does the group meet?",
+        "de": "Nach dem Zeitpunkt des Gruppentreffens fragen.",
+        "es": "¿Cuándo se reúne el grupo?",
+        "pt-BR": "Quando o grupo se reúne?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hobby-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Gilt die Änderung nur diese Woche?",
+      "meaning": {
+        "en": "Does the change apply only this week?",
+        "de": "Ich frage nach der Dauer der Änderung.",
+        "es": "¿El cambio vale solo esta semana?",
+        "pt-BR": "A mudança vale só nesta semana?"
+      },
+      "example": "Gilt die Änderung nur diese Woche?",
+      "exampleMeaning": {
+        "en": "Does the change apply only this week?",
+        "de": "Ich frage nach der Dauer der Änderung.",
+        "es": "¿El cambio vale solo esta semana?",
+        "pt-BR": "A mudança vale só nesta semana?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hobby-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Kann ich am Samstag kommen?",
+      "meaning": {
+        "en": "Can I come on Saturday?",
+        "de": "Fragen, ob ein Besuch am Samstag möglich ist.",
+        "es": "¿Puedo ir el sábado?",
+        "pt-BR": "Posso ir no sábado?"
+      },
+      "example": "Kann ich am Samstag kommen?",
+      "exampleMeaning": {
+        "en": "Can I come on Saturday?",
+        "de": "Fragen, ob ein Besuch am Samstag möglich ist.",
+        "es": "¿Puedo ir el sábado?",
+        "pt-BR": "Posso ir no sábado?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-hobby-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich komme zum Eingang neben dem Kiosk.",
+      "meaning": {
+        "en": "I will come to the entrance beside the kiosk.",
+        "de": "Der Treffpunkt ist für mich klar.",
+        "es": "Voy a la entrada junto al quiosco.",
+        "pt-BR": "Vou à entrada ao lado do quiosque."
+      },
+      "example": "Ich komme zum Eingang neben dem Kiosk.",
+      "exampleMeaning": {
+        "en": "I will come to the entrance beside the kiosk.",
+        "de": "Der Treffpunkt ist für mich klar.",
+        "es": "Voy a la entrada junto al quiosco.",
+        "pt-BR": "Vou à entrada ao lado do quiosque."
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Den ersten Besuch vereinbaren. Fragen, ob ein Besuch am Samstag möglich ist.\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.",
             "es": "Organizar la primera visita. ¿Puedo ir el sábado?\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.",
             "pt-BR": "Combinar a primeira visita. Posso ir no sábado?\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-hobby-v2",
+      "stage": "hobby-mission",
+      "kind": "module",
+      "title": {
+        "en": "A Saturday photo walk",
+        "de": "Ein Fotospaziergang am Samstag",
+        "es": "Un paseo fotográfico el sábado",
+        "pt-BR": "Um passeio fotográfico no sábado"
+      },
+      "scenario": {
+        "en": "Ask about joining, explain you only have a phone and check registration.",
+        "de": "Frage nach der Teilnahme, nenne dein Handy als Ausrüstung und kläre die Anmeldung.",
+        "es": "Pregunta por participar, di que solo tienes móvil y consulta la inscripción.",
+        "pt-BR": "Pergunte sobre participar, diga que só tem celular e confirme a inscrição."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000011"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+        "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+        "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+        "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+      },
+      "explanation": {
+        "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+        "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+        "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+        "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+      },
+      "examples": [
+        {
+          "text": "Ich interessiere mich für Fotografie.",
+          "meaning": {
+            "en": "I am interested in photography.",
+            "de": "Das eigene Interesse an Fotografie nennen.",
+            "es": "Me interesa la fotografía.",
+            "pt-BR": "Tenho interesse em fotografia."
+          }
+        },
+        {
+          "text": "Reicht ein Handy für den ersten Besuch?",
+          "meaning": {
+            "en": "Is a phone enough for the first visit?",
+            "de": "Ich frage nach der nötigen Ausrüstung.",
+            "es": "¿Basta un móvil para la primera visita?",
+            "pt-BR": "Um celular basta para a primeira visita?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-hobby-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-hobby-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What equipment is sufficient?",
+            "de": "Welche Ausrüstung reicht?",
+            "es": "¿Qué equipo basta?",
+            "pt-BR": "Qual equipamento basta?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hobby-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Ask about joining, explain you only have a phone and check registration.",
+            "de": "Frage nach der Teilnahme, nenne dein Handy als Ausrüstung und kläre die Anmeldung.",
+            "es": "Pregunta por participar, di que solo tienes móvil y consulta la inscripción.",
+            "pt-BR": "Pergunte sobre participar, diga que só tem celular e confirme a inscrição."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hobby-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Ask about joining, explain you only have a phone and check registration.",
+            "de": "Frage nach der Teilnahme, nenne dein Handy als Ausrüstung und kläre die Anmeldung.",
+            "es": "Pregunta por participar, di que solo tienes móvil y consulta la inscripción.",
+            "pt-BR": "Pergunte sobre participar, diga que só tem celular e confirme a inscrição."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-hobby-v2-reading"],
+          "targetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "When does the group meet?",
+              "de": "Wann trifft sich die Gruppe?",
+              "es": "¿Cuándo se reúne el grupo?",
+              "pt-BR": "Quando o grupo se reúne?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "am Samstag um zehn Uhr",
+              "de": "am Samstag um zehn Uhr",
+              "es": "am Samstag um zehn Uhr",
+              "pt-BR": "am Samstag um zehn Uhr"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Unsere Fotogruppe trifft sich am Samstag um zehn Uhr im Park. Neue Leute sind willkommen. Bitte bringen Sie eine Kamera oder ein Handy mit."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-hobby-v2-listening"],
+          "targetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What equipment is sufficient?",
+              "de": "Welche Ausrüstung reicht?",
+              "es": "¿Qué equipo basta?",
+              "pt-BR": "Qual equipamento basta?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ein Handy.",
+              "de": "Ein Handy.",
+              "es": "Ein Handy.",
+              "pt-BR": "Ein Handy."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+          "instructions": {
+            "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+            "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+            "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+            "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-hobby-v2-writing"],
+          "targetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask about joining, explain you only have a phone and check registration.",
+            "de": "Frage nach der Teilnahme, nenne dein Handy als Ausrüstung und kläre die Anmeldung.",
+            "es": "Pregunta por participar, di que solo tienes móvil y consulta la inscripción.",
+            "pt-BR": "Pergunte sobre participar, diga que só tem celular e confirme a inscrição."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-hobby-v2-writing"],
+          "targetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask about joining, explain you only have a phone and check registration.",
+            "de": "Frage nach der Teilnahme, nenne dein Handy als Ausrüstung und kläre die Anmeldung.",
+            "es": "Pregunta por participar, di que solo tienes móvil y consulta la inscripción.",
+            "pt-BR": "Pergunte sobre participar, diga que só tem celular e confirme a inscrição."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-hobby-v2-speaking"],
+          "targetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask about joining, explain you only have a phone and check registration.",
+            "de": "Frage nach der Teilnahme, nenne dein Handy als Ausrüstung und kläre die Anmeldung.",
+            "es": "Pregunta por participar, di que solo tienes móvil y consulta la inscripción.",
+            "pt-BR": "Pergunte sobre participar, diga que só tem celular e confirme a inscrição."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Unsere Fotogruppe trifft sich am Samstag um zehn Uhr im Park. Neue Leute sind willkommen. Bitte bringen Sie eine Kamera oder ein Handy mit.\nUpdate: Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht.",
+            "de": "Ursprüngliche Nachricht: Unsere Fotogruppe trifft sich am Samstag um zehn Uhr im Park. Neue Leute sind willkommen. Bitte bringen Sie eine Kamera oder ein Handy mit.\nAktualisierung: Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht.",
+            "es": "Aviso original: Unsere Fotogruppe trifft sich am Samstag um zehn Uhr im Park. Neue Leute sind willkommen. Bitte bringen Sie eine Kamera oder ein Handy mit.\nActualización: Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht.",
+            "pt-BR": "Aviso original: Unsere Fotogruppe trifft sich am Samstag um zehn Uhr im Park. Neue Leute sind willkommen. Bitte bringen Sie eine Kamera oder ein Handy mit.\nAtualização: Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht.",
+            "de": "Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht.",
+            "es": "Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht.",
+            "pt-BR": "Willkommen bei der Fotogruppe. Neue Personen können am Samstag ohne Anmeldung mitkommen. Eine eigene Kamera ist nicht nötig; ein Handy reicht."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-hobby-2-v2",
+      "stage": "hobby-mission",
+      "kind": "module",
+      "title": {
+        "en": "Check the group schedule",
+        "de": "Die Treffen erfragen",
+        "es": "Consultar el horario del grupo",
+        "pt-BR": "Consultar os horários do grupo"
+      },
+      "scenario": {
+        "en": "Confirm the temporary meeting time and distinguish it from the usual schedule.",
+        "de": "Bestätige die vorübergehende Uhrzeit und unterscheide sie vom normalen Plan.",
+        "es": "Confirma la hora temporal y distingue el horario habitual.",
+        "pt-BR": "Confirme o horário temporário e diferencie o habitual."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000011"],
+      "prerequisites": ["de-hobby-v2"],
+      "grammar": {
+        "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+        "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+        "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+        "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+      },
+      "explanation": {
+        "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+        "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+        "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+        "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+      },
+      "examples": [
+        {
+          "text": "Wann trifft sich die Gruppe?",
+          "meaning": {
+            "en": "When does the group meet?",
+            "de": "Nach dem Zeitpunkt des Gruppentreffens fragen.",
+            "es": "¿Cuándo se reúne el grupo?",
+            "pt-BR": "Quando o grupo se reúne?"
+          }
+        },
+        {
+          "text": "Gilt die Änderung nur diese Woche?",
+          "meaning": {
+            "en": "Does the change apply only this week?",
+            "de": "Ich frage nach der Dauer der Änderung.",
+            "es": "¿El cambio vale solo esta semana?",
+            "pt-BR": "A mudança vale só nesta semana?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-hobby-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-hobby-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "When does the group meet this week?",
+            "de": "Wann trifft sich die Gruppe diese Woche?",
+            "es": "¿Cuándo se reúne esta semana?",
+            "pt-BR": "Quando o grupo se reúne esta semana?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hobby-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the temporary meeting time and distinguish it from the usual schedule.",
+            "de": "Bestätige die vorübergehende Uhrzeit und unterscheide sie vom normalen Plan.",
+            "es": "Confirma la hora temporal y distingue el horario habitual.",
+            "pt-BR": "Confirme o horário temporário e diferencie o habitual."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hobby-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the temporary meeting time and distinguish it from the usual schedule.",
+            "de": "Bestätige die vorübergehende Uhrzeit und unterscheide sie vom normalen Plan.",
+            "es": "Confirma la hora temporal y distingue el horario habitual.",
+            "pt-BR": "Confirme o horário temporário e diferencie o habitual."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-hobby-2-v2-phrase-1", "de-hobby-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-hobby-v2-phrase-1", "de-hobby-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-hobby-2-v2-reading"],
+          "targetIds": ["de-hobby-2-v2-phrase-1", "de-hobby-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Wir treffen uns jeden Samstag um zehn Uhr im Park.",
+              "de": "Wir treffen uns jeden Samstag um zehn Uhr im Park.",
+              "es": "Wir treffen uns jeden Samstag um zehn Uhr im Park.",
+              "pt-BR": "Wir treffen uns jeden Samstag um zehn Uhr im Park."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wann trifft sich die Gruppe?\nWir treffen uns jeden Samstag um zehn Uhr im Park."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-hobby-2-v2-listening"],
+          "targetIds": ["de-hobby-2-v2-phrase-1", "de-hobby-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "When does the group meet this week?",
+              "de": "Wann trifft sich die Gruppe diese Woche?",
+              "es": "¿Cuándo se reúne esta semana?",
+              "pt-BR": "Quando o grupo se reúne esta semana?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Um elf.",
+              "de": "Um elf.",
+              "es": "Um elf.",
+              "pt-BR": "Um elf."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-hobby-2-v2-phrase-1", "de-hobby-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+            "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+            "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+            "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-hobby-2-v2-writing"],
+          "targetIds": ["de-hobby-2-v2-phrase-1", "de-hobby-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the temporary meeting time and distinguish it from the usual schedule.",
+            "de": "Bestätige die vorübergehende Uhrzeit und unterscheide sie vom normalen Plan.",
+            "es": "Confirma la hora temporal y distingue el horario habitual.",
+            "pt-BR": "Confirme o horário temporário e diferencie o habitual."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-hobby-2-v2-writing"],
+          "targetIds": ["de-hobby-2-v2-phrase-1", "de-hobby-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the temporary meeting time and distinguish it from the usual schedule.",
+            "de": "Bestätige die vorübergehende Uhrzeit und unterscheide sie vom normalen Plan.",
+            "es": "Confirma la hora temporal y distingue el horario habitual.",
+            "pt-BR": "Confirme o horário temporário e diferencie o habitual."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Wir treffen uns jeden Samstag um elf Uhr im Park."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-hobby-2-v2-speaking"],
+          "targetIds": ["de-hobby-2-v2-phrase-1", "de-hobby-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the temporary meeting time and distinguish it from the usual schedule.",
+            "de": "Bestätige die vorübergehende Uhrzeit und unterscheide sie vom normalen Plan.",
+            "es": "Confirma la hora temporal y distingue el horario habitual.",
+            "pt-BR": "Confirme o horário temporário e diferencie o habitual."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Wir treffen uns jeden Samstag um elf Uhr im Park."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Wann trifft sich die Gruppe?\nWir treffen uns jeden Samstag um zehn Uhr im Park.\nUpdate: Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr.",
+            "de": "Ursprüngliche Nachricht: Wann trifft sich die Gruppe?\nWir treffen uns jeden Samstag um zehn Uhr im Park.\nAktualisierung: Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr.",
+            "es": "Aviso original: Wann trifft sich die Gruppe?\nWir treffen uns jeden Samstag um zehn Uhr im Park.\nActualización: Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr.",
+            "pt-BR": "Aviso original: Wann trifft sich die Gruppe?\nWir treffen uns jeden Samstag um zehn Uhr im Park.\nAtualização: Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr.",
+            "de": "Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr.",
+            "es": "Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr.",
+            "pt-BR": "Diese Woche treffen wir uns eine Stunde später als sonst: um elf statt um zehn. Der Ort bleibt der Parkeingang. Nächste Woche gilt wieder zehn Uhr."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-hobby-3-v2",
+      "stage": "hobby-mission",
+      "kind": "module",
+      "title": {
+        "en": "Arrange a first visit",
+        "de": "Den ersten Besuch vereinbaren",
+        "es": "Organizar la primera visita",
+        "pt-BR": "Combinar a primeira visita"
+      },
+      "scenario": {
+        "en": "Confirm a first visit, exact meeting point, equipment and rain plan.",
+        "de": "Bestätige ersten Besuch, genauen Treffpunkt, Ausrüstung und Regenplan.",
+        "es": "Confirma primera visita, punto exacto, equipo y plan por lluvia.",
+        "pt-BR": "Confirme primeira visita, ponto exato, equipamento e plano de chuva."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000011"],
+      "prerequisites": ["de-hobby-2-v2"],
+      "grammar": {
+        "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+        "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+        "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+        "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+      },
+      "explanation": {
+        "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+        "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+        "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+        "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+      },
+      "examples": [
+        {
+          "text": "Kann ich am Samstag kommen?",
+          "meaning": {
+            "en": "Can I come on Saturday?",
+            "de": "Fragen, ob ein Besuch am Samstag möglich ist.",
+            "es": "¿Puedo ir el sábado?",
+            "pt-BR": "Posso ir no sábado?"
+          }
+        },
+        {
+          "text": "Ich komme zum Eingang neben dem Kiosk.",
+          "meaning": {
+            "en": "I will come to the entrance beside the kiosk.",
+            "de": "Der Treffpunkt ist für mich klar.",
+            "es": "Voy a la entrada junto al quiosco.",
+            "pt-BR": "Vou à entrada ao lado do quiosque."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-hobby-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-hobby-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What happens if it rains?",
+            "de": "Was passiert bei Regen?",
+            "es": "¿Qué pasa si llueve?",
+            "pt-BR": "O que acontece se chover?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hobby-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm a first visit, exact meeting point, equipment and rain plan.",
+            "de": "Bestätige ersten Besuch, genauen Treffpunkt, Ausrüstung und Regenplan.",
+            "es": "Confirma primera visita, punto exacto, equipo y plan por lluvia.",
+            "pt-BR": "Confirme primeira visita, ponto exato, equipamento e plano de chuva."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-hobby-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm a first visit, exact meeting point, equipment and rain plan.",
+            "de": "Bestätige ersten Besuch, genauen Treffpunkt, Ausrüstung und Regenplan.",
+            "es": "Confirma primera visita, punto exacto, equipo y plan por lluvia.",
+            "pt-BR": "Confirme primeira visita, ponto exato, equipamento e plano de chuva."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-hobby-3-v2-phrase-1", "de-hobby-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-hobby-v2-phrase-1",
+        "de-hobby-v2-phrase-2",
+        "de-hobby-2-v2-phrase-1",
+        "de-hobby-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-hobby-3-v2-reading"],
+          "targetIds": ["de-hobby-3-v2-phrase-1", "de-hobby-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ja, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.",
+              "de": "Ja, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.",
+              "es": "Ja, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.",
+              "pt-BR": "Ja, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Kann ich am Samstag kommen?\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-hobby-3-v2-listening"],
+          "targetIds": ["de-hobby-3-v2-phrase-1", "de-hobby-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What happens if it rains?",
+              "de": "Was passiert bei Regen?",
+              "es": "¿Qué pasa si llueve?",
+              "pt-BR": "O que acontece se chover?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Die Gruppe geht ins Café im Park.",
+              "de": "Die Gruppe geht ins Café im Park.",
+              "es": "Die Gruppe geht ins Café im Park.",
+              "pt-BR": "Die Gruppe geht ins Café im Park."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-hobby-3-v2-phrase-1", "de-hobby-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Treffen is reflexive for a group: wir treffen uns. Use nur diese Woche to limit an exception and normalerweise for the usual schedule. A yes/no question begins with the conjugated verb.",
+            "de": "Treffen ist bei einer Gruppe reflexiv: wir treffen uns. Nur diese Woche begrenzt eine Ausnahme; normalerweise nennt die Regel. Eine Ja/Nein-Frage beginnt mit dem gebeugten Verb.",
+            "es": "Una reunión de grupo usa wir treffen uns. Nur diese Woche limita una excepción y normalerweise indica lo habitual. La pregunta de sí/no empieza con verbo.",
+            "pt-BR": "Uma reunião de grupo usa wir treffen uns. Nur diese Woche limita exceção e normalerweise indica o habitual. A pergunta de sim/não começa com verbo."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-hobby-3-v2-writing"],
+          "targetIds": ["de-hobby-3-v2-phrase-1", "de-hobby-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm a first visit, exact meeting point, equipment and rain plan.",
+            "de": "Bestätige ersten Besuch, genauen Treffpunkt, Ausrüstung und Regenplan.",
+            "es": "Confirma primera visita, punto exacto, equipo y plan por lluvia.",
+            "pt-BR": "Confirme primeira visita, ponto exato, equipamento e plano de chuva."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-hobby-3-v2-writing"],
+          "targetIds": ["de-hobby-3-v2-phrase-1", "de-hobby-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm a first visit, exact meeting point, equipment and rain plan.",
+            "de": "Bestätige ersten Besuch, genauen Treffpunkt, Ausrüstung und Regenplan.",
+            "es": "Confirma primera visita, punto exacto, equipo y plan por lluvia.",
+            "pt-BR": "Confirme primeira visita, ponto exato, equipamento e plano de chuva."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-hobby-3-v2-speaking"],
+          "targetIds": ["de-hobby-3-v2-phrase-1", "de-hobby-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm a first visit, exact meeting point, equipment and rain plan.",
+            "de": "Bestätige ersten Besuch, genauen Treffpunkt, Ausrüstung und Regenplan.",
+            "es": "Confirma primera visita, punto exacto, equipo y plan por lluvia.",
+            "pt-BR": "Confirme primeira visita, ponto exato, equipamento e plano de chuva."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Kann ich am Samstag kommen?\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.\nUpdate: Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy.",
+            "de": "Ursprüngliche Nachricht: Kann ich am Samstag kommen?\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.\nAktualisierung: Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy.",
+            "es": "Aviso original: Kann ich am Samstag kommen?\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.\nActualización: Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy.",
+            "pt-BR": "Aviso original: Kann ich am Samstag kommen?\nJa, gern. Bringen Sie bitte Ihre Kamera mit. Wir warten am Eingang.\nAtualização: Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy.",
+            "de": "Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy.",
+            "es": "Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy.",
+            "pt-BR": "Wir warten am Eingang neben dem Kiosk. Bei Regen gehen wir gemeinsam ins Café im Park. Du musst vorher nichts kaufen. Komm einfach mit deinem Handy."
           }
         }
       ],

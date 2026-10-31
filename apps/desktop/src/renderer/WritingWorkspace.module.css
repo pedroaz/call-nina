@@ -1,3 +1,8 @@
+.workspace > header {
+  justify-content: center;
+  text-align: center;
+}
+
 .writingLayout,
 .writingEditor {
   display: grid;
@@ -13,17 +18,22 @@
   flex-wrap: wrap;
 }
 .generatedPrompt {
-  border-block: var(--od-border-thin) solid var(--od-color-border-default);
-  background: var(--od-color-bg-app);
   display: grid;
-  gap: var(--od-space-3);
-  padding: var(--od-space-4) var(--od-space-5);
+  gap: var(--od-space-5);
+  min-width: 0;
 }
 .generatedPrompt > * {
   margin: 0;
 }
 .generatedPrompt ul {
   padding-inline-start: var(--od-space-6);
+}
+.promptMetadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-2) var(--od-space-4);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
 }
 .writingOptions {
   display: grid;
@@ -51,13 +61,4 @@
 .draftNotice {
   font-size: var(--od-font-size-xs);
   margin: 0;
-}
-.eyebrow {
-  color: var(--od-color-text-muted);
-  font-size: var(--od-font-size-xs);
-}
-@container workspace (max-width: 42rem) {
-  .writingOptions {
-    grid-template-columns: 1fr;
-  }
 }

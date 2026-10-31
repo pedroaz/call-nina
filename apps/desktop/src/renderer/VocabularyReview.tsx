@@ -17,10 +17,12 @@ import {
 
 export function VocabularyReview({
   rootGeneration,
+  uploadId,
   onExit,
   onChanged,
 }: {
   rootGeneration: DataRootGeneration;
+  uploadId?: string | undefined;
   onExit: () => void;
   onChanged: () => void;
 }) {
@@ -42,7 +44,7 @@ export function VocabularyReview({
     entry,
     grade,
     next,
-  } = useVocabularyReviewSession(rootGeneration, onChanged);
+  } = useVocabularyReviewSession(rootGeneration, onChanged, uploadId);
   return (
     <ActivityWorkspace
       title={t("vocabulary.review.title")}

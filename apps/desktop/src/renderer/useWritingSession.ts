@@ -25,10 +25,12 @@ type OperationStage = "idle" | "queued" | "running" | "validating" | "cancelling
 
 export function useWritingSession({
   initialContext,
+  practiceSource,
   initialDraft,
   onDirtyChange,
   requestAiAccess,
 }: {
+  practiceSource?: import("@call-nina/contracts").PracticeSource | undefined;
   initialContext: string;
   initialDraft: string;
   onDirtyChange: (dirty: boolean) => void;
@@ -47,6 +49,7 @@ export function useWritingSession({
   const [teachingProfile, setTeachingProfile] = useState<TeachingProfileChoice>("strict-corrector");
   const [feedback, setFeedback] = useState<FeedbackChoice>("all-meaningful");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const [correctionActivityId, setCorrectionActivityId] = useState<string>();
   const [prompt, setPrompt] = useState<PromptOutput>();
   const submissionId = useRef<CorrelationId | undefined>(undefined);
   const settledPromptSubmissions = useRef(new Set<CorrelationId>());
@@ -148,6 +151,7 @@ export function useWritingSession({
         if (event.outcome.status === "validated") {
           setPreviousCorrectionOperationId(undefined);
           setCorrection(writingCorrectionCandidateSchema.parse(event.outcome.output));
+          setCorrectionActivityId(event.outcome.activityId);
           setCorrectionLanguage(event.outcome.learningScope?.targetLanguage);
           const saved = correctionOriginals.current.get(event.submissionId);
           setCorrectionOriginal(saved?.draft ?? "");
@@ -189,6 +193,7 @@ export function useWritingSession({
         submissionId: nextSubmissionId,
         input: {
           kind: "writing-prompt",
+          ...(practiceSource ? { practiceSource } : {}),
           ...(context.trim() ? { naturalRequest: context.trim() } : {}),
         },
       });
@@ -244,6 +249,7 @@ export function useWritingSession({
         submissionId: nextSubmissionId,
         input: {
           kind: "writing-correction",
+          ...(practiceSource ? { practiceSource } : {}),
           learnerText: draft,
           ...(context.trim() ? { activityGoal: context.trim() } : {}),
           teachingProfile,
@@ -333,6 +339,7 @@ export function useWritingSession({
     correctionError,
     correctionOutcome,
     correction,
+    correctionActivityId,
     correctionOriginal,
     correctionLanguage,
     generatePrompt,

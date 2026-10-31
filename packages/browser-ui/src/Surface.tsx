@@ -38,7 +38,29 @@ export function Card<T extends ElementType = "div">({
   );
 }
 
-export function EmptyState(props: Readonly<{ title?: string; children: ReactNode }>) {
+export function EmptyState(
+  props: Readonly<{
+    title?: string;
+    children?: ReactNode;
+    icon?: ReactNode;
+    action?: ReactNode;
+    variant?: "card" | "plain";
+  }>,
+) {
+  if (props.variant === "plain") {
+    return (
+      <div className={styles.emptyPlain}>
+        {props.icon && (
+          <span className={styles.emptyIcon} aria-hidden="true">
+            {props.icon}
+          </span>
+        )}
+        {props.title && <h2>{props.title}</h2>}
+        {props.children}
+        {props.action}
+      </div>
+    );
+  }
   return (
     <Card className={styles.empty}>
       {props.title && <h2>{props.title}</h2>}

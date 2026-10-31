@@ -22,7 +22,6 @@ export async function apply(review) {
     NINA_STARTER_TEAM_ID: config.teamId,
     NINA_STARTER_ENABLED: "false",
     NINA_SPEECH_ENABLED: "false",
-    NINA_SPEECH_RECOVERY_READY: "false",
   };
   await vercel(
     `/v10/projects/${config.projectId}/env?upsert=true`,
@@ -115,7 +114,6 @@ export async function inspect() {
       "NINA_STARTER_TEAM_ID",
       "NINA_STARTER_ENABLED",
       "NINA_SPEECH_ENABLED",
-      "NINA_SPEECH_RECOVERY_READY",
     ].map((key) => ({
       key,
       operation: (env.envs ?? []).some(
@@ -123,9 +121,7 @@ export async function inspect() {
       )
         ? "upsert (secret values not compared)"
         : "create",
-      ...(["NINA_STARTER_ENABLED", "NINA_SPEECH_ENABLED", "NINA_SPEECH_RECOVERY_READY"].includes(
-        key,
-      )
+      ...(["NINA_STARTER_ENABLED", "NINA_SPEECH_ENABLED"].includes(key)
         ? { desired: "false" }
         : {}),
     })),

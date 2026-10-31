@@ -1,3 +1,4 @@
+import { uploadPracticeContextSchema } from "./uploads.js";
 import { materialReferenceSchema } from "./material.js";
 import { exerciseEntryContextSchema } from "./exercise-launch.js";
 import { learningScopeSchema } from "./learning-context.js";
@@ -31,6 +32,7 @@ export const preparedActivitySchema = z
     title: z.string().min(1).max(160),
     originSurface: z.enum(["desktop", "codex"]),
     context: z.strictObject({
+      uploadSource: uploadPracticeContextSchema.optional(),
       learningScope: learningScopeSchema,
       entry: exerciseEntryContextSchema.optional(),
       naturalRequest: z.string().min(1).max(1_000),

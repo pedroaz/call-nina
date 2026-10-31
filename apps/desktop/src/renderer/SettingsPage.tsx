@@ -1,3 +1,4 @@
+import { ProviderRouting } from "./ProviderRouting.js";
 import { OperationError } from "./OperationError.js";
 import { LiveConversationProvider } from "./LiveConversationProvider.js";
 import { PersonalDataPage } from "./PersonalDataPage.js";
@@ -121,6 +122,8 @@ export function SettingsPage({
   const connectionSettings = useRef<ConnectionSettingsHandle>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
   const statusCheckPending = useRef(false);
+  const statusCheckRevision = useRef(0);
+  const [statusCheckTimedOut, setStatusCheckTimedOut] = useState(false);
   const mounted = useRef(true);
   const readEpoch = useRef(0);
   const settingsReadRevision = useRef(0);
@@ -260,16 +263,37 @@ export function SettingsPage({
     )
       return;
     statusCheckPending.current = true;
+    const revision = ++statusCheckRevision.current;
     const epoch = readEpoch.current;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+    setStatusCheckTimedOut(false);
     setCheckingStatus(true);
     try {
-      await Promise.allSettled([
-        connectionSettings.current?.refreshStatus(),
-        refreshRuntime(),
-        refreshIntegration(),
+      const finished = await Promise.race([
+        Promise.allSettled([
+          connectionSettings.current?.refreshStatus(),
+          refreshRuntime(),
+          refreshIntegration(),
+        ]).then(() => true),
+        new Promise<false>((resolve) => {
+          deadline = setTimeout(() => resolve(false), 30_000);
+        }),
       ]);
+      if (
+        !finished &&
+        mounted.current &&
+        epoch === readEpoch.current &&
+        revision === statusCheckRevision.current
+      ) {
+        setStatusCheckTimedOut(true);
+      }
     } finally {
-      if (mounted.current && epoch === readEpoch.current) {
+      clearTimeout(deadline);
+      if (
+        mounted.current &&
+        epoch === readEpoch.current &&
+        revision === statusCheckRevision.current
+      ) {
         statusCheckPending.current = false;
         setCheckingStatus(false);
       }
@@ -278,6 +302,8 @@ export function SettingsPage({
 
   useEffect(() => {
     mounted.current = true;
+    statusCheckPending.current = false;
+    setCheckingStatus(false);
     const initialLoad = window.setTimeout(() => {
       void load();
       void refreshRuntime();
@@ -321,6 +347,8 @@ export function SettingsPage({
     });
     return () => {
       mounted.current = false;
+      statusCheckRevision.current++;
+      statusCheckPending.current = false;
       readEpoch.current++;
       window.clearTimeout(initialLoad);
       unsubscribe();
@@ -667,9 +695,34 @@ export function SettingsPage({
                   </Button>
                 </ActionGroup>
                 {runtimeFailure}
+                {statusCheckTimedOut && (
+                  <Feedback tone="warning" live="polite">
+                    {t("settings.statusCheckTimedOut")}
+                  </Feedback>
+                )}
                 <Section className={styles.aiConnections} aria-label={t("settings.aiTitle")}>
                   <ConnectionSettings
                     ref={connectionSettings}
+                    overview={({ view, busy, select, mutate }) => (
+                      <>
+                        <ProviderRouting
+                          view={view}
+                          busy={busy}
+                          select={select}
+                          mutate={mutate}
+                          chatgptConnected={account ? account.status === "signed-in" : undefined}
+                        />
+                        <SpeechSettings language={draft?.learningScope.targetLanguage ?? "de"} />
+                        <ProviderRouting
+                          capability="image"
+                          view={view}
+                          busy={busy}
+                          select={select}
+                          mutate={mutate}
+                          chatgptConnected={account ? account.status === "signed-in" : undefined}
+                        />
+                      </>
+                    )}
                     surface={false}
                     active={selectedTab === "ai" || selectedTab === "speech"}
                     disabled={busy || Boolean(loginId)}
@@ -815,7 +868,6 @@ export function SettingsPage({
                     }}
                   />
                 </Section>
-                <SpeechSettings language={draft?.learningScope.targetLanguage ?? "de"} />
                 <Section title={t("setupUx.speakingPractice")}>
                   {!integrationOpen && integrationReadFailure}
                   <LiveConversationProvider

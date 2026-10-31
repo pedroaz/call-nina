@@ -128,7 +128,12 @@ function insert(
     connection
       .prepare(`INSERT INTO flashcard_decks(activity_id, source, content_json) VALUES (?, ?, ?)`)
       .run(activity.activityId, source, JSON.stringify(content));
-    linkPortableContent(connection, activity.activityId, content, "inline-created");
+    linkPortableContent(
+      connection,
+      activity.activityId,
+      content,
+      activity.context.uploadSource ? "reused-or-historic" : "inline-created",
+    );
   }
   return activity.activityId;
 }
@@ -369,16 +374,18 @@ function prepareFlashcardContent(
   const ai = provenanceValue === null ? null : generationProvenanceSchema.parse(provenanceValue);
   if ((source === "generated" && ai === null) || (source === "vocabulary" && ai !== null))
     throw new Error("OD_CONTENT_PROVENANCE_INVALID");
-  const material = saveMaterialInTransaction(
-    connection,
-    {
-      kind: "topic",
-      title: activity.title,
-      language: activity.context.learningScope.targetLanguage,
-      text: goal.topic,
-    },
-    activity.preparedAt,
-  );
+  const material =
+    activity.context.uploadSource?.material ??
+    saveMaterialInTransaction(
+      connection,
+      {
+        kind: "topic",
+        title: activity.title,
+        language: activity.context.learningScope.targetLanguage,
+        text: goal.topic,
+      },
+      activity.preparedAt,
+    );
   return portableFlashcardContentSchema.parse({
     schemaVersion: 1,
     kind: "flashcard-deck",

@@ -271,8 +271,11 @@ export class CallNinaRepository {
     return this.#vocabulary.readVocabularyRetrievalSchedules(id);
   }
 
-  async readVocabularyReviewQueue(todayValue: string): Promise<readonly VocabularyRecord[]> {
-    return this.#vocabulary.readVocabularyReviewQueue(todayValue);
+  async readVocabularyReviewQueue(
+    todayValue: string,
+    uploadId?: string,
+  ): Promise<readonly VocabularyRecord[]> {
+    return this.#vocabulary.readVocabularyReviewQueue(todayValue, uploadId);
   }
 
   async mutateVocabularyBulk(

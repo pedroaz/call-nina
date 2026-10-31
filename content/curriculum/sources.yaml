@@ -6,7 +6,8 @@ sources:
     publisher: Call Nina
     sourceClass: repository-original
     supportedClaims:
-      - The local inventory defines the selected A1-B2 bands, everyday-life topic cells; it is not external pedagogical evidence.
+      - The local inventory defines the selected A1-B2 bands, everyday-life
+        topic cells; it is not external pedagogical evidence.
     retrievedOn: 2026-09-26
     reviewedOn: 2026-09-26
     freshness:
@@ -17,7 +18,8 @@ sources:
     publisher: Call Nina
     sourceClass: repository-original
     supportedClaims:
-      - The local rubric defines agent checks for language, level, sources and schema consistency during authoring.
+      - The local rubric defines agent checks for language, level, sources and
+        schema consistency during authoring.
     retrievedOn: 2026-09-26
     reviewedOn: 2026-09-26
     freshness:
@@ -28,18 +30,22 @@ sources:
     publisher: Call Nina
     sourceClass: repository-original
     supportedClaims:
-      - The curriculum README identifies reusable curriculum files and separates the read-only packaged snapshot from private learner and scratch data.
+      - The curriculum README identifies reusable curriculum files and separates
+        the read-only packaged snapshot from private learner and scratch data.
     retrievedOn: 2026-09-26
     reviewedOn: 2026-09-26
     freshness:
       status: stable
   - sourceId: curriculum-source_0000000000000004
-    title: "Common European Framework of Reference for Languages: CEFR Companion Volume"
+    title: "Common European Framework of Reference for Languages: CEFR Companion
+      Volume"
     url: https://www.coe.int/en/web/common-european-framework-reference-languages/cefr-companion-volume-and-its-language-versions
     publisher: Council of Europe
     sourceClass: official-framework
     supportedClaims:
-      - The CEFR Companion Volume provides the reviewed framework and descriptor resources used to map reception, production, interaction, and mediation outcomes.
+      - The CEFR Companion Volume provides the reviewed framework and descriptor
+        resources used to map reception, production, interaction, and mediation
+        outcomes.
     retrievedOn: 2026-08-21
     reviewedOn: 2026-08-21
     freshness:
@@ -50,7 +56,9 @@ sources:
     publisher: Bundesportal / Freie und Hansestadt Hamburg
     sourceClass: german-public-service
     supportedClaims:
-      - The public-service page describes the address-registration process, the two-week registration period after moving, and region-dependent online-service requirements.
+      - The public-service page describes the address-registration process, the
+        two-week registration period after moving, and region-dependent
+        online-service requirements.
     retrievedOn: 2026-08-21
     reviewedOn: 2026-08-21
     freshness:
@@ -62,7 +70,8 @@ sources:
     publisher: Bundesministerium der Justiz / Bundesamt für Justiz
     sourceClass: german-public-service
     supportedClaims:
-      - The federal statute is the primary legal source for the registration duty after moving into a dwelling.
+      - The federal statute is the primary legal source for the registration
+        duty after moving into a dwelling.
     retrievedOn: 2026-08-21
     reviewedOn: 2026-08-21
     freshness:
@@ -74,8 +83,92 @@ sources:
     publisher: Call Nina
     sourceClass: repository-original
     supportedClaims:
-      - The catalog defines language availability and original everyday scenario paths, each with at least three lessons. Per-file source records distinguish broad CEFR scope from editorial level choices.
+      - The catalog defines language availability and original everyday scenario
+        paths, each with at least three lessons. Per-file source records
+        distinguish broad CEFR scope from editorial level choices.
     retrievedOn: 2026-10-26
     reviewedOn: 2026-10-26
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000001001
+    title: "SPEKTRUM DEUTSCH A1: published course outline"
+    url: https://www.schubert-verlag.de/spektrum/pdf/spektrum_a1_ihv.pdf
+    publisher: SCHUBERT-Verlag
+    sourceClass: reputable-pedagogy
+    supportedClaims:
+      - The published 12-chapter outline supplies a reference sequence for
+        grammar, vocabulary and communicative scope. Nina authors its own
+        lessons, examples, scripts and assessments; the publisher has not
+        reviewed or endorsed them.
+    retrievedOn: 2026-10-31
+    reviewedOn: 2026-10-31
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000001002
+    title: "SPEKTRUM DEUTSCH A2: published course outline"
+    url: https://www.schubert-verlag.de/spektrum/pdf/spektrum_a2_ihv.pdf
+    publisher: SCHUBERT-Verlag
+    sourceClass: reputable-pedagogy
+    supportedClaims:
+      - The published 12-chapter outline supplies a reference sequence for
+        grammar, vocabulary and communicative scope. Nina authors its own
+        lessons, examples, scripts and assessments; the publisher has not
+        reviewed or endorsed them.
+    retrievedOn: 2026-10-31
+    reviewedOn: 2026-10-31
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000001003
+    title: "SPEKTRUM DEUTSCH B1: published course outline"
+    url: https://www.schubert-verlag.de/spektrum/pdf/spektrum_b1_ihv.pdf
+    publisher: SCHUBERT-Verlag
+    sourceClass: reputable-pedagogy
+    supportedClaims:
+      - The published 12-chapter outline supplies a reference sequence for
+        grammar, vocabulary and communicative scope. Nina authors its own
+        lessons, examples, scripts and assessments; the publisher has not
+        reviewed or endorsed them.
+    retrievedOn: 2026-10-31
+    reviewedOn: 2026-10-31
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000001004
+    title: "SPEKTRUM DEUTSCH B2: published course outline"
+    url: https://www.schubert-verlag.de/spektrum/pdf/spektrum_b2_ihv.pdf
+    publisher: SCHUBERT-Verlag
+    sourceClass: reputable-pedagogy
+    supportedClaims:
+      - The published 12-chapter outline supplies a reference sequence for
+        grammar, vocabulary and communicative scope. Nina authors its own
+        lessons, examples, scripts and assessments; the publisher has not
+        reviewed or endorsed them.
+    retrievedOn: 2026-10-31
+    reviewedOn: 2026-10-31
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000001005
+    title: CEFR Global scale
+    url: https://www.coe.int/en/web/common-european-framework-reference-languages/table-1-cefr-3.3-common-reference-levels-global-scale
+    publisher: Council of Europe
+    sourceClass: official-framework
+    supportedClaims:
+      - A1/A2 concrete exchanges, B1 connected explanations and B2 detailed
+        argumentation guide task demands; the scale does not prescribe a German
+        grammar sequence.
+    retrievedOn: 2026-10-31
+    reviewedOn: 2026-10-31
+    freshness:
+      status: stable
+  - sourceId: curriculum-source_0000000000001006
+    title: Goethe-Zertifikat exam trainings
+    url: https://www.goethe.de/en/spr/prf/ueb.html
+    publisher: Goethe-Institut
+    sourceClass: reputable-pedagogy
+    supportedClaims:
+      - Published practice resources distinguish reading, listening, writing and
+        speaking across levels. Nina checks these skill categories without
+        copying tasks or claiming exam equivalence.
+    retrievedOn: 2026-10-31
+    reviewedOn: 2026-10-31
     freshness:
       status: stable

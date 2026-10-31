@@ -47,6 +47,7 @@
     "stories": "Kurzgeschichten"
   },
   "practice": {
+    "freeWriting": "Freies Schreiben",
     "eyebrow": "Wähle deinen Schwerpunkt",
     "title": "Üben",
     "intro": "Wähle eine Übungsart und arbeite dann in einem fokussierten Bereich. Deine erstellten Übungen bleiben hier, bis du weitermachen möchtest.",
@@ -106,12 +107,12 @@
       }
     },
     "library": {
-      "title": "Gespeicherte Aktivitäten",
-      "body": "Öffne gespeicherte Aktivitäten und erstellte Übungen.",
+      "title": "Erstellte Aktivitäten",
+      "body": "Öffne erstellte Aktivitäten.",
       "count_one": "{{count}} Aktivität",
       "count_other": "{{count}} Aktivitäten",
       "loading": "Deine Übungen werden geladen…",
-      "empty": "Noch keine gespeicherten Übungen. Öffne „Neue Übung“, um zu beginnen.",
+      "empty": "Noch keine erstellten Aktivitäten. Öffne „Neue Übung“, um zu beginnen.",
       "filterLabel": "Aktivitäten nach Art filtern",
       "filters": {
         "all": "Alle",
@@ -124,6 +125,7 @@
       },
       "noFilterResults": "Keine Übungen entsprechen diesem Filter.",
       "open": "{{title}} öffnen",
+      "delete": "Löschen",
       "deleteAction": "{{title}} löschen",
       "deleteTitle": "„{{title}}“ löschen?",
       "deleteBody": "Die Aktivität und ihre unbestätigten Wortschatzvorschläge werden dauerhaft gelöscht. Ungenutztes, unverändertes Ausgangsmaterial, das mit dieser Aktivität erstellt wurde, kann ebenfalls gelöscht werden.",
@@ -594,6 +596,31 @@
         "writing": "Aus Schreibübungen",
         "content": "Aus deinen Inhalten"
       }
+    },
+    "updates": {
+      "pending": "Wortschatz wird aktualisiert…",
+      "failed": "Wortschatz-Aktualisierung erneut versuchen.",
+      "view": "Wörter ansehen",
+      "all": "Alle Wörter anzeigen",
+      "title": "Wortschatz-Updates",
+      "read": "Als gelesen markieren",
+      "added_one": "{{count}} Wort hinzugefügt",
+      "added_other": "{{count}} Wörter hinzugefügt",
+      "weak_one": "{{count}} Wort zum Üben",
+      "weak_other": "{{count}} Wörter zum Üben",
+      "changed_one": "{{count}} Wort aktualisiert",
+      "changed_other": "{{count}} Wörter aktualisiert"
+    },
+    "simple": {
+      "expression": "Ausdruck",
+      "actions": "Aktionen",
+      "active": "In Übung",
+      "candidate": "Vorgeschlagen",
+      "suspended": "Pausiert",
+      "reviewOn": "Wiederholen: {{date}}",
+      "dismiss": "Pausieren",
+      "learn": "Lernen",
+      "showAll": "Gesamter Wortschatz"
     }
   },
   "dashboard": {
@@ -649,6 +676,9 @@
     "courseSupport": "Wenn du diese Hilfe während noch nicht abgeschlossener Kursversuche nutzt, gelten diese als unterstützt – auch Versuche, die du auf einer anderen Seite offen gelassen hast."
   },
   "writing": {
+    "setupTitle": "Schreibaufgabe einrichten",
+    "hidePrompt": "Aufgabe ausblenden",
+    "showPrompt": "Aufgabe anzeigen",
     "eyebrow": "Schreibübung",
     "title": "In deiner Lernsprache schreiben",
     "intro": "Situation und eigener Text bleiben zusammen. Erst eine ausdrücklich gestartete KI-Aktion sendet Inhalte.",
@@ -740,6 +770,9 @@
     "keepEditing": "Weiter bearbeiten"
   },
   "history": {
+    "reviewFeedback": "Feedback",
+    "reviewPractice": "Das kannst du üben",
+    "reviewAnswer": "Antwort zum Wiederholen",
     "evidenceBasis": {
       "independent": "Selbstständig beantwortet · Auswertung gespeichert",
       "supported": "Unterstützte Übung · kein selbstständiger Kompetenznachweis",
@@ -1018,6 +1051,7 @@
     "chatgptAuthHelp": "Nutze unten „Mit ChatGPT fortfahren“. Deine Anmeldung wird auf diesem Gerät geschützt."
   },
   "settings": {
+    "statusCheckTimedOut": "Die Statusprüfung hat zu lange gedauert. Versuche es erneut mit „Status prüfen“.",
     "eyebrow": "Vorgaben",
     "title": "Einstellungen",
     "intro": "Verwalte lokale Lerneinstellungen, Ninas ChatGPT-Konto und die optionale externe Voice- und Plugin-Integration.",
@@ -1156,7 +1190,13 @@
     "dataRootBusy": "Beende die aktive KI-Aktion oder brich sie ab, bevor du den Datenordner wechselst.",
     "speechInitializationTimeout": "Die Stimme konnte nicht rechtzeitig starten. Versuche es erneut oder wähle eine andere Stimme.",
     "speechSynthesisTimeout": "Die Spracherzeugung hat zu lange gedauert. Versuche es mit einem kürzeren Text erneut.",
-    "speechUnavailable": "Die Sprachausgabe konnte nicht abgeschlossen werden. Prüfe die gewählte Stimme in den Einstellungen und versuche es erneut."
+    "speechUnavailable": "Die Sprachausgabe konnte nicht abgeschlossen werden. Prüfe die gewählte Stimme in den Einstellungen und versuche es erneut.",
+    "materialReferenced": "Dieser Inhalt wird von gespeicherten Aktivitäten oder Versuchen verwendet. Entferne diese Einträge vor dem Löschen.",
+    "websiteImport": "Von dieser Website konnte kein lesbarer Text importiert werden. Versuche eine andere öffentliche HTTPS-Seite oder füge den Text ein.",
+    "uploadTextRequired": "Lies den Bildtext ein oder gib ihn vor dem Üben ein.",
+    "uploadImageInvalid": "Wähle ein PNG-, JPEG- oder WebP-Bild mit höchstens 10 MB.",
+    "uploadImageUnavailable": "Das Originalbild konnte nicht gelesen werden. Wähle das Bild erneut und speichere eine neue Version.",
+    "uploadSaveFailed": "Der Upload konnte nicht gespeichert werden. Prüfe den verfügbaren Speicher und versuche es erneut."
   },
   "ui": {
     "about": "Informationen zu {{topic}}",
@@ -1276,7 +1316,7 @@
         "keeps": "Behält deine Profildaten, Einstellungen und den ausgewählten Datenordner, damit du ohne erneute Einrichtung weiterüben kannst. Heruntergeladene Modelle und Kursaudio bleiben erhalten.",
         "success": "Alle Lerndatensätze gelöscht. Dein Profil und deine Einstellungen bleiben für den Neustart erhalten."
       },
-      "partial": "Die Lerndaten wurden gelöscht, aber die private Sprachausgabe konnte nicht vollständig bereinigt werden. Wiederhole die Bereinigung."
+      "partial": "Einige private Dateien konnten nicht entfernt werden. Wiederhole die Bereinigung."
     },
     "categories": {
       "profile": {
@@ -1458,7 +1498,8 @@
       "cancelling": "Wird abgebrochen",
       "refiningExercises": "Übungen werden überarbeitet",
       "flashcard-generation": "Lernkarten werden erstellt",
-      "vocabulary-analysis": "Wortschatz wird aktualisiert"
+      "vocabulary-analysis": "Wortschatz wird aktualisiert",
+      "website-study-pack": "Lernmaterial erstellen"
     },
     "messages": {
       "0": "Längere Anfragen können etwas Zeit brauchen.",
@@ -1564,36 +1605,50 @@
     "de": "Deutsch"
   },
   "materialPractice": {
-    "optional": "Gespeichertes Thema oder Text verwenden (optional)",
-    "list": "Gespeicherte Themen und Texte",
-    "detail": "Ausgewählte Quelle",
-    "edit": "Quelle bearbeiten",
+    "optional": "Eigene Inhalte verwenden",
+    "list": "Deine Inhalte",
+    "detail": "Inhalt",
+    "edit": "Inhalt bearbeiten",
     "load": "Gespeicherte Quellen laden",
-    "new": "Thema oder Text hinzufügen",
+    "new": "Inhalt hinzufügen",
     "localHint": "Gespeicherte Quellen sind auf diesem Gerät auch ohne KI-Zugang verfügbar.",
     "language": "Lernsprache: {{language}}",
-    "empty": "Noch keine gespeicherten Quellen in dieser Lernsprache.",
+    "empty": "Noch keine gespeicherten Inhalte in dieser Lernsprache.",
     "title": "Titel",
     "kind": "Art der Quelle",
     "topic": "Thema",
     "passage": "Text",
-    "source": "Quellenangabe (optional)",
+    "source": "Quellenlink (optional)",
     "sourceHint": "Verwende eine HTTPS-Adresse ohne Abfrageparameter oder Fragment. Sie wird nur als Quellenangabe gespeichert.",
     "preserve": "Der Text wird genau wie eingegeben gespeichert. Änderungen erstellen eine neue Version; frühere Übungen behalten ihre ursprüngliche Quelle.",
-    "save": "Quelle speichern",
+    "save": "Inhalt speichern",
     "revision": "{{language}} · Version {{revision}}",
-    "back": "Zurück zu gespeicherten Quellen",
-    "optionalVocabulary": "Wortschatz mit einer gespeicherten Quelle üben (optional)",
+    "back": "Zurück zu deinen Inhalten",
+    "optionalVocabulary": "Eigene Inhalte verwenden",
     "generateReading": "{{count}} Leseübungen erstellen",
     "generateVocabulary": "{{count}} Wortschatzübungen erstellen",
-    "related": "Vorbereitete Übungen für diese Version",
+    "related": "In Aktivitäten verwendet",
     "relatedHint": "Öffne den unveränderten vorbereiteten Inhalt ohne KI. Jedes Öffnen erstellt eine separate Übung mit eigenen Versuchen, ohne Kursfortschritt anzurechnen.",
     "noRelated": "Noch keine vorbereiteten Übungen für diese Version.",
     "open": "Üben: {{title}}",
     "more": "Mehr anzeigen",
-    "remove": "Material entfernen",
-    "removeBody": "Dieses Material und alle Versionen entfernen? Material, auf das Aktivitäten oder Versuche verweisen, bleibt erhalten. Aktivitäten und Versuche werden nicht gelöscht.",
-    "removeConfirm": "Dieses Material entfernen"
+    "remove": "Inhalt löschen",
+    "removeBody": "Diesen Inhalt und alle Versionen löschen? Von Aktivitäten oder Versuchen verwendete Inhalte bleiben erhalten, bis diese Einträge entfernt wurden.",
+    "removeConfirm": "Inhalt löschen",
+    "definitionsTitle": "Inhalte, Aktivitäten und Wörter",
+    "definitions": "Inhalte sind wiederverwendbare Texte, Websites oder gespeicherte Übungsthemen. Aktivitäten sind daraus erstellte Übungen. Wörter sind gespeicherte Vokabeln. Lernschwerpunkte steuern künftige Wortschatzübungen.",
+    "practiceTopic": "Gespeicherte Idee",
+    "text": "Text",
+    "website": "Website",
+    "use": "Inhalt verwenden",
+    "findWords": "Wörter finden",
+    "inputMethod": "Hinzufügen aus",
+    "websiteUrl": "Website-Adresse",
+    "importWebsite": "Website importieren",
+    "contentText": "Inhalt",
+    "truncated": "Diese Seite hat mehr als 12.000 Zeichen. Die ersten 12.000 werden angezeigt; bearbeite den Text vor dem Speichern.",
+    "usage": "{{activities}} verknüpfte Aktivitäten · {{attempts}} Versuche",
+    "openContent": "Öffnen"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1693,7 +1748,8 @@
       "exercise-generation": "Übungen erstellen",
       "exercise-feedback": "Übungsfeedback",
       "vocabulary-analysis": "Wortschatz wird aktualisiert",
-      "translation": "Übersetzung"
+      "translation": "Übersetzung",
+      "website-study-pack": "Lernmaterial erstellen"
     },
     "savedConnections": "Gespeicherte Verbindungen",
     "newConnection": "Neue Verbindung",
@@ -1889,7 +1945,11 @@
     "level": "Niveau",
     "allLevels": "Alle Niveaus",
     "results": "{{count}} von {{total}} Lernpfaden",
-    "noResults": "Keine passenden Lernpfade. Ändere die Suche oder entferne die Filter."
+    "noResults": "Keine passenden Lernpfade. Ändere die Suche oder entferne die Filter.",
+    "structuredCourses": "Strukturierte Kurse",
+    "everydayMissions": "Alltagsmissionen",
+    "supplementary": "Ergänzende Übungen",
+    "viewResults": "{{count}} Lernpfade"
   },
   "activity": {
     "task": "Aktivität",
@@ -2026,13 +2086,16 @@
     }
   },
   "savedResults": {
+    "wrongAnswers": "Falsche Antworten",
+    "allResults": "Alle Ergebnisse",
+    "noWrongAnswers": "Keine falschen Antworten",
     "activities": "Aktivitäten",
     "results": "Ergebnisse",
     "selection": "Ausgewählte Ergebnisse",
     "clearScope": "Alle anzeigen",
     "filters": "Filter",
     "search": "Ergebnisse suchen",
-    "searchActivities": "Gespeicherte Aktivitäten suchen",
+    "searchActivities": "Erstellte Aktivitäten suchen",
     "mistakes": "Fehler üben",
     "openPractice": "Übung öffnen",
     "occurrences_one": "{{count}}-mal beobachtet",
@@ -2194,7 +2257,8 @@
     "level": "Niveau",
     "allLevels": "Alle Niveaus",
     "read": "Lesen",
-    "empty": "Keine passenden Geschichten."
+    "empty": "Keine passenden Geschichten.",
+    "plural": "Plural"
   },
   "feedback": {
     "notifications": "Mitteilungen",
@@ -2239,5 +2303,65 @@
       "work": "Arbeit",
       "custom": "Mein eigenes Ziel"
     }
+  },
+  "uploads": {
+    "usedMaterial": "Quelle: {{title}}",
+    "configureImageReading": "Konfiguriere die Bilderkennung, bevor du ein Bild hochlädst.",
+    "configureNow": "Jetzt konfigurieren",
+    "words": "Wörter",
+    "tab": "Deine Uploads",
+    "add": "Inhalt hinzufügen",
+    "edit": "Upload bearbeiten",
+    "rename": "Upload umbenennen",
+    "format": "Format",
+    "title": "Titel",
+    "text": "Text",
+    "url": "Website-URL",
+    "image": "Bild",
+    "import": "Lernmaterial erstellen",
+    "readImage": "Bildtext lesen",
+    "extract": "Wörter extrahieren",
+    "practise": "Üben",
+    "remove": "Upload entfernen",
+    "preview": "Vorschau",
+    "choose": "Upload auswählen",
+    "practiceSource": "Übungsquelle",
+    "adaptive": "Personalisierter Wortschatz",
+    "sourceFilter": "Upload-Quelle",
+    "allSources": "Alle Quellen",
+    "recent": "Kürzlich hinzugefügt",
+    "reviewDue": "Wortschatz üben ({{count}})",
+    "proposals": "Wörter zum Speichern auswählen",
+    "saveSelected": "Auswahl im Upload speichern ({{count}})",
+    "history": "Quellverlauf",
+    "revision": "Version {{count}}",
+    "textRequired": "Lies den Bildtext ein oder gib ihn vor dem Üben ein.",
+    "unreadable": "Kein lesbarer Text gefunden. Du kannst den Text selbst eingeben.",
+    "imageInvalid": "Wähle ein PNG-, JPEG- oder WebP-Bild mit höchstens 10 MB.",
+    "truncated": "Der Seitentext wurde auf 120.000 Zeichen begrenzt.",
+    "extractedWords": "Extrahierte Wörter",
+    "sources": "Upload-Quellen",
+    "open": "Öffnen",
+    "formats": {
+      "text": "Text",
+      "website": "Website",
+      "image": "Bild"
+    },
+    "textLimit": "Kürze den Quelltext vor dem Speichern auf höchstens 12.000 Zeichen.",
+    "websiteInvalid": "Gib eine öffentliche HTTPS-Website ohne Anmeldedaten ein.",
+    "chooseImage": "Bild auswählen",
+    "replaceImage": "Bild ersetzen",
+    "noWords": "Noch keine Wörter",
+    "noUploads": "Noch keine Uploads",
+    "startPractice": "Üben starten",
+    "summary": "Zusammenfassung",
+    "studyItems": "Lernwörter und Ausdrücke",
+    "fromPage": "Von der Seite",
+    "aiSuggestion": "KI-Vorschlag",
+    "quotation": "Seitenzitat",
+    "generatedExample": "KI-Beispiel",
+    "originalText": "Ursprünglicher Seitentext",
+    "readingWebsite": "Website wird gelesen…",
+    "fromContent": "Aus dem Inhalt"
   }
 }

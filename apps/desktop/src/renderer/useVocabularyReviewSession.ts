@@ -6,6 +6,7 @@ import { vocabularyVersion } from "./useVocabularyLibrary.js";
 export function useVocabularyReviewSession(
   rootGeneration: DataRootGeneration,
   onChanged: () => void,
+  uploadId?: string,
 ) {
   const [queue, setQueue] =
     useState<
@@ -34,7 +35,10 @@ export function useVocabularyReviewSession(
     setBusy(true);
     setError(undefined);
     try {
-      const result = await invokeDesktop("vocabulary/review-queue", { rootGeneration });
+      const result = await invokeDesktop("vocabulary/review-queue", {
+        rootGeneration,
+        ...(uploadId ? { uploadId } : {}),
+      });
       if (current !== version.current) return;
       setQueue(result.entries);
       setIndex(0);
@@ -49,7 +53,7 @@ export function useVocabularyReviewSession(
         setBusy(false);
       }
     }
-  }, [rootGeneration]);
+  }, [rootGeneration, uploadId]);
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
     return () => {

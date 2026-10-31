@@ -207,13 +207,13 @@ function SpeechConnections({ language }: { language: Language }) {
         <td>
           {engine === "managed" ? (
             t("providers.default")
-          ) : (
+          ) : ready ? (
             <SelectField
               density="compact"
               className={styles.voice}
               label={`${t("speech.voice")}: ${name}`}
               value={pack?.id ?? ""}
-              disabled={!choices.length}
+              disabled={unavailable || !choices.length}
               aria-disabled={busy || undefined}
               aria-busy={busy || undefined}
               onChange={(event) => {
@@ -234,14 +234,15 @@ function SpeechConnections({ language }: { language: Language }) {
                 else open(candidate.id, true);
               }}
             >
-              {choices.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {voiceName(entry.voice)}
-                  {entry.state === "installed" ? "" : ` · ${packStatus(entry)}`}
-                </option>
-              ))}
+              {choices
+                .filter((entry) => entry.state === "installed")
+                .map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {voiceName(entry.voice)}
+                  </option>
+                ))}
             </SelectField>
-          )}
+          ) : null}
         </td>
         <td>
           <ProviderChoice
@@ -345,10 +346,35 @@ function SpeechConnections({ language }: { language: Language }) {
         {editing && view && (
           <div className={styles.sections}>
             {error && <OperationError error={error} />}
+            {source !== "managed" &&
+              view.packs.filter((entry) => entry.engine === source && entry.language === editing)
+                .length > 1 && (
+                <SelectField
+                  label={t("speech.voice")}
+                  value={editingVoice ?? ""}
+                  disabled={busy || view.packs.some((entry) => entry.state === "downloading")}
+                  onChange={(event) => {
+                    stopSpeech();
+                    setEditingVoice(event.target.value);
+                  }}
+                >
+                  {view.packs
+                    .filter((entry) => entry.engine === source && entry.language === editing)
+                    .map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {voiceName(entry.voice)}
+                      </option>
+                    ))}
+                </SelectField>
+              )}
             <p role="status">
               {source === "managed"
                 ? t(`speech.readiness.${accountReason(account)}`)
                 : packStatus(pack)}
+              {source !== "managed" &&
+                pack &&
+                !["unavailable", "installed"].includes(pack.state) &&
+                ` · ${t("speech.installSize", { size: (pack.downloadBytes / 1e6).toFixed(0) })}`}
             </p>
             {source === "managed" && accountReason(account) === "account" && (
               <NinaAccountSettings />
@@ -357,9 +383,6 @@ function SpeechConnections({ language }: { language: Language }) {
               <p>
                 {t("speech.balance", { count: account?.access?.speech.remainingCharacters ?? 0 })}
               </p>
-            )}
-            {source !== "managed" && pack && !["unavailable", "installed"].includes(pack.state) && (
-              <p>{t("speech.installSize", { size: (pack.downloadBytes / 1e6).toFixed(0) })}</p>
             )}
             {pack?.error && (
               <Feedback tone="error" live="polite">
@@ -386,40 +409,42 @@ function SpeechConnections({ language }: { language: Language }) {
                 </Button>
               </>
             )}
-            <div className={styles.storage}>
-              {source === "managed" ? (
-                <p lang={editing}>{samples[editing]}</p>
-              ) : (
-                <TextAreaField
-                  label={t("speech.previewText")}
-                  lang={editing}
-                  value={preview}
-                  rows={4}
-                  maxLength={12000}
-                  error={
-                    speechTextSchema.safeParse(preview).success
-                      ? undefined
-                      : t("speech.previewInvalid")
-                  }
-                  onChange={(event) => {
-                    stopSpeech();
-                    setPreview(event.target.value);
-                  }}
-                />
-              )}
-              {ready &&
-                (source === "managed"
-                  ? view.preferences[editing] === source
-                  : speechTextSchema.safeParse(preview).success) && (
-                  <SpeechButton
-                    text={source === "managed" ? samples[editing] : preview}
-                    language={editing}
-                    {...(source === "managed" ? {} : { source, voice: pack?.id })}
-                    variant="passage"
-                    showUnavailableReason={false}
+            {ready && (
+              <div className={styles.storage}>
+                {source === "managed" ? (
+                  <p lang={editing}>{samples[editing]}</p>
+                ) : (
+                  <TextAreaField
+                    label={t("speech.previewText")}
+                    lang={editing}
+                    value={preview}
+                    rows={4}
+                    maxLength={12000}
+                    error={
+                      speechTextSchema.safeParse(preview).success
+                        ? undefined
+                        : t("speech.previewInvalid")
+                    }
+                    onChange={(event) => {
+                      stopSpeech();
+                      setPreview(event.target.value);
+                    }}
                   />
                 )}
-            </div>
+                {ready &&
+                  (source === "managed"
+                    ? view.preferences[editing] === source
+                    : speechTextSchema.safeParse(preview).success) && (
+                    <SpeechButton
+                      text={source === "managed" ? samples[editing] : preview}
+                      language={editing}
+                      {...(source === "managed" ? {} : { source, voice: pack?.id })}
+                      variant="passage"
+                      showUnavailableReason={false}
+                    />
+                  )}
+              </div>
+            )}
             <ActionGroup align="end">
               <Button
                 variant="secondary"

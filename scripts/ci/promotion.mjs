@@ -1,5 +1,6 @@
 import { context, github, repository, setOutput, summary } from "./common.mjs";
 import { desktopTargets, verify } from "./artifacts.mjs";
+import { speechTargets } from "../speech/distribution.mjs";
 
 export async function resolveSource() {
   context(true);
@@ -77,7 +78,7 @@ export async function verifySource() {
     selected.artifacts !== process.env.RELEASE_SOURCE_ARTIFACTS
   )
     throw new Error("Build identity changed after source selection");
-  for (const id of desktopTargets) await verify(id);
+  for (const id of [...desktopTargets, ...speechTargets]) await verify(id);
   await summary(
     "All source manifests, versions, targets and SHA-256 checksums verified before publication.",
   );

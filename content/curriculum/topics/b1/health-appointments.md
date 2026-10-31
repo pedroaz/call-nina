@@ -5,34 +5,82 @@ slug: health-appointments
 band: b1
 domain: health-appointments
 title: "B1: Health and appointments"
-
 communicativeGoals:
-  [
-    "Handle a practical health and appointments interaction at B1 level.",
-    "Understand and respond to the most useful health and appointments language.",
-  ]
-prerequisiteTopicIds: [curriculum-topic_0000000000000018]
-grammarFoundations: []
-vocabularyFoundations: []
-exerciseConcepts: []
-sourceIds: [curriculum-source_0000000000000002, curriculum-source_0000000000000003]
+  - Recommend a trial rule, with a condition and a fallback. Acknowledge a
+    different need and avoid unsupported health claims.
+  - Recommend a trial rule, with a condition and a fallback. Acknowledge a
+    different need and avoid unsupported health claims. Discuss this with a
+    partner who prefers another option. Clarify one disagreement and reach a
+    qualified decision.
+prerequisiteTopicIds:
+  - curriculum-topic_0000000000000018
+grammarFoundations:
+  - key: de-structured-b1-06
+    description: "Könnte and sollte allow suggestions without an absolute command.
+      Wenn/falls give a condition; sonst/andernfalls state what follows if it is
+      not met. Reflexive pronouns usually stay near the conjugated verb: Ich
+      erhole mich. Trotz takes genitive, while bei and gegen take dative and
+      accusative respectively."
+vocabularyFoundations:
+  - key: de-structured-b1-06-lex-1
+    description: "Erholung: rest"
+  - key: de-structured-b1-06-lex-2
+    description: "Leistung: performance"
+  - key: de-structured-b1-06-lex-3
+    description: "Unterbrechung: interruption"
+  - key: de-structured-b1-06-lex-4
+    description: "Rücksicht: consideration"
+exerciseConcepts:
+  - key: de-structured-b1-06
+    description: Recommend a trial rule, with a condition and a fallback.
+      Acknowledge a different need and avoid unsupported health claims.
+sourceIds:
+  - curriculum-source_0000000000000002
+  - curriculum-source_0000000000000003
+  - curriculum-source_0000000000001003
+  - curriculum-source_0000000000001005
+  - curriculum-source_0000000000001006
 coverage:
   reception:
     status: mapped
-    outcomes: ["Understand a short health and appointments message at B1 level."]
+    outcomes:
+      - What will the group actually evaluate?
+      - Why does the speaker want a visible sign?
   production:
     status: mapped
-    outcomes: ["Produce a clear health and appointments message at B1 level."]
+    outcomes:
+      - Recommend a trial rule, with a condition and a fallback. Acknowledge a
+        different need and avoid unsupported health claims.
   interaction:
     status: mapped
-    outcomes: ["Take turns and ask a follow-up in a health and appointments exchange."]
+    outcomes:
+      - Recommend a trial rule, with a condition and a fallback. Acknowledge a
+        different need and avoid unsupported health claims. Discuss this with a
+        partner who prefers another option. Clarify one disagreement and reach a
+        qualified decision.
   mediation:
     status: mapped
-    outcomes: ["Pass on the essential meaning of health and appointments information."]
+    outcomes:
+      - Send a message to a person who did not read the passage. Pass on the
+        decision, one reason and the next action. Use your own words; do not
+        invent details.
+lessonFoundation:
+  explanation: "Könnte and sollte allow suggestions without an absolute command.
+    Wenn/falls give a condition; sonst/andernfalls state what follows if it is
+    not met. Reflexive pronouns usually stay near the conjugated verb: Ich
+    erhole mich. Trotz takes genitive, while bei and gegen take dative and
+    accusative respectively. Use a measured tone for uncertainty; do not stress
+    a suggestion as a guarantee."
+  examples:
+    - Falls du Zeit hast, könntest du eine Pause machen.
+    - Sonst verschieben wir das Treffen.
+    - Ich erhole mich am Wochenende.
 ---
 
 # B1: Health and appointments
 
-This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
+Original German lessons linked to this topic are registered in catalog.json.
 
-The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.
+- de-structured-b1-06: Give qualified advice
+
+The reference outlines establish scope and sequence. Explanations, examples and activities are original Nina content; participation alone does not establish proficiency.

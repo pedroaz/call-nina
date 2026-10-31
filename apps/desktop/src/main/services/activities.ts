@@ -288,6 +288,7 @@ export class ActivityService {
     value: Extract<ActivityAction, { action: "prepare-voice" }>,
     requestIdValue: string,
     capturedContext: CapturedTeachingContext,
+    uploadSource?: import("@call-nina/contracts").UploadPracticeContext,
   ) {
     const action = await this.#validate(value);
     if (action.action !== "prepare-voice") throw new Error("OD_ACTIVITY_ACTION_INVALID");
@@ -309,6 +310,7 @@ export class ActivityService {
           mistakeIds: [],
           vocabularyIds: [],
           voiceContext: context,
+          ...(uploadSource ? { uploadSource } : {}),
         },
         preparedAt: utcInstantSchema.parse(new Date().toISOString()),
       },

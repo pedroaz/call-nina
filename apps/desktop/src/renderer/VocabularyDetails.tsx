@@ -1,3 +1,5 @@
+import { useUploads } from "./useUploads.js";
+import { UploadSourceEvidence } from "./UploadSourceEvidence.js";
 import { OperationError } from "./OperationError.js";
 import { SpeechButton } from "./SpeechButton.js";
 import {
@@ -93,6 +95,7 @@ export function VocabularyDetails(props: {
   const locked = useRef(false);
   const loadVersion = useRef(0);
   const { vocabularyId, rootGeneration } = props;
+  const uploads = useUploads(vocabularyId);
   const load = useCallback(async () => {
     const version = ++loadVersion.current;
     setLoading(true);
@@ -201,6 +204,19 @@ export function VocabularyDetails(props: {
             <strong>{t("vocabulary.library.source")}</strong>
             <p>{entry.source.context}</p>
           </div>
+          {!!uploads.snapshot?.uploads.length && (
+            <section>
+              <strong>{t("uploads.sources")}</strong>
+              {uploads.snapshot.uploads.map((upload) => (
+                <UploadSourceEvidence
+                  key={upload.revisionId}
+                  reference={{ uploadId: upload.uploadId, revisionId: upload.revisionId }}
+                  rootGeneration={rootGeneration}
+                  title={upload.title}
+                />
+              ))}
+            </section>
+          )}
           <ActionGroup align="end">
             {entry.state.status === "candidate" && (
               <Button

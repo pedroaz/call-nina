@@ -163,7 +163,7 @@ export async function deploy() {
     throw new Error("Invalid hosting routes");
   if ((await readJson("build/hosting/vercel.json")).git?.deploymentEnabled !== false)
     throw new Error("Automatic Git deployment must remain disabled");
-  for (const name of ["account", "generate", "mobile-sync", "speech", "speech-recovery"]) {
+  for (const name of ["account", "downloads", "generate", "mobile-sync", "speech"]) {
     const metadata = await readJson(
       `build/hosting/.vercel/output/functions/api/${name}.func/.vc-config.json`,
     );
@@ -237,6 +237,6 @@ export async function deploy() {
 async function report(url, version) {
   await setOutput("url", url);
   await summary(
-    `Vercel ${hostingEnvironment()} deployed: ${url}\nVersion: ${version}\nCommit: ${context().commit}\nRun: ${context().runId}\nNo migrations or inference activation performed.`,
+    `Vercel ${hostingEnvironment()} deployed: ${url}\nVersion: ${version}\nCommit: ${context().commit}\nRun: ${context().runId}\nRequired migrations and existing runtime grants were prepared by the database job. No inference activation performed.`,
   );
 }

@@ -120,14 +120,21 @@ function activityOwnership(connection: DatabaseSync, activityId: string, histori
     content: revision
       ? { contentId: String(revision["content_id"]), revisionId: String(revision["revision_id"]) }
       : null,
-    materials: revision
+    materials: context?.uploadSource
       ? [
           {
-            materialId: String(revision["material_id"]),
-            revisionId: String(revision["material_revision_id"]),
+            materialId: context.uploadSource.material.materialId,
+            revisionId: context.uploadSource.material.revisionId,
           },
         ]
-      : [],
+      : revision
+        ? [
+            {
+              materialId: String(revision["material_id"]),
+              revisionId: String(revision["material_revision_id"]),
+            },
+          ]
+        : [],
     context,
   };
 }
@@ -135,6 +142,7 @@ export function captureExerciseAttempt(
   connection: DatabaseSync,
   attemptId: string,
   historic = false,
+  uploadMaterial?: { materialId: string; revisionId: string },
 ) {
   const row = connection
     .prepare(
@@ -147,6 +155,10 @@ export function captureExerciseAttempt(
   );
   const activityId = String(row["activity_id"]);
   const source = activityOwnership(connection, activityId, historic);
+  if (uploadMaterial)
+    source.materials = [
+      { materialId: uploadMaterial.materialId, revisionId: uploadMaterial.revisionId },
+    ];
   const reference = snapshot.exercise.contentReference;
   const retainedRevision = connection
     .prepare("SELECT content_revision_id FROM attempt_content_revisions WHERE attempt_id = ?")

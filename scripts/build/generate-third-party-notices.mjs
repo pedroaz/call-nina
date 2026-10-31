@@ -82,6 +82,8 @@ async function readInstalledPackages() {
     "@call-nina/learning-ui",
     "@call-nina/managed-generation",
     "@clerk/electron",
+    "@mozilla/readability",
+    "linkedom",
     "electron-store",
     "electron",
     "i18next",

@@ -72,6 +72,9 @@ const checks = {
 const aliases = { h: "help", d: "dev", b: "build", l: "logs" };
 const registry = {
   speech: group("Local speech bundles (no synthesis or publishing)", {
+    runtimes: leaf("Build release runtime archives and download catalog (no voices)", () =>
+      node("scripts/speech/distribution.mjs"),
+    ),
     prepare: leaf("Prepare pinned CPU runtimes and voices", (args) => {
       pnpm(
         "--filter",
@@ -141,7 +144,7 @@ const registry = {
           prd: "Build and switch to desktop prd with the prd backend",
           start: "Start an existing verified prd build; no rebuild",
           stop: "Stop desktop and watchers",
-          kill: "Stop desktop, watchers and local Android emulators",
+          kill: "Stop desktop, website, watchers and local Android emulators",
           status: "Desktop process status",
           logs: "Desktop logs; --follow / --errors / --clear",
         }[name],

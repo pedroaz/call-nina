@@ -5,34 +5,77 @@ slug: leisure-culture
 band: a2
 domain: leisure-culture
 title: "A2: Leisure and culture"
-
 communicativeGoals:
-  [
-    "Handle a practical leisure and culture interaction at A2 level.",
-    "Understand and respond to the most useful leisure and culture language.",
-  ]
-prerequisiteTopicIds: [curriculum-topic_0000000000000011]
-grammarFoundations: []
-vocabularyFoundations: []
-exerciseConcepts: []
-sourceIds: [curriculum-source_0000000000000001, curriculum-source_0000000000000002]
+  - Recommend an event in 90–110 words. Combine both sources, acknowledge a
+    different preference and explain a consequence with deshalb or trotzdem.
+  - Negotiate a cultural outing after a change of time. State a preference,
+    respond to a contrary view and confirm a feasible plan.
+prerequisiteTopicIds:
+  - curriculum-topic_0000000000000011
+grammarFoundations:
+  - key: de-structured-a2-12
+    description: "Deshalb introduces a consequence in a main clause and takes
+      position one: Es regnet. Deshalb bleiben wir drinnen. Trotzdem introduces
+      a contrary outcome with the same verb-second rule. Compare these with weil
+      and obwohl, which send the verb to the end. Choose the connector according
+      to meaning."
+vocabularyFoundations:
+  - key: de-structured-a2-12-lex-1
+    description: "Lesung: reading event"
+  - key: de-structured-a2-12-lex-2
+    description: "Vorstellung: performance"
+  - key: de-structured-a2-12-lex-3
+    description: "Einschränkung: limitation"
+exerciseConcepts:
+  - key: de-structured-a2-12
+    description: Recommend an event in 90–110 words. Combine both sources,
+      acknowledge a different preference and explain a consequence with deshalb
+      or trotzdem.
+sourceIds:
+  - curriculum-source_0000000000000001
+  - curriculum-source_0000000000000002
+  - curriculum-source_0000000000001002
+  - curriculum-source_0000000000001005
+  - curriculum-source_0000000000001006
 coverage:
   reception:
     status: mapped
-    outcomes: ["Understand a short leisure and culture message at A2 level."]
+    outcomes:
+      - What is the group’s latest departure time?
+      - What changes for the concert?
   production:
     status: mapped
-    outcomes: ["Produce a clear leisure and culture message at A2 level."]
+    outcomes:
+      - Recommend an event in 90–110 words. Combine both sources, acknowledge a
+        different preference and explain a consequence with deshalb or trotzdem.
   interaction:
     status: mapped
-    outcomes: ["Take turns and ask a follow-up in a leisure and culture exchange."]
+    outcomes:
+      - Negotiate a cultural outing after a change of time. State a preference,
+        respond to a contrary view and confirm a feasible plan.
   mediation:
     status: mapped
-    outcomes: ["Pass on the essential meaning of leisure and culture information."]
+    outcomes:
+      - Send a message to a person who did not read the passage. Pass on the
+        decision, one reason and the next action. Use your own words; do not
+        invent details.
+lessonFoundation:
+  explanation: "Deshalb introduces a consequence in a main clause and takes
+    position one: Es regnet. Deshalb bleiben wir drinnen. Trotzdem introduces a
+    contrary outcome with the same verb-second rule. Compare these with weil and
+    obwohl, which send the verb to the end. Choose the connector according to
+    meaning. Use rising melody for a genuine yes/no question and clear final
+    stress on the proposed time."
+  examples:
+    - Die Karten sind teuer, trotzdem gehen wir hin.
+    - Es regnet, deshalb wählen wir das Museum.
+    - Welche Vorstellung passt dir besser?
 ---
 
 # A2: Leisure and culture
 
-This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
+Original German lessons linked to this topic are registered in catalog.json.
 
-The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.
+- de-structured-a2-12: Agree on a cultural outing
+
+The reference outlines establish scope and sequence. Explanations, examples and activities are original Nina content; participation alone does not establish proficiency.
