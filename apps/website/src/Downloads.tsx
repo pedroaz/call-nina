@@ -68,6 +68,29 @@ export function Downloads({ locale }: { locale: Locale }) {
     };
   }, [attempt, retry]);
   const ready = state.status === "ready" ? state.data : null;
+  const downloadLabel = (
+    <>
+      <svg
+        viewBox="0 0 24 24"
+        width="22"
+        height="22"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" />
+      </svg>
+      <span className="download-label">
+        <span>
+          {ready ? (platform ? platformLabels[platform].split(" · ")[0] : t.all) : t.download}
+        </span>
+        {ready && <span className="download-meta">· v{ready.version}</span>}
+      </span>
+    </>
+  );
   const feedback = (
     <div className="download-feedback">
       <p role="status">{state.status === "ready" ? null : t[state.status]}</p>
@@ -91,28 +114,48 @@ export function Downloads({ locale }: { locale: Locale }) {
     <div className="downloads">
       <div className="download-controls">
         {ready && platform ? (
-          <ActionLink href={ready.downloads[platform]}>
-            {t.download} · {platformLabels[platform].split(" · ")[0]}
+          <ActionLink
+            className="download-primary"
+            href={ready.downloads[platform]}
+            aria-label={`${t.download} ${platformLabels[platform].split(" · ")[0] ?? platformLabels[platform]} · v${ready.version}`}
+          >
+            {downloadLabel}
           </ActionLink>
         ) : (
           <Button
+            className="download-primary"
             onPress={() => {
               setOpen(true);
             }}
           >
-            {t.download}
+            {downloadLabel}
           </Button>
         )}
-        <Button
-          variant="quiet"
-          onPress={() => {
-            setOpen(true);
-          }}
-        >
-          {t.all}
-        </Button>
+        {ready && platform && (
+          <Button
+            className="download-alternatives"
+            variant="secondary"
+            onPress={() => {
+              setOpen(true);
+            }}
+          >
+            {t.all}
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m7 10 5 5 5-5" />
+            </svg>
+          </Button>
+        )}
       </div>
-      {ready && <p className="download-version">v{ready.version}</p>}
       {state.status !== "ready" && feedback}
       <ModalDialog isOpen={open} onOpenChange={setOpen} title={t.all} closeLabel={t.close}>
         {ready ? (

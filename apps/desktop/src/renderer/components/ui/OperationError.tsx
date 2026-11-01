@@ -42,7 +42,7 @@ function ReferenceDetails({ error }: { error: CallNinaError }) {
           document.removeEventListener("copy", onCopy);
         }
       }
-      notify({ message: t("feedback.referenceCopied"), tone: "success" });
+      notify({ message: "feedback.referenceCopied", tone: "success" });
     } catch {
       setCopyFailed(true);
     } finally {

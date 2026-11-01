@@ -9,6 +9,7 @@ import {
   type DesktopIpcResponse,
   type ErrorKind,
   type ProviderAccess,
+  type Language,
 } from "@call-nina/contracts";
 import { type OfflineRuntime } from "@call-nina/offline-runtime";
 import { safeError } from "./backend-support.js";
@@ -28,7 +29,7 @@ export interface DesktopOptions {
   secrets: ConnectionSecretStorage;
   loginCredentials: NinaLoginStorage;
   offlineRuntime: OfflineRuntime;
-  chooseDirectory: () => Promise<string | undefined>;
+  chooseDirectory: (uiLocale: Language) => Promise<string | undefined>;
   knownInstallRoots: readonly string[];
   chatgpt: ChatgptSession;
   log?: (record: AppServerLogRecord) => void;

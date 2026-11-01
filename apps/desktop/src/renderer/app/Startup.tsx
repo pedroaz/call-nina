@@ -97,9 +97,11 @@ export function FolderOnboarding({ onReady }: { onReady: () => Promise<void> }) 
     setBusy(true);
     setError(undefined);
     try {
-      const result = await invokeDesktop("data-root/choose", {});
+      const result = await invokeDesktop("data-root/choose", {
+        uiLocale: i18n.language as Language,
+      });
       if (result.status === "cancelled") {
-        setNotice(t("folder.cancelled"));
+        setNotice("folder.cancelled");
         setSelection(undefined);
       } else {
         setNotice(undefined);
@@ -134,7 +136,7 @@ export function FolderOnboarding({ onReady }: { onReady: () => Promise<void> }) 
         <Muted as="p">{t("startup.firstBody")}</Muted>
         {!selection ? (
           <>
-            {notice && <p role="status">{notice}</p>}
+            {notice && <p role="status">{t(notice)}</p>}
             {error && <OperationError error={error} />}
             <ActionGroup>
               <Button variant="primary" isDisabled={busy} onPress={() => void choose()}>

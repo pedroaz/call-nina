@@ -2,5 +2,7 @@
   "environment": "dev",
   "publishableKey": "pk_test_cmVhZHktbWVlcmthdC0xNTEwLmNsZXJrLmFjY291bnRzLmRldiQ",
   "serviceOrigin": "https://staging.callnina.de",
+  "tallyFeedbackUrl": "https://tally.so/r/xVrdNv",
+  "aptabaseAppKey": "A-EU-8660072041",
   "modelId": null
 }

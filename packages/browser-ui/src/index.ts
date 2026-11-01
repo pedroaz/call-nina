@@ -8,3 +8,4 @@ export * from "./ActivityChoice.js";
 export * from "./OverflowMenu.js";
 export * from "./Notifications.js";
 export * from "./Interview.js";
+export { I18nProvider } from "react-aria-components";

@@ -1,3 +1,4 @@
+import { interfaceMessage } from "./localization.js";
 import {
   accountStateSchema,
   chatgptAccountsSchema,
@@ -5,6 +6,7 @@ import {
   correlationIdSchema,
   z,
   type CorrelationId,
+  type Language,
   type DesktopIpcEvent,
 } from "@call-nina/contracts";
 import { createHash, randomBytes } from "node:crypto";
@@ -44,6 +46,7 @@ type Pending = {
 
 /** Device-owned OAuth state. Never reads external Codex homes or portable learner files. */
 export class ChatgptSession {
+  readonly #interfaceLocale: () => Promise<Language | undefined>;
   readonly #openExternal: (url: string) => Promise<void>;
   #emit: (event: DesktopIpcEvent) => void = () => undefined;
   #queue: Promise<unknown> = Promise.resolve();
@@ -53,6 +56,7 @@ export class ChatgptSession {
   #closed = false;
   constructor(options: {
     configDirectory: string;
+    interfaceLocale: () => Promise<Language | undefined>;
     secrets: ConnectionSecretStorage;
     openExternal: (url: string) => Promise<void>;
   }) {
@@ -63,6 +67,7 @@ export class ChatgptSession {
       closed: () => this.#closed,
     });
     this.#openExternal = options.openExternal;
+    this.#interfaceLocale = options.interfaceLocale;
   }
   subscribe(emit: (event: DesktopIpcEvent) => void) {
     this.#emit = emit;
@@ -193,7 +198,7 @@ export class ChatgptSession {
   models(signal?: AbortSignal) {
     return this.#catalog.models(signal);
   }
-  async startLogin(registrationId: string | null): Promise<CorrelationId> {
+  async startLogin(registrationId: string | null, uiLocale: Language): Promise<CorrelationId> {
     return this.#exclusive(async () => {
       if (this.#pending || this.#closed) throw new Error("OD_CHATGPT_LOGIN_CONFLICT");
       const store = await this.#store.read();
@@ -207,15 +212,19 @@ export class ChatgptSession {
       const id = correlationIdSchema.parse(`correlation_${randomBytes(16).toString("hex")}`);
       const server = createServer((request, response) => {
         const attempt = this.#pending;
-        const finish = (status: number, message: string) => {
-          response.writeHead(status, {
-            "Content-Type": "text/plain; charset=utf-8",
-            "Cache-Control": "no-store",
-            "Referrer-Policy": "no-referrer",
-            "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
-            "X-Content-Type-Options": "nosniff",
-          });
-          response.end(message);
+        const finish = (status: number, key: Parameters<typeof interfaceMessage>[1]) => {
+          void this.#interfaceLocale()
+            .catch(() => undefined)
+            .then((language) => {
+              response.writeHead(status, {
+                "Content-Type": "text/plain; charset=utf-8",
+                "Cache-Control": "no-store",
+                "Referrer-Policy": "no-referrer",
+                "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+                "X-Content-Type-Options": "nosniff",
+              });
+              response.end(interfaceMessage(language ?? uiLocale, key));
+            });
         };
         if (
           !attempt ||
@@ -225,7 +234,7 @@ export class ChatgptSession {
           request.url.length > 16384 ||
           request.headers.host !== new URL(attempt.redirectUri).host
         ) {
-          finish(400, "Invalid sign-in callback.");
+          finish(400, "invalidCallback");
           return;
         }
         const url = new URL(request.url, attempt.redirectUri);
@@ -236,16 +245,16 @@ export class ChatgptSession {
           attempt.claimed ||
           !equal(single("state"), attempt.state)
         ) {
-          finish(400, "Invalid or expired sign-in callback.");
+          finish(400, "expiredCallback");
           return;
         }
         attempt.claimed = true;
         void this.#completeLogin(attempt, url).then(
           () => {
-            finish(200, "Call Nina is connected. You can close this tab and return to the app.");
+            finish(200, "connected");
           },
           () => {
-            finish(400, "Sign-in did not complete. Return to Call Nina and try again.");
+            finish(400, "loginFailed");
           },
         );
       });

@@ -6,6 +6,8 @@ npmRebuild: false
 electronLanguages:
   - de
   - en-US
+  - es
+  - pt-BR
 electronFuses:
   runAsNode: true
   enableNodeOptionsEnvironmentVariable: false

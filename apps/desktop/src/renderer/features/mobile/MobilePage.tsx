@@ -49,10 +49,10 @@ function MobileAccountPage({ account }: { account: ReturnType<typeof useNinaAcco
       if (!mounted.current) return;
       if (result.status === "synced") {
         setPublished(result.publishedAt);
-        notify({ message: t("mobile.synced"), tone: "success" });
-      } else if (result.status === "failed") setMessage(t(`mobile.errors.${result.reason}`));
+        notify({ message: "mobile.synced", tone: "success" });
+      } else if (result.status === "failed") setMessage(`mobile.errors.${result.reason}`);
     } catch {
-      if (mounted.current) setMessage(t("mobile.errors.unavailable"));
+      if (mounted.current) setMessage("mobile.errors.unavailable");
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -81,7 +81,7 @@ function MobileAccountPage({ account }: { account: ReturnType<typeof useNinaAcco
         {published && (
           <p>{t("mobile.lastSync", { time: new Date(published).toLocaleString(i18n.language) })}</p>
         )}
-        {message && <Feedback live="polite">{message}</Feedback>}
+        {message && <Feedback live="polite">{t(message)}</Feedback>}
       </Section>
     </Page>
   );

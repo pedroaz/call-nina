@@ -1,3 +1,4 @@
+import { interfaceMessage } from "./localization.js";
 import {
   desktopIpcEventSchema,
   desktopIpcRequestSchema,
@@ -281,6 +282,7 @@ if (!app.requestSingleInstanceLock()) {
       const secrets = new ConnectionSecretStorage(userData);
       const chatgpt = new ChatgptSession({
         configDirectory: userData,
+        interfaceLocale: async () => backend?.interfaceLocale(),
         secrets,
         openExternal: openValidatedExternalUrl,
       });
@@ -320,7 +322,10 @@ if (!app.requestSingleInstanceLock()) {
         },
         exportDiagnostics: async (content) => {
           const result = await dialog.showSaveDialog({
-            title: "Export redacted Call Nina diagnostics",
+            title: interfaceMessage(
+              (await backend?.interfaceLocale()) ?? "en-US",
+              "exportDiagnostics",
+            ),
             defaultPath: path.join(app.getPath("documents"), "call-nina-diagnostics.json"),
             filters: [{ name: "JSON", extensions: ["json"] }],
           });
@@ -328,10 +333,10 @@ if (!app.requestSingleInstanceLock()) {
           await writeFile(result.filePath, content, { encoding: "utf8", mode: 0o600, flag: "wx" });
           return { status: "exported", displayName: path.basename(result.filePath) };
         },
-        chooseDirectory: async () => {
+        chooseDirectory: async (uiLocale) => {
           const result = await dialog.showOpenDialog({
             defaultPath: path.join(app.getPath("documents"), "Call Nina"),
-            title: "Choose Call Nina data folder",
+            title: interfaceMessage(uiLocale, "chooseFolder"),
             properties: ["openDirectory", "createDirectory"],
           });
           return result.canceled ? undefined : result.filePaths[0];

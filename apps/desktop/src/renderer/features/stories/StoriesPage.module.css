@@ -1,25 +1,32 @@
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: var(--od-space-4);
-}
 .storyRow[data-density] {
   padding: 0;
   grid-template-columns: minmax(0, 1fr);
 }
 .storyOpen {
   width: 100%;
-  padding: var(--od-space-5) 0;
+  padding: var(--od-space-5) var(--od-space-4);
   justify-content: flex-start;
-  align-items: flex-start;
   gap: var(--od-space-4);
   text-align: start;
 }
-.storyCopy {
+.storyIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--od-control-min);
+  height: var(--od-control-min);
+  color: var(--od-color-text-muted);
+}
+.storyIcon > svg {
+  width: var(--od-icon-activity);
+  height: var(--od-icon-activity);
+}
+.storyCopy,
+.wordCopy {
   display: grid;
   gap: var(--od-space-2);
   min-width: 0;
+  flex: 1;
 }
 .storyTitle {
   display: flex;
@@ -27,7 +34,8 @@
   align-items: baseline;
   gap: var(--od-space-3);
 }
-.storyTitle strong {
+.storyTitle strong,
+.wordText {
   font-family: var(--od-font-family-editorial);
   font-size: var(--od-type-body-large-size);
   line-height: var(--od-type-body-large-line);
@@ -40,17 +48,53 @@
 }
 .storySummary {
   color: var(--od-color-text-strong);
+  font-size: var(--od-font-size-sm);
   font-weight: normal;
 }
-.reading {
-  display: flex;
-  flex-direction: column;
-  gap: var(--od-space-4);
+.storyChevron {
+  color: var(--od-color-text-muted);
 }
 .passage {
+  margin: 0;
   font-family: var(--od-font-family-editorial);
   font-size: var(--od-type-body-large-size);
   line-height: var(--od-type-body-large-line);
-  max-width: 70ch;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wordOpen {
+  justify-content: space-between;
+  gap: var(--od-space-4);
+  text-align: start;
+  padding: var(--od-space-2);
+}
+.wordText {
+  color: var(--od-color-text-strong);
+}
+.wordMeaning {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+  font-weight: normal;
+}
+.wordDetails {
+  display: grid;
+  gap: var(--od-space-6);
+}
+.wordDefinition,
+.wordExample {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.wordDefinition h2,
+.wordDefinition p,
+.wordExample p {
+  margin: 0;
+}
+.wordExample {
+  padding-block: var(--od-space-5);
+  border-block: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.definitionMeaning {
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
 }

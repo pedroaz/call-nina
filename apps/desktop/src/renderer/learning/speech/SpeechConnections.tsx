@@ -23,7 +23,7 @@ import { SpeechButton, stopSpeech } from "./SpeechButton.js";
 import styles from "./SpeechSettings.module.css";
 
 export function SpeechConnections({ language }: { language: Language }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const id = useId();
   const { view, account, error, busy, act } = useSpeechSettings();
   const [editing, setEditing] = useState<Language>();
@@ -291,7 +291,7 @@ export function SpeechConnections({ language }: { language: Language }) {
               {source !== "managed" &&
                 pack &&
                 !["unavailable", "installed"].includes(pack.state) &&
-                ` · ${t("speech.installSize", { size: (pack.downloadBytes / 1e6).toFixed(0) })}`}
+                ` · ${t("speech.installSize", { size: (pack.downloadBytes / 1e6).toLocaleString(i18n.language, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) })}`}
             </p>
             {source === "managed" && accountReason(account) === "account" && (
               <NinaAccountSettings />

@@ -35,7 +35,8 @@ export function useDiagnosticsSettings({ setBusy, setError, actionBusy, checking
       const result = await invokeDesktop("logs/clear", {});
       setDiagnostics((current) => (current ? { ...current, logFileCount: 0 } : current));
       notify({
-        message: t("settings.logsCleared", { count: result.clearedFileCount }),
+        message: "settings.logsCleared",
+        values: { count: result.clearedFileCount },
         tone: "success",
       });
     } catch (cause) {
@@ -50,7 +51,7 @@ export function useDiagnosticsSettings({ setBusy, setError, actionBusy, checking
     try {
       const result: DiagnosticsExport = await invokeDesktop("diagnostics/export", {});
       if (result.status === "exported")
-        notify({ message: t("settings.diagnosticsExported", result), tone: "success" });
+        notify({ message: "settings.diagnosticsExported", values: result, tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {

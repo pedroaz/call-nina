@@ -5,6 +5,8 @@ import type { DesktopServices } from "./desktop-services.js";
 
 function bypassesLearnerQueue(channel: DesktopIpcRequest["channel"]): boolean {
   return (
+    channel.startsWith("analytics/") ||
+    channel === "feedback/open" ||
     channel.startsWith("speech/") ||
     channel === "material/import-web" ||
     channel === "mobile-sync/publish" ||

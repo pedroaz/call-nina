@@ -1,3 +1,4 @@
+import { AnalyticsPrivacyDetails } from "../../learning/privacy/UsageAnalytics.js";
 import { InterviewChoices, InterviewLayout, InterviewProgress } from "@call-nina/browser-ui";
 import { languageDefinitions, languageIds, type Language } from "@call-nina/contracts";
 import ninaCelebration from "@call-nina/design-system/brand/nina-celebration.png";
@@ -5,11 +6,13 @@ import ninaListening from "@call-nina/design-system/brand/nina-listening.png";
 import ninaThinking from "@call-nina/design-system/brand/nina-thinking.png";
 import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
 import { ArrowRight, BookOpen } from "lucide-react";
+import { useRef, useState } from "react";
 import { ActionGroup } from "../../components/layout/index.js";
 import {
   Button,
   LoadingState,
   SelectControl,
+  SwitchField,
   TextAreaField,
   TextField,
 } from "../../components/ui/index.js";
@@ -26,8 +29,13 @@ import { useProfileOnboardingController } from "./useProfileOnboardingController
 
 export function ProfileOnboarding(props: ProfileOnboardingProps) {
   const model = useProfileOnboardingController(props);
+  const [connectionReady, setConnectionReady] = useState(false);
+  const connectionContinuation = useRef<(() => Promise<boolean>) | null>(null);
   const {
     loading,
+    includeConsent,
+    analyticsConsent,
+    chooseAnalytics,
     t,
     step,
     complete,
@@ -75,9 +83,9 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
         <InterviewLayout
           focusKey={step}
           onContinue={
-            step === 5
+            step === 5 || step === 6
               ? undefined
-              : step === 6
+              : step === 7
                 ? complete
                 : () => {
                     move(step + 1);
@@ -85,7 +93,7 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
           }
           continueDisabled={continueDisabled}
           title={t(
-            `interview.${step === 6 && choices.learnerName.trim() ? "lessonTitleNamed" : (titles[step] ?? "nameTitle")}`,
+            `interview.${step === 7 && choices.learnerName.trim() ? "lessonTitleNamed" : (titles[step] ?? "nameTitle")}`,
             { language: t(`languages.${targetLanguage}`), name: choices.learnerName },
           )}
           description={step === 5 ? t("interview.connectionDescription") : undefined}
@@ -113,9 +121,12 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
           }
           progress={
             <InterviewProgress
-              current={step + 1}
-              total={7}
-              label={t("onboarding.progress", { current: step + 1, total: 7 })}
+              current={step + 1 - (!includeConsent && step === 7 ? 1 : 0)}
+              total={includeConsent ? 8 : 7}
+              label={t("onboarding.progress", {
+                current: step + 1 - (!includeConsent && step === 7 ? 1 : 0),
+                total: includeConsent ? 8 : 7,
+              })}
             />
           }
           artwork={
@@ -134,7 +145,7 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
             />
           }
           context={
-            step === 6 ? (
+            step === 7 ? (
               <p>
                 {t(`languages.${targetLanguage}`)} ·{" "}
                 {t(`setupUx.levels.${choices.approximateLevel}`)}
@@ -159,15 +170,28 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
                 )}
                 {step === 5 ? (
                   <Button
-                    variant="quiet"
+                    variant={connectionReady ? "primary" : "quiet"}
                     isDisabled={blocked}
                     onPress={() => {
-                      move(6);
+                      if (!connectionReady) move(6);
+                      else
+                        void connectionContinuation.current?.().then((saved) => {
+                          if (saved) move(6);
+                        });
                     }}
                   >
-                    {t("interview.setupLater")}
+                    {t(connectionReady ? "actions.continue" : "interview.setupLater")}
                   </Button>
                 ) : step === 6 ? (
+                  <Button
+                    isDisabled={blocked}
+                    onPress={() => {
+                      chooseAnalytics(analyticsConsent === "enabled", true);
+                    }}
+                  >
+                    {t("actions.continue")}
+                  </Button>
+                ) : step === 7 ? (
                   <>
                     {!onExit && first && (
                       <Button
@@ -293,9 +317,8 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
                   <OnboardingConnections
                     {...props}
                     chatgptConnected={account?.status === "signed-in"}
-                    onUse={() => {
-                      move(6);
-                    }}
+                    onReadyChange={setConnectionReady}
+                    continuationRef={connectionContinuation}
                   />
                 )}
                 chatgptAccess={() => (
@@ -319,6 +342,7 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
                           onPress={() =>
                             void attempt(async () => {
                               const result = await invokeDesktop("chatgpt/account/login/start", {
+                                uiLocale: choices.uiLocale,
                                 registrationId: (await invokeDesktop("chatgpt/accounts/read", {}))
                                   .selectedId,
                               });
@@ -336,6 +360,22 @@ export function ProfileOnboarding(props: ProfileOnboardingProps) {
             </>
           )}
           {step === 6 && (
+            <>
+              <SwitchField
+                isSelected={analyticsConsent === "enabled"}
+                isDisabled={blocked}
+                onChange={(enabled) => {
+                  chooseAnalytics(enabled);
+                }}
+              >
+                {t("usageAnalytics.share")}
+              </SwitchField>
+              <p>{t("usageAnalytics.description")}</p>
+              <p>{t("usageAnalytics.anonymous")}</p>
+              <AnalyticsPrivacyDetails />
+            </>
+          )}
+          {step === 7 && (
             <>
               {first ? (
                 <div className={styles.lesson}>

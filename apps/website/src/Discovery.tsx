@@ -211,12 +211,25 @@ export function Discovery({
       <Button
         ref={trigger}
         className="discovery-trigger"
-        variant="secondary"
+        variant="quiet"
         onPress={() => {
           setOpen(true);
         }}
       >
         {copy[locale].cta}
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 12h16m-6-6 6 6-6 6" />
+        </svg>
       </Button>
       <ModalDialog
         isOpen={open}

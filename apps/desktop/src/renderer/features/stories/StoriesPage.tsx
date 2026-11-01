@@ -1,17 +1,19 @@
 import type { StorySnapshot } from "@call-nina/contracts";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActionGroup, ContentRow, Page, Section } from "../../components/layout/index.js";
+import { ContentRow, FilterBar, Page } from "../../components/layout/index.js";
 import {
   Button,
+  EmptyState,
   Feedback,
   SelectField,
   TextField,
   useNotifications,
 } from "../../components/ui/index.js";
-import { SpeechButton, stopSpeech } from "../../learning/speech/SpeechButton.js";
+import { stopSpeech } from "../../learning/speech/SpeechButton.js";
 import { invokeDesktop } from "../../runtime/ipc.js";
+import { StoryReader } from "./StoryReader.js";
 import styles from "./StoriesPage.module.css";
 
 export function StoriesPage() {
@@ -26,14 +28,6 @@ export function StoriesPage() {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<string[]>([]);
   const current = useRef(0);
-  const passage = useRef<HTMLParagraphElement>(null);
-  const focusPassage = useRef(false);
-  useEffect(() => {
-    if (focusPassage.current) {
-      passage.current?.focus({ preventScroll: true });
-      focusPassage.current = false;
-    }
-  }, [paragraph]);
   useEffect(() => {
     let active = true;
     const ticket = current.current;
@@ -68,7 +62,6 @@ export function StoriesPage() {
         paragraph: next,
       });
       if (ticket !== current.current) return;
-      focusPassage.current = true;
       setParagraph(next);
       setSnapshot({ ...snapshot, positions: { ...snapshot.positions, [story.id]: next } });
     } catch {
@@ -89,7 +82,7 @@ export function StoriesPage() {
         word: index,
       });
       setSaved((values) => [...values, `${story.id}:${String(index)}`]);
-      notify({ message: t("flashcards.saveNotice"), tone: "success" });
+      notify({ message: "flashcards.saveNotice", tone: "success" });
     } catch {
       setError(true);
     } finally {
@@ -122,106 +115,22 @@ export function StoriesPage() {
       )}
       {!snapshot && !error && <p role="status">{t("stories.loading")}</p>}
       {story ? (
-        <>
-          <div className={styles.reading} lang={story.language}>
-            <p ref={passage} tabIndex={-1} data-focus-anchor className={styles.passage}>
-              {story.paragraphs[paragraph]}
-            </p>
-            <SpeechButton
-              text={story.paragraphs[paragraph] ?? ""}
-              language={story.language}
-              variant="passage"
-            />
-          </div>
-          <ActionGroup>
-            <Button
-              variant="secondary"
-              isDisabled={busy || paragraph === 0}
-              onPress={() => void move(paragraph - 1)}
-            >
-              {t("stories.previous")}
-            </Button>
-            <span role="status" aria-live="polite" aria-atomic="true">
-              {t("stories.position", { current: paragraph + 1, total: story.paragraphs.length })}
-            </span>
-            <Button
-              variant="secondary"
-              isDisabled={busy || paragraph === story.paragraphs.length - 1}
-              onPress={() => void move(paragraph + 1)}
-            >
-              {t("stories.next")}
-            </Button>
-          </ActionGroup>
-          <Section title={t("nav.vocabulary")}>
-            {story.vocabulary.map((word, index) => (
-              <ContentRow
-                key={word.text}
-                actions={
-                  <Button
-                    variant="quiet"
-                    aria-label={`${t(saved.includes(`${story.id}:${String(index)}`) ? "stories.saved" : "stories.saveWord")}: ${word.text}`}
-                    isDisabled={busy || saved.includes(`${story.id}:${String(index)}`)}
-                    onPress={() => void saveWord(index)}
-                  >
-                    {t(
-                      saved.includes(`${story.id}:${String(index)}`)
-                        ? "stories.saved"
-                        : "stories.saveWord",
-                    )}
-                  </Button>
-                }
-              >
-                <strong lang={story.language}>
-                  {word.lexeme?.partOfSpeech === "noun" && word.lexeme.nounForm.article
-                    ? `${word.lexeme.nounForm.article} `
-                    : ""}
-                  {word.text} <SpeechButton text={word.text} language={story.language} />
-                </strong>
-                {word.lexeme?.partOfSpeech === "noun" && word.lexeme.plural.status === "form" && (
-                  <p lang={story.language}>
-                    {t("stories.plural")}: {word.lexeme.plural.form}
-                  </p>
-                )}
-                <p>
-                  {
-                    word.meaning[
-                      snapshot?.learningContext.explanationLanguage === "en-US"
-                        ? "en"
-                        : (snapshot?.learningContext.explanationLanguage ?? "en")
-                    ]
-                  }
-                </p>
-                {word.usage && (
-                  <p>
-                    {
-                      word.usage[
-                        snapshot?.learningContext.explanationLanguage === "en-US"
-                          ? "en"
-                          : (snapshot?.learningContext.explanationLanguage ?? "en")
-                      ]
-                    }
-                  </p>
-                )}
-                <p lang={story.language}>
-                  {word.example} <SpeechButton text={word.example} language={story.language} />
-                </p>
-                <p>
-                  {
-                    word.exampleMeaning[
-                      snapshot?.learningContext.explanationLanguage === "en-US"
-                        ? "en"
-                        : (snapshot?.learningContext.explanationLanguage ?? "en")
-                    ]
-                  }
-                </p>
-              </ContentRow>
-            ))}
-          </Section>
-        </>
+        <StoryReader
+          key={story.id}
+          story={story}
+          title={story.title[locale]}
+          explanationLanguage={snapshot?.learningContext.explanationLanguage ?? "en-US"}
+          paragraph={paragraph}
+          busy={busy}
+          saved={saved}
+          error={error}
+          onMove={(next) => void move(next)}
+          onSave={(index) => void saveWord(index)}
+        />
       ) : (
         snapshot && (
           <>
-            <div className={styles.filters}>
+            <FilterBar columns={2} label={t("stories.search")}>
               <TextField
                 label={t("stories.search")}
                 value={query}
@@ -241,46 +150,51 @@ export function StoriesPage() {
                   <option key={value}>{value}</option>
                 ))}
               </SelectField>
-            </div>
-            {snapshot.stories
-              .filter(
-                (item) =>
-                  (level === "all" || item.level === level) &&
-                  `${item.title[locale]} ${item.summary[locale]}`
-                    .toLocaleLowerCase()
-                    .includes(query.trim().toLocaleLowerCase()),
-              )
-              .map((item) => (
-                <ContentRow key={item.id} className={styles.storyRow}>
-                  <Button
-                    variant="quiet"
-                    className={styles.storyOpen}
-                    aria-label={`${t("stories.read")}: ${item.title[locale]} · ${item.level}`}
-                    onPress={() => {
-                      setSelected(item.id);
-                      setParagraph(
-                        Math.min(snapshot.positions[item.id] ?? 0, item.paragraphs.length - 1),
-                      );
-                    }}
-                  >
-                    <BookOpen aria-hidden="true" />
-                    <span className={styles.storyCopy}>
-                      <span className={styles.storyTitle}>
-                        <strong>{item.title[locale]}</strong>
-                        <span className={styles.storyLevel}>{item.level}</span>
+            </FilterBar>
+            <div>
+              {snapshot.stories
+                .filter(
+                  (item) =>
+                    (level === "all" || item.level === level) &&
+                    `${item.title[locale]} ${item.summary[locale]}`
+                      .toLocaleLowerCase()
+                      .includes(query.trim().toLocaleLowerCase()),
+                )
+                .map((item) => (
+                  <ContentRow key={item.id} className={styles.storyRow}>
+                    <Button
+                      variant="quiet"
+                      className={styles.storyOpen}
+                      aria-label={`${t("stories.read")}: ${item.title[locale]} · ${item.level}`}
+                      onPress={() => {
+                        setSelected(item.id);
+                        setParagraph(
+                          Math.min(snapshot.positions[item.id] ?? 0, item.paragraphs.length - 1),
+                        );
+                      }}
+                    >
+                      <span className={styles.storyIcon}>
+                        <BookOpen aria-hidden="true" />
                       </span>
-                      <span className={styles.storySummary}>{item.summary[locale]}</span>
-                    </span>
-                  </Button>
-                </ContentRow>
-              ))}
+                      <span className={styles.storyCopy}>
+                        <span className={styles.storyTitle}>
+                          <strong>{item.title[locale]}</strong>
+                          <span className={styles.storyLevel}>{item.level}</span>
+                        </span>
+                        <span className={styles.storySummary}>{item.summary[locale]}</span>
+                      </span>
+                      <ChevronRight className={styles.storyChevron} aria-hidden="true" />
+                    </Button>
+                  </ContentRow>
+                ))}
+            </div>
             {!snapshot.stories.some(
               (item) =>
                 (level === "all" || item.level === level) &&
                 `${item.title[locale]} ${item.summary[locale]}`
                   .toLocaleLowerCase()
                   .includes(query.trim().toLocaleLowerCase()),
-            ) && <p>{t("stories.empty")}</p>}
+            ) && <EmptyState variant="plain" icon={<BookOpen />} title={t("stories.empty")} />}
           </>
         )
       )}

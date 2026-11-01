@@ -388,7 +388,7 @@ export function PersonalDataPage({
               }}
               onCleared={(scope) => {
                 setSelected(undefined);
-                notify({ message: t(`personalData.cleanup.${scope}.success`), tone: "success" });
+                notify({ message: `personalData.cleanup.${scope}.success`, tone: "success" });
                 onDataCleared();
                 void refresh();
               }}

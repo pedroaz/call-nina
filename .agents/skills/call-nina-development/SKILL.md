@@ -77,6 +77,8 @@ Mobile is an Expo/native, authenticated offline flashcard companion. Desktop pub
 
 ## Service configuration
 
+Desktop feedback and analytics use public `tallyFeedbackUrl` and `aptabaseAppKey` values in each infrastructure profile, generated into the selected public client configuration. Tally opens externally with only version/OS/interface-language/environment metadata; no SDK or backend is needed. Aptabase capture is main-only through validated fixed-screen IPC; never install its renderer IPC/protocol bridge. Device-local `usage-analytics.json` stores versioned opt-in consent outside learner roots. Unknown or unreadable consent disables tracking. Keep dev/prd apps and forms separate, verify dev ingestion before activation, and never send setup events to prd. No dashboard credentials belong in clients or Git. See `docs/usage-analytics-and-feedback.md` for the product notice.
+
 Prefer native declarative configuration or an idempotent supported API/CLI reconciliation beside the integration. Prepare a concrete remote diff before applying it and verify readback; keep secret values and linked infrastructure state out of Git. Skills document required secret names, provision sources and unavoidable dashboard actions. Provision service resources only when explicitly requested. Clerk provisioning and configuration target the selected application and environment; users/memberships remain separate operations. Mentioning a service never authorizes provisioning it.
 
 Use the [hosted API and administration skill](../call-nina-hosted-admin/SKILL.md) for starter-service changes. The release-delivery policy below owns GitHub Actions guidance; `vercel.json` must continue disabling automatic Git deployments. Preserve unrelated repository protections. No source cleanup authorizes changing remote settings.
@@ -86,6 +88,8 @@ Make is the local development interface. Hosted operator requests use [nina-admi
 Make subcommands use positional words, for example `make build api` and `make package hosting`. Each invocation dispatches one command; use `--` before CLI flags, for example `make logs -- --errors`. Credentials belong in the matching ignored root `.env.dev` or `.env.prd`, never command arguments. Admin commands require `--environment dev|prd` (or an explicit `NINA_ENVIRONMENT`). `make kill` additionally stops this checkout’s website Vite dev/preview servers and shuts down local Android emulators through ADB (physical devices and the shared ADB server are left running); `make stop` stops desktop processes only.
 
 ## Release delivery policy
+
+Security backports and their upstream provenance/removal conditions live beside `overrides` and `patchedDependencies` in `pnpm-workspace.yaml`; retain their version-specific patch files until compatible parent upgrades replace them.
 
 The maintainer wants to keep the monorepo and manually start CI/CD in GitHub to generate distribution builds and publish releases/deployments. Local development builds and interactive verification remain supported; release generation should not require local packaging. The implementation is `.github/workflows/build.yml`, `.github/workflows/publish.yml` and `.github/workflows/deploy-vercel.yml`, with shared Node tooling in `scripts/ci/`. Inspect main, live Actions settings and run results before claiming the route is operational; a local workflow file alone is not a successful CI run. Do not fall back to local release generation when CI is unavailable.
 

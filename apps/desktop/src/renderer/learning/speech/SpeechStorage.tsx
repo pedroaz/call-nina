@@ -137,7 +137,14 @@ export function SpeechStorage() {
             </section>
             <section className={styles.storage} aria-label={t("speech.cacheTitle")}>
               <h3>{t("speech.cacheTitle")}</h3>
-              <p>{t("speech.cache", { size: (view.cacheBytes / 1e6).toFixed(1) })}</p>
+              <p>
+                {t("speech.cache", {
+                  size: (view.cacheBytes / 1e6).toLocaleString(i18n.language, {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                  }),
+                })}
+              </p>
               <p>{t("speech.cachePolicy")}</p>
               <ActionGroup>
                 <Button

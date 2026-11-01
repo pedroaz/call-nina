@@ -5,6 +5,10 @@ import { strictBoundaryObject, z } from "../schema-system.js";
 export const text = (maximum: number) => z.string().min(1).max(maximum).regex(/\S/u);
 
 export const desktopIpcChannels = [
+  "feedback/open",
+  "analytics/read",
+  "analytics/consent",
+  "analytics/screen",
   "speech/availability",
   "speech/read",
   "speech/manage",

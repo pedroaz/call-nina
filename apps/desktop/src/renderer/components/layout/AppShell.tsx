@@ -32,6 +32,7 @@ export function AppShell<Page extends string>(props: {
   content: ReactNode;
   helper: ReactNode;
   accountWidget?: ReactNode;
+  feedbackAction?: ReactNode;
   navFooter?: ReactNode;
   onNavigate: (page: Page) => void;
   onMoveNavFocus: (event: KeyboardEvent<HTMLButtonElement>) => void;
@@ -258,6 +259,7 @@ export function AppShell<Page extends string>(props: {
                 );
               })()}
             </ul>
+            {props.feedbackAction}
             {props.navFooter && <div className={styles.navFooter}>{props.navFooter}</div>}
           </div>
         </div>

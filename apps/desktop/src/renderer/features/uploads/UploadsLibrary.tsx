@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { BookPlus, FileText, Globe, Image } from "lucide-react";
 import { ContentRow } from "../../components/layout/index.js";
 import { Button, EmptyState, LoadingState } from "../../components/ui/index.js";
@@ -24,6 +25,7 @@ export function UploadsLibrary(props: UploadsLibraryProps) {
 function UploadsLibraryWorkspace(
   props: UploadsLibraryProps & { library: ReturnType<typeof useUploads> },
 ) {
+  const { i18n } = useTranslation();
   const model = useUploadsLibraryController(props);
   const {
     library,
@@ -85,7 +87,7 @@ function UploadsLibraryWorkspace(
               <span className={styles.meta}>
                 {t(`uploads.formats.${upload.format}`)}
                 {upload.url ? ` · ${new URL(upload.url).hostname}` : ""} ·{" "}
-                {new Date(upload.createdAt).toLocaleDateString()}
+                {new Date(upload.createdAt).toLocaleDateString(i18n.language)}
               </span>
             </span>
           </Button>

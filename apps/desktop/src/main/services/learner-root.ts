@@ -136,7 +136,7 @@ export class LearnerRoot {
       }
       case "data-root/choose": {
         const current = await this.dataRootState(request.requestId);
-        const chosen = await this.#environment.chooseDirectory();
+        const chosen = await this.#environment.chooseDirectory(request.payload.uiLocale);
         if (!chosen) return this.#environment.success(request, { status: "cancelled" });
         const plan = await inspectDataRootChoice(chosen, {
           knownInstallRoots: this.#environment.knownInstallRoots,

@@ -10,7 +10,6 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next";
 import { ActionGroup } from "../../components/layout/index.js";
 import { Button, Feedback, useNotifications } from "../../components/ui/index.js";
-import i18n from "../../runtime/i18n.js";
 import { createDesktopSubmissionId, invokeDesktop, subscribeDesktop } from "../../runtime/ipc.js";
 import { LanguageSelect } from "../profile/LanguageSelect.js";
 import { ProviderActionSummary } from "../providers/ProviderActionSummary.js";
@@ -118,7 +117,7 @@ function TranslationControls({
       setBusy(false);
       if (event.outcome === "saved") {
         setNotice(undefined);
-        notify({ message: i18n.t("translation.saved"), tone: "success" });
+        notify({ message: "translation.saved", tone: "success" });
         void load();
       } else setNotice(event.outcome);
     });
@@ -157,7 +156,7 @@ function TranslationControls({
       if (result.status === "saved") {
         active.current = undefined;
         if (isAlive()) {
-          notify({ message: i18n.t("translation.saved"), tone: "success" });
+          notify({ message: "translation.saved", tone: "success" });
           await load();
         }
       }

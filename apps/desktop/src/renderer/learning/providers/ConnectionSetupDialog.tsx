@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Section } from "../../components/layout/index.js";
 import {
   Button,
@@ -113,6 +114,7 @@ export function ConnectionSetupDialog({
     saving,
     save,
   } = model;
+  const { i18n } = useTranslation();
   if (!draft) return null;
   return (
     <ModalDialog
@@ -375,8 +377,14 @@ export function ConnectionSetupDialog({
               offline.snapshot.state === "verifying") && (
               <p>
                 {t("connectionSettings.offlineProgress", {
-                  downloaded: (offline.snapshot.downloadedBytes / 1_000_000_000).toFixed(2),
-                  total: (offline.snapshot.downloadBytes / 1_000_000_000).toFixed(2),
+                  downloaded: (offline.snapshot.downloadedBytes / 1_000_000_000).toLocaleString(
+                    i18n.language,
+                    { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                  ),
+                  total: (offline.snapshot.downloadBytes / 1_000_000_000).toLocaleString(
+                    i18n.language,
+                    { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                  ),
                 })}
               </p>
             )}

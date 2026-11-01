@@ -11,6 +11,7 @@ export class IpcDispatcher {
   readonly #environment: DesktopEnvironment;
   readonly #services: () => Pick<
     DesktopServices,
+    | "productFeedback"
     | "root"
     | "materials"
     | "mobile"
@@ -31,6 +32,7 @@ export class IpcDispatcher {
     environment: DesktopEnvironment,
     services: () => Pick<
       DesktopServices,
+      | "productFeedback"
       | "root"
       | "materials"
       | "mobile"
@@ -111,6 +113,11 @@ export class IpcDispatcher {
         return this.#environment.failure(request, "stale-data-root");
       }
       switch (request.channel) {
+        case "feedback/open":
+        case "analytics/read":
+        case "analytics/consent":
+        case "analytics/screen":
+          return await this.#services().productFeedback.handle(request);
         case "material/import-web":
           return await this.#materials.handle(request);
         case "material/cancel-import":

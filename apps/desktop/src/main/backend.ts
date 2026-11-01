@@ -1,3 +1,4 @@
+import { ProductFeedback } from "./services/product-feedback.js";
 import type { DesktopIpcRequest } from "@call-nina/contracts";
 import { DesktopEnvironment, type DesktopOptions } from "./desktop-environment.js";
 import { ActivitiesController } from "./services/activities.js";
@@ -43,6 +44,7 @@ export class DesktopBackend {
       },
     );
     const services: DesktopServices = {
+      productFeedback: new ProductFeedback(environment),
       operationScope: new OperationScope(environment, () => services),
       dispatcher: new IpcDispatcher(environment, () => services),
       exerciseContext: new ExerciseGenerationContext(environment, () => services),
@@ -71,6 +73,9 @@ export class DesktopBackend {
     this.#environment = environment;
     this.#services = services;
   }
+  async interfaceLocale() {
+    return (await this.#services.learner.readActiveLearnerSettings())?.profile.uiLocale;
+  }
   handle(request: DesktopIpcRequest) {
     return this.#services.scheduler.handle(request);
   }
@@ -78,6 +83,7 @@ export class DesktopBackend {
     return this.#services.activities.openActivityLink(...args);
   }
   close() {
+    this.#services.productFeedback.close();
     this.#services.imports.clear();
     this.#services.generation.reset();
     this.#services.vocabulary.stop();

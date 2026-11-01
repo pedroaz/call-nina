@@ -20,6 +20,7 @@ import styles from "./Notifications.module.css";
 
 export type Notification = Readonly<{
   message: string;
+  values?: Readonly<Record<string, string | number>>;
   tone: "success" | "neutral";
   dedupeKey?: string;
 }>;
@@ -37,17 +38,21 @@ export function NotificationProvider({
   children,
   label,
   closeLabel,
+  renderMessage = (message) => message,
 }: {
   children: ReactNode;
   label: string;
   closeLabel: string;
+  renderMessage?: (message: string, values: Notification["values"]) => ReactNode;
 }) {
   const [queue] = useState(() => new ToastQueue<Notification>({ maxVisibleToasts: 3 }));
   const keys = useRef(new Set<string>());
   const region = useRef<HTMLDivElement>(null);
   const notify = useCallback(
     (notification: Notification) => {
-      const key = notification.dedupeKey ?? `${notification.tone}:${notification.message}`;
+      const key =
+        notification.dedupeKey ??
+        `${notification.tone}:${notification.message}:${JSON.stringify(notification.values)}`;
       if (keys.current.has(key)) return;
       keys.current.add(key);
       queue.add(notification, { timeout: 5000, onClose: () => keys.current.delete(key) });
@@ -105,7 +110,7 @@ export function NotificationProvider({
               ) : (
                 <Info aria-hidden="true" />
               )}
-              <Text slot="title">{toast.content.message}</Text>
+              <Text slot="title">{renderMessage(toast.content.message, toast.content.values)}</Text>
             </ToastContent>
             <IconButton
               slot="close"

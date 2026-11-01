@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { materialSourceSchema, websiteStudyPackOutputSchema } from "@call-nina/contracts";
 import { ImagePlus, ScanText } from "lucide-react";
 import { ActionGroup } from "../../components/layout/index.js";
@@ -71,6 +72,7 @@ export function UploadEditorDialog({
     | "library"
   >;
 }) {
+  const { i18n } = useTranslation();
   const openProviderSettings = useOpenProviderSettings();
   const {
     editor,
@@ -328,7 +330,10 @@ export function UploadEditorDialog({
                 setMessage(e.target.value.length > 12000 ? "uploads.textLimit" : "");
               }}
             />
-            <span className={styles.meta}>{draft.text.length.toLocaleString()} / 12,000</span>
+            <span className={styles.meta}>
+              {draft.text.length.toLocaleString(i18n.language)} /{" "}
+              {(12000).toLocaleString(i18n.language)}
+            </span>
           </>
         )}
         {websitePreview && snapshot && (
@@ -348,11 +353,13 @@ export function UploadEditorDialog({
             </details>
           </>
         )}
-        {truncated && <Feedback live="polite">{t("uploads.truncated")}</Feedback>}
+        {truncated && (
+          <Feedback live="polite">{t("uploads.truncated", { limit: 120000 })}</Feedback>
+        )}
         {error && <OperationError error={error} />}{" "}
         {message && (
           <Feedback live="polite" tone="error">
-            {t(message)}
+            {t(message, { limit: 12000 })}
           </Feedback>
         )}
         {readingWebsite && <LoadingState>{t("uploads.readingWebsite")}</LoadingState>}

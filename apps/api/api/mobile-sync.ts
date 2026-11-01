@@ -120,7 +120,7 @@ export async function handle(request: Request): Promise<Response> {
           ? 409
           : code === "throttled"
             ? 429
-            : code === "invalid" || error instanceof z.ZodError
+            : code === "invalid" || error instanceof z.ZodError || error instanceof SyntaxError
               ? 400
               : 503;
     return json(
