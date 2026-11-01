@@ -121,7 +121,7 @@ export async function prepare() {
         target_commitish: info.commit,
         name: `Call Nina desktop ${info.version}`,
         draft: true,
-        body: `${info.marker}\nBuilt from ${info.commit}.\n\nUnsigned desktop builds: Linux x64 AppImage, Windows x64 ZIP, macOS Intel and Apple Silicon app archives. Signing and notarization are not included; platform security prompts may apply. Download the matching archive and its checksum. Native-host verification is tracked separately from successful packaging.\n\n${notes.body}`,
+        body: `${info.marker}\nBuilt from ${info.commit}.\n\nUnsigned desktop builds: Linux x64 AppImage, Windows x64 ZIP, macOS 13.5+ Intel and Apple Silicon DMGs (older builds may use app archives). Mac bundles use ad-hoc executable integrity only; Developer ID signing and notarization are not included. Intel is experimental: native runtime verification is pending. Download the matching asset and checksum. Open the DMG, drag Call Nina into Applications, then launch the installed app and eject the DMG. If macOS blocks opening, use Privacy & Security → Open Anyway for this app. Quit Nina and active Nina MCP sessions before manually replacing the app. Removing/replacing the app preserves learner data and credentials; Keychain may request permission again after an update. A previous app bundle does not reverse database migrations. Native-host verification is tracked separately from successful packaging.\n\n${notes.body}`,
       },
     });
   }

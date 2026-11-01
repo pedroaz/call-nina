@@ -1,0 +1,219 @@
+{
+  "updated": "2026-11-01",
+  "locales": {
+    "en": {
+      "title": "Website privacy",
+      "sources": "Provider information",
+      "sections": [
+        {
+          "title": "Who is responsible",
+          "paragraphs": [
+            "Pedro Azevedo Minutetnag is responsible for processing personal data on this website. For privacy requests, contact pedro.azvm@gmail.com. This notice covers the public website; the desktop application has its own analytics and feedback notice."
+          ]
+        },
+        {
+          "title": "Hosting and necessary requests",
+          "paragraphs": [
+            "Vercel Inc. delivers this website and its download API. Requests expose network information such as your IP address, request time, browser headers and requested resource to the hosting provider. Necessary delivery and security processing is based on our legitimate interest in operating and protecting the website (Article 6(1)(f) GDPR). Download availability is retrieved from GitHub. Activating a download opens a GitHub release asset, where GitHub processes your request under its own privacy statement."
+          ]
+        },
+        {
+          "title": "Optional analytics and performance measurement",
+          "paragraphs": [
+            "Only after you allow analytics do we load Vercel Web Analytics and Speed Insights. Your consent is the basis for this optional processing (Article 6(1)(a) GDPR and, where applicable, section 25(1) TDDDG). Refusing does not restrict access to the website or downloads.",
+            "Web Analytics measures page views and explicit interactions: opening and completing discovery steps, selected role, learning language, intended use and connection, feature selections, download platform and release version, and contact-link clicks. Vercel derives browser, operating system, device, referrer and approximate country information from requests. We remove query strings and fragments from reported page URLs. We attach no name, email, account identifier or free-text learner content.",
+            "Vercel documents request-derived visitor hashes with a session lifetime of up to 24 hours rather than third-party identification cookies. Speed Insights measures loading and interaction performance using browser Web Vitals, with route, device, browser, network and country information. Vercel receives network requests when the services connect."
+          ]
+        },
+        {
+          "title": "Choices and local storage",
+          "paragraphs": [
+            "Privacy settings lets you allow, reject or withdraw analytics at any time. Withdrawal stops future collection; it cannot recall requests already delivered and does not change the lawfulness of earlier processing.",
+            "We store your choice, notice version, timestamp and expiry in local storage on this website origin for six months, without an additional visitor identifier. The record is replaced when you change your choice. If storage is unavailable, the choice applies to the current page session.",
+            "The discovery questionnaire separately saves its progress and selected options in your browser so that you can resume it. It is not sent as analytics without consent. Discovery state stays until replaced, reset in the questionnaire or removed through your browser’s site-data controls. Local storage used for requested functionality is separate from analytics permission."
+          ]
+        },
+        {
+          "title": "Recipients, transfers and retention",
+          "paragraphs": [
+            "Vercel and its subprocessors provide hosting and measurement. Data may be processed outside the EEA, including in the United States. Vercel publishes a Data Processing Addendum with applicable transfer safeguards, including EU Standard Contractual Clauses. See the linked provider information for details.",
+            "The local consent record expires after six months; Vercel’s visitor-session identifier expires within 24 hours. Measurement and operational data follow Vercel’s service and account retention rules. The analytics reporting window depends on the plan and is not a promise that all provider data is deleted at its end. Contact us for the applicable account retention information or a deletion request. We do not create a separate analytics export or personal learning history."
+          ]
+        },
+        {
+          "title": "Your rights",
+          "paragraphs": [
+            "Where applicable, you can request access, rectification, erasure, restriction or portability of your personal data, object to processing based on legitimate interests, and withdraw consent. You may complain to a data-protection supervisory authority, particularly in your EU country of residence, work or the alleged infringement. We may be unable to identify an individual event because we attach no account identity to it.",
+            "Contact links open your email application. If you email us, we use the information you provide to handle and answer your request, based on Article 6(1)(b) or (f) GDPR as appropriate. We retain correspondence as needed for the request and applicable legal obligations. Google Search Console supplies aggregate search-performance reports and uses DNS verification; we install no Google Analytics or Google advertising tag."
+          ]
+        }
+      ]
+    },
+    "de": {
+      "title": "Datenschutz auf der Website",
+      "sources": "Informationen der Anbieter",
+      "sections": [
+        {
+          "title": "Verantwortlicher",
+          "paragraphs": [
+            "Pedro Azevedo Minutetnag ist für die Verarbeitung personenbezogener Daten auf dieser Website verantwortlich. Datenschutzanfragen bitte an pedro.azvm@gmail.com. Diese Erklärung gilt für die öffentliche Website; für Analyse und Feedback in der Desktop-App gibt es einen eigenen Hinweis."
+          ]
+        },
+        {
+          "title": "Hosting und erforderliche Anfragen",
+          "paragraphs": [
+            "Vercel Inc. stellt die Website und ihre Download-API bereit. Dabei erhält der Hostinganbieter Netzwerkdaten wie IP-Adresse, Zeitpunkt, Browser-Header und angeforderte Ressource. Die erforderliche Bereitstellung und Absicherung beruht auf unserem berechtigten Interesse am Betrieb und Schutz der Website (Art. 6 Abs. 1 lit. f DSGVO). Die Download-Verfügbarkeit wird von GitHub abgerufen. Ein Download öffnet eine GitHub-Release-Datei; GitHub verarbeitet die Anfrage nach seiner eigenen Datenschutzerklärung."
+          ]
+        },
+        {
+          "title": "Freiwillige Analyse und Leistungsmessung",
+          "paragraphs": [
+            "Vercel Web Analytics und Speed Insights werden erst nach deiner Zustimmung geladen. Grundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO und, soweit anwendbar, § 25 Abs. 1 TDDDG). Eine Ablehnung schränkt Website und Downloads nicht ein.",
+            "Web Analytics erfasst Seitenaufrufe und bewusste Interaktionen: Öffnen und Abschließen der Entdeckungsschritte, gewählte Rolle, Lernsprache, Verwendungszweck und Verbindung, Funktionsauswahl, Download-Plattform und Version sowie Kontaktlink-Klicks. Vercel leitet Browser, Betriebssystem, Gerät, Verweisquelle und ungefähres Land aus den Anfragen ab. Wir entfernen Suchparameter und Fragmente aus gemeldeten Seiten-URLs. Namen, E-Mail-Adressen, Konto-IDs und freie Lerntexte werden nicht angehängt.",
+            "Vercel beschreibt aus Anfragen abgeleitete Besucher-Hashes mit höchstens 24 Stunden Sitzungsdauer anstelle von Identifikationscookies Dritter. Speed Insights misst Lade- und Interaktionsleistung mit Browser-Web-Vitals sowie Angaben zu Route, Gerät, Browser, Netzwerk und Land. Bei der Verbindung erhält Vercel die Netzwerkanfragen."
+          ]
+        },
+        {
+          "title": "Auswahl und lokaler Speicher",
+          "paragraphs": [
+            "Unter Datenschutzeinstellungen kannst du die Analyse jederzeit erlauben, ablehnen oder eine Einwilligung widerrufen. Der Widerruf stoppt künftige Erfassung; bereits übermittelte Anfragen lassen sich nicht zurückholen. Die Rechtmäßigkeit früherer Verarbeitung bleibt unberührt.",
+            "Deine Auswahl, Hinweisversion, Zeitstempel und Ablaufdatum speichern wir sechs Monate im lokalen Speicher dieser Website, ohne zusätzliche Besucher-ID. Eine neue Auswahl ersetzt den Eintrag. Ist der Speicher nicht verfügbar, gilt die Auswahl für die aktuelle Seitensitzung.",
+            "Der Entdeckungsfragebogen speichert Fortschritt und ausgewählte Optionen getrennt im Browser, damit du fortfahren kannst. Ohne Einwilligung werden sie nicht als Analysedaten übermittelt. Sie bleiben bis zum Überschreiben, Zurücksetzen im Fragebogen oder Löschen der Website-Daten im Browser gespeichert. Speicher für angeforderte Funktionen ist von der Analyseerlaubnis getrennt."
+          ]
+        },
+        {
+          "title": "Empfänger, Übermittlungen und Speicherung",
+          "paragraphs": [
+            "Vercel und seine Unterauftragsverarbeiter stellen Hosting und Messung bereit. Daten können außerhalb des EWR, einschließlich in den USA, verarbeitet werden. Vercel veröffentlicht einen Auftragsverarbeitungsvertrag mit anwendbaren Übermittlungsgarantien, einschließlich EU-Standardvertragsklauseln. Einzelheiten findest du in den verlinkten Anbieterinformationen.",
+            "Die lokale Auswahl läuft nach sechs Monaten ab, die Vercel-Sitzungskennung innerhalb von 24 Stunden. Mess- und Betriebsdaten unterliegen den Speicherregeln des Dienstes und Kontos bei Vercel. Der tarifabhängige Berichtszeitraum garantiert keine Löschung aller Anbieterdaten an seinem Ende. Kontaktiere uns für die geltenden Kontospeicherfristen oder einen Löschantrag. Wir erstellen keinen getrennten Analyseexport und keine persönliche Lernhistorie."
+          ]
+        },
+        {
+          "title": "Deine Rechte",
+          "paragraphs": [
+            "Soweit anwendbar, kannst du Auskunft, Berichtigung, Löschung, Einschränkung oder Übertragbarkeit deiner Daten verlangen, einer Verarbeitung aufgrund berechtigter Interessen widersprechen und eine Einwilligung widerrufen. Du kannst dich bei einer Datenschutzaufsichtsbehörde beschweren, insbesondere in deinem EU-Wohnsitzland, am Arbeitsplatz oder am Ort des vermuteten Verstoßes. Einzelne Ereignisse können wir möglicherweise nicht zuordnen, weil wir keine Kontoidentität anhängen.",
+            "Kontaktlinks öffnen dein E-Mail-Programm. Wenn du uns schreibst, nutzen wir deine Angaben zur Bearbeitung und Beantwortung deiner Anfrage auf Grundlage von Art. 6 Abs. 1 lit. b oder f DSGVO, je nach Anliegen. Korrespondenz bleibt so lange gespeichert, wie es das Anliegen und gesetzliche Pflichten erfordern. Google Search Console liefert zusammengefasste Suchleistungsberichte und nutzt DNS-Verifizierung; wir installieren keine Google-Analytics- oder Google-Werbe-Tags."
+          ]
+        }
+      ]
+    },
+    "es": {
+      "title": "Privacidad del sitio web",
+      "sources": "Información de los proveedores",
+      "sections": [
+        {
+          "title": "Responsable",
+          "paragraphs": [
+            "Pedro Azevedo Minutetnag es responsable del tratamiento de datos personales de este sitio. Para consultas de privacidad: pedro.azvm@gmail.com. Este aviso cubre el sitio público; la aplicación de escritorio tiene un aviso propio sobre análisis y comentarios."
+          ]
+        },
+        {
+          "title": "Alojamiento y solicitudes necesarias",
+          "paragraphs": [
+            "Vercel Inc. proporciona el sitio y su API de descargas. Las solicitudes exponen al proveedor datos de red como tu dirección IP, hora, cabeceras del navegador y recurso solicitado. La entrega y seguridad necesarias se basan en nuestro interés legítimo en operar y proteger el sitio (artículo 6.1.f del RGPD). La disponibilidad de descargas se consulta en GitHub. Al descargar, abres un archivo de una publicación de GitHub, que trata la solicitud conforme a su propia declaración de privacidad."
+          ]
+        },
+        {
+          "title": "Análisis y medición del rendimiento opcionales",
+          "paragraphs": [
+            "Solo cargamos Vercel Web Analytics y Speed Insights después de que permitas el análisis. La base es tu consentimiento (artículo 6.1.a del RGPD y, cuando corresponda, artículo 25.1 de la TDDDG). Rechazarlo no limita el acceso al sitio ni a las descargas.",
+            "Web Analytics mide páginas vistas e interacciones explícitas: abrir y completar los pasos de exploración, rol, idioma de aprendizaje, uso y conexión seleccionados, funciones elegidas, plataforma y versión de descarga, y clics de contacto. Vercel obtiene información del navegador, sistema operativo, dispositivo, procedencia y país aproximado a partir de las solicitudes. Eliminamos parámetros y fragmentos de las URL de página comunicadas. No adjuntamos nombres, correos, identificadores de cuenta ni textos libres del aprendizaje.",
+            "Vercel documenta hashes de visitantes derivados de solicitudes con sesiones de hasta 24 horas, en lugar de cookies de identificación de terceros. Speed Insights mide carga e interacción mediante Web Vitals, con información de ruta, dispositivo, navegador, red y país. Vercel recibe las solicitudes de red cuando se conectan los servicios."
+          ]
+        },
+        {
+          "title": "Elecciones y almacenamiento local",
+          "paragraphs": [
+            "En Ajustes de privacidad puedes permitir o rechazar el análisis y retirar tu consentimiento en cualquier momento. Retirarlo detiene la recopilación futura, pero no recupera solicitudes ya entregadas ni afecta a la legalidad del tratamiento anterior.",
+            "Guardamos tu elección, versión del aviso, fecha y caducidad en el almacenamiento local de este origen durante seis meses, sin un identificador adicional de visitante. Cambiar la elección sustituye el registro. Si el almacenamiento no está disponible, la elección se aplica a la sesión de página actual.",
+            "El cuestionario de exploración guarda por separado su progreso y opciones en tu navegador para que puedas continuar. No se envían como análisis sin consentimiento. Permanecen hasta que se sustituyan, reinicies el cuestionario o borres los datos del sitio en el navegador. El almacenamiento de funciones solicitadas es independiente del permiso de análisis."
+          ]
+        },
+        {
+          "title": "Destinatarios, transferencias y conservación",
+          "paragraphs": [
+            "Vercel y sus subencargados proporcionan alojamiento y medición. Los datos pueden tratarse fuera del EEE, incluidos Estados Unidos. Vercel publica un acuerdo de tratamiento con las garantías de transferencia aplicables, incluidas las cláusulas contractuales tipo de la UE. Consulta la información enlazada.",
+            "La elección local caduca a los seis meses y el identificador de sesión de Vercel, en 24 horas. Los datos de medición y operación siguen las reglas de conservación del servicio y la cuenta de Vercel. El período de informes depende del plan y no garantiza la eliminación de todos los datos del proveedor al terminar. Contáctanos para conocer la conservación aplicable o solicitar la eliminación. No creamos una exportación separada de análisis ni un historial personal de aprendizaje."
+          ]
+        },
+        {
+          "title": "Tus derechos",
+          "paragraphs": [
+            "Cuando corresponda, puedes solicitar acceso, rectificación, supresión, limitación o portabilidad, oponerte al tratamiento por interés legítimo y retirar tu consentimiento. Puedes reclamar ante una autoridad de protección de datos, especialmente en tu país de residencia o trabajo de la UE o donde se produzca la presunta infracción. Quizá no podamos identificar un evento individual porque no adjuntamos una identidad de cuenta.",
+            "Los enlaces de contacto abren tu aplicación de correo. Usamos lo que nos envíes para atender y responder a tu consulta, sobre la base del artículo 6.1.b o f del RGPD, según corresponda. Conservamos la correspondencia lo necesario para la consulta y las obligaciones legales. Google Search Console ofrece informes agregados de búsquedas y usa verificación DNS; no instalamos etiquetas de Google Analytics ni publicidad de Google."
+          ]
+        }
+      ]
+    },
+    "pt-BR": {
+      "title": "Privacidade do site",
+      "sources": "Informações dos fornecedores",
+      "sections": [
+        {
+          "title": "Responsável",
+          "paragraphs": [
+            "Pedro Azevedo Minutetnag é responsável pelo tratamento de dados pessoais neste site. Para solicitações de privacidade: pedro.azvm@gmail.com. Este aviso cobre o site público; o aplicativo de desktop tem seu próprio aviso de análise e feedback."
+          ]
+        },
+        {
+          "title": "Hospedagem e solicitações necessárias",
+          "paragraphs": [
+            "A Vercel Inc. fornece este site e sua API de downloads. As solicitações expõem ao provedor informações de rede como endereço IP, horário, cabeçalhos do navegador e recurso solicitado. A entrega e a segurança necessárias se baseiam no nosso interesse legítimo em operar e proteger o site (artigo 6(1)(f) do RGPD). A disponibilidade de downloads é consultada no GitHub. Ao baixar, você abre um arquivo de uma versão do GitHub, que trata a solicitação conforme sua própria declaração de privacidade."
+          ]
+        },
+        {
+          "title": "Análise e medição de desempenho opcionais",
+          "paragraphs": [
+            "Carregamos Vercel Web Analytics e Speed Insights somente depois que você permite a análise. A base é seu consentimento (artigo 6(1)(a) do RGPD e, quando aplicável, seção 25(1) da TDDDG). Recusar não limita o acesso ao site ou aos downloads.",
+            "O Web Analytics mede visualizações e interações explícitas: abertura e conclusão das etapas de descoberta, perfil, idioma de estudo, uso e conexão escolhidos, seleção de recursos, plataforma e versão de download e cliques de contato. A Vercel obtém navegador, sistema operacional, dispositivo, origem e país aproximado a partir das solicitações. Removemos parâmetros e fragmentos das URLs de página informadas. Não anexamos nome, e-mail, identificador de conta nem textos livres de aprendizagem.",
+            "A Vercel documenta hashes de visitantes derivados de solicitações, com sessões de até 24 horas, em vez de cookies de identificação de terceiros. O Speed Insights mede carregamento e interação com Web Vitals do navegador e informações de rota, dispositivo, navegador, rede e país. A Vercel recebe solicitações de rede quando os serviços se conectam."
+          ]
+        },
+        {
+          "title": "Escolhas e armazenamento local",
+          "paragraphs": [
+            "Em Configurações de privacidade, você pode permitir ou recusar a análise e retirar seu consentimento a qualquer momento. A retirada impede coletas futuras, mas não recupera solicitações já entregues nem afeta a legalidade do tratamento anterior.",
+            "Salvamos sua escolha, versão do aviso, data e validade no armazenamento local desta origem por seis meses, sem identificador adicional de visitante. Uma nova escolha substitui o registro. Se o armazenamento estiver indisponível, a escolha vale para a sessão atual da página.",
+            "O questionário de descoberta salva separadamente seu progresso e opções no navegador para que você possa continuar. Eles não são enviados como análise sem consentimento. Permanecem até serem substituídos, você reiniciar o questionário ou apagar os dados do site no navegador. O armazenamento para funções solicitadas é separado da permissão de análise."
+          ]
+        },
+        {
+          "title": "Destinatários, transferências e retenção",
+          "paragraphs": [
+            "A Vercel e seus subprocessadores fornecem hospedagem e medição. Os dados podem ser tratados fora do EEE, inclusive nos Estados Unidos. A Vercel publica um acordo de tratamento com as garantias de transferência aplicáveis, incluindo cláusulas contratuais padrão da UE. Consulte as informações vinculadas.",
+            "A escolha local expira em seis meses e o identificador de sessão da Vercel, em até 24 horas. Os dados de medição e operação seguem as regras de retenção do serviço e da conta Vercel. O período de relatórios depende do plano e não garante que todos os dados do fornecedor sejam apagados ao final. Entre em contato para saber a retenção aplicável ou solicitar exclusão. Não criamos uma exportação separada de análise nem um histórico pessoal de aprendizagem."
+          ]
+        },
+        {
+          "title": "Seus direitos",
+          "paragraphs": [
+            "Quando aplicável, você pode solicitar acesso, correção, exclusão, restrição ou portabilidade, se opor ao tratamento por interesse legítimo e retirar seu consentimento. Pode reclamar a uma autoridade de proteção de dados, especialmente no seu país de residência ou trabalho na UE ou no local da suposta infração. Talvez não possamos identificar um evento individual, pois não anexamos uma identidade de conta.",
+            "Os links de contato abrem seu aplicativo de e-mail. Usamos as informações que você enviar para tratar e responder à solicitação, com base no artigo 6(1)(b) ou (f) do RGPD, conforme o caso. Guardamos a correspondência conforme necessário para a solicitação e as obrigações legais. O Google Search Console fornece relatórios agregados de buscas e usa verificação DNS; não instalamos tags do Google Analytics ou de publicidade do Google."
+          ]
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "label": "Vercel Web Analytics — Privacy and Compliance",
+      "url": "https://vercel.com/docs/analytics/privacy-policy"
+    },
+    {
+      "label": "Vercel Speed Insights — Privacy and Compliance",
+      "url": "https://vercel.com/docs/speed-insights/privacy-policy"
+    },
+    {
+      "label": "Vercel Data Processing Addendum",
+      "url": "https://vercel.com/legal/dpa"
+    },
+    {
+      "label": "Vercel Privacy Notice",
+      "url": "https://vercel.com/legal/privacy-policy"
+    },
+    {
+      "label": "GitHub Privacy Statement",
+      "url": "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+    }
+  ]
+}

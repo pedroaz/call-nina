@@ -121,7 +121,7 @@ export function SpeechStorage() {
                             pack.diskBytes > 0) && (
                             <Button
                               variant="quiet"
-                              isDisabled={busy}
+                              isDisabled={busy || !view.supported}
                               onPress={() => {
                                 setRemoval(pack);
                               }}
@@ -192,7 +192,7 @@ export function SpeechStorage() {
             </Button>
             <Button
               variant="danger"
-              isDisabled={busy}
+              isDisabled={busy || !view?.supported}
               onPress={() =>
                 void act({ action: "remove", packId: removal.id }).then((ok) => {
                   if (ok) setRemoval(null);

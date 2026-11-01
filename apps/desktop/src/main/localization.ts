@@ -4,6 +4,8 @@ import type { Language } from "@call-nina/contracts";
 const interfaceMessages = {
   "en-US": {
     chooseFolder: "Choose Call Nina data folder",
+    settings: "Settings…",
+    view: "View",
     exportDiagnostics: "Export redacted Call Nina diagnostics",
     invalidCallback: "Invalid sign-in callback.",
     expiredCallback: "Invalid or expired sign-in callback.",
@@ -12,6 +14,8 @@ const interfaceMessages = {
   },
   "pt-BR": {
     chooseFolder: "Escolher pasta de dados da Call Nina",
+    settings: "Ajustes…",
+    view: "Visualizar",
     exportDiagnostics: "Exportar diagnóstico da Call Nina sem dados pessoais",
     invalidCallback: "Retorno de login inválido.",
     expiredCallback: "Retorno de login inválido ou expirado.",
@@ -20,6 +24,8 @@ const interfaceMessages = {
   },
   es: {
     chooseFolder: "Elegir carpeta de datos de Call Nina",
+    settings: "Ajustes…",
+    view: "Visualización",
     exportDiagnostics: "Exportar diagnóstico de Call Nina sin datos personales",
     invalidCallback: "Respuesta de inicio de sesión no válida.",
     expiredCallback: "Respuesta de inicio de sesión no válida o caducada.",
@@ -28,6 +34,8 @@ const interfaceMessages = {
   },
   de: {
     chooseFolder: "Datenordner für Call Nina auswählen",
+    settings: "Einstellungen…",
+    view: "Darstellung",
     exportDiagnostics: "Bereinigte Call-Nina-Diagnose exportieren",
     invalidCallback: "Ungültige Anmeldeantwort.",
     expiredCallback: "Ungültige oder abgelaufene Anmeldeantwort.",

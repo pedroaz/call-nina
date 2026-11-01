@@ -423,7 +423,7 @@ export function ConnectionSetupDialog({
                 offline.snapshot.state === "unavailable") && (
                 <Button
                   variant="primary"
-                  isDisabled={busy || offlineBusy}
+                  isDisabled={busy || offlineBusy || !offlinePreflight?.platformSupported}
                   onPress={() => {
                     setConfirmOfflineRemove(true);
                   }}
@@ -438,7 +438,7 @@ export function ConnectionSetupDialog({
                 <div className={styles.actions}>
                   <Button
                     variant="primary"
-                    isDisabled={busy || offlineBusy}
+                    isDisabled={busy || offlineBusy || !offlinePreflight?.platformSupported}
                     onPress={() => void manageOffline("remove")}
                   >
                     {t("connectionSettings.offlineConfirmRemove")}

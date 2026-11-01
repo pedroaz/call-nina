@@ -53,6 +53,15 @@ export class LearnerRoot {
     this.#environment = environment;
     this.#services = services;
   }
+  #databaseEvent(code: string) {
+    this.#environment.log?.({
+      timestamp: new Date().toISOString(),
+      severity: code.endsWith("FAILED") ? "error" : "info",
+      component: "desktop",
+      code,
+      message: "Learner storage initialization stage.",
+    });
+  }
   async dataRootState(correlationId: string) {
     if (this.#rootSwitching)
       return {
@@ -86,11 +95,13 @@ export class LearnerRoot {
         this.#mobile.cancel();
         this.#assets.speech.resetRoot();
         this.#database?.close();
+        this.#databaseEvent("DESKTOP_DATABASE_OPENING");
         this.#database = await openCallNinaDatabase({
           bootstrapFile: this.#environment.bootstrapFile,
           dataRoot: state.dataRoot,
           rootGeneration: state.rootGeneration,
         });
+        this.#databaseEvent("DESKTOP_DATABASE_READY");
         this.#repository = new CallNinaRepository(this.#database);
       }
       await this.#assets.bindStorage(state.dataRoot);
@@ -102,6 +113,7 @@ export class LearnerRoot {
         warnings: [],
       };
     } catch (error) {
+      this.#databaseEvent("DESKTOP_DATA_ROOT_FAILED");
       const message = error instanceof Error ? error.message : "";
       const kind = message.includes("STALE") ? "stale-data-root" : "database";
       const reason = message.includes("STALE")

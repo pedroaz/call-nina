@@ -329,7 +329,10 @@ export function useSettingsPageController({
     try {
       const result = await invokeDesktop("chatgpt/account/login/start", {
         uiLocale: i18n.language as Language,
-        registrationId: (selectedRegistration ?? accounts?.selectedId) || null,
+        registrationId:
+          accounts?.state.status === "unavailable"
+            ? null
+            : (selectedRegistration ?? accounts?.selectedId) || null,
       });
       setLoginId(result.loginId);
       setNotice("settings.loginStarted");

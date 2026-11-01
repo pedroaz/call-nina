@@ -77,7 +77,19 @@ linux:
 mac:
   icon: assets/call-nina.icns
   category: public.app-category.education
-  identity: null
+  minimumSystemVersion: "13.5"
+  identity: "-"
+  hardenedRuntime: false
+  notarize: false
+  signIgnore:
+    - "Contents/Resources/mac-runtime/node$"
+  extraResources:
+    - from: ../../release/mac-runtime
+      to: mac-runtime
+    - from: ../../scripts/diagnostics/mac-diagnostics.mjs
+      to: diagnostics/mac-diagnostics.mjs
+    - from: ../../scripts/diagnostics/mac-bundle.mjs
+      to: diagnostics/mac-bundle.mjs
   target: dir
 win:
   icon: assets/call-nina.ico
@@ -87,3 +99,13 @@ protocols:
   - name: Call Nina activity
     schemes:
       - call-nina
+
+dmg:
+  contents:
+    - x: 130
+      y: 180
+      type: file
+    - x: 410
+      y: 180
+      type: link
+      path: /Applications

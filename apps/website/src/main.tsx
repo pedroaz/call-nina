@@ -6,6 +6,10 @@ import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
 import { featureDetails } from "./feature-details";
 import { Downloads } from "./Downloads";
 import { Discovery } from "./Discovery";
+import { WebsitePrivacy } from "./WebsitePrivacy";
+import { PrivacyNotice } from "./PrivacyNotice";
+import { privacyCopy } from "./privacy-copy";
+import { WebsiteTelemetry, trackWebsiteEvent } from "./telemetry";
 import { LanguageSelector } from "./LanguageSelector";
 import { copy, featureIds, languages, type FeatureId, type Locale } from "./locales";
 import "@call-nina/design-system/tokens.css";
@@ -13,6 +17,7 @@ import "@call-nina/design-system/fonts.css";
 import "./styles.css";
 
 const isAboutPage = /^\/about(?:\/|\/index\.html)?$/.test(window.location.pathname);
+const isPrivacyPage = /^\/privacy(?:\/|\/index\.html)?$/.test(window.location.pathname);
 const repository = "https://github.com/pedroaz/call-nina";
 function localeFromUrl(): Locale {
   const requested = new URLSearchParams(window.location.search).get("lang");
@@ -33,10 +38,21 @@ function App() {
   }, []);
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title = isAboutPage ? `${t.about} — Call Nina` : t.title;
+    document.title = isPrivacyPage
+      ? `${privacyCopy[locale].notice} — Call Nina`
+      : isAboutPage
+        ? `${t.about} — Call Nina`
+        : t.title;
     document
       .querySelector('meta[name="description"]')
-      ?.setAttribute("content", isAboutPage ? t.aboutPlaceholder : t.description);
+      ?.setAttribute(
+        "content",
+        isPrivacyPage
+          ? privacyCopy[locale].description
+          : isAboutPage
+            ? t.aboutPlaceholder
+            : t.description,
+      );
   }, [locale, t]);
   function changeLanguage(next: Locale) {
     setLocale(next);
@@ -70,88 +86,94 @@ function App() {
           <LanguageSelector locale={locale} onChange={changeLanguage} />
         </nav>
       </header>
-      <main id="main" tabIndex={-1}>
-        {isAboutPage ? (
-          <section className="about wrap" aria-labelledby="about-title">
-            <h1 id="about-title">{t.about}</h1>
-            <p>{t.aboutPlaceholder}</p>
-          </section>
-        ) : (
-          <>
-            <section className="hero wrap" aria-labelledby="hero-title">
-              <div className="hero-copy">
-                <h1 id="hero-title">{t.headline}</h1>
-                <p className="lead">{t.mission}</p>
-                <div className="hero-actions">
-                  <Downloads locale={locale} />
-                  <Discovery
-                    locale={locale}
-                    onLocaleChange={changeLanguage}
-                    onExplore={(next) => {
-                      setFeature(next ?? "paths");
-                      requestAnimationFrame(() => {
-                        const target = document.getElementById(
-                          next ? `feature-${next}` : "features",
-                        );
-                        target?.focus({ preventScroll: true });
-                        target?.scrollIntoView({ block: "center" });
-                      });
-                    }}
-                  />
+      <WebsiteTelemetry />
+      <WebsitePrivacy locale={locale}>
+        <main id="main" tabIndex={-1}>
+          {isPrivacyPage ? (
+            <PrivacyNotice locale={locale} />
+          ) : isAboutPage ? (
+            <section className="about wrap" aria-labelledby="about-title">
+              <h1 id="about-title">{t.about}</h1>
+              <p>{t.aboutPlaceholder}</p>
+            </section>
+          ) : (
+            <>
+              <section className="hero wrap" aria-labelledby="hero-title">
+                <div className="hero-copy">
+                  <h1 id="hero-title">{t.headline}</h1>
+                  <p className="lead">{t.mission}</p>
+                  <div className="hero-actions">
+                    <Downloads locale={locale} />
+                    <Discovery
+                      locale={locale}
+                      onLocaleChange={changeLanguage}
+                      onExplore={(next) => {
+                        setFeature(next ?? "paths");
+                        requestAnimationFrame(() => {
+                          const target = document.getElementById(
+                            next ? `feature-${next}` : "features",
+                          );
+                          target?.focus({ preventScroll: true });
+                          target?.scrollIntoView({ block: "center" });
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="hero-art">
-                <img src={ninaWelcome} alt="" width="1280" height="1280" fetchPriority="high" />
-              </div>
-            </section>
-            <section
-              className="features wrap"
-              id="features"
-              tabIndex={-1}
-              aria-label={t.featuresTitle}
-            >
-              <div className="feature-strip" role="group" aria-label={t.featuresTitle}>
-                {featureIds.map((id) => (
-                  <Button
-                    key={id}
-                    id={`feature-${id}`}
-                    variant="quiet"
-                    aria-pressed={feature === id}
-                    aria-controls={`detail-${id}`}
-                    onPress={() => {
-                      setFeature(id);
-                    }}
-                  >
-                    {t.features[id].label}
-                  </Button>
-                ))}
-              </div>
-              <div className="feature-panels">
-                {featureIds.map((id) => (
-                  <section
-                    className="feature-detail"
-                    id={`detail-${id}`}
-                    key={id}
-                    aria-hidden={feature !== id}
-                    inert={feature !== id}
-                    aria-labelledby={`detail-title-${id}`}
-                  >
-                    <div className="feature-overview">
-                      <h2 id={`detail-title-${id}`}>{featureDetails[locale][id].title}</h2>
-                      <p>{featureDetails[locale][id].description}</p>
-                    </div>
-                    <ul className="feature-points">
-                      {featureDetails[locale][id].points.map((point) => (
-                        <li key={point}>{point}</li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
-              </div>
-            </section>
-          </>
-        )}
-      </main>
+                <div className="hero-art">
+                  <img src={ninaWelcome} alt="" width="1280" height="1280" fetchPriority="high" />
+                </div>
+              </section>
+              <section
+                className="features wrap"
+                id="features"
+                tabIndex={-1}
+                aria-label={t.featuresTitle}
+              >
+                <div className="feature-strip" role="group" aria-label={t.featuresTitle}>
+                  {featureIds.map((id) => (
+                    <Button
+                      key={id}
+                      id={`feature-${id}`}
+                      variant="quiet"
+                      aria-pressed={feature === id}
+                      aria-controls={`detail-${id}`}
+                      onPress={() => {
+                        trackWebsiteEvent("feature_selected", { feature: id, source: "tabs" });
+                        setFeature(id);
+                      }}
+                    >
+                      {t.features[id].label}
+                    </Button>
+                  ))}
+                </div>
+                <div className="feature-panels">
+                  {featureIds.map((id) => (
+                    <section
+                      className="feature-detail"
+                      id={`detail-${id}`}
+                      key={id}
+                      aria-hidden={feature !== id}
+                      inert={feature !== id}
+                      aria-labelledby={`detail-title-${id}`}
+                    >
+                      <div className="feature-overview">
+                        <h2 id={`detail-title-${id}`}>{featureDetails[locale][id].title}</h2>
+                        <p>{featureDetails[locale][id].description}</p>
+                      </div>
+                      <ul className="feature-points">
+                        {featureDetails[locale][id].points.map((point) => (
+                          <li key={point}>{point}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+        </main>
+      </WebsitePrivacy>
     </I18nProvider>
   );
 }

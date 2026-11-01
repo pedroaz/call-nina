@@ -5,12 +5,13 @@ import {
   downloadCopy,
   parseDownloads,
   platforms,
-  platformLabels,
+  formatDownloadLabel,
   recommendedPlatform,
   releasesUrl,
   type Downloads as DownloadData,
   type Platform,
 } from "./downloads";
+import { trackWebsiteEvent } from "./telemetry";
 import "./downloads.css";
 
 type State =
@@ -85,7 +86,7 @@ export function Downloads({ locale }: { locale: Locale }) {
       </svg>
       <span className="download-label">
         <span>
-          {ready ? (platform ? platformLabels[platform].split(" · ")[0] : t.all) : t.download}
+          {ready ? (platform ? formatDownloadLabel(platform, ready) : t.all) : t.download}
         </span>
         {ready && <span className="download-meta">· v{ready.version}</span>}
       </span>
@@ -117,7 +118,10 @@ export function Downloads({ locale }: { locale: Locale }) {
           <ActionLink
             className="download-primary"
             href={ready.downloads[platform]}
-            aria-label={`${t.download} ${platformLabels[platform].split(" · ")[0] ?? platformLabels[platform]} · v${ready.version}`}
+            onPress={() => {
+              trackWebsiteEvent("download_clicked", { platform, version: ready.version });
+            }}
+            aria-label={`${t.download} ${formatDownloadLabel(platform, ready)} · v${ready.version}`}
           >
             {downloadLabel}
           </ActionLink>
@@ -164,7 +168,17 @@ export function Downloads({ locale }: { locale: Locale }) {
             <ul>
               {platforms.map((id) => (
                 <li key={id}>
-                  <a href={ready.downloads[id]}>{platformLabels[id]}</a>
+                  <a
+                    href={ready.downloads[id]}
+                    onClick={() => {
+                      trackWebsiteEvent("download_clicked", {
+                        platform: id,
+                        version: ready.version,
+                      });
+                    }}
+                  >
+                    {formatDownloadLabel(id, ready)}
+                  </a>
                 </li>
               ))}
             </ul>
