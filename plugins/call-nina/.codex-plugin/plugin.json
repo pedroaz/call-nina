@@ -1,6 +1,6 @@
 {
   "name": "call-nina",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "description": "Local German-learning workflows and bounded learner-state tools for Codex.",
   "author": {
     "name": "Call Nina"

@@ -7,6 +7,19 @@ const desktopBuilds = [
 
 export const desktopTargets = desktopBuilds.map(({ platform }) => platform);
 
+// Publication jobs receive the exact platform set pinned by source inspection.
+export function publicationPlatforms() {
+  const selected = JSON.parse(process.env.RELEASE_SOURCE_PLATFORMS ?? "null");
+  if (
+    !Array.isArray(selected) ||
+    selected.length === 0 ||
+    new Set(selected).size !== selected.length ||
+    selected.some((id) => !desktopTargets.includes(id))
+  )
+    throw new Error("Missing or invalid verified publication platforms");
+  return desktopTargets.filter((id) => selected.includes(id));
+}
+
 export function selectDesktopBuilds(target, inputs) {
   const selected = desktopBuilds.filter(({ input }) => {
     if (target === "hosting") return false;

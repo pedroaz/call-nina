@@ -1,5 +1,6 @@
 import { context, github, repository, setOutput, summary } from "./common.mjs";
 import { desktopTargets, verify } from "./artifacts.mjs";
+import { publicationPlatforms } from "./targets.mjs";
 import { speechTargets } from "../speech/distribution.mjs";
 
 export async function resolveSource() {
@@ -41,31 +42,37 @@ export async function inspectSource(runId, publicationCommit) {
   const expected = desktopTargets.map((id) => `desktop-${id}`);
   const selectedArtifacts = artifacts.filter((item) => expected.includes(item.name));
   if (
-    selectedArtifacts.length !== expected.length ||
-    expected.some((name) => selectedArtifacts.filter((item) => item.name === name).length !== 1) ||
+    selectedArtifacts.length === 0 ||
+    new Set(selectedArtifacts.map((item) => item.name)).size !== selectedArtifacts.length ||
     selectedArtifacts.some(
       (item) =>
-        item.expired ||
-        Date.parse(item.expires_at) <= Date.now() ||
+        !Number.isSafeInteger(item.id) ||
+        item.id <= 0 ||
+        item.expired !== false ||
+        !(Date.parse(item.expires_at) > Date.now()) ||
         item.workflow_run?.head_sha !== build.head_sha ||
         String(item.workflow_run?.id) !== runId,
     )
   )
     throw new Error(
-      "Build requires all four desktop artifacts, unexpired and from the same commit",
+      "Build requires one or more unique desktop artifacts, unexpired and from the same commit",
     );
   const ids = selectedArtifacts
     .map((item) => item.id)
     .sort((a, b) => a - b)
     .join(",");
-  return { commit: build.head_sha, version, artifacts: ids, runId };
+  const platforms = desktopTargets.filter((id) =>
+    selectedArtifacts.some((item) => item.name === `desktop-${id}`),
+  );
+  return { commit: build.head_sha, version, artifacts: ids, platforms, runId };
 }
 
 export async function source() {
   const selected = await resolveSource();
   for (const key of ["commit", "version", "artifacts"]) await setOutput(key, selected[key]);
+  await setOutput("platforms", JSON.stringify(selected.platforms));
   await summary(
-    `Publish source: https://github.com/${repository}/actions/runs/${selected.runId}\nCommit: ${selected.commit}\nVersion: ${selected.version}\nAll four desktop artifacts are available. Publication will not rebuild them.`,
+    `Publish source: https://github.com/${repository}/actions/runs/${selected.runId}\nCommit: ${selected.commit}\nVersion: ${selected.version}\nPlatforms: ${selected.platforms.join(", ")}\nPublication will not rebuild them. Other platforms retain their previously published versions.`,
   );
 }
 
@@ -75,10 +82,15 @@ export async function verifySource() {
   if (
     selected.commit !== process.env.RELEASE_SOURCE_COMMIT ||
     selected.version !== process.env.RELEASE_SOURCE_VERSION ||
-    selected.artifacts !== process.env.RELEASE_SOURCE_ARTIFACTS
+    selected.artifacts !== process.env.RELEASE_SOURCE_ARTIFACTS ||
+    JSON.stringify(selected.platforms) !== JSON.stringify(publicationPlatforms())
   )
     throw new Error("Build identity changed after source selection");
-  for (const id of [...desktopTargets, ...speechTargets]) await verify(id);
+  for (const id of [
+    ...selected.platforms,
+    ...(selected.platforms.includes("linux-x64") ? speechTargets : []),
+  ])
+    await verify(id);
   await summary(
     "All source manifests, versions, targets and SHA-256 checksums verified before publication.",
   );

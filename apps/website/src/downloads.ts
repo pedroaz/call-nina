@@ -2,10 +2,11 @@ import type { Locale } from "./locales";
 
 export const platforms = ["linux-x64", "win32-x64", "darwin-x64", "darwin-arm64"] as const;
 export type Platform = (typeof platforms)[number];
+export type Download = { version: string; releaseUrl: string; url: string; format: string };
 export type Downloads = {
-  version: string;
+  schemaVersion: 2;
   releaseUrl: string;
-  downloads: Record<Platform, string>;
+  downloads: Partial<Record<Platform, Download>>;
 };
 export const releasesUrl = "https://github.com/pedroaz/call-nina/releases";
 export const platformLabels: Record<Platform, string> = {
@@ -58,19 +59,32 @@ export const downloadCopy: Record<Locale, typeof english> = {
   },
 };
 
-export function parseDownloads(value: unknown): Downloads {
-  if (!value || typeof value !== "object") throw new Error("Invalid downloads");
-  const data = value as Partial<Downloads>;
-  if (
-    typeof data.version !== "string" ||
-    !/^\d+\.\d+\.\d+$/.test(data.version) ||
-    data.releaseUrl !== `${releasesUrl}/tag/desktop-v${data.version}` ||
-    !data.downloads
-  )
+function record(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value))
     throw new Error("Invalid downloads");
-  const version = data.version;
+  return value as Record<string, unknown>;
+}
+export function parseDownloads(value: unknown): Downloads {
+  const data = record(value);
+  if (data["schemaVersion"] !== 2 || data["releaseUrl"] !== releasesUrl)
+    throw new Error("Invalid downloads");
+  const entries = record(data["downloads"]);
+  if (Object.keys(entries).some((id) => !platforms.some((platform) => platform === id)))
+    throw new Error("Invalid download platform");
+  const downloads: Downloads["downloads"] = {};
   for (const platform of platforms) {
-    const url = data.downloads[platform];
+    if (entries[platform] === undefined) continue;
+    const entry = record(entries[platform]);
+    const version = entry["version"],
+      format = entry["format"],
+      url = entry["url"];
+    const releaseUrl = `${releasesUrl}/tag/desktop-v${typeof version === "string" ? version : ""}`;
+    if (
+      typeof version !== "string" ||
+      !/^\d+\.\d+\.\d+$/.test(version) ||
+      entry["releaseUrl"] !== releaseUrl
+    )
+      throw new Error("Invalid download metadata");
     const extensions =
       platform === "linux-x64"
         ? ["AppImage"]
@@ -78,15 +92,16 @@ export function parseDownloads(value: unknown): Downloads {
           ? ["zip"]
           : ["dmg", "tar.gz"];
     if (
-      !extensions.some(
-        (extension) =>
-          url ===
-          `${releasesUrl}/download/desktop-v${version}/Call-Nina-${version}-${platform}.${extension}`,
-      )
+      typeof format !== "string" ||
+      !extensions.includes(format) ||
+      url !==
+        `${releasesUrl}/download/desktop-v${version}/Call-Nina-${version}-${platform}.${format}`
     )
       throw new Error("Invalid download URL");
+    downloads[platform] = { version, releaseUrl, url, format };
   }
-  return data as Downloads;
+  if (!Object.keys(downloads).length) throw new Error("No downloads available");
+  return { schemaVersion: 2, releaseUrl: releasesUrl, downloads };
 }
 
 type Hints = { platform?: string; mobile?: boolean; architecture?: string; bitness?: string };
@@ -130,8 +145,8 @@ export async function recommendedPlatform(): Promise<Platform | null> {
   return null;
 }
 
-export function formatDownloadLabel(platform: Platform, downloads: Downloads): string {
+export function formatDownloadLabel(platform: Platform, download: Download): string {
   if (!platform.startsWith("darwin-")) return platformLabels[platform];
-  const format = downloads.downloads[platform].endsWith(".dmg") ? "DMG" : "tar.gz";
+  const format = download.format === "dmg" ? "DMG" : "tar.gz";
   return `${platformLabels[platform]} · ${format}`;
 }
