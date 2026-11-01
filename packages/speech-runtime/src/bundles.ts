@@ -23,14 +23,31 @@ const file = z.strictObject({
   sha256: digest,
 });
 const runtimeFile = file.extend({ url: z.literal(""), executable: z.boolean() });
+const runtimeUrl = z.union([
+  z.literal(""),
+  z
+    .string()
+    .regex(
+      /^https:\/\/github\.com\/pedroaz\/call-nina\/releases\/download\/desktop-v\d+\.\d+\.\d+\/Call-Nina-speech-(?:piper|pocket)-linux-x64-[a-f0-9]{64}\.tar\.gz$/u,
+    ),
+]);
+const runtimeSchema = z.strictObject({
+  url: runtimeUrl,
+  bytes: z.int().positive().max(4_000_000_000),
+  sha256: digest,
+  files: z.array(runtimeFile).min(1).max(50000),
+});
+export const speechRuntimeCatalogSchema = z
+  .array(
+    z.strictObject({
+      engine: z.enum(["piper", "pocket"]),
+      runtime: runtimeSchema,
+    }),
+  )
+  .max(2);
 const installedPackSchema = z.strictObject({
   id: z.string(),
-  runtime: z.strictObject({
-    url: z.literal(""),
-    bytes: z.int().positive().max(4_000_000_000),
-    sha256: digest,
-    files: z.array(runtimeFile).min(1).max(50000),
-  }),
+  runtime: runtimeSchema,
 });
 function validateRuntime(files: z.infer<typeof runtimeFile>[]) {
   if (
@@ -142,7 +159,19 @@ export async function loadSpeechBundles(root: string, verifyFiles = false): Prom
 export async function loadLocalSpeechBundles(
   modelsRoot: string,
   preparedRoot: string,
+  runtimeCatalog: unknown = [],
+  developmentRoot?: string,
 ): Promise<SpeechBundles> {
+  const distributed = speechRuntimeCatalogSchema.parse(runtimeCatalog);
+  if (new Set(distributed.map((r) => r.engine)).size !== distributed.length)
+    throw new Error("OD_SPEECH_BUNDLES_INVALID");
+  for (const entry of distributed) {
+    validateRuntime(entry.runtime.files);
+    if (
+      !entry.runtime.url.includes(`speech-${entry.engine}-linux-x64-${entry.runtime.sha256}.tar.gz`)
+    )
+      throw new Error("OD_SPEECH_BUNDLES_INVALID");
+  }
   const installed = new Map<string, SpeechPack>();
   for (const pinned of speechPacks) {
     const descriptor = path.join(modelsRoot, "catalog", `${pinned.id}.json`);
@@ -154,21 +183,30 @@ export async function loadLocalSpeechBundles(
     validateRuntime(value.runtime.files);
     installed.set(pinned.id, { ...pinned, runtime: value.runtime });
   }
-  const prepared = (await exists(path.join(preparedRoot, "manifest.json")))
-    ? await loadSpeechBundles(preparedRoot)
-    : undefined;
+  const prepared: SpeechBundles[] = [];
+  for (const root of new Set([preparedRoot, ...(developmentRoot ? [developmentRoot] : [])]))
+    if (await exists(path.join(root, "manifest.json")))
+      prepared.push(await loadSpeechBundles(root));
+  // Learner-local preparation takes precedence. Checkout build artifacts are an
+  // additional read-only source, shared across new learner folders in development.
+  const localFiles = new Map(prepared.toReversed().flatMap((source) => [...source.localFiles]));
   return {
-    packs: speechPacks.map(
-      (pinned) =>
-        prepared?.packs.find((pack) => pack.id === pinned.id) ??
-        installed.get(pinned.id) ?? {
-          ...pinned,
-          runtime:
-            prepared?.packs.find((pack) => pack.engine === pinned.engine)?.runtime ??
-            [...installed.values()].find((pack) => pack.engine === pinned.engine)?.runtime ??
-            pinned.runtime,
-        },
-    ),
-    localFiles: prepared?.localFiles ?? new Map(),
+    packs: speechPacks.map((pinned) => {
+      const localRuntimes = prepared.flatMap((source) => {
+        const runtime = source.packs.find((pack) => pack.engine === pinned.engine)?.runtime;
+        return runtime ? [runtime] : [];
+      });
+      return {
+        ...pinned,
+        runtime:
+          localRuntimes.find((runtime) => localFiles.has(runtime.sha256)) ??
+          distributed.find((entry) => entry.engine === pinned.engine)?.runtime ??
+          installed.get(pinned.id)?.runtime ??
+          [...installed.values()].find((pack) => pack.engine === pinned.engine)?.runtime ??
+          localRuntimes[0] ??
+          pinned.runtime,
+      };
+    }),
+    localFiles,
   };
 }

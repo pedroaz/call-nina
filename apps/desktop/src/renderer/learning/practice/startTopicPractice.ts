@@ -1,0 +1,89 @@
+import {
+  type PracticeSource,
+  activityIdSchema,
+  voiceActivityContextSchema,
+  voiceActivityDraftCandidateSchema,
+} from "@call-nina/contracts";
+import { invokeDesktop } from "../../runtime/ipc.js";
+import { type useLearningOperation } from "../operations/useLearningOperation.js";
+import { generatePracticeActivity } from "./generatePracticeActivity.js";
+import type { PracticeKind } from "./PracticeTypeChooser.js";
+
+/** The same topic defaults and generation routes are used by Home and Practice. */
+export const practiceDefaults = { exerciseCount: 6, cardCount: 10 } as const;
+export async function startTopicPractice(
+  {
+    kind,
+    topic,
+    targetLevel,
+    count,
+    practiceSource,
+  }: {
+    kind: PracticeKind;
+    topic: string;
+    targetLevel: "a1" | "a2" | "b1" | "b2";
+    count?: number;
+    practiceSource?: PracticeSource | undefined;
+  },
+  run: ReturnType<typeof useLearningOperation>["run"],
+) {
+  const naturalRequest =
+    topic.trim() ||
+    (practiceSource?.kind === "upload"
+      ? "Practise the selected upload."
+      : "Practise vocabulary relevant to my learning needs.");
+  if (kind === "flashcards") {
+    const result = await run({
+      kind: "flashcard-generation",
+      ...(practiceSource ? { practiceSource } : {}),
+      topic: naturalRequest,
+      targetLevel,
+      cardCount: count ?? practiceDefaults.cardCount,
+    });
+    return activityIdSchema.parse(result.activityId);
+  }
+  if (kind === "listening" || kind === "speaking") {
+    const settings = {
+      targetLevel,
+      difficulty: "intermediate",
+      correctionTiming: "after-each",
+      ...(kind === "speaking" ? { speakingPace: "normal" as const } : {}),
+    } as const;
+    const result = await run({
+      kind: "voice-activity-draft",
+      ...(practiceSource ? { practiceSource } : {}),
+      voiceKind: kind,
+      naturalRequest,
+      ...settings,
+    });
+    if (result.status !== "validated" || !result.learningScope)
+      throw new Error("OD_LEARNING_CONTEXT_REQUIRED");
+    const output = voiceActivityDraftCandidateSchema.parse(result.output);
+    const prepared = await invokeDesktop("codex-activity/prepare", {
+      draftModelRequestId: result.modelRequestId,
+      title: output.scenario.slice(0, 160),
+      context: voiceActivityContextSchema.parse({
+        schemaVersion: 1,
+        kind,
+        ...settings,
+        scenario: output.scenario,
+        objectives: output.objectives,
+        questions: output.questions,
+        answerGuidance: output.answerGuidance,
+        ...(kind === "listening" && output.script ? { script: output.script } : {}),
+      }),
+    });
+    return prepared.activityId;
+  }
+  return generatePracticeActivity(
+    {
+      source: kind === "custom" ? "natural-request" : kind,
+      naturalRequest,
+      targetLevel,
+      exerciseCount: count ?? practiceDefaults.exerciseCount,
+    },
+    run,
+    undefined,
+    practiceSource,
+  );
+}

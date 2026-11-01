@@ -29,7 +29,7 @@ concurrency:
   group: build-${{ github.run_id }}
   cancel-in-progress: false
 env:
-  NINA_ENVIRONMENT: production
+  NINA_ENVIRONMENT: prd
   RELEASE_TARGET: ${{ inputs.target }}
   RELEASE_OPERATION: build-only
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -68,6 +68,12 @@ jobs:
           ref: ${{ needs.preflight.outputs.sha }}
           persist-credentials: false
       - uses: ./.github/actions/release-setup
+      - name: Install speech runtime build tool (Linux only)
+        if: matrix.platform == 'linux-x64'
+        run: |
+          python3 -m venv build/speech-tools
+          build/speech-tools/bin/python -m pip install uv==0.11.21
+          echo "$PWD/build/speech-tools/bin" >> "$GITHUB_PATH"
       - name: Package desktop
         run: node scripts/ci/release.mjs desktop
         env:

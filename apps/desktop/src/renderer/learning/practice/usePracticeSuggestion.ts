@@ -1,0 +1,140 @@
+import {
+  callNinaErrorSchema,
+  errorDefinitions,
+  type ActivityId,
+  type CallNinaError,
+  type PracticeSuggestion,
+  type ProviderOperation,
+} from "@call-nina/contracts";
+import { useEffect, useRef, useState } from "react";
+import {
+  createDesktopSubmissionId,
+  DesktopOperationError,
+  invokeDesktop,
+  normalizeDesktopError,
+} from "../../runtime/ipc.js";
+import { useLearningOperation } from "../operations/useLearningOperation.js";
+import { generatePracticeActivity, reusePracticeActivity } from "./generatePracticeActivity.js";
+import type { PracticeKind } from "./PracticeTypeChooser.js";
+
+export type PracticeLaunch =
+  | { destination: "activity"; activityId: ActivityId; autoStart?: boolean }
+  | { destination: "writing"; prompt: string }
+  | { destination: "vocabulary" }
+  | { destination: "preparation"; kind: PracticeKind; prompt: string };
+
+export type SuggestionActions = {
+  requestAiAccess: (operation: ProviderOperation) => Promise<boolean>;
+  onLaunch: (intent: PracticeLaunch) => void;
+};
+
+export function usePracticeSuggestion({ requestAiAccess, onLaunch }: SuggestionActions) {
+  const operation = useLearningOperation();
+  const active = useRef(false);
+  const mounted = useRef(true);
+  const reuseLaunchIds = useRef(new Map<string, ReturnType<typeof createDesktopSubmissionId>>());
+  const [starting, setStarting] = useState<string>();
+  const [error, setError] = useState<CallNinaError>();
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  const isMounted = () => mounted.current;
+  const start = async (suggestion: PracticeSuggestion) => {
+    if (active.current) return;
+    active.current = true;
+    setStarting(suggestion.id);
+    setError(undefined);
+    try {
+      const root = await invokeDesktop("data-root/read", {});
+      if (!mounted.current) return;
+      if (root.status !== "ready" || root.generation !== suggestion.rootGeneration) {
+        const definition = errorDefinitions["stale-data-root"];
+        throw new DesktopOperationError(
+          callNinaErrorSchema.parse({
+            schemaVersion: 1,
+            kind: "stale-data-root",
+            ...definition,
+            reference: {
+              code: definition.code,
+              correlationId: createDesktopSubmissionId(),
+              occurredAt: new Date().toISOString(),
+            },
+          }),
+        );
+      }
+      const profile = await invokeDesktop("learner-profile/read", {});
+      if (
+        profile.status !== "ready" ||
+        profile.profile.learningContext.targetLanguage !== suggestion.targetLanguage
+      )
+        throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
+      if (suggestion.preparedActivityId) {
+        const source = await invokeDesktop("activity/resolve", {
+          action: "open-activity",
+          activityId: suggestion.preparedActivityId,
+        });
+        if (
+          source.rootGeneration !== suggestion.rootGeneration ||
+          source.destination !== "generated-exercises" ||
+          source.activity.activityType !== suggestion.kind ||
+          source.activity.context.learningScope.targetLanguage !== suggestion.targetLanguage ||
+          source.activity.context.learningScope.learnerId !==
+            profile.profile.learningContext.learnerId ||
+          source.activity.context.learningScope.courseId !==
+            profile.profile.learningContext.courseId
+        )
+          throw new Error("OD_ACTIVITY_CAPABILITY_INVALID");
+        const content = await invokeDesktop("prepared-activity/read", {
+          activityId: suggestion.preparedActivityId,
+        });
+        const launchId = reuseLaunchIds.current.get(suggestion.id) ?? createDesktopSubmissionId();
+        reuseLaunchIds.current.set(suggestion.id, launchId);
+        const activityId = await reusePracticeActivity(
+          {
+            activityId: suggestion.preparedActivityId,
+            content: content.content,
+            context: { origin: "nina" },
+            expectedGeneration: suggestion.rootGeneration,
+          },
+          launchId,
+        );
+        reuseLaunchIds.current.delete(suggestion.id);
+        if (isMounted()) onLaunch({ destination: "activity", activityId });
+      } else if (suggestion.kind === "writing") {
+        onLaunch({ destination: "writing", prompt: suggestion.naturalRequest });
+      } else if (suggestion.source === "due-vocabulary") {
+        onLaunch({ destination: "vocabulary" });
+      } else if (["codex-listening", "voice-speaking"].includes(suggestion.kind)) {
+        onLaunch({
+          destination: "preparation",
+          kind: suggestion.kind === "codex-listening" ? "listening" : "speaking",
+          prompt: suggestion.naturalRequest,
+        });
+      } else {
+        if (!(await requestAiAccess("exercise-generation")) || !isMounted()) return;
+        const activityId = await generatePracticeActivity(
+          { source: "suggestion", suggestion },
+          operation.run,
+        );
+        if (isMounted()) onLaunch({ destination: "activity", activityId });
+      }
+    } catch (cause) {
+      if (mounted.current) setError(normalizeDesktopError(cause).detail);
+    } finally {
+      active.current = false;
+      if (mounted.current) setStarting(undefined);
+    }
+  };
+  return {
+    start,
+    starting,
+    error,
+    cancel: operation.cancel,
+    generating: operation.busy,
+    progress: operation.progress,
+  };
+}

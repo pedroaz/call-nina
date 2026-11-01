@@ -5,13 +5,6 @@ description: Inspect Call Nina's real Electron UI and perform bounded interactiv
 
 # Interactive Electron verification
 
-<!-- MVP-BEGIN -->
-
-## MVP mode (temporary)
-
-Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact.
-<!-- MVP-END -->
-
 Choose the smallest useful check. Visual evidence, behavior acceptance, process exit and cleanup completion are distinct results. Do not turn a problem in one into a blanket development blocker. No application test suites, saved journeys, fixtures, mocks or screenshot regression suites.
 
 ## Running development app (default)
@@ -19,6 +12,8 @@ Choose the smallest useful check. Visual evidence, behavior acceptance, process 
 Identify the running Call Nina development window, checkout/build and data root, then inspect and interact with it using available UI tools. No separate owned session, reservation, frozen checkout, Orca or historical recovery is required. Follow root `AGENTS.md` authorization: settings, drafts, active exercises and existing learner records may be changed or deleted; AI calls, development data resets and app restarts are allowed as needed for verification. No extra permission, record-ownership proof or restoration is required for this development data.
 
 Observe the screen/accessibility tree, perform an action, then inspect the result. Verify behavior through the real UI; direct data changes may prepare/reset development state but are not evidence that a UI workflow works. Use the development skill's real-connection/model policy for AI checks. Identify exact processes before restarting the development app and leave it usable afterward. Source edits may proceed while it runs; reload/restart when needed and tie observations to the build actually inspected. Keep screenshots out of Git and diagnostic logs.
+
+`make dev` exposes its existing renderer through a loopback-only Chromium debugging endpoint on a random port. Read the ignored private `.runtime/dev-control.json`, match its `runId` and `servicePid` to the ready `.runtime/dev.json`, and verify that service with `inspectOwnedProcess` from `scripts/dev/lib/lifecycle.mjs` before attaching. Connect Playwright's `chromium.connectOverCDP(control.endpoint)` and select the Call Nina page by its observed title/URL. Use ordinary locators, accessibility snapshots and screenshots to operate that same window; do not invoke preload IPC or inject application behavior. Disconnect with the CDP browser connection's `close()` when done; keep `make dev` running. Prefer this route over launching another app or the optional controller below. Renderer edits hot reload; bundled main/preload changes can require one normal `make dev` restart. The endpoint is enabled only by the dev service and never added to prd or packaged launches. Never log or commit the endpoint.
 
 For direct controller launches, inherit the desktop session environment, including `DBUS_SESSION_BUS_ADDRESS`, `XDG_RUNTIME_DIR`, display variables, `XDG_CURRENT_DESKTOP`, `DESKTOP_SESSION` and `KDE_SESSION_VERSION` on KDE. Read these from the actual desktop shell environment; the Node tool environment may omit them. Omitting the KDE version can select the obsolete KWallet backend even when KWallet 6 is available. Diagnose storage with the real session before changing credential code; never force plaintext storage or import another application’s authentication.
 

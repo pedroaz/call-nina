@@ -11,7 +11,7 @@ export const selectionError =
   flag !== -1 && process.env.NINA_ENVIRONMENT && selected !== process.env.NINA_ENVIRONMENT
     ? "Environment flag conflicts with NINA_ENVIRONMENT"
     : selected !== undefined && !hostingEnvironments.includes(selected)
-      ? "Select --environment preview or production"
+      ? "Select --environment dev or prd"
       : null;
 export const environment = hostingEnvironments.includes(selected) ? selected : undefined;
 export const infrastructure = await read("infrastructure.json");
@@ -36,7 +36,7 @@ export function publicConfiguration(selectedEnvironment = environment) {
         throw new ControlError(`Invalid ${key}`);
     }
   }
-  const prefix = name === "production" ? "live" : "test";
+  const prefix = name === "prd" ? "live" : "test";
   if (
     profile.publishableKey !== null &&
     !new RegExp(`^pk_${prefix}_[A-Za-z0-9=]+$`).test(profile.publishableKey)
@@ -95,10 +95,10 @@ export async function checkPublicConfiguration(selectedEnvironment = environment
     throw new ControlError(
       "Generated public configuration is stale; run infra configure-client for the selected environment",
     );
-  const other = infrastructure[name === "production" ? "preview" : "production"];
+  const other = infrastructure[name === "prd" ? "dev" : "prd"];
   if (
     profile.clerkInstanceId === other.clerkInstanceId ||
     profile.clerkIssuer === other.clerkIssuer
   )
-    throw new ControlError("Preview and production must use separate Clerk instances");
+    throw new ControlError("Dev and prd must use separate Clerk instances");
 }

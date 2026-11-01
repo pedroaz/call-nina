@@ -1,5 +1,5 @@
-import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, ModalDialog, Nina } from "../ui/index.js";
 import styles from "./Activity.module.css";
 

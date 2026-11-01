@@ -1,7 +1,7 @@
-import { lstat, readdir } from "node:fs/promises";
-import path from "node:path";
 import type { personalDataOverviewSchema, z } from "@call-nina/contracts";
 import { resolveDataRootLayout } from "@call-nina/persistence";
+import { lstat, readdir } from "node:fs/promises";
+import path from "node:path";
 
 type Location = z.infer<typeof personalDataOverviewSchema>["locations"][number];
 

@@ -7,7 +7,7 @@ import { limits } from "./protocol.js";
 export const servicePolicySchema = z
   .strictObject({
     enabled: z.literal(true),
-    environment: z.enum(["preview", "production"]),
+    environment: z.enum(["dev", "prd"]),
     budgetId: z.uuid(),
     budgetMicroUsd: z.int().positive().max(1_000_000_000_000),
     startsAt: z.iso.datetime(),

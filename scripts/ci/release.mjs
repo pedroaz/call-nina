@@ -74,6 +74,9 @@ try {
     case "publish":
       await (await import("./desktop-release.mjs")).publish();
       break;
+    case "database":
+      await (await import("./database-prepare.mjs")).prepareDatabase();
+      break;
     case "deploy":
       await (await import("./hosting-deploy.mjs")).deploy();
       break;

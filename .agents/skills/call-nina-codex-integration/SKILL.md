@@ -5,23 +5,20 @@ description: Maintain Call Nina's direct ChatGPT/provider adapters, model select
 
 # Call Nina Codex integration
 
-<!-- MVP-BEGIN -->
-
-## MVP mode (temporary)
-
-Call Nina is in MVP mode. Apply the maintainer's [MVP policy](../../../AGENTS.md#mvp-mode-temporary) for development and verification: local changes, direct combined Vercel production deployment, MVP account/test-data administration, required migrations and runtime permissions are already authorized within the requested task. This overrides conflicting full-release and repeated-approval requirements below; it does not widen this skill's functional scope or authorize paid-service activation/purchases. Keep real verification, credential protection and financial accounting intact.
-<!-- MVP-END -->
-
 Inspect the current implementation and runtime capabilities before diagnosing compatibility. Repository-relative starting points:
 
-- Direct ChatGPT generation and authentication: `apps/desktop/src/main/chatgpt-session.ts`, `chatgpt-transport.ts`, `chatgpt-generation.ts` and `backend.ts`. External Codex discovery in `packages/codex-client/src/discovery.ts` serves only explicit Voice/plugin integration.
+- Direct ChatGPT generation and authentication: `apps/desktop/src/main/chatgpt-session.ts`, `chatgpt-transport.ts`, `chatgpt-generation.ts` and `services/providers.ts` / `provider-commands.ts`. The session delegates encrypted storage, catalog access and identity validation to `main/chatgpt/`; OAuth and serialized refresh stay in the session. External Codex discovery in `packages/codex-client/src/discovery.ts` serves only explicit Voice/plugin integration.
 - Portable context, teaching prompts, output validation, quality and the single deadline-bound repair live in `packages/learning-workflows/src/`; app-owned requests, results, states, capabilities and provenance live in `packages/contracts/src/generation.ts` and `generation-provenance.ts`. This boundary must not import provider transport, credentials, Node or Electron.
-- Direct personal API transports and the shipped support allowlist: `packages/direct-api/src/`; active dispatch and private device-key reads: `apps/desktop/src/main/backend.ts`. Catalogs are static support policy, never live key/access validation. Explicit SDK instances pin provider endpoints; no ambient credentials, Gateway resolution or fallback. Shared workflows retain prompt/schema/repair ownership.
+- Direct personal API transports and the shipped support allowlist: `packages/direct-api/src/`; active dispatch and private device-key reads: `apps/desktop/src/main/services/connection-runtime.ts` and `providers.ts`. Catalogs are static support policy, never live key/access validation. Explicit SDK instances pin provider endpoints; no ambient credentials, Gateway resolution or fallback. Shared workflows retain prompt/schema/repair ownership.
 - Offline adapter and download ownership: `packages/offline-runtime/src/`; its catalog explicitly distinguishes supported operations from unverified quality/native execution. Nina account sessions are independent of these personal-provider sessions. Managed generation and Clerk integration: use [the hosted API and administration skill](../call-nina-hosted-admin/SKILL.md).
 - Model catalog and saved/effective choices: `packages/codex-client/src/catalog.ts`, `packages/domain/src/model-preference.ts` and their renderer callers.
 - Scoped installation and payload staging: `packages/codex-client/src/plugin.ts`, `plugin-source.ts`, `apps/desktop/src/main/plugin-integration.ts`, `plugins/call-nina/.codex-plugin/plugin.json`, `.mcp.json`, and the plugin package scripts.
 - MCP tools: `packages/contracts/src/mcp.ts`, `apps/mcp-server/src/index.ts`; teaching workflows: `plugins/call-nina/skills/`.
 - Cross-surface opening: `apps/desktop/src/main/deep-link.ts` and its callers. Inspect exact activity and generation validation before changing routing.
+
+Uploaded practice captures one immutable upload revision in main as `uploadSource`, alongside learner scope and the selected provider/model, including the selected upload-owned learning items. Shared generation prompts treat its text as untrusted source material and constrain subject matter to it; adaptive history informs scaffolding and feedback. Voice preparation persists this snapshot, and the explicit MCP Voice read returns it. Handoff remains user initiated; never send a message or start Voice automatically. Image reading uses the existing vocabulary-analysis image capability and routing checks, without adding an implicit fallback provider.
+
+Website study packs use the dedicated structured `website-study-pack` operation. Main reads exactly one public page in a temporary isolated renderer through socket-validated bounded HTTPS transport; models receive text, never browsing tools. Shared workflows distinguish exact source quotations from generated suggestions and examples. Attribution repair restores whitespace-only matches to verbatim source slices; page items must also contain the normalized lemma or declared plural in their evidence (recover an exact source occurrence when available); unsupported page claims become suggestions without excerpts, and unmatched quotations become generated examples. Never use fuzzy spelling, punctuation or semantic matches as quotation evidence. Deduplicate normalized learning identities without discarding valid items. The deployed managed route and Local do not advertise this operation; no implicit provider fallback.
 
 ## Decisions to preserve
 

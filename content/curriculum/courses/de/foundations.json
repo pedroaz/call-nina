@@ -14167,7 +14167,8 @@
         "de": "Lerne Menschen kennen und bewältige Alltagssituationen.",
         "es": "Conoce gente y desenvuélvete en situaciones cotidianas.",
         "pt-BR": "Conheça pessoas e lide com situações do dia a dia."
-      }
+      },
+      "presentation": "supplementary"
     },
     {
       "id": "a1-2",
@@ -14184,7 +14185,8 @@
         "de": "Finde dich zurecht und plane deinen Alltag.",
         "es": "Oriéntate y organiza tus planes cotidianos.",
         "pt-BR": "Oriente-se e organize seus planos cotidianos."
-      }
+      },
+      "presentation": "supplementary"
     }
   ]
 }

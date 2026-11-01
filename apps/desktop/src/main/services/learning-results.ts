@@ -1,39 +1,36 @@
 import {
-  ingestVocabulary,
-  readVocabularyAnalysis,
+  activityIdSchema,
+  flashcardGenerationCandidateSchema,
+  modelRequestIdSchema,
+  utcInstantSchema,
+  vocabularyAnalysisOutputSchema,
+  type DesktopIpcEvent,
+  type exerciseGenerationCandidateSchema,
+  type GenerationProvenance,
+} from "@call-nina/contracts";
+import { resolveCourseReference } from "@call-nina/domain";
+import {
   assertCallNinaDatabaseLease,
+  ingestVocabulary,
   readLearningCourse,
+  readVocabularyAnalysis,
   saveGeneratedFlashcards,
-  writingAttemptPersistenceSchema,
+  stageUploadAnalysis,
   type CallNinaDatabase,
   type CallNinaRepository,
 } from "@call-nina/persistence";
-import {
-  vocabularyAnalysisOutputSchema,
-  type GenerationProvenance,
-  activityIdSchema,
-  attemptIdSchema,
-  correctionIdSchema,
-  exerciseIdSchema,
-  historyEntryIdSchema,
-  mistakeIdSchema,
-  modelRequestIdSchema,
-  utcInstantSchema,
-  flashcardGenerationCandidateSchema,
-  type exerciseGenerationCandidateSchema,
-  type DesktopIpcEvent,
-} from "@call-nina/contracts";
-import { alignCorrectionTexts, resolveCourseReference } from "@call-nina/domain";
 import {
   opaqueId,
   type AcceptedOperation,
   type ValidatedWritingState,
 } from "../backend-support.js";
+import { WritingResultPersistence } from "./writing-results.js";
 
 /** Applies validated learning results to a single leased data-root generation.
  * Operation scheduling, cancellation and provider process ownership stay with the caller.
  */
 export class LearningResultService {
+  readonly #writing: WritingResultPersistence;
   readonly #database: CallNinaDatabase;
   readonly #repository: CallNinaRepository;
   readonly #curriculumRoot: string;
@@ -45,6 +42,7 @@ export class LearningResultService {
     curriculumRoot: string;
     emitEvent?: (event: DesktopIpcEvent) => void;
   }) {
+    this.#writing = new WritingResultPersistence(options);
     this.#database = options.database;
     this.#repository = options.repository;
     this.#curriculumRoot = options.curriculumRoot;
@@ -60,224 +58,8 @@ export class LearningResultService {
   async persistWritingCorrection(
     accepted: AcceptedOperation,
     state: ValidatedWritingState,
-  ): Promise<void> {
-    await this.#assertGeneration(accepted);
-    const repository = this.#repository;
-    const operation = accepted.operation;
-    if (operation.input.kind !== "writing-correction") {
-      throw new Error("OD_WRITING_ATTEMPT_KIND_INVALID");
-    }
-    const completedAt = utcInstantSchema.parse(new Date().toISOString());
-    const activityId = activityIdSchema.parse(opaqueId("activity"));
-    const exerciseId = exerciseIdSchema.parse(opaqueId("exercise"));
-    const attemptId = attemptIdSchema.parse(opaqueId("attempt"));
-    const correctionId = correctionIdSchema.parse(opaqueId("correction"));
-    const historyEntryId = historyEntryIdSchema.parse(opaqueId("history-entry"));
-    const provenance = {
-      source: "ai" as const,
-      producer: "desktop-app-server" as const,
-      connectionId: accepted.connection.id,
-      modelRequestId: state.modelRequestId,
-      generatedAt: completedAt,
-      modelSelection: {
-        availability: "reported" as const,
-        modelId: state.provenance.modelId,
-        effortId: state.provenance.effortId,
-      },
-    };
-    const objective = {
-      key: "writing-correction",
-      description: operation.input.activityGoal.slice(0, 500),
-    };
-    const exercise = {
-      exerciseId,
-      aiProvenance: provenance,
-      cefrBand: operation.input.calibration.approximateLevel.toLowerCase(),
-      objectives: [objective],
-      instructions: operation.input.activityGoal,
-      hints: [],
-      feedbackMode: "immediate" as const,
-      curriculumTopicIds: [],
-      vocabularySetLinks: [],
-      kind: "free-writing" as const,
-      content: { prompt: operation.input.activityGoal },
-      answerContract: {
-        kind: "free-text" as const,
-        maximumCharacters: 10_000,
-        evaluation: "ai" as const,
-      },
-    };
-    const aligned = alignCorrectionTexts(
-      operation.input.learnerText,
-      state.output.correctedText,
-      state.output.changes,
-    );
-    const alignment = aligned.map((segment) => {
-      if (segment.kind === "unchanged") return segment;
-      const candidate =
-        segment.candidateIndex === null ? undefined : state.output.changes[segment.candidateIndex];
-      return {
-        kind: segment.kind,
-        originalText: segment.originalText,
-        correctedText: segment.correctedText,
-        category: candidate?.category ?? "clarity",
-        severity: candidate?.severity ?? "minor",
-        priority: candidate?.severity === "meaning-affecting" ? "high" : "medium",
-        explanation: candidate?.explanation ?? state.output.summary.slice(0, 800),
-        grammarTopicIds: [],
-        uncertainty: candidate?.uncertainty ?? state.output.overallUncertainty,
-      };
-    });
-    const mistakes = alignment.flatMap((segment, alignmentSegmentPosition) => {
-      if (segment.kind === "unchanged") return [];
-      const category = ["word-choice", "register", "idiom"].includes(segment.category)
-        ? {
-            kind: "vocabulary" as const,
-            categoryKey: segment.category,
-            lemma:
-              (segment.correctedText || segment.originalText).trim().slice(0, 160) ||
-              segment.category,
-          }
-        : {
-            kind: "grammar" as const,
-            categoryKey: segment.category,
-            curriculumTopicIds: segment.grammarTopicIds,
-          };
-      return [
-        {
-          proposedMistakeId: mistakeIdSchema.parse(opaqueId("mistake")),
-          alignmentSegmentPosition,
-          category,
-        },
-      ];
-    });
-    const improvements = [
-      ...state.output.changes.map(({ explanation }) => explanation),
-      ...state.output.caveats,
-    ].slice(0, 20);
-    const completedAfterPreviousEventMilliseconds = Math.max(
-      0,
-      Date.parse(completedAt) - Date.parse(accepted.startedAt),
-    );
-    const vocabularyEntries: never[] = [];
-    const record = writingAttemptPersistenceSchema.parse({
-      learningScope: {
-        learnerId: operation.input.learningContext.learnerId,
-        courseId: operation.input.learningContext.courseId,
-        targetLanguage: operation.input.learningContext.targetLanguage,
-      },
-      activityId,
-      historyEntryId,
-      title: operation.input.activityGoal.slice(0, 160),
-      workload: "correction",
-      startedExercise: {
-        schemaVersion: 1,
-        lifecycle: "started",
-        startedAt: accepted.startedAt,
-        exercise,
-      },
-      attemptId,
-      answer: {
-        submittedAfterPreviousEventMilliseconds: 0,
-        answer: { kind: "free-writing", text: operation.input.learnerText },
-      },
-      completedAfterPreviousEventMilliseconds,
-      objectiveEvaluations: [
-        {
-          outcome:
-            state.output.changes.length === 0
-              ? "demonstrated"
-              : state.output.changes.some(({ severity }) => severity === "meaning-affecting")
-                ? "not-demonstrated"
-                : "developing",
-          evidence: state.output.summary.slice(0, 1_000),
-          uncertainty: state.output.overallUncertainty,
-        },
-      ],
-      feedback: {
-        source: { kind: "ai", modelRequestId: state.modelRequestId },
-        summary: state.output.summary,
-        strengths: state.output.changes.length === 0 ? ["No textual changes were needed."] : [],
-        improvements,
-        ...(state.output.nextPracticeSuggestion
-          ? { nextStep: state.output.nextPracticeSuggestion }
-          : {}),
-        overallUncertainty: state.output.overallUncertainty,
-        mistakeIds: mistakes.map(({ proposedMistakeId }) => proposedMistakeId),
-        vocabularyCandidateIds: vocabularyEntries.map(({ vocabularyId }) => vocabularyId),
-      },
-      correction: {
-        schemaVersion: 1,
-        correctionId,
-        attemptId,
-        createdAt: completedAt,
-        aiProvenance: provenance,
-        alignment,
-        naturalAlternative: state.output.naturalAlternative
-          ? { status: "provided", text: state.output.naturalAlternative }
-          : { status: "not-needed" },
-        vocabularyCandidates: state.output.vocabularyCandidates,
-        followUp: state.output.nextPracticeSuggestion
-          ? {
-              status: "suggested",
-              title: state.output.nextPracticeSuggestion.slice(0, 160),
-              reason: state.output.nextPracticeSuggestion,
-              naturalRequest: state.output.nextPracticeSuggestion,
-              grammarTopicIds: [],
-            }
-          : { status: "not-suggested" },
-        overallUncertainty: state.output.overallUncertainty,
-      },
-      mistakes,
-      vocabularyEntries,
-      completedAt,
-    });
-    await repository.saveWritingAttempt(record);
-    const lexicalChanges = state.output.changes.filter(
-      (c) =>
-        ["word-choice", "idiom", "register"].includes(c.category) && c.uncertainty.level === "none",
-    );
-    const words = state.output.vocabularyCandidates
-      .filter(
-        (c) =>
-          c.uncertainty.level === "none" &&
-          lexicalChanges.some(
-            (change) =>
-              change.correctedText.includes(c.lemma) ||
-              (change.correctedText.length > 0 &&
-                (c.sourceExcerpt.includes(change.correctedText) ||
-                  c.lemma.includes(change.correctedText))) ||
-              (c.sourceExcerpt.includes(change.originalText) && change.originalText.length > 0),
-          ),
-      )
-      .slice(0, 20);
-    try {
-      await ingestVocabulary(this.#database, {
-        language: operation.input.learningContext.targetLanguage,
-        sourceKey: `correction:${accepted.operationId}`,
-        output: {
-          title: operation.input.activityGoal.slice(0, 160),
-          readable: true,
-          extractedText: "",
-          words: words.map((w) => ({
-            lemma: w.lemma,
-            meaning: w.meaning,
-            lexeme: { partOfSpeech: "other" },
-            examples: [{ text: w.sourceExcerpt, meaning: w.meaning }],
-            reason: w.rationale,
-            excerpt: w.sourceExcerpt,
-            outcome: "difficulty",
-            attemptId,
-          })),
-        },
-      });
-      this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
-    } catch {
-      /* The saved correction remains usable even when optional vocabulary ingestion fails. */
-    }
-
-    this.#emitEvent?.({ event: "state-invalidated", scope: "dashboard" });
-    this.#emitEvent?.({ event: "state-invalidated", scope: "history" });
+  ): Promise<ReturnType<typeof activityIdSchema.parse>> {
+    return this.#writing.persistWritingCorrection(accepted, state);
   }
 
   async persistVocabulary(accepted: AcceptedOperation, value: unknown) {
@@ -285,11 +67,22 @@ export class LearningResultService {
     const input = accepted.operation.input;
     if (input.kind !== "vocabulary-analysis") throw new Error("OD_VOCABULARY_INPUT_INVALID");
     const output = vocabularyAnalysisOutputSchema.parse(value);
-    if (!output.readable) return;
+    if (input.mode === "preview") return;
+    if (input.mode === "upload" && input.upload) {
+      await stageUploadAnalysis(this.#database, {
+        analysisId: accepted.operationId,
+        reference: input.upload,
+        language: input.learningContext.targetLanguage,
+        output,
+      });
+      this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
+      return;
+    }
+    if (!output.readable) throw new Error("OD_VOCABULARY_SOURCE_UNREADABLE");
     if (input.mode === "activity") {
       const activityId = input.sourceKey.split(":")[1];
       if (!activityId) throw new Error("OD_VOCABULARY_SOURCE_INVALID");
-      const source = await readVocabularyAnalysis(this.#database, activityId);
+      const source = await readVocabularyAnalysis(this.#database, activityId, input.sourceKey);
       if (source.sourceKey !== input.sourceKey) throw new Error("OD_VOCABULARY_SOURCE_STALE");
       const attempts = JSON.parse(source.sourceText) as Array<{
         attemptId: string;
@@ -300,8 +93,13 @@ export class LearningResultService {
       output.words = output.words.filter((word) => {
         const attempt = attempts.find((a) => a.attemptId === word.attemptId);
         if (!attempt || word.outcome === "requested") return false;
-        const sourceText = JSON.stringify({ exercise: attempt.exercise, answer: attempt.answer });
-        if (!sourceText.includes(word.excerpt)) return false;
+        const containsExcerpt = (value: unknown): boolean => {
+          if (typeof value === "string") return value.includes(word.excerpt);
+          if (Array.isArray(value)) return value.some(containsExcerpt);
+          if (value && typeof value === "object") return Object.values(value).some(containsExcerpt);
+          return false;
+        };
+        if (!containsExcerpt({ exercise: attempt.exercise, answer: attempt.answer })) return false;
         return (
           word.outcome !== "success" ||
           (!attempt.assisted &&
@@ -326,10 +124,6 @@ export class LearningResultService {
         language: input.learningContext.targetLanguage,
         sourceKey: input.sourceKey,
         output,
-        focus: {
-          guidance: input.guidance,
-          text: input.image ? output.extractedText : input.sourceText,
-        },
       });
     }
     this.#emitEvent?.({ event: "state-invalidated", scope: "vocabulary" });
@@ -357,6 +151,7 @@ export class LearningResultService {
         originSurface: "desktop",
         preparedAt,
         context: {
+          ...(input.uploadSource ? { uploadSource: input.uploadSource } : {}),
           learningScope: {
             learnerId: input.learningContext.learnerId,
             courseId: input.learningContext.courseId,
@@ -418,6 +213,7 @@ export class LearningResultService {
         (operation.input.targetedMistakePattern ? "Targeted practice" : "Quiz"),
       originSurface: "desktop" as const,
       context: {
+        ...(operation.input.uploadSource ? { uploadSource: operation.input.uploadSource } : {}),
         learningScope: {
           learnerId: operation.input.learningContext.learnerId,
           courseId: operation.input.learningContext.courseId,
@@ -448,7 +244,13 @@ export class LearningResultService {
       },
     } as const;
     const vocabularyEntries: never[] = [];
-    const material = operation.input.materialReference ??
+    const material = (operation.input.uploadSource
+      ? {
+          materialId: operation.input.uploadSource.material.materialId,
+          revisionId: operation.input.uploadSource.material.revisionId,
+        }
+      : undefined) ??
+      operation.input.materialReference ??
       operation.input.material ?? {
         kind: operation.input.reading?.passage ? ("pasted-text" as const) : ("topic" as const),
         title: activity.title,

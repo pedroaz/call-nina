@@ -19,7 +19,26 @@
         "de": "Frage nach Ziel, Abfahrtszeit und Fahrkarte.",
         "es": "Pregunta por un destino, una salida y un billete.",
         "pt-BR": "Pergunte sobre o destino, o horário de saída e a passagem."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "train-ticket-mission",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Buy a train ticket",
+        "de": "Eine Fahrkarte kaufen",
+        "es": "Comprar un billete de tren",
+        "pt-BR": "Comprar uma passagem de trem"
+      },
+      "description": {
+        "en": "Ask for a destination, a departure time, and a ticket.",
+        "de": "Frage nach Ziel, Abfahrtszeit und Fahrkarte.",
+        "es": "Pregunta por un destino, una salida y un billete.",
+        "pt-BR": "Pergunte sobre o destino, o horário de saída e a passagem."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Nach dem Abfahrtsgleis fragen.",
         "es": "¿De qué andén sale el tren?",
         "pt-BR": "De qual plataforma sai o trem?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-train-ticket-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Eine Fahrkarte nach Bonn, bitte.",
+      "meaning": {
+        "en": "A ticket to Bonn, please.",
+        "de": "Eine Fahrt nach Bonn bestellen.",
+        "es": "Un billete a Bonn, por favor.",
+        "pt-BR": "Uma passagem para Bonn, por favor."
+      },
+      "example": "Eine Fahrkarte nach Bonn, bitte.",
+      "exampleMeaning": {
+        "en": "A ticket to Bonn, please.",
+        "de": "Eine Fahrt nach Bonn bestellen.",
+        "es": "Un billete a Bonn, por favor.",
+        "pt-BR": "Uma passagem para Bonn, por favor."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-train-ticket-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich fahre heute auch zurück.",
+      "meaning": {
+        "en": "I am returning today too.",
+        "de": "Ich brauche auch eine Rückfahrt.",
+        "es": "Hoy también vuelvo.",
+        "pt-BR": "Hoje também volto."
+      },
+      "example": "Ich fahre heute auch zurück.",
+      "exampleMeaning": {
+        "en": "I am returning today too.",
+        "de": "Ich brauche auch eine Rückfahrt.",
+        "es": "Hoy también vuelvo.",
+        "pt-BR": "Hoje também volto."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-train-ticket-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Wann fährt der nächste Zug?",
+      "meaning": {
+        "en": "When does the next train leave?",
+        "de": "Nach der Abfahrtszeit fragen.",
+        "es": "¿Cuándo sale el próximo tren?",
+        "pt-BR": "Quando sai o próximo trem?"
+      },
+      "example": "Wann fährt der nächste Zug?",
+      "exampleMeaning": {
+        "en": "When does the next train leave?",
+        "de": "Nach der Abfahrtszeit fragen.",
+        "es": "¿Cuándo sale el próximo tren?",
+        "pt-BR": "Quando sai o próximo trem?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-train-ticket-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Fährt dieser Zug direkt nach Bonn?",
+      "meaning": {
+        "en": "Does this train go directly to Bonn?",
+        "de": "Ich prüfe das Ziel der Verbindung.",
+        "es": "¿Este tren va directo a Bonn?",
+        "pt-BR": "Este trem vai direto para Bonn?"
+      },
+      "example": "Fährt dieser Zug direkt nach Bonn?",
+      "exampleMeaning": {
+        "en": "Does this train go directly to Bonn?",
+        "de": "Ich prüfe das Ziel der Verbindung.",
+        "es": "¿Este tren va directo a Bonn?",
+        "pt-BR": "Este trem vai direto para Bonn?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-train-ticket-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Von welchem Gleis fährt der Zug?",
+      "meaning": {
+        "en": "Which platform does the train leave from?",
+        "de": "Nach dem Abfahrtsgleis fragen.",
+        "es": "¿De qué andén sale el tren?",
+        "pt-BR": "De qual plataforma sai o trem?"
+      },
+      "example": "Von welchem Gleis fährt der Zug?",
+      "exampleMeaning": {
+        "en": "Which platform does the train leave from?",
+        "de": "Nach dem Abfahrtsgleis fragen.",
+        "es": "¿De qué andén sale el tren?",
+        "pt-BR": "De qual plataforma sai o trem?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-train-ticket-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ist der Zugang zu Gleis vier hier richtig?",
+      "meaning": {
+        "en": "Is this the correct access to platform four?",
+        "de": "Ich prüfe den Weg zum Gleis.",
+        "es": "¿Es este el acceso a la vía cuatro?",
+        "pt-BR": "Este é o acesso à plataforma quatro?"
+      },
+      "example": "Ist der Zugang zu Gleis vier hier richtig?",
+      "exampleMeaning": {
+        "en": "Is this the correct access to platform four?",
+        "de": "Ich prüfe den Weg zum Gleis.",
+        "es": "¿Es este el acceso a la vía cuatro?",
+        "pt-BR": "Este é o acesso à plataforma quatro?"
       },
       "register": "neutral"
     }
@@ -1028,6 +1161,951 @@
             "de": "Das Gleis finden. Nach dem Abfahrtsgleis fragen.\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.",
             "es": "Encontrar el andén. ¿De qué andén sale el tren?\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.",
             "pt-BR": "Encontrar a plataforma. De qual plataforma sai o trem?\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-train-ticket-v2",
+      "stage": "train-ticket-mission",
+      "kind": "module",
+      "title": {
+        "en": "Your journey to Bonn",
+        "de": "Deine Fahrt nach Bonn",
+        "es": "Tu viaje a Bonn",
+        "pt-BR": "Sua viagem para Bonn"
+      },
+      "scenario": {
+        "en": "State destination and return plan, compare the two offered tickets and choose one.",
+        "de": "Nenne Ziel und Rückfahrtplan, vergleiche die beiden angebotenen Karten und wähle eine.",
+        "es": "Indica destino y vuelta, compara las dos opciones y elige.",
+        "pt-BR": "Diga destino e volta, compare as duas opções e escolha."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000005"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+        "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+        "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+        "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+      },
+      "explanation": {
+        "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+        "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+        "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+        "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+      },
+      "examples": [
+        {
+          "text": "Eine Fahrkarte nach Bonn, bitte.",
+          "meaning": {
+            "en": "A ticket to Bonn, please.",
+            "de": "Eine Fahrt nach Bonn bestellen.",
+            "es": "Un billete a Bonn, por favor.",
+            "pt-BR": "Uma passagem para Bonn, por favor."
+          }
+        },
+        {
+          "text": "Ich fahre heute auch zurück.",
+          "meaning": {
+            "en": "I am returning today too.",
+            "de": "Ich brauche auch eine Rückfahrt.",
+            "es": "Hoy también vuelvo.",
+            "pt-BR": "Hoje também volto."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-train-ticket-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-train-ticket-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which option covers today’s return too?",
+            "de": "Welche Option deckt auch die heutige Rückfahrt ab?",
+            "es": "¿Qué opción incluye la vuelta de hoy?",
+            "pt-BR": "Qual opção inclui a volta de hoje?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-train-ticket-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "State destination and return plan, compare the two offered tickets and choose one.",
+            "de": "Nenne Ziel und Rückfahrtplan, vergleiche die beiden angebotenen Karten und wähle eine.",
+            "es": "Indica destino y vuelta, compara las dos opciones y elige.",
+            "pt-BR": "Diga destino e volta, compare as duas opções e escolha."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-train-ticket-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "State destination and return plan, compare the two offered tickets and choose one.",
+            "de": "Nenne Ziel und Rückfahrtplan, vergleiche die beiden angebotenen Karten und wähle eine.",
+            "es": "Indica destino y vuelta, compara las dos opciones y elige.",
+            "pt-BR": "Diga destino e volta, compare as duas opções e escolha."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-train-ticket-v2-reading"],
+          "targetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Which platform does the train leave from?",
+              "de": "Von welchem Gleis fährt der Zug?",
+              "es": "¿De qué andén sale el tren?",
+              "pt-BR": "De qual plataforma sai o trem?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Gleis drei",
+              "de": "Gleis drei",
+              "es": "Gleis drei",
+              "pt-BR": "Gleis drei"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der nächste Zug nach Bonn fährt um elf Uhr von Gleis drei. Eine einfache Fahrt kostet zwölf Euro."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-train-ticket-v2-listening"],
+          "targetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which option covers today’s return too?",
+              "de": "Welche Option deckt auch die heutige Rückfahrt ab?",
+              "es": "¿Qué opción incluye la vuelta de hoy?",
+              "pt-BR": "Qual opção inclui a volta de hoje?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Die Tageskarte für achtzehn Euro.",
+              "de": "Die Tageskarte für achtzehn Euro.",
+              "es": "Die Tageskarte für achtzehn Euro.",
+              "pt-BR": "Die Tageskarte für achtzehn Euro."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+          "instructions": {
+            "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+            "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+            "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+            "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-train-ticket-v2-writing"],
+          "targetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+          "instructions": {
+            "en": "State destination and return plan, compare the two offered tickets and choose one.",
+            "de": "Nenne Ziel und Rückfahrtplan, vergleiche die beiden angebotenen Karten und wähle eine.",
+            "es": "Indica destino y vuelta, compara las dos opciones y elige.",
+            "pt-BR": "Diga destino e volta, compare as duas opções e escolha."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-train-ticket-v2-writing"],
+          "targetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+          "instructions": {
+            "en": "State destination and return plan, compare the two offered tickets and choose one.",
+            "de": "Nenne Ziel und Rückfahrtplan, vergleiche die beiden angebotenen Karten und wähle eine.",
+            "es": "Indica destino y vuelta, compara las dos opciones y elige.",
+            "pt-BR": "Diga destino e volta, compare as duas opções e escolha."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-train-ticket-v2-speaking"],
+          "targetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+          "instructions": {
+            "en": "State destination and return plan, compare the two offered tickets and choose one.",
+            "de": "Nenne Ziel und Rückfahrtplan, vergleiche die beiden angebotenen Karten und wähle eine.",
+            "es": "Indica destino y vuelta, compara las dos opciones y elige.",
+            "pt-BR": "Diga destino e volta, compare as duas opções e escolha."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Der nächste Zug nach Bonn fährt um elf Uhr von Gleis drei. Eine einfache Fahrt kostet zwölf Euro.\nUpdate: Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?",
+            "de": "Ursprüngliche Nachricht: Der nächste Zug nach Bonn fährt um elf Uhr von Gleis drei. Eine einfache Fahrt kostet zwölf Euro.\nAktualisierung: Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?",
+            "es": "Aviso original: Der nächste Zug nach Bonn fährt um elf Uhr von Gleis drei. Eine einfache Fahrt kostet zwölf Euro.\nActualización: Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?",
+            "pt-BR": "Aviso original: Der nächste Zug nach Bonn fährt um elf Uhr von Gleis drei. Eine einfache Fahrt kostet zwölf Euro.\nAtualização: Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?"
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?",
+            "de": "Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?",
+            "es": "Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?",
+            "pt-BR": "Die einfache Fahrt nach Bonn kostet zwölf Euro. Die Tageskarte kostet achtzehn Euro und gilt heute für Hin- und Rückfahrt auf dieser Strecke. Welche Fahrkarte möchten Sie?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-train-ticket-2-v2",
+      "stage": "train-ticket-mission",
+      "kind": "module",
+      "title": {
+        "en": "Check the departure",
+        "de": "Die Abfahrt erfragen",
+        "es": "Consultar la salida",
+        "pt-BR": "Consultar a partida"
+      },
+      "scenario": {
+        "en": "Check destination and revised departure instead of choosing the first train by time alone.",
+        "de": "Prüfe Ziel und neue Abfahrt statt nur die erste Uhrzeit zu wählen.",
+        "es": "Comprueba destino y salida nueva sin elegir solo por la primera hora.",
+        "pt-BR": "Confira destino e saída nova sem escolher só pelo primeiro horário."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000005"],
+      "prerequisites": ["de-train-ticket-v2"],
+      "grammar": {
+        "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+        "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+        "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+        "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+      },
+      "explanation": {
+        "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+        "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+        "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+        "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+      },
+      "examples": [
+        {
+          "text": "Wann fährt der nächste Zug?",
+          "meaning": {
+            "en": "When does the next train leave?",
+            "de": "Nach der Abfahrtszeit fragen.",
+            "es": "¿Cuándo sale el próximo tren?",
+            "pt-BR": "Quando sai o próximo trem?"
+          }
+        },
+        {
+          "text": "Fährt dieser Zug direkt nach Bonn?",
+          "meaning": {
+            "en": "Does this train go directly to Bonn?",
+            "de": "Ich prüfe das Ziel der Verbindung.",
+            "es": "¿Este tren va directo a Bonn?",
+            "pt-BR": "Este trem vai direto para Bonn?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-train-ticket-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-train-ticket-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which departure goes directly to Bonn?",
+            "de": "Welche Abfahrt führt direkt nach Bonn?",
+            "es": "¿Qué salida va directa a Bonn?",
+            "pt-BR": "Qual saída vai direto para Bonn?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-train-ticket-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Check destination and revised departure instead of choosing the first train by time alone.",
+            "de": "Prüfe Ziel und neue Abfahrt statt nur die erste Uhrzeit zu wählen.",
+            "es": "Comprueba destino y salida nueva sin elegir solo por la primera hora.",
+            "pt-BR": "Confira destino e saída nova sem escolher só pelo primeiro horário."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-train-ticket-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Check destination and revised departure instead of choosing the first train by time alone.",
+            "de": "Prüfe Ziel und neue Abfahrt statt nur die erste Uhrzeit zu wählen.",
+            "es": "Comprueba destino y salida nueva sin elegir solo por la primera hora.",
+            "pt-BR": "Confira destino e saída nova sem escolher só pelo primeiro horário."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-train-ticket-2-v2-phrase-1", "de-train-ticket-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-train-ticket-v2-phrase-1", "de-train-ticket-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-train-ticket-2-v2-reading"],
+          "targetIds": ["de-train-ticket-2-v2-phrase-1", "de-train-ticket-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der nächste Zug nach Bonn fährt um elf Uhr.",
+              "de": "Der nächste Zug nach Bonn fährt um elf Uhr.",
+              "es": "Der nächste Zug nach Bonn fährt um elf Uhr.",
+              "pt-BR": "Der nächste Zug nach Bonn fährt um elf Uhr."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wann fährt der nächste Zug?\nDer nächste Zug nach Bonn fährt um elf Uhr."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-train-ticket-2-v2-listening"],
+          "targetIds": ["de-train-ticket-2-v2-phrase-1", "de-train-ticket-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which departure goes directly to Bonn?",
+              "de": "Welche Abfahrt führt direkt nach Bonn?",
+              "es": "¿Qué salida va directa a Bonn?",
+              "pt-BR": "Qual saída vai direto para Bonn?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Elf Uhr zwanzig.",
+              "de": "Elf Uhr zwanzig.",
+              "es": "Elf Uhr zwanzig.",
+              "pt-BR": "Elf Uhr zwanzig."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-train-ticket-2-v2-phrase-1", "de-train-ticket-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+            "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+            "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+            "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-train-ticket-2-v2-writing"],
+          "targetIds": ["de-train-ticket-2-v2-phrase-1", "de-train-ticket-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Check destination and revised departure instead of choosing the first train by time alone.",
+            "de": "Prüfe Ziel und neue Abfahrt statt nur die erste Uhrzeit zu wählen.",
+            "es": "Comprueba destino y salida nueva sin elegir solo por la primera hora.",
+            "pt-BR": "Confira destino e saída nova sem escolher só pelo primeiro horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-train-ticket-2-v2-writing"],
+          "targetIds": ["de-train-ticket-2-v2-phrase-1", "de-train-ticket-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Check destination and revised departure instead of choosing the first train by time alone.",
+            "de": "Prüfe Ziel und neue Abfahrt statt nur die erste Uhrzeit zu wählen.",
+            "es": "Comprueba destino y salida nueva sin elegir solo por la primera hora.",
+            "pt-BR": "Confira destino e saída nova sem escolher só pelo primeiro horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der nächste Zug nach Bonn fährt um zehn Uhr zwanzig."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-train-ticket-2-v2-speaking"],
+          "targetIds": ["de-train-ticket-2-v2-phrase-1", "de-train-ticket-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Check destination and revised departure instead of choosing the first train by time alone.",
+            "de": "Prüfe Ziel und neue Abfahrt statt nur die erste Uhrzeit zu wählen.",
+            "es": "Comprueba destino y salida nueva sin elegir solo por la primera hora.",
+            "pt-BR": "Confira destino e saída nova sem escolher só pelo primeiro horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der nächste Zug nach Bonn fährt um zehn Uhr zwanzig."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Wann fährt der nächste Zug?\nDer nächste Zug nach Bonn fährt um elf Uhr.\nUpdate: Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung.",
+            "de": "Ursprüngliche Nachricht: Wann fährt der nächste Zug?\nDer nächste Zug nach Bonn fährt um elf Uhr.\nAktualisierung: Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung.",
+            "es": "Aviso original: Wann fährt der nächste Zug?\nDer nächste Zug nach Bonn fährt um elf Uhr.\nActualización: Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung.",
+            "pt-BR": "Aviso original: Wann fährt der nächste Zug?\nDer nächste Zug nach Bonn fährt um elf Uhr.\nAtualização: Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung.",
+            "de": "Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung.",
+            "es": "Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung.",
+            "pt-BR": "Der nächste Zug fährt jetzt um elf Uhr zwanzig statt um elf. Er fährt direkt nach Bonn. Der Zug um elf Uhr zehn fährt in die andere Richtung."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-train-ticket-3-v2",
+      "stage": "train-ticket-mission",
+      "kind": "module",
+      "title": {
+        "en": "Find the platform",
+        "de": "Das Gleis finden",
+        "es": "Encontrar el andén",
+        "pt-BR": "Encontrar a plataforma"
+      },
+      "scenario": {
+        "en": "Ask for the correct platform access and repeat the new direction to confirm understanding.",
+        "de": "Frage nach dem richtigen Gleiszugang und wiederhole die neue Richtung zur Kontrolle.",
+        "es": "Pregunta por el acceso correcto y repite la indicación nueva.",
+        "pt-BR": "Pergunte pelo acesso correto e repita a indicação nova."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000005"],
+      "prerequisites": ["de-train-ticket-2-v2"],
+      "grammar": {
+        "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+        "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+        "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+        "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+      },
+      "explanation": {
+        "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+        "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+        "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+        "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+      },
+      "examples": [
+        {
+          "text": "Von welchem Gleis fährt der Zug?",
+          "meaning": {
+            "en": "Which platform does the train leave from?",
+            "de": "Nach dem Abfahrtsgleis fragen.",
+            "es": "¿De qué andén sale el tren?",
+            "pt-BR": "De qual plataforma sai o trem?"
+          }
+        },
+        {
+          "text": "Ist der Zugang zu Gleis vier hier richtig?",
+          "meaning": {
+            "en": "Is this the correct access to platform four?",
+            "de": "Ich prüfe den Weg zum Gleis.",
+            "es": "¿Es este el acceso a la vía cuatro?",
+            "pt-BR": "Este é o acesso à plataforma quatro?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-train-ticket-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-train-ticket-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which access should be used?",
+            "de": "Welcher Zugang soll genutzt werden?",
+            "es": "¿Qué acceso debe usarse?",
+            "pt-BR": "Qual acesso deve ser usado?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-train-ticket-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the correct platform access and repeat the new direction to confirm understanding.",
+            "de": "Frage nach dem richtigen Gleiszugang und wiederhole die neue Richtung zur Kontrolle.",
+            "es": "Pregunta por el acceso correcto y repite la indicación nueva.",
+            "pt-BR": "Pergunte pelo acesso correto e repita a indicação nova."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-train-ticket-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Ask for the correct platform access and repeat the new direction to confirm understanding.",
+            "de": "Frage nach dem richtigen Gleiszugang und wiederhole die neue Richtung zur Kontrolle.",
+            "es": "Pregunta por el acceso correcto y repite la indicación nueva.",
+            "pt-BR": "Pergunte pelo acesso correto e repita a indicação nova."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-train-ticket-3-v2-phrase-1", "de-train-ticket-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-train-ticket-v2-phrase-1",
+        "de-train-ticket-v2-phrase-2",
+        "de-train-ticket-2-v2-phrase-1",
+        "de-train-ticket-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-train-ticket-3-v2-reading"],
+          "targetIds": ["de-train-ticket-3-v2-phrase-1", "de-train-ticket-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.",
+              "de": "Der Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.",
+              "es": "Der Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.",
+              "pt-BR": "Der Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Von welchem Gleis fährt der Zug?\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-train-ticket-3-v2-listening"],
+          "targetIds": ["de-train-ticket-3-v2-phrase-1", "de-train-ticket-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which access should be used?",
+              "de": "Welcher Zugang soll genutzt werden?",
+              "es": "¿Qué acceso debe usarse?",
+              "pt-BR": "Qual acesso deve ser usado?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Rechts durch die Unterführung.",
+              "de": "Rechts durch die Unterführung.",
+              "es": "Rechts durch die Unterführung.",
+              "pt-BR": "Rechts durch die Unterführung."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-train-ticket-3-v2-phrase-1", "de-train-ticket-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Eine einfache Fahrt covers one direction in this scenario. Ask wohin for destination, wann for departure and von welchem Gleis for the platform. Compare ticket coverage before price alone.",
+            "de": "Eine einfache Fahrt deckt im Szenario eine Richtung ab. Frage wohin nach dem Ziel, wann nach der Abfahrt und von welchem Gleis nach dem Gleis. Prüfe zuerst den Geltungsbereich der Karte.",
+            "es": "Eine einfache Fahrt cubre un sentido en este caso. Wohin pregunta destino, wann salida y von welchem Gleis la vía. Compara cobertura y precio.",
+            "pt-BR": "Eine einfache Fahrt cobre um sentido neste caso. Wohin pergunta destino, wann saída e von welchem Gleis a plataforma. Compare cobertura e preço."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-train-ticket-3-v2-writing"],
+          "targetIds": ["de-train-ticket-3-v2-phrase-1", "de-train-ticket-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for the correct platform access and repeat the new direction to confirm understanding.",
+            "de": "Frage nach dem richtigen Gleiszugang und wiederhole die neue Richtung zur Kontrolle.",
+            "es": "Pregunta por el acceso correcto y repite la indicación nueva.",
+            "pt-BR": "Pergunte pelo acesso correto e repita a indicação nova."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-train-ticket-3-v2-writing"],
+          "targetIds": ["de-train-ticket-3-v2-phrase-1", "de-train-ticket-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for the correct platform access and repeat the new direction to confirm understanding.",
+            "de": "Frage nach dem richtigen Gleiszugang und wiederhole die neue Richtung zur Kontrolle.",
+            "es": "Pregunta por el acceso correcto y repite la indicación nueva.",
+            "pt-BR": "Pergunte pelo acesso correto e repita a indicação nova."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-train-ticket-3-v2-speaking"],
+          "targetIds": ["de-train-ticket-3-v2-phrase-1", "de-train-ticket-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask for the correct platform access and repeat the new direction to confirm understanding.",
+            "de": "Frage nach dem richtigen Gleiszugang und wiederhole die neue Richtung zur Kontrolle.",
+            "es": "Pregunta por el acceso correcto y repite la indicación nueva.",
+            "pt-BR": "Pergunte pelo acesso correto e repita a indicação nova."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Von welchem Gleis fährt der Zug?\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.\nUpdate: Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier.",
+            "de": "Ursprüngliche Nachricht: Von welchem Gleis fährt der Zug?\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.\nAktualisierung: Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier.",
+            "es": "Aviso original: Von welchem Gleis fährt der Zug?\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.\nActualización: Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier.",
+            "pt-BR": "Aviso original: Von welchem Gleis fährt der Zug?\nDer Zug nach Bonn fährt heute von Gleis vier. Gleis vier ist links.\nAtualização: Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier.",
+            "de": "Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier.",
+            "es": "Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier.",
+            "pt-BR": "Der Zug nach Bonn fährt heute von Gleis vier. Der Zugang links ist geschlossen. Gehen Sie bitte rechts durch die Unterführung. Folgen Sie dann der Beschilderung zu Gleis vier."
           }
         }
       ],

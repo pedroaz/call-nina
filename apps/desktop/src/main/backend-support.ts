@@ -3,21 +3,21 @@ import { createHash, randomUUID } from "node:crypto";
 
 import {
   type AiConnection,
-  type GenerationProvenance,
-  correlationIdSchema,
-  errorDefinitions,
-  callNinaErrorSchema,
-  utcInstantSchema,
-  type writingCorrectionCandidateSchema,
   type DesktopIpcRequest,
   type ErrorKind,
+  type GenerationProvenance,
   type GenerationService,
+  callNinaErrorSchema,
+  correlationIdSchema,
+  errorDefinitions,
+  utcInstantSchema,
+  type writingCorrectionCandidateSchema,
 } from "@call-nina/contracts";
 import { type VocabularyCandidate } from "@call-nina/domain";
 import {
+  type CallNinaRepository,
   type DataRootSelectionPlan,
   type HistoryEntryRecord,
-  type CallNinaRepository,
 } from "@call-nina/persistence";
 
 export type PendingSelection = Readonly<{

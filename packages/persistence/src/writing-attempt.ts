@@ -1,7 +1,7 @@
-import { assertRegisteredLearningScope as assertLocalLearningScope } from "./learning-context.js";
-import { captureExerciseAttempt } from "./attempt-evidence.js";
-import { claimIdempotentWrite } from "./idempotency.js";
+import { enqueueVocabularyEvidence } from "./vocabulary-learning.js";
 import {
+  vocabularyAnalysisOutputSchema,
+  uploadPracticeContextSchema,
   activityIdSchema,
   learningScopeSchema,
   historyEntryIdSchema,
@@ -10,6 +10,9 @@ import {
   utcInstantSchema,
   z,
 } from "@call-nina/contracts";
+import { assertRegisteredLearningScope as assertLocalLearningScope } from "./learning-context.js";
+import { captureExerciseAttempt } from "./attempt-evidence.js";
+import { claimIdempotentWrite } from "./idempotency.js";
 import {
   attemptFeedbackSchema,
   correctionSchema,
@@ -24,6 +27,8 @@ import {
 import { type CallNinaDatabase, withLeasedTransaction } from "./sqlite.js";
 
 export const writingAttemptPersistenceSchema = strictBoundaryObject({
+  uploadSource: uploadPracticeContextSchema.optional(),
+  vocabularyAnalysis: vocabularyAnalysisOutputSchema.optional(),
   activityId: activityIdSchema,
   learningScope: learningScopeSchema,
   historyEntryId: historyEntryIdSchema,
@@ -362,6 +367,18 @@ export async function saveWritingAttempt(
         record.completedAt,
       );
     }
-    captureExerciseAttempt(connection, record.attemptId);
+    captureExerciseAttempt(connection, record.attemptId, false, record.uploadSource?.material);
+    if (record.uploadSource)
+      connection
+        .prepare("INSERT INTO upload_attempt_sources VALUES (?,?)")
+        .run(record.attemptId, JSON.stringify(record.uploadSource));
+    if (record.vocabularyAnalysis)
+      enqueueVocabularyEvidence(connection, {
+        activityId: record.activityId,
+        attemptId: record.attemptId,
+        revision: record.correction.correctionId,
+        sourceText: "",
+        output: record.vocabularyAnalysis,
+      });
   });
 }

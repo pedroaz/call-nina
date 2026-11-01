@@ -20,6 +20,7 @@ directories:
 files:
   - package.json
   - dist/main/index.js
+  - dist/main/nina-environment.json
   - dist/preload/index.cjs
   - dist/renderer/**
 extraResources:

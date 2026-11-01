@@ -45,9 +45,11 @@ export function Dialog(props: {
 export function ModalDialog(props: {
   isOpen: boolean;
   keepMounted?: boolean;
-  size?: "default" | "large";
+  size?: "default" | "reading" | "form" | "large";
+  bodyLayout?: "scroll" | "fill";
   closeLabel?: string;
   title: string;
+  titleAction?: ReactNode;
   children: ReactNode;
   isDismissable?: boolean;
   density?: "compact" | "comfortable";
@@ -85,19 +87,23 @@ export function ModalDialog(props: {
           className={styles.dialog}
           data-density={props.density ?? "comfortable"}
           data-size={props.size ?? "default"}
+          data-body-layout={props.bodyLayout ?? "scroll"}
         >
           <AriaDialog>
-            {props.closeLabel ? (
+            {props.closeLabel || props.titleAction ? (
               <div className={styles.header}>
                 <Heading slot="title">{props.title}</Heading>
-                <Button
-                  variant="quiet"
-                  onPress={() => {
-                    props.onOpenChange(false);
-                  }}
-                >
-                  {props.closeLabel}
-                </Button>
+                {props.titleAction}
+                {props.closeLabel && (
+                  <Button
+                    variant="quiet"
+                    onPress={() => {
+                      props.onOpenChange(false);
+                    }}
+                  >
+                    {props.closeLabel}
+                  </Button>
+                )}
               </div>
             ) : (
               <Heading slot="title">{props.title}</Heading>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { Card } from "./Surface.js";
 import styles from "./DiffView.module.css";
+import { Card } from "./Surface.js";
 
 export function DiffView(props: {
   mode: "inline" | "side-by-side";

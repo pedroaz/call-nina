@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, ModalDialog } from "@call-nina/browser-ui";
+import {
+  Button,
+  ModalDialog,
+  InterviewLayout,
+  InterviewProgress,
+  InterviewChoices,
+  SelectControl,
+} from "@call-nina/browser-ui";
 import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
 import ninaThinking from "@call-nina/design-system/brand/nina-thinking.png";
 import ninaListening from "@call-nina/design-system/brand/nina-listening.png";
 import ninaCelebration from "@call-nina/design-system/brand/nina-celebration.png";
-import { copy, type FeatureId, type Locale } from "./locales";
-import { LanguageSelector } from "./LanguageSelector";
+import { copy, languages, type FeatureId, type Locale } from "./locales";
 import {
   connections,
   discoveryCopy,
@@ -90,10 +96,8 @@ export function Discovery({
   onExplore: (feature?: FeatureId) => void;
 }) {
   const [state, setState] = useState(readDiscovery);
-  const [open, setOpen] = useState(() => !state.seen);
+  const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
-  const heading = useRef<HTMLHeadingElement>(null);
-  const focusQuestion = useRef(false);
   const t = discoveryCopy[locale];
   const { answers, step, complete } = state;
   const feature = recommendedFeature(answers);
@@ -105,20 +109,12 @@ export function Discovery({
       /* Storage is optional. */
     }
   }, [state]);
-  useEffect(() => {
-    if (focusQuestion.current) {
-      heading.current?.focus({ preventScroll: true });
-      heading.current?.scrollIntoView({ block: "nearest" });
-      focusQuestion.current = false;
-    }
-  }, [step, complete, answers]);
 
   function close() {
     setOpen(false);
     requestAnimationFrame(() => trigger.current?.focus());
   }
   function goTo(next: number) {
-    focusQuestion.current = true;
     setState((current) => ({ ...current, step: next, complete: false }));
   }
   function choose(value: string) {
@@ -166,23 +162,61 @@ export function Discovery({
         ? t.recommendation(t.languages[answers.language], answers.use)
         : t.languageStory(t.languages[answers.language], answers.role)
       : undefined,
-    answers.connection ? t.guidance[answers.connection] : undefined,
+    complete && answers.connection ? t.guidance[answers.connection] : undefined,
   ];
   const art = complete
     ? ninaCelebration
     : [ninaWelcome, ninaListening, ninaThinking, ninaWelcome][step];
 
+  const advance = () => {
+    if (step < 3) goTo(step + 1);
+    else {
+      const missing = [answers.role, answers.language, answers.use, answers.connection].findIndex(
+        (answer) => !answer,
+      );
+      if (missing >= 0) goTo(missing);
+      else setState((current) => ({ ...current, complete: true }));
+    }
+  };
+  const explore = () => {
+    setOpen(false);
+    onExplore(feature);
+  };
+  const summary = (
+    <>
+      <div className="discovery-narrative" aria-live="polite" aria-atomic="true">
+        {narrative.map((paragraph, index) => (paragraph ? <p key={index}>{paragraph}</p> : null))}
+      </div>
+      <div className="discovery-selections">
+        {selections.map((label, index) =>
+          label ? (
+            <Button
+              key={index}
+              density="compact"
+              variant="quiet"
+              aria-label={t.edit(label)}
+              onPress={() => {
+                goTo(index);
+              }}
+            >
+              {label}
+            </Button>
+          ) : null,
+        )}
+      </div>
+    </>
+  );
   return (
     <>
       <Button
         ref={trigger}
+        className="discovery-trigger"
         variant="secondary"
         onPress={() => {
-          setState({ ...emptyState, seen: true, answers: {} });
           setOpen(true);
         }}
       >
-        {t.title}
+        {copy[locale].cta}
       </Button>
       <ModalDialog
         isOpen={open}
@@ -191,53 +225,68 @@ export function Discovery({
         }}
         title={t.title}
         size="large"
+        bodyLayout="fill"
         closeLabel={t.close}
       >
-        <div className="discovery-language">
-          <span>{copy[locale].language}</span>
-          <LanguageSelector locale={locale} onChange={onLocaleChange} />
-          <Button
-            className="discovery-restart"
-            variant="quiet"
-            onPress={() => {
-              focusQuestion.current = true;
-              setState({ ...emptyState, seen: true, answers: {} });
-            }}
-          >
-            {t.restart}
-          </Button>
-        </div>
-        <div className="discovery-layout">
-          <div className="discovery-questions">
-            <img className="discovery-nina" src={art} alt="" width="180" height="180" />
-            <div className="discovery-step">
-              <h3 ref={heading} tabIndex={-1} id="discovery-question">
-                {complete ? t.ready : question}
-              </h3>
-              {complete ? (
-                <p>{t.readyText}</p>
-              ) : (
-                <>
-                  <p className="discovery-progress">{t.step(step + 1)}</p>
-                  <fieldset className="discovery-choices" aria-labelledby="discovery-question">
-                    {options.map((option) => (
-                      <label key={option.value} className="discovery-choice">
-                        <input
-                          type="radio"
-                          name={`discovery-${String(step)}`}
-                          value={option.value}
-                          checked={selected === option.value}
-                          onChange={() => {
-                            choose(option.value);
-                          }}
-                        />
-                        <span>{option.label}</span>
-                      </label>
-                    ))}
-                  </fieldset>
-                </>
+        <InterviewLayout
+          headingLevel={3}
+          focusKey={`${String(step)}-${String(complete)}`}
+          onContinue={complete ? explore : advance}
+          continueDisabled={!complete && !selected}
+          title={complete ? t.ready : question}
+          description={complete ? t.readyText : undefined}
+          toolbar={
+            <>
+              <SelectControl
+                aria-label={copy[locale].language}
+                value={locale}
+                onChange={(event) => {
+                  onLocaleChange(event.target.value as Locale);
+                }}
+              >
+                {languages.map(({ code, label }) => (
+                  <option key={code} value={code}>
+                    {label}
+                  </option>
+                ))}
+              </SelectControl>
+              <Button
+                variant="quiet"
+                onPress={() => {
+                  setState({ ...emptyState, seen: true, answers: {} });
+                }}
+              >
+                {t.restart}
+              </Button>
+            </>
+          }
+          progress={
+            <InterviewProgress
+              current={complete ? 4 : step + 1}
+              total={4}
+              label={t.step(complete ? 4 : step + 1)}
+            />
+          }
+          artwork={<img src={art} alt="" width="180" height="180" />}
+          context={
+            <>
+              {!complete && summary}
+              <ExamplePreview
+                key={`${answers.language ?? ""}-${answers.use ?? ""}`}
+                answers={answers}
+                locale={locale}
+              />
+              {complete && answers.role && answers.role !== "student" && (
+                <div className="discovery-professional">
+                  <a href="mailto:pedro.azvm@gmail.com">{t.contact}</a>
+                  <p>{t.professional}</p>
+                </div>
               )}
-              <div className="discovery-navigation">
+            </>
+          }
+          actions={
+            <>
+              <div>
                 {(step > 0 || complete) && (
                   <Button
                     variant="quiet"
@@ -248,100 +297,54 @@ export function Discovery({
                     {t.back}
                   </Button>
                 )}
-                {!complete && (
-                  <Button
-                    isDisabled={!selected}
-                    onPress={() => {
-                      if (step < 3) goTo(step + 1);
-                      else {
-                        const missing = [
-                          answers.role,
-                          answers.language,
-                          answers.use,
-                          answers.connection,
-                        ].findIndex((answer) => !answer);
-                        if (missing >= 0) goTo(missing);
-                        else {
-                          focusQuestion.current = true;
-                          setState((current) => ({ ...current, complete: true }));
-                        }
-                      }
-                    }}
-                  >
-                    {step === 3 ? t.finish : t.next}
-                  </Button>
-                )}
               </div>
-            </div>
-          </div>
-          <aside className="discovery-recommendation" aria-labelledby="discovery-summary">
-            <div className="discovery-summary">
-              <h3 id="discovery-summary">{t.summary}</h3>
-              <Button
-                onPress={() => {
-                  setOpen(false);
-                  onExplore(feature);
-                }}
-              >
-                {t.call}
+              <Button isDisabled={!complete && !selected} onPress={complete ? explore : advance}>
+                {complete ? t.call : step === 3 ? t.finish : t.next}
               </Button>
-              <div className="discovery-narrative" aria-live="polite" aria-atomic="true">
-                {narrative.map((paragraph, index) =>
-                  paragraph ? <p key={index}>{paragraph}</p> : null,
-                )}
-              </div>
-              <div className="discovery-selections">
-                {selections.map((label, index) =>
-                  label ? (
-                    <Button
-                      key={index}
-                      density="compact"
-                      variant="quiet"
-                      aria-label={t.edit(label)}
-                      onPress={() => {
-                        goTo(index);
-                      }}
-                    >
-                      {label}
-                    </Button>
-                  ) : null,
-                )}
-              </div>
-            </div>
-            <div className="discovery-preview-slot">
-              <ExamplePreview
-                key={`${answers.language ?? ""}-${answers.use ?? ""}`}
-                answers={answers}
-                locale={locale}
+            </>
+          }
+        >
+          {complete ? (
+            summary
+          ) : step === 3 ? (
+            <>
+              <InterviewChoices
+                label={question}
+                value={selected}
+                onChange={choose}
+                options={["nina", "chatgpt"].map((value) => ({
+                  value,
+                  label: t.connections[value as Connection],
+                }))}
               />
-            </div>
-            {answers.role && answers.role !== "student" && (
-              <div className="discovery-professional">
-                <a href="mailto:pedro.azvm@gmail.com">{t.contact}</a>
-                <p>{t.professional}</p>
-              </div>
-            )}
-          </aside>
-        </div>
-        <div className="discovery-mobile-action">
-          <span>
-            {[
-              answers.role && t.roles[answers.role],
-              answers.language && t.languages[answers.language],
-            ]
-              .filter(Boolean)
-              .join(" · ") || t.summary}
-          </span>
-          <Button
-            density="compact"
-            onPress={() => {
-              setOpen(false);
-              onExplore(feature);
-            }}
-          >
-            {t.call}
-          </Button>
-        </div>
+              <details
+                className="discovery-other"
+                open={answers.connection === "local" || undefined}
+              >
+                <summary>{t.otherConnections}</summary>
+                <InterviewChoices
+                  label={t.otherConnections}
+                  value={selected}
+                  onChange={choose}
+                  options={[{ value: "local", label: t.connections.local }]}
+                />
+              </details>
+              <InterviewChoices
+                label={question}
+                value={selected}
+                onChange={choose}
+                options={[{ value: "unsure", label: t.connections.unsure }]}
+              />
+            </>
+          ) : (
+            <InterviewChoices
+              label={question}
+              value={selected}
+              options={options}
+              onChange={choose}
+            />
+          )}
+        </InterviewLayout>
       </ModalDialog>
     </>
   );

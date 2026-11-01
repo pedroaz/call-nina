@@ -6,8 +6,8 @@ import {
   useRef,
 } from "react";
 
-import { useTranslation } from "react-i18next";
 import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/Button.js";
 import { Card } from "../ui/Surface.js";
 import styles from "./Layout.module.css";

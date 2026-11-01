@@ -2,10 +2,15 @@
 
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { processOutputLevel } from "../../../scripts/dev/lib/log-view.mjs";
+import {
+  hostingEnvironment,
+  requireDesktopBuildEnvironment,
+} from "../../../scripts/lib/hosting-environment.mjs";
 
 const desktopRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = path.resolve(desktopRoot, "../..");
@@ -25,7 +30,10 @@ if (mode !== "dev" && mode !== "prd") {
   throw new Error("Desktop service mode must be dev or prd.");
 }
 
-if (mode === "dev") process.env.NINA_ENVIRONMENT ??= "preview";
+if (process.env.NINA_ENVIRONMENT && hostingEnvironment() !== mode)
+  throw new Error("Desktop launch mode conflicts with NINA_ENVIRONMENT");
+process.env.NINA_ENVIRONMENT = mode;
+if (mode === "prd") requireDesktopBuildEnvironment(mode);
 
 const children = new Set();
 let stopping = false;
@@ -35,6 +43,36 @@ const serviceSessionId = `session_${process.pid.toString(36)}`;
 const serviceFailure = new Promise((_, reject) => {
   failService = reject;
 });
+const controlFile = path.join(repositoryRoot, ".runtime", "dev-control.json");
+
+function publishDevControl(child, line) {
+  if (mode !== "dev" || !line.trim().startsWith("DevTools listening on ")) return false;
+  // Keep the debugging endpoint out of logs; agents discover it in this private file.
+  const endpoint = line.trim().slice("DevTools listening on ".length);
+  if (!/^ws:\/\/127\.0\.0\.1:\d+\/devtools\/browser\/[a-f0-9-]+$/u.test(endpoint)) {
+    failService(new Error("Desktop debugging endpoint must bind to loopback."));
+    return true;
+  }
+  try {
+    mkdirSync(path.dirname(controlFile), { recursive: true, mode: 0o700 });
+    const temporary = `${controlFile}.${process.pid}.tmp`;
+    writeFileSync(
+      temporary,
+      JSON.stringify({
+        schemaVersion: 1,
+        runId: serviceRunId,
+        servicePid: process.pid,
+        electronPid: child.pid,
+        endpoint,
+      }) + "\n",
+      { mode: 0o600 },
+    );
+    renameSync(temporary, controlFile);
+  } catch (error) {
+    failService(error);
+  }
+  return true;
+}
 
 function start(command, args, environment = process.env, essential = false) {
   // Own the actual tool process: killing a pnpm wrapper leaves its watchers alive.
@@ -65,6 +103,7 @@ function attachOutput(child, command, component) {
   let stdout = "";
   let stderr = "";
   const emit = (stream, line) => {
+    if (command === "electron" && publishDevControl(child, line)) return;
     const home = process.env["HOME"];
     const safe = line
       .replaceAll("\u001b[2K", "")
@@ -169,10 +208,21 @@ try {
     rendererUrl = address;
   }
 
-  const electron = start("electron", ["dist/main/index.js", ...desktopFlags], {
-    ...process.env,
-    ...(rendererUrl === undefined ? {} : { CALL_NINA_RENDERER_URL: rendererUrl }),
-  });
+  if (mode === "dev") rmSync(controlFile, { force: true });
+  const electron = start(
+    "electron",
+    [
+      ...(mode === "dev"
+        ? ["--remote-debugging-address=127.0.0.1", "--remote-debugging-port=0"]
+        : []),
+      "dist/main/index.js",
+      ...desktopFlags,
+    ],
+    {
+      ...process.env,
+      ...(rendererUrl === undefined ? {} : { CALL_NINA_RENDERER_URL: rendererUrl }),
+    },
+  );
   const [code, signal] = await Promise.race([once(electron, "exit"), serviceFailure]);
   const wasStopping = stopping;
   stopChildren();
@@ -181,4 +231,16 @@ try {
   }
 } finally {
   stopChildren();
+  if (mode === "dev") {
+    removeDevControl();
+  }
+}
+
+function removeDevControl() {
+  try {
+    if (JSON.parse(readFileSync(controlFile, "utf8")).servicePid === process.pid)
+      rmSync(controlFile, { force: true });
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }

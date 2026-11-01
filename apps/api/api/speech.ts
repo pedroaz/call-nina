@@ -13,7 +13,6 @@ export async function POST(request: Request): Promise<Response> {
       new URL(request.url).origin !== deployment.origin ||
       new URL(request.url).search ||
       process.env["NINA_SPEECH_ENABLED"] !== "true" ||
-      process.env["NINA_SPEECH_RECOVERY_READY"] !== "true" ||
       !key ||
       !throttleKey ||
       !address

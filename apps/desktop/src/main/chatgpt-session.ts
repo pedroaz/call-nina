@@ -1,69 +1,33 @@
-import { constants } from "node:fs";
-import { mkdir, lstat, open, rename, unlink } from "node:fs/promises";
-import { createServer, type Server } from "node:http";
-import {
-  randomBytes,
-  randomUUID,
-  createHash,
-  createPublicKey,
-  verify,
-  timingSafeEqual,
-} from "node:crypto";
-import path from "node:path";
-import { safeStorage } from "electron";
 import {
   accountStateSchema,
-  modelCatalogSchema,
   chatgptAccountsSchema,
   chatgptRegistrationIdSchema,
   correlationIdSchema,
   z,
   type CorrelationId,
   type DesktopIpcEvent,
-  type ErrorKind,
 } from "@call-nina/contracts";
-import type { ConnectionSecretStorage } from "./secret-storage.js";
+import { createHash, randomBytes } from "node:crypto";
+import { createServer, type Server } from "node:http";
 import { safeError } from "./backend-support.js";
+import { ChatgptCatalog } from "./chatgpt/catalog.js";
+import {
+  apiOrigin,
+  authOrigin,
+  boundedBody,
+  ChatgptError,
+  chatgptFailure,
+  equal,
+  jsonRequest,
+  random,
+  scopes,
+} from "./chatgpt/http.js";
+import { validateIdentity } from "./chatgpt/identity.js";
+import { ChatgptStore, tokenSchema, type Registration } from "./chatgpt/store.js";
+import type { ConnectionSecretStorage } from "./secret-storage.js";
 
-const authOrigin = "https://auth.openai.com";
-const apiOrigin = "https://api.openai.com";
-const scopes = "openid profile email offline_access resource.invoke chatgpt.tokens.use.direct";
-const tokenSchema = z.object({
-  access_token: z.string().min(1).max(32000),
-  refresh_token: z.string().min(1).max(32000),
-  id_token: z.string().min(1).max(32000),
-  token_type: z.string().refine((value) => value.toLowerCase() === "bearer"),
-  expires_in: z.number().positive().max(86400),
-  scope: z.string().max(2000),
-  earliest_refresh_at: z.number().nonnegative().optional(),
-});
-const registrationSchema = z.strictObject({
-  id: chatgptRegistrationIdSchema,
-  subject: z.string().min(1).max(512),
-  label: z.string().min(1).max(320),
-  tokens: tokenSchema.nullable(),
-  savedAt: z.number().nonnegative(),
-  invalid: z.boolean(),
-});
-const storeSchema = z
-  .strictObject({
-    version: z.literal(1),
-    hostId: z.uuid(),
-    selectedId: chatgptRegistrationIdSchema.nullable(),
-    registrations: z.array(registrationSchema).max(20),
-    remoteRevocationPending: z.boolean(),
-  })
-  .superRefine((value, context) => {
-    const ids = value.registrations.map((entry) => entry.id);
-    if (
-      new Set(ids).size !== ids.length ||
-      (value.selectedId !== null && !ids.includes(value.selectedId))
-    )
-      context.addIssue({ code: "custom", message: "OD_CHATGPT_STORE_INVALID" });
-  });
-type Store = z.infer<typeof storeSchema>;
-type Registration = Store["registrations"][number];
-type Catalog = z.infer<typeof modelCatalogSchema>;
+export { boundedBody, ChatgptError, chatgptFailure, responseFailure } from "./chatgpt/http.js";
+
 type LoginState = Extract<DesktopIpcEvent, { event: "account-login" }>["state"];
 type Pending = {
   id: CorrelationId;
@@ -77,110 +41,27 @@ type Pending = {
   controller: AbortController;
   claimed: boolean;
 };
-const random = () => randomBytes(32).toString("base64url");
-const equal = (left: unknown, right: string) =>
-  typeof left === "string" &&
-  Buffer.byteLength(left) === Buffer.byteLength(right) &&
-  timingSafeEqual(Buffer.from(left), Buffer.from(right));
-
-export class ChatgptError extends Error {
-  constructor(
-    readonly kind: ErrorKind,
-    code: string,
-  ) {
-    super(code);
-  }
-}
-export function chatgptFailure(status: number, code?: string): ChatgptError {
-  if (code === "invalid_json_schema")
-    return new ChatgptError("app-server", "OD_CHATGPT_SCHEMA_REJECTED");
-  if (code === "subscription_sharing_usage_limit_exceeded" || status === 429)
-    return new ChatgptError("rate-limit", "OD_CHATGPT_USAGE_LIMIT");
-  if (
-    [
-      "subscription_sharing_user_not_eligible",
-      "subscription_sharing_unsupported_capability",
-      "subscription_sharing_route_not_supported",
-    ].includes(code ?? "")
-  )
-    return new ChatgptError("ai-policy", "OD_CHATGPT_POLICY_REJECTED");
-  if (
-    status === 401 ||
-    [
-      "subscription_sharing_invalid_user",
-      "chatpass_v2_scope_not_authorized",
-      "chatpass_v2_invalid_authorization_context",
-    ].includes(code ?? "")
-  )
-    return new ChatgptError("authentication", "OD_CHATGPT_AUTHENTICATION_REQUIRED");
-  if (status === 400 || status === 403)
-    return new ChatgptError("ai-policy", "OD_CHATGPT_REQUEST_REJECTED");
-  return new ChatgptError("app-server", "OD_CHATGPT_UNAVAILABLE");
-}
-export async function boundedBody(response: Response, maximum: number): Promise<string> {
-  const reader = response.body?.getReader();
-  if (!reader) throw new ChatgptError("app-server", "OD_CHATGPT_RESPONSE_EMPTY");
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    for (;;) {
-      const part = await reader.read();
-      if (part.done) break;
-      const value: unknown = part.value;
-      if (!(value instanceof Uint8Array))
-        throw new ChatgptError("app-server", "OD_CHATGPT_RESPONSE_INVALID");
-      size += value.byteLength;
-      if (size > maximum) throw new ChatgptError("model-output", "OD_CHATGPT_RESPONSE_TOO_LARGE");
-      chunks.push(value);
-    }
-  } finally {
-    await reader.cancel().catch(() => undefined);
-    reader.releaseLock();
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-const failureBodySchema = z.object({
-  error: z.object({ code: z.string().max(160).optional() }).optional(),
-});
-export async function responseFailure(response: Response) {
-  let code: string | undefined;
-  try {
-    code = failureBodySchema.parse(JSON.parse(await boundedBody(response, 65536))).error?.code;
-  } catch {
-    /* Never expose untrusted error bodies. */
-  }
-  return chatgptFailure(response.status, code);
-}
-async function jsonRequest(url: string, options: RequestInit = {}) {
-  if (new URL(url).origin !== authOrigin && new URL(url).origin !== apiOrigin)
-    throw new ChatgptError("ai-policy", "OD_CHATGPT_DESTINATION_REJECTED");
-  const response = await fetch(url, {
-    ...options,
-    redirect: "error",
-    credentials: "omit",
-    signal: options.signal ?? AbortSignal.timeout(20000),
-  });
-  if (!response.ok) throw await responseFailure(response);
-  return JSON.parse(await boundedBody(response, 2 * 1024 * 1024)) as unknown;
-}
 
 /** Device-owned OAuth state. Never reads external Codex homes or portable learner files. */
 export class ChatgptSession {
-  readonly #configDirectory: string;
-  readonly #secrets: ConnectionSecretStorage;
   readonly #openExternal: (url: string) => Promise<void>;
   #emit: (event: DesktopIpcEvent) => void = () => undefined;
   #queue: Promise<unknown> = Promise.resolve();
   #pending: Pending | undefined;
-  #catalog: { registrationId: string; value: Catalog; expires: number } | undefined;
+  readonly #store: ChatgptStore;
+  readonly #catalog: ChatgptCatalog;
   #closed = false;
   constructor(options: {
     configDirectory: string;
     secrets: ConnectionSecretStorage;
     openExternal: (url: string) => Promise<void>;
   }) {
-    this.#configDirectory = options.configDirectory;
-    this.#secrets = options.secrets;
+    this.#store = new ChatgptStore(options.configDirectory, options.secrets);
+    this.#catalog = new ChatgptCatalog({
+      selectedRegistration: () => this.selectedRegistration(),
+      token: (signal, id) => this.token(signal, id),
+      closed: () => this.#closed,
+    });
     this.#openExternal = options.openExternal;
   }
   subscribe(emit: (event: DesktopIpcEvent) => void) {
@@ -194,97 +75,9 @@ export class ChatgptSession {
     this.#queue = next.catch(() => undefined);
     return next;
   }
-  async #directory() {
-    const directory = path.join(this.#configDirectory, "chatgpt-plan");
-    let cursor = path.parse(directory).root;
-    for (const part of directory.slice(cursor.length).split(path.sep).filter(Boolean)) {
-      cursor = path.join(cursor, part);
-      try {
-        if ((await lstat(cursor)).isSymbolicLink()) throw new Error("OD_CHATGPT_STORAGE_UNSAFE");
-      } catch (cause) {
-        if ((cause as NodeJS.ErrnoException).code !== "ENOENT") throw cause;
-      }
-    }
-    await mkdir(directory, { recursive: true, mode: 0o700 });
-    const info = await lstat(directory);
-    if (
-      !info.isDirectory() ||
-      info.isSymbolicLink() ||
-      (process.platform !== "win32" &&
-        ((info.mode & 0o077) !== 0 || info.uid !== process.getuid?.()))
-    )
-      throw new Error("OD_CHATGPT_STORAGE_UNSAFE");
-    return directory;
-  }
-  async #read(): Promise<Store> {
-    if (this.#secrets.state().status !== "available")
-      throw new Error("OD_SECURE_STORAGE_UNAVAILABLE");
-    const filename = path.join(await this.#directory(), "accounts.enc");
-    let file;
-    try {
-      file = await open(filename, constants.O_RDONLY | constants.O_NOFOLLOW);
-    } catch (cause) {
-      if ((cause as NodeJS.ErrnoException).code !== "ENOENT") throw cause;
-      const created: Store = {
-        version: 1,
-        hostId: randomUUID(),
-        selectedId: null,
-        registrations: [],
-        remoteRevocationPending: false,
-      };
-      await this.#write(created);
-      return created;
-    }
-    try {
-      const info = await file.stat();
-      if (
-        !info.isFile() ||
-        info.nlink !== 1 ||
-        info.size > 2 * 1024 * 1024 ||
-        (process.platform !== "win32" &&
-          ((info.mode & 0o077) !== 0 || info.uid !== process.getuid?.()))
-      )
-        throw new Error("OD_CHATGPT_STORAGE_UNSAFE");
-      const bytes = await file.readFile();
-      try {
-        return storeSchema.parse(JSON.parse(safeStorage.decryptString(bytes)));
-      } finally {
-        bytes.fill(0);
-      }
-    } finally {
-      await file.close();
-    }
-  }
-  async #write(value: Store) {
-    if (this.#secrets.state().status !== "available")
-      throw new Error("OD_SECURE_STORAGE_UNAVAILABLE");
-    const directory = await this.#directory();
-    const bytes = safeStorage.encryptString(JSON.stringify(storeSchema.parse(value)));
-    const temporary = path.join(directory, `${randomUUID()}.tmp`);
-    try {
-      const file = await open(temporary, "wx", 0o600);
-      try {
-        await file.writeFile(bytes);
-        await file.sync();
-      } finally {
-        await file.close();
-      }
-      await rename(temporary, path.join(directory, "accounts.enc"));
-      if (process.platform !== "win32") {
-        const handle = await open(directory, "r");
-        try {
-          await handle.sync();
-        } finally {
-          await handle.close();
-        }
-      }
-    } finally {
-      bytes.fill(0);
-      await unlink(temporary).catch(() => undefined);
-    }
-  }
+
   #changed() {
-    this.#catalog = undefined;
+    this.#catalog.reset();
     for (const scope of ["account", "models", "ai-connections"] as const)
       this.#emit({ event: "state-invalidated", scope });
   }
@@ -293,14 +86,14 @@ export class ChatgptSession {
   }
   async accounts() {
     return this.#exclusive(async () => {
-      if (this.#secrets.state().status !== "available")
+      if (this.#store.state().status !== "available")
         return chatgptAccountsSchema.parse({
           state: { status: "unavailable", reason: "account-read-failed" },
           selectedId: null,
           registrations: [],
           remoteRevocationPending: false,
         });
-      const store = await this.#read();
+      const store = await this.#store.read();
       const selected = store.registrations.find((entry) => entry.id === store.selectedId);
       return chatgptAccountsSchema.parse({
         state: selected?.tokens
@@ -323,7 +116,7 @@ export class ChatgptSession {
       signal.throwIfAborted();
       if (this.#closed || this.#pending)
         throw new ChatgptError("authentication", "OD_CHATGPT_SIGN_IN_PENDING");
-      const store = await this.#read();
+      const store = await this.#store.read();
       const selected = store.registrations.find((entry) => entry.id === store.selectedId);
       if (
         !selected?.tokens ||
@@ -374,7 +167,7 @@ export class ChatgptSession {
         ) {
           selected.tokens = null;
           selected.invalid = true;
-          await this.#write(store);
+          await this.#store.write(store);
           this.#changed();
           throw new ChatgptError("authentication", "OD_CHATGPT_SIGN_IN_REQUIRED");
         }
@@ -392,68 +185,18 @@ export class ChatgptSession {
         throw new ChatgptError("authentication", "OD_CHATGPT_PLAN_PERMISSION_REQUIRED");
       selected.tokens = next;
       selected.savedAt = Date.now();
-      await this.#write(store);
+      await this.#store.write(store);
       signal.throwIfAborted();
       return next.access_token;
     });
   }
-  async models(signal: AbortSignal = AbortSignal.timeout(20000)): Promise<Catalog> {
-    const id = await this.selectedRegistration();
-    if (!id) throw new ChatgptError("authentication", "OD_CHATGPT_SIGN_IN_REQUIRED");
-    if (this.#catalog?.registrationId === id && this.#catalog.expires > Date.now())
-      return structuredClone(this.#catalog.value);
-    const token = await this.token(signal, id);
-    const response = await jsonRequest(`${apiOrigin}/v1/models`, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal,
-    });
-    const modelSchema = z.object({
-      slug: z.string().min(1).max(200),
-      display_name: z.string().min(1).max(200),
-      visibility: z.string(),
-      input_modalities: z.array(z.string()).optional(),
-      default_reasoning_level: z.string().nullable().optional(),
-      supported_reasoning_levels: z
-        .array(z.object({ effort: z.string().min(1).max(100) }))
-        .max(20)
-        .optional(),
-    });
-    const listed = z
-      .object({ models: z.array(modelSchema).max(500) })
-      .parse(response)
-      .models.filter(
-        (entry) =>
-          entry.visibility === "list" && (entry.input_modalities ?? ["text"]).includes("text"),
-      );
-    const models = listed.map((entry, index) => ({
-      id: entry.slug,
-      displayName: entry.display_name,
-      isDefault: index === 0,
-      defaultReasoningEffort: entry.default_reasoning_level ?? null,
-      supportedReasoningEfforts: (entry.supported_reasoning_levels ?? []).map(
-        (level) => level.effort,
-      ),
-      inputModalities: (entry.input_modalities ?? ["text"]).filter(
-        (value) => value === "text" || value === "image",
-      ),
-      upgrade: null,
-    }));
-    const value = modelCatalogSchema.parse({
-      models,
-      runtimeDefaultModelId: models[0]?.id ?? null,
-      missingReasoningMetadata: models
-        .filter((entry) => !entry.defaultReasoningEffort || !entry.supportedReasoningEfforts.length)
-        .map((entry) => entry.id),
-    });
-    if ((await this.selectedRegistration()) !== id || this.#closed)
-      throw new ChatgptError("authentication", "OD_CHATGPT_ACCOUNT_CHANGED");
-    this.#catalog = { registrationId: id, value, expires: Date.now() + 60000 };
-    return value;
+  models(signal?: AbortSignal) {
+    return this.#catalog.models(signal);
   }
   async startLogin(registrationId: string | null): Promise<CorrelationId> {
     return this.#exclusive(async () => {
       if (this.#pending || this.#closed) throw new Error("OD_CHATGPT_LOGIN_CONFLICT");
-      const store = await this.#read();
+      const store = await this.#store.read();
       if (
         registrationId !== null &&
         !store.registrations.some((entry) => entry.id === registrationId)
@@ -562,81 +305,7 @@ export class ChatgptSession {
       return id;
     });
   }
-  async #validateIdentity(token: string, clientId: string, nonce: string, signal: AbortSignal) {
-    const parts = token.split(".");
-    const [encodedHeader, encodedClaims, encodedSignature] = parts;
-    if (parts.length !== 3 || !encodedHeader || !encodedClaims || !encodedSignature)
-      throw new Error("OD_CHATGPT_ID_TOKEN_INVALID");
-    const header = z
-      .object({ alg: z.literal("RS256"), kid: z.string(), crit: z.never().optional() })
-      .parse(JSON.parse(Buffer.from(encodedHeader, "base64url").toString("utf8")));
-    const discovery = z
-      .object({ issuer: z.literal(authOrigin), jwks_uri: z.url() })
-      .parse(await jsonRequest(`${authOrigin}/.well-known/openid-configuration`, { signal }));
-    if (new URL(discovery.jwks_uri).origin !== authOrigin)
-      throw new Error("OD_CHATGPT_ISSUER_INVALID");
-    const keys = z
-      .object({
-        keys: z
-          .array(
-            z
-              .object({
-                kid: z.string().optional(),
-                kty: z.string(),
-                use: z.string().optional(),
-                alg: z.string().optional(),
-              })
-              .loose(),
-          )
-          .max(100),
-      })
-      .parse(await jsonRequest(discovery.jwks_uri, { signal }))
-      .keys.filter(
-        (key) =>
-          key.kid === header.kid &&
-          key.kty === "RSA" &&
-          (!key.use || key.use === "sig") &&
-          (!key.alg || key.alg === "RS256"),
-      );
-    const signingKey = keys[0];
-    if (
-      keys.length !== 1 ||
-      !signingKey ||
-      !verify(
-        "RSA-SHA256",
-        Buffer.from(`${encodedHeader}.${encodedClaims}`),
-        createPublicKey({ key: signingKey, format: "jwk" }),
-        Buffer.from(encodedSignature, "base64url"),
-      )
-    )
-      throw new Error("OD_CHATGPT_ID_TOKEN_SIGNATURE_INVALID");
-    const claims = z
-      .object({
-        iss: z.literal(authOrigin),
-        aud: z.union([z.string(), z.array(z.string()).min(1)]),
-        azp: z.string().optional(),
-        sub: z.string().min(1).max(512),
-        exp: z.number(),
-        iat: z.number(),
-        nbf: z.number().optional(),
-        nonce: z.string(),
-        email: z.string().max(320).optional(),
-      })
-      .parse(JSON.parse(Buffer.from(encodedClaims, "base64url").toString("utf8")));
-    const audiences = typeof claims.aud === "string" ? [claims.aud] : claims.aud;
-    const now = Date.now() / 1000;
-    if (
-      !audiences.includes(clientId) ||
-      (audiences.length > 1 && claims.azp !== clientId) ||
-      (claims.azp !== undefined && claims.azp !== clientId) ||
-      claims.exp <= now ||
-      claims.iat > now + 5 ||
-      (claims.nbf !== undefined && claims.nbf > now + 5) ||
-      !equal(claims.nonce, nonce)
-    )
-      throw new Error("OD_CHATGPT_ID_TOKEN_CLAIMS_INVALID");
-    return claims;
-  }
+
   async #completeLogin(attempt: Pending, url: URL) {
     try {
       if (url.searchParams.has("error")) throw new Error("OD_CHATGPT_LOGIN_DECLINED");
@@ -663,14 +332,14 @@ export class ChatgptSession {
           signal,
         }),
       );
-      const identity = await this.#validateIdentity(tokens.id_token, id, attempt.nonce, signal);
+      const identity = await validateIdentity(tokens.id_token, id, attempt.nonce, signal);
       if (!tokens.scope.split(" ").includes("chatgpt.tokens.use.direct"))
         throw new Error("OD_CHATGPT_PLAN_PERMISSION_REQUIRED");
       await this.#exclusive(async () => {
         signal.throwIfAborted();
         if (this.#pending !== attempt || this.#closed)
           throw new Error("OD_CHATGPT_LOGIN_CANCELLED");
-        const store = await this.#read();
+        const store = await this.#store.read();
         const prior = store.registrations.find((entry) => entry.id === id);
         if (prior && prior.subject !== identity.sub) throw new Error("OD_CHATGPT_ACCOUNT_CHANGED");
         const next: Registration = {
@@ -683,7 +352,7 @@ export class ChatgptSession {
         };
         store.registrations = [...store.registrations.filter((entry) => entry.id !== id), next];
         store.selectedId = id;
-        await this.#write(store);
+        await this.#store.write(store);
         this.#finishLogin(attempt);
         this.#changed();
         this.#loginEvent(attempt.id, { status: "complete" });
@@ -717,7 +386,7 @@ export class ChatgptSession {
   async logout() {
     return this.#exclusive(async () => {
       if (this.#pending) throw new Error("OD_CHATGPT_LOGIN_CONFLICT");
-      const store = await this.#read();
+      const store = await this.#store.read();
       const selected = store.registrations.find((entry) => entry.id === store.selectedId);
       if (selected?.tokens) {
         let revoked = false;
@@ -747,7 +416,7 @@ export class ChatgptSession {
         store.remoteRevocationPending = !revoked;
         selected.tokens = null;
         selected.invalid = false;
-        await this.#write(store);
+        await this.#store.write(store);
       }
       this.#changed();
       return accountStateSchema.parse({ status: "signed-out" });

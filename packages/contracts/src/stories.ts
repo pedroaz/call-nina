@@ -1,30 +1,44 @@
 import { z } from "./schema-system.js";
 import { dataRootGenerationSchema, curriculumTopicIdSchema } from "./common.js";
 import { languageSchema, learningContextSchema } from "./learning-context.js";
+import { vocabularyLexemeSchema, vocabularyLexemeMatchesLanguage } from "./vocabulary-content.js";
 
 const text = z.string().trim().min(1).max(6000);
 export const storyLocalizedSchema = z.strictObject({ en: text, de: text, es: text, "pt-BR": text });
-export const storySchema = z.strictObject({
-  id: z.string().regex(/^[a-z][a-z0-9-]{0,79}$/u),
-  version: z.literal(1),
-  language: languageSchema,
-  level: z.enum(["A1", "A2", "B1", "B2"]),
-  topicId: curriculumTopicIdSchema,
-  title: storyLocalizedSchema,
-  summary: storyLocalizedSchema,
-  paragraphs: z.array(text).min(2).max(30),
-  vocabulary: z
-    .array(
-      z.strictObject({
-        text: z.string().min(1).max(160),
-        meaning: storyLocalizedSchema,
-        example: text,
-        exampleMeaning: storyLocalizedSchema,
-      }),
-    )
-    .min(1)
-    .max(20),
-});
+export const storySchema = z
+  .strictObject({
+    id: z.string().regex(/^[a-z][a-z0-9-]{0,79}$/u),
+    version: z.literal(1),
+    language: languageSchema,
+    level: z.enum(["A1", "A2", "B1", "B2"]),
+    topicId: curriculumTopicIdSchema,
+    title: storyLocalizedSchema,
+    summary: storyLocalizedSchema,
+    paragraphs: z.array(text).min(2).max(30),
+    vocabulary: z
+      .array(
+        z.strictObject({
+          text: z.string().min(1).max(160),
+          meaning: storyLocalizedSchema,
+          example: text,
+          exampleMeaning: storyLocalizedSchema,
+          lexeme: vocabularyLexemeSchema.optional(),
+          usage: storyLocalizedSchema.optional(),
+        }),
+      )
+      .min(1)
+      .max(20),
+  })
+  .superRefine((story, context) => {
+    for (const [index, word] of story.vocabulary.entries()) {
+      if (word.lexeme && !vocabularyLexemeMatchesLanguage(word.lexeme, story.language))
+        context.addIssue({
+          code: "custom",
+          path: ["vocabulary", index, "lexeme"],
+          message: "Invalid story lexeme",
+        });
+    }
+  });
 export const storyCatalogSchema = z
   .strictObject({ schemaVersion: z.literal(1), stories: z.array(storySchema).max(1000) })
   .superRefine((value, context) => {

@@ -25,6 +25,7 @@ export const coursePathSchema = z.strictObject({
   level: z.enum(["A1", "A2", "B1", "B2"]),
   title: localized,
   description: localized,
+  presentation: z.enum(["primary", "supplementary"]).optional(),
 });
 export const learningCatalogSchema = z.strictObject({
   schemaVersion: z.literal(1),
@@ -120,6 +121,16 @@ export const courseUnitSchema = z.strictObject({
     .min(1)
     .max(8),
   sourceIds: z.array(key).min(1).max(10),
+  syllabus: z
+    .strictObject({
+      sourceId: key,
+      chapters: z.array(z.int().min(1).max(12)).min(1).max(12),
+      grammar: localized,
+      pronunciation: localized,
+      vocabulary: localized,
+      outcomes: localized,
+    })
+    .optional(),
 });
 export const learningCourseSchema = z
   .strictObject({
@@ -139,9 +150,9 @@ export const learningCourseSchema = z
         }),
       )
       .min(1)
-      .max(20),
+      .max(60),
     paths: z.array(coursePathSchema).min(1).max(100),
-    targets: z.array(courseTargetSchema).min(1).max(1000),
+    targets: z.array(courseTargetSchema).min(1).max(5000),
     units: z.array(courseUnitSchema).min(1).max(200),
   })
   .superRefine((course, ctx) => {
@@ -198,6 +209,8 @@ export const learningCourseSchema = z
         issue("Duplicate scenario variant");
       if (unit.sourceIds.some((id) => !course.sources.some((s) => s.id === id)))
         issue("Unknown course source");
+      if (unit.syllabus && !unit.sourceIds.includes(unit.syllabus.sourceId))
+        issue("Unknown syllabus source");
     }
   });
 export const courseSupportSchema = z.enum([

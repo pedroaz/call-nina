@@ -114,6 +114,7 @@ export const commands = [
     "database-check",
     "migrate",
     "runtime-setup",
+    "runtime-grants",
     "configure-client",
   ].map((action) => ({
     name: `infra ${action}`,
@@ -125,11 +126,14 @@ export const commands = [
       "database-connect": "Validate existing database configuration (local; no connection)",
       "database-check": "Check database permissions (live read)",
       migrate: "Apply missing database migrations (live write)",
+      "runtime-grants": "Reconcile existing runtime grants (live write; no credential changes)",
       "runtime-setup": "Set up the restricted database role (live write; saves password locally)",
       "configure-client": "Generate public app/API configuration (local write)",
     }[action],
     args: [],
-    mutation: ["apply", "runtime-setup", "migrate", "configure-client"].includes(action),
+    mutation: ["apply", "runtime-setup", "runtime-grants", "migrate", "configure-client"].includes(
+      action,
+    ),
   })),
   {
     name: "deploy",
@@ -141,7 +145,7 @@ export const commands = [
 ];
 export function help() {
   return {
-    usage: "node scripts/admin/index.mjs COMMAND --environment preview|production [--yes]",
+    usage: "node scripts/admin/index.mjs COMMAND --environment dev|prd [--yes]",
     mode: "Mutations return a review unless --yes is supplied. No terminal prompts.",
     grantIds:
       "Grant reviews generate a UUID. Supply that UUID when executing or retrying; --yes requires it.",

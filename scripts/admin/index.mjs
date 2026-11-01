@@ -33,7 +33,7 @@ async function execute(tokens) {
   const environmentIndex = args.indexOf("--environment");
   if (environmentIndex !== -1) args.splice(environmentIndex, 2);
   if (selectionError || !environment)
-    throw new ControlError(selectionError ?? "Select --environment preview or production");
+    throw new ControlError(selectionError ?? "Select --environment dev or prd");
   const definition = commands.find((command) =>
     command.name.split(" ").every((word, index) => word === args[index]),
   );
@@ -47,6 +47,7 @@ async function execute(tokens) {
   )
     throw new ControlError(`Usage: ${definition.name} ${definition.args.join(" ")}`);
   const name = definition.name;
+  if (name === "deploy") return (await import("./deployment.mjs")).deploy();
   if (!["infra plan", "infra configure-client"].includes(name)) await loadCredentials();
   if (name === "credentials status") return output(credentialStatus());
   if (name === "credentials import") {
@@ -94,34 +95,35 @@ async function execute(tokens) {
     return infra.apply(diff);
   }
   if (name === "infra database-check") return (await import("./database.mjs")).checkDatabase();
-  if (name.startsWith("infra ") || name === "deploy") {
+  if (name.startsWith("infra ")) {
     const details =
       name === "infra migrate"
         ? {
-            migrations: [
-              "001-budget.sql",
-              "002-accounts.sql",
-              "003-ai-access.sql",
-              "004-mobile-sync.sql",
-              "005-speech.sql",
-              "006-account-tiers.sql",
-              "007-service-availability.sql",
-            ],
+            migrations: (await (await import("./migration-catalog.mjs")).migrationCatalog()).map(
+              ({ name }) => name,
+            ),
             operation: "Check supplied PG role permissions and apply missing migrations only",
           }
-        : name === "infra runtime-setup"
+        : name === "infra runtime-grants"
           ? {
-              runtimeRole: config.runtimeRole,
               operation:
-                "Check role-management permissions; generate/reuse a separate runtime password; create/reconcile only Nina's restricted role",
+                "Reconcile grants for the existing restricted runtime role; no provisioning or password changes",
             }
-          : name === "infra configure-client"
+          : name === "infra runtime-setup"
             ? {
-                operation: "Generate public desktop and API configuration",
-                origin: config.origin,
+                runtimeRole: config.runtimeRole,
+                operation:
+                  "Check role-management permissions; generate/reuse a separate runtime password; create/reconcile only Nina's restricted role",
               }
-            : { operation: "Show manual GitHub hosting publication instructions (no upload)" };
+            : name === "infra configure-client"
+              ? {
+                  operation: "Generate public desktop and API configuration",
+                  origin: config.origin,
+                }
+              : { operation: "Show manual GitHub hosting publication instructions (no upload)" };
     await confirm({ command: name, target, ...details, inferenceActivated: false }, yes);
+    if (name === "infra runtime-grants")
+      return (await import("./runtime-grants.mjs")).reconcileRuntime();
     if (name === "infra runtime-setup") return (await import("./runtime-role.mjs")).setupRuntime();
     if (name === "infra migrate") return (await import("./database.mjs")).migrate();
     if (name === "infra configure-client") return configureClient();

@@ -19,7 +19,26 @@
         "de": "Wähle Brot, nenne die Menge und frage nach dem Preis.",
         "es": "Elige pan, indica una cantidad y consulta el precio.",
         "pt-BR": "Escolha pães, informe a quantidade e confira o preço."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "bakery-mission",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Buy breakfast",
+        "de": "Frühstück kaufen",
+        "es": "Comprar el desayuno",
+        "pt-BR": "Comprar o café da manhã"
+      },
+      "description": {
+        "en": "Choose bread, specify a quantity, and check the price.",
+        "de": "Wähle Brot, nenne die Menge und frage nach dem Preis.",
+        "es": "Elige pan, indica una cantidad y consulta el precio.",
+        "pt-BR": "Escolha pães, informe a quantidade e confira o preço."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Die Bestellung höflich beenden.",
         "es": "Eso es todo, gracias.",
         "pt-BR": "É só isso, obrigado."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-bakery-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Zwei Brötchen, bitte.",
+      "meaning": {
+        "en": "Two bread rolls, please.",
+        "de": "Zwei einfache Brötchen bestellen.",
+        "es": "Dos panecillos, por favor.",
+        "pt-BR": "Dois pãezinhos, por favor."
+      },
+      "example": "Zwei Brötchen, bitte.",
+      "exampleMeaning": {
+        "en": "Two bread rolls, please.",
+        "de": "Zwei einfache Brötchen bestellen.",
+        "es": "Dos panecillos, por favor.",
+        "pt-BR": "Dois pãezinhos, por favor."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-bakery-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Dann nehme ich zwei normale Brötchen.",
+      "meaning": {
+        "en": "Then I will take two plain rolls.",
+        "de": "Ich wähle normale Brötchen als Ersatz.",
+        "es": "Entonces llevo dos panecillos normales.",
+        "pt-BR": "Então vou levar dois pães simples."
+      },
+      "example": "Dann nehme ich zwei normale Brötchen.",
+      "exampleMeaning": {
+        "en": "Then I will take two plain rolls.",
+        "de": "Ich wähle normale Brötchen als Ersatz.",
+        "es": "Entonces llevo dos panecillos normales.",
+        "pt-BR": "Então vou levar dois pães simples."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-bakery-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Was kostet der Kaffee?",
+      "meaning": {
+        "en": "How much is the coffee?",
+        "de": "Nach dem Preis des Kaffees fragen.",
+        "es": "¿Cuánto cuesta el café?",
+        "pt-BR": "Quanto custa o café?"
+      },
+      "example": "Was kostet der Kaffee?",
+      "exampleMeaning": {
+        "en": "How much is the coffee?",
+        "de": "Nach dem Preis des Kaffees fragen.",
+        "es": "¿Cuánto cuesta el café?",
+        "pt-BR": "Quanto custa o café?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-bakery-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Gilt das Angebot auch zum Mitnehmen?",
+      "meaning": {
+        "en": "Does the offer also apply to takeaway?",
+        "de": "Ich frage nach der Gültigkeit des Angebots.",
+        "es": "¿La oferta también vale para llevar?",
+        "pt-BR": "A oferta também vale para viagem?"
+      },
+      "example": "Gilt das Angebot auch zum Mitnehmen?",
+      "exampleMeaning": {
+        "en": "Does the offer also apply to takeaway?",
+        "de": "Ich frage nach der Gültigkeit des Angebots.",
+        "es": "¿La oferta también vale para llevar?",
+        "pt-BR": "A oferta também vale para viagem?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-bakery-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Das ist alles, danke.",
+      "meaning": {
+        "en": "That is everything, thank you.",
+        "de": "Die Bestellung höflich beenden.",
+        "es": "Eso es todo, gracias.",
+        "pt-BR": "É só isso, obrigado."
+      },
+      "example": "Das ist alles, danke.",
+      "exampleMeaning": {
+        "en": "That is everything, thank you.",
+        "de": "Die Bestellung höflich beenden.",
+        "es": "Eso es todo, gracias.",
+        "pt-BR": "É só isso, obrigado."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-bakery-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ohne Tüte, bitte.",
+      "meaning": {
+        "en": "No bag, please.",
+        "de": "Ich brauche keine Tüte.",
+        "es": "Sin bolsa, por favor.",
+        "pt-BR": "Sem sacola, por favor."
+      },
+      "example": "Ohne Tüte, bitte.",
+      "exampleMeaning": {
+        "en": "No bag, please.",
+        "de": "Ich brauche keine Tüte.",
+        "es": "Sin bolsa, por favor.",
+        "pt-BR": "Sem sacola, por favor."
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Die Bestellung abschließen. Die Bestellung höflich beenden.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.",
             "es": "Terminar el pedido. Eso es todo, gracias.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.",
             "pt-BR": "Concluir o pedido. É só isso, obrigado.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-bakery-v2",
+      "stage": "bakery-mission",
+      "kind": "module",
+      "title": {
+        "en": "At the bakery counter",
+        "de": "An der Bäckereitheke",
+        "es": "En el mostrador de la panadería",
+        "pt-BR": "No balcão da padaria"
+      },
+      "scenario": {
+        "en": "Order a quantity of rolls and choose a replacement for the sold-out item.",
+        "de": "Bestelle eine Menge Brötchen und wähle einen Ersatz für den ausverkauften Artikel.",
+        "es": "Pide una cantidad de panecillos y una alternativa al producto agotado.",
+        "pt-BR": "Peça uma quantidade de pães e uma alternativa ao produto esgotado."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+        "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+        "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+        "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+      },
+      "explanation": {
+        "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+        "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+        "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+        "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+      },
+      "examples": [
+        {
+          "text": "Zwei Brötchen, bitte.",
+          "meaning": {
+            "en": "Two bread rolls, please.",
+            "de": "Zwei einfache Brötchen bestellen.",
+            "es": "Dos panecillos, por favor.",
+            "pt-BR": "Dois pãezinhos, por favor."
+          }
+        },
+        {
+          "text": "Dann nehme ich zwei normale Brötchen.",
+          "meaning": {
+            "en": "Then I will take two plain rolls.",
+            "de": "Ich wähle normale Brötchen als Ersatz.",
+            "es": "Entonces llevo dos panecillos normales.",
+            "pt-BR": "Então vou levar dois pães simples."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-bakery-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-bakery-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which item is sold out?",
+            "de": "Was ist ausverkauft?",
+            "es": "¿Qué producto está agotado?",
+            "pt-BR": "Qual produto acabou?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-bakery-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Order a quantity of rolls and choose a replacement for the sold-out item.",
+            "de": "Bestelle eine Menge Brötchen und wähle einen Ersatz für den ausverkauften Artikel.",
+            "es": "Pide una cantidad de panecillos y una alternativa al producto agotado.",
+            "pt-BR": "Peça uma quantidade de pães e uma alternativa ao produto esgotado."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-bakery-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Order a quantity of rolls and choose a replacement for the sold-out item.",
+            "de": "Bestelle eine Menge Brötchen und wähle einen Ersatz für den ausverkauften Artikel.",
+            "es": "Pide una cantidad de panecillos y una alternativa al producto agotado.",
+            "pt-BR": "Peça uma quantidade de pães e uma alternativa ao produto esgotado."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-bakery-v2-reading"],
+          "targetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "How much is a coffee?",
+              "de": "Was kostet ein Kaffee?",
+              "es": "¿Cuánto cuesta un café?",
+              "pt-BR": "Quanto custa um café?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "drei Euro",
+              "de": "drei Euro",
+              "es": "drei Euro",
+              "pt-BR": "drei Euro"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ein Brötchen kostet einen Euro. Ein Käsebrötchen kostet zwei Euro. Der Kaffee kostet drei Euro."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-bakery-v2-listening"],
+          "targetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which item is sold out?",
+              "de": "Was ist ausverkauft?",
+              "es": "¿Qué producto está agotado?",
+              "pt-BR": "Qual produto acabou?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Die Käsebrötchen.",
+              "de": "Die Käsebrötchen.",
+              "es": "Die Käsebrötchen.",
+              "pt-BR": "Die Käsebrötchen."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+          "instructions": {
+            "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+            "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+            "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+            "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-bakery-v2-writing"],
+          "targetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+          "instructions": {
+            "en": "Order a quantity of rolls and choose a replacement for the sold-out item.",
+            "de": "Bestelle eine Menge Brötchen und wähle einen Ersatz für den ausverkauften Artikel.",
+            "es": "Pide una cantidad de panecillos y una alternativa al producto agotado.",
+            "pt-BR": "Peça uma quantidade de pães e uma alternativa ao produto esgotado."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-bakery-v2-writing"],
+          "targetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+          "instructions": {
+            "en": "Order a quantity of rolls and choose a replacement for the sold-out item.",
+            "de": "Bestelle eine Menge Brötchen und wähle einen Ersatz für den ausverkauften Artikel.",
+            "es": "Pide una cantidad de panecillos y una alternativa al producto agotado.",
+            "pt-BR": "Peça uma quantidade de pães e uma alternativa ao produto esgotado."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-bakery-v2-speaking"],
+          "targetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+          "instructions": {
+            "en": "Order a quantity of rolls and choose a replacement for the sold-out item.",
+            "de": "Bestelle eine Menge Brötchen und wähle einen Ersatz für den ausverkauften Artikel.",
+            "es": "Pide una cantidad de panecillos y una alternativa al producto agotado.",
+            "pt-BR": "Peça uma quantidade de pães e uma alternativa ao produto esgotado."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Ein Brötchen kostet einen Euro. Ein Käsebrötchen kostet zwei Euro. Der Kaffee kostet drei Euro.\nUpdate: Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?",
+            "de": "Ursprüngliche Nachricht: Ein Brötchen kostet einen Euro. Ein Käsebrötchen kostet zwei Euro. Der Kaffee kostet drei Euro.\nAktualisierung: Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?",
+            "es": "Aviso original: Ein Brötchen kostet einen Euro. Ein Käsebrötchen kostet zwei Euro. Der Kaffee kostet drei Euro.\nActualización: Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?",
+            "pt-BR": "Aviso original: Ein Brötchen kostet einen Euro. Ein Käsebrötchen kostet zwei Euro. Der Kaffee kostet drei Euro.\nAtualização: Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?"
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?",
+            "de": "Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?",
+            "es": "Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?",
+            "pt-BR": "Guten Morgen! Normale Brötchen haben wir noch. Die Käsebrötchen sind leider ausverkauft. Möchten Sie stattdessen zwei normale Brötchen?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-bakery-2-v2",
+      "stage": "bakery-mission",
+      "kind": "module",
+      "title": {
+        "en": "Check the price",
+        "de": "Den Preis erfragen",
+        "es": "Preguntar el precio",
+        "pt-BR": "Perguntar o preço"
+      },
+      "scenario": {
+        "en": "Ask about the combined offer, check its time limit and confirm the total.",
+        "de": "Frage nach dem gemeinsamen Angebot, prüfe die Zeitgrenze und bestätige den Preis.",
+        "es": "Consulta la oferta conjunta, su horario y el precio total.",
+        "pt-BR": "Consulte a oferta conjunta, seu horário e o preço total."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": ["de-bakery-v2"],
+      "grammar": {
+        "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+        "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+        "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+        "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+      },
+      "explanation": {
+        "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+        "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+        "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+        "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+      },
+      "examples": [
+        {
+          "text": "Was kostet der Kaffee?",
+          "meaning": {
+            "en": "How much is the coffee?",
+            "de": "Nach dem Preis des Kaffees fragen.",
+            "es": "¿Cuánto cuesta el café?",
+            "pt-BR": "Quanto custa o café?"
+          }
+        },
+        {
+          "text": "Gilt das Angebot auch zum Mitnehmen?",
+          "meaning": {
+            "en": "Does the offer also apply to takeaway?",
+            "de": "Ich frage nach der Gültigkeit des Angebots.",
+            "es": "¿La oferta también vale para llevar?",
+            "pt-BR": "A oferta também vale para viagem?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-bakery-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-bakery-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "How much is the combined offer?",
+            "de": "Was kostet das gemeinsame Angebot?",
+            "es": "¿Cuánto cuesta la oferta conjunta?",
+            "pt-BR": "Quanto custa a oferta conjunta?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-bakery-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Ask about the combined offer, check its time limit and confirm the total.",
+            "de": "Frage nach dem gemeinsamen Angebot, prüfe die Zeitgrenze und bestätige den Preis.",
+            "es": "Consulta la oferta conjunta, su horario y el precio total.",
+            "pt-BR": "Consulte a oferta conjunta, seu horário e o preço total."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-bakery-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Ask about the combined offer, check its time limit and confirm the total.",
+            "de": "Frage nach dem gemeinsamen Angebot, prüfe die Zeitgrenze und bestätige den Preis.",
+            "es": "Consulta la oferta conjunta, su horario y el precio total.",
+            "pt-BR": "Consulte a oferta conjunta, seu horário e o preço total."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-bakery-2-v2-phrase-1", "de-bakery-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-bakery-v2-phrase-1", "de-bakery-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-bakery-2-v2-reading"],
+          "targetIds": ["de-bakery-2-v2-phrase-1", "de-bakery-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro.",
+              "de": "Der Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro.",
+              "es": "Der Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro.",
+              "pt-BR": "Der Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Was kostet der Kaffee?\nDer Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-bakery-2-v2-listening"],
+          "targetIds": ["de-bakery-2-v2-phrase-1", "de-bakery-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "How much is the combined offer?",
+              "de": "Was kostet das gemeinsame Angebot?",
+              "es": "¿Cuánto cuesta la oferta conjunta?",
+              "pt-BR": "Quanto custa a oferta conjunta?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Drei Euro fünfzig.",
+              "de": "Drei Euro fünfzig.",
+              "es": "Drei Euro fünfzig.",
+              "pt-BR": "Drei Euro fünfzig."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-bakery-2-v2-phrase-1", "de-bakery-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+            "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+            "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+            "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-bakery-2-v2-writing"],
+          "targetIds": ["de-bakery-2-v2-phrase-1", "de-bakery-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask about the combined offer, check its time limit and confirm the total.",
+            "de": "Frage nach dem gemeinsamen Angebot, prüfe die Zeitgrenze und bestätige den Preis.",
+            "es": "Consulta la oferta conjunta, su horario y el precio total.",
+            "pt-BR": "Consulte a oferta conjunta, seu horário e o preço total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-bakery-2-v2-writing"],
+          "targetIds": ["de-bakery-2-v2-phrase-1", "de-bakery-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask about the combined offer, check its time limit and confirm the total.",
+            "de": "Frage nach dem gemeinsamen Angebot, prüfe die Zeitgrenze und bestätige den Preis.",
+            "es": "Consulta la oferta conjunta, su horario y el precio total.",
+            "pt-BR": "Consulte a oferta conjunta, seu horário e o preço total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-bakery-2-v2-speaking"],
+          "targetIds": ["de-bakery-2-v2-phrase-1", "de-bakery-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Ask about the combined offer, check its time limit and confirm the total.",
+            "de": "Frage nach dem gemeinsamen Angebot, prüfe die Zeitgrenze und bestätige den Preis.",
+            "es": "Consulta la oferta conjunta, su horario y el precio total.",
+            "pt-BR": "Consulte a oferta conjunta, seu horário e o preço total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Der Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Was kostet der Kaffee?\nDer Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro.\nUpdate: Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr.",
+            "de": "Ursprüngliche Nachricht: Was kostet der Kaffee?\nDer Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro.\nAktualisierung: Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr.",
+            "es": "Aviso original: Was kostet der Kaffee?\nDer Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro.\nActualización: Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr.",
+            "pt-BR": "Aviso original: Was kostet der Kaffee?\nDer Kaffee kostet drei Euro. Ein Brötchen kostet einen Euro.\nAtualização: Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr.",
+            "de": "Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr.",
+            "es": "Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr.",
+            "pt-BR": "Der Kaffee kostet drei Euro zum Mitnehmen. Mit einem Brötchen zusammen kostet er im Angebot dreifünfzig. Das Angebot gilt nur bis zehn Uhr."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-bakery-3-v2",
+      "stage": "bakery-mission",
+      "kind": "module",
+      "title": {
+        "en": "Finish your order",
+        "de": "Die Bestellung abschließen",
+        "es": "Terminar el pedido",
+        "pt-BR": "Concluir o pedido"
+      },
+      "scenario": {
+        "en": "Finish the order, accept or decline a bag and confirm payment method and total.",
+        "de": "Schließe die Bestellung ab, entscheide über die Tüte und bestätige Zahlung und Gesamtpreis.",
+        "es": "Termina el pedido, acepta o rechaza bolsa y confirma pago y total.",
+        "pt-BR": "Termine o pedido, aceite ou recuse sacola e confirme pagamento e total."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000004"],
+      "prerequisites": ["de-bakery-2-v2"],
+      "grammar": {
+        "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+        "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+        "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+        "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+      },
+      "explanation": {
+        "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+        "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+        "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+        "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+      },
+      "examples": [
+        {
+          "text": "Das ist alles, danke.",
+          "meaning": {
+            "en": "That is everything, thank you.",
+            "de": "Die Bestellung höflich beenden.",
+            "es": "Eso es todo, gracias.",
+            "pt-BR": "É só isso, obrigado."
+          }
+        },
+        {
+          "text": "Ohne Tüte, bitte.",
+          "meaning": {
+            "en": "No bag, please.",
+            "de": "Ich brauche keine Tüte.",
+            "es": "Sin bolsa, por favor.",
+            "pt-BR": "Sem sacola, por favor."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-bakery-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-bakery-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What is the total with a bag?",
+            "de": "Was kostet alles mit Tüte?",
+            "es": "¿Cuánto cuesta todo con bolsa?",
+            "pt-BR": "Quanto custa tudo com sacola?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-bakery-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Finish the order, accept or decline a bag and confirm payment method and total.",
+            "de": "Schließe die Bestellung ab, entscheide über die Tüte und bestätige Zahlung und Gesamtpreis.",
+            "es": "Termina el pedido, acepta o rechaza bolsa y confirma pago y total.",
+            "pt-BR": "Termine o pedido, aceite ou recuse sacola e confirme pagamento e total."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-bakery-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Finish the order, accept or decline a bag and confirm payment method and total.",
+            "de": "Schließe die Bestellung ab, entscheide über die Tüte und bestätige Zahlung und Gesamtpreis.",
+            "es": "Termina el pedido, acepta o rechaza bolsa y confirma pago y total.",
+            "pt-BR": "Termine o pedido, aceite ou recuse sacola e confirme pagamento e total."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-bakery-3-v2-phrase-1", "de-bakery-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-bakery-v2-phrase-1",
+        "de-bakery-v2-phrase-2",
+        "de-bakery-2-v2-phrase-1",
+        "de-bakery-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-bakery-3-v2-reading"],
+          "targetIds": ["de-bakery-3-v2-phrase-1", "de-bakery-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Gern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.",
+              "de": "Gern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.",
+              "es": "Gern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.",
+              "pt-BR": "Gern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Das ist alles, danke.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-bakery-3-v2-listening"],
+          "targetIds": ["de-bakery-3-v2-phrase-1", "de-bakery-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What is the total with a bag?",
+              "de": "Was kostet alles mit Tüte?",
+              "es": "¿Cuánto cuesta todo con bolsa?",
+              "pt-BR": "Quanto custa tudo com sacola?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Fünf Euro zehn.",
+              "de": "Fünf Euro zehn.",
+              "es": "Fünf Euro zehn.",
+              "pt-BR": "Fünf Euro zehn."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-bakery-3-v2-phrase-1", "de-bakery-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Möchten is a polite choice; nehmen states your order. Number words precede plural nouns. Mit and ohne distinguish inclusion from exclusion; confirm the total after any extra item.",
+            "de": "Möchten formuliert eine höfliche Wahl, nehmen nennt die Bestellung. Zahlen stehen vor Pluralnomen. Mit und ohne unterscheiden Einschluss und Ausschluss; bestätige den Preis nach Extras.",
+            "es": "Möchten expresa elección cortés; nehmen indica pedido. Los números van antes del plural. Mit y ohne distinguen inclusión y exclusión.",
+            "pt-BR": "Möchten expressa escolha educada; nehmen indica pedido. Números vêm antes do plural. Mit e ohne distinguem inclusão e exclusão."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-bakery-3-v2-writing"],
+          "targetIds": ["de-bakery-3-v2-phrase-1", "de-bakery-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Finish the order, accept or decline a bag and confirm payment method and total.",
+            "de": "Schließe die Bestellung ab, entscheide über die Tüte und bestätige Zahlung und Gesamtpreis.",
+            "es": "Termina el pedido, acepta o rechaza bolsa y confirma pago y total.",
+            "pt-BR": "Termine o pedido, aceite ou recuse sacola e confirme pagamento e total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-bakery-3-v2-writing"],
+          "targetIds": ["de-bakery-3-v2-phrase-1", "de-bakery-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Finish the order, accept or decline a bag and confirm payment method and total.",
+            "de": "Schließe die Bestellung ab, entscheide über die Tüte und bestätige Zahlung und Gesamtpreis.",
+            "es": "Termina el pedido, acepta o rechaza bolsa y confirma pago y total.",
+            "pt-BR": "Termine o pedido, aceite ou recuse sacola e confirme pagamento e total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-bakery-3-v2-speaking"],
+          "targetIds": ["de-bakery-3-v2-phrase-1", "de-bakery-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Finish the order, accept or decline a bag and confirm payment method and total.",
+            "de": "Schließe die Bestellung ab, entscheide über die Tüte und bestätige Zahlung und Gesamtpreis.",
+            "es": "Termina el pedido, acepta o rechaza bolsa y confirma pago y total.",
+            "pt-BR": "Termine o pedido, aceite ou recuse sacola e confirme pagamento e total."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Das ist alles, danke.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.\nUpdate: Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen.",
+            "de": "Ursprüngliche Nachricht: Das ist alles, danke.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.\nAktualisierung: Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen.",
+            "es": "Aviso original: Das ist alles, danke.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.\nActualización: Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen.",
+            "pt-BR": "Aviso original: Das ist alles, danke.\nGern. Zwei Brötchen und ein Kaffee kosten zusammen fünf Euro.\nAtualização: Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen.",
+            "de": "Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen.",
+            "es": "Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen.",
+            "pt-BR": "Zwei Brötchen und ein Kaffee: Das macht fünf Euro. Möchten Sie eine Tüte? Sie kostet zehn Cent extra. Sie können bar oder mit Karte bezahlen."
           }
         }
       ],

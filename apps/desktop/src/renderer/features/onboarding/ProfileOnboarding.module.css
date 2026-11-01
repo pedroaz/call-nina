@@ -1,0 +1,57 @@
+.app {
+  height: 100dvh;
+  box-sizing: border-box;
+  padding: var(--od-space-8);
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
+.brand {
+  font-family: var(--od-font-family-display);
+  font-size: var(--od-type-section-title-size);
+  font-weight: 700;
+}
+.options {
+  display: grid;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.options p,
+.lesson p {
+  margin: 0;
+}
+.connectionActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--od-space-3);
+}
+.lessonAction {
+  justify-self: start;
+}
+.lesson {
+  display: flex;
+  align-items: start;
+  gap: var(--od-space-5);
+}
+.lesson > svg {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  color: var(--od-color-brand-ink);
+}
+.lesson > div {
+  display: grid;
+  gap: var(--od-space-3);
+  min-width: 0;
+}
+.lesson h2 {
+  margin: 0;
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-section-title-size);
+}
+@media (max-width: 52rem) {
+  .app {
+    padding: var(--od-space-5);
+    align-content: start;
+  }
+}

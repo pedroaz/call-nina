@@ -1,8 +1,8 @@
-import { useContext, useState, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
+import { useContext, useState, type ReactNode } from "react";
 import { Tabs } from "../ui/index.js";
-import { ActivityLayoutContext } from "./ActivityWorkspace.js";
 import styles from "./Activity.module.css";
+import { ActivityLayoutContext } from "./ActivityWorkspace.js";
 
 export type ActivityReferenceItem = { id: string; label: string; content: ReactNode };
 export function ActivityReference({

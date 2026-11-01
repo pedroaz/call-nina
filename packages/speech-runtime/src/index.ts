@@ -20,7 +20,11 @@ import type { SpeechBundles } from "./bundles.js";
 
 export { validateSpeechAudio } from "./audio.js";
 export { speechPacks } from "./catalog.js";
-export { loadSpeechBundles, loadLocalSpeechBundles } from "./bundles.js";
+export {
+  loadSpeechBundles,
+  loadLocalSpeechBundles,
+  speechRuntimeCatalogSchema,
+} from "./bundles.js";
 export type { SpeechBundles } from "./bundles.js";
 export { hash } from "./files.js";
 export async function curriculumDigest(root: string) {

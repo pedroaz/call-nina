@@ -62,7 +62,7 @@ export async function deploy() {
   const project = await api(`v9/projects/${projectId}`, "Vercel project access");
   if (project.id !== projectId || project.accountId !== teamId)
     throw new Error("Vercel project identity mismatch");
-  if (environment === "preview" && !project.targets?.production)
+  if (environment === "dev" && !project.targets?.production)
     throw new Error("Deploy production once before creating previews in a new Vercel project");
   // Re-running a failed publication must first establish whether the original upload succeeded.
   const prior = [];
@@ -94,9 +94,7 @@ export async function deploy() {
       deployment.meta?.ninaCommit !== current.commit ||
       deployment.meta?.ninaVersion !== manifest.version ||
       deployment.meta?.ninaArtifact !== manifest.sha256 ||
-      (environment === "production"
-        ? deployment.target !== "production"
-        : deployment.target != null) ||
+      (environment === "prd" ? deployment.target !== "production" : deployment.target != null) ||
       deployment.readyState !== "READY" ||
       deployment.meta?.ninaEnvironment !== environment
     )
@@ -108,7 +106,7 @@ export async function deploy() {
     return;
   }
   async function assignAlias(deployment) {
-    if (environment === "production") {
+    if (environment === "prd") {
       if (!deployment.aliasAssigned)
         throw new Error("Production aliases are not assigned; inspect before retrying");
       return;
@@ -116,7 +114,7 @@ export async function deploy() {
     const hostname = new URL(origin).hostname;
     const aliases = await api(
       `v2/deployments/${deployment.id ?? deployment.uid}/aliases`,
-      "Preview alias readback",
+      "Dev alias readback",
     );
     let alias = aliases.aliases.find((entry) => entry.alias === hostname);
     if (!alias)
@@ -138,7 +136,7 @@ export async function deploy() {
     )
       await api(
         `aliases/${id}/protection-bypass`,
-        "Allow native clients on staging hostname",
+        "Allow native clients on dev hostname",
         "PATCH",
         { override: { scope: "alias-protection-override", action: "create" } },
       );
@@ -165,7 +163,7 @@ export async function deploy() {
     throw new Error("Invalid hosting routes");
   if ((await readJson("build/hosting/vercel.json")).git?.deploymentEnabled !== false)
     throw new Error("Automatic Git deployment must remain disabled");
-  for (const name of ["account", "generate", "mobile-sync", "speech", "speech-recovery"]) {
+  for (const name of ["account", "downloads", "generate", "mobile-sync", "speech"]) {
     const metadata = await readJson(
       `build/hosting/.vercel/output/functions/api/${name}.func/.vc-config.json`,
     );
@@ -193,7 +191,7 @@ export async function deploy() {
       "--cwd",
       destination,
       "--prebuilt",
-      ...(environment === "production" ? ["--prod"] : []),
+      ...(environment === "prd" ? ["--prod"] : []),
       "--yes",
       "--scope",
       teamId,
@@ -220,7 +218,7 @@ export async function deploy() {
   if (!url) throw new Error("Deployment outcome unknown; inspect Vercel before retrying");
   const deployed = await api(
     `v13/deployments/${new URL(url).hostname}`,
-    "Vercel production deployment readback",
+    "Vercel deployment readback",
   );
   if (
     deployed.projectId !== projectId ||
@@ -229,7 +227,7 @@ export async function deploy() {
     deployed.meta?.ninaVersion !== manifest.version ||
     deployed.meta?.ninaArtifact !== manifest.sha256 ||
     deployed.readyState !== "READY" ||
-    (environment === "production" ? deployed.target !== "production" : deployed.target != null) ||
+    (environment === "prd" ? deployed.target !== "production" : deployed.target != null) ||
     deployed.meta?.ninaEnvironment !== environment
   )
     throw new Error("Deployment readback is incomplete; inspect Vercel before retrying");
@@ -239,6 +237,6 @@ export async function deploy() {
 async function report(url, version) {
   await setOutput("url", url);
   await summary(
-    `Vercel ${hostingEnvironment()} deployed: ${url}\nVersion: ${version}\nCommit: ${context().commit}\nRun: ${context().runId}\nNo migrations or inference activation performed.`,
+    `Vercel ${hostingEnvironment()} deployed: ${url}\nVersion: ${version}\nCommit: ${context().commit}\nRun: ${context().runId}\nRequired migrations and existing runtime grants were prepared by the database job. No inference activation performed.`,
   );
 }

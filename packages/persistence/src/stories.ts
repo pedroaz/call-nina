@@ -60,7 +60,7 @@ export async function saveStoryWord(
       .get(word.text, word.meaning[locale], story.language);
     if (existing) return false;
     const id = `vocabulary_${randomUUID().replaceAll("-", "")}`;
-    const lexeme = { partOfSpeech: "other" } as const;
+    const lexeme = word.lexeme ?? ({ partOfSpeech: "other" } as const);
     const examples = [{ text: word.example, meaning: word.exampleMeaning[locale] }];
     const source = {
       kind: "curriculum" as const,

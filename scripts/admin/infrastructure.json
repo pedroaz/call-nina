@@ -1,5 +1,5 @@
 {
-  "preview": {
+  "dev": {
     "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
     "projectName": "call-nina",
     "teamId": "team_dneRzDETT07TDCAwasa2AGyh",
@@ -12,7 +12,7 @@
     "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"],
     "runtimeRole": "nina_runtime_preview"
   },
-  "production": {
+  "prd": {
     "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
     "projectName": "call-nina",
     "teamId": "team_dneRzDETT07TDCAwasa2AGyh",

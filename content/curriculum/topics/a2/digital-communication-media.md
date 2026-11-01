@@ -5,34 +5,76 @@ slug: digital-communication-media
 band: a2
 domain: digital-communication-media
 title: "A2: Digital communication and media"
-
 communicativeGoals:
-  [
-    "Handle a practical digital communication and media interaction at A2 level.",
-    "Understand and respond to the most useful digital communication and media language.",
-  ]
-prerequisiteTopicIds: [curriculum-topic_0000000000000010]
-grammarFoundations: []
-vocabularyFoundations: []
-exerciseConcepts: []
-sourceIds: [curriculum-source_0000000000000001, curriculum-source_0000000000000002]
+  - Correct a mistaken message about the library. Distinguish the reading room
+    from lending and describe what is being done there using passive.
+  - Discuss media routines and choose a quiet study period. Ask how a partner
+    checks a surprising news item.
+prerequisiteTopicIds:
+  - curriculum-topic_0000000000000010
+grammarFoundations:
+  - key: de-structured-a2-08
+    description: "Present passive describes a process: Die Nachricht wird geprüft.
+      Use werden plus a past participle; the actor can be omitted. A temporal
+      wenn-clause describes a repeated occasion: Wenn ich koche, höre ich Radio.
+      Nominal phrases condense actions: beim Lesen means while reading."
+vocabularyFoundations:
+  - key: de-structured-a2-08-lex-1
+    description: "Meldung: news item"
+  - key: de-structured-a2-08-lex-2
+    description: "Überschrift: headline"
+  - key: de-structured-a2-08-lex-3
+    description: "Ausleihe: lending service"
+exerciseConcepts:
+  - key: de-structured-a2-08
+    description: Correct a mistaken message about the library. Distinguish the
+      reading room from lending and describe what is being done there using
+      passive.
+sourceIds:
+  - curriculum-source_0000000000000001
+  - curriculum-source_0000000000000002
+  - curriculum-source_0000000000001002
+  - curriculum-source_0000000000001005
+  - curriculum-source_0000000000001006
 coverage:
   reception:
     status: mapped
-    outcomes: ["Understand a short digital communication and media message at A2 level."]
+    outcomes:
+      - What does Lea do with a surprising headline?
+      - When is the reading room available?
   production:
     status: mapped
-    outcomes: ["Produce a clear digital communication and media message at A2 level."]
+    outcomes:
+      - Correct a mistaken message about the library. Distinguish the reading
+        room from lending and describe what is being done there using passive.
   interaction:
     status: mapped
-    outcomes: ["Take turns and ask a follow-up in a digital communication and media exchange."]
+    outcomes:
+      - Discuss media routines and choose a quiet study period. Ask how a
+        partner checks a surprising news item.
   mediation:
     status: mapped
-    outcomes: ["Pass on the essential meaning of digital communication and media information."]
+    outcomes:
+      - Send a message to a person who did not read the passage. Pass on the
+        decision, one reason and the next action. Use your own words; do not
+        invent details.
+lessonFoundation:
+  explanation: "Present passive describes a process: Die Nachricht wird geprüft.
+    Use werden plus a past participle; the actor can be omitted. A temporal
+    wenn-clause describes a repeated occasion: Wenn ich koche, höre ich Radio.
+    Nominal phrases condense actions: beim Lesen means while reading. Use
+    dictionary stress marks to distinguish the main stress in Nachricht and
+    Information."
+  examples:
+    - Die Nachricht wird geprüft.
+    - Wenn ich koche, höre ich Radio.
+    - Beim Lesen schalte ich das Handy aus.
 ---
 
 # A2: Digital communication and media
 
-This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
+Original German lessons linked to this topic are registered in catalog.json.
 
-The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.
+- de-structured-a2-08: Describe media routines
+
+The reference outlines establish scope and sequence. Explanations, examples and activities are original Nina content; participation alone does not establish proficiency.

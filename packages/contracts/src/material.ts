@@ -8,12 +8,12 @@ export const materialReferenceSchema = z.strictObject({
   materialId: materialIdSchema,
   revisionId: materialRevisionIdSchema,
 });
-// Source references are citations, never fetch instructions or local filesystem paths.
+// Persisted URLs are citations. Fetching is a separate, explicit preview operation.
 export const materialSourceSchema = z.strictObject({
   url: z
     .url({ protocol: /^https$/u })
     .max(2_000)
-    .regex(/^https:\/\/[^/@?#\s]+(?:\/[^?#\s]*)?$/u),
+    .regex(/^https:\/\/[^/@?#\s]+(?:[/?#][^\s]*)?$/u),
 });
 export const materialDraftSchema = z.strictObject({
   kind: z.enum(["topic", "pasted-text"]),

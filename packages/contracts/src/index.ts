@@ -1,15 +1,15 @@
 export {
-  exerciseEntryContextSchema,
-  reuseExerciseActionSchema,
-  type ExerciseEntryContext,
-} from "./exercise-launch.js";
-export {
   activityActionSchema,
   activityDestinationSchema,
   openActivityActionSchema,
   type ActivityAction,
   type ActivityDestination,
 } from "./activity-action.js";
+export {
+  exerciseEntryContextSchema,
+  reuseExerciseActionSchema,
+  type ExerciseEntryContext,
+} from "./exercise-launch.js";
 
 export {
   boundarySurfaceSchema,
@@ -73,27 +73,27 @@ export {
 } from "./common.js";
 
 export {
+  callNinaErrorSchema,
   errorCodeSchema,
   errorDefinitions,
   errorKindSchema,
   errorMessageKeySchema,
   localizedErrorMessage,
   logReferenceSchema,
-  callNinaErrorSchema,
   safeErrorMessages,
+  type CallNinaError,
   type ErrorCode,
   type ErrorKind,
   type ErrorLocale,
   type ErrorMessageKey,
   type LogReference,
-  type CallNinaError,
 } from "./errors.js";
 
 export {
   codexIntegrationStateSchema,
   dataRootStateSchema,
-  desktopIpcChannels,
   desktopIpcChannelSchema,
+  desktopIpcChannels,
   desktopIpcEventSchema,
   desktopIpcRequestSchema,
   desktopIpcResponseSchema,
@@ -101,12 +101,16 @@ export {
   learningOperationKindSchema,
   learningOperationKinds,
   placementResultSchema,
+  type CallNinaDesktopBridge,
   type DesktopIpcChannel,
   type DesktopIpcEvent,
   type DesktopIpcRequest,
   type DesktopIpcResponse,
+  type DesktopPayload,
+  type DesktopRequest,
+  type DesktopResult,
+  type DesktopResultInput,
   type PlacementResult,
-  type CallNinaDesktopBridge,
 } from "./ipc.js";
 
 export {
@@ -136,18 +140,18 @@ export {
   activityCreateResultSchema,
   attemptFeedbackSaveInputSchema,
   attemptFeedbackSaveResultSchema,
-  listeningResultSaveInputSchema,
-  listeningResultSaveResultSchema,
   curriculumCoverageReadInputSchema,
   curriculumCoverageReadResultSchema,
   learnerContextReadInputSchema,
   learnerContextReadResultSchema,
+  listeningResultSaveInputSchema,
+  listeningResultSaveResultSchema,
   mcpConfirmationPolicySchema,
   mcpIdempotencyKeySchema,
   mcpToolAnnotationSchema,
   mcpToolContracts,
-  mcpToolNames,
   mcpToolNameSchema,
+  mcpToolNames,
   practiceContextReadInputSchema,
   practiceContextReadResultSchema,
   preparedVoiceActivityReadInputSchema,
@@ -163,8 +167,8 @@ export {
 
 export {
   appServerCommandNameSchema,
-  appServerCommands,
   appServerCommandSchema,
+  appServerCommands,
   appServerEventSchema,
   appServerLifecycleStateSchema,
   appServerSnapshotSchema,
@@ -182,117 +186,121 @@ export {
   type SupportedCodexVersion,
 } from "./app-server.js";
 export {
-  generationCandidateOutputJsonSchemas,
-  generationOutputJsonSchemaForInput,
-  generationCandidateOutputSchemas,
-  generationOperationStartSchema,
-  generationOperationStateSchema,
-  generationOutputSchemaIds,
-  generationOutputSchemaIdSchema,
-  generationInputSchema,
   capturedTeachingContextSchema,
-  type CapturedTeachingContext,
-  generationKindSchema,
-  generationKinds,
   contextualHelpCandidateSchema,
   exerciseFeedbackCandidateSchema,
   exerciseGenerationCandidateSchema,
   generatedExerciseInstructions,
+  generationCandidateOutputJsonSchemas,
+  generationCandidateOutputSchemas,
+  generationCapabilitiesSchema,
+  generationDeadlineFor,
+  generationDeadlineMilliseconds,
+  generationEventSchema,
+  generationInputSchema,
+  generationKindSchema,
+  generationKinds,
+  generationOperationStartSchema,
+  generationOperationStateSchema,
+  generationOutputJsonSchemaForInput,
+  generationOutputSchemaIdSchema,
+  generationOutputSchemaIds,
   isGeneratedExerciseInstruction,
+  voiceActivityDraftCandidateSchema,
   writingCorrectionCandidateSchema,
   writingPromptCandidateSchema,
-  voiceActivityDraftCandidateSchema,
+  type CapturedTeachingContext,
   type GenerationCandidateOutputMap,
-  type GenerationOperationStart,
-  type GenerationOperationState,
-  type GenerationOperationFor,
-  type GenerationOutputMap,
-  type GenerationResult,
+  type GenerationCapabilities,
+  type GenerationEvent,
   type GenerationInput,
   type GenerationKind,
-  generationEventSchema,
-  generationCapabilitiesSchema,
-  generationDeadlineMilliseconds,
-  generationDeadlineFor,
+  type GenerationOperationFor,
+  type GenerationOperationStart,
+  type GenerationOperationState,
+  type GenerationOutputMap,
+  type GenerationResult,
   type GenerationService,
-  type GenerationEvent,
-  type GenerationCapabilities,
 } from "./generation.js";
 
 export {
-  activityTypeSchema,
-  preparedActivitySchema,
   activityLibraryCursorSchema,
   activityLibraryFilterSchema,
   activityLibraryItemSchema,
+  activityTypeSchema,
+  preparedActivitySchema,
 } from "./activity.js";
 
 export {
-  practiceSuggestionSchema,
   practiceSuggestionContextSchema,
+  practiceSuggestionSchema,
   type PracticeSuggestion,
 } from "./practice-suggestion.js";
 
 export {
-  personalDataGroups,
-  personalDataTables,
-  personalDataTableSchema,
-  personalDataTableSummarySchema,
-  personalDataOverviewSchema,
   personalDataCleanupRequestSchema,
   personalDataCleanupResultSchema,
   personalDataCleanupScopeSchema,
+  personalDataGroups,
+  personalDataOverviewSchema,
+  personalDataTableSchema,
+  personalDataTableSummarySchema,
+  personalDataTables,
   type PersonalDataCleanupScope,
   type PersonalDataTable,
 } from "./personal-data.js";
 
-export {
-  vocabularyLibraryFilterSchema,
-  vocabularyVersionSchema,
-  vocabularyBulkRequestSchema,
-  vocabularySummarySchema,
-  vocabularyCountsSchema,
-} from "./vocabulary-library.js";
 export * from "./learning-path.js";
+export {
+  vocabularyBulkRequestSchema,
+  vocabularyCountsSchema,
+  vocabularyLibraryFilterSchema,
+  vocabularySummarySchema,
+  vocabularyVersionSchema,
+} from "./vocabulary-library.js";
 
-export * from "./vocabulary-content.js";
 export * from "./flashcards.js";
+export * from "./vocabulary-content.js";
 
 export * from "./learning-context.js";
 
+export * from "./content.js";
 export * from "./german-language.js";
 export * from "./material.js";
-export * from "./content.js";
 
-export * from "./content-reference.js";
 export * from "./content-limits.js";
+export * from "./content-reference.js";
 
-export { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
 export * from "./attempt-evidence.js";
+export { generationProvenanceSchema, type GenerationProvenance } from "./generation-provenance.js";
 
 export {
-  providerRouteIdSchema,
-  providerOperationSchema,
-  providerAccessSchema,
   providerAccessReasonSchema,
-  type ProviderOperation,
+  providerAccessSchema,
+  providerOperationSchema,
+  providerRouteIdSchema,
   type ProviderAccess,
+  type ProviderOperation,
 } from "./provider-access.js";
 
+export * from "./ai-connections.js";
 export * from "./language-policy.js";
 export * from "./nina.js";
 export * from "./translation.js";
-export * from "./ai-connections.js";
 
 export * from "./offline-model.js";
 
-export { chatgptRegistrationIdSchema, chatgptAccountsSchema } from "./chatgpt.js";
+export { chatgptAccountsSchema, chatgptRegistrationIdSchema } from "./chatgpt.js";
 
 export * from "./nina-account.js";
 
-export * from "./vocabulary-learning.js";
 export * from "./mobile-sync.js";
+export * from "./vocabulary-learning.js";
 
 export * from "./speech.js";
 
 export * from "./stories.js";
+
+export * from "./uploads.js";
+
+export * from "./website-study-pack.js";

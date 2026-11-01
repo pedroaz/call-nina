@@ -245,14 +245,18 @@ export async function prepareCourseTeaching(
                 id: t.id,
                 targetId: t.id,
                 skills: ["writing"],
-                description:
-                  locale === "de"
-                    ? `Erkenne, rufe ab oder verwende das Satzmuster „${t.text}“ im passenden Kontext.`
-                    : `Recognise, recall or use the sentence pattern “${t.text}” in context.`,
-                criterion:
-                  locale === "de"
-                    ? `Prüfe genau das Satzmuster „${t.text}“, keine andere Wendung aus dem Modul. Verwende eine neue Person oder Angabe. Beim Wiedererkennen steht das Muster nur in den Antwortoptionen; beim Abrufen und Verwenden nur in optionalen Hinweisen, nicht in der Aufgabe.`
-                    : `Assess exactly the construction “${t.text}”, not a neighbouring phrase from the module. Use a new person or detail. Recognition may show the pattern only in answer options; recall and use must keep sentence frames in optional hints, not in the question. Record any support used.`,
+                description: {
+                  en: `Recognise, recall or use the sentence pattern “${t.text}” in context.`,
+                  de: `Erkenne, rufe ab oder verwende das Satzmuster „${t.text}“ im passenden Kontext.`,
+                  es: `Reconoce, recuerda o usa la estructura «${t.text}» en un contexto adecuado.`,
+                  "pt-BR": `Reconheça, lembre ou use a estrutura “${t.text}” em um contexto adequado.`,
+                }[locale],
+                criterion: {
+                  en: `Assess exactly the construction “${t.text}”, not a neighbouring phrase from the module. Use a new person or detail. Recognition may show the pattern only in answer options; recall and use must keep sentence frames in optional hints, not in the question. Record any support used.`,
+                  de: `Prüfe genau das Satzmuster „${t.text}“, keine andere Wendung aus dem Modul. Verwende eine neue Person oder Angabe. Beim Wiedererkennen steht das Muster nur in den Antwortoptionen; beim Abrufen und Verwenden nur in optionalen Hinweisen, nicht in der Aufgabe.`,
+                  es: `Evalúa exactamente la estructura «${t.text}», no otra expresión del módulo. Usa una persona o un dato diferente. En reconocimiento, muestra el modelo solo entre las opciones; en recuerdo y uso, solo en pistas opcionales, nunca en la pregunta. Registra las ayudas usadas.`,
+                  "pt-BR": `Avalie exatamente a estrutura “${t.text}”, não outra expressão do módulo. Use uma pessoa ou um dado diferente. No reconhecimento, mostre o modelo só nas opções; na lembrança e no uso, apenas em dicas opcionais, nunca na pergunta. Registre as ajudas usadas.`,
+                }[locale],
               }))
           : unit.objectives
               .filter((o) => activity.objectiveIds.includes(o.id))
@@ -271,8 +275,21 @@ export async function prepareCourseTeaching(
         scenario: unit.scenario[locale],
         grammar: unit.grammar[locale],
         explanation: unit.explanation[locale],
-        examples: unit.examples,
-        targets,
+        examples: unit.examples.map((example) => ({
+          text: example.text,
+          meaning: example.meaning[locale],
+        })),
+        targets: targets.map((target) => ({
+          ...target,
+          meaning: target.meaning[locale],
+          ...(target.exampleMeaning ? { exampleMeaning: target.exampleMeaning[locale] } : {}),
+        })),
+        activity: {
+          instructions: activity.instructions[locale],
+          input: activity.input,
+          questions: activity.questions.map((question) => question[locale]),
+          answers: activity.answers.map((answer) => answer[locale]),
+        },
         sharedFacts: mission.facts,
         recentFeedback,
       }),

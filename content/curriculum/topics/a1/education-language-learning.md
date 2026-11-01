@@ -5,34 +5,72 @@ slug: education-language-learning
 band: a1
 domain: education-language-learning
 title: "A1: Education and language learning"
-
 communicativeGoals:
-  [
-    "Handle a practical education and language learning interaction at A1 level.",
-    "Understand and respond to the most useful education and language learning language.",
-  ]
+  - Write six sentences about a fictional day yesterday. Include learning, a
+    journey and a visit. Use both haben and sein in the Perfekt.
+  - Compare yesterday with a classmate. Ask where they went, what they learned
+    and when they had time. Clarify one unfamiliar participle.
 prerequisiteTopicIds: []
-grammarFoundations: []
-vocabularyFoundations: []
-exerciseConcepts: []
-sourceIds: [curriculum-source_0000000000000001]
+grammarFoundations:
+  - key: de-structured-a1-06
+    description: "Perfekt combines haben or sein with a past participle at the end:
+      Ich habe gelernt; ich bin gefahren. Most verbs use haben; changes of place
+      often use sein. Regular participles often have ge- and -t. Learn irregular
+      forms as a set: fahren – ist gefahren. Hatte describes past possession or
+      availability."
+vocabularyFoundations:
+  - key: de-structured-a1-06-lex-3
+    description: "Bibliothek: library"
+  - key: de-structured-a1-06-lex-4
+    description: "Hausaufgabe: homework task"
+exerciseConcepts:
+  - key: de-structured-a1-06
+    description: Write six sentences about a fictional day yesterday. Include
+      learning, a journey and a visit. Use both haben and sein in the Perfekt.
+sourceIds:
+  - curriculum-source_0000000000000001
+  - curriculum-source_0000000000001001
+  - curriculum-source_0000000000001005
+  - curriculum-source_0000000000001006
 coverage:
   reception:
     status: mapped
-    outcomes: ["Understand a short education and language learning message at A1 level."]
+    outcomes:
+      - What did Ada write?
+      - Where did the speaker go?
   production:
     status: mapped
-    outcomes: ["Produce a clear education and language learning message at A1 level."]
+    outcomes:
+      - Write six sentences about a fictional day yesterday. Include learning, a
+        journey and a visit. Use both haben and sein in the Perfekt.
   interaction:
     status: mapped
-    outcomes: ["Take turns and ask a follow-up in a education and language learning exchange."]
+    outcomes:
+      - Compare yesterday with a classmate. Ask where they went, what they
+        learned and when they had time. Clarify one unfamiliar participle.
   mediation:
     status: mapped
-    outcomes: ["Pass on the essential meaning of education and language learning information."]
+    outcomes:
+      - Send a message to a person who did not read the passage. Pass on the
+        decision, one reason and the next action. Use your own words; do not
+        invent details.
+lessonFoundation:
+  explanation: "Perfekt combines haben or sein with a past participle at the end:
+    Ich habe gelernt; ich bin gefahren. Most verbs use haben; changes of place
+    often use sein. Regular participles often have ge- and -t. Learn irregular
+    forms as a set: fahren – ist gefahren. Hatte describes past possession or
+    availability. The ge- in gelernt is unstressed. Say lernen – gelernt with
+    the same stressed root."
+  examples:
+    - Ich habe gestern gelernt.
+    - Wir sind nach Köln gefahren.
+    - Am Abend hatte ich Zeit.
 ---
 
 # A1: Education and language learning
 
-This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
+Original German lessons linked to this topic are registered in catalog.json.
 
-The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.
+- de-structured-a1-06: Tell someone about yesterday
+
+The reference outlines establish scope and sequence. Explanations, examples and activities are original Nina content; participation alone does not establish proficiency.

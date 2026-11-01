@@ -1,24 +1,24 @@
-import { NinaLoginStorage } from "./nina-login-storage.js";
-import { createClerkBridge } from "@clerk/electron";
-import { storage } from "@clerk/electron/storage";
 import {
-  ninaPublicConfiguration,
   desktopIpcEventSchema,
   desktopIpcRequestSchema,
   desktopIpcResponseSchema,
+  ninaPublicConfiguration,
   type ActivityId,
 } from "@call-nina/contracts";
-import { pathToFileURL, fileURLToPath } from "node:url";
 import { OfflineRuntime } from "@call-nina/offline-runtime";
-import { ConnectionSecretStorage } from "./secret-storage.js";
-import { desktopPathOption } from "./options.js";
-import { writeFile } from "node:fs/promises";
-import { mkdirSync, lstatSync } from "node:fs";
+import { createClerkBridge } from "@clerk/electron";
+import { storage } from "@clerk/electron/storage";
 import { randomUUID } from "node:crypto";
+import { lstatSync, mkdirSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { NinaLoginStorage } from "./nina-login-storage.js";
+import { desktopPathOption } from "./options.js";
+import { ConnectionSecretStorage } from "./secret-storage.js";
 
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
 import { ChatgptSession } from "./chatgpt-session.js";
-import { app, BrowserWindow, dialog, ipcMain, Menu, session, net, protocol } from "electron";
 
 import { DesktopBackend } from "./backend.js";
 import { parseCallNinaActivityUrl } from "./deep-link.js";
@@ -30,6 +30,8 @@ import {
   isTrustedRendererFrame,
   openValidatedExternalUrl,
 } from "./security.js";
+
+declare const __NINA_APP_VERSION__: string;
 
 // Interactive launchers may inject Chromium's plaintext/mock credential stores.
 // Nina always uses the real OS key provider; unavailable stores remain unavailable.
@@ -60,7 +62,7 @@ function createWindow(): BrowserWindow {
     height: 820,
     minWidth: 760,
     minHeight: 560,
-    title: "Call Nina",
+    title: `Call Nina v${__NINA_APP_VERSION__}`,
     backgroundColor: "#f7f3ea",
     show: false,
     icon: windowIcon,
@@ -70,6 +72,10 @@ function createWindow(): BrowserWindow {
       nodeIntegration: false,
       preload,
     },
+  });
+  // The HTML document title must not replace the running build version.
+  window.on("page-title-updated", (event) => {
+    event.preventDefault();
   });
   attachNavigationPolicy(window, rendererUrl);
   // Keep zoom available without installing a visible application menu.
@@ -282,6 +288,9 @@ if (!app.requestSingleInstanceLock()) {
         ...(speechBundleDirectory ? { speechBundleDirectory } : {}),
         ...(!app.isPackaged && process.platform === "linux" && process.arch === "x64"
           ? {
+              developmentSpeechBundlesDirectory: path.resolve(
+                fileURLToPath(new URL("../../../../build/speech-distribution/", import.meta.url)),
+              ),
               legacySpeechCandidatesDirectory: fileURLToPath(
                 new URL("../../../../build/speech-candidates/", import.meta.url),
               ),

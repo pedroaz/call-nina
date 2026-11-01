@@ -12,6 +12,7 @@ import {
   type GenerationInput,
   type GenerationKind,
 } from "@call-nina/contracts";
+import { groundWebsiteStudyItems } from "./website-study-pack.js";
 
 const maximumIssues = 12;
 type ReportIssue = (code: string, location?: OutputValidationLocation) => void;
@@ -114,6 +115,43 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
     );
   }
   const workloadInput: GenerationInput = input;
+  if (kind === "website-study-pack" && workloadInput.kind === "website-study-pack") {
+    const output = parsed.data as GenerationCandidateOutputMap["website-study-pack"];
+    const source = workloadInput.source.text;
+    if (
+      output.items.some(
+        (item) =>
+          !vocabularyLexemeMatchesLanguage(item.lexeme, input.learningContext.targetLanguage),
+      )
+    )
+      throw new GenerationOutputValidationError("OD_VOCABULARY_LANGUAGE_INVALID");
+    output.items = groundWebsiteStudyItems(
+      output.items.map((item) => ({
+        ...item,
+        lemma: vocabularyLemma(item, input.learningContext.targetLanguage),
+      })),
+      source,
+    );
+    if (
+      output.items.some(
+        (item) =>
+          (item.origin === "page"
+            ? !item.excerpt || !source.includes(item.excerpt)
+            : item.excerpt !== null) ||
+          item.examples.some(
+            (example) => example.origin === "quotation" && !source.includes(example.text),
+          ),
+      )
+    )
+      throw new GenerationOutputValidationError("OD_WEBSITE_QUOTATION_INVALID");
+    const identities = new Set<string>();
+    output.items = output.items.filter((item) => {
+      const identity = vocabularyIdentity(item, input.learningContext.targetLanguage);
+      if (identities.has(identity)) return false;
+      identities.add(identity);
+      return true;
+    });
+  }
   if (kind === "exercise-feedback" && workloadInput.kind === "exercise-feedback") {
     const output = parsed.data as GenerationCandidateOutputMap["exercise-feedback"];
     if (output.objectiveEvaluations.length !== workloadInput.exercise.objectives.length) {
@@ -143,6 +181,13 @@ export function parseGenerationCandidateOutput<Kind extends GenerationKind>(
       ...w,
       lemma: vocabularyLemma(w, input.learningContext.targetLanguage),
     }));
+    if (
+      request.mode === "upload" &&
+      output.words.some(
+        (word) => !(request.sourceText || output.extractedText).includes(word.excerpt),
+      )
+    )
+      throw new GenerationOutputValidationError("OD_UPLOAD_SOURCE_EXCERPT_INVALID");
     if (request.mode === "import" && !request.image && output.extractedText !== request.sourceText)
       throw new GenerationOutputValidationError("OD_READING_PASSAGE_MISMATCH");
   }

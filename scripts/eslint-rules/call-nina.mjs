@@ -8,7 +8,36 @@ const nodeBuiltins = new Set(
   ]),
 );
 
-const boundaries = [
+export const boundaries = [
+  {
+    id: "speech-runtime",
+    prefix: "packages/speech-runtime/",
+    packages: ["contracts", "offline-runtime"],
+    node: true,
+    electron: false,
+  },
+  {
+    id: "mobile-sync",
+    prefix: "packages/mobile-sync/",
+    packages: ["contracts"],
+    node: false,
+    electron: false,
+  },
+  {
+    id: "learning-ui",
+    prefix: "packages/learning-ui/",
+    packages: [],
+    node: false,
+    electron: false,
+  },
+  {
+    id: "mobile",
+    prefix: "apps/mobile/",
+    packages: ["contracts", "mobile-sync", "learning-ui", "design-system"],
+    node: false,
+    electron: false,
+  },
+  { id: "plugin", prefix: "plugins/call-nina/", packages: [], node: true, electron: false },
   {
     id: "browser-ui",
     prefix: "packages/browser-ui/",
@@ -47,7 +76,7 @@ const boundaries = [
   {
     id: "desktop-renderer",
     prefix: "apps/desktop/src/renderer/",
-    packages: ["contracts", "design-system", "domain", "browser-ui"],
+    packages: ["contracts", "design-system", "domain", "browser-ui", "learning-ui"],
     node: false,
     electron: false,
   },
@@ -70,6 +99,8 @@ const boundaries = [
       "domain",
       "persistence",
       "learning-workflows",
+      "mobile-sync",
+      "speech-runtime",
     ],
     node: true,
     electron: true,
@@ -139,7 +170,12 @@ const boundaries = [
   },
 ];
 
-const packagePrefixes = new Map([
+export const packagePrefixes = new Map([
+  ["@call-nina/speech-runtime", "speech-runtime"],
+  ["@call-nina/mobile-sync", "mobile-sync"],
+  ["@call-nina/learning-ui", "learning-ui"],
+  ["@call-nina/mobile", "mobile"],
+  ["@call-nina/api", "api"],
   ["@call-nina/browser-ui", "browser-ui"],
   ["@call-nina/website", "website"],
   ["@call-nina/managed-generation", "managed-generation"],
@@ -192,6 +228,8 @@ const enforcePackageBoundaries = {
     docs: { description: "Enforce Call Nina process and package dependency boundaries." },
     schema: [],
     messages: {
+      unknownPackage: "Unregistered workspace import {{source}}.",
+      privateSource: "Use the public workspace export for {{source}}.",
       forbiddenPackage: "{{owner}} must not import from {{target}}.",
       forbiddenNode: "{{owner}} must not import Node.js builtin {{source}}.",
       forbiddenElectron: "{{owner}} must not import Electron runtime {{source}}.",
@@ -216,6 +254,17 @@ const enforcePackageBoundaries = {
       }
 
       const target = packageForSource(source, filename);
+      if (source.startsWith("@call-nina/") && !target) {
+        context.report({ node, messageId: "unknownPackage", data: { source } });
+        return;
+      }
+      if (
+        (source.startsWith(".") && target && target !== owner.id) ||
+        /^@call-nina\/[^/]+\/(?:src|dist|build)(?:\/|$)/.test(source)
+      ) {
+        context.report({ node, messageId: "privateSource", data: { source } });
+        return;
+      }
       if (target && target !== owner.id && !owner.packages.includes(target)) {
         context.report({
           node,

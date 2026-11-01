@@ -149,7 +149,7 @@ export type HistoryEntryRecord = Readonly<{
   entityKind: "attempt" | "correction" | "vocabulary-review" | "voice-summary" | "placement";
   entityId: string;
   skill: "writing" | "reading" | "listening" | "speaking";
-  activityType: PreparedActivityRecord["activityType"];
+  activityType: z.infer<typeof historyActivityTypeSchema>;
   title: string;
   occurredAt: string;
   curriculumTopicIds: readonly string[];
@@ -213,6 +213,7 @@ export type HistoryEntryRecord = Readonly<{
 }>;
 
 export const learnerSettingsInputSchema = strictBoundaryObject({
+  learnerName: z.string().trim().max(100),
   profile: learnerProfileSchema,
 });
 
@@ -275,26 +276,36 @@ export type CorrectionMistakeSample = Readonly<
     }
 >;
 
-export type MistakePatternRecord = Readonly<{
-  category: MistakeCategory;
-  status: "single-occurrence" | "recurring";
-  occurrenceCount: number;
-  classificationSource: "inferred" | "learner-amended" | "mixed";
-  occurrences: readonly Readonly<{
-    mistakeId: string;
-    observedOn: string;
-    evidence: Readonly<{
-      beforeContext: string;
-      evidenceText: string;
-      afterContext: string;
-    }>;
-    explanation: string;
-    classificationSource: "inferred" | "learner-amended";
-  }>[];
-  targetedPractice:
-    | Readonly<{ status: "not-created" }>
-    | Readonly<{ status: "created"; activityId: string; createdAt: string }>;
-}>;
+export type MistakePatternRecord = Readonly<
+  {
+    category: MistakeCategory;
+    occurrences: readonly Readonly<{
+      mistakeId: string;
+      observedOn: string;
+      evidence: Readonly<{
+        beforeContext: string;
+        evidenceText: string;
+        afterContext: string;
+      }>;
+      explanation: string;
+      classificationSource: "inferred" | "learner-amended";
+    }>[];
+    targetedPractice:
+      | Readonly<{ status: "not-created" }>
+      | Readonly<{ status: "created"; activityId: string; createdAt: string }>;
+  } & (
+    | {
+        status: "single-occurrence";
+        occurrenceCount: 1;
+        classificationSource: "inferred" | "learner-amended";
+      }
+    | {
+        status: "recurring";
+        occurrenceCount: number;
+        classificationSource: "inferred" | "learner-amended" | "mixed";
+      }
+  )
+>;
 
 export const targetedPracticeActivitySchema = strictBoundaryObject({
   capturedContext: capturedTeachingContextSchema,
@@ -598,7 +609,7 @@ export function readLearnerSettingsFromConnection(
 ): LearnerSettingsRecord | undefined {
   const row = connection
     .prepare(
-      `SELECT p.*, s.ui_locale
+      `SELECT p.*, s.ui_locale, s.learner_name
        FROM learner_profiles p
        JOIN learner_settings s ON s.learner_id = p.learner_id
        WHERE p.learner_id = ?`,
@@ -621,6 +632,7 @@ export function readLearnerSettingsFromConnection(
 
   if (scope.learnerId !== learnerId) throw new Error("OD_LEARNING_CONTEXT_MISMATCH");
   return learnerSettingsRecordSchema.parse({
+    learnerName: row["learner_name"],
     profile,
     learningContext: resolveLearningContext(scope, profile),
   });

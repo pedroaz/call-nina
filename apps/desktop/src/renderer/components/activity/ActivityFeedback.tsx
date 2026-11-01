@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { Feedback, Disclosure } from "../ui/index.js";
+import { Disclosure, Feedback } from "../ui/index.js";
 import styles from "./Activity.module.css";
 
 export function ActivityFeedback({

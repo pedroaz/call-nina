@@ -6,6 +6,10 @@
       "courseId": "german-foundations",
       "version": "a1-missions-2026-09",
       "files": [
+        "courses/de/structured-a1.json",
+        "courses/de/structured-a2.json",
+        "courses/de/structured-b1.json",
+        "courses/de/structured-b2.json",
         "courses/de/foundations.json",
         "courses/de/restaurant.json",
         "courses/de/parcel.json",
@@ -19,7 +23,8 @@
         "courses/de/repair.json",
         "courses/de/return-item.json",
         "courses/de/delay.json",
-        "courses/de/work-task.json"
+        "courses/de/work-task.json",
+        "courses/de/subway-announcements.json"
       ]
     },
     {

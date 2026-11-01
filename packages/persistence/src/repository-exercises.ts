@@ -1,3 +1,4 @@
+import { queueVocabularyEvidence } from "./vocabulary-learning.js";
 import {
   activityIdSchema,
   attemptIdSchema,
@@ -306,6 +307,7 @@ export class ExercisesRepository {
           ),
           stringifyBounded(feedback.provenance),
         );
+      queueVocabularyEvidence(connection, activityId, attemptId);
     });
   }
 
@@ -580,6 +582,7 @@ export class ExercisesRepository {
         )
         .run(record.attemptId, elapsed, stringifyBounded(record.answer));
       captureExerciseAttempt(connection, record.attemptId);
+      queueVocabularyEvidence(connection, record.activityId, record.attemptId);
       return { snapshot, feedback: null };
     });
   }
@@ -815,6 +818,7 @@ export class ExercisesRepository {
             stringifyBounded(feedback, maximumExerciseFeedbackBytes),
             item.attemptId,
           );
+        queueVocabularyEvidence(connection, record.activityId, item.attemptId);
         const reconstruction = generatedExerciseHistorySchema.parse({
           kind: "exercise-attempt",
           readingMaterial,

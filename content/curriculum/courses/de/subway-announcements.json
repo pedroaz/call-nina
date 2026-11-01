@@ -1,0 +1,1159 @@
+{
+  "schemaVersion": 3,
+  "courseId": "german-foundations",
+  "targetLanguage": "de",
+  "version": "a1-missions-2026-09",
+  "paths": [
+    {
+      "id": "subway-announcements",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Understand subway changes",
+        "de": "U-Bahn-Änderungen verstehen",
+        "es": "Entender cambios del metro",
+        "pt-BR": "Entender mudanças do metrô"
+      },
+      "description": {
+        "en": "Identify the line, platform and skipped stops, then explain your revised route.",
+        "de": "Erkenne Linie, Gleis und entfallende Halte und erkläre deinen neuen Weg.",
+        "es": "Identifica línea, vía y paradas suprimidas y explica la ruta nueva.",
+        "pt-BR": "Identifique linha, plataforma e paradas suprimidas e explique a rota nova."
+      },
+      "presentation": "primary"
+    }
+  ],
+  "sources": [
+    {
+      "id": "cefr-global-scale",
+      "title": "CEFR Global scale",
+      "url": "https://www.coe.int/en/web/common-european-framework-reference-languages/table-1-cefr-3.3-common-reference-levels-global-scale",
+      "publisher": "Council of Europe",
+      "reviewedOn": "2026-10-31",
+      "claim": "Broad A1/A2 concrete exchanges, B1 connected explanation and B2 detailed argumentation guide task demands; the CEFR does not prescribe a German grammar sequence."
+    },
+    {
+      "id": "goethe-practice-scope",
+      "title": "Goethe-Zertifikat: practice materials",
+      "url": "https://www.goethe.de/en/spr/prf/ueb.html",
+      "publisher": "Goethe-Institut",
+      "reviewedOn": "2026-10-31",
+      "claim": "Published practice resources distinguish reading, listening, writing and speaking. Nina uses these skill categories for coverage, not copied tasks or exam scoring."
+    }
+  ],
+  "targets": [
+    {
+      "id": "de-subway-1-phrase-1",
+      "kind": "chunk",
+      "text": "Fährt diese Bahn Richtung Nordpark?",
+      "meaning": {
+        "en": "Does this train go towards Nordpark?",
+        "de": "Ich prüfe die Fahrtrichtung.",
+        "es": "¿Este metro va hacia Nordpark?",
+        "pt-BR": "Este metrô vai para Nordpark?"
+      },
+      "example": "Fährt diese Bahn Richtung Nordpark?",
+      "exampleMeaning": {
+        "en": "Does this train go towards Nordpark?",
+        "de": "Ich prüfe die Fahrtrichtung.",
+        "es": "¿Este metro va hacia Nordpark?",
+        "pt-BR": "Este metrô vai para Nordpark?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-1-phrase-2",
+      "kind": "chunk",
+      "text": "Die Bahn fährt heute von Gleis zwei.",
+      "meaning": {
+        "en": "The train leaves from platform two today.",
+        "de": "Heute gilt ein anderes Gleis.",
+        "es": "Hoy sale de la vía dos.",
+        "pt-BR": "Hoje sai da plataforma dois."
+      },
+      "example": "Die Bahn fährt heute von Gleis zwei.",
+      "exampleMeaning": {
+        "en": "The train leaves from platform two today.",
+        "de": "Heute gilt ein anderes Gleis.",
+        "es": "Hoy sale de la vía dos.",
+        "pt-BR": "Hoje sai da plataforma dois."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-1-phrase-3",
+      "kind": "chunk",
+      "text": "Ich muss auf die andere Seite.",
+      "meaning": {
+        "en": "I need to go to the other side.",
+        "de": "Ich wechsle zur richtigen Bahnsteigseite.",
+        "es": "Debo ir al otro lado.",
+        "pt-BR": "Preciso ir para o outro lado."
+      },
+      "example": "Ich muss auf die andere Seite.",
+      "exampleMeaning": {
+        "en": "I need to go to the other side.",
+        "de": "Ich wechsle zur richtigen Bahnsteigseite.",
+        "es": "Debo ir al otro lado.",
+        "pt-BR": "Preciso ir para o outro lado."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-2-phrase-1",
+      "kind": "chunk",
+      "text": "Hält die nächste Bahn am Museum?",
+      "meaning": {
+        "en": "Does the next train stop at the museum?",
+        "de": "Ich prüfe, ob die Störung auch die nächste Bahn betrifft.",
+        "es": "¿El próximo metro para en el museo?",
+        "pt-BR": "O próximo metrô para no museu?"
+      },
+      "example": "Hält die nächste Bahn am Museum?",
+      "exampleMeaning": {
+        "en": "Does the next train stop at the museum?",
+        "de": "Ich prüfe, ob die Störung auch die nächste Bahn betrifft.",
+        "es": "¿El próximo metro para en el museo?",
+        "pt-BR": "O próximo metrô para no museu?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich steige am Rathaus aus.",
+      "meaning": {
+        "en": "I get off at Rathaus.",
+        "de": "Rathaus ist mein Ersatzhalt.",
+        "es": "Bajo en Rathaus.",
+        "pt-BR": "Desço em Rathaus."
+      },
+      "example": "Ich steige am Rathaus aus.",
+      "exampleMeaning": {
+        "en": "I get off at Rathaus.",
+        "de": "Rathaus ist mein Ersatzhalt.",
+        "es": "Bajo en Rathaus.",
+        "pt-BR": "Desço em Rathaus."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-2-phrase-3",
+      "kind": "chunk",
+      "text": "Wo fährt der Bus zwölf ab?",
+      "meaning": {
+        "en": "Where does bus twelve leave from?",
+        "de": "Ich frage nach dem Ersatzbus.",
+        "es": "¿De dónde sale el autobús doce?",
+        "pt-BR": "De onde sai o ônibus doze?"
+      },
+      "example": "Wo fährt der Bus zwölf ab?",
+      "exampleMeaning": {
+        "en": "Where does bus twelve leave from?",
+        "de": "Ich frage nach dem Ersatzbus.",
+        "es": "¿De dónde sale el autobús doce?",
+        "pt-BR": "De onde sai o ônibus doze?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-3-phrase-1",
+      "kind": "chunk",
+      "text": "Ich gehe direkt zur Bibliothek.",
+      "meaning": {
+        "en": "I will walk straight to the library.",
+        "de": "Ich nutze den direkten Fußweg.",
+        "es": "Voy a pie directamente a la biblioteca.",
+        "pt-BR": "Vou a pé direto para a biblioteca."
+      },
+      "example": "Ich gehe direkt zur Bibliothek.",
+      "exampleMeaning": {
+        "en": "I will walk straight to the library.",
+        "de": "Ich nutze den direkten Fußweg.",
+        "es": "Voy a pie directamente a la biblioteca.",
+        "pt-BR": "Vou a pé direto para a biblioteca."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-3-phrase-2",
+      "kind": "chunk",
+      "text": "Der Bus fährt nicht direkt dorthin.",
+      "meaning": {
+        "en": "The bus does not go there directly.",
+        "de": "Mit dem Bus ist noch ein weiterer Weg nötig.",
+        "es": "El autobús no va directo allí.",
+        "pt-BR": "O ônibus não vai direto para lá."
+      },
+      "example": "Der Bus fährt nicht direkt dorthin.",
+      "exampleMeaning": {
+        "en": "The bus does not go there directly.",
+        "de": "Mit dem Bus ist noch ein weiterer Weg nötig.",
+        "es": "El autobús no va directo allí.",
+        "pt-BR": "O ônibus não vai direto para lá."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-subway-3-phrase-3",
+      "kind": "chunk",
+      "text": "Ich bin voraussichtlich um vierzehn Uhr fünfunddreißig da.",
+      "meaning": {
+        "en": "I expect to arrive at 14:35.",
+        "de": "Das ist meine berechnete Ankunft, keine Garantie.",
+        "es": "Calculo llegar a las 14:35.",
+        "pt-BR": "Calculo chegar às 14h35."
+      },
+      "example": "Ich bin voraussichtlich um vierzehn Uhr fünfunddreißig da.",
+      "exampleMeaning": {
+        "en": "I expect to arrive at 14:35.",
+        "de": "Das ist meine berechnete Ankunft, keine Garantie.",
+        "es": "Calculo llegar a las 14:35.",
+        "pt-BR": "Calculo chegar às 14h35."
+      },
+      "register": "neutral"
+    }
+  ],
+  "units": [
+    {
+      "id": "de-subway-1",
+      "stage": "subway-announcements",
+      "kind": "module",
+      "title": {
+        "en": "Find the correct platform",
+        "de": "Das richtige Gleis finden",
+        "es": "Encontrar la vía correcta",
+        "pt-BR": "Encontrar a plataforma correta"
+      },
+      "scenario": {
+        "en": "Tell a friend which line, direction and platform to use after the announcement. Explain why platform one is wrong for your destination.",
+        "de": "Erkläre einer Freundin nach der Durchsage Linie, Richtung und Gleis. Begründe, warum Gleis eins für dein Ziel falsch ist.",
+        "es": "Explica línea, sentido y vía tras el aviso y por qué la vía uno no sirve para tu destino.",
+        "pt-BR": "Explique linha, sentido e plataforma após o aviso e por que a plataforma um não serve para seu destino."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000017"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+        "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+        "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+        "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+      },
+      "explanation": {
+        "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+        "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+        "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+        "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+      },
+      "examples": [
+        {
+          "text": "Fährt diese Bahn Richtung Nordpark?",
+          "meaning": {
+            "en": "Does this train go towards Nordpark?",
+            "de": "Ich prüfe die Fahrtrichtung.",
+            "es": "¿Este metro va hacia Nordpark?",
+            "pt-BR": "Este metrô vai para Nordpark?"
+          }
+        },
+        {
+          "text": "Die Bahn fährt heute von Gleis zwei.",
+          "meaning": {
+            "en": "The train leaves from platform two today.",
+            "de": "Heute gilt ein anderes Gleis.",
+            "es": "Hoy sale de la vía dos.",
+            "pt-BR": "Hoje sai da plataforma dois."
+          }
+        },
+        {
+          "text": "Ich muss auf die andere Seite.",
+          "meaning": {
+            "en": "I need to go to the other side.",
+            "de": "Ich wechsle zur richtigen Bahnsteigseite.",
+            "es": "Debo ir al otro lado.",
+            "pt-BR": "Preciso ir para o outro lado."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-subway-1-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which destination and platform are in the plan?",
+            "de": "Welche Richtung und welches Gleis stehen im Plan?",
+            "es": "¿Qué destino y vía figuran en el plan?",
+            "pt-BR": "Qual destino e plataforma aparecem no plano?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-1-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which platform is now correct for Nordpark?",
+            "de": "Welches Gleis ist jetzt für Nordpark richtig?",
+            "es": "¿Qué vía es ahora correcta para Nordpark?",
+            "pt-BR": "Qual plataforma agora é correta para Nordpark?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-1-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Tell a friend which line, direction and platform to use after the announcement. Explain why platform one is wrong for your destination.",
+            "de": "Erkläre einer Freundin nach der Durchsage Linie, Richtung und Gleis. Begründe, warum Gleis eins für dein Ziel falsch ist.",
+            "es": "Explica línea, sentido y vía tras el aviso y por qué la vía uno no sirve para tu destino.",
+            "pt-BR": "Explique linha, sentido e plataforma após o aviso e por que a plataforma um não serve para seu destino."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-1-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Tell a friend which line, direction and platform to use after the announcement. Explain why platform one is wrong for your destination.",
+            "de": "Erkläre einer Freundin nach der Durchsage Linie, Richtung und Gleis. Begründe, warum Gleis eins für dein Ziel falsch ist.",
+            "es": "Explica línea, sentido y vía tras el aviso y por qué la vía uno no sirve para tu destino.",
+            "pt-BR": "Explique linha, sentido e plataforma após o aviso e por que a plataforma um não serve para seu destino."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-subway-1-reading"],
+          "targetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Which destination and platform are in the plan?",
+              "de": "Welche Richtung und welches Gleis stehen im Plan?",
+              "es": "¿Qué destino y vía figuran en el plan?",
+              "pt-BR": "Qual destino e plataforma aparecem no plano?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Nordpark, Gleis eins.",
+              "de": "Nordpark, Gleis eins.",
+              "es": "Nordpark, Gleis eins.",
+              "pt-BR": "Nordpark, Gleis eins."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Dein fiktiver Plan: U4 Richtung Nordpark, Abfahrt um 14.10 Uhr, Gleis eins. Du möchtest am Stadtmuseum aussteigen. Der Fußweg vom Museum zur Bibliothek dauert fünf Minuten."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-subway-1-listening"],
+          "targetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which platform is now correct for Nordpark?",
+              "de": "Welches Gleis ist jetzt für Nordpark richtig?",
+              "es": "¿Qué vía es ahora correcta para Nordpark?",
+              "pt-BR": "Qual plataforma agora é correta para Nordpark?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Gleis zwei.",
+              "de": "Gleis zwei.",
+              "es": "Gleis zwei.",
+              "pt-BR": "Gleis zwei."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Achtung an Gleis eins: Die U4 Richtung Nordpark fährt heute von Gleis zwei. Die U4 Richtung Südbahnhof fährt weiterhin von Gleis eins. Bitte prüfen Sie die Fahrtrichtung vor dem Einsteigen."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+          "instructions": {
+            "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+            "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+            "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+            "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-subway-1-writing"],
+          "targetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+          "instructions": {
+            "en": "Tell a friend which line, direction and platform to use after the announcement. Explain why platform one is wrong for your destination.",
+            "de": "Erkläre einer Freundin nach der Durchsage Linie, Richtung und Gleis. Begründe, warum Gleis eins für dein Ziel falsch ist.",
+            "es": "Explica línea, sentido y vía tras el aviso y por qué la vía uno no sirve para tu destino.",
+            "pt-BR": "Explique linha, sentido e plataforma após o aviso e por que a plataforma um não serve para seu destino."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-subway-1-writing"],
+          "targetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+          "instructions": {
+            "en": "Tell a friend which line, direction and platform to use after the announcement. Explain why platform one is wrong for your destination.",
+            "de": "Erkläre einer Freundin nach der Durchsage Linie, Richtung und Gleis. Begründe, warum Gleis eins für dein Ziel falsch ist.",
+            "es": "Explica línea, sentido y vía tras el aviso y por qué la vía uno no sirve para tu destino.",
+            "pt-BR": "Explique linha, sentido e plataforma após o aviso e por que a plataforma um não serve para seu destino."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-subway-1-speaking"],
+          "targetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+          "instructions": {
+            "en": "Tell a friend which line, direction and platform to use after the announcement. Explain why platform one is wrong for your destination.",
+            "de": "Erkläre einer Freundin nach der Durchsage Linie, Richtung und Gleis. Begründe, warum Gleis eins für dein Ziel falsch ist.",
+            "es": "Explica línea, sentido y vía tras el aviso y por qué la vía uno no sirve para tu destino.",
+            "pt-BR": "Explique linha, sentido e plataforma após o aviso e por que a plataforma um não serve para seu destino."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Plan: Dein fiktiver Plan: U4 Richtung Nordpark, Abfahrt um 14.10 Uhr, Gleis eins. Du möchtest am Stadtmuseum aussteigen. Der Fußweg vom Museum zur Bibliothek dauert fünf Minuten.\nAktuelle Durchsage: Achtung an Gleis eins: Die U4 Richtung Nordpark fährt heute von Gleis zwei. Die U4 Richtung Südbahnhof fährt weiterhin von Gleis eins. Bitte prüfen Sie die Fahrtrichtung vor dem Einsteigen.",
+            "de": "Plan: Dein fiktiver Plan: U4 Richtung Nordpark, Abfahrt um 14.10 Uhr, Gleis eins. Du möchtest am Stadtmuseum aussteigen. Der Fußweg vom Museum zur Bibliothek dauert fünf Minuten.\nAktuelle Durchsage: Achtung an Gleis eins: Die U4 Richtung Nordpark fährt heute von Gleis zwei. Die U4 Richtung Südbahnhof fährt weiterhin von Gleis eins. Bitte prüfen Sie die Fahrtrichtung vor dem Einsteigen.",
+            "es": "Plan: Dein fiktiver Plan: U4 Richtung Nordpark, Abfahrt um 14.10 Uhr, Gleis eins. Du möchtest am Stadtmuseum aussteigen. Der Fußweg vom Museum zur Bibliothek dauert fünf Minuten.\nAktuelle Durchsage: Achtung an Gleis eins: Die U4 Richtung Nordpark fährt heute von Gleis zwei. Die U4 Richtung Südbahnhof fährt weiterhin von Gleis eins. Bitte prüfen Sie die Fahrtrichtung vor dem Einsteigen.",
+            "pt-BR": "Plan: Dein fiktiver Plan: U4 Richtung Nordpark, Abfahrt um 14.10 Uhr, Gleis eins. Du möchtest am Stadtmuseum aussteigen. Der Fußweg vom Museum zur Bibliothek dauert fünf Minuten.\nAktuelle Durchsage: Achtung an Gleis eins: Die U4 Richtung Nordpark fährt heute von Gleis zwei. Die U4 Richtung Südbahnhof fährt weiterhin von Gleis eins. Bitte prüfen Sie die Fahrtrichtung vor dem Einsteigen."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-global-scale", "goethe-practice-scope"]
+    },
+    {
+      "id": "de-subway-2",
+      "stage": "subway-announcements",
+      "kind": "module",
+      "title": {
+        "en": "Recognize a skipped stop",
+        "de": "Einen entfallenden Halt erkennen",
+        "es": "Reconocer una parada suprimida",
+        "pt-BR": "Reconhecer uma parada suprimida"
+      },
+      "scenario": {
+        "en": "Explain the skipped stop and replacement route. Include where to get off and why taking the next U4 is not enough.",
+        "de": "Erkläre entfallenden Halt und Ersatzweg. Nenne den Ausstieg und warum die nächste U4 nicht reicht.",
+        "es": "Explica parada suprimida y ruta alternativa; indica dónde bajar y por qué no basta otro U4.",
+        "pt-BR": "Explique parada suprimida e rota alternativa; diga onde descer e por que outro U4 não basta."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000017"],
+      "prerequisites": ["de-subway-1"],
+      "grammar": {
+        "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+        "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+        "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+        "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+      },
+      "explanation": {
+        "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+        "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+        "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+        "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+      },
+      "examples": [
+        {
+          "text": "Hält die nächste Bahn am Museum?",
+          "meaning": {
+            "en": "Does the next train stop at the museum?",
+            "de": "Ich prüfe, ob die Störung auch die nächste Bahn betrifft.",
+            "es": "¿El próximo metro para en el museo?",
+            "pt-BR": "O próximo metrô para no museu?"
+          }
+        },
+        {
+          "text": "Ich steige am Rathaus aus.",
+          "meaning": {
+            "en": "I get off at Rathaus.",
+            "de": "Rathaus ist mein Ersatzhalt.",
+            "es": "Bajo en Rathaus.",
+            "pt-BR": "Desço em Rathaus."
+          }
+        },
+        {
+          "text": "Wo fährt der Bus zwölf ab?",
+          "meaning": {
+            "en": "Where does bus twelve leave from?",
+            "de": "Ich frage nach dem Ersatzbus.",
+            "es": "¿De dónde sale el autobús doce?",
+            "pt-BR": "De onde sai o ônibus doze?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-subway-2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which stop did you originally plan to use?",
+            "de": "An welchem Halt wolltest du ursprünglich aussteigen?",
+            "es": "¿En qué parada pensabas bajar?",
+            "pt-BR": "Em qual parada pretendia descer?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Will waiting for the next U4 solve the problem?",
+            "de": "Hilft das Warten auf die nächste U4?",
+            "es": "¿Sirve esperar al siguiente U4?",
+            "pt-BR": "Adianta esperar o próximo U4?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Explain the skipped stop and replacement route. Include where to get off and why taking the next U4 is not enough.",
+            "de": "Erkläre entfallenden Halt und Ersatzweg. Nenne den Ausstieg und warum die nächste U4 nicht reicht.",
+            "es": "Explica parada suprimida y ruta alternativa; indica dónde bajar y por qué no basta otro U4.",
+            "pt-BR": "Explique parada suprimida e rota alternativa; diga onde descer e por que outro U4 não basta."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Explain the skipped stop and replacement route. Include where to get off and why taking the next U4 is not enough.",
+            "de": "Erkläre entfallenden Halt und Ersatzweg. Nenne den Ausstieg und warum die nächste U4 nicht reicht.",
+            "es": "Explica parada suprimida y ruta alternativa; indica dónde bajar y por qué no basta otro U4.",
+            "pt-BR": "Explique parada suprimida e rota alternativa; diga onde descer e por que outro U4 não basta."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+      "reviewTargetIds": ["de-subway-1-phrase-1", "de-subway-1-phrase-2", "de-subway-1-phrase-3"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-subway-2-reading"],
+          "targetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Which stop did you originally plan to use?",
+              "de": "An welchem Halt wolltest du ursprünglich aussteigen?",
+              "es": "¿En qué parada pensabas bajar?",
+              "pt-BR": "Em qual parada pretendia descer?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Am Stadtmuseum.",
+              "de": "Am Stadtmuseum.",
+              "es": "Am Stadtmuseum.",
+              "pt-BR": "Am Stadtmuseum."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Du sitzt in der U4 Richtung Nordpark. Auf dem Plan kommt nach Rathaus das Stadtmuseum. Dein Treffen ist um 14.40 Uhr vor der Bibliothek. Du hast einer Freundin gesagt, dass du am Museum aussteigst."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-subway-2-listening"],
+          "targetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Will waiting for the next U4 solve the problem?",
+              "de": "Hilft das Warten auf die nächste U4?",
+              "es": "¿Sirve esperar al siguiente U4?",
+              "pt-BR": "Adianta esperar o próximo U4?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Nein, auch die nächste U4 hält dort nicht.",
+              "de": "Nein, auch die nächste U4 hält dort nicht.",
+              "es": "Nein, auch die nächste U4 hält dort nicht.",
+              "pt-BR": "Nein, auch die nächste U4 hält dort nicht."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Eine Information für unsere Fahrgäste: Wegen einer Störung hält diese U4 heute nicht am Stadtmuseum. Fahrgäste zum Museum steigen bitte am Rathaus aus und nehmen dort den Bus 12. Er hält vor dem Museum. Die nächste U4 überspringt den Halt ebenfalls."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+          "instructions": {
+            "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+            "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+            "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+            "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-subway-2-writing"],
+          "targetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+          "instructions": {
+            "en": "Explain the skipped stop and replacement route. Include where to get off and why taking the next U4 is not enough.",
+            "de": "Erkläre entfallenden Halt und Ersatzweg. Nenne den Ausstieg und warum die nächste U4 nicht reicht.",
+            "es": "Explica parada suprimida y ruta alternativa; indica dónde bajar y por qué no basta otro U4.",
+            "pt-BR": "Explique parada suprimida e rota alternativa; diga onde descer e por que outro U4 não basta."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-subway-2-writing"],
+          "targetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+          "instructions": {
+            "en": "Explain the skipped stop and replacement route. Include where to get off and why taking the next U4 is not enough.",
+            "de": "Erkläre entfallenden Halt und Ersatzweg. Nenne den Ausstieg und warum die nächste U4 nicht reicht.",
+            "es": "Explica parada suprimida y ruta alternativa; indica dónde bajar y por qué no basta otro U4.",
+            "pt-BR": "Explique parada suprimida e rota alternativa; diga onde descer e por que outro U4 não basta."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Kein Problem. Geht es am Freitag um vierzehn Uhr?"
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-subway-2-speaking"],
+          "targetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+          "instructions": {
+            "en": "Explain the skipped stop and replacement route. Include where to get off and why taking the next U4 is not enough.",
+            "de": "Erkläre entfallenden Halt und Ersatzweg. Nenne den Ausstieg und warum die nächste U4 nicht reicht.",
+            "es": "Explica parada suprimida y ruta alternativa; indica dónde bajar y por qué no basta otro U4.",
+            "pt-BR": "Explique parada suprimida e rota alternativa; diga onde descer e por que outro U4 não basta."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Kein Problem. Geht es am Freitag um vierzehn Uhr?"
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Plan: Du sitzt in der U4 Richtung Nordpark. Auf dem Plan kommt nach Rathaus das Stadtmuseum. Dein Treffen ist um 14.40 Uhr vor der Bibliothek. Du hast einer Freundin gesagt, dass du am Museum aussteigst.\nAktuelle Durchsage: Eine Information für unsere Fahrgäste: Wegen einer Störung hält diese U4 heute nicht am Stadtmuseum. Fahrgäste zum Museum steigen bitte am Rathaus aus und nehmen dort den Bus 12. Er hält vor dem Museum. Die nächste U4 überspringt den Halt ebenfalls.",
+            "de": "Plan: Du sitzt in der U4 Richtung Nordpark. Auf dem Plan kommt nach Rathaus das Stadtmuseum. Dein Treffen ist um 14.40 Uhr vor der Bibliothek. Du hast einer Freundin gesagt, dass du am Museum aussteigst.\nAktuelle Durchsage: Eine Information für unsere Fahrgäste: Wegen einer Störung hält diese U4 heute nicht am Stadtmuseum. Fahrgäste zum Museum steigen bitte am Rathaus aus und nehmen dort den Bus 12. Er hält vor dem Museum. Die nächste U4 überspringt den Halt ebenfalls.",
+            "es": "Plan: Du sitzt in der U4 Richtung Nordpark. Auf dem Plan kommt nach Rathaus das Stadtmuseum. Dein Treffen ist um 14.40 Uhr vor der Bibliothek. Du hast einer Freundin gesagt, dass du am Museum aussteigst.\nAktuelle Durchsage: Eine Information für unsere Fahrgäste: Wegen einer Störung hält diese U4 heute nicht am Stadtmuseum. Fahrgäste zum Museum steigen bitte am Rathaus aus und nehmen dort den Bus 12. Er hält vor dem Museum. Die nächste U4 überspringt den Halt ebenfalls.",
+            "pt-BR": "Plan: Du sitzt in der U4 Richtung Nordpark. Auf dem Plan kommt nach Rathaus das Stadtmuseum. Dein Treffen ist um 14.40 Uhr vor der Bibliothek. Du hast einer Freundin gesagt, dass du am Museum aussteigst.\nAktuelle Durchsage: Eine Information für unsere Fahrgäste: Wegen einer Störung hält diese U4 heute nicht am Stadtmuseum. Fahrgäste zum Museum steigen bitte am Rathaus aus und nehmen dort den Bus 12. Er hält vor dem Museum. Die nächste U4 überspringt den Halt ebenfalls."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-global-scale", "goethe-practice-scope"]
+    },
+    {
+      "id": "de-subway-3",
+      "stage": "subway-announcements",
+      "kind": "module",
+      "title": {
+        "en": "Pass on the revised journey",
+        "de": "Den geänderten Weg weitergeben",
+        "es": "Transmitir la ruta modificada",
+        "pt-BR": "Transmitir o trajeto alterado"
+      },
+      "scenario": {
+        "en": "Message your friend with the revised route, estimated arrival and the reason for your choice. Distinguish an estimate from a guarantee.",
+        "de": "Schreibe deiner Freundin neuen Weg, voraussichtliche Ankunft und Grund der Wahl. Trenne Schätzung und Garantie.",
+        "es": "Escribe ruta nueva, llegada estimada y razón; distingue cálculo de garantía.",
+        "pt-BR": "Escreva rota nova, chegada estimada e motivo; diferencie estimativa de garantia."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000017"],
+      "prerequisites": ["de-subway-2"],
+      "grammar": {
+        "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+        "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+        "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+        "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+      },
+      "explanation": {
+        "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+        "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+        "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+        "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+      },
+      "examples": [
+        {
+          "text": "Ich gehe direkt zur Bibliothek.",
+          "meaning": {
+            "en": "I will walk straight to the library.",
+            "de": "Ich nutze den direkten Fußweg.",
+            "es": "Voy a pie directamente a la biblioteca.",
+            "pt-BR": "Vou a pé direto para a biblioteca."
+          }
+        },
+        {
+          "text": "Der Bus fährt nicht direkt dorthin.",
+          "meaning": {
+            "en": "The bus does not go there directly.",
+            "de": "Mit dem Bus ist noch ein weiterer Weg nötig.",
+            "es": "El autobús no va directo allí.",
+            "pt-BR": "O ônibus não vai direto para lá."
+          }
+        },
+        {
+          "text": "Ich bin voraussichtlich um vierzehn Uhr fünfunddreißig da.",
+          "meaning": {
+            "en": "I expect to arrive at 14:35.",
+            "de": "Das ist meine berechnete Ankunft, keine Garantie.",
+            "es": "Calculo llegar a las 14:35.",
+            "pt-BR": "Calculo chegar às 14h35."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-subway-3-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "How long is the direct walk from Rathaus?",
+            "de": "Wie lange dauert der direkte Fußweg vom Rathaus?",
+            "es": "¿Cuánto dura el camino directo desde Rathaus?",
+            "pt-BR": "Quanto dura a caminhada direta de Rathaus?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-3-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which option can reach the 14.40 meeting on time?",
+            "de": "Welche Möglichkeit erreicht das Treffen um 14.40 Uhr rechtzeitig?",
+            "es": "¿Qué opción llega a tiempo a las 14:40?",
+            "pt-BR": "Qual opção chega a tempo às 14h40?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-3-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Message your friend with the revised route, estimated arrival and the reason for your choice. Distinguish an estimate from a guarantee.",
+            "de": "Schreibe deiner Freundin neuen Weg, voraussichtliche Ankunft und Grund der Wahl. Trenne Schätzung und Garantie.",
+            "es": "Escribe ruta nueva, llegada estimada y razón; distingue cálculo de garantía.",
+            "pt-BR": "Escreva rota nova, chegada estimada e motivo; diferencie estimativa de garantia."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-subway-3-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Message your friend with the revised route, estimated arrival and the reason for your choice. Distinguish an estimate from a guarantee.",
+            "de": "Schreibe deiner Freundin neuen Weg, voraussichtliche Ankunft und Grund der Wahl. Trenne Schätzung und Garantie.",
+            "es": "Escribe ruta nueva, llegada estimada y razón; distingue cálculo de garantía.",
+            "pt-BR": "Escreva rota nova, chegada estimada e motivo; diferencie estimativa de garantia."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-subway-3-phrase-1", "de-subway-3-phrase-2", "de-subway-3-phrase-3"],
+      "reviewTargetIds": ["de-subway-2-phrase-1", "de-subway-2-phrase-2", "de-subway-2-phrase-3"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-subway-3-reading"],
+          "targetIds": ["de-subway-3-phrase-1", "de-subway-3-phrase-2", "de-subway-3-phrase-3"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "How long is the direct walk from Rathaus?",
+              "de": "Wie lange dauert der direkte Fußweg vom Rathaus?",
+              "es": "¿Cuánto dura el camino directo desde Rathaus?",
+              "pt-BR": "Quanto dura a caminhada direta de Rathaus?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Zehn Minuten.",
+              "de": "Zehn Minuten.",
+              "es": "Zehn Minuten.",
+              "pt-BR": "Zehn Minuten."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Am Rathaus hast du zwei Möglichkeiten: Bus 12 bis zum Museum oder zehn Minuten zu Fuß direkt zur Bibliothek. Vom Museum sind es noch fünf Minuten zu Fuß. Dein Treffen ist um 14.40 Uhr. Du bist um 14.25 Uhr am Rathaus."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-subway-3-listening"],
+          "targetIds": ["de-subway-3-phrase-1", "de-subway-3-phrase-2", "de-subway-3-phrase-3"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which option can reach the 14.40 meeting on time?",
+              "de": "Welche Möglichkeit erreicht das Treffen um 14.40 Uhr rechtzeitig?",
+              "es": "¿Qué opción llega a tiempo a las 14:40?",
+              "pt-BR": "Qual opção chega a tempo às 14h40?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der direkte Fußweg; der Bus mit weiteren Wegen dauert zu lange.",
+              "de": "Der direkte Fußweg; der Bus mit weiteren Wegen dauert zu lange.",
+              "es": "Der direkte Fußweg; der Bus mit weiteren Wegen dauert zu lange.",
+              "pt-BR": "Der direkte Fußweg; der Bus mit weiteren Wegen dauert zu lange."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Hier ist eine Information zum Bus zwölf: Die nächste Abfahrt verspätet sich um fünfzehn Minuten. Die Fahrt zum Museum dauert danach fünf Minuten. Der Fußweg zur Bibliothek ist geöffnet. Bitte beachten Sie: Der Bus fährt nicht direkt zur Bibliothek."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-subway-3-phrase-1", "de-subway-3-phrase-2", "de-subway-3-phrase-3"],
+          "instructions": {
+            "en": "Separate line, direction, stop and platform. Statt marks a replacement. Wegen introduces the reason for a disruption. Confirm the current source before repeating an old plan.",
+            "de": "Trenne Linie, Richtung, Halt und Gleis. Statt nennt einen Ersatz, wegen den Störungsgrund. Prüfe die aktuelle Quelle vor der Weitergabe eines alten Plans.",
+            "es": "Distingue línea, sentido, parada y vía. Statt señala sustitución y wegen la causa. Comprueba el aviso actual antes de repetir un plan anterior.",
+            "pt-BR": "Diferencie linha, sentido, parada e plataforma. Statt indica substituição e wegen a causa. Confira o aviso atual antes de repetir um plano anterior."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-subway-3-writing"],
+          "targetIds": ["de-subway-3-phrase-1", "de-subway-3-phrase-2", "de-subway-3-phrase-3"],
+          "instructions": {
+            "en": "Message your friend with the revised route, estimated arrival and the reason for your choice. Distinguish an estimate from a guarantee.",
+            "de": "Schreibe deiner Freundin neuen Weg, voraussichtliche Ankunft und Grund der Wahl. Trenne Schätzung und Garantie.",
+            "es": "Escribe ruta nueva, llegada estimada y razón; distingue cálculo de garantía.",
+            "pt-BR": "Escreva rota nova, chegada estimada e motivo; diferencie estimativa de garantia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-subway-3-writing"],
+          "targetIds": ["de-subway-3-phrase-1", "de-subway-3-phrase-2", "de-subway-3-phrase-3"],
+          "instructions": {
+            "en": "Message your friend with the revised route, estimated arrival and the reason for your choice. Distinguish an estimate from a guarantee.",
+            "de": "Schreibe deiner Freundin neuen Weg, voraussichtliche Ankunft und Grund der Wahl. Trenne Schätzung und Garantie.",
+            "es": "Escribe ruta nueva, llegada estimada y razón; distingue cálculo de garantía.",
+            "pt-BR": "Escreva rota nova, chegada estimada e motivo; diferencie estimativa de garantia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-subway-3-speaking"],
+          "targetIds": ["de-subway-3-phrase-1", "de-subway-3-phrase-2", "de-subway-3-phrase-3"],
+          "instructions": {
+            "en": "Message your friend with the revised route, estimated arrival and the reason for your choice. Distinguish an estimate from a guarantee.",
+            "de": "Schreibe deiner Freundin neuen Weg, voraussichtliche Ankunft und Grund der Wahl. Trenne Schätzung und Garantie.",
+            "es": "Escribe ruta nueva, llegada estimada y razón; distingue cálculo de garantía.",
+            "pt-BR": "Escreva rota nova, chegada estimada e motivo; diferencie estimativa de garantia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Plan: Am Rathaus hast du zwei Möglichkeiten: Bus 12 bis zum Museum oder zehn Minuten zu Fuß direkt zur Bibliothek. Vom Museum sind es noch fünf Minuten zu Fuß. Dein Treffen ist um 14.40 Uhr. Du bist um 14.25 Uhr am Rathaus.\nAktuelle Durchsage: Hier ist eine Information zum Bus zwölf: Die nächste Abfahrt verspätet sich um fünfzehn Minuten. Die Fahrt zum Museum dauert danach fünf Minuten. Der Fußweg zur Bibliothek ist geöffnet. Bitte beachten Sie: Der Bus fährt nicht direkt zur Bibliothek.",
+            "de": "Plan: Am Rathaus hast du zwei Möglichkeiten: Bus 12 bis zum Museum oder zehn Minuten zu Fuß direkt zur Bibliothek. Vom Museum sind es noch fünf Minuten zu Fuß. Dein Treffen ist um 14.40 Uhr. Du bist um 14.25 Uhr am Rathaus.\nAktuelle Durchsage: Hier ist eine Information zum Bus zwölf: Die nächste Abfahrt verspätet sich um fünfzehn Minuten. Die Fahrt zum Museum dauert danach fünf Minuten. Der Fußweg zur Bibliothek ist geöffnet. Bitte beachten Sie: Der Bus fährt nicht direkt zur Bibliothek.",
+            "es": "Plan: Am Rathaus hast du zwei Möglichkeiten: Bus 12 bis zum Museum oder zehn Minuten zu Fuß direkt zur Bibliothek. Vom Museum sind es noch fünf Minuten zu Fuß. Dein Treffen ist um 14.40 Uhr. Du bist um 14.25 Uhr am Rathaus.\nAktuelle Durchsage: Hier ist eine Information zum Bus zwölf: Die nächste Abfahrt verspätet sich um fünfzehn Minuten. Die Fahrt zum Museum dauert danach fünf Minuten. Der Fußweg zur Bibliothek ist geöffnet. Bitte beachten Sie: Der Bus fährt nicht direkt zur Bibliothek.",
+            "pt-BR": "Plan: Am Rathaus hast du zwei Möglichkeiten: Bus 12 bis zum Museum oder zehn Minuten zu Fuß direkt zur Bibliothek. Vom Museum sind es noch fünf Minuten zu Fuß. Dein Treffen ist um 14.40 Uhr. Du bist um 14.25 Uhr am Rathaus.\nAktuelle Durchsage: Hier ist eine Information zum Bus zwölf: Die nächste Abfahrt verspätet sich um fünfzehn Minuten. Die Fahrt zum Museum dauert danach fünf Minuten. Der Fußweg zur Bibliothek ist geöffnet. Bitte beachten Sie: Der Bus fährt nicht direkt zur Bibliothek."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-global-scale", "goethe-practice-scope"]
+    }
+  ]
+}

@@ -3,6 +3,8 @@
 import { unlink } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
+import { requireDesktopBuildEnvironment } from "../lib/hosting-environment.mjs";
+import { stopWebsite } from "./lib/website-processes.mjs";
 import { stopAndroidEmulators } from "./lib/android-emulators.mjs";
 
 import {
@@ -58,7 +60,14 @@ async function kill() {
         process.stdout.write(
           `verify: ${result.status} cleanup=${recoveryIncomplete ? "incomplete" : "complete"}\n`,
         );
-        if (recoveryIncomplete) incomplete = true;
+        if (recoveryIncomplete) {
+          // A retained journal is not a failed process stop. Keep reporting it,
+          // but do not fail every later stop/kill once verification has exited.
+          if (result.status !== "already-stopped") incomplete = true;
+          process.stderr.write(
+            "verify: recovery remains pending; use make verify stop to inspect the retained cleanup details.\n",
+          );
+        }
       } catch {
         process.stderr.write(
           "verify: retained; inspect make verify stop for the exact ownership/recovery blocker.\n",
@@ -173,8 +182,20 @@ async function logsClear() {
 }
 
 try {
-  if (action === "start") {
+  if (action === "prepare") {
+    if (!["dev", "prd"].includes(mode)) throw new Error("Prepare requires dev or prd.");
+    assertNoUnknownFlags([]);
+    const verification = await statusMode({ mode: "verify", runtimeRoot });
+    if (!["stopped", "stale"].includes(verification.status))
+      throw new Error("Stop the active verification session before switching environments.");
+    for (const previous of ["dev", "prd"]) {
+      const result = await killMode({ mode: previous, runtimeRoot });
+      if (result.status === "unsafe-state-retained")
+        throw new Error(`Cannot safely stop ${previous}; inspect make status.`);
+    }
+  } else if (action === "start") {
     if (!["dev", "prd"].includes(mode)) throw new Error("Start requires mode dev or prd.");
+    if (mode === "prd") requireDesktopBuildEnvironment(mode);
     const bundlePrefix = "--speech-bundles-dir=";
     const bundleFlags = flags.filter((flag) => flag.startsWith(bundlePrefix));
     assertNoUnknownFlags(bundleFlags);
@@ -195,7 +216,10 @@ try {
   } else if (action === "stop" || action === "kill") {
     if (mode) throw new Error("Stop does not accept arguments.");
     await kill();
-    if (action === "kill") await stopAndroidEmulators();
+    if (action === "kill") {
+      await stopWebsite(root);
+      await stopAndroidEmulators();
+    }
   } else if (action === "logs") {
     if (flags.includes("--clear") || mode === "--clear") {
       if (mode !== "--clear" || flags.length) throw new Error("Use logs --clear alone.");

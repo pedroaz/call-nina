@@ -19,7 +19,26 @@
         "de": "Kläre eine Aufgabe, bestätige die Frist und bitte um Hilfe.",
         "es": "Aclara una tarea, confirma el plazo y pide ayuda.",
         "pt-BR": "Esclareça uma tarefa, confirme o prazo e peça ajuda."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "work-task-mission",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Clarify a task at work",
+        "de": "Eine Aufgabe bei der Arbeit klären",
+        "es": "Aclarar una tarea en el trabajo",
+        "pt-BR": "Esclarecer uma tarefa no trabalho"
+      },
+      "description": {
+        "en": "Check a task, confirm a deadline, and ask for help.",
+        "de": "Kläre eine Aufgabe, bestätige die Frist und bitte um Hilfe.",
+        "es": "Aclara una tarea, confirma el plazo y pide ayuda.",
+        "pt-BR": "Esclareça uma tarefa, confirme o prazo e peça ajuda."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Höflich um kurze Unterstützung bitten.",
         "es": "¿Puede ayudarme un momento?",
         "pt-BR": "Pode me ajudar um instante?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-work-task-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Bis wann brauchen Sie die Liste?",
+      "meaning": {
+        "en": "By when do you need the list?",
+        "de": "Nach der Frist für die Liste fragen.",
+        "es": "¿Para cuándo necesita la lista?",
+        "pt-BR": "Até quando você precisa da lista?"
+      },
+      "example": "Bis wann brauchen Sie die Liste?",
+      "exampleMeaning": {
+        "en": "By when do you need the list?",
+        "de": "Nach der Frist für die Liste fragen.",
+        "es": "¿Para cuándo necesita la lista?",
+        "pt-BR": "Até quando você precisa da lista?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-work-task-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Wer ist heute für Rückfragen zuständig?",
+      "meaning": {
+        "en": "Who handles questions today?",
+        "de": "Ich frage nach der aktuellen Kontaktperson.",
+        "es": "¿Quién atiende consultas hoy?",
+        "pt-BR": "Quem atende dúvidas hoje?"
+      },
+      "example": "Wer ist heute für Rückfragen zuständig?",
+      "exampleMeaning": {
+        "en": "Who handles questions today?",
+        "de": "Ich frage nach der aktuellen Kontaktperson.",
+        "es": "¿Quién atiende consultas hoy?",
+        "pt-BR": "Quem atende dúvidas hoje?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-work-task-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Welche Angaben fehlen noch?",
+      "meaning": {
+        "en": "Which details are still missing?",
+        "de": "Nach noch benötigten Informationen fragen.",
+        "es": "¿Qué datos faltan todavía?",
+        "pt-BR": "Quais informações ainda faltam?"
+      },
+      "example": "Welche Angaben fehlen noch?",
+      "exampleMeaning": {
+        "en": "Which details are still missing?",
+        "de": "Nach noch benötigten Informationen fragen.",
+        "es": "¿Qué datos faltan todavía?",
+        "pt-BR": "Quais informações ainda faltam?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-work-task-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Diese Angabe ist noch nicht bestätigt.",
+      "meaning": {
+        "en": "This detail is not yet confirmed.",
+        "de": "Für diese Information fehlt eine Bestätigung.",
+        "es": "Este dato aún no está confirmado.",
+        "pt-BR": "Este dado ainda não está confirmado."
+      },
+      "example": "Diese Angabe ist noch nicht bestätigt.",
+      "exampleMeaning": {
+        "en": "This detail is not yet confirmed.",
+        "de": "Für diese Information fehlt eine Bestätigung.",
+        "es": "Este dato aún no está confirmado.",
+        "pt-BR": "Este dado ainda não está confirmado."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-work-task-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Können Sie mir kurz helfen?",
+      "meaning": {
+        "en": "Can you help me briefly?",
+        "de": "Höflich um kurze Unterstützung bitten.",
+        "es": "¿Puede ayudarme un momento?",
+        "pt-BR": "Pode me ajudar um instante?"
+      },
+      "example": "Können Sie mir kurz helfen?",
+      "exampleMeaning": {
+        "en": "Can you help me briefly?",
+        "de": "Höflich um kurze Unterstützung bitten.",
+        "es": "¿Puede ayudarme un momento?",
+        "pt-BR": "Pode me ajudar um instante?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-work-task-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich schicke Ihnen vorher die offenen Fragen.",
+      "meaning": {
+        "en": "I will send the unresolved questions in advance.",
+        "de": "Die Fragen kommen vor dem Gespräch.",
+        "es": "Le envío antes las preguntas pendientes.",
+        "pt-BR": "Envio antes as perguntas pendentes."
+      },
+      "example": "Ich schicke Ihnen vorher die offenen Fragen.",
+      "exampleMeaning": {
+        "en": "I will send the unresolved questions in advance.",
+        "de": "Die Fragen kommen vor dem Gespräch.",
+        "es": "Le envío antes las preguntas pendientes.",
+        "pt-BR": "Envio antes as perguntas pendentes."
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Eine Kollegin oder einen Kollegen um Hilfe bitten. Höflich um kurze Unterstützung bitten.\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.",
             "es": "Pedir ayuda a un compañero. ¿Puede ayudarme un momento?\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.",
             "pt-BR": "Pedir ajuda a um colega. Pode me ajudar um instante?\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-work-task-v2",
+      "stage": "work-task-mission",
+      "kind": "module",
+      "title": {
+        "en": "Preparing the contact list",
+        "de": "Die Kontaktliste vorbereiten",
+        "es": "Preparar la lista de contactos",
+        "pt-BR": "Preparar a lista de contatos"
+      },
+      "scenario": {
+        "en": "Confirm the task, unchanged deadline and new contact for missing information.",
+        "de": "Bestätige Aufgabe, unveränderte Frist und neue Kontaktperson für fehlende Angaben.",
+        "es": "Confirma tarea, plazo sin cambios y contacto nuevo para datos faltantes.",
+        "pt-BR": "Confirme tarefa, prazo sem mudança e contato novo para dados faltantes."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000019"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+        "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+        "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+        "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+      },
+      "explanation": {
+        "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+        "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+        "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+        "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+      },
+      "examples": [
+        {
+          "text": "Bis wann brauchen Sie die Liste?",
+          "meaning": {
+            "en": "By when do you need the list?",
+            "de": "Nach der Frist für die Liste fragen.",
+            "es": "¿Para cuándo necesita la lista?",
+            "pt-BR": "Até quando você precisa da lista?"
+          }
+        },
+        {
+          "text": "Wer ist heute für Rückfragen zuständig?",
+          "meaning": {
+            "en": "Who handles questions today?",
+            "de": "Ich frage nach der aktuellen Kontaktperson.",
+            "es": "¿Quién atiende consultas hoy?",
+            "pt-BR": "Quem atende dúvidas hoje?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-work-task-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-work-task-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Who should be asked instead of Herr Ali?",
+            "de": "Wer soll statt Herrn Ali gefragt werden?",
+            "es": "¿A quién preguntar en vez del señor Ali?",
+            "pt-BR": "A quem perguntar em vez do senhor Ali?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-work-task-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the task, unchanged deadline and new contact for missing information.",
+            "de": "Bestätige Aufgabe, unveränderte Frist und neue Kontaktperson für fehlende Angaben.",
+            "es": "Confirma tarea, plazo sin cambios y contacto nuevo para datos faltantes.",
+            "pt-BR": "Confirme tarefa, prazo sem mudança e contato novo para dados faltantes."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-work-task-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the task, unchanged deadline and new contact for missing information.",
+            "de": "Bestätige Aufgabe, unveränderte Frist und neue Kontaktperson für fehlende Angaben.",
+            "es": "Confirma tarea, plazo sin cambios y contacto nuevo para datos faltantes.",
+            "pt-BR": "Confirme tarefa, prazo sem mudança e contato novo para dados faltantes."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-work-task-v2-reading"],
+          "targetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "Who can help with a missing number?",
+              "de": "Wer kann bei einer fehlenden Nummer helfen?",
+              "es": "¿Quién puede ayudar si falta un número?",
+              "pt-BR": "Quem pode ajudar se estiver faltando um número?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Herr Ali",
+              "de": "Herr Ali",
+              "es": "Herr Ali",
+              "pt-BR": "Herr Ali"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Bitte schicken Sie die Liste bis Donnerstag an Frau Weber. Die Namen stehen im Dokument. Wenn eine Nummer fehlt, fragen Sie Herrn Ali."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-work-task-v2-listening"],
+          "targetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Who should be asked instead of Herr Ali?",
+              "de": "Wer soll statt Herrn Ali gefragt werden?",
+              "es": "¿A quién preguntar en vez del señor Ali?",
+              "pt-BR": "A quem perguntar em vez do senhor Ali?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Frau Koch.",
+              "de": "Frau Koch.",
+              "es": "Frau Koch.",
+              "pt-BR": "Frau Koch."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+          "instructions": {
+            "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+            "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+            "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+            "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-work-task-v2-writing"],
+          "targetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the task, unchanged deadline and new contact for missing information.",
+            "de": "Bestätige Aufgabe, unveränderte Frist und neue Kontaktperson für fehlende Angaben.",
+            "es": "Confirma tarea, plazo sin cambios y contacto nuevo para datos faltantes.",
+            "pt-BR": "Confirme tarefa, prazo sem mudança e contato novo para dados faltantes."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-work-task-v2-writing"],
+          "targetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the task, unchanged deadline and new contact for missing information.",
+            "de": "Bestätige Aufgabe, unveränderte Frist und neue Kontaktperson für fehlende Angaben.",
+            "es": "Confirma tarea, plazo sin cambios y contacto nuevo para datos faltantes.",
+            "pt-BR": "Confirme tarefa, prazo sem mudança e contato novo para dados faltantes."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-work-task-v2-speaking"],
+          "targetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the task, unchanged deadline and new contact for missing information.",
+            "de": "Bestätige Aufgabe, unveränderte Frist und neue Kontaktperson für fehlende Angaben.",
+            "es": "Confirma tarea, plazo sin cambios y contacto nuevo para datos faltantes.",
+            "pt-BR": "Confirme tarefa, prazo sem mudança e contato novo para dados faltantes."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Bitte schicken Sie die Liste bis Donnerstag an Frau Weber. Die Namen stehen im Dokument. Wenn eine Nummer fehlt, fragen Sie Herrn Ali.\nUpdate: Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich.",
+            "de": "Ursprüngliche Nachricht: Bitte schicken Sie die Liste bis Donnerstag an Frau Weber. Die Namen stehen im Dokument. Wenn eine Nummer fehlt, fragen Sie Herrn Ali.\nAktualisierung: Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich.",
+            "es": "Aviso original: Bitte schicken Sie die Liste bis Donnerstag an Frau Weber. Die Namen stehen im Dokument. Wenn eine Nummer fehlt, fragen Sie Herrn Ali.\nActualización: Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich.",
+            "pt-BR": "Aviso original: Bitte schicken Sie die Liste bis Donnerstag an Frau Weber. Die Namen stehen im Dokument. Wenn eine Nummer fehlt, fragen Sie Herrn Ali.\nAtualização: Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich.",
+            "de": "Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich.",
+            "es": "Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich.",
+            "pt-BR": "Für die Liste fehlt nur noch eine Nummer. Fragen Sie bitte Frau Koch statt Herrn Ali; Herr Ali ist heute nicht da. Die Frist am Donnerstag bleibt gleich."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-work-task-2-v2",
+      "stage": "work-task-mission",
+      "kind": "module",
+      "title": {
+        "en": "Clarify missing information",
+        "de": "Fehlende Angaben klären",
+        "es": "Aclarar qué datos faltan",
+        "pt-BR": "Esclarecer quais dados faltam"
+      },
+      "scenario": {
+        "en": "Report the remaining gaps accurately, mark unknown details and ask for confirmation rather than guessing.",
+        "de": "Melde die verbleibenden Lücken korrekt, markiere Unbekanntes und bitte um Bestätigung statt zu raten.",
+        "es": "Informa los huecos, marca datos desconocidos y pide confirmación en vez de adivinar.",
+        "pt-BR": "Informe lacunas, marque dados desconhecidos e peça confirmação em vez de adivinhar."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000019"],
+      "prerequisites": ["de-work-task-v2"],
+      "grammar": {
+        "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+        "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+        "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+        "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+      },
+      "explanation": {
+        "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+        "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+        "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+        "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+      },
+      "examples": [
+        {
+          "text": "Welche Angaben fehlen noch?",
+          "meaning": {
+            "en": "Which details are still missing?",
+            "de": "Nach noch benötigten Informationen fragen.",
+            "es": "¿Qué datos faltan todavía?",
+            "pt-BR": "Quais informações ainda faltam?"
+          }
+        },
+        {
+          "text": "Diese Angabe ist noch nicht bestätigt.",
+          "meaning": {
+            "en": "This detail is not yet confirmed.",
+            "de": "Für diese Information fehlt eine Bestätigung.",
+            "es": "Este dato aún no está confirmado.",
+            "pt-BR": "Este dado ainda não está confirmado."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-work-task-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-work-task-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which information is now missing?",
+            "de": "Welche Angaben fehlen jetzt?",
+            "es": "¿Qué datos faltan ahora?",
+            "pt-BR": "Quais dados faltam agora?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-work-task-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Report the remaining gaps accurately, mark unknown details and ask for confirmation rather than guessing.",
+            "de": "Melde die verbleibenden Lücken korrekt, markiere Unbekanntes und bitte um Bestätigung statt zu raten.",
+            "es": "Informa los huecos, marca datos desconocidos y pide confirmación en vez de adivinar.",
+            "pt-BR": "Informe lacunas, marque dados desconhecidos e peça confirmação em vez de adivinhar."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-work-task-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Report the remaining gaps accurately, mark unknown details and ask for confirmation rather than guessing.",
+            "de": "Melde die verbleibenden Lücken korrekt, markiere Unbekanntes und bitte um Bestätigung statt zu raten.",
+            "es": "Informa los huecos, marca datos desconocidos y pide confirmación en vez de adivinar.",
+            "pt-BR": "Informe lacunas, marque dados desconhecidos e peça confirmação em vez de adivinhar."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-work-task-2-v2-phrase-1", "de-work-task-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-work-task-v2-phrase-1", "de-work-task-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-work-task-2-v2-reading"],
+          "targetIds": ["de-work-task-2-v2-phrase-1", "de-work-task-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Es fehlen noch die Telefonnummern. Die Namen sind schon vollständig.",
+              "de": "Es fehlen noch die Telefonnummern. Die Namen sind schon vollständig.",
+              "es": "Es fehlen noch die Telefonnummern. Die Namen sind schon vollständig.",
+              "pt-BR": "Es fehlen noch die Telefonnummern. Die Namen sind schon vollständig."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Welche Angaben fehlen noch?\nEs fehlen noch die Telefonnummern. Die Namen sind schon vollständig."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-work-task-2-v2-listening"],
+          "targetIds": ["de-work-task-2-v2-phrase-1", "de-work-task-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which information is now missing?",
+              "de": "Welche Angaben fehlen jetzt?",
+              "es": "¿Qué datos faltan ahora?",
+              "pt-BR": "Quais dados faltam agora?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Zwei Nachnamen.",
+              "de": "Zwei Nachnamen.",
+              "es": "Zwei Nachnamen.",
+              "pt-BR": "Zwei Nachnamen."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-work-task-2-v2-phrase-1", "de-work-task-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+            "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+            "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+            "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-work-task-2-v2-writing"],
+          "targetIds": ["de-work-task-2-v2-phrase-1", "de-work-task-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Report the remaining gaps accurately, mark unknown details and ask for confirmation rather than guessing.",
+            "de": "Melde die verbleibenden Lücken korrekt, markiere Unbekanntes und bitte um Bestätigung statt zu raten.",
+            "es": "Informa los huecos, marca datos desconocidos y pide confirmación en vez de adivinar.",
+            "pt-BR": "Informe lacunas, marque dados desconhecidos e peça confirmação em vez de adivinhar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-work-task-2-v2-writing"],
+          "targetIds": ["de-work-task-2-v2-phrase-1", "de-work-task-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Report the remaining gaps accurately, mark unknown details and ask for confirmation rather than guessing.",
+            "de": "Melde die verbleibenden Lücken korrekt, markiere Unbekanntes und bitte um Bestätigung statt zu raten.",
+            "es": "Informa los huecos, marca datos desconocidos y pide confirmación en vez de adivinar.",
+            "pt-BR": "Informe lacunas, marque dados desconhecidos e peça confirmação em vez de adivinhar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Es fehlen noch die Telefonnummern. Die Namen sind schon vollständig."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-work-task-2-v2-speaking"],
+          "targetIds": ["de-work-task-2-v2-phrase-1", "de-work-task-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Report the remaining gaps accurately, mark unknown details and ask for confirmation rather than guessing.",
+            "de": "Melde die verbleibenden Lücken korrekt, markiere Unbekanntes und bitte um Bestätigung statt zu raten.",
+            "es": "Informa los huecos, marca datos desconocidos y pide confirmación en vez de adivinar.",
+            "pt-BR": "Informe lacunas, marque dados desconhecidos e peça confirmação em vez de adivinhar."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Es fehlen noch die Telefonnummern. Die Namen sind schon vollständig."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Welche Angaben fehlen noch?\nEs fehlen noch die Telefonnummern. Die Namen sind schon vollständig.\nUpdate: Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch.",
+            "de": "Ursprüngliche Nachricht: Welche Angaben fehlen noch?\nEs fehlen noch die Telefonnummern. Die Namen sind schon vollständig.\nAktualisierung: Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch.",
+            "es": "Aviso original: Welche Angaben fehlen noch?\nEs fehlen noch die Telefonnummern. Die Namen sind schon vollständig.\nActualización: Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch.",
+            "pt-BR": "Aviso original: Welche Angaben fehlen noch?\nEs fehlen noch die Telefonnummern. Die Namen sind schon vollständig.\nAtualização: Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch.",
+            "de": "Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch.",
+            "es": "Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch.",
+            "pt-BR": "Die Telefonnummern sind jetzt vollständig. Es fehlen aber noch zwei Nachnamen. Bitte erfinden Sie keine Angaben. Markieren Sie die beiden Stellen und fragen Sie Frau Koch."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-work-task-3-v2",
+      "stage": "work-task-mission",
+      "kind": "module",
+      "title": {
+        "en": "Ask a colleague for help",
+        "de": "Eine Kollegin oder einen Kollegen um Hilfe bitten",
+        "es": "Pedir ayuda a un compañero",
+        "pt-BR": "Pedir ajuda a um colega"
+      },
+      "scenario": {
+        "en": "Request targeted help, confirm the revised time and prepare the specific questions.",
+        "de": "Bitte gezielt um Hilfe, bestätige die neue Zeit und bereite konkrete Fragen vor.",
+        "es": "Pide ayuda concreta, confirma la hora nueva y prepara preguntas específicas.",
+        "pt-BR": "Peça ajuda concreta, confirme o horário novo e prepare perguntas específicas."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000019"],
+      "prerequisites": ["de-work-task-2-v2"],
+      "grammar": {
+        "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+        "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+        "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+        "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+      },
+      "explanation": {
+        "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+        "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+        "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+        "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+      },
+      "examples": [
+        {
+          "text": "Können Sie mir kurz helfen?",
+          "meaning": {
+            "en": "Can you help me briefly?",
+            "de": "Höflich um kurze Unterstützung bitten.",
+            "es": "¿Puede ayudarme un momento?",
+            "pt-BR": "Pode me ajudar um instante?"
+          }
+        },
+        {
+          "text": "Ich schicke Ihnen vorher die offenen Fragen.",
+          "meaning": {
+            "en": "I will send the unresolved questions in advance.",
+            "de": "Die Fragen kommen vor dem Gespräch.",
+            "es": "Le envío antes las preguntas pendientes.",
+            "pt-BR": "Envio antes as perguntas pendentes."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-work-task-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-work-task-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What should be sent before the help session?",
+            "de": "Was soll vor der Hilfe geschickt werden?",
+            "es": "¿Qué debe enviarse antes de la ayuda?",
+            "pt-BR": "O que deve ser enviado antes da ajuda?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-work-task-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Request targeted help, confirm the revised time and prepare the specific questions.",
+            "de": "Bitte gezielt um Hilfe, bestätige die neue Zeit und bereite konkrete Fragen vor.",
+            "es": "Pide ayuda concreta, confirma la hora nueva y prepara preguntas específicas.",
+            "pt-BR": "Peça ajuda concreta, confirme o horário novo e prepare perguntas específicas."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-work-task-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Request targeted help, confirm the revised time and prepare the specific questions.",
+            "de": "Bitte gezielt um Hilfe, bestätige die neue Zeit und bereite konkrete Fragen vor.",
+            "es": "Pide ayuda concreta, confirma la hora nueva y prepara preguntas específicas.",
+            "pt-BR": "Peça ajuda concreta, confirme o horário novo e prepare perguntas específicas."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-work-task-3-v2-phrase-1", "de-work-task-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-work-task-v2-phrase-1",
+        "de-work-task-v2-phrase-2",
+        "de-work-task-2-v2-phrase-1",
+        "de-work-task-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-work-task-3-v2-reading"],
+          "targetIds": ["de-work-task-3-v2-phrase-1", "de-work-task-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ja, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.",
+              "de": "Ja, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.",
+              "es": "Ja, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.",
+              "pt-BR": "Ja, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Können Sie mir kurz helfen?\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-work-task-3-v2-listening"],
+          "targetIds": ["de-work-task-3-v2-phrase-1", "de-work-task-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What should be sent before the help session?",
+              "de": "Was soll vor der Hilfe geschickt werden?",
+              "es": "¿Qué debe enviarse antes de la ayuda?",
+              "pt-BR": "O que deve ser enviado antes da ajuda?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Die markierten Fragen.",
+              "de": "Die markierten Fragen.",
+              "es": "Die markierten Fragen.",
+              "pt-BR": "Die markierten Fragen."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-work-task-3-v2-phrase-1", "de-work-task-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Bis names the deadline. An indirect question with wer or welche sends the verb to the end. Mark missing information explicitly rather than replacing it with guesses. Before a help session, state the concrete question.",
+            "de": "Bis nennt die Frist. Indirekte Fragen mit wer oder welche stellen das Verb hinten. Markiere fehlende Angaben statt zu raten. Nenne vor einem Hilfegespräch die konkrete Frage.",
+            "es": "Bis señala plazo. Preguntas indirectas con wer o welche llevan verbo al final. Marca datos faltantes sin adivinar y prepara preguntas concretas.",
+            "pt-BR": "Bis indica prazo. Perguntas indiretas com wer ou welche levam verbo ao final. Marque dados faltantes sem adivinhar e prepare perguntas concretas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-work-task-3-v2-writing"],
+          "targetIds": ["de-work-task-3-v2-phrase-1", "de-work-task-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request targeted help, confirm the revised time and prepare the specific questions.",
+            "de": "Bitte gezielt um Hilfe, bestätige die neue Zeit und bereite konkrete Fragen vor.",
+            "es": "Pide ayuda concreta, confirma la hora nueva y prepara preguntas específicas.",
+            "pt-BR": "Peça ajuda concreta, confirme o horário novo e prepare perguntas específicas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-work-task-3-v2-writing"],
+          "targetIds": ["de-work-task-3-v2-phrase-1", "de-work-task-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request targeted help, confirm the revised time and prepare the specific questions.",
+            "de": "Bitte gezielt um Hilfe, bestätige die neue Zeit und bereite konkrete Fragen vor.",
+            "es": "Pide ayuda concreta, confirma la hora nueva y prepara preguntas específicas.",
+            "pt-BR": "Peça ajuda concreta, confirme o horário novo e prepare perguntas específicas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-work-task-3-v2-speaking"],
+          "targetIds": ["de-work-task-3-v2-phrase-1", "de-work-task-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request targeted help, confirm the revised time and prepare the specific questions.",
+            "de": "Bitte gezielt um Hilfe, bestätige die neue Zeit und bereite konkrete Fragen vor.",
+            "es": "Pide ayuda concreta, confirma la hora nueva y prepara preguntas específicas.",
+            "pt-BR": "Peça ajuda concreta, confirme o horário novo e prepare perguntas específicas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Können Sie mir kurz helfen?\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.\nUpdate: Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen.",
+            "de": "Ursprüngliche Nachricht: Können Sie mir kurz helfen?\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.\nAktualisierung: Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen.",
+            "es": "Aviso original: Können Sie mir kurz helfen?\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.\nActualización: Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen.",
+            "pt-BR": "Aviso original: Können Sie mir kurz helfen?\nJa, ich habe um vierzehn Uhr zehn Minuten Zeit. Bringen Sie die Liste mit.\nAtualização: Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen.",
+            "de": "Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen.",
+            "es": "Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen.",
+            "pt-BR": "Um vierzehn Uhr bin ich doch im Termin. Ich kann Ihnen um fünfzehn Uhr für zehn Minuten helfen. Schicken Sie mir vorher die markierten Fragen, dann können wir die Zeit gut nutzen."
           }
         }
       ],

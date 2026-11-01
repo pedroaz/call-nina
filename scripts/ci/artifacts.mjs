@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, writeFile, stat } from "node:fs/promises";
 import path from "node:path";
 import {
   context,
@@ -14,6 +14,11 @@ import {
 
 import { hostingEnvironment } from "../lib/hosting-environment.mjs";
 import { desktopTargets } from "./targets.mjs";
+import {
+  prepareSpeechDistribution,
+  speechDistributionRoot,
+  speechTargets,
+} from "../speech/distribution.mjs";
 export { desktopTargets } from "./targets.mjs";
 export async function record(kind, id, filename, extra = {}) {
   const version = (await readJson("package.json")).version;
@@ -33,12 +38,20 @@ export async function record(kind, id, filename, extra = {}) {
 }
 export async function desktop() {
   context();
-  if (hostingEnvironment() !== "production")
+  if (hostingEnvironment() !== "prd")
     throw new Error("Distributed desktop builds require production configuration");
   const id = `${process.platform}-${process.arch}`;
   if (!desktopTargets.includes(id) || process.env.RELEASE_PLATFORM !== id)
     throw new Error("Desktop runner architecture mismatch");
   await mkdir(output, { recursive: true });
+  if (id === "linux-x64") {
+    const { version } = await readJson("package.json");
+    for (const { engine, runtime } of await prepareSpeechDistribution(version)) {
+      const filename = path.basename(new URL(runtime.url).pathname);
+      await cp(path.join(speechDistributionRoot, filename), path.join(output, filename));
+      await record("speech", `speech-${engine}-linux-x64`, filename, { engine, runtime });
+    }
+  }
   node("scripts/commands.mjs", "package", process.platform === "linux" ? "appimage" : "local");
   cleanSource();
   const { version } = await readJson("package.json");
@@ -111,7 +124,8 @@ export async function verify(id) {
     !/^[a-zA-Z0-9.-]+$/.test(manifest.filename)
   )
     throw new Error(`Artifact identity mismatch: ${id}`);
-  const expectedKind = id === "hosting" ? "hosting" : "desktop";
+  const expectedKind =
+    id === "hosting" ? "hosting" : speechTargets.includes(id) ? "speech" : "desktop";
   if (
     manifest.kind !== expectedKind ||
     (expectedKind === "hosting" && manifest.environment !== hostingEnvironment()) ||
@@ -119,6 +133,27 @@ export async function verify(id) {
       (!desktopTargets.includes(id) || `${manifest.platform}-${manifest.arch}` !== id))
   )
     throw new Error("Artifact target mismatch");
+  if (expectedKind === "speech") {
+    // Publication intentionally runs without workspace dependencies or rebuilding.
+    const runtime = manifest.runtime;
+    if (
+      !runtime ||
+      !["piper", "pocket"].includes(manifest.engine) ||
+      !Number.isSafeInteger(runtime.bytes) ||
+      runtime.bytes <= 0 ||
+      !Array.isArray(runtime.files) ||
+      !runtime.files.length ||
+      id !== `speech-${manifest.engine}-linux-x64` ||
+      runtime.sha256 !== manifest.sha256 ||
+      runtime.url !==
+        `https://github.com/${current.repository}/releases/download/desktop-v${version}/${manifest.filename}` ||
+      manifest.filename !==
+        `Call-Nina-speech-${manifest.engine}-linux-x64-${manifest.sha256}.tar.gz`
+    )
+      throw new Error("Speech artifact identity mismatch");
+    if ((await stat(path.join(output, manifest.filename))).size !== runtime.bytes)
+      throw new Error("Speech artifact size mismatch");
+  }
   if ((await digest(path.join(output, manifest.filename))) !== manifest.sha256)
     throw new Error(`Artifact checksum mismatch: ${id}`);
   if (

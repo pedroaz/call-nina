@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 import { Info } from "lucide-react";
+import type { ReactNode } from "react";
 import { Dialog, DialogTrigger, Heading, Popover } from "react-aria-components";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "./Button.js";
 import styles from "./InfoHint.module.css";

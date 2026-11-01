@@ -1,0 +1,77 @@
+.activityInstruction {
+  margin: 0;
+  max-width: 60ch;
+}
+.cardActions {
+  padding-top: 0;
+}
+.scenario {
+  display: grid;
+  gap: var(--od-space-3);
+}
+.scenario > * {
+  margin: 0;
+}
+.words {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--od-space-3);
+  margin: 0;
+}
+.words > div {
+  display: grid;
+  gap: var(--od-space-2);
+  padding-block: var(--od-space-3);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.words dt {
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  font-weight: var(--od-weight-medium);
+}
+.words dd {
+  margin: 0;
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-sm);
+}
+.lessonGoals {
+  display: grid;
+  gap: var(--od-space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lessonGoals li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--od-space-3);
+  padding-block: var(--od-space-3);
+  border-bottom: var(--od-border-thin) solid var(--od-color-border-default);
+}
+.lessonGoals svg {
+  width: var(--od-icon-md);
+  height: var(--od-icon-md);
+  flex: none;
+  color: var(--od-color-brand-ink);
+}
+
+.listening {
+  display: grid;
+  gap: var(--od-space-4);
+}
+.listeningQuestions {
+  display: grid;
+  gap: var(--od-space-4);
+  margin: 0;
+  padding-inline-start: var(--od-space-5);
+}
+.listeningQuestions p {
+  margin: 0;
+}
+.listeningTranscript {
+  font-family: var(--od-font-family-editorial);
+  font-size: var(--od-type-body-large-size);
+  line-height: var(--od-type-body-large-line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

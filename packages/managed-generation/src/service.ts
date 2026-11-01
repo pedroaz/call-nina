@@ -100,7 +100,8 @@ export function managedCatalog() {
       runtimeDefaultModelId: configuration.modelId,
       missingReasoningMetadata: [],
     }),
-    operations: [...generationKinds],
+    // The deployed managed API does not yet advertise website study packs.
+    operations: generationKinds.filter((kind) => kind !== "website-study-pack"),
     languages: ["en-US", "pt-BR", "es", "de"] as const,
   };
 }
@@ -135,7 +136,9 @@ export class ManagedGenerationService implements GenerationService {
     this.#readToken = options.readToken;
     this.generationCapabilities = generationCapabilitiesSchema.parse({
       providerId: "managed",
-      operations: this.#configuration ? generationKinds : [],
+      operations: this.#configuration
+        ? generationKinds.filter((kind) => kind !== "website-study-pack")
+        : [],
       structuredOutput: true,
       cancellation: true,
     });
@@ -177,6 +180,8 @@ export class ManagedGenerationService implements GenerationService {
   ): Promise<GenerationResult<Kind, GenerationOutputMap>> {
     const parsed = generationOperationStartSchema.parse(operation);
     if (this.#closed) throw new Error("OD_MANAGED_CLOSED");
+    if (!this.generationCapabilities.operations.includes(parsed.input.kind))
+      throw new ManagedGenerationError("unsupported-operation", "OD_MANAGED_OPERATION_UNAVAILABLE");
     if (parsed.dataRootGeneration !== this.#rootGeneration) throw new Error("OD_DATA_ROOT_STALE");
     this.#selection(parsed);
     const prior = this.#records.get(parsed.operationId);

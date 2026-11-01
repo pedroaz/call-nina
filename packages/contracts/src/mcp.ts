@@ -1,3 +1,4 @@
+import { uploadPracticeContextSchema } from "./uploads.js";
 import {
   learningScopeSchema,
   explanationLanguageSchema,
@@ -130,6 +131,7 @@ export const preparedVoiceActivityReadInputSchema = strictBoundaryObject({
   ]),
 });
 const preparedVoiceActivityDataSchema = z.strictObject({
+  uploadSource: uploadPracticeContextSchema.optional(),
   learningContext: mcpLearningContextSchema,
   activityId: activityIdSchema,
   title: text(160),

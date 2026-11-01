@@ -84,7 +84,7 @@ export async function clearPersonalData(
     }
     if (vocabulary) {
       connection.exec(
-        "DELETE FROM vocabulary_observations; DELETE FROM vocabulary_batches; DELETE FROM vocabulary_focuses; DELETE FROM vocabulary_analysis_queue; DELETE FROM vocabulary_suppressions;",
+        "DELETE FROM vocabulary_observations; DELETE FROM vocabulary_batches; DELETE FROM vocabulary_focuses; DELETE FROM vocabulary_analysis_queue; DELETE FROM vocabulary_evidence_jobs; DELETE FROM vocabulary_suppressions;",
       );
     }
     if (practice) {
@@ -107,6 +107,11 @@ export async function clearPersonalData(
       connection.prepare(`DELETE FROM lessons`).run();
       if (scope === "learning") {
         connection.prepare(`DELETE FROM prepared_activities`).run();
+        connection
+          .prepare("INSERT OR IGNORE INTO upload_pending_cleanup SELECT sha256 FROM upload_images")
+          .run();
+        connection.prepare("DELETE FROM uploads").run();
+        connection.prepare("DELETE FROM upload_images").run();
         connection.prepare("DELETE FROM material_revisions").run();
       } else {
         // Practice cleanup has the same source-ownership policy as deleting
@@ -131,4 +136,20 @@ export async function clearPersonalData(
     }
     return personalDataCleanupResultSchema.parse({ status: "cleared", scope });
   });
+}
+
+export async function pendingUploadImageCleanup(database: CallNinaDatabase) {
+  return withLeasedConnection(database, (c) =>
+    c
+      .prepare(
+        "SELECT sha256 FROM upload_pending_cleanup WHERE NOT EXISTS (SELECT 1 FROM upload_images i WHERE i.sha256=upload_pending_cleanup.sha256)",
+      )
+      .all()
+      .map((r) => String(r["sha256"])),
+  );
+}
+export async function finishUploadImageCleanup(database: CallNinaDatabase, sha256: string) {
+  return withLeasedTransaction(database, (c) =>
+    c.prepare("DELETE FROM upload_pending_cleanup WHERE sha256=?").run(sha256),
+  );
 }

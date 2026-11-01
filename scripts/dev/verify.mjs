@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { parseArgs } from "node:util";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { hostingEnvironment } from "../lib/hosting-environment.mjs";
 import { chmod, lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
@@ -235,6 +236,7 @@ async function serve(resume = false) {
   }
   await rm(socketPath, { force: true });
   await rm(path.join(verificationRoot, "screenshot.png"), { force: true });
+  process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "dev");
   await run("pnpm", ["--filter", "@call-nina/desktop", "run", "build"]);
   if (barrier.mode === "manual") assertVerificationBarrier();
   const session = new VerificationSession(
@@ -437,13 +439,22 @@ async function serve(resume = false) {
         session.page = selected;
         return { index: request.index };
       }
-      case "snapshot":
+      case "snapshot": {
+        let snapshot = await (
+          request.target ? locate(page, request.target) : page.locator("body")
+        ).ariaSnapshot({ timeout: 15000 });
+        const passwords = await page
+          .locator(
+            'input[type="password"], input[autocomplete="current-password"], input[autocomplete="new-password"]',
+          )
+          .evaluateAll((inputs) => inputs.map((input) => input.value).filter(Boolean));
+        for (const password of passwords) {
+          snapshot = snapshot
+            .replaceAll(JSON.stringify(password).slice(1, -1), "[redacted]")
+            .replaceAll(password, "[redacted]");
+        }
         result = {
-          snapshot: (
-            await (
-              request.target ? locate(page, request.target) : page.locator("body")
-            ).ariaSnapshot({ timeout: 15000 })
-          ).slice(0, 48000),
+          snapshot: snapshot.slice(0, 48000),
           openedMaterialId: await page
             .locator("[data-material-id]")
             .first()
@@ -461,6 +472,7 @@ async function serve(resume = false) {
             .catch(() => null),
         };
         break;
+      }
       case "viewport": {
         if (
           !Number.isInteger(request.width) ||

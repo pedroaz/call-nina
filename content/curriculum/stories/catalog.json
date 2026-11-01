@@ -101,50 +101,149 @@
       "vocabulary": [
         {
           "text": "Tasse",
-          "meaning": {
-            "en": "a small container for a hot drink",
-            "de": "ein kleines Gefäß für ein heißes Getränk",
-            "es": "un recipiente pequeño para una bebida caliente",
-            "pt-BR": "um recipiente pequeno para uma bebida quente"
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "die",
+              "gender": "feminine"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Tassen"
+            }
           },
-          "example": "Maya hat nur eine Tasse.",
-          "exampleMeaning": {
-            "en": "Maya has only one cup.",
-            "de": "Maya hat nur eine Tasse.",
-            "es": "Maya solo tiene una taza.",
-            "pt-BR": "Maya só tem uma xícara."
-          }
-        },
-        {
-          "text": "Frühstück",
           "meaning": {
-            "en": "the first meal of the day",
-            "de": "die erste Mahlzeit des Tages",
-            "es": "la primera comida del día",
-            "pt-BR": "a primeira refeição do dia"
+            "en": "cup",
+            "de": "Gefäß für Tee oder Kaffee",
+            "es": "taza",
+            "pt-BR": "xícara"
           },
-          "example": "Lina kommt zum Frühstück.",
+          "example": "Er gibt ihr eine grüne Tasse.",
           "exampleMeaning": {
-            "en": "Lina comes for breakfast.",
-            "de": "Lina kommt zum Frühstück.",
-            "es": "Lina viene a desayunar.",
-            "pt-BR": "Lina vem tomar café da manhã."
+            "en": "He gives her a green cup.",
+            "de": "Er reicht ihr eine grüne Tasse.",
+            "es": "Él le da una taza verde.",
+            "pt-BR": "Ele lhe dá uma xícara verde."
           }
         },
         {
           "text": "Nachbarin",
-          "meaning": {
-            "en": "a person who lives near you",
-            "de": "eine Frau, die in der Nähe wohnt",
-            "es": "una mujer que vive cerca de ti",
-            "pt-BR": "uma mulher que mora perto de você"
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "die",
+              "gender": "feminine"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Nachbarinnen"
+            }
           },
-          "example": "Meine Nachbarin bringt eine Tasse mit.",
+          "meaning": {
+            "en": "female neighbor",
+            "de": "Frau, die in der Nähe wohnt",
+            "es": "vecina",
+            "pt-BR": "vizinha"
+          },
+          "example": "Ihre neue Nachbarin Lina kommt zum Frühstück.",
           "exampleMeaning": {
-            "en": "My neighbor brings a cup.",
-            "de": "Meine Nachbarin bringt eine Tasse mit.",
-            "es": "Mi vecina trae una taza.",
-            "pt-BR": "Minha vizinha traz uma xícara."
+            "en": "Her new neighbor Lina is coming for breakfast.",
+            "de": "Lina wohnt in der Nähe und kommt morgens zum Essen.",
+            "es": "Su nueva vecina Lina viene a desayunar.",
+            "pt-BR": "Sua nova vizinha Lina vem tomar café da manhã."
+          }
+        },
+        {
+          "text": "Teller",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "der",
+              "gender": "masculine"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Teller"
+            }
+          },
+          "meaning": {
+            "en": "plate",
+            "de": "flaches Geschirr für Essen",
+            "es": "plato",
+            "pt-BR": "prato"
+          },
+          "example": "Maya stellt zwei Teller auf den Tisch.",
+          "exampleMeaning": {
+            "en": "Maya puts two plates on the table.",
+            "de": "Maya legt Geschirr für zwei Personen bereit.",
+            "es": "Maya pone dos platos en la mesa.",
+            "pt-BR": "Maya coloca dois pratos na mesa."
+          }
+        },
+        {
+          "text": "Frühstück",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "das",
+              "gender": "neuter"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Frühstücke"
+            }
+          },
+          "meaning": {
+            "en": "breakfast",
+            "de": "erste Mahlzeit am Morgen",
+            "es": "desayuno",
+            "pt-BR": "café da manhã"
+          },
+          "example": "Maya hat Brot und Käse zum Frühstück.",
+          "exampleMeaning": {
+            "en": "Maya has bread and cheese for breakfast.",
+            "de": "Am Morgen isst Maya Brot und Käse.",
+            "es": "Maya desayuna pan y queso.",
+            "pt-BR": "Maya tem pão e queijo para o café da manhã."
+          }
+        },
+        {
+          "text": "klopfen",
+          "meaning": {
+            "en": "to knock",
+            "de": "mit der Hand kurz gegen eine Tür schlagen",
+            "es": "llamar a la puerta",
+            "pt-BR": "bater à porta"
+          },
+          "example": "Maya klopft an die Tür ihres Bruders.",
+          "exampleMeaning": {
+            "en": "Maya knocks on her brother’s door.",
+            "de": "Maya macht sich an der Tür ihres Bruders bemerkbar.",
+            "es": "Maya llama a la puerta de su hermano.",
+            "pt-BR": "Maya bate à porta do irmão."
+          },
+          "lexeme": {
+            "partOfSpeech": "verb"
+          }
+        },
+        {
+          "text": "Noch nicht",
+          "meaning": {
+            "en": "not yet",
+            "de": "bis jetzt nicht, aber vielleicht gleich",
+            "es": "todavía no",
+            "pt-BR": "ainda não"
+          },
+          "example": "„Noch nicht“, sagt Maya.",
+          "exampleMeaning": {
+            "en": "“Not yet,” says Maya.",
+            "de": "Maya sagt, dass Lina bisher nicht da ist.",
+            "es": "«Todavía no», dice Maya.",
+            "pt-BR": "“Ainda não”, diz Maya."
+          },
+          "lexeme": {
+            "partOfSpeech": "phrase",
+            "register": "neutral"
           }
         }
       ]
@@ -399,50 +498,158 @@
       "vocabulary": [
         {
           "text": "Haltestelle",
-          "meaning": {
-            "en": "a place where passengers get on a bus",
-            "de": "ein Ort, an dem Fahrgäste in einen Bus einsteigen",
-            "es": "un lugar donde los pasajeros suben al autobús",
-            "pt-BR": "um lugar onde os passageiros entram no ônibus"
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "die",
+              "gender": "feminine"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Haltestellen"
+            }
           },
-          "example": "Er wartet an der Haltestelle.",
+          "meaning": {
+            "en": "bus stop",
+            "de": "Ort, an dem ein Bus hält",
+            "es": "parada",
+            "pt-BR": "ponto de ônibus"
+          },
+          "example": "Er lief zur Haltestelle.",
           "exampleMeaning": {
-            "en": "He waits at the bus stop.",
-            "de": "Er wartet an der Haltestelle.",
-            "es": "Espera en la parada de autobús.",
-            "pt-BR": "Ele espera no ponto de ônibus."
+            "en": "He ran to the bus stop.",
+            "de": "Er rannte zu dem Ort, an dem der Bus hält.",
+            "es": "Corrió a la parada.",
+            "pt-BR": "Ele correu até o ponto de ônibus."
           }
         },
         {
-          "text": "Fahrer",
-          "meaning": {
-            "en": "a person who drives a vehicle",
-            "de": "eine Person, die ein Fahrzeug fährt",
-            "es": "una persona que conduce un vehículo",
-            "pt-BR": "uma pessoa que dirige um veículo"
+          "text": "Akku",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "der",
+              "gender": "masculine"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Akkus"
+            }
           },
-          "example": "Der Fahrer wartet einen Moment.",
+          "meaning": {
+            "en": "rechargeable battery",
+            "de": "wiederaufladbare Batterie im Handy",
+            "es": "batería recargable",
+            "pt-BR": "bateria recarregável"
+          },
+          "example": "Sein Handy hatte keinen Akku mehr.",
           "exampleMeaning": {
-            "en": "The driver waits a moment.",
-            "de": "Der Fahrer wartet einen Moment.",
-            "es": "El conductor espera un momento.",
-            "pt-BR": "O motorista espera um momento."
+            "en": "His phone had run out of battery.",
+            "de": "Der Akku seines Handys war leer.",
+            "es": "Su móvil se había quedado sin batería.",
+            "pt-BR": "O celular dele estava sem bateria."
           }
         },
         {
-          "text": "Einladung",
+          "text": "abfahren",
           "meaning": {
-            "en": "a request to join an activity",
-            "de": "eine Bitte, an etwas teilzunehmen",
-            "es": "una propuesta para participar en una actividad",
-            "pt-BR": "uma proposta para participar de uma atividade"
+            "en": "to depart",
+            "de": "eine Haltestelle verlassen",
+            "es": "salir; partir",
+            "pt-BR": "partir; sair"
           },
-          "example": "Er nimmt die Einladung an.",
+          "example": "Der letzte Bus fuhr gerade ab.",
           "exampleMeaning": {
-            "en": "He accepts the invitation.",
-            "de": "Er nimmt die Einladung an.",
-            "es": "Él acepta la invitación.",
-            "pt-BR": "Ele aceita o convite."
+            "en": "The last bus was just leaving.",
+            "de": "Der letzte Bus verließ gerade die Haltestelle.",
+            "es": "El último autobús acababa de salir.",
+            "pt-BR": "O último ônibus estava saindo."
+          },
+          "lexeme": {
+            "partOfSpeech": "verb"
+          },
+          "usage": {
+            "en": "fuhr … ab: narrative past of abfahren; the prefix moves to the end.",
+            "de": "fuhr … ab: Präteritum von abfahren; die Vorsilbe steht am Satzende.",
+            "es": "fuhr … ab: pasado narrativo de abfahren; el prefijo va al final.",
+            "pt-BR": "fuhr … ab: passado narrativo de abfahren; o prefixo vai para o final."
+          }
+        },
+        {
+          "text": "abholen",
+          "meaning": {
+            "en": "to pick someone up",
+            "de": "jemanden an einem Ort treffen und mitnehmen",
+            "es": "recoger a alguien",
+            "pt-BR": "buscar alguém"
+          },
+          "example": "Sie konnte ihn erst um zehn abholen.",
+          "exampleMeaning": {
+            "en": "She could not pick him up until ten.",
+            "de": "Erst um zehn konnte sie kommen und ihn mitnehmen.",
+            "es": "No podía recogerlo hasta las diez.",
+            "pt-BR": "Ela só podia buscá-lo às dez."
+          },
+          "lexeme": {
+            "partOfSpeech": "verb"
+          },
+          "usage": {
+            "en": "konnte: past of können; abholen stays in the infinitive after the modal verb.",
+            "de": "konnte: Präteritum von können; abholen bleibt nach dem Modalverb im Infinitiv.",
+            "es": "konnte: pasado de können; abholen queda en infinitivo tras el verbo modal.",
+            "pt-BR": "konnte: passado de können; abholen fica no infinitivo após o verbo modal."
+          }
+        },
+        {
+          "text": "Enkelkind",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "das",
+              "gender": "neuter"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Enkelkinder"
+            }
+          },
+          "meaning": {
+            "en": "grandchild",
+            "de": "Kind des eigenen Kindes",
+            "es": "nieto o nieta",
+            "pt-BR": "neto ou neta"
+          },
+          "example": "Rosa wollte mehr Zeit mit ihren Enkelkindern verbringen.",
+          "exampleMeaning": {
+            "en": "Rosa wanted to spend more time with her grandchildren.",
+            "de": "Rosa wollte ihre Enkelkinder öfter sehen.",
+            "es": "Rosa quería pasar más tiempo con sus nietos.",
+            "pt-BR": "Rosa queria passar mais tempo com os netos."
+          }
+        },
+        {
+          "text": "gießen",
+          "meaning": {
+            "en": "to water a plant",
+            "de": "einer Pflanze Wasser geben",
+            "es": "regar",
+            "pt-BR": "regar"
+          },
+          "example": "Als seine Schwester kam, goss Leo die letzte Pflanze.",
+          "exampleMeaning": {
+            "en": "When his sister arrived, Leo was watering the last plant.",
+            "de": "Bei der Ankunft seiner Schwester gab Leo der letzten Pflanze Wasser.",
+            "es": "Cuando llegó su hermana, Leo regaba la última planta.",
+            "pt-BR": "Quando a irmã chegou, Leo regava a última planta."
+          },
+          "lexeme": {
+            "partOfSpeech": "verb"
+          },
+          "usage": {
+            "en": "goss: narrative past of gießen; Perfekt: hat gegossen.",
+            "de": "goss: Präteritum von gießen; Perfekt: hat gegossen.",
+            "es": "goss: pasado narrativo de gießen; perfecto: hat gegossen.",
+            "pt-BR": "goss: passado narrativo de gießen; Perfekt: hat gegossen."
           }
         }
       ]
@@ -698,51 +905,141 @@
       ],
       "vocabulary": [
         {
-          "text": "reparieren",
-          "meaning": {
-            "en": "make a damaged object work again",
-            "de": "einen beschädigten Gegenstand wieder funktionsfähig machen",
-            "es": "hacer que un objeto averiado vuelva a funcionar",
-            "pt-BR": "fazer um objeto quebrado funcionar de novo"
+          "text": "Nachbarschaftszentrum",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "das",
+              "gender": "neuter"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Nachbarschaftszentren"
+            }
           },
-          "example": "Sie wollen das Radio reparieren.",
+          "meaning": {
+            "en": "neighborhood community center",
+            "de": "Treffpunkt für Menschen aus dem Viertel",
+            "es": "centro vecinal",
+            "pt-BR": "centro comunitário do bairro"
+          },
+          "example": "Amira kündigte einen Reparaturnachmittag im Nachbarschaftszentrum an.",
           "exampleMeaning": {
-            "en": "They want to repair the radio.",
-            "de": "Sie wollen das Radio reparieren.",
-            "es": "Quieren reparar la radio.",
-            "pt-BR": "Eles querem consertar o rádio."
+            "en": "Amira announced a repair afternoon at the community center.",
+            "de": "Amira machte eine Reparaturveranstaltung im Viertel bekannt.",
+            "es": "Amira anunció una tarde de reparaciones en el centro vecinal.",
+            "pt-BR": "Amira anunciou uma tarde de consertos no centro comunitário."
           }
         },
         {
-          "text": "Freiwillige",
-          "meaning": {
-            "en": "a person who helps without being paid",
-            "de": "eine Person, die ohne Bezahlung hilft",
-            "es": "una persona que ayuda sin recibir un pago",
-            "pt-BR": "uma pessoa que ajuda sem receber pagamento"
+          "text": "Bauteil",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "das",
+              "gender": "neuter"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Bauteile"
+            }
           },
-          "example": "Eine Freiwillige erklärt das Problem.",
+          "meaning": {
+            "en": "component",
+            "de": "einzelner technischer Teil eines Geräts",
+            "es": "componente",
+            "pt-BR": "componente"
+          },
+          "example": "Innen war ein Bauteil beschädigt, das niemand erkannte.",
           "exampleMeaning": {
-            "en": "A volunteer explains the problem.",
-            "de": "Eine Freiwillige erklärt das Problem.",
-            "es": "Un voluntario explica el problema.",
-            "pt-BR": "Um voluntário explica o problema."
+            "en": "Inside, a component was damaged that nobody recognized.",
+            "de": "Im Radio war ein unbekannter technischer Teil kaputt.",
+            "es": "Dentro había un componente dañado que nadie reconocía.",
+            "pt-BR": "Dentro havia um componente danificado que ninguém reconhecia."
           }
         },
         {
-          "text": "Fehler",
+          "text": "mit etwas rechnen",
           "meaning": {
-            "en": "something done incorrectly",
-            "de": "etwas, das falsch gemacht wurde",
-            "es": "algo que se ha hecho incorrectamente",
-            "pt-BR": "algo que foi feito incorretamente"
+            "en": "to expect something",
+            "de": "etwas erwarten",
+            "es": "contar con algo; esperar algo",
+            "pt-BR": "esperar algo; contar com algo"
           },
-          "example": "Sie lernen aus dem Fehler.",
+          "example": "Sie rechnete mit Lampen und Fahrrädern.",
           "exampleMeaning": {
-            "en": "They learn from the mistake.",
-            "de": "Sie lernen aus dem Fehler.",
-            "es": "Aprenden del error.",
-            "pt-BR": "Eles aprendem com o erro."
+            "en": "She expected lamps and bicycles.",
+            "de": "Sie erwartete, dass Menschen Lampen und Fahrräder bringen würden.",
+            "es": "Esperaba lámparas y bicicletas.",
+            "pt-BR": "Ela esperava lâmpadas e bicicletas."
+          },
+          "lexeme": {
+            "partOfSpeech": "verb"
+          },
+          "usage": {
+            "en": "mit + dative; here rechnen means expect, not calculate.",
+            "de": "mit + Dativ; rechnen bedeutet hier erwarten, nicht Zahlen ausrechnen.",
+            "es": "mit + dativo; aquí rechnen significa esperar, no calcular.",
+            "pt-BR": "mit + dativo; aqui rechnen significa esperar, não calcular."
+          }
+        },
+        {
+          "text": "damit umgehen",
+          "meaning": {
+            "en": "to know how to handle it",
+            "de": "wissen, wie man etwas benutzt",
+            "es": "saber manejarlo",
+            "pt-BR": "saber lidar com isso"
+          },
+          "example": "Sie hatte zwei Freunde eingeladen, die damit umgehen konnten.",
+          "exampleMeaning": {
+            "en": "She had invited two friends who knew how to use it.",
+            "de": "Die eingeladenen Freunde konnten das Werkzeug benutzen.",
+            "es": "Había invitado a dos amigos que sabían manejar las herramientas.",
+            "pt-BR": "Ela tinha convidado dois amigos que sabiam usar as ferramentas."
+          },
+          "lexeme": {
+            "partOfSpeech": "phrase",
+            "register": "neutral"
+          }
+        },
+        {
+          "text": "zugeben",
+          "meaning": {
+            "en": "to admit",
+            "de": "etwas Unangenehmes offen sagen",
+            "es": "admitir",
+            "pt-BR": "admitir"
+          },
+          "example": "Amira gab zu, dass sie keine Reparatur versprechen konnte.",
+          "exampleMeaning": {
+            "en": "Amira admitted that she could not promise a repair.",
+            "de": "Amira sagte offen, dass sie keine Reparatur zusichern konnte.",
+            "es": "Amira admitió que no podía prometer una reparación.",
+            "pt-BR": "Amira admitiu que não podia prometer o conserto."
+          },
+          "lexeme": {
+            "partOfSpeech": "verb"
+          }
+        },
+        {
+          "text": "Bring auch dein Können mit",
+          "meaning": {
+            "en": "Bring your skills too",
+            "de": "Biete auch deine eigenen Fähigkeiten an",
+            "es": "Trae también tus habilidades",
+            "pt-BR": "Traga também suas habilidades"
+          },
+          "example": "Amira ergänzte das nächste Plakat: „Bring auch dein Können mit.“",
+          "exampleMeaning": {
+            "en": "Amira added to the next poster: “Bring your skills too.”",
+            "de": "Auf dem neuen Plakat lud Amira auch zum Mithelfen ein.",
+            "es": "Amira añadió al siguiente cartel: «Trae también tus habilidades».",
+            "pt-BR": "Amira acrescentou ao próximo cartaz: “Traga também suas habilidades”."
+          },
+          "lexeme": {
+            "partOfSpeech": "phrase",
+            "register": "neutral"
           }
         }
       ]
@@ -998,51 +1295,142 @@
       ],
       "vocabulary": [
         {
-          "text": "einstimmig",
+          "text": "sich zu Wort melden",
           "meaning": {
-            "en": "agreed by everyone participating in a decision",
-            "de": "von allen an einer Entscheidung Beteiligten befürwortet",
-            "es": "apoyado por todas las personas que participan en una decisión",
-            "pt-BR": "apoiado por todas as pessoas que participam de uma decisão"
+            "en": "to ask to speak",
+            "de": "anzeigen, dass man etwas sagen möchte",
+            "es": "pedir la palabra",
+            "pt-BR": "pedir a palavra"
           },
-          "example": "Die Entscheidung ist nicht einstimmig.",
+          "example": "Alle, die sich zu Wort meldeten, befürworteten die Idee.",
           "exampleMeaning": {
-            "en": "The decision is not unanimous.",
-            "de": "Die Entscheidung ist nicht einstimmig.",
-            "es": "La decisión no es unánime.",
-            "pt-BR": "A decisão não é unânime."
+            "en": "Everyone who spoke up supported the idea.",
+            "de": "Die Personen, die etwas sagten, waren für den Vorschlag.",
+            "es": "Todos los que pidieron la palabra apoyaron la idea.",
+            "pt-BR": "Todos os que pediram a palavra apoiaram a ideia."
+          },
+          "lexeme": {
+            "partOfSpeech": "phrase",
+            "register": "neutral"
           }
         },
         {
-          "text": "Zugang",
-          "meaning": {
-            "en": "the possibility of entering or using something",
-            "de": "die Möglichkeit, etwas zu betreten oder zu nutzen",
-            "es": "la posibilidad de entrar en un lugar o utilizar algo",
-            "pt-BR": "a possibilidade de entrar em um lugar ou usar algo"
+          "text": "Beschluss",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "der",
+              "gender": "masculine"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Beschlüsse"
+            }
           },
-          "example": "Alle sollten Zugang zur Bibliothek haben.",
+          "meaning": {
+            "en": "formal decision",
+            "de": "gemeinsam getroffene verbindliche Entscheidung",
+            "es": "resolución; decisión formal",
+            "pt-BR": "resolução; decisão formal"
+          },
+          "example": "Sie hielt den einstimmigen Beschluss fest.",
           "exampleMeaning": {
-            "en": "Everyone should have access to the library.",
-            "de": "Alle sollten Zugang zur Bibliothek haben.",
-            "es": "Todos deberían tener acceso a la biblioteca.",
-            "pt-BR": "Todos deveriam ter acesso à biblioteca."
+            "en": "She recorded the unanimous decision.",
+            "de": "Sie schrieb die von allen Anwesenden unterstützte Entscheidung auf.",
+            "es": "Dejó constancia de la decisión unánime.",
+            "pt-BR": "Ela registrou a decisão unânime."
           }
         },
         {
-          "text": "Kompromiss",
+          "text": "weniger … als …",
           "meaning": {
-            "en": "an agreement in which each side gives up something",
-            "de": "eine Einigung, bei der jede Seite etwas nachgibt",
-            "es": "un acuerdo en el que cada parte cede algo",
-            "pt-BR": "um acordo em que cada parte cede um pouco"
+            "en": "less … than …; more … than …",
+            "de": "stellt eine erste Deutung zurück und betont eine andere",
+            "es": "menos … que …; más bien … que …",
+            "pt-BR": "menos … do que …; mais … do que …"
           },
-          "example": "Der Kompromiss stellt nicht alle zufrieden.",
+          "example": "Der Beschluss wirkte weniger wie Einigkeit als wie eine Aufzeichnung darüber, wer Zeit zum Reden gehabt hatte.",
           "exampleMeaning": {
-            "en": "The compromise does not satisfy everyone.",
-            "de": "Der Kompromiss stellt nicht alle zufrieden.",
-            "es": "El acuerdo no satisface a todos.",
-            "pt-BR": "O acordo não satisfaz a todos."
+            "en": "The decision seemed less like agreement than a record of who had had time to speak.",
+            "de": "Der Beschluss zeigte eher die Verfügbarkeit einzelner Personen als echte Einigkeit.",
+            "es": "La decisión parecía menos un acuerdo que un registro de quién había tenido tiempo para hablar.",
+            "pt-BR": "A decisão parecia menos um consenso do que um registro de quem tinha tido tempo para falar."
+          },
+          "lexeme": {
+            "partOfSpeech": "phrase",
+            "register": "neutral"
+          }
+        },
+        {
+          "text": "auf etwas verweisen",
+          "meaning": {
+            "en": "to refer someone to something",
+            "de": "jemanden auf eine andere Möglichkeit hinweisen",
+            "es": "remitir a alguien a algo",
+            "pt-BR": "encaminhar alguém para algo"
+          },
+          "example": "Nora verwies auf den Raum im Untergeschoss.",
+          "exampleMeaning": {
+            "en": "Nora pointed to the room in the basement as an alternative.",
+            "de": "Nora nannte den unteren Raum als Ausweichmöglichkeit.",
+            "es": "Nora señaló como alternativa la sala del sótano.",
+            "pt-BR": "Nora indicou a sala no andar inferior como alternativa."
+          },
+          "lexeme": {
+            "partOfSpeech": "verb"
+          },
+          "usage": {
+            "en": "auf + accusative; verwies is the narrative past of verweisen.",
+            "de": "auf + Akkusativ; verwies ist das Präteritum von verweisen.",
+            "es": "auf + acusativo; verwies es el pasado narrativo de verweisen.",
+            "pt-BR": "auf + acusativo; verwies é o passado narrativo de verweisen."
+          }
+        },
+        {
+          "text": "Anmerkung",
+          "lexeme": {
+            "partOfSpeech": "noun",
+            "nounForm": {
+              "article": "die",
+              "gender": "feminine"
+            },
+            "plural": {
+              "status": "form",
+              "form": "Anmerkungen"
+            }
+          },
+          "meaning": {
+            "en": "comment; observation",
+            "de": "kurzer Hinweis oder Kommentar",
+            "es": "observación; comentario",
+            "pt-BR": "observação; comentário"
+          },
+          "example": "Neben das neue Schild legte sie ein Heft für Anmerkungen.",
+          "exampleMeaning": {
+            "en": "She placed a notebook for comments next to the new sign.",
+            "de": "Neben dem Schild konnten Besucher ihre Hinweise aufschreiben.",
+            "es": "Puso un cuaderno para comentarios junto al nuevo cartel.",
+            "pt-BR": "Ela colocou um caderno para comentários ao lado da nova placa."
+          }
+        },
+        {
+          "text": "Nachteile ins Protokoll aufnehmen",
+          "meaning": {
+            "en": "to record disadvantages in the minutes",
+            "de": "auch die negativen Folgen schriftlich festhalten",
+            "es": "incluir las desventajas en el acta",
+            "pt-BR": "registrar as desvantagens na ata"
+          },
+          "example": "Nora nahm diese Nachteile ins Protokoll auf.",
+          "exampleMeaning": {
+            "en": "Nora recorded these disadvantages in the minutes.",
+            "de": "Nora dokumentierte auch die ungünstigen Folgen der Entscheidung.",
+            "es": "Nora incluyó estas desventajas en el acta.",
+            "pt-BR": "Nora registrou essas desvantagens na ata."
+          },
+          "lexeme": {
+            "partOfSpeech": "phrase",
+            "register": "neutral"
           }
         }
       ]

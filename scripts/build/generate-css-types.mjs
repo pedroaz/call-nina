@@ -24,7 +24,7 @@ export async function generateCssTypes(source, target) {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(
         ([name, classes]) =>
-          `declare module "*${name}" {\n  const styles: {\n${classes.map((name) => `    readonly ${/^[A-Za-z_$][\w$]*$/u.test(name) ? name : JSON.stringify(name)}: string;`).join("\n")}\n  };\n  export default styles;\n}\n`,
+          `declare module "*/${name}" {\n  const styles: {\n${classes.map((name) => `    readonly ${/^[A-Za-z_$][\w$]*$/u.test(name) ? name : JSON.stringify(name)}: string;`).join("\n")}\n  };\n  export default styles;\n}\n`,
       )
       .join("\n");
   if ((await readFile(target, "utf8").catch(() => "")) !== content)

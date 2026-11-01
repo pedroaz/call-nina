@@ -5,34 +5,80 @@ slug: food
 band: b2
 domain: food
 title: "B2: Food and eating"
-
 communicativeGoals:
-  [
-    "Handle a practical food and eating interaction at B2 level.",
-    "Understand and respond to the most useful food and eating language.",
-  ]
-prerequisiteTopicIds: [curriculum-topic_0000000000000028]
-grammarFoundations: []
-vocabularyFoundations: []
-exerciseConcepts: []
-sourceIds: [curriculum-source_0000000000000002, curriculum-source_0000000000000003]
+  - Write a corrected results summary with denominators, missing data and a
+    cautious recommendation. Explain a method using indem or durch.
+  - Write a corrected results summary with denominators, missing data and a
+    cautious recommendation. Explain a method using indem or durch. Discuss this
+    with a partner who prefers another option. Clarify one disagreement and
+    reach a qualified decision.
+prerequisiteTopicIds:
+  - curriculum-topic_0000000000000028
+grammarFoundations:
+  - key: de-structured-b2-08
+    description: Word order in the middle field reflects pronoun status, information
+      structure and emphasis, not a rigid time–manner–place formula. Indem names
+      method, dadurch dass expands it, and durch + accusative forms a nominal
+      means phrase. Distinguish a percentage of a sample from a population-wide
+      claim.
+vocabularyFoundations:
+  - key: de-structured-b2-08-lex-1
+    description: "Stichprobe: sample"
+  - key: de-structured-b2-08-lex-2
+    description: "Bezugsgruppe: reference group"
+  - key: de-structured-b2-08-lex-3
+    description: "Vollständigkeit: completeness"
+exerciseConcepts:
+  - key: de-structured-b2-08
+    description: Write a corrected results summary with denominators, missing data
+      and a cautious recommendation. Explain a method using indem or durch.
+sourceIds:
+  - curriculum-source_0000000000000002
+  - curriculum-source_0000000000000003
+  - curriculum-source_0000000000001004
+  - curriculum-source_0000000000001005
+  - curriculum-source_0000000000001006
 coverage:
   reception:
     status: mapped
-    outcomes: ["Understand a short food and eating message at B2 level."]
+    outcomes:
+      - What two unsupported leaps does the headline make?
+      - How should the results be characterized?
   production:
     status: mapped
-    outcomes: ["Produce a clear food and eating message at B2 level."]
+    outcomes:
+      - Write a corrected results summary with denominators, missing data and a
+        cautious recommendation. Explain a method using indem or durch.
   interaction:
     status: mapped
-    outcomes: ["Take turns and ask a follow-up in a food and eating exchange."]
+    outcomes:
+      - Write a corrected results summary with denominators, missing data and a
+        cautious recommendation. Explain a method using indem or durch. Discuss
+        this with a partner who prefers another option. Clarify one disagreement
+        and reach a qualified decision.
   mediation:
     status: mapped
-    outcomes: ["Pass on the essential meaning of food and eating information."]
+    outcomes:
+      - Send a message to a person who did not read the passage. Pass on the
+        decision, one reason and the next action. Use your own words; do not
+        invent details.
+lessonFoundation:
+  explanation: Word order in the middle field reflects pronoun status, information
+    structure and emphasis, not a rigid time–manner–place formula. Indem names
+    method, dadurch dass expands it, and durch + accusative forms a nominal
+    means phrase. Distinguish a percentage of a sample from a population-wide
+    claim. Read numbers with their denominator or reference group, then pause
+    before interpreting them.
+  examples:
+    - Durch eine kleinere Auswahl sank die Menge der Reste.
+    - Wir stellen ihnen die Ergebnisse morgen vor.
+    - Von zwanzig Haushalten führten zwölf das Protokoll vollständig.
 ---
 
 # B2: Food and eating
 
-This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
+Original German lessons linked to this topic are registered in catalog.json.
 
-The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.
+- de-structured-b2-08: Interpret a food-waste report
+
+The reference outlines establish scope and sequence. Explanations, examples and activities are original Nina content; participation alone does not establish proficiency.

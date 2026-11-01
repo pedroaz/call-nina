@@ -276,6 +276,18 @@ export class VerificationSession {
     return scope.getByRole("button", { name: await this.t(key), exact: true });
   }
   async navigate(name) {
+    const connectionDialog = this.page.getByRole("dialog").filter({
+      has: this.page.locator("[data-ai-connection]"),
+    });
+    if (await connectionDialog.count()) {
+      if (
+        (await connectionDialog.locator("[data-ai-connection]").getAttribute("data-dirty")) !==
+        "false"
+      )
+        throw failure("VERIFY_SETTINGS_UNRESTORABLE");
+      await (await this.button("actions.close", connectionDialog)).click();
+      await connectionDialog.waitFor({ state: "detached" });
+    }
     const nav = this.page
       .getByRole("navigation")
       .filter({ has: this.page.getByRole("list") })
@@ -459,30 +471,31 @@ export class VerificationSession {
     await this.page
       .getByRole("tab", { name: await this.t("settings.tabs.ai"), exact: true })
       .click();
-    const tab = this.page.getByRole("tabpanel");
-    this.phase = "settings-management";
-    const management = tab.locator("[data-connection-management]");
-    const active = management.locator('option[data-active-connection="true"]');
-    await active.waitFor({ state: "attached" });
-    const connectionId = await active.getAttribute("value");
-    if (!connectionId) throw failure("VERIFY_AI_CONNECTION_UNAVAILABLE");
-    const picker = management.getByRole("combobox", {
-      name: await this.t("connectionSettings.savedConnections"),
-      exact: true,
-    });
-    if ((await picker.inputValue()) !== connectionId) await picker.selectOption(connectionId);
-    const panel = tab.locator("[data-ai-connection]");
+    this.phase = "settings-provider";
+    await this.page
+      .getByRole("tabpanel")
+      .getByRole("region", { name: await this.t("setupUx.aiPractice"), exact: true })
+      .getByRole("button", {
+        name: `${await this.t("providers.configure")}: ${await this.t("connectionSettings.routes.chatgpt")}`,
+        exact: true,
+      })
+      .click();
+    const panel = this.page.getByRole("dialog").locator("[data-ai-connection]");
     await panel.waitFor();
     if ((await panel.getAttribute("data-dirty")) !== "false")
       throw failure("VERIFY_SETTINGS_UNRESTORABLE");
-    await panel
-      .getByRole("heading", { name: await this.t("connectionSettings.advanced"), exact: true })
-      .waitFor();
+    const disclosure = panel.locator("details").filter({
+      has: this.page
+        .locator("summary")
+        .getByText(await this.t("connectionSettings.advanced"), { exact: true }),
+    });
+    if ((await disclosure.getAttribute("open")) === null)
+      await disclosure.locator("summary").click();
     this.phase = "settings-ready";
     return panel;
   }
   async preferences() {
-    const panel = this.page.getByRole("tabpanel").locator("[data-ai-connection]");
+    const panel = this.page.getByRole("dialog").locator("[data-ai-connection]");
     const preference = {
       connectionId: await panel.getAttribute("data-ai-connection"),
       route: await panel.getAttribute("data-route"),
@@ -536,7 +549,7 @@ export class VerificationSession {
     if (route === "managed") {
       const configuration = JSON.parse(
         await readFile(
-          path.join(this.context.targetRoot, "packages/contracts/src/nina-public.preview.json"),
+          path.join(this.context.targetRoot, "packages/contracts/src/nina-public.dev.json"),
           "utf8",
         ),
       );
@@ -566,6 +579,21 @@ export class VerificationSession {
       throw failure("VERIFY_SETTINGS_UNRESTORABLE");
     if ((await panel.locator('option[value="gpt-6-luna"]').count()) !== 1)
       throw failure("VERIFY_LUNA_UNAVAILABLE");
+    // An already-correct saved selection needs no mutation or new restoration
+    // obligation. Preserve any older unresolved connection journal unchanged.
+    if (
+      current.model === "gpt-6-luna" &&
+      current.effort === "semantic:balanced" &&
+      (await panel.getAttribute("data-effective-model")) === "gpt-6-luna" &&
+      (await panel.getAttribute("data-default-effort")) &&
+      (await panel.getAttribute("data-effective-effort")) ===
+        (await panel.getAttribute("data-default-effort"))
+    ) {
+      this.aiPrepared = true;
+      this.phase = "ready";
+      await this.navigate(await this.t("nav.nina"));
+      return { model: "gpt-6-luna", effort: "runtime-default" };
+    }
     if (Object.keys(this.journal.preferences).length === 0) {
       this.journal.preferences = current;
       await this.persist();
@@ -659,12 +687,17 @@ export class VerificationSession {
     await this.navigate(await this.t("nav.practice"));
     await this.page.getByRole("tab", { name: await this.t("ui.newPractice"), exact: true }).click();
     await (await this.button("practice.types.reading.title")).click();
-    const disclosure = this.page.locator("details").filter({
-      has: this.page.getByText(await this.t("materialPractice.optional"), { exact: true }),
+    const disclosure = this.page.locator("details:visible").filter({
+      has: this.page.locator("[data-material-workspace]"),
     });
     if ((await disclosure.getAttribute("open")) === null)
       await disclosure.locator("summary").click();
     const workspace = disclosure.locator("[data-material-workspace]");
+    const editor = workspace.getByRole("textbox", {
+      name: await this.t("materialPractice.title"),
+      exact: true,
+    });
+    if (await editor.isVisible()) await (await this.button("actions.cancel", workspace)).click();
     const back = await this.button("materialPractice.back", workspace);
     if (await back.isVisible()) await back.click();
     await (await this.button("materialPractice.load", workspace)).click();

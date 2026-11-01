@@ -1,8 +1,8 @@
-import { constants } from "node:fs";
-import { mkdir, lstat, open, rename, unlink } from "node:fs/promises";
-import path from "node:path";
-import { safeStorage } from "electron";
 import { ninaLoginCredentialsSchema, type NinaLoginCredentials } from "@call-nina/contracts";
+import { safeStorage } from "electron";
+import { constants } from "node:fs";
+import { lstat, mkdir, open, rename, unlink } from "node:fs/promises";
+import path from "node:path";
 import { ConnectionSecretStorage } from "./secret-storage.js";
 
 /** Device-only, encrypted login draft; never part of learner exports or diagnostics. */

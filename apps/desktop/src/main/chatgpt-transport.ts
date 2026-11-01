@@ -1,4 +1,4 @@
-import { z, maximumStructuredOutputBytes } from "@call-nina/contracts";
+import { maximumStructuredOutputBytes, z } from "@call-nina/contracts";
 import type { LearningAttempt } from "@call-nina/learning-workflows";
 import {
   ChatgptError,

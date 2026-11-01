@@ -1,12 +1,12 @@
-import { exposeClerkBridge } from "@clerk/electron/preload";
 import {
   desktopIpcEventSchema,
   desktopIpcRequestSchema,
   desktopIpcResponseSchema,
+  type CallNinaDesktopBridge,
   type DesktopIpcEvent,
   type DesktopIpcRequest,
-  type CallNinaDesktopBridge,
 } from "@call-nina/contracts";
+import { exposeClerkBridge } from "@clerk/electron/preload";
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 
 exposeClerkBridge();

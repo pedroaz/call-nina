@@ -1,0 +1,27 @@
+.learningGoal {
+  grid-column: 1 / -1;
+}
+
+.settingsControls {
+  display: grid;
+  gap: var(--od-space-6);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+@media (max-width: 52rem) {
+  .ninaAccount,
+  .ninaAccountFields,
+  .settingsControls,
+  .modelRow {
+    grid-template-columns: 1fr;
+  }
+}
+@container workspace (max-width: 42rem) {
+  .ninaAccount,
+  .ninaAccountFields,
+  .settingsControls,
+  .modelRow {
+    grid-template-columns: 1fr;
+  }
+}

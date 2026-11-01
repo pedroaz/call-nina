@@ -23,6 +23,15 @@ export const personalDataGroups = {
     "exercises",
     "generated_activity_payloads",
     "material_revisions",
+    "uploads",
+    "upload_revisions",
+    "upload_images",
+    "upload_words",
+    "upload_analyses",
+    "upload_pending_cleanup",
+    "upload_saves",
+    "upload_items",
+    "upload_study_packs",
     "activity_content_revisions",
     "activity_owned_materials",
     "attempt_content_revisions",
@@ -31,6 +40,7 @@ export const personalDataGroups = {
   ],
   feedback: [
     "attempts",
+    "upload_attempt_sources",
     "learning_attempts",
     "learning_attempt_events",
     "answers",
@@ -84,7 +94,7 @@ export const personalDataCleanupResultSchema = z.discriminatedUnion("status", [
   z.strictObject({
     status: z.literal("partial"),
     scope: personalDataCleanupScopeSchema,
-    reason: z.literal("private-speech"),
+    reason: z.enum(["private-speech", "upload-images"]),
   }),
   z.strictObject({
     status: z.literal("blocked"),
@@ -116,7 +126,7 @@ export const personalDataOverviewSchema = z.strictObject({
   dataRoot: z.string().min(1).max(4_096),
   schemaVersion: z.int().positive(),
   refreshedAt: utcInstantSchema,
-  tables: z.array(personalDataTableSummarySchema).max(64),
+  tables: z.array(personalDataTableSummarySchema).max(128),
   locations: z
     .array(
       z.strictObject({

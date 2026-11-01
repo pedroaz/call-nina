@@ -15,7 +15,15 @@
     },
     "auth_password": {
       "enabled": true,
-      "required": true
+      "required": true,
+      "min_length": 8,
+      "min_zxcvbn_strength": 0,
+      "require_lowercase": false,
+      "require_uppercase": false,
+      "require_numbers": false,
+      "require_special_char": false,
+      "disable_hibp": true,
+      "enforce_hibp_on_sign_in": false
     },
     "auth_email": {
       "required_for_sign_up": false,

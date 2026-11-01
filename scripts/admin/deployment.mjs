@@ -6,6 +6,6 @@ export async function deploy() {
     deployed: false,
     environment,
     workflowUrl: deployUrl,
-    next: "Run Deploy Vercel in GitHub Actions with the matching environment. Production requires main; Preview accepts working branches. No desktop build is required.",
+    next: `Run Deploy Vercel in GitHub Actions with environment=${environment}. Prd requires main; dev accepts working branches. No desktop build is required.`,
   });
 }

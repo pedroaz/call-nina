@@ -19,7 +19,26 @@
         "de": "Verstehe eine Absage, schlage eine andere Zeit vor und bestätige den neuen Termin.",
         "es": "Entiende una cancelación, propone otra hora y confirma la nueva cita.",
         "pt-BR": "Entenda um cancelamento, sugira outro horário e confirme o novo compromisso."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "appointment-mission",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Reschedule an appointment",
+        "de": "Einen Termin verschieben",
+        "es": "Cambiar una cita",
+        "pt-BR": "Remarcar um horário"
+      },
+      "description": {
+        "en": "Understand a cancellation, suggest another time, and confirm the new appointment.",
+        "de": "Verstehe eine Absage, schlage eine andere Zeit vor und bestätige den neuen Termin.",
+        "es": "Entiende una cancelación, propone otra hora y confirma la nueva cita.",
+        "pt-BR": "Entenda um cancelamento, sugira outro horário e confirme o novo compromisso."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Bestätigen, dass der angebotene Freitagstermin möglich ist.",
         "es": "El viernes a las catorce me viene bien.",
         "pt-BR": "Sexta-feira às quatorze fica bom para mim."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-appointment-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Können wir den Termin verschieben?",
+      "meaning": {
+        "en": "Could we reschedule my appointment?",
+        "de": "Höflich um einen anderen Termin bitten.",
+        "es": "¿Podemos cambiar la cita?",
+        "pt-BR": "Podemos remarcar o horário?"
+      },
+      "example": "Können wir den Termin verschieben?",
+      "exampleMeaning": {
+        "en": "Could we reschedule my appointment?",
+        "de": "Höflich um einen anderen Termin bitten.",
+        "es": "¿Podemos cambiar la cita?",
+        "pt-BR": "Podemos remarcar o horário?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-appointment-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Am Montag hätte ich Zeit.",
+      "meaning": {
+        "en": "I would be available on Monday.",
+        "de": "Am Montag wäre ein Termin möglich.",
+        "es": "El lunes tendría tiempo.",
+        "pt-BR": "Na segunda-feira eu teria tempo."
+      },
+      "example": "Am Montag hätte ich Zeit.",
+      "exampleMeaning": {
+        "en": "I would be available on Monday.",
+        "de": "Am Montag wäre ein Termin möglich.",
+        "es": "El lunes tendría tiempo.",
+        "pt-BR": "Na segunda-feira eu teria tempo."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-appointment-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Am Donnerstag kann ich leider nicht.",
+      "meaning": {
+        "en": "Unfortunately, Thursday does not work for me.",
+        "de": "Sagen, dass Donnerstag nicht möglich ist.",
+        "es": "El jueves no puedo.",
+        "pt-BR": "Na quinta-feira eu não posso."
+      },
+      "example": "Am Donnerstag kann ich leider nicht.",
+      "exampleMeaning": {
+        "en": "Unfortunately, Thursday does not work for me.",
+        "de": "Sagen, dass Donnerstag nicht möglich ist.",
+        "es": "El jueves no puedo.",
+        "pt-BR": "Na quinta-feira eu não posso."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-appointment-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Gibt es am selben Tag einen späteren Termin?",
+      "meaning": {
+        "en": "Is there a later appointment on the same day?",
+        "de": "Ich frage nach einer späteren Uhrzeit am gleichen Tag.",
+        "es": "¿Hay una cita más tarde el mismo día?",
+        "pt-BR": "Há um horário mais tarde no mesmo dia?"
+      },
+      "example": "Gibt es am selben Tag einen späteren Termin?",
+      "exampleMeaning": {
+        "en": "Is there a later appointment on the same day?",
+        "de": "Ich frage nach einer späteren Uhrzeit am gleichen Tag.",
+        "es": "¿Hay una cita más tarde el mismo día?",
+        "pt-BR": "Há um horário mais tarde no mesmo dia?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-appointment-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Freitag um vierzehn Uhr passt mir.",
+      "meaning": {
+        "en": "Friday at two p.m. works for me.",
+        "de": "Bestätigen, dass der angebotene Freitagstermin möglich ist.",
+        "es": "El viernes a las catorce me viene bien.",
+        "pt-BR": "Sexta-feira às quatorze fica bom para mim."
+      },
+      "example": "Freitag um vierzehn Uhr passt mir.",
+      "exampleMeaning": {
+        "en": "Friday at two p.m. works for me.",
+        "de": "Bestätigen, dass der angebotene Freitagstermin möglich ist.",
+        "es": "El viernes a las catorce me viene bien.",
+        "pt-BR": "Sexta-feira às quatorze fica bom para mim."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-appointment-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ich bestätige Freitag um vierzehn Uhr in Raum fünf.",
+      "meaning": {
+        "en": "I confirm Friday at two in room five.",
+        "de": "Der Termin und der neue Raum sind bestätigt.",
+        "es": "Confirmo el viernes a las dos en la sala cinco.",
+        "pt-BR": "Confirmo sexta às duas na sala cinco."
+      },
+      "example": "Ich bestätige Freitag um vierzehn Uhr in Raum fünf.",
+      "exampleMeaning": {
+        "en": "I confirm Friday at two in room five.",
+        "de": "Der Termin und der neue Raum sind bestätigt.",
+        "es": "Confirmo el viernes a las dos en la sala cinco.",
+        "pt-BR": "Confirmo sexta às duas na sala cinco."
       },
       "register": "neutral"
     }
@@ -1028,6 +1161,951 @@
             "de": "Den neuen Termin bestätigen. Bestätigen, dass der angebotene Freitagstermin möglich ist.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.",
             "es": "Confirmar la nueva cita. El viernes a las catorce me viene bien.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.",
             "pt-BR": "Confirmar o novo horário. Sexta-feira às quatorze fica bom para mim.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-appointment-v2",
+      "stage": "appointment-mission",
+      "kind": "module",
+      "title": {
+        "en": "Finding a new time",
+        "de": "Eine neue Zeit finden",
+        "es": "Encontrar otra hora",
+        "pt-BR": "Encontrar outro horário"
+      },
+      "scenario": {
+        "en": "Decline Thursday, choose an offered time and request confirmation.",
+        "de": "Sage Donnerstag ab, wähle eine angebotene Zeit und bitte um Bestätigung.",
+        "es": "Rechaza el jueves, elige una hora ofrecida y pide confirmación.",
+        "pt-BR": "Recuse quinta, escolha um horário oferecido e peça confirmação."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000018"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+        "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+        "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+        "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+      },
+      "explanation": {
+        "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+        "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+        "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+        "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+      },
+      "examples": [
+        {
+          "text": "Können wir den Termin verschieben?",
+          "meaning": {
+            "en": "Could we reschedule my appointment?",
+            "de": "Höflich um einen anderen Termin bitten.",
+            "es": "¿Podemos cambiar la cita?",
+            "pt-BR": "Podemos remarcar o horário?"
+          }
+        },
+        {
+          "text": "Am Montag hätte ich Zeit.",
+          "meaning": {
+            "en": "I would be available on Monday.",
+            "de": "Am Montag wäre ein Termin möglich.",
+            "es": "El lunes tendría tiempo.",
+            "pt-BR": "Na segunda-feira eu teria tempo."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-appointment-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-appointment-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which of the original options is still available?",
+            "de": "Welche ursprüngliche Option ist noch frei?",
+            "es": "¿Qué opción original sigue disponible?",
+            "pt-BR": "Qual opção original continua disponível?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-appointment-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Decline Thursday, choose an offered time and request confirmation.",
+            "de": "Sage Donnerstag ab, wähle eine angebotene Zeit und bitte um Bestätigung.",
+            "es": "Rechaza el jueves, elige una hora ofrecida y pide confirmación.",
+            "pt-BR": "Recuse quinta, escolha um horário oferecido e peça confirmação."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-appointment-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Decline Thursday, choose an offered time and request confirmation.",
+            "de": "Sage Donnerstag ab, wähle eine angebotene Zeit und bitte um Bestätigung.",
+            "es": "Rechaza el jueves, elige una hora ofrecida y pide confirmación.",
+            "pt-BR": "Recuse quinta, escolha um horário oferecido e peça confirmação."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-appointment-v2-reading"],
+          "targetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "You cannot come on Thursday. Which offered time can you choose?",
+              "de": "Am Donnerstag kannst du nicht. Welchen angebotenen Termin kannst du wählen?",
+              "es": "No puedes ir el jueves. ¿Qué horario ofrecido puedes elegir?",
+              "pt-BR": "Você não pode ir na quinta-feira. Qual horário oferecido pode escolher?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Freitag um vierzehn Uhr",
+              "de": "Freitag um vierzehn Uhr",
+              "es": "Freitag um vierzehn Uhr",
+              "pt-BR": "Freitag um vierzehn Uhr"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Guten Tag, Ihr Termin am Dienstag fällt leider aus. Wir haben am Donnerstag um neun Uhr oder am Freitag um vierzehn Uhr Zeit. Welcher Termin passt Ihnen?"
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-appointment-v2-listening"],
+          "targetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which of the original options is still available?",
+              "de": "Welche ursprüngliche Option ist noch frei?",
+              "es": "¿Qué opción original sigue disponible?",
+              "pt-BR": "Qual opção original continua disponível?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Freitag um vierzehn Uhr.",
+              "de": "Freitag um vierzehn Uhr.",
+              "es": "Freitag um vierzehn Uhr.",
+              "pt-BR": "Freitag um vierzehn Uhr."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+          "instructions": {
+            "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+            "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+            "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+            "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-appointment-v2-writing"],
+          "targetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+          "instructions": {
+            "en": "Decline Thursday, choose an offered time and request confirmation.",
+            "de": "Sage Donnerstag ab, wähle eine angebotene Zeit und bitte um Bestätigung.",
+            "es": "Rechaza el jueves, elige una hora ofrecida y pide confirmación.",
+            "pt-BR": "Recuse quinta, escolha um horário oferecido e peça confirmação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-appointment-v2-writing"],
+          "targetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+          "instructions": {
+            "en": "Decline Thursday, choose an offered time and request confirmation.",
+            "de": "Sage Donnerstag ab, wähle eine angebotene Zeit und bitte um Bestätigung.",
+            "es": "Rechaza el jueves, elige una hora ofrecida y pide confirmación.",
+            "pt-BR": "Recuse quinta, escolha um horário oferecido e peça confirmação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-appointment-v2-speaking"],
+          "targetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+          "instructions": {
+            "en": "Decline Thursday, choose an offered time and request confirmation.",
+            "de": "Sage Donnerstag ab, wähle eine angebotene Zeit und bitte um Bestätigung.",
+            "es": "Rechaza el jueves, elige una hora ofrecida y pide confirmación.",
+            "pt-BR": "Recuse quinta, escolha um horário oferecido e peça confirmação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Guten Tag, Ihr Termin am Dienstag fällt leider aus. Wir haben am Donnerstag um neun Uhr oder am Freitag um vierzehn Uhr Zeit. Welcher Termin passt Ihnen?\nUpdate: Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin.",
+            "de": "Ursprüngliche Nachricht: Guten Tag, Ihr Termin am Dienstag fällt leider aus. Wir haben am Donnerstag um neun Uhr oder am Freitag um vierzehn Uhr Zeit. Welcher Termin passt Ihnen?\nAktualisierung: Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin.",
+            "es": "Aviso original: Guten Tag, Ihr Termin am Dienstag fällt leider aus. Wir haben am Donnerstag um neun Uhr oder am Freitag um vierzehn Uhr Zeit. Welcher Termin passt Ihnen?\nActualización: Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin.",
+            "pt-BR": "Aviso original: Guten Tag, Ihr Termin am Dienstag fällt leider aus. Wir haben am Donnerstag um neun Uhr oder am Freitag um vierzehn Uhr Zeit. Welcher Termin passt Ihnen?\nAtualização: Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin.",
+            "de": "Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin.",
+            "es": "Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin.",
+            "pt-BR": "Guten Tag, der Donnerstag ist inzwischen belegt. Am Freitag können wir Sie um vierzehn Uhr empfangen. Wenn das nicht passt, gibt es am Montag um zehn noch einen Termin."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-appointment-2-v2",
+      "stage": "appointment-mission",
+      "kind": "module",
+      "title": {
+        "en": "Decline an unsuitable time",
+        "de": "Eine unpassende Zeit ablehnen",
+        "es": "Rechazar una hora que no te conviene",
+        "pt-BR": "Recusar um horário inadequado"
+      },
+      "scenario": {
+        "en": "Explain why the offered time is unsuitable and ask for a later time on the same day.",
+        "de": "Erkläre, warum die Zeit nicht passt, und frage nach einer späteren Uhrzeit am selben Tag.",
+        "es": "Explica por qué no sirve la hora y pide otra posterior el mismo día.",
+        "pt-BR": "Explique por que o horário não serve e peça outro mais tarde no mesmo dia."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000018"],
+      "prerequisites": ["de-appointment-v2"],
+      "grammar": {
+        "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+        "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+        "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+        "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+      },
+      "explanation": {
+        "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+        "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+        "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+        "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+      },
+      "examples": [
+        {
+          "text": "Am Donnerstag kann ich leider nicht.",
+          "meaning": {
+            "en": "Unfortunately, Thursday does not work for me.",
+            "de": "Sagen, dass Donnerstag nicht möglich ist.",
+            "es": "El jueves no puedo.",
+            "pt-BR": "Na quinta-feira eu não posso."
+          }
+        },
+        {
+          "text": "Gibt es am selben Tag einen späteren Termin?",
+          "meaning": {
+            "en": "Is there a later appointment on the same day?",
+            "de": "Ich frage nach einer späteren Uhrzeit am gleichen Tag.",
+            "es": "¿Hay una cita más tarde el mismo día?",
+            "pt-BR": "Há um horário mais tarde no mesmo dia?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-appointment-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-appointment-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What is the caller’s fallback?",
+            "de": "Was ist die Alternative der anrufenden Person?",
+            "es": "¿Cuál es la alternativa de la persona?",
+            "pt-BR": "Qual é a alternativa da pessoa?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-appointment-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Explain why the offered time is unsuitable and ask for a later time on the same day.",
+            "de": "Erkläre, warum die Zeit nicht passt, und frage nach einer späteren Uhrzeit am selben Tag.",
+            "es": "Explica por qué no sirve la hora y pide otra posterior el mismo día.",
+            "pt-BR": "Explique por que o horário não serve e peça outro mais tarde no mesmo dia."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-appointment-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Explain why the offered time is unsuitable and ask for a later time on the same day.",
+            "de": "Erkläre, warum die Zeit nicht passt, und frage nach einer späteren Uhrzeit am selben Tag.",
+            "es": "Explica por qué no sirve la hora y pide otra posterior el mismo día.",
+            "pt-BR": "Explique por que o horário não serve e peça outro mais tarde no mesmo dia."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-appointment-2-v2-phrase-1", "de-appointment-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-appointment-v2-phrase-1", "de-appointment-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-appointment-2-v2-reading"],
+          "targetIds": ["de-appointment-2-v2-phrase-1", "de-appointment-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Kein Problem. Geht es am Freitag um vierzehn Uhr?",
+              "de": "Kein Problem. Geht es am Freitag um vierzehn Uhr?",
+              "es": "Kein Problem. Geht es am Freitag um vierzehn Uhr?",
+              "pt-BR": "Kein Problem. Geht es am Freitag um vierzehn Uhr?"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Am Donnerstag kann ich leider nicht.\nKein Problem. Geht es am Freitag um vierzehn Uhr?"
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-appointment-2-v2-listening"],
+          "targetIds": ["de-appointment-2-v2-phrase-1", "de-appointment-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What is the caller’s fallback?",
+              "de": "Was ist die Alternative der anrufenden Person?",
+              "es": "¿Cuál es la alternativa de la persona?",
+              "pt-BR": "Qual é a alternativa da pessoa?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Montag um zehn.",
+              "de": "Montag um zehn.",
+              "es": "Montag um zehn.",
+              "pt-BR": "Montag um zehn."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-appointment-2-v2-phrase-1", "de-appointment-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+            "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+            "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+            "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-appointment-2-v2-writing"],
+          "targetIds": ["de-appointment-2-v2-phrase-1", "de-appointment-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain why the offered time is unsuitable and ask for a later time on the same day.",
+            "de": "Erkläre, warum die Zeit nicht passt, und frage nach einer späteren Uhrzeit am selben Tag.",
+            "es": "Explica por qué no sirve la hora y pide otra posterior el mismo día.",
+            "pt-BR": "Explique por que o horário não serve e peça outro mais tarde no mesmo dia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-appointment-2-v2-writing"],
+          "targetIds": ["de-appointment-2-v2-phrase-1", "de-appointment-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain why the offered time is unsuitable and ask for a later time on the same day.",
+            "de": "Erkläre, warum die Zeit nicht passt, und frage nach einer späteren Uhrzeit am selben Tag.",
+            "es": "Explica por qué no sirve la hora y pide otra posterior el mismo día.",
+            "pt-BR": "Explique por que o horário não serve e peça outro mais tarde no mesmo dia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Kein Problem. Geht es am Freitag um vierzehn Uhr?"
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-appointment-2-v2-speaking"],
+          "targetIds": ["de-appointment-2-v2-phrase-1", "de-appointment-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Explain why the offered time is unsuitable and ask for a later time on the same day.",
+            "de": "Erkläre, warum die Zeit nicht passt, und frage nach einer späteren Uhrzeit am selben Tag.",
+            "es": "Explica por qué no sirve la hora y pide otra posterior el mismo día.",
+            "pt-BR": "Explique por que o horário não serve e peça outro mais tarde no mesmo dia."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Kein Problem. Geht es am Freitag um vierzehn Uhr?"
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Am Donnerstag kann ich leider nicht.\nKein Problem. Geht es am Freitag um vierzehn Uhr?\nUpdate: Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn.",
+            "de": "Ursprüngliche Nachricht: Am Donnerstag kann ich leider nicht.\nKein Problem. Geht es am Freitag um vierzehn Uhr?\nAktualisierung: Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn.",
+            "es": "Aviso original: Am Donnerstag kann ich leider nicht.\nKein Problem. Geht es am Freitag um vierzehn Uhr?\nActualización: Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn.",
+            "pt-BR": "Aviso original: Am Donnerstag kann ich leider nicht.\nKein Problem. Geht es am Freitag um vierzehn Uhr?\nAtualização: Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn.",
+            "de": "Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn.",
+            "es": "Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn.",
+            "pt-BR": "Leider ist Freitag um vierzehn Uhr für mich zu früh. Wäre am selben Tag um fünfzehn Uhr noch etwas frei? Wenn nicht, komme ich am Montag um zehn."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-appointment-3-v2",
+      "stage": "appointment-mission",
+      "kind": "module",
+      "title": {
+        "en": "Confirm the new appointment",
+        "de": "Den neuen Termin bestätigen",
+        "es": "Confirmar la nueva cita",
+        "pt-BR": "Confirmar o novo horário"
+      },
+      "scenario": {
+        "en": "Confirm date, time, revised room and arrival time in a short reply.",
+        "de": "Bestätige Datum, Zeit, neuen Raum und Ankunftszeit kurz schriftlich.",
+        "es": "Confirma fecha, hora, sala nueva y hora de llegada.",
+        "pt-BR": "Confirme data, horário, sala nova e hora de chegada."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000018"],
+      "prerequisites": ["de-appointment-2-v2"],
+      "grammar": {
+        "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+        "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+        "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+        "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+      },
+      "explanation": {
+        "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+        "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+        "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+        "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+      },
+      "examples": [
+        {
+          "text": "Freitag um vierzehn Uhr passt mir.",
+          "meaning": {
+            "en": "Friday at two p.m. works for me.",
+            "de": "Bestätigen, dass der angebotene Freitagstermin möglich ist.",
+            "es": "El viernes a las catorce me viene bien.",
+            "pt-BR": "Sexta-feira às quatorze fica bom para mim."
+          }
+        },
+        {
+          "text": "Ich bestätige Freitag um vierzehn Uhr in Raum fünf.",
+          "meaning": {
+            "en": "I confirm Friday at two in room five.",
+            "de": "Der Termin und der neue Raum sind bestätigt.",
+            "es": "Confirmo el viernes a las dos en la sala cinco.",
+            "pt-BR": "Confirmo sexta às duas na sala cinco."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-appointment-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-appointment-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which location changes?",
+            "de": "Welche Ortsangabe ändert sich?",
+            "es": "¿Qué lugar cambia?",
+            "pt-BR": "Qual local muda?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-appointment-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm date, time, revised room and arrival time in a short reply.",
+            "de": "Bestätige Datum, Zeit, neuen Raum und Ankunftszeit kurz schriftlich.",
+            "es": "Confirma fecha, hora, sala nueva y hora de llegada.",
+            "pt-BR": "Confirme data, horário, sala nova e hora de chegada."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-appointment-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm date, time, revised room and arrival time in a short reply.",
+            "de": "Bestätige Datum, Zeit, neuen Raum und Ankunftszeit kurz schriftlich.",
+            "es": "Confirma fecha, hora, sala nueva y hora de llegada.",
+            "pt-BR": "Confirme data, horário, sala nova e hora de chegada."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-appointment-3-v2-phrase-1", "de-appointment-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-appointment-v2-phrase-1",
+        "de-appointment-v2-phrase-2",
+        "de-appointment-2-v2-phrase-1",
+        "de-appointment-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-appointment-3-v2-reading"],
+          "targetIds": ["de-appointment-3-v2-phrase-1", "de-appointment-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.",
+              "de": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.",
+              "es": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.",
+              "pt-BR": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Freitag um vierzehn Uhr passt mir.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-appointment-3-v2-listening"],
+          "targetIds": ["de-appointment-3-v2-phrase-1", "de-appointment-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which location changes?",
+              "de": "Welche Ortsangabe ändert sich?",
+              "es": "¿Qué lugar cambia?",
+              "pt-BR": "Qual local muda?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Raum fünf statt Raum drei.",
+              "de": "Raum fünf statt Raum drei.",
+              "es": "Raum fünf statt Raum drei.",
+              "pt-BR": "Raum fünf statt Raum drei."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-appointment-3-v2-phrase-1", "de-appointment-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Use können wir for a joint rescheduling request. A reason with weil sends the verb to the end. Confirm day, time and room separately so that a changed room does not accidentally change the date.",
+            "de": "Nutze können wir für eine gemeinsame Terminbitte. Bei einem Grund mit weil steht das Verb hinten. Bestätige Tag, Zeit und Raum getrennt, damit ein Raumwechsel nicht versehentlich das Datum ändert.",
+            "es": "Usa können wir para pedir un cambio. Weil lleva el verbo al final. Confirma día, hora y sala por separado.",
+            "pt-BR": "Use können wir para pedir mudança. Weil leva o verbo ao final. Confirme dia, horário e sala separadamente."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-appointment-3-v2-writing"],
+          "targetIds": ["de-appointment-3-v2-phrase-1", "de-appointment-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm date, time, revised room and arrival time in a short reply.",
+            "de": "Bestätige Datum, Zeit, neuen Raum und Ankunftszeit kurz schriftlich.",
+            "es": "Confirma fecha, hora, sala nueva y hora de llegada.",
+            "pt-BR": "Confirme data, horário, sala nova e hora de chegada."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-appointment-3-v2-writing"],
+          "targetIds": ["de-appointment-3-v2-phrase-1", "de-appointment-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm date, time, revised room and arrival time in a short reply.",
+            "de": "Bestätige Datum, Zeit, neuen Raum und Ankunftszeit kurz schriftlich.",
+            "es": "Confirma fecha, hora, sala nueva y hora de llegada.",
+            "pt-BR": "Confirme data, horário, sala nova e hora de chegada."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-appointment-3-v2-speaking"],
+          "targetIds": ["de-appointment-3-v2-phrase-1", "de-appointment-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm date, time, revised room and arrival time in a short reply.",
+            "de": "Bestätige Datum, Zeit, neuen Raum und Ankunftszeit kurz schriftlich.",
+            "es": "Confirma fecha, hora, sala nueva y hora de llegada.",
+            "pt-BR": "Confirme data, horário, sala nova e hora de chegada."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Gut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Freitag um vierzehn Uhr passt mir.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.\nUpdate: Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich.",
+            "de": "Ursprüngliche Nachricht: Freitag um vierzehn Uhr passt mir.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.\nAktualisierung: Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich.",
+            "es": "Aviso original: Freitag um vierzehn Uhr passt mir.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.\nActualización: Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich.",
+            "pt-BR": "Aviso original: Freitag um vierzehn Uhr passt mir.\nGut, dann sehen wir uns am Freitag um vierzehn Uhr in Raum drei.\nAtualização: Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich.",
+            "de": "Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich.",
+            "es": "Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich.",
+            "pt-BR": "Hier ist Ihre Bestätigung: Freitag um vierzehn Uhr, Raum fünf statt Raum drei. Bitte kommen Sie fünf Minuten früher. Das Datum bleibt gleich."
           }
         }
       ],

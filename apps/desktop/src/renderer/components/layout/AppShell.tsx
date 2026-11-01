@@ -1,11 +1,11 @@
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 import {
-  type LucideIcon,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
+  type LucideIcon,
 } from "lucide-react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 import { Button, IconButton, Tooltip, type ButtonProps } from "../ui/Button.js";
 import styles from "./AppShell.module.css";
@@ -31,6 +31,7 @@ export function AppShell<Page extends string>(props: {
   helperToggleLabel: string;
   content: ReactNode;
   helper: ReactNode;
+  accountWidget?: ReactNode;
   navFooter?: ReactNode;
   onNavigate: (page: Page) => void;
   onMoveNavFocus: (event: KeyboardEvent<HTMLButtonElement>) => void;
@@ -218,17 +219,18 @@ export function AppShell<Page extends string>(props: {
                 >
                   <Icon aria-hidden="true" />
                   <span className={styles.navLabel}>{label}</span>
+                  {feedback && <span className={styles.navFeedback}>{feedback}</span>}
                 </Button>
               );
               return (
                 <li key={page}>
                   {props.navCollapsed ? <Tooltip label={label}>{control}</Tooltip> : control}
-                  {feedback}
                 </li>
               );
             })}
           </ul>
           <div className={styles.navUtilities}>
+            {props.accountWidget}
             <ul className={styles.navList}>
               {(() => {
                 const { page, label, icon: Icon } = props.settingsNavigation;

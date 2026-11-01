@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import {
   aiConnectionIdSchema,
   callNinaErrorSchema,
@@ -7,10 +6,10 @@ import {
   generationCapabilitiesSchema,
   generationDeadlineMilliseconds,
   generationEventSchema,
+  generationKinds,
   generationOperationStartSchema,
   generationOutputSchemaIds,
   modelRequestIdSchema,
-  generationKinds,
   type GenerationEvent,
   type GenerationKind,
   type GenerationOperationFor,
@@ -24,6 +23,7 @@ import {
   runLearningWorkflow,
   type LearningWorkflowTiming,
 } from "@call-nina/learning-workflows";
+import { randomUUID } from "node:crypto";
 import { ChatgptError, type ChatgptSession } from "./chatgpt-session.js";
 import { generateChatgptAttempt } from "./chatgpt-transport.js";
 

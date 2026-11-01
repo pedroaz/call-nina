@@ -47,6 +47,7 @@
     "stories": "Short stories"
   },
   "practice": {
+    "freeWriting": "Free Writing",
     "eyebrow": "Choose your focus",
     "title": "Practice",
     "intro": "Pick one exercise type, then work in a focused space. Your generated exercises stay here when you are ready to continue.",
@@ -106,12 +107,12 @@
       }
     },
     "library": {
-      "title": "Saved activities",
-      "body": "Open saved activities and generated exercises.",
+      "title": "Generated Activities",
+      "body": "Open generated activities.",
       "count_one": "{{count}} activity",
       "count_other": "{{count}} activities",
       "loading": "Loading your exercises…",
-      "empty": "No saved activities yet. Open New practice to get started.",
+      "empty": "No generated activities yet. Open New practice to get started.",
       "filterLabel": "Filter activities by type",
       "filters": {
         "all": "All",
@@ -124,6 +125,7 @@
       },
       "noFilterResults": "No exercises match this filter.",
       "open": "Open {{title}}",
+      "delete": "Delete",
       "deleteAction": "Delete {{title}}",
       "deleteTitle": "Delete “{{title}}”?",
       "deleteBody": "This permanently removes the activity and its unconfirmed vocabulary candidates. Unused, unchanged source material created with this activity may also be removed.",
@@ -594,6 +596,31 @@
         "writing": "From writing",
         "content": "From your content"
       }
+    },
+    "updates": {
+      "pending": "Updating vocabulary…",
+      "failed": "Vocabulary update needs retry.",
+      "view": "View words",
+      "all": "Show all words",
+      "title": "Vocabulary updates",
+      "read": "Mark as read",
+      "added_one": "{{count}} word added",
+      "added_other": "{{count}} words added",
+      "weak_one": "{{count}} word to practise",
+      "weak_other": "{{count}} words to practise",
+      "changed_one": "{{count}} word updated",
+      "changed_other": "{{count}} words updated"
+    },
+    "simple": {
+      "expression": "Expression",
+      "actions": "Actions",
+      "active": "Learning",
+      "candidate": "Suggested",
+      "suspended": "Paused",
+      "reviewOn": "Review {{date}}",
+      "dismiss": "Dismiss",
+      "learn": "Learn",
+      "showAll": "All vocabulary"
     }
   },
   "dashboard": {
@@ -649,6 +676,9 @@
     "courseSupport": "Using this helper while course attempts are unfinished counts as support for those attempts, including attempts you left open on another page."
   },
   "writing": {
+    "setupTitle": "Writing setup",
+    "hidePrompt": "Hide prompt",
+    "showPrompt": "Show prompt",
     "eyebrow": "Writing practice",
     "title": "Write in your learning language",
     "intro": "Keep the situation and your own text together. Nothing is sent until you explicitly start an AI action.",
@@ -740,6 +770,9 @@
     "keepEditing": "Keep editing"
   },
   "history": {
+    "reviewFeedback": "Feedback",
+    "reviewPractice": "What to practise",
+    "reviewAnswer": "Answer to review",
     "evidenceBasis": {
       "independent": "Answered independently · evaluation recorded",
       "supported": "Supported practice · not independent proficiency evidence",
@@ -758,7 +791,9 @@
       "activityType": "Activity type",
       "from": "From date",
       "to": "To date",
+      "invalidDateRange": "Choose an end date on or after the start date.",
       "topic": "Curriculum topic ID",
+      "invalidTopic": "Check the curriculum topic ID.",
       "mistake": "Mistake category",
       "all": "All",
       "apply": "Apply filters"
@@ -1016,6 +1051,7 @@
     "chatgptAuthHelp": "Use Continue with ChatGPT below. Your sign-in stays protected on this device."
   },
   "settings": {
+    "statusCheckTimedOut": "The status check timed out. Try Check status again.",
     "eyebrow": "Preferences",
     "title": "Settings",
     "intro": "Manage local learning defaults, Nina’s ChatGPT account, and optional external Voice/plugin integration.",
@@ -1154,7 +1190,13 @@
     "dataRootBusy": "Finish or cancel the active AI operation before changing the data folder.",
     "speechInitializationTimeout": "The voice did not start in time. Retry or select another voice.",
     "speechSynthesisTimeout": "Speech generation timed out. Retry with shorter text.",
-    "speechUnavailable": "Speech could not finish. Check the selected voice in Settings and retry."
+    "speechUnavailable": "Speech could not finish. Check the selected voice in Settings and retry.",
+    "materialReferenced": "This content is used by saved activities or attempts. Remove those records before deleting it.",
+    "websiteImport": "Could not import readable text from this website. Try another public HTTPS page or paste its text.",
+    "uploadTextRequired": "Read the image or enter its text before practising.",
+    "uploadImageInvalid": "Choose a PNG, JPEG or WebP image of up to 10 MB.",
+    "uploadImageUnavailable": "The original image could not be read. Choose the image again and save a new revision.",
+    "uploadSaveFailed": "Could not save this upload. Check available storage and try again."
   },
   "ui": {
     "about": "About {{topic}}",
@@ -1274,7 +1316,7 @@
         "keeps": "Keeps your profile details, preferences and selected data folder, so you can start practising again without onboarding. Keeps downloaded models and course audio.",
         "success": "All learning records cleared. Your profile and preferences are ready for a fresh start."
       },
-      "partial": "Learning records were cleared, but private speech cleanup could not finish. Retry this cleanup to finish."
+      "partial": "Some private files could not be removed. Retry cleanup to finish."
     },
     "categories": {
       "profile": {
@@ -1456,7 +1498,8 @@
       "cancelling": "Cancelling",
       "refiningExercises": "Refining exercises",
       "flashcard-generation": "Creating flashcards",
-      "vocabulary-analysis": "Updating vocabulary"
+      "vocabulary-analysis": "Updating vocabulary",
+      "website-study-pack": "Create study pack"
     },
     "messages": {
       "0": "Longer requests can take a little time.",
@@ -1562,36 +1605,50 @@
     "de": "German"
   },
   "materialPractice": {
-    "optional": "Use a saved topic or passage (optional)",
-    "list": "Saved topics and passages",
-    "detail": "Selected source",
-    "edit": "Edit source",
+    "optional": "Use your content",
+    "list": "Your content",
+    "detail": "Content",
+    "edit": "Edit content",
     "load": "Load saved sources",
-    "new": "Add a topic or passage",
+    "new": "Add content",
     "localHint": "Saved sources are available on this device without AI access.",
     "language": "Learning language: {{language}}",
-    "empty": "No saved sources in this learning language yet.",
+    "empty": "No saved content in this learning language yet.",
     "title": "Title",
     "kind": "Source type",
     "topic": "Topic",
     "passage": "Passage",
-    "source": "Source reference (optional)",
+    "source": "Source link (optional)",
     "sourceHint": "Use an HTTPS address without query parameters or a fragment. It is stored as a citation only.",
     "preserve": "Text is saved exactly as entered. Edits create a new revision; earlier practice keeps its original source.",
-    "save": "Save source",
+    "save": "Save content",
     "revision": "{{language}} · Revision {{revision}}",
-    "back": "Back to saved sources",
-    "optionalVocabulary": "Practise vocabulary from a saved source (optional)",
+    "back": "Back to your content",
+    "optionalVocabulary": "Use your content",
     "generateReading": "Generate {{count}} reading exercises",
     "generateVocabulary": "Generate {{count}} vocabulary exercises",
-    "related": "Prepared practice for this revision",
+    "related": "Used in activities",
     "relatedHint": "Open the exact prepared content without AI. Each opening creates separate practice and attempts, without course credit.",
     "noRelated": "No prepared practice for this revision yet.",
     "open": "Practise: {{title}}",
     "more": "Show more",
-    "remove": "Remove material",
-    "removeBody": "Remove this material and all its revisions? Material referenced by any activity or attempt is kept. No activities or attempts will be deleted.",
-    "removeConfirm": "Remove this material"
+    "remove": "Delete content",
+    "removeBody": "Delete this content and all its revisions? Content used by activities or attempts must be kept until those records are removed.",
+    "removeConfirm": "Delete content",
+    "definitionsTitle": "Content, activities and words",
+    "definitions": "Content is reusable text, websites or saved practice topics. Activities are exercises built from content. Words are saved vocabulary. Learning focuses guide future vocabulary practice.",
+    "practiceTopic": "Saved idea",
+    "text": "Text",
+    "website": "Website",
+    "use": "Use content",
+    "findWords": "Find words",
+    "inputMethod": "Add from",
+    "websiteUrl": "Website address",
+    "importWebsite": "Import website",
+    "contentText": "Content",
+    "truncated": "This page is longer than 12,000 characters. The first 12,000 are shown; edit the text before saving.",
+    "usage": "{{activities}} linked activities · {{attempts}} attempts",
+    "openContent": "Open"
   },
   "ninaHome": {
     "title": "Nina",
@@ -1691,7 +1748,8 @@
       "exercise-generation": "exercise creation",
       "exercise-feedback": "exercise feedback",
       "vocabulary-analysis": "Updating vocabulary",
-      "translation": "Translation"
+      "translation": "Translation",
+      "website-study-pack": "Create study pack"
     },
     "savedConnections": "Saved connections",
     "newConnection": "New connection",
@@ -1887,7 +1945,11 @@
     "level": "Level",
     "allLevels": "All levels",
     "results": "{{count}} of {{total}} paths",
-    "noResults": "No paths match. Try another search or clear the filters."
+    "noResults": "No paths match. Try another search or clear the filters.",
+    "structuredCourses": "Structured courses",
+    "everydayMissions": "Everyday missions",
+    "supplementary": "Supplementary practice",
+    "viewResults": "{{count}} paths"
   },
   "activity": {
     "task": "Activity",
@@ -1901,6 +1963,10 @@
     "writingViews": "Writing views"
   },
   "ninaAccount": {
+    "manageAccount": "Manage account",
+    "checking": "Checking account…",
+    "widgetSignedIn": "Signed in",
+    "statusUnavailable": "Status unavailable",
     "signInAgain": "Sign in again",
     "title": "Nina account",
     "description": "Sign in for Nina-funded AI. Your personal AI providers work independently.",
@@ -2020,13 +2086,16 @@
     }
   },
   "savedResults": {
+    "wrongAnswers": "Wrong answers",
+    "allResults": "All results",
+    "noWrongAnswers": "No wrong answers",
     "activities": "Activities",
     "results": "Results",
     "selection": "Selected results",
     "clearScope": "Show all",
     "filters": "Filters",
     "search": "Search results",
-    "searchActivities": "Search saved activities",
+    "searchActivities": "Search generated activities",
     "mistakes": "Mistakes to practise",
     "openPractice": "Open practice",
     "occurrences_one": "Seen {{count}} time",
@@ -2188,7 +2257,8 @@
     "level": "Level",
     "allLevels": "All levels",
     "read": "Read",
-    "empty": "No matching stories."
+    "empty": "No matching stories.",
+    "plural": "Plural"
   },
   "feedback": {
     "notifications": "Notifications",
@@ -2199,5 +2269,99 @@
     "copyFailed": "Could not copy. Select and copy the reference above.",
     "policySupport": "If this happens again, share this reference when reporting the problem.",
     "undoVocabulary": "Undo vocabulary addition"
+  },
+  "interview": {
+    "nameTitle": "Hi, I’m Nina. What should I call you?",
+    "nameLabel": "Your name",
+    "namePlaceholder": "First name or nickname",
+    "skipName": "Skip for now",
+    "languageTitle": "What would you like to learn?",
+    "goalTitle": "What would you love to do in {{language}}?",
+    "levelTitle": "How comfortable do you feel in {{language}}?",
+    "explanationTitle": "Which language should I explain things in?",
+    "connectionTitle": "Give Nina an AI connection",
+    "connectionDescription": "Create personal practice and get feedback.",
+    "otherConnections": "Other connections",
+    "useConnection": "Use this connection",
+    "setupLater": "Set up later",
+    "goHome": "Go to Home",
+    "goToExercise": "Go to exercise",
+    "ninaAccount": "Nina account",
+    "chatgpt": "ChatGPT",
+    "lessonTitle": "Your first lesson is ready",
+    "lessonTitleNamed": "{{name}}, your first lesson is ready",
+    "levels": {
+      "a1": "I’m just starting",
+      "a2": "I know the basics",
+      "b1": "I can handle everyday conversations",
+      "b2": "I can discuss a range of topics"
+    },
+    "continue": "Continue",
+    "goals": {
+      "everyday": "Everyday conversations",
+      "travel": "Travel",
+      "work": "Work",
+      "custom": "My own goal"
+    }
+  },
+  "uploads": {
+    "usedMaterial": "Source: {{title}}",
+    "configureImageReading": "Configure image reading before uploading an image.",
+    "configureNow": "Configure now",
+    "words": "Words",
+    "tab": "Your uploads",
+    "add": "Add content",
+    "edit": "Edit upload",
+    "rename": "Rename upload",
+    "format": "Format",
+    "title": "Title",
+    "text": "Text",
+    "url": "Website URL",
+    "image": "Image",
+    "import": "Create study pack",
+    "readImage": "Read image text",
+    "extract": "Extract words",
+    "practise": "Practise",
+    "remove": "Remove upload",
+    "preview": "Preview",
+    "choose": "Choose an upload",
+    "practiceSource": "Practice source",
+    "adaptive": "Personalized vocabulary",
+    "sourceFilter": "Upload source",
+    "allSources": "All sources",
+    "recent": "Recently added",
+    "reviewDue": "Practise vocabulary ({{count}})",
+    "proposals": "Select words to save",
+    "saveSelected": "Save selected to upload ({{count}})",
+    "history": "Source history",
+    "revision": "Revision {{count}}",
+    "textRequired": "Read the image or enter its text before practising.",
+    "unreadable": "No readable text was found. You can enter the text manually.",
+    "imageInvalid": "Choose a PNG, JPEG or WebP image of up to 10 MB.",
+    "truncated": "The page text was limited to 120,000 characters.",
+    "extractedWords": "Extracted words",
+    "sources": "Upload sources",
+    "open": "Open",
+    "formats": {
+      "text": "Text",
+      "website": "Website",
+      "image": "Image"
+    },
+    "textLimit": "Keep the source text within 12,000 characters before saving.",
+    "websiteInvalid": "Enter a public HTTPS website address without sign-in credentials.",
+    "chooseImage": "Choose image",
+    "replaceImage": "Replace image",
+    "noWords": "No words yet",
+    "noUploads": "No uploads yet",
+    "startPractice": "Start practising",
+    "summary": "Summary",
+    "studyItems": "Study words and expressions",
+    "fromPage": "From page",
+    "aiSuggestion": "AI suggestion",
+    "quotation": "Page quotation",
+    "generatedExample": "AI example",
+    "originalText": "Original page text",
+    "readingWebsite": "Reading website…",
+    "fromContent": "From content"
   }
 }

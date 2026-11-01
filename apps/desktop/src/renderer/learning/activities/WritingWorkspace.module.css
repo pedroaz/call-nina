@@ -1,0 +1,64 @@
+.workspace > header {
+  justify-content: center;
+  text-align: center;
+}
+
+.writingLayout,
+.writingEditor {
+  display: grid;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.promptActions {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.promptActionButtons {
+  flex-wrap: wrap;
+}
+.generatedPrompt {
+  display: grid;
+  gap: var(--od-space-5);
+  min-width: 0;
+}
+.generatedPrompt > * {
+  margin: 0;
+}
+.generatedPrompt ul {
+  padding-inline-start: var(--od-space-6);
+}
+.promptMetadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--od-space-2) var(--od-space-4);
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+}
+.writingOptions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: end;
+  gap: var(--od-space-5);
+}
+.writingTextarea {
+  min-height: var(--od-writing-editor-min);
+  resize: vertical;
+}
+.selectionStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-3);
+  color: var(--od-color-text-muted);
+  font-size: var(--od-font-size-xs);
+  margin: 0;
+}
+.selectionStatus svg {
+  width: var(--od-icon-sm);
+  height: var(--od-icon-sm);
+  flex: none;
+}
+.draftNotice {
+  font-size: var(--od-font-size-xs);
+  margin: 0;
+}

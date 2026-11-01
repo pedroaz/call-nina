@@ -1,0 +1,63 @@
+.downloads {
+  display: grid;
+  gap: var(--od-space-3);
+  justify-items: center;
+  min-width: 0;
+}
+.download-controls,
+.download-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--od-space-3);
+}
+.download-controls > a,
+.download-controls > button {
+  min-height: 52px;
+}
+.download-feedback {
+  display: grid;
+  gap: var(--od-space-2);
+  text-align: center;
+  color: var(--od-color-text-muted);
+}
+.download-list {
+  display: grid;
+  gap: var(--od-space-5);
+}
+.download-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.download-list li + li {
+  border-top: 1px solid var(--od-color-border-default);
+}
+.download-list li a {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding-block: var(--od-space-3);
+}
+.download-version {
+  font-weight: 600;
+}
+.hero-actions {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.hero-actions > .discovery-trigger {
+  flex: 1 1 16rem;
+  width: auto;
+}
+@media (max-width: 40rem) {
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-actions > .discovery-trigger {
+    flex: auto;
+    width: 100%;
+  }
+}

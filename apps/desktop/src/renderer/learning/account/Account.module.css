@@ -1,0 +1,109 @@
+.aiSetup,
+.accountAccess {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.accountAccess p {
+  margin: 0;
+}
+.ninaAccount {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--od-space-4);
+  align-items: start;
+}
+.ninaAccountIntro,
+.ninaAccountForm {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.ninaAccountMode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.ninaAccountMode h3 {
+  margin: 0;
+  font-size: var(--od-type-subsection-title-size);
+  line-height: var(--od-type-subsection-title-line);
+  font-weight: var(--od-font-weight-semibold);
+}
+.ninaAccountIntro h2,
+.ninaAccountIntro p,
+.ninaAccountFooter p {
+  margin: 0;
+}
+.ninaAccountIntro p,
+.ninaAccountFooter p {
+  font-size: var(--od-font-size-sm);
+  line-height: var(--od-type-body-small-line);
+}
+.ninaAccountFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--od-space-4);
+}
+.ninaAccountSummary,
+.ninaAccountFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--od-space-4);
+}
+.ninaAccountSummary {
+  flex-wrap: wrap;
+}
+.ninaAccountSummary p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.loginStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--od-space-2);
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font-size: var(--od-type-body-small-size);
+  line-height: var(--od-type-body-small-line);
+  color: var(--od-color-text-muted);
+}
+.loginStatus svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 52rem) {
+  .ninaAccount,
+  .ninaAccountFields,
+  .settingsControls,
+  .modelRow {
+    grid-template-columns: 1fr;
+  }
+}
+@container workspace (max-width: 42rem) {
+  .ninaAccount,
+  .ninaAccountFields,
+  .settingsControls,
+  .modelRow {
+    grid-template-columns: 1fr;
+  }
+  .ninaAccountSummary,
+  .ninaAccountFooter {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+
+.pendingSession {
+  display: grid;
+  gap: var(--od-space-4);
+  min-width: 0;
+}
+.pendingSession > div {
+  max-width: 100%;
+}

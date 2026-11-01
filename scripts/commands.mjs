@@ -20,11 +20,16 @@ const node = (file, ...args) => run(process.execPath, [file, ...args]);
 const admin = (...args) => run(process.execPath, ["scripts/admin/index.mjs", ...args], process.env);
 const pnpm = (...args) => run(...pnpmCommand(args));
 const build = (surface) => {
-  process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "production");
+  process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "prd");
   return surface === "workspace"
     ? pnpm("--recursive", "--workspace-concurrency=1", "--if-present", "run", "build")
     : pnpm("--filter", `@call-nina/${surface}...`, "run", "build");
 };
+function selectEnvironment(environment) {
+  if (process.env.NINA_ENVIRONMENT && hostingEnvironment() !== environment)
+    throw new Error(`Command targets ${environment}; NINA_ENVIRONMENT conflicts`);
+  process.env.NINA_ENVIRONMENT = environment;
+}
 const leaf = (description, execute) => ({ description, execute });
 const group = (description, commands, defaultCommand) => ({
   description,
@@ -47,6 +52,7 @@ const verifyNames = [
   "manual-quarantine",
 ];
 const checks = {
+  architecture: leaf("Desktop architecture", () => node("scripts/architecture/check.mjs")),
   versions: leaf("Workspace version consistency", () =>
     node("scripts/diagnostics/check-versions.mjs"),
   ),
@@ -67,6 +73,9 @@ const checks = {
 const aliases = { h: "help", d: "dev", b: "build", l: "logs" };
 const registry = {
   speech: group("Local speech bundles (no synthesis or publishing)", {
+    runtimes: leaf("Build release runtime archives and download catalog (no voices)", () =>
+      node("scripts/speech/distribution.mjs"),
+    ),
     prepare: leaf("Prepare pinned CPU runtimes and voices", (args) => {
       pnpm(
         "--filter",
@@ -96,17 +105,24 @@ const registry = {
   deploy: group(
     "Hosting build/review and GitHub publication guidance",
     {
-      prepare: leaf("Build combined website/API locally; no upload", () =>
-        node("scripts/build/package-hosting.mjs"),
-      ),
+      prepare: leaf("Build combined website/API locally; no upload (default prd)", () => {
+        process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "prd");
+        node("scripts/build/package-hosting.mjs");
+      }),
       review: leaf("Review a selected deployment target; no upload", (args) =>
         admin("deploy", ...args),
       ),
-      production: leaf("Open manual GitHub publication instructions; no local upload", () =>
-        node("scripts/ci/release.mjs", "help"),
+      ...Object.fromEntries(
+        ["dev", "prd"].map((environment) => [
+          environment,
+          leaf(`Show manual ${environment} deployment instructions; no upload`, () => {
+            selectEnvironment(environment);
+            admin("deploy", "--environment", environment);
+          }),
+        ]),
       ),
     },
-    "review",
+    undefined,
   ),
   setup: group(
     "Install workspace dependencies",
@@ -121,25 +137,30 @@ const registry = {
     "dev",
   ),
   ...Object.fromEntries(
-    ["dev", "start", "stop", "kill", "status", "logs"].map((name) => [
+    ["dev", "prd", "start", "stop", "kill", "status", "logs"].map((name) => [
       name,
       leaf(
         {
-          dev: "Build and start desktop development",
-          start: "Start built desktop",
+          dev: "Switch to desktop dev with hot reload and the dev backend",
+          prd: "Build and switch to desktop prd with the prd backend",
+          start: "Start an existing verified prd build; no rebuild",
           stop: "Stop desktop and watchers",
-          kill: "Stop desktop, watchers and local Android emulators",
+          kill: "Stop desktop, website, watchers and local Android emulators",
           status: "Desktop process status",
           logs: "Desktop logs; --follow / --errors / --clear",
         }[name],
         (args) => {
-          if (name === "dev")
-            process.env.NINA_ENVIRONMENT = hostingEnvironment(
-              process.env.NINA_ENVIRONMENT ?? "preview",
-            );
+          if (["dev", "prd", "start"].includes(name))
+            selectEnvironment(name === "dev" ? "dev" : "prd");
+          if (name === "dev" || name === "prd") {
+            node("scripts/dev/lifecycle.mjs", "prepare", name);
+            if (name === "prd") build("desktop");
+          }
           return node(
             "scripts/dev/lifecycle.mjs",
-            ...({ dev: ["start", "dev"], start: ["start", "prd"] }[name] ?? [name]),
+            ...({ dev: ["start", "dev"], prd: ["start", "prd"], start: ["start", "prd"] }[name] ?? [
+              name,
+            ]),
             ...args,
           );
         },
@@ -159,12 +180,18 @@ const registry = {
   website: group(
     "Website development",
     Object.fromEntries(
-      ["dev", "build", "preview"].map((action) => [
+      ["dev", "build", "start"].map((action) => [
         action,
         leaf(action, (args) =>
           action === "build"
             ? build("website")
-            : pnpm("--filter", "@call-nina/website", "run", action, ...args),
+            : pnpm(
+                "--filter",
+                "@call-nina/website",
+                "run",
+                action === "start" ? "preview" : action,
+                ...args,
+              ),
         ),
       ]),
     ),
@@ -172,15 +199,33 @@ const registry = {
   mobile: group(
     "Mobile development",
     Object.fromEntries(
-      ["dev", "build", "config", "android", "ios"].map((action) => [
+      ["dev", "prd", "build", "config", "android", "ios"].map((action) => [
         action,
-        leaf(action, (args) => {
-          process.env.NINA_ENVIRONMENT = hostingEnvironment(
-            process.env.NINA_ENVIRONMENT ?? (action === "build" ? "production" : "preview"),
-          );
-          process.env.EXPO_NO_DOTENV = "1";
-          return pnpm("--filter", "@call-nina/mobile", "run", action, ...args);
-        }),
+        leaf(
+          {
+            dev: "Start Expo Go with the dev backend",
+            prd: "Start Expo Go with the prd backend",
+            build: "Export JavaScript/Hermes bundles (default prd)",
+            config: "Show resolved Expo configuration",
+            android: "Build and run native Android (default dev)",
+            ios: "Build and run native iOS on macOS (default dev)",
+          }[action],
+          (args) => {
+            if (action === "dev" || action === "prd") selectEnvironment(action);
+            else
+              process.env.NINA_ENVIRONMENT = hostingEnvironment(
+                process.env.NINA_ENVIRONMENT ?? (action === "build" ? "prd" : "dev"),
+              );
+            process.env.EXPO_NO_DOTENV = "1";
+            return pnpm(
+              "--filter",
+              "@call-nina/mobile",
+              "run",
+              action === "prd" ? "dev" : action,
+              ...args,
+            );
+          },
+        ),
       ]),
     ),
   ),
@@ -188,7 +233,7 @@ const registry = {
     "Static checks",
     {
       all: leaf("All static checks", () => {
-        for (const name of ["versions", "design-tokens", "format", "types", "lint"])
+        for (const name of ["versions", "design-tokens", "architecture", "format", "types", "lint"])
           runStage(checks[name].description, () => checks[name].execute());
       }),
       ...checks,
@@ -221,9 +266,7 @@ const registry = {
       node("scripts/build/package-local.mjs"),
     ),
     appimage: leaf("Linux AppImage", () => {
-      process.env.NINA_ENVIRONMENT = hostingEnvironment(
-        process.env.NINA_ENVIRONMENT ?? "production",
-      );
+      process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "prd");
       runStage("Generate third-party notices", () =>
         node("scripts/build/generate-third-party-notices.mjs"),
       );
@@ -238,7 +281,10 @@ const registry = {
         node("scripts/build/inspect-package.mjs", "appimage"),
       );
     }),
-    hosting: leaf("Combined website and API", () => node("scripts/build/package-hosting.mjs")),
+    hosting: leaf("Combined website and API (default prd)", () => {
+      process.env.NINA_ENVIRONMENT = hostingEnvironment(process.env.NINA_ENVIRONMENT ?? "prd");
+      node("scripts/build/package-hosting.mjs");
+    }),
     inspect: leaf("Inspect packaging budgets", (args) =>
       node("scripts/build/inspect-package.mjs", ...args),
     ),
@@ -287,7 +333,7 @@ function help(name) {
   const sections = name
     ? { Commands: Object.keys(entries) }
     : {
-        "Daily desktop": ["dev", "start", "stop", "kill", "status", "logs", "folder"],
+        "Daily desktop": ["dev", "prd", "start", "stop", "kill", "status", "logs", "folder"],
         Development: [
           "setup",
           "build",

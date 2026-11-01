@@ -1,1 +1,1 @@
-export { Feedback, LoadingState, DiagnosticCode, type FeedbackTone } from "@call-nina/browser-ui";
+export { DiagnosticCode, Feedback, LoadingState, type FeedbackTone } from "@call-nina/browser-ui";

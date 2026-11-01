@@ -5,34 +5,82 @@ slug: transport-travel
 band: b2
 domain: transport-travel
 title: "B2: Transport and travel"
-
 communicativeGoals:
-  [
-    "Handle a practical transport and travel interaction at B2 level.",
-    "Understand and respond to the most useful transport and travel language.",
-  ]
-prerequisiteTopicIds: [curriculum-topic_0000000000000029]
-grammarFoundations: []
-vocabularyFoundations: []
-exerciseConcepts: []
-sourceIds: [curriculum-source_0000000000000002, curriculum-source_0000000000000003]
+  - Write a factual travel complaint with chronology, documented shortcomings
+    and a concrete request. Avoid attributing motives without evidence.
+  - Write a factual travel complaint with chronology, documented shortcomings
+    and a concrete request. Avoid attributing motives without evidence. Discuss
+    this with a partner who prefers another option. Clarify one disagreement and
+    reach a qualified decision.
+prerequisiteTopicIds:
+  - curriculum-topic_0000000000000029
+grammarFoundations:
+  - key: de-structured-b2-07
+    description: "Expanded participial attributes compress relative clauses: die
+      kurzfristig geänderte Verbindung. Weak masculine nouns keep -(e)n in
+      oblique cases: mit dem Reisenden, with nominalized adjectives following
+      adjective endings. Local prepositions distinguish destination, origin and
+      position; avoid translating them mechanically."
+vocabularyFoundations:
+  - key: de-structured-b2-07-lex-1
+    description: "Streckenänderung: route change"
+  - key: de-structured-b2-07-lex-2
+    description: "Steigung: incline"
+  - key: de-structured-b2-07-lex-3
+    description: "Anforderung: requirement"
+exerciseConcepts:
+  - key: de-structured-b2-07
+    description: Write a factual travel complaint with chronology, documented
+      shortcomings and a concrete request. Avoid attributing motives without
+      evidence.
+sourceIds:
+  - curriculum-source_0000000000000002
+  - curriculum-source_0000000000000003
+  - curriculum-source_0000000000001004
+  - curriculum-source_0000000000001005
+  - curriculum-source_0000000000001006
 coverage:
   reception:
     status: mapped
-    outcomes: ["Understand a short transport and travel message at B2 level."]
+    outcomes:
+      - Why is “suitable for most people” insufficient?
+      - What is the tradeoff of the shorter route?
   production:
     status: mapped
-    outcomes: ["Produce a clear transport and travel message at B2 level."]
+    outcomes:
+      - Write a factual travel complaint with chronology, documented
+        shortcomings and a concrete request. Avoid attributing motives without
+        evidence.
   interaction:
     status: mapped
-    outcomes: ["Take turns and ask a follow-up in a transport and travel exchange."]
+    outcomes:
+      - Write a factual travel complaint with chronology, documented
+        shortcomings and a concrete request. Avoid attributing motives without
+        evidence. Discuss this with a partner who prefers another option.
+        Clarify one disagreement and reach a qualified decision.
   mediation:
     status: mapped
-    outcomes: ["Pass on the essential meaning of transport and travel information."]
+    outcomes:
+      - Send a message to a person who did not read the passage. Pass on the
+        decision, one reason and the next action. Use your own words; do not
+        invent details.
+lessonFoundation:
+  explanation: "Expanded participial attributes compress relative clauses: die
+    kurzfristig geänderte Verbindung. Weak masculine nouns keep -(e)n in oblique
+    cases: mit dem Reisenden, with nominalized adjectives following adjective
+    endings. Local prepositions distinguish destination, origin and position;
+    avoid translating them mechanically. Keep a long attribute together before
+    the noun, then pause before the claim."
+  examples:
+    - Die kurzfristig geänderte Verbindung war nicht ausgeschildert.
+    - Wir sprechen mit dem Reisenden.
+    - Vom Bahnhof aus war der Ersatzhalt nicht erkennbar.
 ---
 
 # B2: Transport and travel
 
-This topic records intended learning scope. See catalog.json and its registered course files for available lessons linked to this topic.
+Original German lessons linked to this topic are registered in catalog.json.
 
-The framework citations support scope; they do not provide a lesson. Author original explanations, examples and activities with source, language and level checks.
+- de-structured-b2-07: Evaluate travel information and complaints
+
+The reference outlines establish scope and sequence. Explanations, examples and activities are original Nina content; participation alone does not establish proficiency.

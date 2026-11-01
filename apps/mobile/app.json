@@ -2,7 +2,7 @@
   "expo": {
     "name": "Call Nina",
     "slug": "call-nina",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "platforms": ["android", "ios"],
     "userInterfaceStyle": "light",
     "ios": {

@@ -19,7 +19,26 @@
         "de": "Lies eine Abholnachricht, nenne dein Paket und frage nach der Öffnungszeit.",
         "es": "Lee un aviso, identifica tu paquete y confirma el horario.",
         "pt-BR": "Leia um aviso, identifique sua encomenda e confirme o horário."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "parcel-mission",
+      "kind": "scenario",
+      "level": "A1",
+      "title": {
+        "en": "Collect a parcel",
+        "de": "Ein Paket abholen",
+        "es": "Recoger un paquete",
+        "pt-BR": "Retirar uma encomenda"
+      },
+      "description": {
+        "en": "Read a pickup notice, identify your parcel, and check the opening time.",
+        "de": "Lies eine Abholnachricht, nenne dein Paket und frage nach der Öffnungszeit.",
+        "es": "Lee un aviso, identifica tu paquete y confirma el horario.",
+        "pt-BR": "Leia um aviso, identifique sua encomenda e confirme o horário."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Nach der Schließzeit fragen.",
         "es": "¿A qué hora cierran?",
         "pt-BR": "Até que horas vocês ficam abertos?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-parcel-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Ich möchte mein Paket abholen.",
+      "meaning": {
+        "en": "I would like to pick up my package.",
+        "de": "Sagen, dass man sein Paket holen möchte.",
+        "es": "Quisiera recoger mi paquete.",
+        "pt-BR": "Gostaria de retirar minha encomenda."
+      },
+      "example": "Ich möchte mein Paket abholen.",
+      "exampleMeaning": {
+        "en": "I would like to pick up my package.",
+        "de": "Sagen, dass man sein Paket holen möchte.",
+        "es": "Quisiera recoger mi paquete.",
+        "pt-BR": "Gostaria de retirar minha encomenda."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-parcel-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Ist der Abholort noch derselbe?",
+      "meaning": {
+        "en": "Is the pickup location still the same?",
+        "de": "Ich prüfe den aktuellen Abholort.",
+        "es": "¿Sigue siendo el mismo lugar de recogida?",
+        "pt-BR": "O local de retirada continua o mesmo?"
+      },
+      "example": "Ist der Abholort noch derselbe?",
+      "exampleMeaning": {
+        "en": "Is the pickup location still the same?",
+        "de": "Ich prüfe den aktuellen Abholort.",
+        "es": "¿Sigue siendo el mismo lugar de recogida?",
+        "pt-BR": "O local de retirada continua o mesmo?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-parcel-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Die Nummer ist zweiundvierzig.",
+      "meaning": {
+        "en": "The number is forty-two.",
+        "de": "Die Abholnummer nennen.",
+        "es": "El número es cuarenta y dos.",
+        "pt-BR": "O número é quarenta e dois."
+      },
+      "example": "Die Nummer ist zweiundvierzig.",
+      "exampleMeaning": {
+        "en": "The number is forty-two.",
+        "de": "Die Abholnummer nennen.",
+        "es": "El número es cuarenta y dos.",
+        "pt-BR": "O número é quarenta e dois."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-parcel-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Der Nachname stimmt nicht.",
+      "meaning": {
+        "en": "The surname does not match.",
+        "de": "Die Namen sind unterschiedlich.",
+        "es": "El apellido no coincide.",
+        "pt-BR": "O sobrenome não confere."
+      },
+      "example": "Der Nachname stimmt nicht.",
+      "exampleMeaning": {
+        "en": "The surname does not match.",
+        "de": "Die Namen sind unterschiedlich.",
+        "es": "El apellido no coincide.",
+        "pt-BR": "O sobrenome não confere."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-parcel-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Bis wann haben Sie geöffnet?",
+      "meaning": {
+        "en": "What time do you close?",
+        "de": "Nach der Schließzeit fragen.",
+        "es": "¿A qué hora cierran?",
+        "pt-BR": "Até que horas vocês ficam abertos?"
+      },
+      "example": "Bis wann haben Sie geöffnet?",
+      "exampleMeaning": {
+        "en": "What time do you close?",
+        "de": "Nach der Schließzeit fragen.",
+        "es": "¿A qué hora cierran?",
+        "pt-BR": "Até que horas vocês ficam abertos?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-parcel-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Dann komme ich morgen nach zehn.",
+      "meaning": {
+        "en": "Then I will come tomorrow after ten.",
+        "de": "Ich passe meinen Besuch an die Öffnungszeit an.",
+        "es": "Entonces voy mañana después de las diez.",
+        "pt-BR": "Então vou amanhã depois das dez."
+      },
+      "example": "Dann komme ich morgen nach zehn.",
+      "exampleMeaning": {
+        "en": "Then I will come tomorrow after ten.",
+        "de": "Ich passe meinen Besuch an die Öffnungszeit an.",
+        "es": "Entonces voy mañana después de las diez.",
+        "pt-BR": "Então vou amanhã depois das dez."
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Die Abholung planen. Nach der Schließzeit fragen.\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.",
             "es": "Planear la recogida. ¿A qué hora cierran?\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.",
             "pt-BR": "Planejar a retirada. Até que horas vocês ficam abertos?\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-parcel-v2",
+      "stage": "parcel-mission",
+      "kind": "module",
+      "title": {
+        "en": "At the pickup counter",
+        "de": "An der Abholstelle",
+        "es": "En el punto de recogida",
+        "pt-BR": "No ponto de retirada"
+      },
+      "scenario": {
+        "en": "Confirm the revised pickup location and retain the unchanged number and hours.",
+        "de": "Bestätige den neuen Abholort und die unveränderte Nummer und Zeit.",
+        "es": "Confirma el lugar nuevo y conserva número y horario sin cambios.",
+        "pt-BR": "Confirme o local novo e mantenha número e horário sem mudanças."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000003"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+        "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+        "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+        "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+      },
+      "explanation": {
+        "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+        "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+        "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+        "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+      },
+      "examples": [
+        {
+          "text": "Ich möchte mein Paket abholen.",
+          "meaning": {
+            "en": "I would like to pick up my package.",
+            "de": "Sagen, dass man sein Paket holen möchte.",
+            "es": "Quisiera recoger mi paquete.",
+            "pt-BR": "Gostaria de retirar minha encomenda."
+          }
+        },
+        {
+          "text": "Ist der Abholort noch derselbe?",
+          "meaning": {
+            "en": "Is the pickup location still the same?",
+            "de": "Ich prüfe den aktuellen Abholort.",
+            "es": "¿Sigue siendo el mismo lugar de recogida?",
+            "pt-BR": "O local de retirada continua o mesmo?"
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-parcel-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-parcel-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Which pickup detail changes?",
+            "de": "Welche Abholangabe ändert sich?",
+            "es": "¿Qué dato de recogida cambia?",
+            "pt-BR": "Qual dado de retirada muda?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-parcel-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the revised pickup location and retain the unchanged number and hours.",
+            "de": "Bestätige den neuen Abholort und die unveränderte Nummer und Zeit.",
+            "es": "Confirma el lugar nuevo y conserva número y horario sin cambios.",
+            "pt-BR": "Confirme o local novo e mantenha número e horário sem mudanças."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-parcel-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Confirm the revised pickup location and retain the unchanged number and hours.",
+            "de": "Bestätige den neuen Abholort und die unveränderte Nummer und Zeit.",
+            "es": "Confirma el lugar nuevo y conserva número y horario sin cambios.",
+            "pt-BR": "Confirme o local novo e mantenha número e horário sem mudanças."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-parcel-v2-reading"],
+          "targetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What time does collection end on Friday?",
+              "de": "Bis wann kannst du das Paket am Freitag abholen?",
+              "es": "¿Hasta qué hora puedes recogerlo el viernes?",
+              "pt-BR": "Até que horas você pode retirar a encomenda na sexta-feira?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "achtzehn Uhr",
+              "de": "achtzehn Uhr",
+              "es": "achtzehn Uhr",
+              "pt-BR": "achtzehn Uhr"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ihr Paket ist im Laden in der Gartenstraße 8. Sie können es am Freitag von zehn bis achtzehn Uhr abholen. Bitte nennen Sie die Nummer 42."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-parcel-v2-listening"],
+          "targetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Which pickup detail changes?",
+              "de": "Welche Abholangabe ändert sich?",
+              "es": "¿Qué dato de recogida cambia?",
+              "pt-BR": "Qual dado de retirada muda?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Laden: am Markt statt Gartenstraße.",
+              "de": "Der Laden: am Markt statt Gartenstraße.",
+              "es": "Der Laden: am Markt statt Gartenstraße.",
+              "pt-BR": "Der Laden: am Markt statt Gartenstraße."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+          "instructions": {
+            "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+            "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+            "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+            "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-parcel-v2-writing"],
+          "targetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the revised pickup location and retain the unchanged number and hours.",
+            "de": "Bestätige den neuen Abholort und die unveränderte Nummer und Zeit.",
+            "es": "Confirma el lugar nuevo y conserva número y horario sin cambios.",
+            "pt-BR": "Confirme o local novo e mantenha número e horário sem mudanças."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-parcel-v2-writing"],
+          "targetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the revised pickup location and retain the unchanged number and hours.",
+            "de": "Bestätige den neuen Abholort und die unveränderte Nummer und Zeit.",
+            "es": "Confirma el lugar nuevo y conserva número y horario sin cambios.",
+            "pt-BR": "Confirme o local novo e mantenha número e horário sem mudanças."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-parcel-v2-speaking"],
+          "targetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+          "instructions": {
+            "en": "Confirm the revised pickup location and retain the unchanged number and hours.",
+            "de": "Bestätige den neuen Abholort und die unveränderte Nummer und Zeit.",
+            "es": "Confirma el lugar nuevo y conserva número y horario sin cambios.",
+            "pt-BR": "Confirme o local novo e mantenha número e horário sem mudanças."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Ihr Paket ist im Laden in der Gartenstraße 8. Sie können es am Freitag von zehn bis achtzehn Uhr abholen. Bitte nennen Sie die Nummer 42.\nUpdate: Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich.",
+            "de": "Ursprüngliche Nachricht: Ihr Paket ist im Laden in der Gartenstraße 8. Sie können es am Freitag von zehn bis achtzehn Uhr abholen. Bitte nennen Sie die Nummer 42.\nAktualisierung: Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich.",
+            "es": "Aviso original: Ihr Paket ist im Laden in der Gartenstraße 8. Sie können es am Freitag von zehn bis achtzehn Uhr abholen. Bitte nennen Sie die Nummer 42.\nActualización: Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich.",
+            "pt-BR": "Aviso original: Ihr Paket ist im Laden in der Gartenstraße 8. Sie können es am Freitag von zehn bis achtzehn Uhr abholen. Bitte nennen Sie die Nummer 42.\nAtualização: Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich.",
+            "de": "Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich.",
+            "es": "Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich.",
+            "pt-BR": "Ihr Paket liegt jetzt nicht mehr in der Gartenstraße. Bitte holen Sie es im Laden am Markt ab. Die Nummer zweiundvierzig und die Abholzeiten bleiben gleich."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-parcel-2-v2",
+      "stage": "parcel-mission",
+      "kind": "module",
+      "title": {
+        "en": "Identify your parcel",
+        "de": "Das Paket zuordnen",
+        "es": "Identificar tu paquete",
+        "pt-BR": "Identificar sua encomenda"
+      },
+      "scenario": {
+        "en": "Respond to a name mismatch, check the notice and avoid accepting another person’s parcel.",
+        "de": "Reagiere auf den falschen Namen, prüfe die Nachricht und nimm kein fremdes Paket an.",
+        "es": "Responde a un apellido distinto, revisa el aviso y no aceptes un paquete ajeno.",
+        "pt-BR": "Responda ao sobrenome diferente, confira o aviso e não aceite pacote de outra pessoa."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000003"],
+      "prerequisites": ["de-parcel-v2"],
+      "grammar": {
+        "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+        "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+        "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+        "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+      },
+      "explanation": {
+        "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+        "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+        "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+        "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+      },
+      "examples": [
+        {
+          "text": "Die Nummer ist zweiundvierzig.",
+          "meaning": {
+            "en": "The number is forty-two.",
+            "de": "Die Abholnummer nennen.",
+            "es": "El número es cuarenta y dos.",
+            "pt-BR": "O número é quarenta e dois."
+          }
+        },
+        {
+          "text": "Der Nachname stimmt nicht.",
+          "meaning": {
+            "en": "The surname does not match.",
+            "de": "Die Namen sind unterschiedlich.",
+            "es": "El apellido no coincide.",
+            "pt-BR": "O sobrenome não confere."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-parcel-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-parcel-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Why is the parcel not handed over?",
+            "de": "Warum wird das Paket nicht ausgegeben?",
+            "es": "¿Por qué no se entrega el paquete?",
+            "pt-BR": "Por que o pacote não é entregue?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-parcel-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Respond to a name mismatch, check the notice and avoid accepting another person’s parcel.",
+            "de": "Reagiere auf den falschen Namen, prüfe die Nachricht und nimm kein fremdes Paket an.",
+            "es": "Responde a un apellido distinto, revisa el aviso y no aceptes un paquete ajeno.",
+            "pt-BR": "Responda ao sobrenome diferente, confira o aviso e não aceite pacote de outra pessoa."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-parcel-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Respond to a name mismatch, check the notice and avoid accepting another person’s parcel.",
+            "de": "Reagiere auf den falschen Namen, prüfe die Nachricht und nimm kein fremdes Paket an.",
+            "es": "Responde a un apellido distinto, revisa el aviso y no aceptes un paquete ajeno.",
+            "pt-BR": "Responda ao sobrenome diferente, confira o aviso e não aceite pacote de outra pessoa."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-parcel-2-v2-phrase-1", "de-parcel-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-parcel-v2-phrase-1", "de-parcel-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-parcel-2-v2-reading"],
+          "targetIds": ["de-parcel-2-v2-phrase-1", "de-parcel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Danke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?",
+              "de": "Danke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?",
+              "es": "Danke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?",
+              "pt-BR": "Danke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Die Nummer ist zweiundvierzig.\nDanke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?"
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-parcel-2-v2-listening"],
+          "targetIds": ["de-parcel-2-v2-phrase-1", "de-parcel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "Why is the parcel not handed over?",
+              "de": "Warum wird das Paket nicht ausgegeben?",
+              "es": "¿Por qué no se entrega el paquete?",
+              "pt-BR": "Por que o pacote não é entregue?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Der Nachname stimmt nicht überein.",
+              "de": "Der Nachname stimmt nicht überein.",
+              "es": "Der Nachname stimmt nicht überein.",
+              "pt-BR": "Der Nachname stimmt nicht überein."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-parcel-2-v2-phrase-1", "de-parcel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+            "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+            "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+            "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-parcel-2-v2-writing"],
+          "targetIds": ["de-parcel-2-v2-phrase-1", "de-parcel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Respond to a name mismatch, check the notice and avoid accepting another person’s parcel.",
+            "de": "Reagiere auf den falschen Namen, prüfe die Nachricht und nimm kein fremdes Paket an.",
+            "es": "Responde a un apellido distinto, revisa el aviso y no aceptes un paquete ajeno.",
+            "pt-BR": "Responda ao sobrenome diferente, confira o aviso e não aceite pacote de outra pessoa."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-parcel-2-v2-writing"],
+          "targetIds": ["de-parcel-2-v2-phrase-1", "de-parcel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Respond to a name mismatch, check the notice and avoid accepting another person’s parcel.",
+            "de": "Reagiere auf den falschen Namen, prüfe die Nachricht und nimm kein fremdes Paket an.",
+            "es": "Responde a un apellido distinto, revisa el aviso y no aceptes un paquete ajeno.",
+            "pt-BR": "Responda ao sobrenome diferente, confira o aviso e não aceite pacote de outra pessoa."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Danke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?"
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-parcel-2-v2-speaking"],
+          "targetIds": ["de-parcel-2-v2-phrase-1", "de-parcel-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Respond to a name mismatch, check the notice and avoid accepting another person’s parcel.",
+            "de": "Reagiere auf den falschen Namen, prüfe die Nachricht und nimm kein fremdes Paket an.",
+            "es": "Responde a un apellido distinto, revisa el aviso y no aceptes un paquete ajeno.",
+            "pt-BR": "Responda ao sobrenome diferente, confira o aviso e não aceite pacote de outra pessoa."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Danke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?"
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Die Nummer ist zweiundvierzig.\nDanke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?\nUpdate: Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht.",
+            "de": "Ursprüngliche Nachricht: Die Nummer ist zweiundvierzig.\nDanke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?\nAktualisierung: Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht.",
+            "es": "Aviso original: Die Nummer ist zweiundvierzig.\nDanke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?\nActualización: Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht.",
+            "pt-BR": "Aviso original: Die Nummer ist zweiundvierzig.\nDanke. Paket zweiundvierzig liegt hier. Ist Ihr Name Alex?\nAtualização: Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht.",
+            "de": "Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht.",
+            "es": "Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht.",
+            "pt-BR": "Paket zweiundvierzig ist für Alex Sommer. Sie heißen Alex Meier? Dann ist es leider nicht Ihr Paket. Bitte prüfen Sie noch einmal die Nummer in Ihrer Nachricht."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-parcel-3-v2",
+      "stage": "parcel-mission",
+      "kind": "module",
+      "title": {
+        "en": "Plan your pickup",
+        "de": "Die Abholung planen",
+        "es": "Planear la recogida",
+        "pt-BR": "Planejar a retirada"
+      },
+      "scenario": {
+        "en": "Choose a feasible pickup time and confirm the exceptional opening time.",
+        "de": "Wähle eine mögliche Abholzeit und bestätige die abweichende Öffnung.",
+        "es": "Elige una recogida posible y confirma el horario excepcional.",
+        "pt-BR": "Escolha uma retirada possível e confirme o horário excepcional."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000003"],
+      "prerequisites": ["de-parcel-2-v2"],
+      "grammar": {
+        "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+        "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+        "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+        "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+      },
+      "explanation": {
+        "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+        "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+        "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+        "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+      },
+      "examples": [
+        {
+          "text": "Bis wann haben Sie geöffnet?",
+          "meaning": {
+            "en": "What time do you close?",
+            "de": "Nach der Schließzeit fragen.",
+            "es": "¿A qué hora cierran?",
+            "pt-BR": "Até que horas vocês ficam abertos?"
+          }
+        },
+        {
+          "text": "Dann komme ich morgen nach zehn.",
+          "meaning": {
+            "en": "Then I will come tomorrow after ten.",
+            "de": "Ich passe meinen Besuch an die Öffnungszeit an.",
+            "es": "Entonces voy mañana después de las diez.",
+            "pt-BR": "Então vou amanhã depois das dez."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-parcel-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-parcel-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What is tomorrow’s opening time?",
+            "de": "Wann öffnet der Laden morgen?",
+            "es": "¿A qué hora abre mañana?",
+            "pt-BR": "A que horas abre amanhã?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-parcel-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Choose a feasible pickup time and confirm the exceptional opening time.",
+            "de": "Wähle eine mögliche Abholzeit und bestätige die abweichende Öffnung.",
+            "es": "Elige una recogida posible y confirma el horario excepcional.",
+            "pt-BR": "Escolha uma retirada possível e confirme o horário excepcional."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-parcel-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Choose a feasible pickup time and confirm the exceptional opening time.",
+            "de": "Wähle eine mögliche Abholzeit und bestätige die abweichende Öffnung.",
+            "es": "Elige una recogida posible y confirma el horario excepcional.",
+            "pt-BR": "Escolha uma retirada possível e confirme o horário excepcional."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-parcel-3-v2-phrase-1", "de-parcel-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-parcel-v2-phrase-1",
+        "de-parcel-v2-phrase-2",
+        "de-parcel-2-v2-phrase-1",
+        "de-parcel-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-parcel-3-v2-reading"],
+          "targetIds": ["de-parcel-3-v2-phrase-1", "de-parcel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Heute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.",
+              "de": "Heute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.",
+              "es": "Heute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.",
+              "pt-BR": "Heute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Bis wann haben Sie geöffnet?\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-parcel-3-v2-listening"],
+          "targetIds": ["de-parcel-3-v2-phrase-1", "de-parcel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What is tomorrow’s opening time?",
+              "de": "Wann öffnet der Laden morgen?",
+              "es": "¿A qué hora abre mañana?",
+              "pt-BR": "A que horas abre amanhã?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Um zehn.",
+              "de": "Um zehn.",
+              "es": "Um zehn.",
+              "pt-BR": "Um zehn."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-parcel-3-v2-phrase-1", "de-parcel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Repeat a number in full and check both first name and surname. Bis names a closing limit and ab a starting limit. A different pickup location can leave number and hours unchanged.",
+            "de": "Wiederhole die Nummer vollständig und prüfe Vor- und Nachname. Bis nennt eine Schlussgrenze, ab einen Beginn. Ein anderer Abholort kann Nummer und Zeiten unverändert lassen.",
+            "es": "Repite el número completo y comprueba nombre y apellido. Bis marca cierre y ab inicio. Un lugar nuevo puede conservar número y horario.",
+            "pt-BR": "Repita o número completo e confira nome e sobrenome. Bis marca limite final e ab início. Um local novo pode manter número e horário."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-parcel-3-v2-writing"],
+          "targetIds": ["de-parcel-3-v2-phrase-1", "de-parcel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Choose a feasible pickup time and confirm the exceptional opening time.",
+            "de": "Wähle eine mögliche Abholzeit und bestätige die abweichende Öffnung.",
+            "es": "Elige una recogida posible y confirma el horario excepcional.",
+            "pt-BR": "Escolha uma retirada possível e confirme o horário excepcional."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-parcel-3-v2-writing"],
+          "targetIds": ["de-parcel-3-v2-phrase-1", "de-parcel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Choose a feasible pickup time and confirm the exceptional opening time.",
+            "de": "Wähle eine mögliche Abholzeit und bestätige die abweichende Öffnung.",
+            "es": "Elige una recogida posible y confirma el horario excepcional.",
+            "pt-BR": "Escolha uma retirada possível e confirme o horário excepcional."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Heute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-parcel-3-v2-speaking"],
+          "targetIds": ["de-parcel-3-v2-phrase-1", "de-parcel-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Choose a feasible pickup time and confirm the exceptional opening time.",
+            "de": "Wähle eine mögliche Abholzeit und bestätige die abweichende Öffnung.",
+            "es": "Elige una recogida posible y confirma el horario excepcional.",
+            "pt-BR": "Escolha uma retirada possível e confirme o horário excepcional."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Heute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Bis wann haben Sie geöffnet?\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.\nUpdate: Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit.",
+            "de": "Ursprüngliche Nachricht: Bis wann haben Sie geöffnet?\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.\nAktualisierung: Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit.",
+            "es": "Aviso original: Bis wann haben Sie geöffnet?\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.\nActualización: Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit.",
+            "pt-BR": "Aviso original: Bis wann haben Sie geöffnet?\nHeute schließen wir um achtzehn Uhr. Morgen öffnen wir um neun Uhr.\nAtualização: Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit.",
+            "de": "Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit.",
+            "es": "Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit.",
+            "pt-BR": "Morgen öffnen wir ausnahmsweise erst um zehn statt um neun. Heute können Sie noch bis achtzehn Uhr kommen. Wenn Sie morgen kommen, prüfen Sie bitte die neue Öffnungszeit."
           }
         }
       ],

@@ -42,6 +42,7 @@ const leases = new WeakMap<
 
 export class CallNinaDatabase {
   #closed = false;
+  readonly dataRoot: string;
   readonly schemaVersion: number;
   readonly journalMode: "wal";
   readonly foreignKeysEnabled: true;
@@ -58,6 +59,7 @@ export class CallNinaDatabase {
       rootGeneration: DataRootGeneration;
     }>;
   }) {
+    this.dataRoot = options.lease.dataRoot;
     this.schemaVersion = options.schemaVersion;
     this.journalMode = "wal";
     this.foreignKeysEnabled = true;

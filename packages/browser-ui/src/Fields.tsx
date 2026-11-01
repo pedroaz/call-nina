@@ -14,6 +14,8 @@ import {
   type SwitchFieldProps,
 } from "react-aria-components";
 
+export { FileTrigger } from "react-aria-components";
+
 export function SwitchField({
   children,
   className,

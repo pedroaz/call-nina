@@ -34,11 +34,13 @@ function connection(hostKey, user, password) {
 }
 export const ownerConnection = () =>
   connection("PGHOST_UNPOOLED", need("PGUSER"), need("PGPASSWORD"));
-export function runtimeConnection() {
+export function runtimeConnection(hostKey = "PGHOST") {
+  if (!["PGHOST", "PGHOST_UNPOOLED"].includes(hostKey))
+    throw new ControlError("Invalid runtime database endpoint");
   const password = need("NINA_DATABASE_RUNTIME_PASSWORD");
   if (password === need("PGPASSWORD"))
     throw new ControlError("Runtime and administration passwords must be separate");
-  return connection("PGHOST", runtimeRole(), password);
+  return connection(hostKey, runtimeRole(), password);
 }
 export function connectExisting() {
   ownerConnection();

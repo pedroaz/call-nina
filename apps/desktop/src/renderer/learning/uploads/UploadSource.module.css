@@ -1,0 +1,60 @@
+.uploadCopy .meta {
+  margin: 0;
+  font-weight: normal;
+}
+.meta {
+  color: var(--od-color-text-muted);
+  font-size: var(--od-type-caption-size);
+  margin-block: var(--od-space-2) 0;
+}
+.preview {
+  display: grid;
+  gap: var(--od-space-4);
+  margin-block-end: var(--od-space-6);
+}
+.sourceText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--od-font-family-editorial);
+}
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 35vh;
+  object-fit: contain;
+}
+.proposals {
+  margin-block: var(--od-space-6);
+}
+.proposal {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--od-space-3);
+  padding-block: var(--od-space-3);
+  border-bottom: 1px solid var(--od-color-border-default);
+}
+.proposal input {
+  margin-block-start: 0.4em;
+}
+.proposal p {
+  margin-block: var(--od-space-2);
+}
+.secondary {
+  margin-block: var(--od-space-6);
+  color: var(--od-color-text-muted);
+}
+
+.itemContent {
+  display: grid;
+  min-width: 0;
+  gap: var(--od-space-2);
+  overflow-wrap: anywhere;
+}
+.itemContent blockquote {
+  margin: 0;
+  padding-inline-start: var(--od-space-4);
+  border-inline-start: 1px solid var(--od-color-border-default);
+}
+.itemContent p {
+  margin: 0;
+}

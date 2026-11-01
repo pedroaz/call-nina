@@ -19,7 +19,26 @@
         "de": "Beschreibe ein defektes Gerät und vereinbare einen Besuch.",
         "es": "Describe un electrodoméstico averiado y acuerda una visita.",
         "pt-BR": "Descreva um eletrodoméstico com defeito e combine uma visita."
-      }
+      },
+      "presentation": "supplementary"
+    },
+    {
+      "id": "repair-mission",
+      "kind": "scenario",
+      "level": "A2",
+      "title": {
+        "en": "Report a problem at home",
+        "de": "Ein Problem in der Wohnung melden",
+        "es": "Comunicar un problema en casa",
+        "pt-BR": "Informar um problema em casa"
+      },
+      "description": {
+        "en": "Describe a broken appliance and agree on a visit.",
+        "de": "Beschreibe ein defektes Gerät und vereinbare einen Besuch.",
+        "es": "Describe un electrodoméstico averiado y acuerda una visita.",
+        "pt-BR": "Descreva um eletrodoméstico com defeito e combine uma visita."
+      },
+      "presentation": "primary"
     }
   ],
   "sources": [
@@ -87,6 +106,120 @@
         "de": "Um einen Anruf vor dem Besuch bitten.",
         "es": "¿Puede llamar antes?",
         "pt-BR": "Pode ligar antes?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-repair-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Meine Waschmaschine funktioniert nicht.",
+      "meaning": {
+        "en": "My washing machine is not working.",
+        "de": "Ein Problem mit der Waschmaschine melden.",
+        "es": "Mi lavadora no funciona.",
+        "pt-BR": "Minha máquina de lavar não funciona."
+      },
+      "example": "Meine Waschmaschine funktioniert nicht.",
+      "exampleMeaning": {
+        "en": "My washing machine is not working.",
+        "de": "Ein Problem mit der Waschmaschine melden.",
+        "es": "Mi lavadora no funciona.",
+        "pt-BR": "Minha máquina de lavar não funciona."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-repair-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Sie stoppt nach wenigen Minuten.",
+      "meaning": {
+        "en": "It stops after a few minutes.",
+        "de": "Das Programm beginnt, läuft aber nicht durch.",
+        "es": "Se para a los pocos minutos.",
+        "pt-BR": "Ela para depois de poucos minutos."
+      },
+      "example": "Sie stoppt nach wenigen Minuten.",
+      "exampleMeaning": {
+        "en": "It stops after a few minutes.",
+        "de": "Das Programm beginnt, läuft aber nicht durch.",
+        "es": "Se para a los pocos minutos.",
+        "pt-BR": "Ela para depois de poucos minutos."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-repair-2-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Am Mittwoch bin ich zu Hause.",
+      "meaning": {
+        "en": "I will be at home on Wednesday.",
+        "de": "Die eigene Anwesenheit am Mittwoch bestätigen.",
+        "es": "El miércoles estaré en casa.",
+        "pt-BR": "Na quarta-feira estarei em casa."
+      },
+      "example": "Am Mittwoch bin ich zu Hause.",
+      "exampleMeaning": {
+        "en": "I will be at home on Wednesday.",
+        "de": "Die eigene Anwesenheit am Mittwoch bestätigen.",
+        "es": "El miércoles estaré en casa.",
+        "pt-BR": "Na quarta-feira estarei em casa."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-repair-2-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Das Zeitfenster am Donnerstag passt mir.",
+      "meaning": {
+        "en": "The Thursday window suits me.",
+        "de": "Ich wähle den Donnerstag.",
+        "es": "Me viene bien el horario del jueves.",
+        "pt-BR": "O horário de quinta serve para mim."
+      },
+      "example": "Das Zeitfenster am Donnerstag passt mir.",
+      "exampleMeaning": {
+        "en": "The Thursday window suits me.",
+        "de": "Ich wähle den Donnerstag.",
+        "es": "Me viene bien el horario del jueves.",
+        "pt-BR": "O horário de quinta serve para mim."
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-repair-3-v2-phrase-1",
+      "kind": "chunk",
+      "text": "Können Sie vorher anrufen?",
+      "meaning": {
+        "en": "Can you call beforehand?",
+        "de": "Um einen Anruf vor dem Besuch bitten.",
+        "es": "¿Puede llamar antes?",
+        "pt-BR": "Pode ligar antes?"
+      },
+      "example": "Können Sie vorher anrufen?",
+      "exampleMeaning": {
+        "en": "Can you call beforehand?",
+        "de": "Um einen Anruf vor dem Besuch bitten.",
+        "es": "¿Puede llamar antes?",
+        "pt-BR": "Pode ligar antes?"
+      },
+      "register": "neutral"
+    },
+    {
+      "id": "de-repair-3-v2-phrase-2",
+      "kind": "chunk",
+      "text": "Falls ich den Anruf verpasse, rufe ich zurück.",
+      "meaning": {
+        "en": "If I miss the call, I will call back.",
+        "de": "Ich bestätige den Rückruf als nächsten Schritt.",
+        "es": "Si pierdo la llamada, devuelvo la llamada.",
+        "pt-BR": "Se perder a ligação, retorno."
+      },
+      "example": "Falls ich den Anruf verpasse, rufe ich zurück.",
+      "exampleMeaning": {
+        "en": "If I miss the call, I will call back.",
+        "de": "Ich bestätige den Rückruf als nächsten Schritt.",
+        "es": "Si pierdo la llamada, devuelvo la llamada.",
+        "pt-BR": "Se perder a ligação, retorno."
       },
       "register": "neutral"
     }
@@ -1000,6 +1133,951 @@
             "de": "Um einen Anruf vor der Ankunft bitten. Um einen Anruf vor dem Besuch bitten.\nJa, wir rufen dreißig Minuten vor der Ankunft an.",
             "es": "Pedir una llamada antes de la llegada. ¿Puede llamar antes?\nJa, wir rufen dreißig Minuten vor der Ankunft an.",
             "pt-BR": "Pedir uma ligação antes da chegada. Pode ligar antes?\nJa, wir rufen dreißig Minuten vor der Ankunft an."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-repair-v2",
+      "stage": "repair-mission",
+      "kind": "module",
+      "title": {
+        "en": "Arranging a technician’s visit",
+        "de": "Einen Technikerbesuch vereinbaren",
+        "es": "Concertar la visita de un técnico",
+        "pt-BR": "Combinar a visita de um técnico"
+      },
+      "scenario": {
+        "en": "Describe an observable appliance problem and request a visit without diagnosing its cause.",
+        "de": "Beschreibe ein beobachtbares Geräteproblem und bitte um einen Besuch, ohne die Ursache zu diagnostizieren.",
+        "es": "Describe un problema observable y pide visita sin diagnosticar la causa.",
+        "pt-BR": "Descreva um problema observável e peça visita sem diagnosticar a causa."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000014"],
+      "prerequisites": [],
+      "grammar": {
+        "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+        "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+        "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+        "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+      },
+      "explanation": {
+        "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+        "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+        "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+        "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+      },
+      "examples": [
+        {
+          "text": "Meine Waschmaschine funktioniert nicht.",
+          "meaning": {
+            "en": "My washing machine is not working.",
+            "de": "Ein Problem mit der Waschmaschine melden.",
+            "es": "Mi lavadora no funciona.",
+            "pt-BR": "Minha máquina de lavar não funciona."
+          }
+        },
+        {
+          "text": "Sie stoppt nach wenigen Minuten.",
+          "meaning": {
+            "en": "It stops after a few minutes.",
+            "de": "Das Programm beginnt, läuft aber nicht durch.",
+            "es": "Se para a los pocos minutos.",
+            "pt-BR": "Ela para depois de poucos minutos."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-repair-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "Find the key information in the message.",
+            "de": "Finde die wesentlichen Informationen in der Nachricht.",
+            "es": "Encuentra la información clave del mensaje.",
+            "pt-BR": "Encontre as informações principais da mensagem."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-repair-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What must be clarified before the visit?",
+            "de": "Was muss vor dem Besuch geklärt werden?",
+            "es": "¿Qué debe aclararse antes de la visita?",
+            "pt-BR": "O que precisa ser esclarecido antes da visita?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-repair-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Describe an observable appliance problem and request a visit without diagnosing its cause.",
+            "de": "Beschreibe ein beobachtbares Geräteproblem und bitte um einen Besuch, ohne die Ursache zu diagnostizieren.",
+            "es": "Describe un problema observable y pide visita sin diagnosticar la causa.",
+            "pt-BR": "Descreva um problema observável e peça visita sem diagnosticar a causa."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-repair-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Describe an observable appliance problem and request a visit without diagnosing its cause.",
+            "de": "Beschreibe ein beobachtbares Geräteproblem und bitte um einen Besuch, ohne die Ursache zu diagnostizieren.",
+            "es": "Describe un problema observable y pide visita sin diagnosticar la causa.",
+            "pt-BR": "Descreva um problema observável e peça visita sem diagnosticar a causa."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+      "reviewTargetIds": [],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-repair-v2-reading"],
+          "targetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the message and identify the information you need. Explain your next step.",
+            "de": "Lies die Nachricht und finde die nötigen Informationen. Erkläre deinen nächsten Schritt.",
+            "es": "Lee el mensaje e identifica la información que necesitas. Explica tu siguiente paso.",
+            "pt-BR": "Leia a mensagem e identifique as informações necessárias. Explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "When will the technician come?",
+              "de": "Wann kommt der Techniker?",
+              "es": "¿Cuándo vendrá el técnico?",
+              "pt-BR": "Quando o técnico virá?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "am Mittwoch zwischen zehn und zwölf Uhr",
+              "de": "am Mittwoch zwischen zehn und zwölf Uhr",
+              "es": "am Mittwoch zwischen zehn und zwölf Uhr",
+              "pt-BR": "am Mittwoch zwischen zehn und zwölf Uhr"
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Guten Tag, wir können Ihre Waschmaschine am Mittwoch ansehen. Der Techniker kommt zwischen zehn und zwölf Uhr. Bitte bestätigen Sie, ob jemand zu Hause ist."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-repair-v2-listening"],
+          "targetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What must be clarified before the visit?",
+              "de": "Was muss vor dem Besuch geklärt werden?",
+              "es": "¿Qué debe aclararse antes de la visita?",
+              "pt-BR": "O que precisa ser esclarecido antes da visita?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ob die Maschine nicht startet oder während des Programms stoppt.",
+              "de": "Ob die Maschine nicht startet oder während des Programms stoppt.",
+              "es": "Ob die Maschine nicht startet oder während des Programms stoppt.",
+              "pt-BR": "Ob die Maschine nicht startet oder während des Programms stoppt."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?"
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+          "instructions": {
+            "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+            "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+            "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+            "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-repair-v2-writing"],
+          "targetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe an observable appliance problem and request a visit without diagnosing its cause.",
+            "de": "Beschreibe ein beobachtbares Geräteproblem und bitte um einen Besuch, ohne die Ursache zu diagnostizieren.",
+            "es": "Describe un problema observable y pide visita sin diagnosticar la causa.",
+            "pt-BR": "Descreva um problema observável e peça visita sem diagnosticar a causa."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-repair-v2-writing"],
+          "targetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe an observable appliance problem and request a visit without diagnosing its cause.",
+            "de": "Beschreibe ein beobachtbares Geräteproblem und bitte um einen Besuch, ohne die Ursache zu diagnostizieren.",
+            "es": "Describe un problema observable y pide visita sin diagnosticar la causa.",
+            "pt-BR": "Descreva um problema observável e peça visita sem diagnosticar a causa."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-repair-v2-speaking"],
+          "targetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+          "instructions": {
+            "en": "Describe an observable appliance problem and request a visit without diagnosing its cause.",
+            "de": "Beschreibe ein beobachtbares Geräteproblem und bitte um einen Besuch, ohne die Ursache zu diagnostizieren.",
+            "es": "Describe un problema observable y pide visita sin diagnosticar la causa.",
+            "pt-BR": "Descreva um problema observável e peça visita sem diagnosticar a causa."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Guten Tag, wir können Ihre Waschmaschine am Mittwoch ansehen. Der Techniker kommt zwischen zehn und zwölf Uhr. Bitte bestätigen Sie, ob jemand zu Hause ist.\nUpdate: Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?",
+            "de": "Ursprüngliche Nachricht: Guten Tag, wir können Ihre Waschmaschine am Mittwoch ansehen. Der Techniker kommt zwischen zehn und zwölf Uhr. Bitte bestätigen Sie, ob jemand zu Hause ist.\nAktualisierung: Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?",
+            "es": "Aviso original: Guten Tag, wir können Ihre Waschmaschine am Mittwoch ansehen. Der Techniker kommt zwischen zehn und zwölf Uhr. Bitte bestätigen Sie, ob jemand zu Hause ist.\nActualización: Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?",
+            "pt-BR": "Aviso original: Guten Tag, wir können Ihre Waschmaschine am Mittwoch ansehen. Der Techniker kommt zwischen zehn und zwölf Uhr. Bitte bestätigen Sie, ob jemand zu Hause ist.\nAtualização: Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?"
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?",
+            "de": "Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?",
+            "es": "Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?",
+            "pt-BR": "Der Techniker kann am Mittwoch zwischen zehn und zwölf kommen. Bitte beschreiben Sie vorher: Startet die Waschmaschine gar nicht oder stoppt sie während des Programms?"
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-repair-2-v2",
+      "stage": "repair-mission",
+      "kind": "module",
+      "title": {
+        "en": "Arrange a repair visit",
+        "de": "Einen Reparaturbesuch vereinbaren",
+        "es": "Concertar una visita de reparación",
+        "pt-BR": "Combinar uma visita de reparo"
+      },
+      "scenario": {
+        "en": "Decline an unsuitable time window and confirm an offered alternative with day and hours.",
+        "de": "Lehne ein unpassendes Zeitfenster ab und bestätige eine angebotene Alternative mit Tag und Uhrzeit.",
+        "es": "Rechaza una franja y confirma alternativa con día y horas.",
+        "pt-BR": "Recuse uma faixa e confirme alternativa com dia e horas."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000014"],
+      "prerequisites": ["de-repair-v2"],
+      "grammar": {
+        "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+        "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+        "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+        "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+      },
+      "explanation": {
+        "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+        "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+        "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+        "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+      },
+      "examples": [
+        {
+          "text": "Am Mittwoch bin ich zu Hause.",
+          "meaning": {
+            "en": "I will be at home on Wednesday.",
+            "de": "Die eigene Anwesenheit am Mittwoch bestätigen.",
+            "es": "El miércoles estaré en casa.",
+            "pt-BR": "Na quarta-feira estarei em casa."
+          }
+        },
+        {
+          "text": "Das Zeitfenster am Donnerstag passt mir.",
+          "meaning": {
+            "en": "The Thursday window suits me.",
+            "de": "Ich wähle den Donnerstag.",
+            "es": "Me viene bien el horario del jueves.",
+            "pt-BR": "O horário de quinta serve para mim."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-repair-2-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-repair-2-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What alternative day is offered?",
+            "de": "Welcher Alternativtag wird angeboten?",
+            "es": "¿Qué día alternativo se ofrece?",
+            "pt-BR": "Qual dia alternativo é oferecido?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-repair-2-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Decline an unsuitable time window and confirm an offered alternative with day and hours.",
+            "de": "Lehne ein unpassendes Zeitfenster ab und bestätige eine angebotene Alternative mit Tag und Uhrzeit.",
+            "es": "Rechaza una franja y confirma alternativa con día y horas.",
+            "pt-BR": "Recuse uma faixa e confirme alternativa com dia e horas."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-repair-2-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Decline an unsuitable time window and confirm an offered alternative with day and hours.",
+            "de": "Lehne ein unpassendes Zeitfenster ab und bestätige eine angebotene Alternative mit Tag und Uhrzeit.",
+            "es": "Rechaza una franja y confirma alternativa con día y horas.",
+            "pt-BR": "Recuse uma faixa e confirme alternativa com dia e horas."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-repair-2-v2-phrase-1", "de-repair-2-v2-phrase-2"],
+      "reviewTargetIds": ["de-repair-v2-phrase-1", "de-repair-v2-phrase-2"],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-repair-2-v2-reading"],
+          "targetIds": ["de-repair-2-v2-phrase-1", "de-repair-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Wir können am Mittwoch zwischen zehn und zwölf Uhr kommen.",
+              "de": "Wir können am Mittwoch zwischen zehn und zwölf Uhr kommen.",
+              "es": "Wir können am Mittwoch zwischen zehn und zwölf Uhr kommen.",
+              "pt-BR": "Wir können am Mittwoch zwischen zehn und zwölf Uhr kommen."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Am Mittwoch bin ich zu Hause.\nWir können am Mittwoch zwischen zehn und zwölf Uhr kommen."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-repair-2-v2-listening"],
+          "targetIds": ["de-repair-2-v2-phrase-1", "de-repair-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What alternative day is offered?",
+              "de": "Welcher Alternativtag wird angeboten?",
+              "es": "¿Qué día alternativo se ofrece?",
+              "pt-BR": "Qual dia alternativo é oferecido?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Donnerstag.",
+              "de": "Donnerstag.",
+              "es": "Donnerstag.",
+              "pt-BR": "Donnerstag."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-repair-2-v2-phrase-1", "de-repair-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+            "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+            "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+            "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-repair-2-v2-writing"],
+          "targetIds": ["de-repair-2-v2-phrase-1", "de-repair-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Decline an unsuitable time window and confirm an offered alternative with day and hours.",
+            "de": "Lehne ein unpassendes Zeitfenster ab und bestätige eine angebotene Alternative mit Tag und Uhrzeit.",
+            "es": "Rechaza una franja y confirma alternativa con día y horas.",
+            "pt-BR": "Recuse uma faixa e confirme alternativa com dia e horas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-repair-2-v2-writing"],
+          "targetIds": ["de-repair-2-v2-phrase-1", "de-repair-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Decline an unsuitable time window and confirm an offered alternative with day and hours.",
+            "de": "Lehne ein unpassendes Zeitfenster ab und bestätige eine angebotene Alternative mit Tag und Uhrzeit.",
+            "es": "Rechaza una franja y confirma alternativa con día y horas.",
+            "pt-BR": "Recuse uma faixa e confirme alternativa com dia e horas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Wir können am Mittwoch zwischen neun und elf Uhr kommen."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-repair-2-v2-speaking"],
+          "targetIds": ["de-repair-2-v2-phrase-1", "de-repair-2-v2-phrase-2"],
+          "instructions": {
+            "en": "Decline an unsuitable time window and confirm an offered alternative with day and hours.",
+            "de": "Lehne ein unpassendes Zeitfenster ab und bestätige eine angebotene Alternative mit Tag und Uhrzeit.",
+            "es": "Rechaza una franja y confirma alternativa con día y horas.",
+            "pt-BR": "Recuse uma faixa e confirme alternativa com dia e horas."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Wir können am Mittwoch zwischen neun und elf Uhr kommen."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Am Mittwoch bin ich zu Hause.\nWir können am Mittwoch zwischen zehn und zwölf Uhr kommen.\nUpdate: Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster.",
+            "de": "Ursprüngliche Nachricht: Am Mittwoch bin ich zu Hause.\nWir können am Mittwoch zwischen zehn und zwölf Uhr kommen.\nAktualisierung: Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster.",
+            "es": "Aviso original: Am Mittwoch bin ich zu Hause.\nWir können am Mittwoch zwischen zehn und zwölf Uhr kommen.\nActualización: Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster.",
+            "pt-BR": "Aviso original: Am Mittwoch bin ich zu Hause.\nWir können am Mittwoch zwischen zehn und zwölf Uhr kommen.\nAtualização: Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster.",
+            "de": "Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster.",
+            "es": "Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster.",
+            "pt-BR": "Am Mittwoch können wir erst zwischen elf und dreizehn Uhr kommen. Wenn das nicht passt, wäre Donnerstag zwischen neun und elf möglich. Bitte bestätigen Sie ein Zeitfenster."
+          }
+        }
+      ],
+      "sourceIds": ["cefr-everyday-descriptors"]
+    },
+    {
+      "id": "de-repair-3-v2",
+      "stage": "repair-mission",
+      "kind": "module",
+      "title": {
+        "en": "Request a call before arrival",
+        "de": "Um einen Anruf vor der Ankunft bitten",
+        "es": "Pedir una llamada antes de la llegada",
+        "pt-BR": "Pedir uma ligação antes da chegada"
+      },
+      "scenario": {
+        "en": "Request advance notice and confirm the procedure for a missed call.",
+        "de": "Bitte um Vorankündigung und bestätige das Vorgehen bei verpasstem Anruf.",
+        "es": "Pide aviso previo y confirma el procedimiento si pierdes la llamada.",
+        "pt-BR": "Peça aviso prévio e confirme o procedimento se perder a ligação."
+      },
+      "curriculumTopicIds": ["curriculum-topic_0000000000000014"],
+      "prerequisites": ["de-repair-2-v2"],
+      "grammar": {
+        "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+        "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+        "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+        "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+      },
+      "explanation": {
+        "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+        "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+        "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+        "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+      },
+      "examples": [
+        {
+          "text": "Können Sie vorher anrufen?",
+          "meaning": {
+            "en": "Can you call beforehand?",
+            "de": "Um einen Anruf vor dem Besuch bitten.",
+            "es": "¿Puede llamar antes?",
+            "pt-BR": "Pode ligar antes?"
+          }
+        },
+        {
+          "text": "Falls ich den Anruf verpasse, rufe ich zurück.",
+          "meaning": {
+            "en": "If I miss the call, I will call back.",
+            "de": "Ich bestätige den Rückruf als nächsten Schritt.",
+            "es": "Si pierdo la llamada, devuelvo la llamada.",
+            "pt-BR": "Se perder a ligação, retorno."
+          }
+        }
+      ],
+      "objectives": [
+        {
+          "id": "de-repair-3-v2-reading",
+          "skills": ["reading"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What arrangement does this exchange confirm? Name the concrete details.",
+            "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+            "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+            "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+          },
+          "criterion": {
+            "en": "Identify the relevant details without inventing facts.",
+            "de": "Erkenne die nötigen Angaben, ohne Fakten zu erfinden.",
+            "es": "Identifica los detalles relevantes sin inventar datos.",
+            "pt-BR": "Identifique os detalhes relevantes sem inventar fatos."
+          }
+        },
+        {
+          "id": "de-repair-3-v2-listening",
+          "skills": ["listening"],
+          "modes": ["reception"],
+          "critical": true,
+          "description": {
+            "en": "What should happen after a missed call?",
+            "de": "Was soll nach einem verpassten Anruf passieren?",
+            "es": "¿Qué hacer tras una llamada perdida?",
+            "pt-BR": "O que fazer após uma ligação perdida?"
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-repair-3-v2-writing",
+          "skills": ["writing"],
+          "modes": ["production"],
+          "critical": true,
+          "description": {
+            "en": "Request advance notice and confirm the procedure for a missed call.",
+            "de": "Bitte um Vorankündigung und bestätige das Vorgehen bei verpasstem Anruf.",
+            "es": "Pide aviso previo y confirma el procedimiento si pierdes la llamada.",
+            "pt-BR": "Peça aviso prévio e confirme o procedimento se perder a ligação."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        },
+        {
+          "id": "de-repair-3-v2-speaking",
+          "skills": ["speaking"],
+          "modes": ["interaction"],
+          "critical": true,
+          "description": {
+            "en": "Request advance notice and confirm the procedure for a missed call.",
+            "de": "Bitte um Vorankündigung und bestätige das Vorgehen bei verpasstem Anruf.",
+            "es": "Pide aviso previo y confirma el procedimiento si pierdes la llamada.",
+            "pt-BR": "Peça aviso prévio e confirme o procedimento se perder a ligação."
+          },
+          "criterion": {
+            "en": "Convey the required information accurately, use the taught structure in context and distinguish source facts from your own view. Accept valid alternative wording; record revealed support.",
+            "de": "Gib die geforderten Angaben korrekt wieder und nutze das gelernte Muster passend. Trenne Textangaben von deiner Meinung. Akzeptiere passende andere Formulierungen; halte benutzte Hilfen fest.",
+            "es": "Comunica los datos necesarios, usa la estructura en contexto y distingue los hechos de tu opinión. Acepta otras formulaciones válidas y registra las ayudas.",
+            "pt-BR": "Comunique as informações necessárias, use a estrutura no contexto e diferencie fatos de opinião. Aceite outras formulações válidas e registre as ajudas."
+          }
+        }
+      ],
+      "targetIds": ["de-repair-3-v2-phrase-1", "de-repair-3-v2-phrase-2"],
+      "reviewTargetIds": [
+        "de-repair-v2-phrase-1",
+        "de-repair-v2-phrase-2",
+        "de-repair-2-v2-phrase-1",
+        "de-repair-2-v2-phrase-2"
+      ],
+      "activities": [
+        {
+          "id": "read",
+          "title": {
+            "en": "Read the situation",
+            "de": "Die Situation verstehen",
+            "es": "Lee la situación",
+            "pt-BR": "Leia a situação"
+          },
+          "purpose": "input",
+          "delivery": "explanation",
+          "objectiveIds": ["de-repair-3-v2-reading"],
+          "targetIds": ["de-repair-3-v2-phrase-1", "de-repair-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Read the exchange. Identify the reply’s key details and explain your next step.",
+            "de": "Lies den Austausch. Finde die wichtigsten Angaben in der Antwort und erkläre deinen nächsten Schritt.",
+            "es": "Lee el intercambio. Identifica los datos principales de la respuesta y explica tu siguiente paso.",
+            "pt-BR": "Leia a conversa. Identifique os dados principais da resposta e explique seu próximo passo."
+          },
+          "questions": [
+            {
+              "en": "What arrangement does this exchange confirm? Name the concrete details.",
+              "de": "Welche Vereinbarung bestätigt der Austausch? Nenne die konkreten Angaben.",
+              "es": "¿Qué acuerdo confirma el diálogo? Da los datos concretos.",
+              "pt-BR": "Qual acordo o diálogo confirma? Dê os dados concretos."
+            }
+          ],
+          "answers": [
+            {
+              "en": "Ja, wir rufen dreißig Minuten vor der Ankunft an.",
+              "de": "Ja, wir rufen dreißig Minuten vor der Ankunft an.",
+              "es": "Ja, wir rufen dreißig Minuten vor der Ankunft an.",
+              "pt-BR": "Ja, wir rufen dreißig Minuten vor der Ankunft an."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Können Sie vorher anrufen?\nJa, wir rufen dreißig Minuten vor der Ankunft an."
+        },
+        {
+          "id": "listen",
+          "title": {
+            "en": "Listen for details",
+            "de": "Auf Details hören",
+            "es": "Escucha los detalles",
+            "pt-BR": "Ouça os detalhes"
+          },
+          "purpose": "input",
+          "delivery": "listening",
+          "objectiveIds": ["de-repair-3-v2-listening"],
+          "targetIds": ["de-repair-3-v2-phrase-1", "de-repair-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Listen without the script. Find the requested detail; ask for repetition if needed.",
+            "de": "Höre ohne Skript zu. Finde die gesuchte Information und bitte bei Bedarf um Wiederholung.",
+            "es": "Escucha sin leer el guion. Encuentra el detalle solicitado y pide que lo repitan si lo necesitas.",
+            "pt-BR": "Ouça sem ler o roteiro. Identifique o detalhe solicitado e peça uma repetição se precisar."
+          },
+          "questions": [
+            {
+              "en": "What should happen after a missed call?",
+              "de": "Was soll nach einem verpassten Anruf passieren?",
+              "es": "¿Qué hacer tras una llamada perdida?",
+              "pt-BR": "O que fazer após uma ligação perdida?"
+            }
+          ],
+          "answers": [
+            {
+              "en": "Sofort im Büro zurückrufen.",
+              "de": "Sofort im Büro zurückrufen.",
+              "es": "Sofort im Büro zurückrufen.",
+              "pt-BR": "Sofort im Büro zurückrufen."
+            }
+          ],
+          "exerciseCount": 3,
+          "input": "Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück."
+        },
+        {
+          "id": "phrases",
+          "title": {
+            "en": "Useful phrases",
+            "de": "Nützliche Wendungen",
+            "es": "Expresiones útiles",
+            "pt-BR": "Expressões úteis"
+          },
+          "purpose": "discovery",
+          "delivery": "explanation",
+          "objectiveIds": [],
+          "targetIds": ["de-repair-3-v2-phrase-1", "de-repair-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Beschreiben states what you observe, not an unverified cause. A falls-clause places the verb last. Confirm both ends of a time window; an exact arrival time is not implied.",
+            "de": "Beschreiben nennt Beobachtbares statt ungeprüfter Ursachen. Im falls-Satz steht das Verb hinten. Bestätige beide Grenzen eines Zeitfensters; es verspricht keine genaue Ankunftsminute.",
+            "es": "Describe lo observable sin diagnosticar. Falls lleva el verbo al final. Confirma ambos límites del intervalo, no una hora exacta.",
+            "pt-BR": "Descreva o observável sem diagnosticar. Falls leva o verbo ao final. Confirme os dois limites do intervalo, não uma hora exata."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "recall",
+          "title": {
+            "en": "Recall and adapt",
+            "de": "Erinnern und anpassen",
+            "es": "Recuerda y adapta",
+            "pt-BR": "Lembre e adapte"
+          },
+          "purpose": "practice",
+          "delivery": "practice",
+          "objectiveIds": ["de-repair-3-v2-writing"],
+          "targetIds": ["de-repair-3-v2-phrase-1", "de-repair-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request advance notice and confirm the procedure for a missed call.",
+            "de": "Bitte um Vorankündigung und bestätige das Vorgehen bei verpasstem Anruf.",
+            "es": "Pide aviso previo y confirma el procedimiento si pierdes la llamada.",
+            "pt-BR": "Peça aviso prévio e confirme o procedimento se perder a ligação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3
+        },
+        {
+          "id": "write",
+          "title": {
+            "en": "Write a reply",
+            "de": "Eine Antwort schreiben",
+            "es": "Escribe una respuesta",
+            "pt-BR": "Escreva uma resposta"
+          },
+          "purpose": "practice",
+          "delivery": "writing",
+          "objectiveIds": ["de-repair-3-v2-writing"],
+          "targetIds": ["de-repair-3-v2-phrase-1", "de-repair-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request advance notice and confirm the procedure for a missed call.",
+            "de": "Bitte um Vorankündigung und bestätige das Vorgehen bei verpasstem Anruf.",
+            "es": "Pide aviso previo y confirma el procedimiento si pierdes la llamada.",
+            "pt-BR": "Peça aviso prévio e confirme o procedimento se perder a ligação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, wir rufen dreißig Minuten vor der Ankunft an."
+        },
+        {
+          "id": "speak",
+          "title": {
+            "en": "Handle the situation",
+            "de": "Die Situation meistern",
+            "es": "Resuelve la situación",
+            "pt-BR": "Resolva a situação"
+          },
+          "purpose": "capstone",
+          "delivery": "speaking",
+          "objectiveIds": ["de-repair-3-v2-speaking"],
+          "targetIds": ["de-repair-3-v2-phrase-1", "de-repair-3-v2-phrase-2"],
+          "instructions": {
+            "en": "Request advance notice and confirm the procedure for a missed call.",
+            "de": "Bitte um Vorankündigung und bestätige das Vorgehen bei verpasstem Anruf.",
+            "es": "Pide aviso previo y confirma el procedimiento si pierdes la llamada.",
+            "pt-BR": "Peça aviso prévio e confirme o procedimento se perder a ligação."
+          },
+          "questions": [],
+          "answers": [],
+          "exerciseCount": 3,
+          "input": "Ja, wir rufen dreißig Minuten vor der Ankunft an."
+        }
+      ],
+      "variants": [
+        {
+          "id": "base",
+          "facts": {
+            "en": "Original notice: Können Sie vorher anrufen?\nJa, wir rufen dreißig Minuten vor der Ankunft an.\nUpdate: Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück.",
+            "de": "Ursprüngliche Nachricht: Können Sie vorher anrufen?\nJa, wir rufen dreißig Minuten vor der Ankunft an.\nAktualisierung: Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück.",
+            "es": "Aviso original: Können Sie vorher anrufen?\nJa, wir rufen dreißig Minuten vor der Ankunft an.\nActualización: Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück.",
+            "pt-BR": "Aviso original: Können Sie vorher anrufen?\nJa, wir rufen dreißig Minuten vor der Ankunft an.\nAtualização: Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück."
+          }
+        },
+        {
+          "id": "updated",
+          "facts": {
+            "en": "Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück.",
+            "de": "Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück.",
+            "es": "Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück.",
+            "pt-BR": "Wir rufen weiterhin dreißig Minuten vorher an. Falls Sie den Anruf verpassen, warten wir nicht automatisch vor dem Haus. Bitte rufen Sie dann sofort im Büro zurück."
           }
         }
       ],
