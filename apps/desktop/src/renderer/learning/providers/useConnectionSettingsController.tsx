@@ -201,11 +201,18 @@ export function useConnectionSettingsController({
       if (mounted.current && epoch === rootEpoch.current) setOfflineBusy(false);
     }
   };
-  const saved = view?.settings.connections.find((entry) => entry.id === selectedId);
+  // Sign-in can persist this route under a new ID while its setup draft stays open.
+  // Keep the draft's edits, but use the persisted identity for status and mutations.
+  const selectedDraft = selectedId ? drafts[selectedId] : undefined;
+  const saved = view?.settings.connections.find(
+    (entry) => entry.id === selectedId || entry.routeId === selectedDraft?.routeId,
+  );
   const draft = selectedId ? (drafts[selectedId] ?? saved) : undefined;
   const credential = selectedId ? (credentials[selectedId]?.secret ?? "") : "";
   const credentialAction = selectedId ? (credentials[selectedId]?.action ?? "keep") : "keep";
-  const availability = view?.availability.find((entry) => entry.connectionId === selectedId);
+  const availability = view?.availability.find(
+    (entry) => entry.connectionId === (saved?.id ?? selectedId),
+  );
   const [chatgptModels, setChatgptModels] =
     useState<NonNullable<View["availability"][number]["models"]>>();
   const [chatgptModelsError, setChatgptModelsError] = useState<CallNinaError>();
@@ -254,7 +261,9 @@ export function useConnectionSettingsController({
     (entry) => entry.id === (selectedModelId ?? modelCatalog.runtimeDefaultModelId),
   );
   const hasChanges = (entry: Draft) => {
-    const original = view?.settings.connections.find((connection) => connection.id === entry.id);
+    const original = view?.settings.connections.find(
+      (connection) => connection.id === entry.id || connection.routeId === entry.routeId,
+    );
     return (
       !original ||
       original.label !== entry.label ||
@@ -334,7 +343,7 @@ export function useConnectionSettingsController({
     const ok = await mutate({
       kind: "save",
       connection: {
-        id: draft.id,
+        id: saved?.id ?? draft.id,
         label: draft.label.trim(),
         routeId: draft.routeId,
         preference: draft.preference,
@@ -354,8 +363,8 @@ export function useConnectionSettingsController({
     if (!saved || !view) return;
     const ok = await mutate({ kind: "remove", connectionId: saved.id });
     if (ok) {
-      setDrafts((current) => withoutDraft(current, saved.id));
-      setCredentials((current) => withoutCredential(current, saved.id));
+      setDrafts((current) => withoutDraft(current, draft?.id ?? saved.id));
+      setCredentials((current) => withoutCredential(current, draft?.id ?? saved.id));
       setSelectedId(undefined);
       setConfirmRemove(false);
       window.setTimeout(() => {
@@ -365,8 +374,8 @@ export function useConnectionSettingsController({
   };
   const add = (routeId: Route) => {
     const existing =
-      view?.settings.connections.find((entry) => entry.routeId === routeId) ??
-      Object.values(drafts).find((entry) => entry.routeId === routeId);
+      Object.values(drafts).find((entry) => entry.routeId === routeId) ??
+      view?.settings.connections.find((entry) => entry.routeId === routeId);
     if (existing) {
       select(existing.id);
       return;
