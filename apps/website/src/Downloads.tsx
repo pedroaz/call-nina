@@ -69,6 +69,7 @@ export function Downloads({ locale }: { locale: Locale }) {
     };
   }, [attempt, retry]);
   const ready = state.status === "ready" ? state.data : null;
+  const recommended = platform ? ready?.downloads[platform] : undefined;
   const downloadLabel = (
     <>
       <svg
@@ -86,9 +87,13 @@ export function Downloads({ locale }: { locale: Locale }) {
       </svg>
       <span className="download-label">
         <span>
-          {ready ? (platform ? formatDownloadLabel(platform, ready) : t.all) : t.download}
+          {ready
+            ? platform && recommended
+              ? formatDownloadLabel(platform, recommended)
+              : t.all
+            : t.download}
         </span>
-        {ready && <span className="download-meta">· v{ready.version}</span>}
+        {recommended && <span className="download-meta">· v{recommended.version}</span>}
       </span>
     </>
   );
@@ -114,14 +119,14 @@ export function Downloads({ locale }: { locale: Locale }) {
   return (
     <div className="downloads">
       <div className="download-controls">
-        {ready && platform ? (
+        {recommended && platform ? (
           <ActionLink
             className="download-primary"
-            href={ready.downloads[platform]}
+            href={recommended.url}
             onPress={() => {
-              trackWebsiteEvent("download_clicked", { platform, version: ready.version });
+              trackWebsiteEvent("download_clicked", { platform, version: recommended.version });
             }}
-            aria-label={`${t.download} ${formatDownloadLabel(platform, ready)} · v${ready.version}`}
+            aria-label={`${t.download} ${formatDownloadLabel(platform, recommended)} · v${recommended.version}`}
           >
             {downloadLabel}
           </ActionLink>
@@ -135,7 +140,7 @@ export function Downloads({ locale }: { locale: Locale }) {
             {downloadLabel}
           </Button>
         )}
-        {ready && platform && (
+        {recommended && platform && (
           <Button
             className="download-alternatives"
             variant="secondary"
@@ -164,23 +169,26 @@ export function Downloads({ locale }: { locale: Locale }) {
       <ModalDialog isOpen={open} onOpenChange={setOpen} title={t.all} closeLabel={t.close}>
         {ready ? (
           <div className="download-list">
-            <p className="download-version">Call Nina {ready.version}</p>
             <ul>
-              {platforms.map((id) => (
-                <li key={id}>
-                  <a
-                    href={ready.downloads[id]}
-                    onClick={() => {
-                      trackWebsiteEvent("download_clicked", {
-                        platform: id,
-                        version: ready.version,
-                      });
-                    }}
-                  >
-                    {formatDownloadLabel(id, ready)}
-                  </a>
-                </li>
-              ))}
+              {platforms.map((id) => {
+                const download = ready.downloads[id];
+                return download ? (
+                  <li key={id}>
+                    <a
+                      href={download.url}
+                      onClick={() => {
+                        trackWebsiteEvent("download_clicked", {
+                          platform: id,
+                          version: download.version,
+                        });
+                      }}
+                    >
+                      <span>{formatDownloadLabel(id, download)}</span>
+                      <span className="download-meta">v{download.version}</span>
+                    </a>
+                  </li>
+                ) : null;
+              })}
             </ul>
             <a href={ready.releaseUrl}>{t.releases}</a>
           </div>

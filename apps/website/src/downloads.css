@@ -30,12 +30,14 @@
 .download-label {
   display: inline-flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: var(--od-space-2);
   text-align: start;
 }
 .download-meta {
   font-size: var(--od-type-caption-size);
   font-weight: 400;
+  white-space: nowrap;
   line-height: 1.4;
 }
 .download-alternatives {
@@ -63,10 +65,9 @@
   display: flex;
   align-items: center;
   min-height: 52px;
+  justify-content: space-between;
+  gap: var(--od-space-3);
   padding-block: var(--od-space-3);
-}
-.download-version {
-  font-weight: 600;
 }
 @media (max-width: 26rem) {
   .downloads,

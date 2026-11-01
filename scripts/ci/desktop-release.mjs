@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { context, github, output, releaseVersion, digest, summary, progress } from "./common.mjs";
-import { desktopTargets, verify } from "./artifacts.mjs";
+import { verify } from "./artifacts.mjs";
+import { publicationPlatforms } from "./targets.mjs";
 import { speechTargets } from "../speech/distribution.mjs";
 
 async function identity() {
@@ -65,7 +66,8 @@ async function assets(release) {
 }
 async function expectedAssets() {
   const files = [];
-  for (const id of [...desktopTargets, ...speechTargets]) {
+  const platforms = publicationPlatforms();
+  for (const id of [...platforms, ...(platforms.includes("linux-x64") ? speechTargets : [])]) {
     const manifest = await verify(id);
     files.push(manifest.filename, `${id}.json`, `${id}.sha256`);
   }
@@ -75,6 +77,8 @@ async function expectedAssets() {
 }
 async function verifyRemote(asset, expected) {
   // GitHub reports digests for new uploads. Older uploads are streamed and hashed.
+  if (asset.state !== "uploaded")
+    throw new Error(`Release asset is not uploaded: ${expected.name}`);
   if (asset.digest === `sha256:${expected.sha256}`) return;
   const response = await github(`releases/assets/${asset.id}`, {
     raw: true,
@@ -88,6 +92,7 @@ async function verifyRemote(asset, expected) {
 export async function prepare() {
   progress("Verifying desktop artifact checksums");
   const expected = await expectedAssets();
+  const platforms = publicationPlatforms();
   let { info, release, commit } = await inspectRelease();
   progress(
     `Preparing ${info.tag}; commit=${info.commit}; build=${info.runId}; tag=${commit ? "existing" : "new"}; draft=${release ? "existing" : "new"}`,
@@ -121,11 +126,13 @@ export async function prepare() {
         target_commitish: info.commit,
         name: `Call Nina desktop ${info.version}`,
         draft: true,
-        body: `${info.marker}\nBuilt from ${info.commit}.\n\nUnsigned desktop builds: Linux x64 AppImage, Windows x64 ZIP, macOS 13.5+ Intel and Apple Silicon DMGs (older builds may use app archives). Mac bundles use ad-hoc executable integrity only; Developer ID signing and notarization are not included. Intel is experimental: native runtime verification is pending. Download the matching asset and checksum. Open the DMG, drag Call Nina into Applications, then launch the installed app and eject the DMG. If macOS blocks opening, use Privacy & Security → Open Anyway for this app. Quit Nina and active Nina MCP sessions before manually replacing the app. Removing/replacing the app preserves learner data and credentials; Keychain may request permission again after an update. A previous app bundle does not reverse database migrations. Native-host verification is tracked separately from successful packaging.\n\n${notes.body}`,
+        body: `${info.marker}\nBuilt from ${info.commit}.\n\nPlatforms in this release: ${platforms.join(", ")}. Other platforms retain their previous published versions.\n\nUnsigned desktop formats: Linux x64 AppImage, Windows x64 ZIP, macOS 13.5+ Intel and Apple Silicon DMGs (older builds may use app archives). Mac bundles use ad-hoc executable integrity only; Developer ID signing and notarization are not included. Intel is experimental: native runtime verification is pending. Download the matching asset and checksum. Open the DMG, drag Call Nina into Applications, then launch the installed app and eject the DMG. If macOS blocks opening, use Privacy & Security → Open Anyway for this app. Quit Nina and active Nina MCP sessions before manually replacing the app. Removing/replacing the app preserves learner data and credentials; Keychain may request permission again after an update. A previous app bundle does not reverse database migrations. Native-host verification is tracked separately from successful packaging.\n\n${notes.body}`,
       },
     });
   }
   const existing = await assets(release);
+  if (new Set(existing.map((asset) => asset.name)).size !== existing.length)
+    throw new Error("Duplicate release asset names");
   if (existing.some((asset) => !expected.some((item) => item.name === asset.name)))
     throw new Error("Draft contains unexpected assets");
   for (const item of expected) {
@@ -149,7 +156,9 @@ export async function prepare() {
     await verifyRemote(uploaded, item);
     progress(`Verified uploaded asset ${item.name}`);
   }
-  await summary(`Desktop draft prepared: ${release.html_url}\nCommit: ${info.commit}`);
+  await summary(
+    `Desktop draft prepared: ${release.html_url}\nCommit: ${info.commit}\nPlatforms: ${platforms.join(", ")}`,
+  );
 }
 export async function publish() {
   const { release, info, commit } = await inspectRelease({ finalizing: true });
@@ -157,6 +166,8 @@ export async function publish() {
   progress("Verifying desktop artifact checksums");
   const expected = await expectedAssets();
   const existing = await assets(release);
+  if (new Set(existing.map((asset) => asset.name)).size !== existing.length)
+    throw new Error("Duplicate release asset names");
   if (existing.length !== expected.length) throw new Error("Release asset set is incomplete");
   for (const item of expected) {
     const asset = existing.find((entry) => entry.name === item.name);

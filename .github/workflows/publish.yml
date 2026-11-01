@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       build_run_id:
-        description: Successful Desktop Build run from main containing all four desktop platforms
+        description: Successful Desktop Build run from main containing one or more desktop platforms
         type: string
         required: true
 permissions:
@@ -26,6 +26,7 @@ jobs:
       commit: ${{ steps.source.outputs.commit }}
       version: ${{ steps.source.outputs.version }}
       artifacts: ${{ steps.source.outputs.artifacts }}
+      platforms: ${{ steps.source.outputs.platforms }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -52,6 +53,7 @@ jobs:
       RELEASE_SOURCE_COMMIT: ${{ needs.source.outputs.commit }}
       RELEASE_SOURCE_VERSION: ${{ needs.source.outputs.version }}
       RELEASE_SOURCE_ARTIFACTS: ${{ needs.source.outputs.artifacts }}
+      RELEASE_SOURCE_PLATFORMS: ${{ needs.source.outputs.platforms }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

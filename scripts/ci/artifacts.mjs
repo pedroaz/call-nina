@@ -127,6 +127,20 @@ export async function verify(id) {
       (!desktopTargets.includes(id) || `${manifest.platform}-${manifest.arch}` !== id))
   )
     throw new Error("Artifact target mismatch");
+  if (expectedKind === "desktop") {
+    const extensions =
+      manifest.platform === "linux"
+        ? ["AppImage"]
+        : manifest.platform === "win32"
+          ? ["zip"]
+          : ["dmg", "tar.gz"];
+    if (
+      !extensions.some(
+        (extension) => manifest.filename === `Call-Nina-${version}-${id}.${extension}`,
+      )
+    )
+      throw new Error("Desktop artifact filename mismatch");
+  }
   if (expectedKind === "speech") {
     // Publication intentionally runs without workspace dependencies or rebuilding.
     const runtime = manifest.runtime;

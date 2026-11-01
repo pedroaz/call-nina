@@ -1,5 +1,5 @@
 const repository = "https://github.com/pedroaz/call-nina";
-const releaseApi = "https://api.github.com/repos/pedroaz/call-nina/releases/latest";
+const releaseApi = "https://api.github.com/repos/pedroaz/call-nina/releases";
 const platforms = {
   "linux-x64": ["AppImage"],
   "win32-x64": ["zip"],
@@ -7,11 +7,11 @@ const platforms = {
   "darwin-arm64": ["dmg", "tar.gz"],
 } as const;
 
+type Download = { version: string; releaseUrl: string; url: string; format: string };
 type Downloads = {
-  version: string;
+  schemaVersion: 2;
   releaseUrl: string;
-  downloads: Record<keyof typeof platforms, string>;
-  formats: Record<keyof typeof platforms, string>;
+  downloads: Partial<Record<keyof typeof platforms, Download>>;
 };
 let cached: { data: Downloads; expires: number } | undefined;
 let pending: Promise<Downloads | null> | undefined;
@@ -21,59 +21,79 @@ function record(value: unknown): Record<string, unknown> {
     throw new Error("Invalid release");
   return value as Record<string, unknown>;
 }
-async function latest(): Promise<Downloads | null> {
-  // Public GitHub REST API; no runtime or administration credentials are used.
-  const response = await fetch(releaseApi, {
-    headers: { Accept: "application/vnd.github+json", "User-Agent": "Call-Nina-downloads" },
-    signal: AbortSignal.timeout(10000),
-    cache: "no-store",
-  });
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error("Release lookup unavailable");
-  const release = record(await response.json());
-  if (
-    release["draft"] !== false ||
-    release["prerelease"] !== false ||
-    typeof release["published_at"] !== "string"
-  )
-    throw new Error("Release is not public and stable");
-  const tag = release["tag_name"];
-  if (typeof tag !== "string") throw new Error("Desktop release unavailable");
-  const version = /^desktop-v(\d+\.\d+\.\d+)$/.exec(tag)?.[1];
-  if (!version || !Array.isArray(release["assets"])) throw new Error("Desktop release unavailable");
-  const releaseUrl = `${repository}/releases/tag/${tag}`;
-  if (release["html_url"] !== releaseUrl) throw new Error("Unexpected release URL");
-  const downloads = {} as Downloads["downloads"];
-  const formats = {} as Downloads["formats"];
-  for (const [platform, extensions] of Object.entries(platforms)) {
-    const extension = extensions.find(
-      (candidate) =>
-        release["assets"] instanceof Array &&
-        release["assets"].some(
-          (asset: unknown) =>
-            record(asset)["name"] === `Call-Nina-${version}-${platform}.${candidate}`,
-        ),
-    );
-    if (!extension) throw new Error("Desktop release assets incomplete");
-    formats[platform as keyof typeof platforms] = extension;
-    const name = `Call-Nina-${version}-${platform}.${extension}`;
-    const matches = release["assets"].map(record).filter((asset) => asset["name"] === name);
-    const asset = matches[0];
-    if (
-      matches.length !== 1 ||
-      !asset ||
-      asset["state"] !== "uploaded" ||
-      typeof asset["size"] !== "number" ||
-      asset["size"] <= 0
-    )
-      throw new Error("Desktop release assets incomplete");
-    // The URL must be supplied by GitHub, and must target this release and asset.
-    const url = asset["browser_download_url"];
-    if (url !== `${repository}/releases/download/${tag}/${name}`)
-      throw new Error("Unexpected asset URL");
-    downloads[platform as keyof typeof platforms] = url;
+function newer(left: string, right: string): boolean {
+  const a = left.split(".").map(BigInt),
+    b = right.split(".").map(BigInt);
+  for (const [index, value] of a.entries()) {
+    const other = b[index] ?? 0n;
+    if (value !== other) return value > other;
   }
-  return { version, releaseUrl, downloads, formats };
+  return false;
+}
+async function latest(): Promise<Downloads | null> {
+  // Resolve each platform independently; publication order and GitHub's global
+  // "latest" release cannot establish the newest version for an omitted platform.
+  const downloads: Downloads["downloads"] = {};
+  const signal = AbortSignal.timeout(10000);
+  // Bound anonymous API work. Never silently return an incomplete historical scan.
+  for (let page = 1; page <= 5; page++) {
+    const response = await fetch(`${releaseApi}?per_page=100&page=${String(page)}`, {
+      headers: { Accept: "application/vnd.github+json", "User-Agent": "Call-Nina-downloads" },
+      signal,
+      redirect: "error",
+      cache: "no-store",
+    });
+    if (response.status === 404 && page === 1) return null;
+    if (!response.ok) throw new Error("Release lookup unavailable");
+    const batch: unknown = await response.json();
+    if (!Array.isArray(batch)) throw new Error("Invalid release listing");
+    for (const value of batch) {
+      const release = record(value);
+      if (
+        release["draft"] !== false ||
+        release["prerelease"] !== false ||
+        typeof release["published_at"] !== "string"
+      )
+        continue;
+      const tag = release["tag_name"];
+      if (typeof tag !== "string") continue;
+      const version = /^desktop-v(\d+\.\d+\.\d+)$/.exec(tag)?.[1];
+      if (!version) continue;
+      const releaseUrl = `${repository}/releases/tag/${tag}`;
+      if (release["html_url"] !== releaseUrl || !Array.isArray(release["assets"]))
+        throw new Error("Unexpected desktop release metadata");
+      const assets = release["assets"].map(record);
+      for (const [platform, extensions] of Object.entries(platforms)) {
+        const id = platform as keyof typeof platforms;
+        if (downloads[id] && !newer(version, downloads[id].version)) continue;
+        const format = extensions.find((extension) =>
+          assets.some((asset) => asset["name"] === `Call-Nina-${version}-${platform}.${extension}`),
+        );
+        // An omitted platform keeps its newest asset from another release.
+        if (!format) continue;
+        const name = `Call-Nina-${version}-${platform}.${format}`;
+        const matches = assets.filter((asset) => asset["name"] === name);
+        const asset = matches[0];
+        if (
+          matches.length !== 1 ||
+          !asset ||
+          asset["state"] !== "uploaded" ||
+          typeof asset["size"] !== "number" ||
+          asset["size"] <= 0
+        )
+          throw new Error("Invalid desktop release asset");
+        const url = asset["browser_download_url"];
+        if (url !== `${repository}/releases/download/${tag}/${name}`)
+          throw new Error("Unexpected asset URL");
+        downloads[id] = { version, releaseUrl, url, format };
+      }
+    }
+    if (batch.length < 100)
+      return Object.keys(downloads).length
+        ? { schemaVersion: 2, releaseUrl: `${repository}/releases`, downloads }
+        : null;
+  }
+  throw new Error("Desktop release history exceeds lookup limit");
 }
 export async function GET(): Promise<Response> {
   try {
