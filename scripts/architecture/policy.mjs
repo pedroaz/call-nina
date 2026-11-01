@@ -1,11 +1,13 @@
 // Dependency additions require an explicit owner in this policy.
 export const desktopServiceDependencies = {
+  "product-feedback.ts": [],
   "activities.ts": ["root", "scheduler", "generation", "providers"],
   "local-assets.ts": [],
   "generation-context.ts": ["exerciseContext", "root", "imports", "providers", "generation"],
   "curriculum.ts": ["root", "activities"],
   "diagnostics.ts": ["root", "generation", "assets"],
   "dispatcher.ts": [
+    "productFeedback",
     "root",
     "materials",
     "mobile",
@@ -42,11 +44,13 @@ export const desktopServiceDependencies = {
   "vocabulary-library.ts": ["root", "learner"],
 };
 export const mainServiceImports = {
+  "product-feedback.ts": [],
   "activities.ts": ["activity-service.ts", "desktop-services.ts"],
   "local-assets.ts": ["desktop-services.ts"],
   "generation-context.ts": ["desktop-services.ts", "upload-images.ts"],
   "curriculum.ts": ["desktop-services.ts"],
   "desktop-services.ts": [
+    "product-feedback.ts",
     "activities.ts",
     "local-assets.ts",
     "generation-context.ts",
@@ -102,6 +106,7 @@ export const mainServiceImports = {
 };
 
 export const rendererPublicModules = [
+  "learning/privacy/UsageAnalytics.js",
   "learning/account/NinaAccount.js",
   "learning/activities/CodexActivityPreparation.js",
   "learning/activities/ExerciseEngine.js",

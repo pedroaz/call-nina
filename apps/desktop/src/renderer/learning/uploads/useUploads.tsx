@@ -75,7 +75,7 @@ export function UploadPreview({
         <details className={styles.secondary}>
           <summary>{t("uploads.originalText")}</summary>
           <div className={styles.sourceText}>{upload.studyPack.source.text}</div>
-          {upload.studyPack.source.truncated && <p>{t("uploads.truncated")}</p>}
+          {upload.studyPack.source.truncated && <p>{t("uploads.truncated", { limit: 120000 })}</p>}
         </details>
       )}
     </div>

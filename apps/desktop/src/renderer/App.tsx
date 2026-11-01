@@ -1,3 +1,4 @@
+import { UsageAnalyticsProvider } from "./runtime/usage-analytics.js";
 import { type CallNinaError } from "@call-nina/contracts";
 import { LoaderCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -20,6 +21,14 @@ import { invokeDesktop, normalizeDesktopError } from "./runtime/ipc.js";
 import { DesktopWorkspace } from "./app/DesktopWorkspace.js";
 
 export default function App() {
+  return (
+    <UsageAnalyticsProvider>
+      <AppContent />
+    </UsageAnalyticsProvider>
+  );
+}
+
+function AppContent() {
   const { t } = useTranslation();
   const [readiness, setReadiness] = useState<Readiness>();
   const [fatal, setFatal] = useState<CallNinaError>();

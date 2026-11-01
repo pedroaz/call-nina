@@ -1,3 +1,4 @@
+import { unchangedWritingFeedback } from "../localization.js";
 import {
   activityIdSchema,
   attemptIdSchema,
@@ -216,7 +217,10 @@ export class WritingResultPersistence {
       feedback: {
         source: { kind: "ai", modelRequestId: state.modelRequestId },
         summary: state.output.summary,
-        strengths: state.output.changes.length === 0 ? ["No textual changes were needed."] : [],
+        strengths:
+          state.output.changes.length === 0
+            ? [unchangedWritingFeedback[operation.input.learningContext.explanationLanguage]]
+            : [],
         improvements,
         ...(state.output.nextPracticeSuggestion
           ? { nextStep: state.output.nextPracticeSuggestion }

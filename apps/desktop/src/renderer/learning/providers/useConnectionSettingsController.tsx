@@ -309,8 +309,7 @@ export function useConnectionSettingsController({
       if (!mounted.current || epoch !== rootEpoch.current) return false;
       setView(next);
       setOffline(next.offlineModel);
-      if (action.kind === "save")
-        notify({ message: t("connectionSettings.saved"), tone: "success" });
+      if (action.kind === "save") notify({ message: "connectionSettings.saved", tone: "success" });
       return true;
     } catch (cause) {
       if (!mounted.current || epoch !== rootEpoch.current) return false;

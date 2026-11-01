@@ -24,6 +24,17 @@ const runtimeKeys = ["projectId", "teamId", "origin", "clerkIssuer", "allowedOri
 export function publicConfiguration(selectedEnvironment = environment) {
   const name = hostingEnvironment(selectedEnvironment);
   const profile = infrastructure[name];
+  if (
+    profile.tallyFeedbackUrl != null &&
+    !/^https:\/\/tally\.so\/r\/[A-Za-z0-9]+$/u.test(profile.tallyFeedbackUrl)
+  )
+    throw new ControlError(`Invalid Tally response URL for ${name}`);
+  if (profile.aptabaseAppKey != null && !/^A-EU-[0-9]+$/u.test(profile.aptabaseAppKey))
+    throw new ControlError(`Invalid EU Aptabase App Key for ${name}`);
+  const otherProfile = infrastructure[name === "dev" ? "prd" : "dev"];
+  for (const key of ["tallyFeedbackUrl", "aptabaseAppKey"])
+    if (profile[key] != null && profile[key] === otherProfile[key])
+      throw new ControlError(`Dev and prd must use separate ${key} values`);
   for (const key of ["origin", "clerkIssuer"]) {
     if (profile[key] !== null) {
       let url;
@@ -52,6 +63,8 @@ export function publicConfiguration(selectedEnvironment = environment) {
       environment: name,
       publishableKey: profile.publishableKey,
       serviceOrigin: profile.origin,
+      tallyFeedbackUrl: profile.tallyFeedbackUrl ?? null,
+      aptabaseAppKey: profile.aptabaseAppKey ?? null,
       modelId: policy.enabled ? policy.policy.model.id : null,
     },
   };

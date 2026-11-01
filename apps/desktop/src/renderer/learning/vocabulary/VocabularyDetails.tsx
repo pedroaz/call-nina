@@ -1,3 +1,4 @@
+import { formatInterfaceDate } from "../../runtime/formatting.js";
 import {
   vocabularyLemma,
   type CallNinaError,
@@ -84,7 +85,7 @@ export function VocabularyDetails(props: {
   onChanged: () => void;
   onNavigate: (page: "results" | "practice", scope?: SavedResultsScope) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [entry, setEntry] = useState<VocabularyEntry>();
   const [error, setError] = useState<CallNinaError>();
   const [busy, setBusy] = useState(false);
@@ -182,11 +183,16 @@ export function VocabularyDetails(props: {
           </p>
           {entry.state.status !== "candidate" && (
             <>
-              <p>{t("vocabulary.due", { date: entry.state.dueOn, stage: entry.state.stage })}</p>
+              <p>
+                {t("vocabulary.due", {
+                  date: formatInterfaceDate(entry.state.dueOn, i18n.language),
+                  stage: entry.state.stage,
+                })}
+              </p>
               {entry.state.lastReview && (
                 <p>
                   {t("vocabulary.library.lastReview", {
-                    date: entry.state.lastReview.reviewedAt.slice(0, 10),
+                    date: formatInterfaceDate(entry.state.lastReview.reviewedAt, i18n.language),
                     grade: t(`vocabulary.grades.${entry.state.lastReview.grade}`),
                   })}
                 </p>

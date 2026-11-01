@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { UsageAnalyticsSettings } from "../../learning/privacy/UsageAnalytics.js";
 import {
   Activity,
   BookOpen,
@@ -28,6 +30,7 @@ import { dataRootWarningKeys, type SettingsPageProps } from "./SettingsPage.type
 import { useSettingsPageController } from "./useSettingsPageController.js";
 
 export function SettingsPage(props: SettingsPageProps) {
+  const { i18n } = useTranslation();
   const model = useSettingsPageController(props);
   const {
     persisted,
@@ -138,6 +141,7 @@ export function SettingsPage(props: SettingsPageProps) {
             icon: <ShieldCheck aria-hidden="true" />,
             children: (
               <>
+                <UsageAnalyticsSettings />
                 <PersonalDataPage
                   embedded
                   onDataCleared={() => void load()}
@@ -294,7 +298,7 @@ export function SettingsPage(props: SettingsPageProps) {
                         </div>
                         <div>
                           <dt>{t("settings.diagnosticsLogs")}</dt>
-                          <dd>{diagnostics.logFileCount}</dd>
+                          <dd>{diagnostics.logFileCount.toLocaleString(i18n.language)}</dd>
                         </div>
                       </dl>
                     )}

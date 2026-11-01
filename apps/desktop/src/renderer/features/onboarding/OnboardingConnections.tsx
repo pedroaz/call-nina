@@ -2,7 +2,7 @@ import { InterviewChoices } from "@call-nina/browser-ui";
 import type { AiConnection } from "@call-nina/contracts";
 import { providerSupports } from "@call-nina/domain";
 import { HardDrive, KeyRound, MessageCircle, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useImperativeHandle, useState, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Disclosure } from "../../components/ui/index.js";
 import { useNinaAccountState } from "../../learning/account/NinaAccount.js";
@@ -20,10 +20,12 @@ export function OnboardingConnections({
   select,
   mutate,
   chatgptConnected,
-  onUse,
+  onReadyChange,
+  continuationRef,
 }: ConnectionOverviewProps & {
   chatgptConnected: boolean;
-  onUse: () => void;
+  onReadyChange: (ready: boolean) => void;
+  continuationRef: Ref<() => Promise<boolean>>;
 }) {
   const { t } = useTranslation();
   const nina = useNinaAccountState();
@@ -37,6 +39,19 @@ export function OnboardingConnections({
     (chosen !== "managed" || (nina.status === "signed-in" && !nina.identity.pending)) &&
     providerSupports(view, connection, "text"),
   );
+  useEffect(() => {
+    onReadyChange(usable);
+    return () => {
+      onReadyChange(false);
+    };
+  }, [usable, onReadyChange]);
+  useImperativeHandle(continuationRef, () => async () => {
+    if (!usable || busy || !chosen) return false;
+    return mutate({
+      kind: "routing",
+      routing: { ...view.settings.routing, text: chosen },
+    });
+  });
   const choose = (value: string) => {
     const route = value as Route;
     setChosen(route);
@@ -95,19 +110,6 @@ export function OnboardingConnections({
             }}
           >
             {t("providers.configure")}
-          </Button>
-          <Button
-            isDisabled={busy || !usable}
-            onPress={() => {
-              void mutate({
-                kind: "routing",
-                routing: { ...view.settings.routing, text: chosen },
-              }).then((saved) => {
-                if (saved) onUse();
-              });
-            }}
-          >
-            {t("interview.useConnection")}
           </Button>
         </div>
       )}

@@ -265,7 +265,10 @@ export class ProviderCommands {
           );
           connection = created.connections.find((entry) => entry.routeId === "chatgpt");
         }
-        const loginId = await this.#environment.chatgpt.startLogin(request.payload.registrationId);
+        const loginId = await this.#environment.chatgpt.startLogin(
+          request.payload.registrationId,
+          request.payload.uiLocale,
+        );
         this.#environment.emitEvent({ event: "state-invalidated", scope: "ai-connections" });
         return this.#environment.success(request, { loginId, status: "started" });
       }

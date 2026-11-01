@@ -25,7 +25,6 @@ async function preflight() {
   node("scripts/diagnostics/check-versions.mjs");
   if (target !== "desktop")
     await (await import("../admin/configuration.mjs")).checkPublicConfiguration();
-  await setOutput("sha", current.commit);
   await setOutput("desktop_matrix", JSON.stringify({ include: desktop }));
   await setOutput("has_desktop", String(desktop.length > 0));
   await summary(

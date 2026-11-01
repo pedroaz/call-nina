@@ -5,11 +5,36 @@ packages:
 
 catalog:
   "@types/node": 24.13.3
-  electron: 42.7.1
+  electron: 42.11.16
   typescript: 6.0.3
-  vite: 8.2.1
+  vite: 8.2.4
   yaml: 2.9.0
-  zod: 4.4.3
+  zod: 4.6.7
+
+# Security fixes within the existing dependency API lines. Remove overrides as
+# parent dependency minimums adopt these versions; do not force new majors.
+overrides:
+  "@xmldom/xmldom@>=0.8.0 <0.8.15": 0.8.15
+  "brace-expansion@>=1.0.0 <1.1.21": 1.1.21
+  "brace-expansion@>=2.0.0 <2.1.7": 2.1.7
+  "brace-expansion@>=5.0.0 <5.0.12": 5.0.12
+  "fast-uri@>=3.0.0 <3.1.9": 3.1.9
+  "js-yaml@>=4.0.0 <4.3.2": 4.3.2
+  "node-forge@>=1.0.0 <1.4.2": 1.4.2
+  "shell-quote@>=1.8.4 <1.11.0": 1.11.0
+  "source-map-js@>=1.0.0 <1.2.2": 1.2.2
+  "undici@>=6.0.0 <6.29.1": 6.29.1
+  "undici@>=7.0.0 <7.30.1": 7.30.1
+  "zod@>=4.0.0 <4.6.7": 4.6.7
+
+# Backport fixes until consumers support glob 14 / minimatch 11. Remove these
+# entries with those parent upgrades, retaining the existing public APIs.
+patchedDependencies:
+  # https://github.com/isaacs/node-glob/commit/4682e8c9babee1b385202ede36389634e12076d7
+  glob@13.0.6: patches/glob@13.0.6.patch
+  # https://github.com/isaacs/minimatch/commit/77a0f5c4b80bdc641c3c930a1d9edf5ad2db57f8
+  minimatch@9.0.9: patches/minimatch@9.0.9.patch
+  minimatch@10.2.6: patches/minimatch@10.2.6.patch
 
 allowBuilds:
   browser-tabs-lock: false

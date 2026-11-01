@@ -2,6 +2,10 @@ import { correlationIdSchema, runIdSchema, sessionIdSchema, utcInstantSchema } f
 import { boundaryUnion, strictBoundaryObject, z } from "./schema-system.js";
 
 export const errorDefinitions = {
+  "analytics-preference-save": {
+    code: "OD_ANALYTICS_PREFERENCE_SAVE_FAILED",
+    messageKey: "errors.analyticsPreferenceSave",
+  },
   "upload-image-unavailable": {
     code: "OD_UPLOAD_IMAGE_UNAVAILABLE",
     messageKey: "errors.uploadImageUnavailable",
@@ -124,6 +128,8 @@ export type CallNinaError = z.infer<typeof callNinaErrorSchema>;
 
 export const safeErrorMessages = {
   en: {
+    "analytics-preference-save":
+      "Could not save your analytics preference. Try again before restarting.",
     "upload-image-unavailable":
       "The original image could not be read. Choose the image again and save a new revision.",
     "upload-save-failed": "Could not save this upload. Check available storage and try again.",
@@ -174,6 +180,8 @@ export const safeErrorMessages = {
       "The selected model or reasoning setting is unavailable. Choose Automatic or another available option in the model selector, then retry.",
   },
   de: {
+    "analytics-preference-save":
+      "Die Analyseeinstellung konnte nicht gespeichert werden. Versuche es vor einem Neustart erneut.",
     "upload-image-unavailable":
       "Das Originalbild konnte nicht gelesen werden. Wähle das Bild erneut und speichere eine neue Version.",
     "upload-save-failed":

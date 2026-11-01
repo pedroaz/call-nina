@@ -1,3 +1,4 @@
+import { useUsageAnalytics } from "../../runtime/usage-analytics.js";
 import {
   languageDefinitions,
   languageIds,
@@ -31,6 +32,8 @@ export function useProfileOnboardingController({
 }: ProfileOnboardingProps) {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
+  const { refresh: refreshAnalytics, value: analyticsState } = useUsageAnalytics();
+  const [includeConsent, setIncludeConsent] = useState(false);
   const [goalChoice, setGoalChoice] = useState("everyday");
   const [customGoal, setCustomGoal] = useState("");
   const [explanationTouched, setExplanationTouched] = useState(false);
@@ -72,6 +75,8 @@ export function useProfileOnboardingController({
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      const usage = await refreshAnalytics();
+      setIncludeConsent(Boolean(usage?.available));
       const profile = await invokeDesktop("learner-profile/read", {});
       if (profile.status === "ready") {
         const next = await invokeDesktop("learner-settings/read", {});
@@ -88,7 +93,7 @@ export function useProfileOnboardingController({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshAnalytics]);
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
     return () => {
@@ -195,8 +200,9 @@ export function useProfileOnboardingController({
         return;
       await cancelLogin();
       if (step >= 4 || persisted) await save();
-      if (next === 6) await readCatalog();
-      setStep(next);
+      const destination = next === 6 && !includeConsent ? (step > next ? 5 : 7) : next;
+      if (destination === 7) await readCatalog();
+      setStep(destination);
     });
   const finish = (destination?: PathDestination) =>
     void attempt(async () => {
@@ -258,6 +264,7 @@ export function useProfileOnboardingController({
     "levelTitle",
     "explanationTitle",
     "connectionTitle",
+    "analyticsTitle",
     "lessonTitle",
   ];
   const languageOptions = languageIds.map((language) => ({
@@ -271,7 +278,7 @@ export function useProfileOnboardingController({
     { value: "custom", label: t("interview.goals.custom"), icon: <Pencil /> },
   ];
   const pose =
-    step === 6
+    step === 7
       ? "celebration"
       : step === 2
         ? (
@@ -289,6 +296,15 @@ export function useProfileOnboardingController({
             : "thinking";
   const blocked = busy || connectionPending;
   const continueDisabled = blocked || (step === 2 && !choices.everydayLifeGoal.trim());
+  const chooseAnalytics = (enabled: boolean, advance = false) =>
+    void attempt(async () => {
+      await invokeDesktop("analytics/consent", { enabled });
+      await refreshAnalytics();
+      if (advance) {
+        await readCatalog();
+        setStep(7);
+      }
+    });
   const complete = () => {
     finish();
   };
@@ -324,6 +340,9 @@ export function useProfileOnboardingController({
   );
   return {
     loading,
+    includeConsent,
+    analyticsConsent: analyticsState?.consent ?? "unknown",
+    chooseAnalytics,
     t,
     step,
     complete,

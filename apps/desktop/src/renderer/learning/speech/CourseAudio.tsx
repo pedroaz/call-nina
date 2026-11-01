@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/index.js";
 import { invokeDesktop } from "../../runtime/ipc.js";
 
 export function CourseAudio({ courseId }: { courseId: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [view, setView] = useState<SpeechSnapshot | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -52,7 +52,12 @@ export function CourseAudio({ courseId }: { courseId: string }) {
               ? "speech.removeCourse"
               : "speech.downloadCourse",
         )}{" "}
-        · {(course.bytes / 1e6).toFixed(1)} MB
+        ·{" "}
+        {(course.bytes / 1e6).toLocaleString(i18n.language, {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })}{" "}
+        MB
       </Button>
       {course.hasDownload && !course.pinned && (
         <Button variant="quiet" onPress={() => void act({ action: "remove-course", courseId })}>
@@ -60,7 +65,14 @@ export function CourseAudio({ courseId }: { courseId: string }) {
         </Button>
       )}
       {course.hasDownload && (
-        <span>{t("speech.installedSize", { size: (course.diskBytes / 1e6).toFixed(1) })}</span>
+        <span>
+          {t("speech.installedSize", {
+            size: (course.diskBytes / 1e6).toLocaleString(i18n.language, {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            }),
+          })}
+        </span>
       )}
       {view?.downloadingCourse === courseId && (
         <progress

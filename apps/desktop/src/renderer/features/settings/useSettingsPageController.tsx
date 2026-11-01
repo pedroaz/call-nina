@@ -282,7 +282,7 @@ export function useSettingsPageController({
       setPersisted(next);
       setDraft(next.settings);
       await i18n.changeLanguage(next.settings.uiLocale);
-      notify({ message: i18n.t("settings.saved"), tone: "success" });
+      notify({ message: "settings.saved", tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -313,7 +313,7 @@ export function useSettingsPageController({
       setPersisted(next);
       setDraft(next.settings);
       onLearningLanguageChange?.(next.settings.learningScope.targetLanguage);
-      notify({ message: t("settings.languageSelected"), tone: "success" });
+      notify({ message: "settings.languageSelected", tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -328,10 +328,11 @@ export function useSettingsPageController({
     setError(undefined);
     try {
       const result = await invokeDesktop("chatgpt/account/login/start", {
+        uiLocale: i18n.language as Language,
         registrationId: (selectedRegistration ?? accounts?.selectedId) || null,
       });
       setLoginId(result.loginId);
-      setNotice(t("settings.loginStarted"));
+      setNotice("settings.loginStarted");
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -348,7 +349,7 @@ export function useSettingsPageController({
     try {
       setAccount(await invokeDesktop("chatgpt/account/logout", {}));
       void refreshRuntime();
-      notify({ message: t("settings.loggedOut"), tone: "success" });
+      notify({ message: "settings.loggedOut", tone: "success" });
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
       void refreshRuntime();
@@ -379,10 +380,11 @@ export function useSettingsPageController({
     setNotice(undefined);
     try {
       const result = await invokeDesktop("data-root/choose", {
+        uiLocale: i18n.language as Language,
         ...(persisted ? { expectedGeneration: persisted.dataRoot.generation } : {}),
       });
       if (result.status === "selected") setDataRootSelection(result);
-      else setNotice(t("settings.dataSwitchCancelled"));
+      else setNotice("settings.dataSwitchCancelled");
     } catch (cause) {
       setError(normalizeDesktopError(cause).detail);
     } finally {
@@ -439,7 +441,7 @@ export function useSettingsPageController({
     error,
     settingsReadError,
     load,
-    notice,
+    notice: notice ? t(notice) : undefined,
     selectedTab,
     onTabChange,
     draft,

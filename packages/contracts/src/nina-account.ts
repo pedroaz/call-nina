@@ -4,6 +4,14 @@ import configuration from "./nina-public.json" with { type: "json" };
 
 export const ninaPublicConfiguration = z
   .strictObject({
+    tallyFeedbackUrl: z
+      .string()
+      .regex(/^https:\/\/tally\.so\/r\/[A-Za-z0-9]+$/u)
+      .nullable(),
+    aptabaseAppKey: z
+      .string()
+      .regex(/^A-EU-[0-9]+$/u)
+      .nullable(),
     environment: z.enum(["dev", "prd"]).nullable(),
     publishableKey: z
       .string()

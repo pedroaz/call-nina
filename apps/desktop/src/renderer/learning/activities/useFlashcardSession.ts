@@ -6,7 +6,6 @@ import {
   type FlashcardDeck,
 } from "@call-nina/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useNotifications } from "../../components/ui/index.js";
 import {
   createDesktopSubmissionId,
@@ -15,7 +14,6 @@ import {
 } from "../../runtime/ipc.js";
 
 export function useFlashcardSession(activityId: ActivityId) {
-  const { t } = useTranslation();
   const { notify } = useNotifications();
   const [deck, setDeck] = useState<FlashcardDeck>();
   const [flipped, setFlipped] = useState(false);
@@ -95,7 +93,7 @@ export function useFlashcardSession(activityId: ActivityId) {
         positions,
       });
       if (version.current === current)
-        notify({ message: t("flashcards.saveNotice"), tone: "success" });
+        notify({ message: "flashcards.saveNotice", tone: "success" });
       return result;
     });
   };

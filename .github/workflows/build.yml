@@ -38,7 +38,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     outputs:
-      sha: ${{ steps.validate.outputs.sha }}
       desktop_matrix: ${{ steps.validate.outputs.desktop_matrix }}
       has_desktop: ${{ steps.validate.outputs.has_desktop }}
     steps:
@@ -65,7 +64,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.preflight.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: ./.github/actions/release-setup
       - name: Install speech runtime build tool (Linux only)
@@ -92,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.preflight.outputs.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: ./.github/actions/release-setup
       - run: node scripts/ci/release.mjs hosting

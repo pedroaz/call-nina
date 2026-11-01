@@ -1,3 +1,4 @@
+import { formatInterfaceDate } from "../../runtime/formatting.js";
 import type { DataRootGeneration } from "@call-nina/contracts";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,7 +27,7 @@ export function VocabularyReview({
   onExit: () => void;
   onChanged: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     queue,
     index,
@@ -77,7 +78,7 @@ export function VocabularyReview({
             )}
             {dueOn && (
               <ActivityFeedback tone="success" live="polite">
-                {t("vocabulary.review.saved", { date: dueOn })}
+                {t("vocabulary.review.saved", { date: formatInterfaceDate(dueOn, i18n.language) })}
               </ActivityFeedback>
             )}
           </>
@@ -138,7 +139,10 @@ export function VocabularyReview({
                     }
                   >
                     {t(`vocabulary.review.modes.${mode}`)} ·{" "}
-                    {entry.retrievalSchedules.find((s) => s.retrieval === mode)?.dueOn}
+                    {formatInterfaceDate(
+                      entry.retrievalSchedules.find((s) => s.retrieval === mode)?.dueOn,
+                      i18n.language,
+                    )}
                   </option>
                 ))}
               </SelectControl>

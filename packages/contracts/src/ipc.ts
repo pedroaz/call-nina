@@ -1,3 +1,4 @@
+import { productFeedbackRequests, productFeedbackResponses } from "./ipc/product-feedback.js";
 import { accountRequests, accountResponses } from "./ipc/account.js";
 import { activitiesRequests, activitiesResponses } from "./ipc/activities.js";
 import { curriculumRequests, curriculumResponses } from "./ipc/curriculum.js";
@@ -42,6 +43,7 @@ type DesktopRequestSchemas = readonly [
   ...typeof generationRequests,
   ...typeof accountRequests,
   ...typeof speechRequests,
+  ...typeof productFeedbackRequests,
 ];
 export const desktopIpcRequestSchema: ReturnType<typeof boundaryUnion<DesktopRequestSchemas>> =
   boundaryUnion([
@@ -59,6 +61,7 @@ export const desktopIpcRequestSchema: ReturnType<typeof boundaryUnion<DesktopReq
     ...generationRequests,
     ...accountRequests,
     ...speechRequests,
+    ...productFeedbackRequests,
   ]);
 type DesktopResponseSchemas = readonly [
   ...typeof envelopeResponses,
@@ -76,6 +79,7 @@ type DesktopResponseSchemas = readonly [
   ...typeof generationResponses,
   ...typeof accountResponses,
   ...typeof speechResponses,
+  ...typeof productFeedbackResponses,
 ];
 export const desktopIpcResponseSchema: ReturnType<typeof boundaryUnion<DesktopResponseSchemas>> =
   boundaryUnion([
@@ -94,6 +98,7 @@ export const desktopIpcResponseSchema: ReturnType<typeof boundaryUnion<DesktopRe
     ...generationResponses,
     ...accountResponses,
     ...speechResponses,
+    ...productFeedbackResponses,
   ]);
 
 export type DesktopIpcRequest = z.infer<typeof desktopIpcRequestSchema>;

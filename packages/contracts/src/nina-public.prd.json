@@ -2,5 +2,7 @@
   "environment": "prd",
   "publishableKey": "pk_live_Y2xlcmsuY2FsbG5pbmEuZGUk",
   "serviceOrigin": "https://callnina.de",
+  "tallyFeedbackUrl": "https://tally.so/r/J1q2Jr",
+  "aptabaseAppKey": "A-EU-3161702467",
   "modelId": null
 }

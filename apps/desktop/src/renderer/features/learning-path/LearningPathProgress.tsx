@@ -1,3 +1,4 @@
+import { formatInterfaceDate } from "../../runtime/formatting.js";
 import type {
   CourseActivity,
   CourseReference,
@@ -34,7 +35,7 @@ export function LearningPathProgress({
   launchFeedback: (origin: string) => ReactNode;
   onOpenResults: (ids: HistoryEntryId[]) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { course, state } = snapshot;
   if (!course) return null;
   const locale =
@@ -91,7 +92,7 @@ export function LearningPathProgress({
                       {skill.due
                         ? ` · ${t("missions.due")}`
                         : skill.dueAt
-                          ? ` · ${t("missions.nextReview", { date: skill.dueAt.slice(0, 10) })}`
+                          ? ` · ${t("missions.nextReview", { date: formatInterfaceDate(skill.dueAt, i18n.language) })}`
                           : ""}
                       {skill.struggling ? ` · ${t("missions.focusedRetry")}` : ""}
                     </li>
@@ -118,7 +119,7 @@ export function LearningPathProgress({
                       {t(`vocabulary.review.modes.${mode.retrieval}`)}:{" "}
                       {mode.dueAt
                         ? t(mode.due ? "missions.due" : "missions.nextReview", {
-                            date: mode.dueAt.slice(0, 10),
+                            date: formatInterfaceDate(mode.dueAt, i18n.language),
                           })
                         : t("missions.outcome.not-evaluated")}
                       {mode.latest && (

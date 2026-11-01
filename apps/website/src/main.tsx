@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Button } from "@call-nina/browser-ui";
+import { Button, I18nProvider } from "@call-nina/browser-ui";
 import ninaPhone from "@call-nina/design-system/brand/nina-phone.png";
 import ninaWelcome from "@call-nina/design-system/brand/nina-welcome.png";
 import { featureDetails } from "./feature-details";
@@ -34,7 +34,9 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = locale;
     document.title = isAboutPage ? `${t.about} — Call Nina` : t.title;
-    document.querySelector('meta[name="description"]')?.setAttribute("content", t.description);
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", isAboutPage ? t.aboutPlaceholder : t.description);
   }, [locale, t]);
   function changeLanguage(next: Locale) {
     setLocale(next);
@@ -43,19 +45,19 @@ function App() {
     window.history.replaceState(null, "", url);
   }
   return (
-    <>
+    <I18nProvider locale={locale}>
       <a className="skip-link" href="#main">
         {t.skip}
       </a>
       <header className="site-header wrap">
-        <a className="wordmark" href={`/?lang=${locale}`}>
+        <a className="wordmark" href={`/?lang=${encodeURIComponent(locale)}`}>
           <img src={ninaPhone} alt="" width="40" height="40" />
           Call Nina
         </a>
         <nav className="header-actions" aria-label="Call Nina">
           <a
             className="about-link"
-            href={`/about/?lang=${locale}`}
+            href={`/about/?lang=${encodeURIComponent(locale)}`}
             aria-current={isAboutPage ? "page" : undefined}
           >
             {t.about}
@@ -150,7 +152,7 @@ function App() {
           </>
         )}
       </main>
-    </>
+    </I18nProvider>
   );
 }
 const root = document.getElementById("root");

@@ -1,3 +1,4 @@
+import { interfaceLanguageSchema } from "../learning-context.js";
 import { aiConnectionMutationSchema, aiConnectionsViewSchema } from "../ai-connections.js";
 import { accountStateSchema, modelCatalogSchema } from "../app-server-state.js";
 import { chatgptAccountsSchema, chatgptRegistrationIdSchema } from "../chatgpt.js";
@@ -30,7 +31,10 @@ export const accountLogoutRequest = request("chatgpt/account/logout", emptyPaylo
 
 export const accountLoginRequest = request(
   "chatgpt/account/login/start",
-  z.strictObject({ registrationId: chatgptRegistrationIdSchema.nullable() }),
+  z.strictObject({
+    registrationId: chatgptRegistrationIdSchema.nullable(),
+    uiLocale: interfaceLanguageSchema,
+  }),
 );
 
 export const accountLoginCancelRequest = request(

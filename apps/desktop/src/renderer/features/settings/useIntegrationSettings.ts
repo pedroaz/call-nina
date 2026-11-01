@@ -72,10 +72,10 @@ export function useIntegrationSettings({
     try {
       const result = await invokeDesktop("codex/integration/action", { action });
       setIntegration(result.status);
-      if (result.result === "failed") setIntegrationFailure(t("settings.plugin.actionFailed"));
-      else setIntegrationNotice(result.steps.at(-1));
+      if (result.result === "failed") setIntegrationFailure("settings.plugin.actionFailed");
+      else setIntegrationNotice(`settings.plugin.success.${result.action}`);
     } catch {
-      setIntegrationFailure(t("settings.plugin.actionFailed"));
+      setIntegrationFailure("settings.plugin.actionFailed");
     } finally {
       integrationActionPending.current = false;
       setBusy(false);
@@ -89,8 +89,8 @@ export function useIntegrationSettings({
   return {
     integrationReadError,
     readingIntegration,
-    integrationFailure,
-    integrationNotice,
+    integrationFailure: integrationFailure ? t(integrationFailure) : undefined,
+    integrationNotice: integrationNotice ? t(integrationNotice) : undefined,
     integration,
     refreshIntegration,
     manageIntegration,

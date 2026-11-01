@@ -99,7 +99,7 @@ This inventory covers the 155 package versions bundled into, or providing the El
 | `domutils` | `4.0.2` | BSD-2-Clause | — |
 | `dot-prop` | `6.0.1` | MIT | — |
 | `electron-store` | `8.2.0` | MIT | — |
-| `electron` | `42.7.1` | MIT | — |
+| `electron` | `42.11.16` | MIT | — |
 | `entities` | `4.5.0` | BSD-2-Clause | — |
 | `entities` | `7.0.1` | BSD-2-Clause | — |
 | `entities` | `8.1.0` | BSD-2-Clause | — |
@@ -110,7 +110,7 @@ This inventory covers the 155 package versions bundled into, or providing the El
 | `eventsource-parser` | `3.1.1` | MIT | [upstream](https://github.com/rexxars/eventsource-parser#readme) |
 | `fast-deep-equal` | `3.1.3` | MIT | [upstream](https://github.com/epoberezkin/fast-deep-equal#readme) |
 | `fast-sha256` | `1.3.0` | Unlicense | — |
-| `fast-uri` | `3.1.5` | BSD-3-Clause | [upstream](https://github.com/fastify/fast-uri) |
+| `fast-uri` | `3.1.9` | BSD-3-Clause | [upstream](https://github.com/fastify/fast-uri) |
 | `fastest-levenshtein` | `1.0.16` | MIT | [upstream](https://github.com/ka-weihe/fastest-levenshtein#README) |
 | `find-up` | `3.0.0` | MIT | — |
 | `glob-to-regexp` | `0.4.1` | BSD-2-Clause | — |
@@ -161,12 +161,12 @@ This inventory covers the 155 package versions bundled into, or providing the El
 | `type-fest` | `2.19.0` | (MIT OR CC0-1.0) | — |
 | `uhyphen` | `0.2.0` | ISC | [upstream](https://github.com/WebReflection/uhyphen#readme) |
 | `undici-types` | `7.18.2` | MIT | [upstream](https://undici.nodejs.org) |
-| `undici` | `7.29.0` | MIT | [upstream](https://undici.nodejs.org) |
+| `undici` | `7.30.1` | MIT | [upstream](https://undici.nodejs.org) |
 | `use-sync-external-store` | `1.6.0` | MIT | — |
 | `viem` | `2.57.11` | MIT | [upstream](https://viem.sh) |
 | `ws` | `8.21.0` | MIT | [upstream](https://github.com/websockets/ws) |
 | `yaml` | `2.9.0` | ISC | [upstream](https://eemeli.org/yaml/) |
-| `zod` | `4.4.3` | MIT | [upstream](https://zod.dev) |
+| `zod` | `4.6.7` | MIT | [upstream](https://zod.dev) |
 | `zustand` | `5.0.3` | MIT | [upstream](https://github.com/pmndrs/zustand) |
 
 ## Release boundary

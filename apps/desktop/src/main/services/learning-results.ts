@@ -1,3 +1,4 @@
+import { learningTitles } from "../localization.js";
 import {
   activityIdSchema,
   flashcardGenerationCandidateSchema,
@@ -210,7 +211,9 @@ export class LearningResultService {
       title:
         state.output.lesson?.title ??
         state.output.exercises[0]?.title ??
-        (operation.input.targetedMistakePattern ? "Targeted practice" : "Quiz"),
+        learningTitles[operation.input.learningContext.explanationLanguage][
+          operation.input.targetedMistakePattern ? "targetedPractice" : "quiz"
+        ],
       originSurface: "desktop" as const,
       context: {
         ...(operation.input.uploadSource ? { uploadSource: operation.input.uploadSource } : {}),

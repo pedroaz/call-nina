@@ -1,3 +1,5 @@
+import { useAnalyticsScreen } from "../runtime/usage-analytics.js";
+import { SidebarFeedback } from "./SidebarFeedback.js";
 import { Settings } from "lucide-react";
 import { ActionGroup, AppShell as ApplicationShell } from "../components/layout/index.js";
 import { Button, ModalDialog } from "../components/ui/index.js";
@@ -20,6 +22,7 @@ const renderUploadLibrary = (props: UploadsLibraryProps) => <UploadsLibrary {...
 
 export function DesktopWorkspace(props: DesktopWorkspaceProps) {
   const model = useDesktopWorkspaceController(props);
+  useAnalyticsScreen(model.page);
   const {
     navigation: workspaceNavigation,
     vocabularyActivityId,
@@ -96,6 +99,7 @@ export function DesktopWorkspace(props: DesktopWorkspaceProps) {
                 : {}),
             }))}
             settingsNavigation={{ page: "settings", icon: Settings, label: t("nav.settings") }}
+            feedbackAction={<SidebarFeedback />}
             accountWidget={<SidebarAccount collapsed={navCollapsed} />}
             navigationLabel={t("nav.label")}
             navFooter={

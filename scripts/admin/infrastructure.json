@@ -10,7 +10,9 @@
     "clerkIssuer": "https://ready-meerkat-1510.clerk.accounts.dev",
     "publishableKey": "pk_test_cmVhZHktbWVlcmthdC0xNTEwLmNsZXJrLmFjY291bnRzLmRldiQ",
     "allowedOrigins": ["call-nina-ui://renderer", "http://127.0.0.1:5174"],
-    "runtimeRole": "nina_runtime_preview"
+    "runtimeRole": "nina_runtime_preview",
+    "tallyFeedbackUrl": "https://tally.so/r/xVrdNv",
+    "aptabaseAppKey": "A-EU-8660072041"
   },
   "prd": {
     "projectId": "prj_DKwPaLlQTE8VlO6Rs6Xqxxf4HOsm",
@@ -23,6 +25,8 @@
     "clerkIssuer": "https://clerk.callnina.de",
     "publishableKey": "pk_live_Y2xlcmsuY2FsbG5pbmEuZGUk",
     "allowedOrigins": ["call-nina-ui://renderer"],
-    "runtimeRole": "nina_runtime_production"
+    "runtimeRole": "nina_runtime_production",
+    "tallyFeedbackUrl": "https://tally.so/r/J1q2Jr",
+    "aptabaseAppKey": "A-EU-3161702467"
   }
 }

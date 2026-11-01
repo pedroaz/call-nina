@@ -619,15 +619,23 @@ declare module "*/Startup.module.css" {
 
 declare module "*/StoriesPage.module.css" {
   const styles: {
-    readonly filters: string;
+    readonly definitionMeaning: string;
     readonly passage: string;
-    readonly reading: string;
+    readonly storyChevron: string;
     readonly storyCopy: string;
+    readonly storyIcon: string;
     readonly storyLevel: string;
     readonly storyOpen: string;
     readonly storyRow: string;
     readonly storySummary: string;
     readonly storyTitle: string;
+    readonly wordCopy: string;
+    readonly wordDefinition: string;
+    readonly wordDetails: string;
+    readonly wordExample: string;
+    readonly wordMeaning: string;
+    readonly wordOpen: string;
+    readonly wordText: string;
   };
   export default styles;
 }

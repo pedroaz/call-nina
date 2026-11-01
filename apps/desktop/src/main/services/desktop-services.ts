@@ -1,3 +1,4 @@
+import type { ProductFeedback } from "./product-feedback.js";
 import type { DesktopIpcResponse } from "@call-nina/contracts";
 import type { ActivitiesController } from "./activities.js";
 import type { LocalAssets } from "./local-assets.js";
@@ -29,6 +30,7 @@ export type CodexIntegration = Extract<
   { status: "ok"; channel: "codex/integration/read" }
 >["result"];
 export interface DesktopServices {
+  productFeedback: ProductFeedback;
   operationScope: OperationScope;
   dispatcher: IpcDispatcher;
   exerciseContext: ExerciseGenerationContext;

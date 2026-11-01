@@ -1,3 +1,4 @@
+import { interfaceLanguageSchema } from "../learning-context.js";
 import { correlationIdSchema, dataRootGenerationSchema } from "../common.js";
 import { callNinaErrorSchema } from "../errors.js";
 import { z } from "../schema-system.js";
@@ -10,7 +11,10 @@ export const dataRootReadRequest = request("data-root/read", emptyPayload);
 
 export const dataRootChooseRequest = request(
   "data-root/choose",
-  z.strictObject({ expectedGeneration: dataRootGenerationSchema.optional() }),
+  z.strictObject({
+    expectedGeneration: dataRootGenerationSchema.optional(),
+    uiLocale: interfaceLanguageSchema,
+  }),
 );
 
 export const dataRootConfirmRequest = request(
