@@ -29,10 +29,24 @@ export async function inspectRelease({ finalizing = false } = {}) {
   const commit = await tagCommit(info.tag);
   if (commit && commit !== info.commit)
     throw new Error("Release tag already points to another commit");
-  const release = await github(`releases/tags/${info.tag}`, { missing: true });
+  let release = await github(`releases/tags/${info.tag}`, { missing: true });
+  // Tag lookup returns published releases; authenticated listings also include drafts.
+  if (!release) {
+    for (let page = 1; ; page++) {
+      const batch = await github(`releases?per_page=100&page=${page}`);
+      const matches = batch.filter((item) => item.tag_name === info.tag);
+      if (matches.length > 1) throw new Error("Multiple releases use the expected desktop tag");
+      if (matches.length) {
+        release = await github(`releases/${matches[0].id}`);
+        break;
+      }
+      if (batch.length < 100) break;
+    }
+  }
   if (
     release &&
-    (!release.body?.includes(info.marker) ||
+    (release.tag_name !== info.tag ||
+      !release.body?.includes(info.marker) ||
       release.target_commitish !== info.commit ||
       (!release.draft && !finalizing))
   )
