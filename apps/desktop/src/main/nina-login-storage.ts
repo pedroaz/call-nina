@@ -46,7 +46,13 @@ export class NinaLoginStorage {
         throw new Error("OD_NINA_LOGIN_STORAGE");
       const bytes = await file.readFile();
       try {
-        return ninaLoginCredentialsSchema.parse(JSON.parse(safeStorage.decryptString(bytes)));
+        let clear: string;
+        try {
+          clear = safeStorage.decryptString(bytes);
+        } catch {
+          throw new Error("OD_CONNECTION_CREDENTIAL_UNAVAILABLE");
+        }
+        return ninaLoginCredentialsSchema.parse(JSON.parse(clear));
       } finally {
         bytes.fill(0);
       }

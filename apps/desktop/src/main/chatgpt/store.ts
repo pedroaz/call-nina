@@ -1,6 +1,6 @@
 import { chatgptRegistrationIdSchema, z } from "@call-nina/contracts";
 import { safeStorage } from "electron";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, mkdir, open, rename, unlink } from "node:fs/promises";
 import path from "node:path";
@@ -42,6 +42,7 @@ export const storeSchema = z
 export type Store = z.infer<typeof storeSchema>;
 export type Registration = Store["registrations"][number];
 export class ChatgptStore {
+  #unavailableDigest: string | undefined;
   state() {
     return this.#secrets.state();
   }
@@ -104,13 +105,88 @@ export class ChatgptStore {
         throw new Error("OD_CHATGPT_STORAGE_UNSAFE");
       const bytes = await file.readFile();
       try {
-        return storeSchema.parse(JSON.parse(safeStorage.decryptString(bytes)));
+        let clear: string;
+        try {
+          clear = safeStorage.decryptString(bytes);
+        } catch {
+          this.#unavailableDigest = createHash("sha256").update(bytes).digest("hex");
+          throw new Error("OD_CHATGPT_CREDENTIAL_UNAVAILABLE");
+        }
+        this.#unavailableDigest = undefined;
+        return storeSchema.parse(JSON.parse(clear));
       } finally {
         bytes.fill(0);
       }
     } finally {
       await file.close();
     }
+  }
+  // Explicit new-account authentication may recover an unreadable encrypted store.
+  // Preparation is read-only; preserve ciphertext only when new authentication succeeds.
+  async prepareLogin(allowRecovery: boolean): Promise<{ store: Store; recoveryDigest?: string }> {
+    try {
+      return { store: await this.read() };
+    } catch (error) {
+      if (
+        !allowRecovery ||
+        process.platform !== "darwin" ||
+        !(error instanceof Error) ||
+        error.message !== "OD_CHATGPT_CREDENTIAL_UNAVAILABLE" ||
+        !this.#unavailableDigest
+      )
+        throw error;
+      return {
+        recoveryDigest: this.#unavailableDigest,
+        store: {
+          version: 1,
+          hostId: randomUUID(),
+          selectedId: null,
+          registrations: [],
+          remoteRevocationPending: true,
+        },
+      };
+    }
+  }
+  async completeLogin(value: Store, recoveryDigest?: string): Promise<void> {
+    if (recoveryDigest) {
+      const directory = await this.directory();
+      const file = await open(
+        path.join(directory, "accounts.enc"),
+        constants.O_RDONLY | constants.O_NOFOLLOW,
+      );
+      try {
+        const info = await file.stat();
+        if (
+          !info.isFile() ||
+          info.nlink !== 1 ||
+          info.size > 2 * 1024 * 1024 ||
+          (info.mode & 0o077) !== 0 ||
+          info.uid !== process.getuid?.()
+        )
+          throw new Error("OD_CHATGPT_STORAGE_UNSAFE");
+        const bytes = await file.readFile();
+        try {
+          if (createHash("sha256").update(bytes).digest("hex") !== recoveryDigest)
+            throw new Error("OD_CHATGPT_STORAGE_CHANGED");
+          const retained = await open(
+            path.join(directory, `accounts-unavailable-${randomUUID()}.enc`),
+            "wx",
+            0o600,
+          );
+          try {
+            await retained.writeFile(bytes);
+            await retained.sync();
+          } finally {
+            await retained.close();
+          }
+        } finally {
+          bytes.fill(0);
+        }
+      } finally {
+        await file.close();
+      }
+    }
+    await this.write(value);
   }
   async write(value: Store) {
     if (this.#secrets.state().status !== "available")

@@ -11,8 +11,8 @@ export const releasesUrl = "https://github.com/pedroaz/call-nina/releases";
 export const platformLabels: Record<Platform, string> = {
   "linux-x64": "Linux x64 · AppImage",
   "win32-x64": "Windows x64 · ZIP",
-  "darwin-x64": "Mac Intel · tar.gz",
-  "darwin-arm64": "Mac Apple Silicon · tar.gz",
+  "darwin-x64": "Mac Intel · Experimental — runtime verification pending",
+  "darwin-arm64": "Mac Apple Silicon",
 };
 const english = {
   download: "Download",
@@ -68,13 +68,21 @@ export function parseDownloads(value: unknown): Downloads {
     !data.downloads
   )
     throw new Error("Invalid downloads");
+  const version = data.version;
   for (const platform of platforms) {
     const url = data.downloads[platform];
-    const extension =
-      platform === "linux-x64" ? "AppImage" : platform === "win32-x64" ? "zip" : "tar.gz";
+    const extensions =
+      platform === "linux-x64"
+        ? ["AppImage"]
+        : platform === "win32-x64"
+          ? ["zip"]
+          : ["dmg", "tar.gz"];
     if (
-      url !==
-      `${releasesUrl}/download/desktop-v${data.version}/Call-Nina-${data.version}-${platform}.${extension}`
+      !extensions.some(
+        (extension) =>
+          url ===
+          `${releasesUrl}/download/desktop-v${version}/Call-Nina-${version}-${platform}.${extension}`,
+      )
     )
       throw new Error("Invalid download URL");
   }
@@ -120,4 +128,10 @@ export async function recommendedPlatform(): Promise<Platform | null> {
   if (/Win/i.test(os)) return arch === "x64" ? "win32-x64" : null;
   if (/Linux/i.test(os)) return arch === "x64" ? "linux-x64" : null;
   return null;
+}
+
+export function formatDownloadLabel(platform: Platform, downloads: Downloads): string {
+  if (!platform.startsWith("darwin-")) return platformLabels[platform];
+  const format = downloads.downloads[platform].endsWith(".dmg") ? "DMG" : "tar.gz";
+  return `${platformLabels[platform]} · ${format}`;
 }

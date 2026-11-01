@@ -196,6 +196,14 @@ export function useDesktopWorkspaceController({
         ["account", "ai-connections"].includes(event.scope)
       )
         setProviderUnavailable(undefined);
+      if (event.event === "settings-open") {
+        if (writingDirty) setPendingNavigation({ destination: "settings", mode: "normal" });
+        else {
+          if (pathHistory.view) pathHistory.back();
+          navigation.apply("settings");
+        }
+        return;
+      }
       if (event.event === "prepared-activity-open") {
         if (writingDirty)
           setPendingNavigation({
@@ -225,7 +233,15 @@ export function useDesktopWorkspaceController({
       window.callNina.workspaceReady(false);
       unsubscribe();
     };
-  }, [reload, refreshScope, writingDirty, setPendingNavigation, openExternalActivity]);
+  }, [
+    reload,
+    refreshScope,
+    writingDirty,
+    setPendingNavigation,
+    openExternalActivity,
+    navigation,
+    pathHistory,
+  ]);
   const openAi = async (
     operation: ProviderOperation,
     previousOperationId?: DesktopIpcRequest["requestId"],

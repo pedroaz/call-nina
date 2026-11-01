@@ -85,6 +85,25 @@ async function main() {
       { encoding: "utf8", mode: 0o600 },
     );
 
+    const { version } = JSON.parse(
+      await readFile(path.join(repositoryRoot, "package.json"), "utf8"),
+    );
+    await writeFile(
+      path.join(temporary, "build-info.json"),
+      JSON.stringify(
+        {
+          version,
+          commit: /^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA ?? "")
+            ? process.env.GITHUB_SHA
+            : "local",
+          run: /^\d+$/.test(process.env.GITHUB_RUN_ID ?? "") ? process.env.GITHUB_RUN_ID : "local",
+          platform: process.platform,
+          arch: process.arch,
+        },
+        null,
+        2,
+      ) + "\n",
+    );
     const serverSource = await readFile(path.join(temporary, "server/index.js"), "utf8");
     if (
       /^(?:import|export)\s[^;\n]*from\s+["'](?:@call-nina\/|@modelcontextprotocol\/|yaml|zod)["']/mu.test(

@@ -1,6 +1,6 @@
 {
   "name": "@call-nina/website",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "private": true,
   "description": "The minimal Call Nina React website.",
   "type": "module",
@@ -10,10 +10,12 @@
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "@call-nina/browser-ui": "workspace:*",
     "@call-nina/design-system": "workspace:*",
+    "@vercel/analytics": "2.0.1",
+    "@vercel/speed-insights": "2.0.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "@call-nina/browser-ui": "workspace:*"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/react": "19.2.18",

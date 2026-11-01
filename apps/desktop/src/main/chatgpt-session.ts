@@ -25,7 +25,7 @@ import {
   scopes,
 } from "./chatgpt/http.js";
 import { validateIdentity } from "./chatgpt/identity.js";
-import { ChatgptStore, tokenSchema, type Registration } from "./chatgpt/store.js";
+import { ChatgptStore, tokenSchema, type Registration, type Store } from "./chatgpt/store.js";
 import type { ConnectionSecretStorage } from "./secret-storage.js";
 
 export { boundedBody, ChatgptError, chatgptFailure, responseFailure } from "./chatgpt/http.js";
@@ -42,6 +42,7 @@ type Pending = {
   expires: ReturnType<typeof setTimeout>;
   controller: AbortController;
   claimed: boolean;
+  recovery?: { store: Store; digest: string };
 };
 
 /** Device-owned OAuth state. Never reads external Codex homes or portable learner files. */
@@ -98,7 +99,19 @@ export class ChatgptSession {
           registrations: [],
           remoteRevocationPending: false,
         });
-      const store = await this.#store.read();
+      let store: Store;
+      try {
+        store = await this.#store.read();
+      } catch (error) {
+        if (!(error instanceof Error) || error.message !== "OD_CHATGPT_CREDENTIAL_UNAVAILABLE")
+          throw error;
+        return chatgptAccountsSchema.parse({
+          state: { status: "unavailable", reason: "account-read-failed" },
+          selectedId: null,
+          registrations: [],
+          remoteRevocationPending: true,
+        });
+      }
       const selected = store.registrations.find((entry) => entry.id === store.selectedId);
       return chatgptAccountsSchema.parse({
         state: selected?.tokens
@@ -201,7 +214,8 @@ export class ChatgptSession {
   async startLogin(registrationId: string | null, uiLocale: Language): Promise<CorrelationId> {
     return this.#exclusive(async () => {
       if (this.#pending || this.#closed) throw new Error("OD_CHATGPT_LOGIN_CONFLICT");
-      const store = await this.#store.read();
+      const prepared = await this.#store.prepareLogin(registrationId === null);
+      const store = prepared.store;
       if (
         registrationId !== null &&
         !store.registrations.some((entry) => entry.id === registrationId)
@@ -274,6 +288,9 @@ export class ChatgptSession {
       if (!address || typeof address === "string")
         throw new Error("OD_CHATGPT_CALLBACK_UNAVAILABLE");
       const attempt: Pending = {
+        ...(prepared.recoveryDigest
+          ? { recovery: { store, digest: prepared.recoveryDigest } }
+          : {}),
         id,
         state: random(),
         nonce: random(),
@@ -348,7 +365,7 @@ export class ChatgptSession {
         signal.throwIfAborted();
         if (this.#pending !== attempt || this.#closed)
           throw new Error("OD_CHATGPT_LOGIN_CANCELLED");
-        const store = await this.#store.read();
+        const store = attempt.recovery?.store ?? (await this.#store.read());
         const prior = store.registrations.find((entry) => entry.id === id);
         if (prior && prior.subject !== identity.sub) throw new Error("OD_CHATGPT_ACCOUNT_CHANGED");
         const next: Registration = {
@@ -361,7 +378,7 @@ export class ChatgptSession {
         };
         store.registrations = [...store.registrations.filter((entry) => entry.id !== id), next];
         store.selectedId = id;
-        await this.#store.write(store);
+        await this.#store.completeLogin(store, attempt.recovery?.digest);
         this.#finishLogin(attempt);
         this.#changed();
         this.#loginEvent(attempt.id, { status: "complete" });

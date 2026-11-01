@@ -151,7 +151,7 @@ export function AiSettingsSection({
                   <ActionGroup>
                     <Button
                       variant="primary"
-                      isDisabled={blocked || !account || account.status === "unavailable"}
+                      isDisabled={blocked || !account}
                       onPress={() => void login()}
                     >
                       <UserRound aria-hidden="true" />
@@ -224,7 +224,7 @@ export function AiSettingsSection({
                     <ActionGroup>
                       <Button
                         variant="primary"
-                        isDisabled={blocked || !account || account.status === "unavailable"}
+                        isDisabled={blocked || !account}
                         onPress={() => void login()}
                       >
                         {t("settings.login")}

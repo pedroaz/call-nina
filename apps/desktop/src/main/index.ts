@@ -1,3 +1,5 @@
+import { installNativeMenu } from "./native-menu.js";
+import { installFailureDiagnostics, observeWindow, startupLog } from "./startup-diagnostics.js";
 import { interfaceMessage } from "./localization.js";
 import {
   desktopIpcEventSchema,
@@ -18,7 +20,7 @@ import { NinaLoginStorage } from "./nina-login-storage.js";
 import { desktopPathOption } from "./options.js";
 import { ConnectionSecretStorage } from "./secret-storage.js";
 
-import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, net, protocol, session } from "electron";
 import { ChatgptSession } from "./chatgpt-session.js";
 
 import { DesktopBackend } from "./backend.js";
@@ -56,6 +58,7 @@ let pendingActivityId: ActivityId | undefined;
 let readinessPublished = false;
 let workspaceReady = false;
 let shutdownStarted = false;
+let pendingSettings = false;
 
 function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
@@ -78,10 +81,17 @@ function createWindow(): BrowserWindow {
   window.on("page-title-updated", (event) => {
     event.preventDefault();
   });
+  observeWindow(window);
+  window.on("closed", () => {
+    if (mainWindow === window) mainWindow = undefined;
+    workspaceReady = false;
+    readinessPublished = false;
+  });
   attachNavigationPolicy(window, rendererUrl);
   // Keep zoom available without installing a visible application menu.
   window.webContents.on("before-input-event", (event, input) => {
-    const modifier = process.platform === "darwin" ? input.meta : input.control;
+    if (process.platform === "darwin") return;
+    const modifier = input.control;
     if (input.type !== "keyDown" || !modifier || input.alt) return;
     const zoomIn = input.key === "+" || input.key === "=";
     const zoomOut = input.key === "-";
@@ -106,11 +116,30 @@ function createWindow(): BrowserWindow {
       deliverActivity(activityId);
     }
   });
-  void window.loadURL(rendererUrl);
+  startupLog("DESKTOP_RENDERER_LOADING");
+  void window.loadURL(rendererUrl).catch(() => {
+    startupLog("DESKTOP_RENDERER_LOAD_FAILED");
+  });
   return window;
 }
 
+function showWindow(): void {
+  if (!backend || shutdownStarted) return;
+  if (!mainWindow || mainWindow.isDestroyed()) mainWindow = createWindow();
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+}
+function deliverSettings(): void {
+  if (!workspaceReady || !mainWindow) return;
+  pendingSettings = false;
+  mainWindow.webContents.send(
+    "call-nina:event",
+    desktopIpcEventSchema.parse({ event: "settings-open" }),
+  );
+}
 function deliverActivity(activityId: ActivityId): void {
+  showWindow();
   if (!workspaceReady || !mainWindow || mainWindow.webContents.isLoading()) {
     pendingActivityId = activityId;
     return;
@@ -142,6 +171,7 @@ function installIpc(): void {
   ipcMain.on("call-nina:workspace-ready", (event, ready: unknown) => {
     if (!isTrustedRendererFrame(event.senderFrame, mainWindow, rendererUrl)) return;
     workspaceReady = ready === true;
+    if (workspaceReady && pendingSettings) deliverSettings();
     if (workspaceReady && pendingActivityId) {
       const activityId = pendingActivityId;
       pendingActivityId = undefined;
@@ -163,6 +193,7 @@ function installIpc(): void {
     if (!isTrustedRendererFrame(event.senderFrame, mainWindow, rendererUrl)) return;
     if (readinessPublished) return;
     readinessPublished = true;
+    startupLog("DESKTOP_RENDERER_READY");
     void publishRendererReadiness().catch(() => {
       app.exit(1);
     });
@@ -198,6 +229,8 @@ for (const segment of userDataDirectory
   }
 }
 mkdirSync(userDataDirectory, { recursive: true, mode: 0o700 });
+installFailureDiagnostics();
+startupLog("DESKTOP_CONFIGURATION_READY");
 
 const clerkBridge = ninaPublicConfiguration.publishableKey
   ? createClerkBridge({
@@ -230,20 +263,36 @@ if (!app.requestSingleInstanceLock()) {
     handleProtocolArguments([url]);
   });
   app.on("second-instance", (_event, commandLine) => {
-    if (mainWindow?.isMinimized()) mainWindow.restore();
-    mainWindow?.focus();
+    showWindow();
     handleProtocolArguments(commandLine);
   });
   app.on("before-quit", (event) => {
     if (shutdownStarted) return;
     event.preventDefault();
     shutdownStarted = true;
-    void (backend?.shutdown() ?? Promise.resolve()).finally(() => {
-      app.quit();
-    });
+    startupLog("DESKTOP_SHUTDOWN_STARTED");
+    const timeout = setTimeout(() => {
+      startupLog("DESKTOP_SHUTDOWN_TIMEOUT");
+      app.exit(1);
+    }, 10_000);
+    void (backend?.shutdown() ?? Promise.resolve()).then(
+      () => {
+        clearTimeout(timeout);
+        startupLog("DESKTOP_SHUTDOWN_COMPLETE");
+        app.quit();
+      },
+      () => {
+        clearTimeout(timeout);
+        startupLog("DESKTOP_SHUTDOWN_FAILED");
+        app.exit(1);
+      },
+    );
   });
   app.on("window-all-closed", () => {
-    app.quit();
+    if (process.platform !== "darwin") app.quit();
+  });
+  app.on("activate", () => {
+    showWindow();
   });
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {
@@ -253,7 +302,11 @@ if (!app.requestSingleInstanceLock()) {
   void app
     .whenReady()
     .then(() => {
-      Menu.setApplicationMenu(null);
+      installNativeMenu(() => {
+        pendingSettings = true;
+        showWindow();
+        deliverSettings();
+      });
       if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(windowIcon);
       if (app.isPackaged) app.setAsDefaultProtocolClient("call-nina");
       handleProtocolArguments(process.argv);
@@ -265,6 +318,14 @@ if (!app.requestSingleInstanceLock()) {
         process.env["CALL_NINA_RUN_ID"] ?? `desktop_${randomUUID().replaceAll("-", "")}`;
       const sessionId = `session_${randomUUID().replaceAll("-", "")}`;
       const log = (record: Parameters<typeof appendDesktopLog>[1]) => {
+        if (
+          [
+            "DESKTOP_DATABASE_OPENING",
+            "DESKTOP_DATABASE_READY",
+            "DESKTOP_DATA_ROOT_FAILED",
+          ].includes(record.code)
+        )
+          startupLog(record.code);
         void appendDesktopLog(bootstrapFile, {
           ...record,
           runId,
@@ -280,12 +341,14 @@ if (!app.requestSingleInstanceLock()) {
         phase: "started",
       });
       const secrets = new ConnectionSecretStorage(userData);
+      startupLog("DESKTOP_CREDENTIAL_STORE", { reason: secrets.state().status });
       const chatgpt = new ChatgptSession({
         configDirectory: userData,
         interfaceLocale: async () => backend?.interfaceLocale(),
         secrets,
         openExternal: openValidatedExternalUrl,
       });
+      startupLog("DESKTOP_BACKEND_STARTING");
       backend = new DesktopBackend({
         ...(speechBundleDirectory ? { speechBundleDirectory } : {}),
         ...(!app.isPackaged && process.platform === "linux" && process.arch === "x64"
@@ -342,10 +405,12 @@ if (!app.requestSingleInstanceLock()) {
           return result.canceled ? undefined : result.filePaths[0];
         },
       });
+      startupLog("DESKTOP_BACKEND_READY");
       installIpc();
       mainWindow = createWindow();
     })
     .catch((error: unknown) => {
+      startupLog("DESKTOP_STARTUP_FAILED");
       process.stderr.write(
         error instanceof Error && /^OD_SPEECH_[A-Z_]+$/u.test(error.message)
           ? `${error.message}\n`

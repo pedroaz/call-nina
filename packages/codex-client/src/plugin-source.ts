@@ -92,6 +92,11 @@ export async function stagePluginSource(options: SourceOptions) {
     options.runtime.kind === "packaged"
       ? path.join(options.runtime.resourcesRoot, "curriculum")
       : undefined;
+  const macRuntime =
+    options.runtime.kind === "packaged" && process.platform === "darwin"
+      ? path.join(options.runtime.resourcesRoot, "mac-runtime")
+      : undefined;
+  if (macRuntime) await hashTree(macRuntime, hash);
   if (helperRoot) await hashTree(helperRoot, hash);
   if (packagedCurriculumRoot) await hashTree(packagedCurriculumRoot, hash);
   if (options.runtime.kind === "development") {
@@ -160,21 +165,26 @@ export async function stagePluginSource(options: SourceOptions) {
     if (options.runtime.kind === "packaged" && helperRoot && packagedCurriculumRoot) {
       await cp(helperRoot, path.join(temporary, "mcp-helper"), { recursive: true });
       await cp(packagedCurriculumRoot, path.join(temporary, "curriculum"), { recursive: true });
-      const electronRoot = path.dirname(options.runtime.resourcesRoot);
-      await cp(electronRoot, path.join(temporary, "electron"), {
-        recursive: true,
-        dereference: true,
-        filter: (source) =>
-          path.relative(electronRoot, source).split(path.sep)[0] !==
-          (process.platform === "darwin" ? "Resources" : "resources"),
-      });
-      command = path.join(
-        target,
-        "electron",
-        path.relative(electronRoot, options.runtime.executable),
-      );
       script = path.join(target, "mcp-helper", "call-nina-mcp.cjs");
-      env["ELECTRON_RUN_AS_NODE"] = "1";
+      if (macRuntime) {
+        await cp(macRuntime, path.join(temporary, "mac-runtime"), { recursive: true });
+        command = path.join(target, "mac-runtime", "node");
+      } else {
+        const electronRoot = path.dirname(options.runtime.resourcesRoot);
+        await cp(electronRoot, path.join(temporary, "electron"), {
+          recursive: true,
+          dereference: true,
+          filter: (source) =>
+            path.relative(electronRoot, source).split(path.sep)[0] !==
+            (process.platform === "darwin" ? "Resources" : "resources"),
+        });
+        command = path.join(
+          target,
+          "electron",
+          path.relative(electronRoot, options.runtime.executable),
+        );
+        env["ELECTRON_RUN_AS_NODE"] = "1";
+      }
       env["CALL_NINA_MCP_ENTRY"] = path.join(target, "mcp-helper", "server/index.js");
       env["CALL_NINA_CURRICULUM_ROOT"] = path.join(target, "curriculum");
     } else if (options.runtime.kind === "development") {

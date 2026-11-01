@@ -1,16 +1,17 @@
 const repository = "https://github.com/pedroaz/call-nina";
 const releaseApi = "https://api.github.com/repos/pedroaz/call-nina/releases/latest";
 const platforms = {
-  "linux-x64": "AppImage",
-  "win32-x64": "zip",
-  "darwin-x64": "tar.gz",
-  "darwin-arm64": "tar.gz",
+  "linux-x64": ["AppImage"],
+  "win32-x64": ["zip"],
+  "darwin-x64": ["dmg", "tar.gz"],
+  "darwin-arm64": ["dmg", "tar.gz"],
 } as const;
 
 type Downloads = {
   version: string;
   releaseUrl: string;
   downloads: Record<keyof typeof platforms, string>;
+  formats: Record<keyof typeof platforms, string>;
 };
 let cached: { data: Downloads; expires: number } | undefined;
 let pending: Promise<Downloads | null> | undefined;
@@ -43,7 +44,18 @@ async function latest(): Promise<Downloads | null> {
   const releaseUrl = `${repository}/releases/tag/${tag}`;
   if (release["html_url"] !== releaseUrl) throw new Error("Unexpected release URL");
   const downloads = {} as Downloads["downloads"];
-  for (const [platform, extension] of Object.entries(platforms)) {
+  const formats = {} as Downloads["formats"];
+  for (const [platform, extensions] of Object.entries(platforms)) {
+    const extension = extensions.find(
+      (candidate) =>
+        release["assets"] instanceof Array &&
+        release["assets"].some(
+          (asset: unknown) =>
+            record(asset)["name"] === `Call-Nina-${version}-${platform}.${candidate}`,
+        ),
+    );
+    if (!extension) throw new Error("Desktop release assets incomplete");
+    formats[platform as keyof typeof platforms] = extension;
     const name = `Call-Nina-${version}-${platform}.${extension}`;
     const matches = release["assets"].map(record).filter((asset) => asset["name"] === name);
     const asset = matches[0];
@@ -61,7 +73,7 @@ async function latest(): Promise<Downloads | null> {
       throw new Error("Unexpected asset URL");
     downloads[platform as keyof typeof platforms] = url;
   }
-  return { version, releaseUrl, downloads };
+  return { version, releaseUrl, downloads, formats };
 }
 export async function GET(): Promise<Response> {
   try {

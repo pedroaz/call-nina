@@ -14,6 +14,7 @@ import { text } from "./envelope.js";
 import { learningOperationKinds, learningOperationKindSchema } from "./generation.js";
 
 export const desktopIpcEventSchema = boundaryUnion([
+  strictBoundaryObject({ event: z.literal("settings-open") }),
   strictBoundaryObject({
     event: z.literal("speech-audio"),
     id: z.uuid(),

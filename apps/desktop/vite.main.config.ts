@@ -51,6 +51,12 @@ export default defineConfig({
   plugins: [desktopEnvironmentPlugin()],
   define: {
     __NINA_APP_VERSION__: JSON.stringify(desktopPackage.version),
+    __NINA_BUILD_COMMIT__: JSON.stringify(
+      /^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA ?? "") ? process.env.GITHUB_SHA : "local",
+    ),
+    __NINA_BUILD_RUN__: JSON.stringify(
+      /^\d+$/.test(process.env.GITHUB_RUN_ID ?? "") ? process.env.GITHUB_RUN_ID : "local",
+    ),
     __NINA_SPEECH_RUNTIMES__: JSON.stringify(
       gzipSync(JSON.stringify(speechRuntimes)).toString("base64"),
     ),
@@ -58,7 +64,7 @@ export default defineConfig({
   resolve: { alias: [clientConfigurationAlias()] },
   build: {
     ssr: "src/main/index.ts",
-    target: "node26",
+    target: "node24",
     outDir: "dist/main",
     // Keep the last complete entry point available while the watch build starts.
     emptyOutDir: !process.argv.includes("--watch"),

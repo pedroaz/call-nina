@@ -53,6 +53,9 @@ async function filesIn(directory, prefix = "") {
       entry.isFile() &&
       (relative === "index.html" ||
         relative === "about/index.html" ||
+        relative === "privacy/index.html" ||
+        relative === "robots.txt" ||
+        relative === "sitemap.xml" ||
         /^notices\/fonts\/OFL-(?:Fredoka|Figtree|JetBrainsMono|NotoSansMono|SourceSans3|SourceSerif4)\.txt$/.test(
           relative,
         ) ||
@@ -96,6 +99,9 @@ if (process.argv.length === 3 && process.argv[2] === "--help") {
   const config = {
     version: 3,
     routes: [
+      ...(environment === "dev"
+        ? [{ src: "^/(?!api(?:/|$)).*", headers: { "X-Robots-Tag": "noindex" }, continue: true }]
+        : []),
       { handle: "filesystem" },
       ...pages.map((file) => ({
         src: file === "index.html" ? "^/$" : `^/${file.slice(0, -11)}/?$`,

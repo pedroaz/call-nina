@@ -29,6 +29,7 @@ import {
   type Role,
   type Use,
 } from "./discovery";
+import { trackWebsiteEvent } from "./telemetry";
 import "./discovery.css";
 
 function ExamplePreview({ answers, locale }: { answers: Answers; locale: Locale }) {
@@ -169,16 +170,32 @@ export function Discovery({
     : [ninaWelcome, ninaListening, ninaThinking, ninaWelcome][step];
 
   const advance = () => {
+    if (step === 0 && answers.role)
+      trackWebsiteEvent("discovery_step_completed", { step: "role", answer: answers.role });
+    if (step === 1 && answers.language)
+      trackWebsiteEvent("discovery_step_completed", { step: "language", answer: answers.language });
+    if (step === 2 && answers.use)
+      trackWebsiteEvent("discovery_step_completed", { step: "use", answer: answers.use });
+    if (step === 3 && answers.connection)
+      trackWebsiteEvent("discovery_step_completed", {
+        step: "connection",
+        answer: answers.connection,
+      });
     if (step < 3) goTo(step + 1);
     else {
       const missing = [answers.role, answers.language, answers.use, answers.connection].findIndex(
         (answer) => !answer,
       );
       if (missing >= 0) goTo(missing);
-      else setState((current) => ({ ...current, complete: true }));
+      else {
+        if (answers.role && answers.use)
+          trackWebsiteEvent("discovery_completed", { role: answers.role, use: answers.use });
+        setState((current) => ({ ...current, complete: true }));
+      }
     }
   };
   const explore = () => {
+    trackWebsiteEvent("feature_selected", { feature: feature ?? "paths", source: "discovery" });
     setOpen(false);
     onExplore(feature);
   };
@@ -213,6 +230,7 @@ export function Discovery({
         className="discovery-trigger"
         variant="quiet"
         onPress={() => {
+          trackWebsiteEvent("discovery_opened", { locale });
           setOpen(true);
         }}
       >
@@ -291,7 +309,18 @@ export function Discovery({
               />
               {complete && answers.role && answers.role !== "student" && (
                 <div className="discovery-professional">
-                  <a href="mailto:pedro.azvm@gmail.com">{t.contact}</a>
+                  <a
+                    href="mailto:pedro.azvm@gmail.com"
+                    onClick={() => {
+                      if (answers.role)
+                        trackWebsiteEvent("contact_clicked", {
+                          source: "discovery",
+                          role: answers.role,
+                        });
+                    }}
+                  >
+                    {t.contact}
+                  </a>
                   <p>{t.professional}</p>
                 </div>
               )}

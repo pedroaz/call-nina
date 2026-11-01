@@ -65,14 +65,8 @@ export async function desktop() {
     filename = `${base}.AppImage`;
     await cp(path.join(root, "release/appimage", images[0]), path.join(output, filename));
   } else if (process.platform === "darwin") {
-    filename = `${base}.tar.gz`;
-    run("tar", [
-      "-czf",
-      path.join(output, filename),
-      "-C",
-      `release/local/${process.arch === "arm64" ? "mac-arm64" : "mac"}`,
-      "Call Nina.app",
-    ]);
+    filename = `${base}.dmg`;
+    await cp(path.join(root, "release/local", filename), path.join(output, filename));
   } else {
     filename = `${base}.zip`;
     // Native PowerShell preserves paths as data, without interpolating them into script source.
